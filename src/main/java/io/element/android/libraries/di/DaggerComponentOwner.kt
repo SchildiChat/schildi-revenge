@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package io.element.android.x.di
+package io.element.android.libraries.di
 
-import com.squareup.anvil.annotations.ContributesTo
-import io.element.android.libraries.di.AppScope
-import io.element.android.x.matrix.auth.MatrixAuthenticationService
-import io.element.android.x.root.RootPresenter
-import kotlinx.coroutines.CoroutineScope
-
-@ContributesTo(AppScope::class)
-interface AppBindings {
-    fun coroutineScope(): CoroutineScope
-    fun rootPresenter(): RootPresenter
-    fun authenticationService(): MatrixAuthenticationService
+/**
+ * A [DaggerComponentOwner] is anything that "owns" a Dagger Component.
+ *
+ */
+interface DaggerComponentOwner {
+    /** This is either a component, or a list of components. */
+    val daggerComponent: Any
 }
