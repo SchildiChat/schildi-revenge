@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 New Vector Ltd
+ * Copyright (c) 2023 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package io.element.android.x.di
+package io.element.android.libraries.matrix.api.room
 
-import com.squareup.anvil.annotations.ContributesTo
-import io.element.android.libraries.di.AppScope
-import io.element.android.libraries.matrix.api.auth.MatrixAuthenticationService
-import io.element.android.x.root.RootPresenter
+import kotlinx.coroutines.flow.StateFlow
 
-@ContributesTo(AppScope::class)
-interface AppBindings {
-    fun rootPresenter(): RootPresenter
-    fun authenticationService(): MatrixAuthenticationService
-    fun matrixClientsHolder(): MatrixClientsHolder
+interface RoomSummaryDataSource {
+    fun roomSummaries(): StateFlow<List<RoomSummary>>
+    fun setSlidingSyncRange(range: IntRange)
 }

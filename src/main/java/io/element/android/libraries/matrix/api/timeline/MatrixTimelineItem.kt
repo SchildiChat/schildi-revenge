@@ -14,16 +14,19 @@
  * limitations under the License.
  */
 
-package io.element.android.x.di
+package io.element.android.libraries.matrix.api.timeline
 
-import com.squareup.anvil.annotations.ContributesTo
-import io.element.android.libraries.di.AppScope
-import io.element.android.libraries.matrix.api.auth.MatrixAuthenticationService
-import io.element.android.x.root.RootPresenter
+import io.element.android.libraries.matrix.api.core.EventId
+import org.matrix.rustcomponents.sdk.EventTimelineItem
+import org.matrix.rustcomponents.sdk.VirtualTimelineItem
 
-@ContributesTo(AppScope::class)
-interface AppBindings {
-    fun rootPresenter(): RootPresenter
-    fun authenticationService(): MatrixAuthenticationService
-    fun matrixClientsHolder(): MatrixClientsHolder
+sealed interface MatrixTimelineItem {
+    data class Event(val event: EventTimelineItem) : MatrixTimelineItem {
+        val uniqueId: String = event.uniqueIdentifier()
+        val eventId: EventId? = event.eventId()?.let { EventId(it) }
+    }
+
+    data class Virtual(val virtual: VirtualTimelineItem) : MatrixTimelineItem
+    object Other : MatrixTimelineItem
 }
+

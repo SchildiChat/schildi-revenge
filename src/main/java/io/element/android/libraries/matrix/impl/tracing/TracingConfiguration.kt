@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package io.element.android.x.di
+package io.element.android.libraries.matrix.impl.tracing
 
-import com.squareup.anvil.annotations.ContributesTo
-import io.element.android.libraries.di.AppScope
-import io.element.android.libraries.matrix.api.auth.MatrixAuthenticationService
-import io.element.android.x.root.RootPresenter
+import io.element.android.libraries.matrix.api.tracing.TracingConfiguration
+import timber.log.Timber
 
-@ContributesTo(AppScope::class)
-interface AppBindings {
-    fun rootPresenter(): RootPresenter
-    fun authenticationService(): MatrixAuthenticationService
-    fun matrixClientsHolder(): MatrixClientsHolder
+fun setupTracing(tracingConfiguration: TracingConfiguration) {
+    val filter = tracingConfiguration.filter
+    Timber.v("Tracing config filter = $filter")
+    org.matrix.rustcomponents.sdk.setupTracing(filter)
 }

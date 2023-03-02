@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 New Vector Ltd
+ * Copyright (c) 2023 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,16 +14,23 @@
  * limitations under the License.
  */
 
-package io.element.android.x.di
+package io.element.android.libraries.matrix.impl.di
 
 import com.squareup.anvil.annotations.ContributesTo
+import dagger.Module
+import dagger.Provides
 import io.element.android.libraries.di.AppScope
-import io.element.android.libraries.matrix.api.auth.MatrixAuthenticationService
-import io.element.android.x.root.RootPresenter
+import io.element.android.libraries.di.SingleIn
+import org.matrix.rustcomponents.sdk.AuthenticationService
+import java.io.File
 
+@Module
 @ContributesTo(AppScope::class)
-interface AppBindings {
-    fun rootPresenter(): RootPresenter
-    fun authenticationService(): MatrixAuthenticationService
-    fun matrixClientsHolder(): MatrixClientsHolder
+object MatrixModule {
+
+    @Provides
+    @SingleIn(AppScope::class)
+    fun providesRustAuthenticationService(baseDirectory: File): AuthenticationService {
+        return AuthenticationService(baseDirectory.absolutePath, null, null)
+    }
 }

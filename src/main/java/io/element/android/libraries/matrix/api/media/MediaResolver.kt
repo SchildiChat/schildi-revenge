@@ -14,16 +14,26 @@
  * limitations under the License.
  */
 
-package io.element.android.x.di
+package io.element.android.libraries.matrix.api.media
 
-import com.squareup.anvil.annotations.ContributesTo
-import io.element.android.libraries.di.AppScope
-import io.element.android.libraries.matrix.api.auth.MatrixAuthenticationService
-import io.element.android.x.root.RootPresenter
+import org.matrix.rustcomponents.sdk.MediaSource
 
-@ContributesTo(AppScope::class)
-interface AppBindings {
-    fun rootPresenter(): RootPresenter
-    fun authenticationService(): MatrixAuthenticationService
-    fun matrixClientsHolder(): MatrixClientsHolder
+interface MediaResolver {
+
+    sealed interface Kind {
+        data class Thumbnail(val width: Int, val height: Int) : Kind {
+            constructor(size: Int) : this(size, size)
+        }
+
+        object Content : Kind
+    }
+
+    data class Meta(
+        val source: MediaSource?,
+        val kind: Kind
+    )
+
+    suspend fun resolve(url: String?, kind: Kind): ByteArray?
+
+    suspend fun resolve(meta: Meta): ByteArray?
 }

@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package io.element.android.x.di
+package io.element.android.libraries.matrix.impl.util
 
-import com.squareup.anvil.annotations.ContributesTo
-import io.element.android.libraries.di.AppScope
-import io.element.android.libraries.matrix.api.auth.MatrixAuthenticationService
-import io.element.android.x.root.RootPresenter
+import org.matrix.rustcomponents.sdk.ClientException
+import timber.log.Timber
 
-@ContributesTo(AppScope::class)
-interface AppBindings {
-    fun rootPresenter(): RootPresenter
-    fun authenticationService(): MatrixAuthenticationService
-    fun matrixClientsHolder(): MatrixClientsHolder
+fun logError(throwable: Throwable) {
+    when (throwable) {
+        is ClientException.Generic -> {
+            Timber.e("Error ${throwable.msg}", throwable)
+        }
+        else -> {
+            Timber.e("Error", throwable)
+        }
+    }
 }
