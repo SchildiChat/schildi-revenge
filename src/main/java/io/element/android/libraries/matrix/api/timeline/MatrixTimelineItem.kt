@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.impl.timeline
+package io.element.android.libraries.matrix.api.timeline
 
-import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
-import org.matrix.rustcomponents.sdk.TimelineItem
+import io.element.android.libraries.matrix.api.core.EventId
+import org.matrix.rustcomponents.sdk.EventTimelineItem
+import org.matrix.rustcomponents.sdk.VirtualTimelineItem
 
-fun TimelineItem.asMatrixTimelineItem(): MatrixTimelineItem {
-    val asEvent = asEvent()
-    if (asEvent != null) {
-        return MatrixTimelineItem.Event(asEvent)
+sealed interface MatrixTimelineItem {
+    data class Event(val event: EventTimelineItem) : MatrixTimelineItem {
+        val uniqueId: String = event.uniqueIdentifier()
+        val eventId: EventId? = event.eventId()?.let { EventId(it) }
     }
-    val asVirtual = asVirtual()
-    if (asVirtual != null) {
-        return MatrixTimelineItem.Virtual(asVirtual)
-    }
-    return MatrixTimelineItem.Other
+
+    data class Virtual(val virtual: VirtualTimelineItem) : MatrixTimelineItem
+    object Other : MatrixTimelineItem
 }
+

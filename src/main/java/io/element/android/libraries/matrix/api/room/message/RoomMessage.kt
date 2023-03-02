@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 New Vector Ltd
+ * Copyright (c) 2023 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.impl.timeline
+package io.element.android.libraries.matrix.api.room.message
 
-import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
-import org.matrix.rustcomponents.sdk.TimelineItem
+import io.element.android.libraries.matrix.api.core.EventId
+import io.element.android.libraries.matrix.api.core.UserId
 
-fun TimelineItem.asMatrixTimelineItem(): MatrixTimelineItem {
-    val asEvent = asEvent()
-    if (asEvent != null) {
-        return MatrixTimelineItem.Event(asEvent)
-    }
-    val asVirtual = asVirtual()
-    if (asVirtual != null) {
-        return MatrixTimelineItem.Virtual(asVirtual)
-    }
-    return MatrixTimelineItem.Other
-}
+data class RoomMessage(
+    val eventId: EventId,
+    val body: String,
+    val sender: UserId,
+    val originServerTs: Long,
+)

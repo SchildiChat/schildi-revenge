@@ -14,19 +14,9 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.impl.timeline
+package io.element.android.libraries.matrix.api.core
 
-import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
-import org.matrix.rustcomponents.sdk.TimelineItem
+import java.io.Serializable
 
-fun TimelineItem.asMatrixTimelineItem(): MatrixTimelineItem {
-    val asEvent = asEvent()
-    if (asEvent != null) {
-        return MatrixTimelineItem.Event(asEvent)
-    }
-    val asVirtual = asVirtual()
-    if (asVirtual != null) {
-        return MatrixTimelineItem.Virtual(asVirtual)
-    }
-    return MatrixTimelineItem.Other
-}
+@JvmInline
+value class EventId(val value: String) : Serializable

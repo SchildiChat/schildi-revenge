@@ -14,19 +14,26 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.impl.timeline
+package io.element.android.libraries.matrix.api.media
 
-import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
-import org.matrix.rustcomponents.sdk.TimelineItem
+import org.matrix.rustcomponents.sdk.MediaSource
 
-fun TimelineItem.asMatrixTimelineItem(): MatrixTimelineItem {
-    val asEvent = asEvent()
-    if (asEvent != null) {
-        return MatrixTimelineItem.Event(asEvent)
+interface MediaResolver {
+
+    sealed interface Kind {
+        data class Thumbnail(val width: Int, val height: Int) : Kind {
+            constructor(size: Int) : this(size, size)
+        }
+
+        object Content : Kind
     }
-    val asVirtual = asVirtual()
-    if (asVirtual != null) {
-        return MatrixTimelineItem.Virtual(asVirtual)
-    }
-    return MatrixTimelineItem.Other
+
+    data class Meta(
+        val source: MediaSource?,
+        val kind: Kind
+    )
+
+    suspend fun resolve(url: String?, kind: Kind): ByteArray?
+
+    suspend fun resolve(meta: Meta): ByteArray?
 }
