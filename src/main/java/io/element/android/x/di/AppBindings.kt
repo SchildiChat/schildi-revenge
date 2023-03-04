@@ -22,4 +22,5 @@ import io.element.android.libraries.di.AppScope
 @ContributesTo(AppScope::class)
 interface AppBindings {
     fun matrixClientsHolder(): MatrixClientsHolder
+    fun mainDaggerComponentOwner(): MainDaggerComponentOwner
 }
