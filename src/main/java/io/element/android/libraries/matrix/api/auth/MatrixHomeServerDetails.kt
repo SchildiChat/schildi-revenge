@@ -16,16 +16,19 @@
 
 package io.element.android.libraries.matrix.api.auth
 
-import io.element.android.libraries.matrix.api.MatrixClient
-import io.element.android.libraries.matrix.api.core.SessionId
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+import org.matrix.rustcomponents.sdk.HomeserverLoginDetails
 
-interface MatrixAuthenticationService {
-    fun isLoggedIn(): Flow<Boolean>
-    suspend fun getLatestSessionId(): SessionId?
-    suspend fun restoreSession(sessionId: SessionId): MatrixClient?
-    fun getHomeserverDetails(): StateFlow<MatrixHomeServerDetails?>
-    suspend fun setHomeserver(homeserver: String)
-    suspend fun login(username: String, password: String): SessionId
+@Parcelize
+data class MatrixHomeServerDetails(
+    val url: String,
+    val supportsPasswordLogin: Boolean,
+    val authenticationIssuer: String?
+): Parcelable {
+    constructor(homeserverLoginDetails: HomeserverLoginDetails) : this(
+        homeserverLoginDetails.url(),
+        homeserverLoginDetails.supportsPasswordLogin(),
+        homeserverLoginDetails.authenticationIssuer()
+    )
 }
