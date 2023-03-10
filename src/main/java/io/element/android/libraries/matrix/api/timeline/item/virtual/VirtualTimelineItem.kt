@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 New Vector Ltd
+ * Copyright (c) 2023 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,17 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.media
+package io.element.android.libraries.matrix.api.timeline.item.virtual
 
-interface MediaResolver {
+sealed interface VirtualTimelineItem {
 
-    sealed interface Kind {
-        data class Thumbnail(val width: Int, val height: Int) : Kind {
-            constructor(size: Int) : this(size, size)
-        }
+    data class DayDivider(
+        val timestamp: Long
+    ) : VirtualTimelineItem
 
-        object Content : Kind
-    }
+    object ReadMarker : VirtualTimelineItem
 
-    data class Meta(
-        val url: String?,
-        val kind: Kind
-    )
+    object LoadingIndicator : VirtualTimelineItem
 
-    suspend fun resolve(url: String?, kind: Kind): ByteArray?
-
+    object TimelineStart : VirtualTimelineItem
 }

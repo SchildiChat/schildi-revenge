@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 New Vector Ltd
+ * Copyright (c) 2023 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.media
+package io.element.android.libraries.matrix.api.timeline.item.event
 
-interface MediaResolver {
+sealed interface ProfileTimelineDetails {
+    object Unavailable : ProfileTimelineDetails
 
-    sealed interface Kind {
-        data class Thumbnail(val width: Int, val height: Int) : Kind {
-            constructor(size: Int) : this(size, size)
-        }
+    object Pending : ProfileTimelineDetails
 
-        object Content : Kind
-    }
+    data class Ready(
+        val displayName: String?,
+        val displayNameAmbiguous: Boolean,
+        val avatarUrl: String?
+    ) : ProfileTimelineDetails
 
-    data class Meta(
-        val url: String?,
-        val kind: Kind
-    )
-
-    suspend fun resolve(url: String?, kind: Kind): ByteArray?
-
+    data class Error(
+        val message: String
+    ) : ProfileTimelineDetails
 }

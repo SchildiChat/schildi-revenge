@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.media
+package io.element.android.libraries.matrix.impl.media
 
 interface MediaResolver {
 

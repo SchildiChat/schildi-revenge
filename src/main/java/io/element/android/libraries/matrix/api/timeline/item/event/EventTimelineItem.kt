@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 New Vector Ltd
+ * Copyright (c) 2023 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.timeline
+package io.element.android.libraries.matrix.api.timeline.item.event
 
 import io.element.android.libraries.matrix.api.core.EventId
-import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
-import io.element.android.libraries.matrix.api.timeline.item.virtual.VirtualTimelineItem
+import io.element.android.libraries.matrix.api.core.UserId
 
-sealed interface MatrixTimelineItem {
-    data class Event(val event: EventTimelineItem) : MatrixTimelineItem {
-        val uniqueId: String = event.uniqueIdentifier
-        val eventId: EventId? = event.eventId
-    }
-
-    data class Virtual(val virtual: VirtualTimelineItem) : MatrixTimelineItem
-    object Other : MatrixTimelineItem
-}
-
+data class EventTimelineItem(
+    val uniqueIdentifier: String,
+    val eventId: EventId?,
+    val isEditable: Boolean,
+    val isLocal: Boolean,
+    val isOwn: Boolean,
+    val isRemote: Boolean,
+    val localSendState: EventSendState?,
+    val reactions: List<EventReaction>,
+    val sender: UserId,
+    val senderProfile: ProfileTimelineDetails,
+    val timestamp: Long,
+    val content: TimelineEventContent
+)
