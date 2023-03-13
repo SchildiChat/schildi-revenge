@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.auth
+package io.element.android.libraries.core.extensions
 
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
-
-@Parcelize
-data class MatrixHomeServerDetails(
-    val url: String,
-    val supportsPasswordLogin: Boolean,
-    val authenticationIssuer: String?
-): Parcelable
+/**
+ * Can be used to transform some Throwable into some other
+ */
+inline fun <R, T : R> Result<T>.mapFailure(transform: (exception: Throwable) -> Throwable): Result<R> {
+    return when (val exception = exceptionOrNull()) {
+        null -> this
+        else -> Result.failure(transform(exception))
+    }
+}

@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.auth
+package io.element.android.libraries.matrix.impl.auth
 
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
+import io.element.android.libraries.matrix.api.auth.MatrixHomeServerDetails
+import org.matrix.rustcomponents.sdk.HomeserverLoginDetails
 
-@Parcelize
-data class MatrixHomeServerDetails(
-    val url: String,
-    val supportsPasswordLogin: Boolean,
-    val authenticationIssuer: String?
-): Parcelable
+fun HomeserverLoginDetails.map(): MatrixHomeServerDetails = use {
+    MatrixHomeServerDetails(
+        url = url(),
+        supportsPasswordLogin = supportsPasswordLogin(),
+        authenticationIssuer = authenticationIssuer()
+    )
+}

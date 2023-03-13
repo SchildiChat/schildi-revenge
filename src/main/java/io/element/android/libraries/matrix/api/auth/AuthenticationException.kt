@@ -16,16 +16,10 @@
 
 package io.element.android.libraries.matrix.api.auth
 
-import io.element.android.libraries.matrix.api.MatrixClient
-import io.element.android.libraries.matrix.api.core.SessionId
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.StateFlow
-
-interface MatrixAuthenticationService {
-    fun isLoggedIn(): Flow<Boolean>
-    suspend fun getLatestSessionId(): SessionId?
-    suspend fun restoreSession(sessionId: SessionId): Result<MatrixClient>
-    fun getHomeserverDetails(): StateFlow<MatrixHomeServerDetails?>
-    suspend fun setHomeserver(homeserver: String): Result<Unit>
-    suspend fun login(username: String, password: String): Result<SessionId>
+sealed class AuthenticationException(message: String) : Exception(message) {
+    class ClientMissing(message: String) : AuthenticationException(message)
+    class InvalidServerName(message: String) : AuthenticationException(message)
+    class SlidingSyncNotAvailable(message: String) : AuthenticationException(message)
+    class SessionMissing(message: String) : AuthenticationException(message)
+    class Generic(message: String) : AuthenticationException(message)
 }
