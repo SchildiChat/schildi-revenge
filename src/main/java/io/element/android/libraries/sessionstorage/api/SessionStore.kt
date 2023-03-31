@@ -26,3 +26,7 @@ interface SessionStore {
     suspend fun getLatestSession(): SessionData?
     suspend fun removeSession(sessionId: String)
 }
+
+fun List<SessionData>.toUserList(): List<String> {
+    return map { it.userId }
+}
