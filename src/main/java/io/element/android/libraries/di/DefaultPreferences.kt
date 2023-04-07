@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.core
+package io.element.android.libraries.di
 
-import java.io.Serializable
+import javax.inject.Qualifier
 
-@JvmInline
-value class UserId(val value: String) : Serializable
-
-fun String.asUserId() = UserId(this)
+@Qualifier annotation class DefaultPreferences

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 New Vector Ltd
+ * Copyright (c) 2023 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,14 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.core
+package io.element.android.libraries.matrix.api.notification
 
-import java.io.Serializable
+import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 
-@JvmInline
-value class UserId(val value: String) : Serializable
-
-fun String.asUserId() = UserId(this)
+data class NotificationData(
+    val item: MatrixTimelineItem,
+    val title: String,
+    val subtitle: String?,
+    val isNoisy: Boolean,
+    val avatarUrl: String?,
+)

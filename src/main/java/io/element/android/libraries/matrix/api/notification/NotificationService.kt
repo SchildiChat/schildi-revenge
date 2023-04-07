@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 New Vector Ltd
+ * Copyright (c) 2023 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.core
+package io.element.android.libraries.matrix.api.notification
 
-import java.io.Serializable
+import io.element.android.libraries.matrix.api.core.EventId
+import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.matrix.api.core.SessionId
 
-@JvmInline
-value class UserId(val value: String) : Serializable
-
-fun String.asUserId() = UserId(this)
+interface NotificationService {
+    suspend fun getNotification(userId: SessionId, roomId: RoomId, eventId: EventId): Result<NotificationData?>
+}
