@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 New Vector Ltd
+ * Copyright (c) 2023 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,22 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package io.element.android.libraries.matrix.api.createroom
 
-package io.element.android.libraries.matrix.api.core
-
-import io.element.android.libraries.matrix.api.BuildConfig
-import java.io.Serializable
-
-@JvmInline
-value class SpaceId(val value: String) : Serializable
-
-/**
- * Value to use when no space is selected by the user.
- */
-val MAIN_SPACE = SpaceId("!mainSpace")
-
-fun String.asSpaceId() = if (BuildConfig.DEBUG && !MatrixPatterns.isSpaceId(this)) {
-    error("`$this` is not a valid space Id")
-} else {
-    SpaceId(this)
+enum class RoomVisibility {
+    PUBLIC,
+    PRIVATE,
 }
