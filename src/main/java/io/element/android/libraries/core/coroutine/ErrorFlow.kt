@@ -14,21 +14,9 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.room
+package io.element.android.libraries.core.coroutine
 
-import io.element.android.libraries.matrix.api.core.UserId
+import kotlinx.coroutines.flow.flow
 
-data class RoomMember(
-    val userId: UserId,
-    val displayName: String?,
-    val avatarUrl: String?,
-    val membership: RoomMembershipState,
-    val isNameAmbiguous: Boolean,
-    val powerLevel: Long,
-    val normalizedPowerLevel: Long,
-    val isIgnored: Boolean,
-)
-
-enum class RoomMembershipState {
-    BAN, INVITE, JOIN, KNOCK, LEAVE
-}
+/** Create a Flow emitting a single error event. It should be useful for tests. */
+fun <T> errorFlow(throwable: Throwable) = flow<T> { throw throwable }
