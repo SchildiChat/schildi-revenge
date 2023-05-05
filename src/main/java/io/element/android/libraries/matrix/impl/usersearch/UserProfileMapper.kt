@@ -14,28 +14,17 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.room
+package io.element.android.libraries.matrix.impl.usersearch
 
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.user.MatrixUser
+import org.matrix.rustcomponents.sdk.UserProfile
 
-data class RoomMember(
-    val userId: UserId,
-    val displayName: String?,
-    val avatarUrl: String?,
-    val membership: RoomMembershipState,
-    val isNameAmbiguous: Boolean,
-    val powerLevel: Long,
-    val normalizedPowerLevel: Long,
-    val isIgnored: Boolean,
-)
-
-fun RoomMember.toMatrixUser() = MatrixUser(
-    userId = userId,
-    displayName = displayName,
-    avatarUrl = avatarUrl,
-)
-
-enum class RoomMembershipState {
-    BAN, INVITE, JOIN, KNOCK, LEAVE
+object UserProfileMapper {
+    fun map(userProfile: UserProfile): MatrixUser =
+        MatrixUser(
+            userId = UserId(userProfile.userId),
+            displayName = userProfile.displayName,
+            avatarUrl = userProfile.avatarUrl,
+        )
 }

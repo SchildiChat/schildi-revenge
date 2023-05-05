@@ -14,28 +14,15 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.room
+package io.element.android.libraries.matrix.api.user
 
+import android.os.Parcelable
 import io.element.android.libraries.matrix.api.core.UserId
-import io.element.android.libraries.matrix.api.user.MatrixUser
+import kotlinx.parcelize.Parcelize
 
-data class RoomMember(
+@Parcelize
+data class MatrixUser(
     val userId: UserId,
-    val displayName: String?,
-    val avatarUrl: String?,
-    val membership: RoomMembershipState,
-    val isNameAmbiguous: Boolean,
-    val powerLevel: Long,
-    val normalizedPowerLevel: Long,
-    val isIgnored: Boolean,
-)
-
-fun RoomMember.toMatrixUser() = MatrixUser(
-    userId = userId,
-    displayName = displayName,
-    avatarUrl = avatarUrl,
-)
-
-enum class RoomMembershipState {
-    BAN, INVITE, JOIN, KNOCK, LEAVE
-}
+    val displayName: String? = null,
+    val avatarUrl: String? = null
+) : Parcelable
