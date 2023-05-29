@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 New Vector Ltd
+ * Copyright (c) 2023 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,21 +16,17 @@
 
 package io.element.android.libraries.matrix.api.media
 
-interface MediaResolver {
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 
-    sealed interface Kind {
-        data class Thumbnail(val width: Int, val height: Int) : Kind {
-            constructor(size: Int) : this(size, size)
-        }
-
-        object Content : Kind
-    }
-
-    data class Meta(
-        val url: String?,
-        val kind: Kind
-    )
-
-    suspend fun resolve(url: String?, kind: Kind): ByteArray?
-
-}
+@Parcelize
+data class MediaSource(
+    /**
+     * Url of the media.
+     */
+    val url: String,
+    /**
+     * This is used to hold data for encrypted media.
+     */
+    val json: String? = null,
+) : Parcelable

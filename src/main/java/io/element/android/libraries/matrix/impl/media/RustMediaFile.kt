@@ -16,20 +16,16 @@
 
 package io.element.android.libraries.matrix.impl.media
 
-import io.element.android.libraries.matrix.api.MatrixClient
-import io.element.android.libraries.matrix.api.media.MediaResolver
+import io.element.android.libraries.matrix.api.media.MediaFile
+import org.matrix.rustcomponents.sdk.MediaFileHandle
 
-internal class RustMediaResolver(private val client: MatrixClient) : MediaResolver {
+class RustMediaFile(private val inner: MediaFileHandle) : MediaFile {
 
-    override suspend fun resolve(url: String?, kind: MediaResolver.Kind): ByteArray? {
-        if (url.isNullOrEmpty()) return null
-        return when (kind) {
-            is MediaResolver.Kind.Content -> client.loadMediaContent(url)
-            is MediaResolver.Kind.Thumbnail -> client.loadMediaThumbnail(
-                url,
-                kind.width.toLong(),
-                kind.height.toLong()
-            )
-        }.getOrNull()
+    override fun path(): String {
+        return inner.path()
+    }
+
+    override fun close() {
+        inner.close()
     }
 }
