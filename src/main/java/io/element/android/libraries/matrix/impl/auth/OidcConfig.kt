@@ -16,13 +16,17 @@
 
 package io.element.android.libraries.matrix.impl.auth
 
-import io.element.android.libraries.matrix.api.auth.MatrixHomeServerDetails
-import org.matrix.rustcomponents.sdk.HomeserverLoginDetails
+import io.element.android.libraries.matrix.api.auth.OidcConfig
+// TODO Oidc
+// import org.matrix.rustcomponents.sdk.OidcClientMetadata
 
-fun HomeserverLoginDetails.map(): MatrixHomeServerDetails = use {
-    MatrixHomeServerDetails(
-        url = url(),
-        supportsPasswordLogin = supportsPasswordLogin(),
-        supportsOidcLogin = false // TODO Oidc supportsOidcLogin(),
-    )
-}
+/*
+val oidcClientMetadata: OidcClientMetadata = OidcClientMetadata(
+    clientName = "Element",
+    redirectUri = OidcConfig.redirectUri,
+    clientUri = "https://element.io",
+    tosUri = "https://element.io/user-terms-of-service",
+    policyUri = "https://element.io/privacy"
+)
+ */
+

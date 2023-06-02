@@ -14,15 +14,28 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.impl.auth
+package io.element.android.libraries.matrix.api.room
 
-import io.element.android.libraries.matrix.api.auth.MatrixHomeServerDetails
-import org.matrix.rustcomponents.sdk.HomeserverLoginDetails
-
-fun HomeserverLoginDetails.map(): MatrixHomeServerDetails = use {
-    MatrixHomeServerDetails(
-        url = url(),
-        supportsPasswordLogin = supportsPasswordLogin(),
-        supportsOidcLogin = false // TODO Oidc supportsOidcLogin(),
-    )
+enum class StateEventType {
+    POLICY_RULE_ROOM,
+    POLICY_RULE_SERVER,
+    POLICY_RULE_USER,
+    ROOM_ALIASES,
+    ROOM_AVATAR,
+    ROOM_CANONICAL_ALIAS,
+    ROOM_CREATE,
+    ROOM_ENCRYPTION,
+    ROOM_GUEST_ACCESS,
+    ROOM_HISTORY_VISIBILITY,
+    ROOM_JOIN_RULES,
+    ROOM_MEMBER_EVENT,
+    ROOM_NAME,
+    ROOM_PINNED_EVENTS,
+    ROOM_POWER_LEVELS,
+    ROOM_SERVER_ACL,
+    ROOM_THIRD_PARTY_INVITE,
+    ROOM_TOMBSTONE,
+    ROOM_TOPIC,
+    SPACE_CHILD,
+    SPACE_PARENT;
 }
