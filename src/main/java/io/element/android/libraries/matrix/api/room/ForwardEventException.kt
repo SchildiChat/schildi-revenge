@@ -14,19 +14,13 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.timeline.item.event
+package io.element.android.libraries.matrix.api.room
 
-import io.element.android.libraries.matrix.api.core.EventId
+import io.element.android.libraries.matrix.api.core.RoomId
 
-sealed interface EventSendState {
-    object NotSentYet : EventSendState
-    object Canceled : EventSendState
+class ForwardEventException(
+    val roomIds: List<RoomId>
+) : Exception() {
 
-    data class SendingFailed(
-        val error: String
-    ) : EventSendState
-
-    data class Sent(
-        val eventId: EventId
-    ) : EventSendState
+    override val message: String? = "Failed to deliver event to $roomIds rooms"
 }
