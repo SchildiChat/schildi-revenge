@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.core.data
+package io.element.android.libraries.matrix.api.core
 
-/**
- * Wrapper for a CharSequence, which support mutation of the CharSequence.
- */
-class StableCharSequence(val charSequence: CharSequence) {
-    private val hash = charSequence.toString().hashCode()
+import java.io.Serializable
 
-    override fun hashCode() = hash
-    override fun equals(other: Any?) = other is StableCharSequence && other.hash == hash
-
-    override fun toString(): String = "StableCharSequence(\"$charSequence\")"
+@JvmInline
+value class TransactionId(val value: String) : Serializable {
+    override fun toString(): String = value
 }
-
-fun CharSequence.toStableCharSequence() = StableCharSequence(this)
