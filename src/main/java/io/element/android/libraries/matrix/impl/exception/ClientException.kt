@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.timeline.item.virtual
+package io.element.android.libraries.matrix.impl.exception
 
-sealed interface VirtualTimelineItem {
+import io.element.android.libraries.matrix.api.exception.ClientException
+import org.matrix.rustcomponents.sdk.ClientException as RustClientException
 
-    data class DayDivider(
-        val timestamp: Long
-    ) : VirtualTimelineItem
-
-    object ReadMarker : VirtualTimelineItem
-
-    object EncryptedHistoryBanner : VirtualTimelineItem
+fun Throwable.mapClientException(): ClientException {
+    return when (this) {
+        is RustClientException.Generic -> ClientException.Generic(msg)
+        else -> ClientException.Other(message ?: "Unknown error")
+    }
 }

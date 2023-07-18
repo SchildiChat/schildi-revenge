@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.timeline.item.virtual
+package io.element.android.libraries.matrix.api
 
-sealed interface VirtualTimelineItem {
+import io.element.android.libraries.matrix.api.core.SessionId
 
-    data class DayDivider(
-        val timestamp: Long
-    ) : VirtualTimelineItem
-
-    object ReadMarker : VirtualTimelineItem
-
-    object EncryptedHistoryBanner : VirtualTimelineItem
+interface MatrixClientProvider {
+    /**
+     * Can be used to get or restore a MatrixClient with the given [SessionId].
+     * If a [MatrixClient] is already in memory, it'll return it. Otherwise it'll try to restore one.
+     * Most of the time you want to use injected constructor instead of retrieving a MatrixClient with this provider.
+     */
+    suspend fun getOrRestore(sessionId: SessionId): Result<MatrixClient>
 }

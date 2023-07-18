@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.timeline.item.virtual
+package io.element.android.libraries.matrix.api.timeline.item.event
 
-sealed interface VirtualTimelineItem {
-
-    data class DayDivider(
-        val timestamp: Long
-    ) : VirtualTimelineItem
-
-    object ReadMarker : VirtualTimelineItem
-
-    object EncryptedHistoryBanner : VirtualTimelineItem
+enum class TimelineItemEventOrigin {
+    LOCAL, SYNC, PAGINATION;
 }

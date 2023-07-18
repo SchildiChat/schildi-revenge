@@ -14,15 +14,9 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.timeline.item.virtual
+package io.element.android.libraries.matrix.api.exception
 
-sealed interface VirtualTimelineItem {
-
-    data class DayDivider(
-        val timestamp: Long
-    ) : VirtualTimelineItem
-
-    object ReadMarker : VirtualTimelineItem
-
-    object EncryptedHistoryBanner : VirtualTimelineItem
+sealed class ClientException(message: String) : Exception(message) {
+    class Generic(message: String) : ClientException(message)
+    class Other(message: String) : ClientException(message)
 }
