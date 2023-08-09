@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.impl.sync
+package io.element.android.libraries.matrix.impl.roomlist
 
-import io.element.android.libraries.matrix.api.sync.SyncState
-import org.matrix.rustcomponents.sdk.SyncServiceState
+import io.element.android.libraries.matrix.api.roomlist.RoomList
+import io.element.android.libraries.matrix.api.roomlist.RoomSummary
+import kotlinx.coroutines.flow.StateFlow
 
-internal fun SyncServiceState.toSyncState(): SyncState {
-    return when (this) {
-        SyncServiceState.IDLE -> SyncState.Idle
-        SyncServiceState.RUNNING -> SyncState.Running
-        SyncServiceState.TERMINATED -> SyncState.Terminated
-        SyncServiceState.ERROR -> SyncState.Error
-    }
-}
+/**
+ * Simple implementation of [RoomList] where state flows are provided through constructor.
+ */
+class RustRoomList(
+    override val summaries: StateFlow<List<RoomSummary>>,
+    override val loadingState: StateFlow<RoomList.LoadingState>
+) : RoomList
