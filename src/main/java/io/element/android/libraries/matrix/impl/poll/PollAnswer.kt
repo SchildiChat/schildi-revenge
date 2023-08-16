@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package io.element.android.x.di
+package io.element.android.libraries.matrix.impl.poll
 
-import com.squareup.anvil.annotations.ContributesTo
-import io.element.android.features.rageshake.api.reporter.BugReporter
-import io.element.android.libraries.designsystem.utils.SnackbarDispatcher
-import io.element.android.libraries.di.AppScope
-import io.element.android.libraries.matrix.api.tracing.TracingService
+import io.element.android.libraries.matrix.api.poll.PollAnswer
+import org.matrix.rustcomponents.sdk.PollAnswer as RustPollAnswer
 
-@ContributesTo(AppScope::class)
-interface AppBindings {
-    fun mainDaggerComponentOwner(): MainDaggerComponentsOwner
-    fun snackbarDispatcher(): SnackbarDispatcher
-    fun tracingService(): TracingService
-    fun bugReporter(): BugReporter
-}
+fun RustPollAnswer.map(): PollAnswer = PollAnswer(
+    id = id,
+    text = text,
+)

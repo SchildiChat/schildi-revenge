@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package io.element.android.x.di
+package io.element.android.libraries.matrix.impl.util
 
-import com.squareup.anvil.annotations.ContributesTo
-import io.element.android.features.rageshake.api.reporter.BugReporter
-import io.element.android.libraries.designsystem.utils.SnackbarDispatcher
-import io.element.android.libraries.di.AppScope
-import io.element.android.libraries.matrix.api.tracing.TracingService
+import org.matrix.rustcomponents.sdk.Disposable
 
-@ContributesTo(AppScope::class)
-interface AppBindings {
-    fun mainDaggerComponentOwner(): MainDaggerComponentsOwner
-    fun snackbarDispatcher(): SnackbarDispatcher
-    fun tracingService(): TracingService
-    fun bugReporter(): BugReporter
-}
+/**
+ * Call destroy on all elements of the iterable.
+ */
+internal fun Iterable<Disposable>.destroyAll() = forEach { it.destroy() }

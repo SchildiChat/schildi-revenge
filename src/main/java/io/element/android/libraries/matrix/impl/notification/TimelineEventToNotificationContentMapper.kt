@@ -16,8 +16,8 @@
 
 package io.element.android.libraries.matrix.impl.notification
 
+import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.notification.NotificationContent
-import io.element.android.libraries.matrix.api.notification.NotificationEvent
 import io.element.android.libraries.matrix.impl.room.RoomMemberMapper
 import io.element.android.libraries.matrix.impl.timeline.item.event.EventMessageMapper
 import org.matrix.rustcomponents.sdk.MessageLikeEventContent
@@ -27,22 +27,20 @@ import org.matrix.rustcomponents.sdk.TimelineEventType
 import org.matrix.rustcomponents.sdk.use
 import javax.inject.Inject
 
-class TimelineEventMapper @Inject constructor() {
+class TimelineEventToNotificationContentMapper @Inject constructor() {
 
-    fun map(timelineEvent: TimelineEvent): NotificationEvent {
+    fun map(timelineEvent: TimelineEvent): NotificationContent {
         return timelineEvent.use {
-            NotificationEvent(
-                timestamp = it.timestamp().toLong(),
-                content = it.eventType().toContent(),
-                contentUrl = null // TODO it.eventType().toContentUrl(),
-            )
+            timelineEvent.eventType().use { eventType ->
+                eventType.toContent(senderId = UserId(timelineEvent.senderId()))
+            }
         }
     }
 }
 
-private fun TimelineEventType.toContent(): NotificationContent {
+private fun TimelineEventType.toContent(senderId: UserId): NotificationContent {
     return when (this) {
-        is TimelineEventType.MessageLike -> content.toContent()
+        is TimelineEventType.MessageLike -> content.toContent(senderId)
         is TimelineEventType.State -> content.toContent()
     }
 }
@@ -75,9 +73,9 @@ private fun StateEventContent.toContent(): NotificationContent.StateEvent {
     }
 }
 
-private fun MessageLikeEventContent.toContent(): NotificationContent.MessageLike {
+private fun MessageLikeEventContent.toContent(senderId: UserId): NotificationContent.MessageLike {
     return use {
-        when (it) {
+        when (this) {
             MessageLikeEventContent.CallAnswer -> NotificationContent.MessageLike.CallAnswer
             MessageLikeEventContent.CallCandidates -> NotificationContent.MessageLike.CallCandidates
             MessageLikeEventContent.CallHangup -> NotificationContent.MessageLike.CallHangup
@@ -89,10 +87,10 @@ private fun MessageLikeEventContent.toContent(): NotificationContent.MessageLike
             MessageLikeEventContent.KeyVerificationMac -> NotificationContent.MessageLike.KeyVerificationMac
             MessageLikeEventContent.KeyVerificationReady -> NotificationContent.MessageLike.KeyVerificationReady
             MessageLikeEventContent.KeyVerificationStart -> NotificationContent.MessageLike.KeyVerificationStart
-            is MessageLikeEventContent.ReactionContent -> NotificationContent.MessageLike.ReactionContent(it.relatedEventId)
+            is MessageLikeEventContent.ReactionContent -> NotificationContent.MessageLike.ReactionContent(relatedEventId)
             MessageLikeEventContent.RoomEncrypted -> NotificationContent.MessageLike.RoomEncrypted
             is MessageLikeEventContent.RoomMessage -> {
-                NotificationContent.MessageLike.RoomMessage(EventMessageMapper().mapMessageType(it.messageType))
+                NotificationContent.MessageLike.RoomMessage(senderId, EventMessageMapper().mapMessageType(messageType))
             }
             MessageLikeEventContent.RoomRedaction -> NotificationContent.MessageLike.RoomRedaction
             MessageLikeEventContent.Sticker -> NotificationContent.MessageLike.Sticker

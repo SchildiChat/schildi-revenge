@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package io.element.android.x.di
+package io.element.android.libraries.matrix.api.timeline.item.event
 
-import com.squareup.anvil.annotations.ContributesTo
-import io.element.android.features.rageshake.api.reporter.BugReporter
-import io.element.android.libraries.designsystem.utils.SnackbarDispatcher
-import io.element.android.libraries.di.AppScope
-import io.element.android.libraries.matrix.api.tracing.TracingService
+import io.element.android.libraries.matrix.api.core.UserId
 
-@ContributesTo(AppScope::class)
-interface AppBindings {
-    fun mainDaggerComponentOwner(): MainDaggerComponentsOwner
-    fun snackbarDispatcher(): SnackbarDispatcher
-    fun tracingService(): TracingService
-    fun bugReporter(): BugReporter
-}
+/**
+ * The sender of a reaction.
+ *
+ * @property senderId the ID of the user who sent the reaction
+ * @property timestamp the timestamp the reaction was received on the origin homeserver
+ */
+data class ReactionSender(
+    val senderId: UserId,
+    val timestamp: Long
+)
+

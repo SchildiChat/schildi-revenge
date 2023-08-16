@@ -14,23 +14,9 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.impl.util
+package io.element.android.libraries.matrix.api.poll
 
-import org.matrix.rustcomponents.sdk.TaskHandle
-import java.util.concurrent.CopyOnWriteArraySet
-
-class TaskHandleBag(private val tokens: MutableSet<TaskHandle> = CopyOnWriteArraySet()) : Set<TaskHandle> by tokens {
-
-    operator fun plusAssign(taskHandle: TaskHandle?) {
-        if (taskHandle == null) return
-        tokens += taskHandle
-    }
-
-    fun dispose() {
-        tokens.forEach {
-            it.cancel()
-            it.destroy()
-        }
-        tokens.clear()
-    }
-}
+data class PollAnswer(
+    val id: String,
+    val text: String
+)

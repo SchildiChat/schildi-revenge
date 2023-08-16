@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.impl.room
+package io.element.android.libraries.matrix.impl.roomlist
 
 import io.element.android.libraries.core.coroutine.parallelMap
-import io.element.android.libraries.matrix.api.room.RoomSummary
+import io.element.android.libraries.matrix.api.roomlist.RoomSummary
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.sync.Mutex
@@ -50,12 +50,14 @@ class RoomSummaryListProcessor(
         initLatch.complete(Unit)
     }
 
-    suspend fun postUpdate(update: RoomListEntriesUpdate) {
+    suspend fun postUpdate(updates: List<RoomListEntriesUpdate>) {
         // Makes sure to process first entries before update.
         initLatch.await()
         updateRoomSummaries {
-            Timber.v("Update rooms from postUpdate ($update) on ${Thread.currentThread()}")
-            applyUpdate(update)
+            Timber.v("Update rooms from postUpdates (with ${updates.size} items) on ${Thread.currentThread()}")
+            updates.forEach { update ->
+                applyUpdate(update)
+            }
         }
     }
 
