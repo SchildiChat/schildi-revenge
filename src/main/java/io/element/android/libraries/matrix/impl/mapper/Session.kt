@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.sessionstorage.api
+package io.element.android.libraries.matrix.impl.mapper
 
+import io.element.android.libraries.sessionstorage.api.SessionData
+import org.matrix.rustcomponents.sdk.Session
 import java.util.Date
 
-data class SessionData(
-    val userId: String,
-    val deviceId: String,
-    val accessToken: String,
-    val refreshToken: String?,
-    val homeserverUrl: String,
-    val oidcData: String?,
-    val slidingSyncProxy: String?,
-    val loginTimestamp: Date?,
+internal fun Session.toSessionData() = SessionData(
+    userId = userId,
+    deviceId = deviceId,
+    accessToken = accessToken,
+    refreshToken = refreshToken,
+    homeserverUrl = homeserverUrl,
+    oidcData = oidcData,
+    slidingSyncProxy = slidingSyncProxy,
+    loginTimestamp = Date(),
 )
