@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.impl.poll
+package io.element.android.libraries.matrix.impl.mapper
 
-import io.element.android.libraries.matrix.api.poll.PollKind
-import org.matrix.rustcomponents.sdk.PollKind as RustPollKind
+import io.element.android.libraries.sessionstorage.api.SessionData
+import org.matrix.rustcomponents.sdk.Session
+import java.util.Date
 
-fun RustPollKind.map(): PollKind = when (this) {
-    RustPollKind.DISCLOSED -> PollKind.Disclosed
-    RustPollKind.UNDISCLOSED -> PollKind.Undisclosed
-}
-
-fun PollKind.toInner(): RustPollKind = when (this) {
-    PollKind.Disclosed -> RustPollKind.DISCLOSED
-    PollKind.Undisclosed -> RustPollKind.UNDISCLOSED
-}
+internal fun Session.toSessionData() = SessionData(
+    userId = userId,
+    deviceId = deviceId,
+    accessToken = accessToken,
+    refreshToken = refreshToken,
+    homeserverUrl = homeserverUrl,
+    oidcData = oidcData,
+    slidingSyncProxy = slidingSyncProxy,
+    loginTimestamp = Date(),
+)
