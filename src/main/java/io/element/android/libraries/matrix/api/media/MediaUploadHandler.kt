@@ -14,9 +14,15 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.tracing
+package io.element.android.libraries.matrix.api.media
 
-sealed class WriteToFilesConfiguration {
-    data object Disabled : WriteToFilesConfiguration()
-    data class Enabled(val directory: String, val filenamePrefix: String) : WriteToFilesConfiguration()
+/**
+ * This is an abstraction over the Rust SDK's `SendAttachmentJoinHandle` which allows us to either [await] the upload process or [cancel] it.
+ */
+interface MediaUploadHandler {
+    /** Await the upload process to finish. */
+    suspend fun await(): Result<Unit>
+
+    /** Cancel the upload process. */
+    fun cancel()
 }

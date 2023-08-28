@@ -14,9 +14,19 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.tracing
+package io.element.android.libraries.matrix.impl.mapper
 
-sealed class WriteToFilesConfiguration {
-    data object Disabled : WriteToFilesConfiguration()
-    data class Enabled(val directory: String, val filenamePrefix: String) : WriteToFilesConfiguration()
-}
+import io.element.android.libraries.sessionstorage.api.SessionData
+import org.matrix.rustcomponents.sdk.Session
+import java.util.Date
+
+internal fun Session.toSessionData() = SessionData(
+    userId = userId,
+    deviceId = deviceId,
+    accessToken = accessToken,
+    refreshToken = refreshToken,
+    homeserverUrl = homeserverUrl,
+    oidcData = oidcData,
+    slidingSyncProxy = slidingSyncProxy,
+    loginTimestamp = Date(),
+)
