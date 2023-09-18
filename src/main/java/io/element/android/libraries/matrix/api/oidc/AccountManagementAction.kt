@@ -14,22 +14,11 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.core.log.logger
+package io.element.android.libraries.matrix.api.oidc
 
-/**
- * Parent class for custom logger tags. Can be used with Timber :
- *
- * val loggerTag = LoggerTag("MyTag", LoggerTag.VOIP)
- * Timber.tag(loggerTag.value).v("My log message")
- */
-open class LoggerTag(name: String, parentTag: LoggerTag? = null) {
-
-    object PushLoggerTag : LoggerTag("Push")
-    object NotificationLoggerTag : LoggerTag("Notification", PushLoggerTag)
-
-    val value: String = if (parentTag == null) {
-        name
-    } else {
-        "${parentTag.value}/$name"
-    }
+sealed interface AccountManagementAction {
+    data object Profile : AccountManagementAction
+    data object SessionsList : AccountManagementAction
+    data class SessionView(val deviceId: String) : AccountManagementAction
+    data class SessionEnd(val deviceId: String) : AccountManagementAction
 }

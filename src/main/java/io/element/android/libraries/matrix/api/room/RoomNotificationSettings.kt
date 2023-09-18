@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.sync
+package io.element.android.libraries.matrix.api.room
 
-import io.element.android.libraries.matrix.api.core.EventId
-import io.element.android.libraries.matrix.api.core.RoomId
+data class RoomNotificationSettings(
+    val mode: RoomNotificationMode,
+    val isDefault: Boolean,
+)
 
-sealed interface StartSyncReason {
-    data object AppInForeground : StartSyncReason
-    data class Notification(val roomId: RoomId, val eventId: EventId) : StartSyncReason
+enum class RoomNotificationMode {
+    ALL_MESSAGES, MENTIONS_AND_KEYWORDS_ONLY, MUTE
 }
