@@ -18,5 +18,8 @@ package io.element.android.libraries.sessionstorage.api
 
 sealed interface LoggedInState {
     data object NotLoggedIn : LoggedInState
-    data class LoggedIn(val isTokenValid: Boolean) : LoggedInState
+    data class LoggedIn(
+        val sessionId: String,
+        val isTokenValid: Boolean,
+    ) : LoggedInState
 }
