@@ -16,17 +16,10 @@
 
 package io.element.android.libraries.sessionstorage.api
 
-import java.util.Date
-
-data class SessionData(
-    val userId: String,
-    val deviceId: String,
-    val accessToken: String,
-    val refreshToken: String?,
-    val homeserverUrl: String,
-    val oidcData: String?,
-    val slidingSyncProxy: String?,
-    val loginTimestamp: Date?,
-    val isTokenValid: Boolean,
-    val loginType: LoginType,
-)
+sealed interface LoggedInState {
+    data object NotLoggedIn : LoggedInState
+    data class LoggedIn(
+        val sessionId: String,
+        val isTokenValid: Boolean,
+    ) : LoggedInState
+}
