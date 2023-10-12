@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package io.element.android.x.di
+package io.element.android.libraries.sessionstorage.api
 
-import com.squareup.anvil.annotations.ContributesTo
-import io.element.android.features.rageshake.api.reporter.BugReporter
-import io.element.android.libraries.designsystem.utils.snackbar.SnackbarDispatcher
-import io.element.android.libraries.di.AppScope
-import io.element.android.libraries.matrix.api.tracing.TracingService
-
-@ContributesTo(AppScope::class)
-interface AppBindings {
-    fun snackbarDispatcher(): SnackbarDispatcher
-    fun tracingService(): TracingService
-    fun bugReporter(): BugReporter
+sealed interface LoggedInState {
+    data object NotLoggedIn : LoggedInState
+    data class LoggedIn(
+        val sessionId: String,
+        val isTokenValid: Boolean,
+    ) : LoggedInState
 }

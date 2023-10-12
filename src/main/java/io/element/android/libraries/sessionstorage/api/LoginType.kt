@@ -14,17 +14,30 @@
  * limitations under the License.
  */
 
-package io.element.android.x.di
+package io.element.android.libraries.sessionstorage.api
 
-import com.squareup.anvil.annotations.ContributesTo
-import io.element.android.features.rageshake.api.reporter.BugReporter
-import io.element.android.libraries.designsystem.utils.snackbar.SnackbarDispatcher
-import io.element.android.libraries.di.AppScope
-import io.element.android.libraries.matrix.api.tracing.TracingService
+// Imported from Element Android, to be able to migrate from EA to EXA.
+enum class LoginType {
+    PASSWORD,
+    OIDC,
+    SSO,
+    UNSUPPORTED,
+    CUSTOM,
+    DIRECT,
+    UNKNOWN,
+    QR;
 
-@ContributesTo(AppScope::class)
-interface AppBindings {
-    fun snackbarDispatcher(): SnackbarDispatcher
-    fun tracingService(): TracingService
-    fun bugReporter(): BugReporter
+    companion object {
+
+        fun fromName(name: String) = when (name) {
+            PASSWORD.name -> PASSWORD
+            OIDC.name -> OIDC
+            SSO.name -> SSO
+            UNSUPPORTED.name -> UNSUPPORTED
+            CUSTOM.name -> CUSTOM
+            DIRECT.name -> DIRECT
+            QR.name -> QR
+            else -> UNKNOWN
+        }
+    }
 }
