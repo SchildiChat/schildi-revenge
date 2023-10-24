@@ -14,9 +14,13 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.core
+package io.element.android.libraries.matrix.api.widget
 
-/**
- * The [UserId] of the currently logged in user.
- */
-typealias SessionId = UserId
+import java.util.UUID
+
+interface CallWidgetSettingsProvider {
+    fun provide(
+        baseUrl: String,
+        widgetId: String = UUID.randomUUID().toString()
+    ): MatrixWidgetSettings
+}

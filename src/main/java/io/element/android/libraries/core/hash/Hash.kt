@@ -14,9 +14,22 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.core
+package io.element.android.libraries.core.hash
+
+import java.security.MessageDigest
+import java.util.Locale
 
 /**
- * The [UserId] of the currently logged in user.
+ * Compute a Hash of a String, using md5 algorithm.
  */
-typealias SessionId = UserId
+fun String.md5() = try {
+    val digest = MessageDigest.getInstance("md5")
+    val locale = Locale.ROOT
+    digest.update(toByteArray())
+    digest.digest()
+        .joinToString("") { String.format(locale, "%02X", it) }
+        .lowercase(locale)
+} catch (exc: Exception) {
+    // Should not happen, but just in case
+    hashCode().toString()
+}

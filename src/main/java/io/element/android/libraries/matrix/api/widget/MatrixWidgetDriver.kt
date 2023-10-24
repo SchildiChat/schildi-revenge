@@ -14,9 +14,14 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.core
+package io.element.android.libraries.matrix.api.widget
 
-/**
- * The [UserId] of the currently logged in user.
- */
-typealias SessionId = UserId
+import kotlinx.coroutines.flow.Flow
+
+interface MatrixWidgetDriver : AutoCloseable {
+    val id: String
+    val incomingMessages: Flow<String>
+
+    suspend fun run()
+    suspend fun send(message: String)
+}

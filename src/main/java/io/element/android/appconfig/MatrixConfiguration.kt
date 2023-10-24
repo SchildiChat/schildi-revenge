@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.core
+package io.element.android.appconfig
 
-/**
- * The [UserId] of the currently logged in user.
- */
-typealias SessionId = UserId
+object MatrixConfiguration {
+    const val matrixToPermalinkBaseUrl: String = "https://matrix.to/#/"
+    val clientPermalinkBaseUrl: String? = null
+}

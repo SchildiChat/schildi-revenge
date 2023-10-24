@@ -14,9 +14,15 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.core
+package io.element.android.libraries.matrix.api.encryption
 
-/**
- * The [UserId] of the currently logged in user.
- */
-typealias SessionId = UserId
+enum class BackupState {
+    UNKNOWN,
+    CREATING,
+    ENABLING,
+    RESUMING,
+    ENABLED,
+    DOWNLOADING,
+    DISABLING,
+    DISABLED;
+}
