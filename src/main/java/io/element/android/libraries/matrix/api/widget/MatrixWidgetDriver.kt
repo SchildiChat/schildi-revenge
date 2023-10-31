@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 New Vector Ltd
+ * Copyright (c) 2023 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.di
+package io.element.android.libraries.matrix.api.widget
 
-import javax.inject.Qualifier
+import kotlinx.coroutines.flow.Flow
 
-/**
- * Qualifies a [Context] object that represents the application context.
- */
-@Retention(AnnotationRetention.RUNTIME)
-@MustBeDocumented
-@Qualifier
-annotation class ApplicationContext
+interface MatrixWidgetDriver : AutoCloseable {
+    val id: String
+    val incomingMessages: Flow<String>
+
+    suspend fun run()
+    suspend fun send(message: String)
+}

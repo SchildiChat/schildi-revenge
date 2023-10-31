@@ -14,9 +14,18 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.core
+package io.element.android.libraries.matrix.impl.encryption
 
-/**
- * The [UserId] of the currently logged in user.
- */
-typealias SessionId = UserId
+import io.element.android.libraries.matrix.api.encryption.RecoveryState
+import org.matrix.rustcomponents.sdk.RecoveryState as RustRecoveryState
+
+class RecoveryStateMapper {
+    fun map(state: RustRecoveryState): RecoveryState {
+        return when (state) {
+            RustRecoveryState.UNKNOWN -> RecoveryState.UNKNOWN
+            RustRecoveryState.ENABLED -> RecoveryState.ENABLED
+            RustRecoveryState.DISABLED -> RecoveryState.DISABLED
+            RustRecoveryState.INCOMPLETE -> RecoveryState.INCOMPLETE
+        }
+    }
+}

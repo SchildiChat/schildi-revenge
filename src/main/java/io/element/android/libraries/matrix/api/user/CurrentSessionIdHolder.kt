@@ -14,9 +14,17 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.core
+package io.element.android.libraries.matrix.api.user
 
-/**
- * The [UserId] of the currently logged in user.
- */
-typealias SessionId = UserId
+import io.element.android.libraries.di.SessionScope
+import io.element.android.libraries.di.SingleIn
+import io.element.android.libraries.matrix.api.MatrixClient
+import io.element.android.libraries.matrix.api.core.SessionId
+import javax.inject.Inject
+
+@SingleIn(SessionScope::class)
+class CurrentSessionIdHolder @Inject constructor(matrixClient: MatrixClient) {
+    val current = matrixClient.sessionId
+
+    fun isCurrentSession(sessionId: SessionId?): Boolean = current == sessionId
+}
