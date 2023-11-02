@@ -14,9 +14,21 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.core
+package io.element.android.libraries.matrix.api.encryption
 
-/**
- * The [UserId] of the currently logged in user.
- */
-typealias SessionId = UserId
+sealed interface SteadyStateException {
+    /**
+     * The backup can be deleted.
+     */
+    data class BackupDisabled(val message: String) : SteadyStateException
+
+    /**
+     * The task waiting for notifications coming from the upload task can fall behind so much that it lost some notifications.
+     */
+    data class Lagged(val message: String) : SteadyStateException
+
+    /**
+     * The request(s) to upload the room keys failed.
+     */
+    data class Connection(val message: String) : SteadyStateException
+}

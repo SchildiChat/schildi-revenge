@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 New Vector Ltd
+ * Copyright (c) 2023 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.di
+package io.element.android.libraries.matrix.api.encryption
 
-import javax.inject.Qualifier
-
-/**
- * Qualifies a [Context] object that represents the application context.
- */
-@Retention(AnnotationRetention.RUNTIME)
-@MustBeDocumented
-@Qualifier
-annotation class ApplicationContext
+sealed interface EnableRecoveryProgress {
+    data object Unknown : EnableRecoveryProgress
+    data object CreatingRecoveryKey : EnableRecoveryProgress
+    data object CreatingBackup : EnableRecoveryProgress
+    data class BackingUp(val backedUpCount: Int, val totalCount: Int) : EnableRecoveryProgress
+    data class Done(val recoveryKey: String) : EnableRecoveryProgress
+}

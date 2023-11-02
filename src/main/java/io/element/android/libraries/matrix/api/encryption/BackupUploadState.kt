@@ -14,9 +14,26 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.core
+package io.element.android.libraries.matrix.api.encryption
 
-/**
- * The [UserId] of the currently logged in user.
- */
-typealias SessionId = UserId
+sealed interface BackupUploadState {
+    data object Unknown : BackupUploadState
+
+    data class CheckingIfUploadNeeded(
+        val backedUpCount: Int,
+        val totalCount: Int,
+    ) : BackupUploadState
+
+    data object Waiting : BackupUploadState
+
+    data class Uploading(
+        val backedUpCount: Int,
+        val totalCount: Int,
+    ) : BackupUploadState
+
+    data object Done : BackupUploadState
+
+    data object Error : BackupUploadState
+
+    data class SteadyException(val exception: SteadyStateException) : BackupUploadState
+}

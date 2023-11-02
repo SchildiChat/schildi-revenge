@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 New Vector Ltd
+ * Copyright (c) 2023 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,22 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.di
+package io.element.android.libraries.core.hash
 
-import javax.inject.Qualifier
+import java.security.MessageDigest
+import java.util.Locale
 
 /**
- * Qualifies a [Context] object that represents the application context.
+ * Compute a Hash of a String, using md5 algorithm.
  */
-@Retention(AnnotationRetention.RUNTIME)
-@MustBeDocumented
-@Qualifier
-annotation class ApplicationContext
+fun String.md5() = try {
+    val digest = MessageDigest.getInstance("md5")
+    val locale = Locale.ROOT
+    digest.update(toByteArray())
+    digest.digest()
+        .joinToString("") { String.format(locale, "%02X", it) }
+        .lowercase(locale)
+} catch (exc: Exception) {
+    // Should not happen, but just in case
+    hashCode().toString()
+}
