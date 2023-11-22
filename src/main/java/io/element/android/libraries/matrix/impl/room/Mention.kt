@@ -14,22 +14,13 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.encryption
+package io.element.android.libraries.matrix.impl.room
 
-enum class BackupState {
-    /**
-     * Special value, when the SDK is waiting for the first sync to be done.
-     */
-    WAITING_FOR_SYNC,
+import io.element.android.libraries.matrix.api.room.Mention
+import org.matrix.rustcomponents.sdk.Mentions
 
-    /**
-     * Values mapped from the SDK.
-     */
-    UNKNOWN,
-    CREATING,
-    ENABLING,
-    RESUMING,
-    ENABLED,
-    DOWNLOADING,
-    DISABLING;
+fun List<Mention>.map(): Mentions {
+    val hasAtRoom = any { it is Mention.AtRoom }
+    val userIds = filterIsInstance<Mention.User>().map { it.userId }
+    return Mentions(userIds, hasAtRoom)
 }
