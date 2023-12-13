@@ -14,29 +14,12 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.room
+package io.element.android.libraries.matrix.api.encryption
 
-enum class StateEventType {
-    POLICY_RULE_ROOM,
-    POLICY_RULE_SERVER,
-    POLICY_RULE_USER,
-    CALL_MEMBER,
-    ROOM_ALIASES,
-    ROOM_AVATAR,
-    ROOM_CANONICAL_ALIAS,
-    ROOM_CREATE,
-    ROOM_ENCRYPTION,
-    ROOM_GUEST_ACCESS,
-    ROOM_HISTORY_VISIBILITY,
-    ROOM_JOIN_RULES,
-    ROOM_MEMBER_EVENT,
-    ROOM_NAME,
-    ROOM_PINNED_EVENTS,
-    ROOM_POWER_LEVELS,
-    ROOM_SERVER_ACL,
-    ROOM_THIRD_PARTY_INVITE,
-    ROOM_TOMBSTONE,
-    ROOM_TOPIC,
-    SPACE_CHILD,
-    SPACE_PARENT;
+import io.element.android.libraries.matrix.api.exception.ClientException
+
+sealed class RecoveryException(message: String) : Exception(message) {
+    class SecretStorage(message: String) : RecoveryException(message)
+    data object BackupExistsOnServer : RecoveryException("BackupExistsOnServer")
+    data class Client(val exception: ClientException) : RecoveryException(exception.message ?: "Unknown error")
 }
