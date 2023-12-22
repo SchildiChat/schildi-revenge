@@ -14,29 +14,26 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.room
+package io.element.android.libraries.matrix.api.verification
 
-enum class StateEventType {
-    POLICY_RULE_ROOM,
-    POLICY_RULE_SERVER,
-    POLICY_RULE_USER,
-    CALL_MEMBER,
-    ROOM_ALIASES,
-    ROOM_AVATAR,
-    ROOM_CANONICAL_ALIAS,
-    ROOM_CREATE,
-    ROOM_ENCRYPTION,
-    ROOM_GUEST_ACCESS,
-    ROOM_HISTORY_VISIBILITY,
-    ROOM_JOIN_RULES,
-    ROOM_MEMBER_EVENT,
-    ROOM_NAME,
-    ROOM_PINNED_EVENTS,
-    ROOM_POWER_LEVELS,
-    ROOM_SERVER_ACL,
-    ROOM_THIRD_PARTY_INVITE,
-    ROOM_TOMBSTONE,
-    ROOM_TOPIC,
-    SPACE_CHILD,
-    SPACE_PARENT;
+import androidx.compose.runtime.Immutable
+
+@Immutable
+sealed interface SessionVerificationData {
+    data class Emojis(
+        // 7 emojis
+        val emojis: List<VerificationEmoji>,
+    ) : SessionVerificationData
+
+    data class Decimals(
+        // 3 numbers
+        val decimals: List<Int>,
+    ) : SessionVerificationData
 }
+
+// https://spec.matrix.org/unstable/client-server-api/#sas-method-emoji
+data class VerificationEmoji(
+    val number: Int,
+    val emoji: String,
+    val description: String,
+)

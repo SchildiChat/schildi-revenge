@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.impl.roomlist
+package io.element.android.libraries.matrix.api.timeline
 
-import io.element.android.libraries.matrix.api.roomlist.RoomList
-import io.element.android.libraries.matrix.api.roomlist.RoomSummary
-import kotlinx.coroutines.flow.StateFlow
-
-/**
- * Simple implementation of [RoomList] where state flows are provided through constructor.
- */
-class RustRoomList(
-    override val summaries: StateFlow<List<RoomSummary>>,
-    override val loadingState: StateFlow<RoomList.LoadingState>
-) : RoomList
+enum class ReceiptType {
+    READ,
+    READ_PRIVATE,
+    FULLY_READ;
+}
