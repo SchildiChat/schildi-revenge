@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 New Vector Ltd
+ * Copyright (c) 2024 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.core.meta
+package io.element.android.libraries.matrix.impl.keys
 
-data class BuildMeta(
-    val buildType: BuildType,
-    val isDebuggable: Boolean,
-    val applicationName: String,
-    val applicationId: String,
-    val lowPrivacyLoggingEnabled: Boolean,
-    val versionName: String,
-    val versionCode: Int,
-    val gitRevision: String,
-    val gitBranchName: String,
-    val flavorDescription: String,
-    val flavorShortDescription: String,
-) {
-    // SC
-    val isInternalBuild: Boolean = isDebuggable || gitBranchName == "sm_fdroid"
+interface PassphraseGenerator {
+    /**
+     * Generate a passphrase to encrypt the databases of a session.
+     * Return null to not encrypt the databases.
+     */
+    fun generatePassphrase(): String?
 }
