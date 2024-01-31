@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 New Vector Ltd
+ * Copyright (c) 2024 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.sessionstorage.api
+package io.element.android.libraries.di.annotations
 
-import java.util.Date
+import javax.inject.Qualifier
 
-data class SessionData(
-    val userId: String,
-    val deviceId: String,
-    val accessToken: String,
-    val refreshToken: String?,
-    val homeserverUrl: String,
-    val oidcData: String?,
-    val slidingSyncProxy: String?,
-    val loginTimestamp: Date?,
-    val isTokenValid: Boolean,
-    val loginType: LoginType,
-    val passphrase: String?,
-)
+/**
+ * Qualifies a [CoroutineScope] object which represents the base coroutine scope to use for an active session.
+ */
+@Retention(AnnotationRetention.RUNTIME)
+@MustBeDocumented
+@Qualifier
+annotation class SessionCoroutineScope
