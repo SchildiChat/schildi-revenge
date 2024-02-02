@@ -16,6 +16,10 @@
 
 package io.element.android.libraries.matrix.api.room.tags
 
+/**
+ * Represents the notable tags of a room.
+ * @param isFavorite true if the room is marked as favorite.
+ */
 data class RoomNotableTags(
-    val isFavorite: Boolean,
+    val isFavorite: Boolean = false,
 )
