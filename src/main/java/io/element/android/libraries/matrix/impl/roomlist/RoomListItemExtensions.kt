@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 New Vector Ltd
+ * Copyright (c) 2024 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,16 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.widget
+package io.element.android.libraries.matrix.impl.roomlist
 
-import java.util.UUID
+import org.matrix.rustcomponents.sdk.Room
+import org.matrix.rustcomponents.sdk.RoomListItem
+import org.matrix.rustcomponents.sdk.TimelineEventTypeFilter
 
-interface CallWidgetSettingsProvider {
-    fun provide(
-        baseUrl: String,
-        widgetId: String = UUID.randomUUID().toString(),
-        encrypted: Boolean,
-    ): MatrixWidgetSettings
+/** Returns a `Room` with an initialized timeline using the given [filter]. */
+suspend fun RoomListItem.fullRoomWithTimeline(filter: TimelineEventTypeFilter? = null): Room {
+    if (!isTimelineInitialized()) {
+        initTimeline(filter)
+    }
+    return fullRoom()
 }
