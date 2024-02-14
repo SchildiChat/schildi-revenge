@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 New Vector Ltd
+ * Copyright (c) 2024 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.widget
+package io.element.android.libraries.matrix.impl.util
 
-import java.util.UUID
+import io.element.android.libraries.matrix.api.core.SessionId
 
-interface CallWidgetSettingsProvider {
-    fun provide(
-        baseUrl: String,
-        widgetId: String = UUID.randomUUID().toString(),
-        encrypted: Boolean,
-    ): MatrixWidgetSettings
+class SessionDirectoryNameProvider {
+    // Rust sanitises the user ID replacing invalid characters with an _
+    fun provides(sessionId: SessionId): String {
+        return sessionId.value.replace(":", "_")
+    }
 }
