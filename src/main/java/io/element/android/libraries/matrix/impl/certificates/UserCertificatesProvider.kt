@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 New Vector Ltd
+ * Copyright (c) 2024 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.user
+package io.element.android.libraries.matrix.impl.certificates
 
-import android.os.Parcelable
-import io.element.android.libraries.matrix.api.core.UserId
-import kotlinx.parcelize.Parcelize
-
-@Parcelize
-data class MatrixUser(
-    val userId: UserId,
-    val displayName: String? = null,
-    val avatarUrl: String? = null,
-) : Parcelable
+interface UserCertificatesProvider {
+    fun provides(): List<ByteArray>
+}
