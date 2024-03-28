@@ -26,7 +26,6 @@ class RustRoomDirectoryService(
     private val client: Client,
     private val sessionDispatcher: CoroutineDispatcher,
 ) : RoomDirectoryService {
-
     override fun createRoomDirectoryList(scope: CoroutineScope): RoomDirectoryList {
         return RustRoomDirectoryList(client.roomDirectorySearch(), scope, sessionDispatcher)
     }
