@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 New Vector Ltd
+ * Copyright (c) 2024 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,23 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.permalink
+package io.element.android.libraries.matrix.api.roomdirectory
 
 import io.element.android.libraries.matrix.api.core.RoomId
-import io.element.android.libraries.matrix.api.core.UserId
 
-interface PermalinkBuilder {
-    fun permalinkForUser(userId: UserId): Result<String>
-    fun permalinkForRoomAlias(roomAlias: String): Result<String>
-    fun permalinkForRoomId(roomId: RoomId): Result<String>
-}
-
-sealed class PermalinkBuilderError : Throwable() {
-    data object InvalidRoomAlias : PermalinkBuilderError()
-    data object InvalidRoomId : PermalinkBuilderError()
-    data object InvalidUserId : PermalinkBuilderError()
+data class RoomDescription(
+    val roomId: RoomId,
+    val name: String?,
+    val topic: String?,
+    val alias: String?,
+    val avatarUrl: String?,
+    val joinRule: JoinRule,
+    val isWorldReadable: Boolean,
+    val numberOfMembers: Long
+) {
+    enum class JoinRule {
+        PUBLIC,
+        KNOCK,
+        UNKNOWN
+    }
 }
