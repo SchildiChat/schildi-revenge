@@ -14,24 +14,21 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.roomdirectory
+package io.element.android.libraries.matrix.api.room.alias
 
-import io.element.android.libraries.matrix.api.core.RoomAlias
-import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.matrix.api.core.RoomIdOrAlias
+import io.element.android.libraries.matrix.api.room.MatrixRoom
 
-data class RoomDescription(
-    val roomId: RoomId,
-    val name: String?,
-    val topic: String?,
-    val alias: RoomAlias?,
-    val avatarUrl: String?,
-    val joinRule: JoinRule,
-    val isWorldReadable: Boolean,
-    val numberOfMembers: Long
-) {
-    enum class JoinRule {
-        PUBLIC,
-        KNOCK,
-        UNKNOWN
+/**
+ * Return true if the given roomIdOrAlias is the same room as this room.
+ */
+fun MatrixRoom.matches(roomIdOrAlias: RoomIdOrAlias): Boolean {
+    return when (roomIdOrAlias) {
+        is RoomIdOrAlias.Id -> {
+            roomIdOrAlias.roomId == roomId
+        }
+        is RoomIdOrAlias.Alias -> {
+            roomIdOrAlias.roomAlias == alias || roomIdOrAlias.roomAlias in alternativeAliases
+        }
     }
 }

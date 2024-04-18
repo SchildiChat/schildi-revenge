@@ -14,24 +14,26 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.roomdirectory
+package io.element.android.libraries.matrix.api.core
 
-import io.element.android.libraries.matrix.api.core.RoomAlias
-import io.element.android.libraries.matrix.api.core.RoomId
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 
-data class RoomDescription(
-    val roomId: RoomId,
-    val name: String?,
-    val topic: String?,
-    val alias: RoomAlias?,
-    val avatarUrl: String?,
-    val joinRule: JoinRule,
-    val isWorldReadable: Boolean,
-    val numberOfMembers: Long
-) {
-    enum class JoinRule {
-        PUBLIC,
-        KNOCK,
-        UNKNOWN
-    }
+sealed interface RoomIdOrAlias : Parcelable {
+    @Parcelize
+    @JvmInline
+    value class Id(val roomId: RoomId) : RoomIdOrAlias
+
+    @Parcelize
+    @JvmInline
+    value class Alias(val roomAlias: RoomAlias) : RoomIdOrAlias
+
+    val identifier: String
+        get() = when (this) {
+            is Id -> roomId.value
+            is Alias -> roomAlias.value
+        }
 }
+
+fun RoomId.toRoomIdOrAlias() = RoomIdOrAlias.Id(this)
+fun RoomAlias.toRoomIdOrAlias() = RoomIdOrAlias.Alias(this)

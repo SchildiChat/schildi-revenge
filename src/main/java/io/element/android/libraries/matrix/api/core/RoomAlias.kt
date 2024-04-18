@@ -14,24 +14,18 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.roomdirectory
+package io.element.android.libraries.matrix.api.core
 
-import io.element.android.libraries.matrix.api.core.RoomAlias
-import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.androidutils.metadata.isInDebug
+import java.io.Serializable
 
-data class RoomDescription(
-    val roomId: RoomId,
-    val name: String?,
-    val topic: String?,
-    val alias: RoomAlias?,
-    val avatarUrl: String?,
-    val joinRule: JoinRule,
-    val isWorldReadable: Boolean,
-    val numberOfMembers: Long
-) {
-    enum class JoinRule {
-        PUBLIC,
-        KNOCK,
-        UNKNOWN
+@JvmInline
+value class RoomAlias(val value: String) : Serializable {
+    init {
+        if (isInDebug && !MatrixPatterns.isRoomAlias(value)) {
+            error("`$value` is not a valid room alias.\n Example room alias: `#room_alias:domain`.")
+        }
     }
+
+    override fun toString(): String = value
 }
