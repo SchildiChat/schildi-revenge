@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.impl.roomlist
+package io.element.android.libraries.matrix.impl.timeline.postprocessor
 
-import org.matrix.rustcomponents.sdk.Room
-import org.matrix.rustcomponents.sdk.RoomListItem
-import org.matrix.rustcomponents.sdk.TimelineEventTypeFilter
+import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
+import io.element.android.libraries.matrix.api.timeline.item.virtual.VirtualTimelineItem
 
-/** Returns a `Room` with an initialized timeline using the given [filter]. */
-suspend fun RoomListItem.fullRoomWithTimeline(filter: TimelineEventTypeFilter? = null): Room {
-    if (!isTimelineInitialized()) {
-        initTimeline(filter, "live")
-    }
-    return fullRoom()
+internal fun List<MatrixTimelineItem>.hasEncryptionHistoryBanner(): Boolean {
+    val firstItem = firstOrNull()
+    return firstItem is MatrixTimelineItem.Virtual &&
+        firstItem.virtual is VirtualTimelineItem.EncryptedHistoryBanner
 }

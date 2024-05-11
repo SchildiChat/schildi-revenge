@@ -14,16 +14,10 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.impl.roomlist
+package io.element.android.libraries.matrix.api.room
 
-import org.matrix.rustcomponents.sdk.Room
-import org.matrix.rustcomponents.sdk.RoomListItem
-import org.matrix.rustcomponents.sdk.TimelineEventTypeFilter
-
-/** Returns a `Room` with an initialized timeline using the given [filter]. */
-suspend fun RoomListItem.fullRoomWithTimeline(filter: TimelineEventTypeFilter? = null): Room {
-    if (!isTimelineInitialized()) {
-        initTimeline(filter, "live")
-    }
-    return fullRoom()
+sealed interface RoomType {
+    data object Space : RoomType
+    data object Room : RoomType
+    data class Other(val type: String) : RoomType
 }

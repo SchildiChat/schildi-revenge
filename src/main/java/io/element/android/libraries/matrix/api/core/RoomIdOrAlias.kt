@@ -14,16 +14,26 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.impl.roomlist
+package io.element.android.libraries.matrix.api.core
 
-import org.matrix.rustcomponents.sdk.Room
-import org.matrix.rustcomponents.sdk.RoomListItem
-import org.matrix.rustcomponents.sdk.TimelineEventTypeFilter
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 
-/** Returns a `Room` with an initialized timeline using the given [filter]. */
-suspend fun RoomListItem.fullRoomWithTimeline(filter: TimelineEventTypeFilter? = null): Room {
-    if (!isTimelineInitialized()) {
-        initTimeline(filter, "live")
-    }
-    return fullRoom()
+sealed interface RoomIdOrAlias : Parcelable {
+    @Parcelize
+    @JvmInline
+    value class Id(val roomId: RoomId) : RoomIdOrAlias
+
+    @Parcelize
+    @JvmInline
+    value class Alias(val roomAlias: RoomAlias) : RoomIdOrAlias
+
+    val identifier: String
+        get() = when (this) {
+            is Id -> roomId.value
+            is Alias -> roomAlias.value
+        }
 }
+
+fun RoomId.toRoomIdOrAlias() = RoomIdOrAlias.Id(this)
+fun RoomAlias.toRoomIdOrAlias() = RoomIdOrAlias.Alias(this)

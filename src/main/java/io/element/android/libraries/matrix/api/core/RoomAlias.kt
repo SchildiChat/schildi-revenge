@@ -14,16 +14,18 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.impl.roomlist
+package io.element.android.libraries.matrix.api.core
 
-import org.matrix.rustcomponents.sdk.Room
-import org.matrix.rustcomponents.sdk.RoomListItem
-import org.matrix.rustcomponents.sdk.TimelineEventTypeFilter
+import io.element.android.libraries.androidutils.metadata.isInDebug
+import java.io.Serializable
 
-/** Returns a `Room` with an initialized timeline using the given [filter]. */
-suspend fun RoomListItem.fullRoomWithTimeline(filter: TimelineEventTypeFilter? = null): Room {
-    if (!isTimelineInitialized()) {
-        initTimeline(filter, "live")
+@JvmInline
+value class RoomAlias(val value: String) : Serializable {
+    init {
+        if (isInDebug && !MatrixPatterns.isRoomAlias(value)) {
+            error("`$value` is not a valid room alias.\n Example room alias: `#room_alias:domain`.")
+        }
     }
-    return fullRoom()
+
+    override fun toString(): String = value
 }

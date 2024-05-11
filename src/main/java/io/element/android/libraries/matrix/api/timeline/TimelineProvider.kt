@@ -14,16 +14,17 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.impl.roomlist
+package io.element.android.libraries.matrix.api.timeline
 
-import org.matrix.rustcomponents.sdk.Room
-import org.matrix.rustcomponents.sdk.RoomListItem
-import org.matrix.rustcomponents.sdk.TimelineEventTypeFilter
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 
-/** Returns a `Room` with an initialized timeline using the given [filter]. */
-suspend fun RoomListItem.fullRoomWithTimeline(filter: TimelineEventTypeFilter? = null): Room {
-    if (!isTimelineInitialized()) {
-        initTimeline(filter, "live")
-    }
-    return fullRoom()
+/**
+ * This interface defines a way to get the active timeline.
+ * It could be the current room timeline, or a timeline for a specific event.
+ */
+interface TimelineProvider {
+    fun activeTimelineFlow(): StateFlow<Timeline>
 }
+
+suspend fun TimelineProvider.getActiveTimeline(): Timeline = activeTimelineFlow().first()

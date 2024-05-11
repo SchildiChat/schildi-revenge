@@ -14,16 +14,21 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.impl.roomlist
+package io.element.android.libraries.matrix.api.room.errors
 
-import org.matrix.rustcomponents.sdk.Room
-import org.matrix.rustcomponents.sdk.RoomListItem
-import org.matrix.rustcomponents.sdk.TimelineEventTypeFilter
+import io.element.android.libraries.matrix.api.core.EventId
 
-/** Returns a `Room` with an initialized timeline using the given [filter]. */
-suspend fun RoomListItem.fullRoomWithTimeline(filter: TimelineEventTypeFilter? = null): Room {
-    if (!isTimelineInitialized()) {
-        initTimeline(filter, "live")
-    }
-    return fullRoom()
+sealed class FocusEventException : Exception() {
+    data class InvalidEventId(
+        val eventId: String,
+        val err: String
+    ) : FocusEventException()
+
+    data class EventNotFound(
+        val eventId: EventId
+    ) : FocusEventException()
+
+    data class Other(
+        val msg: String
+    ) : FocusEventException()
 }
