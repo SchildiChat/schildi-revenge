@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 New Vector Ltd
+ * Copyright (c) 2024 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,15 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.pusher
+package io.element.android.libraries.matrix.api.room.join
 
-interface PushersService {
-    suspend fun setHttpPusher(setHttpPusherData: SetHttpPusherData): Result<Unit>
-    suspend fun unsetHttpPusher(unsetHttpPusherData: UnsetHttpPusherData): Result<Unit>
+import im.vector.app.features.analytics.plan.JoinedRoom
+import io.element.android.libraries.matrix.api.core.RoomId
+
+interface JoinRoom {
+    suspend operator fun invoke(
+        roomId: RoomId,
+        serverNames: List<String>,
+        trigger: JoinedRoom.Trigger,
+    ): Result<Unit>
 }
