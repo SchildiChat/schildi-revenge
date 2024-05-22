@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 New Vector Ltd
+ * Copyright (c) 2024 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,20 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.pusher
+package io.element.android.libraries.matrix.api.room.alias
 
-interface PushersService {
-    suspend fun setHttpPusher(setHttpPusherData: SetHttpPusherData): Result<Unit>
-    suspend fun unsetHttpPusher(unsetHttpPusherData: UnsetHttpPusherData): Result<Unit>
-}
+import io.element.android.libraries.matrix.api.core.RoomId
+
+/**
+ * Information about a room, that was resolved from a room alias.
+ */
+data class ResolvedRoomAlias(
+    /**
+     * The room ID that the alias resolved to.
+     */
+    val roomId: RoomId,
+    /**
+     * A list of servers that can be used to find the room by its room ID.
+     */
+    val servers: List<String>
+)
