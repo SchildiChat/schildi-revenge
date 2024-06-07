@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 New Vector Ltd
+ * Copyright (c) 2024 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.di
+package io.element.android.libraries.matrix.api.auth.qrlogin
 
-import javax.inject.Qualifier
-
-@Qualifier annotation class DefaultPreferences
+interface MatrixQrCodeLoginDataFactory {
+    fun parseQrCodeData(data: ByteArray): Result<MatrixQrCodeLoginData>
+}

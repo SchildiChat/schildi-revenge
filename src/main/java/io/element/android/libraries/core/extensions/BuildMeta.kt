@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 New Vector Ltd
+ * Copyright (c) 2024 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,16 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.core.meta
+package io.element.android.libraries.core.extensions
 
-data class BuildMeta(
-    val buildType: BuildType,
-    val isDebuggable: Boolean,
-    val applicationName: String,
-    val productionApplicationName: String,
-    val desktopApplicationName: String,
-    val applicationId: String,
-    val lowPrivacyLoggingEnabled: Boolean,
-    val versionName: String,
-    val versionCode: Long,
-    val gitRevision: String,
-    val gitBranchName: String,
-    val flavorDescription: String,
-    val flavorShortDescription: String,
-)
+import io.element.android.libraries.core.meta.BuildMeta
+import io.element.android.libraries.core.meta.BuildType
+
+fun BuildMeta.isElement(): Boolean {
+    return when (buildType) {
+        BuildType.RELEASE -> applicationId == "io.element.android.x"
+        BuildType.NIGHTLY -> applicationId == "io.element.android.x.nightly"
+        BuildType.DEBUG -> applicationId == "io.element.android.x.debug"
+        else -> false
+    }
+}
