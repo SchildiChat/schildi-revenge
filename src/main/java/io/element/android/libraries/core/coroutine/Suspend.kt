@@ -14,13 +14,17 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.impl.util
+package io.element.android.libraries.core.coroutine
 
-import io.element.android.libraries.matrix.api.core.SessionId
+import kotlinx.coroutines.delay
+import kotlin.system.measureTimeMillis
 
-class SessionDirectoryNameProvider {
-    // Rust sanitises the user ID replacing invalid characters with an _
-    fun provides(sessionId: SessionId): String {
-        return sessionId.value.replace(":", "_")
+fun suspendWithMinimumDuration(
+    minimumDurationMillis: Long = 500,
+    block: suspend () -> Unit
+) = suspend {
+    val duration = measureTimeMillis {
+        block()
     }
+    delay(minimumDurationMillis - duration)
 }

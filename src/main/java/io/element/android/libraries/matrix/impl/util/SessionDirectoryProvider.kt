@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2023 New Vector Ltd
+ * Copyright (c) 2024 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.exception
+package io.element.android.libraries.matrix.impl.util
 
-sealed class ClientException(message: String) : Exception(message) {
-    class Generic(message: String) : ClientException(message)
-    class Other(message: String) : ClientException(message)
-}
+import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.sessionstorage.api.SessionStore
+import java.io.File
+import javax.inject.Inject
 
-fun ClientException.isNetworkError(): Boolean {
-    return this is ClientException.Generic && message?.contains("error sending request for url", ignoreCase = true) == true
+class SessionDirectoryProvider @Inject constructor(
+    private val sessionStore: SessionStore,
+) {
+    suspend fun provides(sessionId: SessionId): File? {
+        val path = sessionStore.getSession(sessionId.value)?.sessionPath ?: return null
+        return File(path)
+    }
 }
