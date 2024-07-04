@@ -1,11 +1,11 @@
 /*
- * Copyright (c) 2023 New Vector Ltd
+ * Copyright (c) 2024 New Vector Ltd
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *     https://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package io.element.android.libraries.matrix.api.auth
+package io.element.android.libraries.matrix.api.call
 
-sealed class AuthenticationException(message: String) : Exception(message) {
-    class InvalidServerName(message: String) : AuthenticationException(message)
-    class SlidingSyncNotAvailable(message: String) : AuthenticationException(message)
-    class Generic(message: String) : AuthenticationException(message)
+import io.element.android.libraries.matrix.api.MatrixClient
+
+interface ElementCallBaseUrlProvider {
+    suspend fun provides(matrixClient: MatrixClient): String?
 }
