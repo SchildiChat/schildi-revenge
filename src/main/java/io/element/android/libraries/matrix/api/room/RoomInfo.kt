@@ -19,7 +19,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 
 @Immutable
-data class MatrixRoomInfo(
+data class RoomInfo(
     val id: RoomId,
     /** The room's name from the room state event if received from sync, or one that's been computed otherwise. */
     val name: String?,
