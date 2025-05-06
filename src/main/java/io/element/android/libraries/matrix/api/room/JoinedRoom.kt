@@ -1,5 +1,5 @@
 /*
- * Copyright 2023, 2024 New Vector Ltd.
+ * Copyright 2025 New Vector Ltd.
  *
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Element-Commercial
  * Please see LICENSE files in the repository root for full details.
@@ -13,7 +13,6 @@ import io.element.android.libraries.matrix.api.core.ProgressCallback
 import io.element.android.libraries.matrix.api.core.RoomAlias
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SendHandle
-import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.TransactionId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.encryption.identity.IdentityStateChange
@@ -23,35 +22,28 @@ import io.element.android.libraries.matrix.api.media.ImageInfo
 import io.element.android.libraries.matrix.api.media.MediaUploadHandler
 import io.element.android.libraries.matrix.api.media.VideoInfo
 import io.element.android.libraries.matrix.api.poll.PollKind
-import io.element.android.libraries.matrix.api.room.draft.ComposerDraft
 import io.element.android.libraries.matrix.api.room.history.RoomHistoryVisibility
 import io.element.android.libraries.matrix.api.room.join.JoinRule
 import io.element.android.libraries.matrix.api.room.knock.KnockRequest
 import io.element.android.libraries.matrix.api.room.location.AssetType
 import io.element.android.libraries.matrix.api.room.message.ReplyParameters
-import io.element.android.libraries.matrix.api.room.powerlevels.MatrixRoomPowerLevels
+import io.element.android.libraries.matrix.api.room.powerlevels.RoomPowerLevels
 import io.element.android.libraries.matrix.api.room.powerlevels.UserRoleChange
 import io.element.android.libraries.matrix.api.roomdirectory.RoomVisibility
-import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import io.element.android.libraries.matrix.api.widget.MatrixWidgetDriver
 import io.element.android.libraries.matrix.api.widget.MatrixWidgetSettings
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
-import java.io.Closeable
 import java.io.File
 
-interface MatrixRoom : Closeable {
-    val sessionId: SessionId
-    val roomId: RoomId
+interface JoinedRoom : BaseRoom {
+    val syncUpdateFlow: StateFlow<Long>
 
-    val roomCoroutineScope: CoroutineScope
-
-    val roomInfoFlow: StateFlow<MatrixRoomInfo>
     val roomTypingMembersFlow: Flow<List<UserId>>
     val identityStateChangesFlow: Flow<List<IdentityStateChange>>
+    val roomNotificationSettingsStateFlow: StateFlow<RoomNotificationSettingsState>
 
     /**
      * The current knock requests in the room as a Flow.
@@ -65,40 +57,6 @@ interface MatrixRoom : Closeable {
     val isOneToOne: Boolean get() = info().activeMembersCount == 2L
 
     /**
-     * The current loaded members as a StateFlow.
-     * Initial value is [MatrixRoomMembersState.Unknown].
-     * To update them you should call [updateMembers].
-     */
-    val membersStateFlow: StateFlow<MatrixRoomMembersState>
-
-    val roomNotificationSettingsStateFlow: StateFlow<MatrixRoomNotificationSettingsState>
-
-    /**
-     * Get the latest room info we have received from the SDK stream.
-     */
-    fun info(): MatrixRoomInfo = roomInfoFlow.value
-
-    /**
-     * Try to load the room members and update the membersFlow.
-     */
-    suspend fun updateMembers()
-
-    /**
-     * Get the members of the room. Note: generally this should not be used, please use
-     * [membersStateFlow] and [updateMembers] instead.
-     */
-    suspend fun getMembers(limit: Int = 5): Result<List<RoomMember>>
-
-    /**
-     * Will return an updated member or an error.
-     */
-    suspend fun getUpdatedMember(userId: UserId): Result<RoomMember>
-
-    suspend fun updateRoomNotificationSettings(): Result<Unit>
-
-    val syncUpdateFlow: StateFlow<Long>
-
-    /**
      * The live timeline of the room. Must be used to send Event to a room.
      */
     val liveTimeline: Timeline
@@ -110,24 +68,6 @@ interface MatrixRoom : Closeable {
     suspend fun createTimeline(
         createTimelineParams: CreateTimelineParams,
     ): Result<Timeline>
-
-    fun destroy()
-
-    suspend fun subscribeToSync()
-
-    suspend fun powerLevels(): Result<MatrixRoomPowerLevels>
-
-    suspend fun updatePowerLevels(matrixRoomPowerLevels: MatrixRoomPowerLevels): Result<Unit>
-
-    suspend fun resetPowerLevels(): Result<MatrixRoomPowerLevels>
-
-    suspend fun userRole(userId: UserId): Result<RoomMember.Role>
-
-    suspend fun updateUsersRoles(changes: List<UserRoleChange>): Result<Unit>
-
-    suspend fun userDisplayName(userId: UserId): Result<String?>
-
-    suspend fun userAvatarUrl(userId: UserId): Result<String?>
 
     suspend fun sendMessage(body: String, htmlBody: String?, intentionalMentions: List<IntentionalMention>): Result<Unit>
 
@@ -198,75 +138,6 @@ interface MatrixRoom : Closeable {
         assetType: AssetType? = null,
     ): Result<Unit>
 
-    suspend fun toggleReaction(emoji: String, eventOrTransactionId: EventOrTransactionId): Result<Unit>
-
-    suspend fun forwardEvent(eventId: EventId, roomIds: List<RoomId>): Result<Unit>
-
-    suspend fun cancelSend(transactionId: TransactionId): Result<Unit>
-
-    suspend fun leave(): Result<Unit>
-
-    suspend fun join(): Result<Unit>
-
-    suspend fun inviteUserById(id: UserId): Result<Unit>
-
-    suspend fun canUserInvite(userId: UserId): Result<Boolean>
-
-    suspend fun canUserKick(userId: UserId): Result<Boolean>
-
-    suspend fun canUserBan(userId: UserId): Result<Boolean>
-
-    suspend fun canUserRedactOwn(userId: UserId): Result<Boolean>
-
-    suspend fun canUserRedactOther(userId: UserId): Result<Boolean>
-
-    suspend fun canUserSendState(userId: UserId, type: StateEventType): Result<Boolean>
-
-    suspend fun canUserSendMessage(userId: UserId, type: MessageEventType): Result<Boolean>
-
-    suspend fun canUserTriggerRoomNotification(userId: UserId): Result<Boolean>
-
-    suspend fun canUserPinUnpin(userId: UserId): Result<Boolean>
-
-    suspend fun canUserJoinCall(userId: UserId): Result<Boolean> =
-        canUserSendState(userId, StateEventType.CALL_MEMBER)
-
-    suspend fun updateAvatar(mimeType: String, data: ByteArray): Result<Unit>
-
-    suspend fun removeAvatar(): Result<Unit>
-
-    suspend fun setName(name: String): Result<Unit>
-
-    suspend fun setTopic(topic: String): Result<Unit>
-
-    suspend fun reportContent(eventId: EventId, reason: String, blockUserId: UserId?): Result<Unit>
-
-    suspend fun kickUser(userId: UserId, reason: String? = null): Result<Unit>
-
-    suspend fun banUser(userId: UserId, reason: String? = null): Result<Unit>
-
-    suspend fun unbanUser(userId: UserId, reason: String? = null): Result<Unit>
-
-    suspend fun setIsFavorite(isFavorite: Boolean): Result<Unit>
-
-    /**
-     * Mark the room as read by trying to attach an unthreaded read receipt to the latest room event.
-     * @param receiptType The type of receipt to send.
-     */
-    suspend fun markAsRead(receiptType: ReceiptType): Result<Unit>
-
-    /**
-     * Sets a flag on the room to indicate that the user has explicitly marked it as unread, or reverts the flag.
-     * @param isUnread true to mark the room as unread, false to remove the flag.
-     *
-     */
-    suspend fun setUnreadFlag(isUnread: Boolean): Result<Unit>
-
-    /**
-     * Clear the event cache storage for the current room.
-     */
-    suspend fun clearEventCacheStorage(): Result<Unit>
-
     /**
      * Create a poll in the room.
      *
@@ -321,82 +192,19 @@ interface MatrixRoom : Closeable {
      */
     suspend fun typingNotice(isTyping: Boolean): Result<Unit>
 
-    /**
-     * Generates a Widget url to display in a [android.webkit.WebView] given the provided parameters.
-     * @param widgetSettings The widget settings to use.
-     * @param clientId The client id to use. It should be unique per app install.
-     * @param languageTag The language tag to use. If null, the default language will be used.
-     * @param theme The theme to use. If null, the default theme will be used.
-     * @return The resulting url, or a failure.
-     */
-    suspend fun generateWidgetWebViewUrl(
-        widgetSettings: MatrixWidgetSettings,
-        clientId: String,
-        languageTag: String?,
-        theme: String?,
-    ): Result<String>
+    suspend fun toggleReaction(emoji: String, eventOrTransactionId: EventOrTransactionId): Result<Unit>
 
-    /**
-     * Get a [MatrixWidgetDriver] for the provided [widgetSettings].
-     * @param widgetSettings The widget settings to use.
-     * @return The resulting [MatrixWidgetDriver], or a failure.
-     */
-    fun getWidgetDriver(widgetSettings: MatrixWidgetSettings): Result<MatrixWidgetDriver>
+    suspend fun forwardEvent(eventId: EventId, roomIds: List<RoomId>): Result<Unit>
 
-    /**
-     * Get the permalink for the room.
-     */
-    suspend fun getPermalink(): Result<String>
+    suspend fun cancelSend(transactionId: TransactionId): Result<Unit>
 
-    /**
-     * Get the permalink for the provided [eventId].
-     * @param eventId The event id to get the permalink for.
-     * @return The permalink, or a failure.
-     */
-    suspend fun getPermalinkFor(eventId: EventId): Result<String>
+    suspend fun inviteUserById(id: UserId): Result<Unit>
 
-    /**
-     * Send an Element Call started notification if needed.
-     */
-    suspend fun sendCallNotificationIfNeeded(): Result<Unit>
+    suspend fun updateAvatar(mimeType: String, data: ByteArray): Result<Unit>
 
-    suspend fun setSendQueueEnabled(enabled: Boolean)
+    suspend fun removeAvatar(): Result<Unit>
 
-    /**
-     * Store the given `ComposerDraft` in the state store of this room.
-     */
-    suspend fun saveComposerDraft(composerDraft: ComposerDraft): Result<Unit>
-
-    /**
-     * Retrieve the `ComposerDraft` stored in the state store for this room.
-     */
-    suspend fun loadComposerDraft(): Result<ComposerDraft?>
-
-    /**
-     * Clear the `ComposerDraft` stored in the state store for this room.
-     */
-    suspend fun clearComposerDraft(): Result<Unit>
-
-    /**
-     * Ignore the local trust for the given devices and resend messages that failed to send because said devices are unverified.
-     *
-     * @param devices The map of users identifiers to device identifiers received in the error
-     * @param sendHandle The send queue handle of the local echo the send error applies to. It can be used to retry the upload.
-     *
-     */
-    suspend fun ignoreDeviceTrustAndResend(devices: Map<UserId, List<DeviceId>>, sendHandle: SendHandle): Result<Unit>
-
-    /**
-     * Remove verification requirements for the given users and
-     * resend messages that failed to send because their identities were no longer verified.
-     *
-     * @param userIds The list of users identifiers received in the error.
-     * @param sendHandle The send queue handle of the local echo the send error applies to. It can be used to retry the upload.
-     *
-     */
-    suspend fun withdrawVerificationAndResend(userIds: List<UserId>, sendHandle: SendHandle): Result<Unit>
-
-    override fun close() = destroy()
+    suspend fun updateRoomNotificationSettings(): Result<Unit>
 
     /**
      * Update the canonical alias of the room.
@@ -417,12 +225,6 @@ interface MatrixRoom : Closeable {
      * Update room history visibility for this room.
      */
     suspend fun updateHistoryVisibility(historyVisibility: RoomHistoryVisibility): Result<Unit>
-
-    /**
-     * Returns the visibility for this room in the room directory.
-     * If the room is not published, the result will be [RoomVisibility.Private].
-     */
-    suspend fun getRoomVisibility(): Result<RoomVisibility>
 
     /**
      * Publish a new room alias for this room in the room directory.
@@ -454,5 +256,69 @@ interface MatrixRoom : Closeable {
      */
     suspend fun updateJoinRule(joinRule: JoinRule): Result<Unit>
 
-    suspend fun getUpdatedIsEncrypted(): Result<Boolean>
+    suspend fun updateUsersRoles(changes: List<UserRoleChange>): Result<Unit>
+
+    suspend fun updatePowerLevels(roomPowerLevels: RoomPowerLevels): Result<Unit>
+
+    suspend fun resetPowerLevels(): Result<RoomPowerLevels>
+
+    suspend fun setName(name: String): Result<Unit>
+
+    suspend fun setTopic(topic: String): Result<Unit>
+
+    suspend fun reportContent(eventId: EventId, reason: String, blockUserId: UserId?): Result<Unit>
+
+    suspend fun kickUser(userId: UserId, reason: String? = null): Result<Unit>
+
+    suspend fun banUser(userId: UserId, reason: String? = null): Result<Unit>
+
+    suspend fun unbanUser(userId: UserId, reason: String? = null): Result<Unit>
+
+    /**
+     * Generates a Widget url to display in a [android.webkit.WebView] given the provided parameters.
+     * @param widgetSettings The widget settings to use.
+     * @param clientId The client id to use. It should be unique per app install.
+     * @param languageTag The language tag to use. If null, the default language will be used.
+     * @param theme The theme to use. If null, the default theme will be used.
+     * @return The resulting url, or a failure.
+     */
+    suspend fun generateWidgetWebViewUrl(
+        widgetSettings: MatrixWidgetSettings,
+        clientId: String,
+        languageTag: String?,
+        theme: String?,
+    ): Result<String>
+
+    /**
+     * Get a [MatrixWidgetDriver] for the provided [widgetSettings].
+     * @param widgetSettings The widget settings to use.
+     * @return The resulting [MatrixWidgetDriver], or a failure.
+     */
+    fun getWidgetDriver(widgetSettings: MatrixWidgetSettings): Result<MatrixWidgetDriver>
+
+    /**
+     * Send an Element Call started notification if needed.
+     */
+    suspend fun sendCallNotificationIfNeeded(): Result<Unit>
+
+    suspend fun setSendQueueEnabled(enabled: Boolean)
+
+    /**
+     * Ignore the local trust for the given devices and resend messages that failed to send because said devices are unverified.
+     *
+     * @param devices The map of users identifiers to device identifiers received in the error
+     * @param sendHandle The send queue handle of the local echo the send error applies to. It can be used to retry the upload.
+     *
+     */
+    suspend fun ignoreDeviceTrustAndResend(devices: Map<UserId, List<DeviceId>>, sendHandle: SendHandle): Result<Unit>
+
+    /**
+     * Remove verification requirements for the given users and
+     * resend messages that failed to send because their identities were no longer verified.
+     *
+     * @param userIds The list of users identifiers received in the error.
+     * @param sendHandle The send queue handle of the local echo the send error applies to. It can be used to retry the upload.
+     *
+     */
+    suspend fun withdrawVerificationAndResend(userIds: List<UserId>, sendHandle: SendHandle): Result<Unit>
 }
