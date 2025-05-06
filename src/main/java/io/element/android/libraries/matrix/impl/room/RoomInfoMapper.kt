@@ -12,7 +12,7 @@ import io.element.android.libraries.matrix.api.core.RoomAlias
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
-import io.element.android.libraries.matrix.api.room.MatrixRoomInfo
+import io.element.android.libraries.matrix.api.room.RoomInfo
 import io.element.android.libraries.matrix.api.room.RoomNotificationMode
 import io.element.android.libraries.matrix.api.user.MatrixUser
 import io.element.android.libraries.matrix.impl.room.history.map
@@ -28,9 +28,9 @@ import org.matrix.rustcomponents.sdk.Membership as RustMembership
 import org.matrix.rustcomponents.sdk.RoomInfo as RustRoomInfo
 import org.matrix.rustcomponents.sdk.RoomNotificationMode as RustRoomNotificationMode
 
-class MatrixRoomInfoMapper {
-    fun map(rustRoomInfo: RustRoomInfo): MatrixRoomInfo = rustRoomInfo.let {
-        return MatrixRoomInfo(
+class RoomInfoMapper {
+    fun map(rustRoomInfo: RustRoomInfo): RoomInfo = rustRoomInfo.let {
+        return RoomInfo(
             id = RoomId(it.id),
             creator = it.creator?.let(::UserId),
             name = it.displayName,
@@ -76,44 +76,6 @@ class MatrixRoomInfoMapper {
             historyVisibility = it.historyVisibility.map(),
         )
     }
-
-//    fun map(rustRoom: Room): MatrixRoomInfo = with(rustRoom) {
-//        return MatrixRoomInfo(
-//            id = RoomId(id()),
-//            name = rawName(),
-//            rawName = displayName(),
-//            topic = topic(),
-//            avatarUrl = avatarUrl(),
-//            isPublic = isPublic(),
-//            isDirect = null,
-//            isEncrypted = encryptionState() == EncryptionState.ENCRYPTED,
-//            joinRule = null,
-//            isSpace = isSpace(),
-//            isTombstoned = isTombstoned(),
-//            isFavorite = null,
-//            canonicalAlias = canonicalAlias()?.let(::RoomAlias),
-//            alternativeAliases = alternativeAliases().map(::RoomAlias).toImmutableList(),
-//            currentUserMembership = membership().map(),
-//            inviter = null,
-//            activeMembersCount = activeMembersCount().toLong(),
-//            invitedMembersCount = invitedMembersCount().toLong(),
-//            joinedMembersCount = joinedMembersCount().toLong(),
-//            userPowerLevels = persistentMapOf(),
-//            highlightCount = 0,
-//            notificationCount = 0,
-//            userDefinedNotificationMode = null,
-//            hasRoomCall = hasActiveRoomCall(),
-//            activeRoomCallParticipants = activeRoomCallParticipants().map(::UserId).toImmutableList(),
-//            isMarkedUnread = false,
-//            numUnreadMessages = 0,
-//            numUnreadNotifications = 0,
-//            numUnreadMentions = 0,
-//            heroes = heroes().map(RoomHero::map).toImmutableList(),
-//            pinnedEventIds = persistentListOf(),
-//            creator = null,
-//            historyVisibility = null,
-//        )
-//    }
 }
 
 fun RustMembership.map(): CurrentUserMembership = when (this) {
