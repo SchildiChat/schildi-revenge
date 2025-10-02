@@ -7,8 +7,8 @@
 
 package io.element.android.appnav.di
 
-import io.element.android.libraries.matrix.api.MatrixClient
+import io.element.android.libraries.matrix.api.room.JoinedRoom
 
-interface SessionComponentFactory {
-    fun create(client: MatrixClient): Any
+fun interface RoomGraphFactory {
+    fun create(room: JoinedRoom): Any
 }
