@@ -1,3 +1,5 @@
+import java.net.URI
+
 rootProject.name = "schildi_revenge"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
@@ -25,6 +27,13 @@ dependencyResolutionManagement {
             }
         }
         mavenCentral()
+
+        maven {
+            url = URI("https://maven.spiritcroc.de")
+            content {
+                includeGroupAndSubgroups("chat.schildi")
+            }
+        }
     }
 }
 

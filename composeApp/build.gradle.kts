@@ -1,10 +1,33 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
+import gobley.gradle.GobleyHost
+import gobley.gradle.cargo.dsl.*
+
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
+
+    id("dev.gobley.cargo") version libs.versions.gobley
+    id("dev.gobley.uniffi") version libs.versions.gobley
+    kotlin("plugin.atomicfu") version libs.versions.kotlin
+}
+
+uniffi {
+    generateFromUdl {
+        namespace = "org.matrix.rustcomponents.sdk"
+        udlFile = layout.projectDirectory.file("../matrix-rust-sdk/bindings/matrix-sdk-ffi/src/api.udl")
+    }
+}
+
+cargo {
+    packageDirectory = layout.projectDirectory.dir("../matrix-rust-sdk/bindings/matrix-sdk-ffi")
+    features.addAll("rustls-tls")
+    builds.jvm {
+        // This builds only for the current host architecture
+        embedRustLibrary = (rustTarget == GobleyHost.current.rustTarget)
+    }
 }
 
 kotlin {

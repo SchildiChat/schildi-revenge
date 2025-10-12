@@ -3,5 +3,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="/store/ssd-exthome/dev/schildi-revenge" vcs="Git" />
+    <mapping directory="/store/ssd-exthome/dev/schildi-revenge/matrix-rust-sdk" vcs="Git" />
   </component>
 </project>
