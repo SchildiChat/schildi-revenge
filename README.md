@@ -5,6 +5,7 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
 ## Goals
 
 - Fully controllable via keyboard, ideally vim-inspired key-bindings where it makes sense
+- Prioritize yaml config (and account state?) over settings UI
 - Multi-account without account switching
     - I.e. allows a merged inbox
     - But also allow filtering by account
@@ -28,6 +29,22 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
 
 ### MVP
 
+- [ ] Get to compile with all necessary Rust SDK FFI bindings
+    - [x] Figure out how to get working and complete bindings
+        - `cargo build -p matrix-sdk-ffi --features rustls-tls`
+        - `cargo run -p uniffi-bindgen -- generate --library --language kotlin --out-dir target/generated-bindings target/debug/libmatrix_sdk_ffi.so`
+    - [x] Get hooked up in gradle
+    - [ ] Gradle clean target
+    - [ ] Gradle release flavor
+    - [ ] Document known limitations in README
+        - rebuild is slow and may be forgotten if Cargo.toml didn't update
+        - Can always do `cargo clean` in `matrix-rust-sdk` to force a rebuild
+- [ ] Persistent storage
+    - [ ] MVP to get things working
+    - [ ] Secure storage for passwords and keys and whatnot?
+- [ ] Initial config hooked in
+    - [ ] Accounts with username+homeserver (not: password and secrets)
+    - [ ] Configurable key bindings
 - [ ] Initial UI with login via password and recovery code
 - [ ] Inbox
     - [ ] List all chats
@@ -71,6 +88,7 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
 - [ ] Notifications
     - [ ] Allow muting individual accounts
 - [ ] Tray icon with unread count
+- [ ] Add release flavor that builds release variant of Rust SDK
 
 ### Possible advanced features
 

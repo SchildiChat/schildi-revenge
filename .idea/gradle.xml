@@ -11,6 +11,7 @@
           <set>
             <option value="/store/ssd-exthome/dev/schildi-revenge" />
             <option value="/store/ssd-exthome/dev/schildi-revenge/composeApp" />
+            <option value="/store/ssd-exthome/dev/schildi-revenge/matrix" />
           </set>
         </option>
       </GradleProjectSettings>

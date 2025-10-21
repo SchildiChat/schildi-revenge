@@ -42,3 +42,4 @@ plugins {
 }
 
 include(":composeApp")
+include(":matrix")
