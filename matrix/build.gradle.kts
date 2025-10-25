@@ -20,6 +20,9 @@ kotlin {
     sourceSets {
         named("main") {
             kotlin.srcDir(layout.projectDirectory.dir("../matrix-rust-sdk/target/generated-bindings"))
+            dependencies {
+                implementation(libs.kermit)
+            }
         }
     }
 }
