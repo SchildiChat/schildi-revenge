@@ -1,8 +1,11 @@
 package chat.schildi.revenge.matrix
 
+import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
 import org.matrix.rustcomponents.sdk.Client
 import org.matrix.rustcomponents.sdk.ClientBuilder
+import java.net.InetAddress
+import java.net.UnknownHostException
 
 class MatrixClient(
     val homeserver: String,
@@ -21,17 +24,31 @@ class MatrixClient(
             rustClient?.destroy()
             rustClient = newClient
         }
-        log.d { "Logging in client via password" }
+        val deviceName = initialDeviceName()
+        log.d { "Logging in client \"${deviceName}\" via password" }
         newClient.login(
             username = username,
             password = password,
-            initialDeviceName = "Schildi's Revenge",
+            initialDeviceName = deviceName,
             deviceId = null
         )
         log.d { "Successfully logged in" }
     }.also {
         if (it.isFailure) {
             log.w(it.exceptionOrNull()) { "Failed to log in" }
+        }
+    }
+
+    private fun initialDeviceName(): String = buildString {
+        append("Schildi's Revenge")
+        val deviceName = tryOrNull { InetAddress.getLocalHost().hostName }
+            ?: System.getenv("HOST")
+            ?: System.getenv("HOSTNAME")
+            ?: System.getenv("COMPUTERNAME")
+        if (deviceName != null) {
+            append(" (")
+            append(deviceName)
+            append(")")
         }
     }
 
