@@ -1,6 +1,7 @@
 plugins {
     id("java-library")
     alias(libs.plugins.jetbrainsKotlinJvm)
+    alias(libs.plugins.kotlinxSerialization)
 }
 
 dependencies {
@@ -22,6 +23,9 @@ kotlin {
             kotlin.srcDir(layout.projectDirectory.dir("../matrix-rust-sdk/target/generated-bindings"))
             dependencies {
                 implementation(libs.kermit)
+                implementation(libs.appdirs)
+                implementation(libs.kotlinx.serialization.json)
+                implementation(libs.yaml.kt)
             }
         }
     }

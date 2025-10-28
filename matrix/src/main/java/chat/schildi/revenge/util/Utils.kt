@@ -5,3 +5,5 @@ inline fun <T>tryOrNull(block: () -> T): T? = try {
 } catch (_: Throwable) {
     null
 }
+
+fun String.escapeForFilename() = replace(Regex("[/\\\\:*?\"<>|]"), "_")
