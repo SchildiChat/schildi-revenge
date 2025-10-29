@@ -93,6 +93,8 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
 ### Possible advanced features
 
 - [ ] Verify other devices via emoji
+- [ ] MAS + rotating token support (need to re-persist session data)
+- [ ] MAS: support generating QR for quick sign in of mobile devices
 - [ ] Threads??? (optional thread view, will want to show threaded messages in the main timeline by default as well)
 
 
