@@ -1,13 +1,13 @@
-package chat.schildi.revenge.schildi_revenge
+package chat.schildi.revenge
 
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import chat.schildi.revenge.matrix.SdkLoader
-import chat.schildi.revenge.schildi_revenge.compose.WindowContent
+import chat.schildi.revenge.compose.WindowContent
 import org.jetbrains.compose.resources.stringResource
-import schildi_revenge.composeapp.generated.resources.Res
-import schildi_revenge.composeapp.generated.resources.app_title
+import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.app_title
 
 fun main() {
     SdkLoader.ensureLoaded()

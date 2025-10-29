@@ -1,8 +1,8 @@
-package chat.schildi.revenge.schildi_revenge
+package chat.schildi.revenge
 
 import androidx.compose.ui.window.ApplicationScope
-import chat.schildi.revenge.schildi_revenge.navigation.AccountManagementDestination
-import chat.schildi.revenge.schildi_revenge.navigation.Destination
+import chat.schildi.revenge.navigation.AccountManagementDestination
+import chat.schildi.revenge.navigation.Destination
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList

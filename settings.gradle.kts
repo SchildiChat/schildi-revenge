@@ -1,6 +1,6 @@
 import java.net.URI
 
-rootProject.name = "schildi_revenge"
+rootProject.name = "shire"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {

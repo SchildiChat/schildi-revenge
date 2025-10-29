@@ -1,7 +1,7 @@
-package chat.schildi.revenge.schildi_revenge.navigation
+package chat.schildi.revenge.navigation
 
-import schildi_revenge.composeapp.generated.resources.Res
-import schildi_revenge.composeapp.generated.resources.manage_accounts
+import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.manage_accounts
 
 sealed interface Destination {
     val title: ComposableStringHolder?

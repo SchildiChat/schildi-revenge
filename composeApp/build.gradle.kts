@@ -38,11 +38,11 @@ kotlin {
 
 compose.desktop {
     application {
-        mainClass = "chat.schildi.revenge.schildi_revenge.MainKt"
+        mainClass = "chat.schildi.revenge.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "chat.schildi.revenge.schildi_revenge"
+            packageName = "chat.schildi.revenge"
             packageVersion = "1.0.0"
         }
     }
