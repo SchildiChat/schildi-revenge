@@ -39,13 +39,18 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [ ] Document known limitations in README
         - rebuild is slow and may be forgotten if Cargo.toml didn't update
         - Can always do `cargo clean` in `matrix-rust-sdk` to force a rebuild
-- [ ] Persistent storage
-    - [ ] MVP to get things working
+- [x] Persistent storage
+    - [x] MVP to get things working
     - [ ] Secure storage for passwords and keys and whatnot?
+- [ ] Non-awful theme
 - [ ] Initial config hooked in
-    - [ ] Accounts with username+homeserver (not: password and secrets)
+    - [x] Accounts with username+homeserver (not: password and secrets)
     - [ ] Configurable key bindings
-- [ ] Initial UI with login via password and recovery code
+- [ ] Initial account management UI
+    - [x] Login via password
+    - [ ] Enter recovery code
+    - [ ] Logout / delete account
+- [ ] Lock to avoid running multiple instances in parallel, but instead bring to foreground?
 - [ ] Inbox
     - [ ] List all chats
     - [ ] Make it look nice
@@ -96,6 +101,7 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
 - [ ] MAS + rotating token support (need to re-persist session data)
 - [ ] MAS: support generating QR for quick sign in of mobile devices
 - [ ] Threads??? (optional thread view, will want to show threaded messages in the main timeline by default as well)
+- [ ] Expose command line message interface to e.g. "open list for account X with filters Y"
 
 
 ## Building

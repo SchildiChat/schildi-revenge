@@ -1,4 +1,10 @@
 <resources>
-    <string name="app_title">Schildi\s Revenge</string>
+    <string name="app_title">Schildi's Revenge</string>
     <string name="manage_accounts">Accounts</string>
+
+    <string name="title_login_account">Login account</string>
+    <string name="action_login">Login</string>
+    <string name="hint_username">Username</string>
+    <string name="hint_homeserver">Homeserver</string>
+    <string name="hint_password">Password</string>
 </resources>

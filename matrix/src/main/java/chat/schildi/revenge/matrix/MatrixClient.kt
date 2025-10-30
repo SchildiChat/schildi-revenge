@@ -5,6 +5,8 @@ import chat.schildi.revenge.util.escapeForFilename
 import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.matrix.rustcomponents.sdk.Client
@@ -17,7 +19,9 @@ class MatrixClient(
     val username: String,
 ) {
 
-    private val log = Logger.withTag("Matrix")
+    private val log = Logger.withTag("Matrix/$username")
+    private val lock = Mutex()
+
     private var rustClient: Client? = null
 
     private val sessionSubDirs =
@@ -33,6 +37,10 @@ class MatrixClient(
             it.mkdirs()
         }
 
+    init {
+        log.d { "Using session storage at ${sessionDataDir.path}" }
+    }
+
     private suspend fun ensureClient(): Client {
         rustClient?.let { return it }
         val newClient = ClientBuilder()
@@ -46,7 +54,7 @@ class MatrixClient(
             .enableShareHistoryOnInvite(true)
             .threadsEnabled(false, false)
             .build()
-        synchronized(this) {
+        lock.withLock {
             if (rustClient != null) {
                 log.e { "Race condition initializing new client" }
                 rustClient?.destroy()
@@ -122,7 +130,7 @@ class MatrixClient(
 
     suspend fun logout() {
         log.d { "Logging client out" }
-        val oldClient = synchronized(this) {
+        val oldClient = lock.withLock {
             rustClient.also {
                 rustClient = null
             }
@@ -135,8 +143,8 @@ class MatrixClient(
         oldClient?.destroy()
     }
 
-    fun destroy() {
-        synchronized(this) {
+    suspend fun destroy() {
+        lock.withLock {
             rustClient?.destroy()
             rustClient = null
         }

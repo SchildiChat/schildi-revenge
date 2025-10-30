@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import chat.schildi.revenge.navigation.Destination
 
@@ -17,6 +18,7 @@ fun WindowContent(state: Destination) {
                 .background(MaterialTheme.colorScheme.primaryContainer)
                 .safeContentPadding()
                 .fillMaxSize(),
+            contentAlignment = Alignment.Center,
         ) {
             DestinationContent(state)
         }

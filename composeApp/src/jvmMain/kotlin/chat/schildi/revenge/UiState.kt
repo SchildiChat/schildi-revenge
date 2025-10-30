@@ -14,7 +14,7 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.concurrent.atomics.fetchAndIncrement
 
 @OptIn(ExperimentalAtomicApi::class)
-object AppState {
+object UiState {
     private val windowCounter = AtomicInt(0)
     private val _windows = MutableStateFlow<ImmutableList<WindowState>>(
         persistentListOf(createWindow(AccountManagementDestination))
