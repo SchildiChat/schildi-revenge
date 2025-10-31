@@ -7,4 +7,7 @@
     <string name="hint_username">Username</string>
     <string name="hint_homeserver">Homeserver</string>
     <string name="hint_password">Password</string>
+
+    <string name="action_hide">Hide</string>
+    <string name="action_show">Show</string>
 </resources>
