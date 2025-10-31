@@ -7,12 +7,16 @@ import co.touchlab.kermit.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.matrix.rustcomponents.sdk.Client
 import org.matrix.rustcomponents.sdk.ClientBuilder
+import org.matrix.rustcomponents.sdk.RoomListService
+import org.matrix.rustcomponents.sdk.RoomListServiceState
+import org.matrix.rustcomponents.sdk.RoomListServiceStateListener
 import org.matrix.rustcomponents.sdk.SlidingSyncVersionBuilder
 import org.matrix.rustcomponents.sdk.SyncService
 import org.matrix.rustcomponents.sdk.SyncServiceState
@@ -30,6 +34,7 @@ class MatrixClient(
 
     private var rustClient: Client? = null
     private var rustSyncService: SyncService? = null
+    private var rustRoomListService: RoomListService? = null
 
     private val sessionSubDirs =
         homeserver.removePrefix("https://").escapeForFilename() + File.separator +
@@ -46,6 +51,11 @@ class MatrixClient(
 
     private val _syncServiceState = MutableStateFlow<SyncServiceState?>(null)
     val syncServiceState = _syncServiceState.asStateFlow()
+
+    private val _roomListServiceState = MutableStateFlow<RoomListServiceState?>(null)
+    val roomListServiceState = _roomListServiceState.asStateFlow()
+
+    internal val selfFlowIfValid = syncServiceState.map { it?.let { this } }
 
     init {
         log.d { "Using session storage at ${sessionDataDir.path}" }
@@ -115,6 +125,7 @@ class MatrixClient(
 
     private suspend fun onLoggedIn() {
         buildSyncService()
+        buildRoomListService()
     }
 
     private suspend fun buildSyncService(): SyncService? {
@@ -141,6 +152,25 @@ class MatrixClient(
         syncService.start()
         log.d { "Sync service started" }
         return syncService
+    }
+
+    private suspend fun buildRoomListService(): RoomListService? {
+        log.d { "Building room list service..." }
+        val roomListService = lock.withLock {
+            val syncService = rustSyncService ?: return null
+            syncService.roomListService().also {
+                rustRoomListService?.destroy()
+                rustRoomListService = it
+            }
+        }
+        log.d { "Observing room list service..." }
+        roomListService.state(object : RoomListServiceStateListener {
+            override fun onUpdate(state: RoomListServiceState) {
+                log.v { "Room list service update: $state" }
+                _roomListServiceState.value = state
+            }
+        })
+        return roomListService
     }
 
     suspend fun persistSession() = runCatching {
@@ -170,8 +200,14 @@ class MatrixClient(
         }
     }
 
+    private suspend fun clearState() {
+        _syncServiceState.emit(null)
+        _roomListServiceState.emit(null)
+    }
+
     internal suspend fun logout() = runCatching {
         log.d { "Logging client out" }
+        clearState()
         lock.withLock {
             try {
                 rustClient?.logout()
@@ -187,12 +223,16 @@ class MatrixClient(
     }
 
     suspend fun destroyClient() {
+        clearState()
         lock.withLock {
             rustSyncService?.destroy()
             rustSyncService = null
+            rustRoomListService?.destroy()
+            rustRoomListService = null
             rustClient?.destroy()
             rustClient = null
-            _syncServiceState.emit(null)
+            // Duplicate clear state just in case
+            clearState()
         }
     }
 }

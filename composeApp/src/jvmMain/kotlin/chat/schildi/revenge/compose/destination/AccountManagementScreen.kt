@@ -1,4 +1,4 @@
-package chat.schildi.revenge.compose.destination.account
+package chat.schildi.revenge.compose.destination
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

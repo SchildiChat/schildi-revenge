@@ -3,6 +3,7 @@ package chat.schildi.revenge
 import androidx.compose.ui.window.ApplicationScope
 import chat.schildi.revenge.navigation.AccountManagementDestination
 import chat.schildi.revenge.navigation.Destination
+import chat.schildi.revenge.navigation.InboxDestination
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
@@ -17,7 +18,8 @@ import kotlin.concurrent.atomics.fetchAndIncrement
 object UiState {
     private val windowCounter = AtomicInt(0)
     private val _windows = MutableStateFlow<ImmutableList<WindowState>>(
-        persistentListOf(createWindow(AccountManagementDestination))
+        // TODO splash screen
+        persistentListOf(createWindow(InboxDestination))
     )
     val windows = _windows.asStateFlow()
 

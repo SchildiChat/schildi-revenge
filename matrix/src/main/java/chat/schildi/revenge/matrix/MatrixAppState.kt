@@ -6,6 +6,7 @@ import co.touchlab.kermit.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -25,6 +26,11 @@ data object MatrixAppState {
     private val accountsConfigFile = File(ScAppDirs.getUserConfigDir() + File.separator + "accounts.yaml")
 
     val accountsConfig = _accountsConfig.asStateFlow()
+
+    val activeClients = combine(*clients.map { it.selfFlowIfValid }.toTypedArray()) {
+        log.d { "${it.size} clients active" }
+        it.filterNotNull()
+    }
 
     suspend fun load() = withContext(Dispatchers.IO) {
         log.d { "Using accounts config at ${accountsConfigFile.path}" }
