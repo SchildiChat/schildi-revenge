@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextObfuscationMode
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -16,6 +15,7 @@ import androidx.compose.material.Button
 import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.SecureTextField
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
@@ -27,10 +27,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.compose.util.rememberInvalidating
 import chat.schildi.revenge.config.AccountsConfig
@@ -40,6 +38,7 @@ import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_hide
 import shire.composeapp.generated.resources.action_login
+import shire.composeapp.generated.resources.action_logout
 import shire.composeapp.generated.resources.action_show
 import shire.composeapp.generated.resources.hint_homeserver
 import shire.composeapp.generated.resources.hint_password
@@ -79,34 +78,68 @@ private fun SectionHeader(text: String) {
 
 @Composable
 private fun ExistingLogin(account: AccountsConfig.Account) {
+    val scope = rememberCoroutineScope()
     val client = remember(account) {
         MatrixAppState.getClientOrNull(account)
     }
     val userId = rememberInvalidating(2000, client) {
         client?.userId()
     }
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    val syncState = client?.syncServiceState?.collectAsState()
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
         if (userId != null) {
-            Text(
-                userId,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodyMedium,
-            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text(
+                    userId,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.alignByBaseline(),
+                )
+                syncState?.value?.let {
+                    Text(
+                        syncState.value.toString(),
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.alignByBaseline(),
+                    )
+                }
+            }
+            if (client != null) {
+                IconButton(onClick = {
+                    scope.launch {
+                        MatrixAppState.logoutClient(client)
+                    }
+                }) {
+                    Icon(
+                        Icons.AutoMirrored.Default.Logout,
+                        contentDescription = stringResource(Res.string.action_logout),
+                        tint = MaterialTheme.colorScheme.error,
+                    )
+                }
+            }
         } else {
             Text(
                 "❌",
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.alignByBaseline(),
             )
             Text(
                 account.username,
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.alignByBaseline(),
             )
             Text(
                 account.homeserver,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.alignByBaseline(),
             )
         }
     }

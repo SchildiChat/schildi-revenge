@@ -110,12 +110,31 @@ data object MatrixAppState {
             clients.forEach { client ->
                 if (!config.accounts.contains(client.toAccount())) {
                     log.d { "Dropping client for ${client.username} on ${client.homeserver}" }
-                    client.destroy()
+                    client.destroyClient()
                     toRemove.add(client)
                 }
             }
             clients.removeAll(toRemove)
         }
+    }
+
+    suspend fun logoutClient(client: MatrixClient) {
+        val clientAccount = client.toAccount()
+        log.d { "Removing client for $clientAccount" }
+        _accountsConfig.update {
+            it?.copy(
+                accounts = it.accounts.filter {
+                    it != clientAccount
+                }
+            )
+        }
+        persistConfig()
+        log.d { "Logging out client for $clientAccount" }
+        client.logout()
+        clientLock.withLock {
+            clients.remove(client)
+        }
+        log.d { "Finished cleaning up client for $clientAccount" }
     }
 
     suspend fun persistConfig() = withContext(Dispatchers.IO) {

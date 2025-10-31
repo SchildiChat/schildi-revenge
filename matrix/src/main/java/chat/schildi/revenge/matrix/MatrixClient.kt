@@ -5,12 +5,18 @@ import chat.schildi.revenge.util.escapeForFilename
 import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.matrix.rustcomponents.sdk.Client
 import org.matrix.rustcomponents.sdk.ClientBuilder
+import org.matrix.rustcomponents.sdk.SlidingSyncVersionBuilder
+import org.matrix.rustcomponents.sdk.SyncService
+import org.matrix.rustcomponents.sdk.SyncServiceState
+import org.matrix.rustcomponents.sdk.SyncServiceStateObserver
 import java.io.File
 import java.net.InetAddress
 
@@ -19,10 +25,11 @@ class MatrixClient(
     val username: String,
 ) {
 
-    private val log = Logger.withTag("Matrix/$username")
+    private val log = Logger.withTag("Matrix/$username/$homeserver")
     private val lock = Mutex()
 
     private var rustClient: Client? = null
+    private var rustSyncService: SyncService? = null
 
     private val sessionSubDirs =
         homeserver.removePrefix("https://").escapeForFilename() + File.separator +
@@ -36,6 +43,9 @@ class MatrixClient(
         File(ScAppDirs.getUserCacheDir() + File.separator + sessionSubDirs).also {
             it.mkdirs()
         }
+
+    private val _syncServiceState = MutableStateFlow<SyncServiceState?>(null)
+    val syncServiceState = _syncServiceState.asStateFlow()
 
     init {
         log.d { "Using session storage at ${sessionDataDir.path}" }
@@ -53,35 +63,17 @@ class MatrixClient(
             //.setSessionDelegate() // TODO for secure keychain storing...?
             .enableShareHistoryOnInvite(true)
             .threadsEnabled(false, false)
+            .slidingSyncVersionBuilder(SlidingSyncVersionBuilder.DISCOVER_NATIVE)
             .build()
         lock.withLock {
             if (rustClient != null) {
                 log.e { "Race condition initializing new client" }
-                rustClient?.destroy()
-                rustClient = newClient
+                destroyClient()
             }
             rustClient = newClient
         }
         return newClient
     }
-
-    suspend fun restoreSession() = runCatching {
-        withContext(Dispatchers.IO) {
-            val session = sessionFile.inputStream().use {
-                Json.decodeFromString<ScSession>(it.readAllBytes().decodeToString())
-            }.toSdkSession()
-            val newClient = ensureClient()
-            newClient.restoreSession(session)
-            newClient.session()
-            log.d { "Successfully restored session" }
-        }
-    }.also {
-        if (it.isFailure) {
-            log.w(it.exceptionOrNull()) { "Failed to restore session" }
-        }
-    }
-
-    fun userId() = rustClient?.userId()
 
     suspend fun login(password: String) = runCatching {
         val newClient = ensureClient()
@@ -95,10 +87,60 @@ class MatrixClient(
         )
         log.d { "Successfully logged in" }
         persistSession()
+        onLoggedIn()
     }.also {
         if (it.isFailure) {
             log.w(it.exceptionOrNull()) { "Failed to log in" }
         }
+    }
+
+    suspend fun restoreSession() = runCatching {
+        withContext(Dispatchers.IO) {
+            val session = sessionFile.inputStream().use {
+                Json.decodeFromString<ScSession>(it.readAllBytes().decodeToString())
+            }.toSdkSession()
+            val newClient = ensureClient()
+            newClient.restoreSession(session)
+            newClient.session()
+            log.d { "Successfully restored session" }
+            onLoggedIn()
+        }
+    }.also {
+        if (it.isFailure) {
+            log.w(it.exceptionOrNull()) { "Failed to restore session" }
+        }
+    }
+
+    fun userId() = rustClient?.userId()
+
+    private suspend fun onLoggedIn() {
+        buildSyncService()
+    }
+
+    private suspend fun buildSyncService(): SyncService? {
+        log.d { "Building sync service..." }
+        val syncService = lock.withLock {
+            val client = rustClient ?: return null
+            client.syncService()
+                .withOfflineMode()
+                .finish()
+                .also {
+                    rustSyncService?.destroy()
+                    rustSyncService = it
+                }
+        }
+        log.d { "Observing sync service..." }
+        syncService.state(object : SyncServiceStateObserver {
+            override fun onUpdate(state: SyncServiceState) {
+                log.v { "Sync service update: $state" }
+                _syncServiceState.value = state
+            }
+
+        })
+        log.d { "Starting sync service..." }
+        syncService.start()
+        log.d { "Sync service started" }
+        return syncService
     }
 
     suspend fun persistSession() = runCatching {
@@ -128,25 +170,29 @@ class MatrixClient(
         }
     }
 
-    suspend fun logout() {
+    internal suspend fun logout() = runCatching {
         log.d { "Logging client out" }
-        val oldClient = lock.withLock {
-            rustClient.also {
-                rustClient = null
+        lock.withLock {
+            try {
+                rustClient?.logout()
+            } catch (e: Throwable) {
+                log.e(e) { "Failed to log out client" }
             }
+            destroyClient()
+            sessionFile.delete()
+            sessionCacheDir.deleteRecursively()
+            sessionDataDir.deleteRecursively()
         }
-        try {
-            oldClient?.logout()
-        } catch (e: Throwable) {
-            log.e(e) { "Failed to log out client" }
-        }
-        oldClient?.destroy()
+        log.d { "Logout completed" }
     }
 
-    suspend fun destroy() {
+    suspend fun destroyClient() {
         lock.withLock {
+            rustSyncService?.destroy()
+            rustSyncService = null
             rustClient?.destroy()
             rustClient = null
+            _syncServiceState.emit(null)
         }
     }
 }
