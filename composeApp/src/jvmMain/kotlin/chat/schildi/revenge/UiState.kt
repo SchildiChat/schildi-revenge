@@ -19,7 +19,10 @@ object UiState {
     private val windowCounter = AtomicInt(0)
     private val _windows = MutableStateFlow<ImmutableList<WindowState>>(
         // TODO splash screen
-        persistentListOf(createWindow(InboxDestination))
+        persistentListOf(
+            //createWindow(AccountManagementDestination),
+            createWindow(InboxDestination),
+        )
     )
     val windows = _windows.asStateFlow()
 

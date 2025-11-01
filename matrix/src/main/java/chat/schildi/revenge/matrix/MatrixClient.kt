@@ -7,7 +7,6 @@ import co.touchlab.kermit.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -54,8 +53,6 @@ class MatrixClient(
 
     private val _roomListServiceState = MutableStateFlow<RoomListServiceState?>(null)
     val roomListServiceState = _roomListServiceState.asStateFlow()
-
-    internal val selfFlowIfValid = syncServiceState.map { it?.let { this } }
 
     init {
         log.d { "Using session storage at ${sessionDataDir.path}" }
@@ -145,6 +142,7 @@ class MatrixClient(
             override fun onUpdate(state: SyncServiceState) {
                 log.v { "Sync service update: $state" }
                 _syncServiceState.value = state
+                MatrixAppState.onClientActiveChanged(this@MatrixClient, true)
             }
 
         })
@@ -203,6 +201,7 @@ class MatrixClient(
     private suspend fun clearState() {
         _syncServiceState.emit(null)
         _roomListServiceState.emit(null)
+        MatrixAppState.onClientActiveChanged(this, false)
     }
 
     internal suspend fun logout() = runCatching {

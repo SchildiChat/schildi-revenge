@@ -12,8 +12,7 @@ import chat.schildi.revenge.compose.model.InboxViewModel
 @Composable
 fun InboxScreen() {
     val viewModel: InboxViewModel = viewModel()
-    val rooms = viewModel.allRooms.collectAsState(null).value
-    Text("$rooms")
+    val rooms = viewModel.allRooms.collectAsState().value
     rooms?.let {
         LazyColumn {
             items(rooms) { room ->
