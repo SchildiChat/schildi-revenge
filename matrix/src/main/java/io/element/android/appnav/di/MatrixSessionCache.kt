@@ -12,6 +12,7 @@ import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
+import io.element.android.libraries.matrix.api.BatchRestoreScope
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.MatrixClientProvider
 import io.element.android.libraries.matrix.api.auth.MatrixAuthenticationService
@@ -20,6 +21,10 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.AtomicIntArray
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.concurrent.atomics.incrementAndFetch
 
 private const val SAVE_INSTANCE_KEY = "io.element.android.x.di.MatrixClientsHolder.SaveInstanceKey"
 
@@ -62,6 +67,29 @@ class MatrixSessionCache(
                 null -> restore(sessionId)
                 else -> Result.success(cached)
             }
+        }
+    }
+
+    @OptIn(ExperimentalAtomicApi::class)
+    override suspend fun <T> runBatchRestore(block: suspend BatchRestoreScope.() -> T): T {
+        val counter = AtomicInt(0)
+        val requestedSessions = ConcurrentHashMap<String, Int>()
+        val restoreScope = object : BatchRestoreScope {
+            override suspend fun getOrRestoreInBatch(sessionId: SessionId): Result<MatrixClient> {
+                val count = counter.incrementAndFetch()
+                if (requestedSessions.getOrDefault(sessionId.value, count) != count) {
+                    return Result.failure(
+                        IllegalArgumentException("Tried to restore session $sessionId twice")
+                    )
+                }
+                return when (val cached = getOrNull(sessionId)) {
+                    null -> restore(sessionId)
+                    else -> Result.success(cached)
+                }
+            }
+        }
+        return restoreMutex.withLock {
+            restoreScope.block()
         }
     }
 

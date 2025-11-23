@@ -15,6 +15,7 @@ import kotlinx.collections.immutable.toPersistentHashMap
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -50,14 +51,21 @@ object UiState {
 
     val matrixClients = appGraph.sessionStore.sessionsFlow().map {
         val persistedSessions = appGraph.sessionStore.getAllSessions()
+        val startTs = System.currentTimeMillis()
         log.i("Restoring ${persistedSessions.size} sessions")
-        val sessions = persistedSessions.mapNotNull { sessionData ->
-            log.i("Restoring session for ${sessionData.userId}")
-            appGraph.sessionCache.getOrRestore(UserId(sessionData.userId))
-                .onFailure { log.e("Failed to restore session for ${sessionData.userId}", it) }
-                .getOrNull()
+        val sessions = appGraph.sessionCache.runBatchRestore {
+            val sessionJobs = persistedSessions.map { sessionData ->
+                scope.async {
+                    log.i("Restoring session for ${sessionData.userId}")
+                    getOrRestoreInBatch(UserId(sessionData.userId))
+                        .onFailure { log.e("Failed to restore session for ${sessionData.userId}", it) }
+                        .getOrNull()
+                }
+            }
+            sessionJobs.mapNotNull { it.await() }
         }
-        log.i("${sessions.size} sessions restored")
+        val finishedTs = System.currentTimeMillis()
+        log.i("${sessions.size} sessions restored in ${finishedTs - startTs} ms")
 
         if (!hasClearedSplashScreen) {
             val destination = if (sessions.isEmpty()) {

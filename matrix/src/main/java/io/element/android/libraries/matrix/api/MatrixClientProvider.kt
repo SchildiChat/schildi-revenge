@@ -19,9 +19,19 @@ interface MatrixClientProvider {
     suspend fun getOrRestore(sessionId: SessionId): Result<MatrixClient>
 
     /**
+     * SC: For initial restoration of clients, we can initialize multiple in parallel, as long as we don't do
+     * same sessionIds multiple time, so this one allows some smarter mutex usage for faster initialization.
+     **/
+    suspend fun <T>runBatchRestore(block: suspend BatchRestoreScope.() -> T): T
+
+    /**
      * Can be used to retrieve an existing [MatrixClient] with the given [SessionId].
      * @param sessionId the [SessionId] of the [MatrixClient] to retrieve.
      * @return the [MatrixClient] if it exists.
      */
     fun getOrNull(sessionId: SessionId): MatrixClient?
+}
+
+interface BatchRestoreScope {
+    suspend fun getOrRestoreInBatch(sessionId: SessionId): Result<MatrixClient>
 }
