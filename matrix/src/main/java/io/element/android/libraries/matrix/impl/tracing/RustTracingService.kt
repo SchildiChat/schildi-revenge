@@ -19,10 +19,12 @@ import org.matrix.rustcomponents.sdk.reloadTracingFileWriter
 import timber.log.Timber
 
 @ContributesBinding(AppScope::class)
-class RustTracingService(private val buildMeta: BuildMeta) : TracingService {
+object RustTracingService : TracingService {
+    /*
     override fun createTimberTree(target: String): Timber.Tree {
         return RustTracingTree(target = target, retrieveFromStackTrace = buildMeta.isDebuggable)
     }
+     */
 
     override fun updateWriteToFilesConfiguration(config: WriteToFilesConfiguration) {
         config.toTracingFileConfiguration()?.let {
@@ -59,5 +61,5 @@ fun TracingConfiguration.map(): org.matrix.rustcomponents.sdk.TracingConfigurati
     extraTargets = extraTargets,
     traceLogPacks = traceLogPacks.map(),
     writeToFiles = writesToFilesConfiguration.toTracingFileConfiguration(),
-    sentryDsn = null,
+    //sentryDsn = null,
 )

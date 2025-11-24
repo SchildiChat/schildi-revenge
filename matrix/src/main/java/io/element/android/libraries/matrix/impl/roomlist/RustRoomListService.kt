@@ -18,7 +18,6 @@ import io.element.android.libraries.matrix.api.roomlist.ScSdkInboxSettings
 import io.element.android.libraries.matrix.api.roomlist.ScSdkRoomSortOrder
 import io.element.android.libraries.matrix.api.roomlist.loadAllIncrementally
 import io.element.android.libraries.matrix.impl.room.RoomSyncSubscriber
-import io.element.android.libraries.preferences.api.store.AppPreferencesStore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.SharingStarted

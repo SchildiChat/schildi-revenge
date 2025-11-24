@@ -7,18 +7,18 @@
 
 package io.element.android.libraries.matrix.impl.keys
 
-import android.util.Base64
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import java.security.SecureRandom
+import java.util.Base64
 
 private const val SECRET_SIZE = 256
 
 @ContributesBinding(AppScope::class)
-class DefaultPassphraseGenerator : PassphraseGenerator {
+object DefaultPassphraseGenerator : PassphraseGenerator {
     override fun generatePassphrase(): String? {
         val key = ByteArray(size = SECRET_SIZE)
         SecureRandom().nextBytes(key)
-        return Base64.encodeToString(key, Base64.NO_PADDING or Base64.NO_WRAP)
+        return Base64.getEncoder().withoutPadding().encodeToString(key)
     }
 }

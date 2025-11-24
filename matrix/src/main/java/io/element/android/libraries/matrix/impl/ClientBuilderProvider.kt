@@ -16,7 +16,7 @@ interface ClientBuilderProvider {
 }
 
 @ContributesBinding(AppScope::class)
-class RustClientBuilderProvider : ClientBuilderProvider {
+object RustClientBuilderProvider : ClientBuilderProvider {
     override fun provide(): ClientBuilder {
         return ClientBuilder()
     }

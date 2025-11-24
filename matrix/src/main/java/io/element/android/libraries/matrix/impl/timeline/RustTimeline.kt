@@ -450,7 +450,7 @@ class RustTimeline(
         runCatchingExceptions {
             roomContentForwarder.forward(fromTimeline = inner, eventId = eventId, toRoomIds = roomIds)
         }.onFailure {
-            Timber.e(it)
+            Timber.e(it, "Failed to forward event")
         }
     }
 

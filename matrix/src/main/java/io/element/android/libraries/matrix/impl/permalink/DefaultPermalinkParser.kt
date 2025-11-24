@@ -31,9 +31,8 @@ import org.matrix.rustcomponents.sdk.parseMatrixEntityFrom
  * or matrix: permalinks (e.g. matrix:u/chagai95:matrix.org)
  */
 @ContributesBinding(AppScope::class)
-class DefaultPermalinkParser(
-    private val matrixToConverter: MatrixToConverter
-) : PermalinkParser {
+object DefaultPermalinkParser: PermalinkParser {
+    private val matrixToConverter: MatrixToConverter = DefaultMatrixToConverter
     /**
      * Turns a uri string to a [PermalinkData].
      * https://github.com/matrix-org/matrix-doc/blob/master/proposals/1704-matrix.to-permalinks.md

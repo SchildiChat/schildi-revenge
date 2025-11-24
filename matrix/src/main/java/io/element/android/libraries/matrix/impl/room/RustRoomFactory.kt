@@ -10,7 +10,7 @@ package io.element.android.libraries.matrix.impl.room
 import io.element.android.appconfig.TimelineConfig
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
 import io.element.android.libraries.featureflag.api.FeatureFlagService
-import io.element.android.libraries.featureflag.api.FeatureFlags
+import chat.schildi.revenge.glue.FeatureFlags
 import io.element.android.libraries.matrix.api.core.DeviceId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -117,7 +117,7 @@ class RustRoomFactory(
                         internalIdPrefix = "live",
                         dateDividerMode = DateDividerMode.DAILY,
                         trackReadReceipts = true,
-                        reportUtds = true,
+                        reportUtds = false,
                     )
                 )
 

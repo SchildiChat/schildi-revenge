@@ -13,7 +13,7 @@ import io.element.android.libraries.matrix.api.SdkMetadata
 import org.matrix.rustcomponents.sdk.sdkGitSha
 
 @ContributesBinding(AppScope::class)
-class RustSdkMetadata : SdkMetadata {
+object RustSdkMetadata : SdkMetadata {
     override val sdkGitSha: String
         get() = sdkGitSha()
 }

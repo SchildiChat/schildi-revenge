@@ -13,8 +13,7 @@ import io.element.android.libraries.core.coroutine.CoroutineDispatchers
 import io.element.android.libraries.di.CacheDirectory
 import io.element.android.libraries.di.annotations.AppCoroutineScope
 import io.element.android.libraries.featureflag.api.FeatureFlagService
-import io.element.android.libraries.featureflag.api.FeatureFlags
-import io.element.android.libraries.matrix.impl.analytics.UtdTracker
+import chat.schildi.revenge.glue.FeatureFlags
 import io.element.android.libraries.matrix.impl.certificates.UserCertificatesProvider
 import io.element.android.libraries.matrix.impl.paths.SessionPaths
 import io.element.android.libraries.matrix.impl.paths.getSessionPaths
@@ -24,7 +23,6 @@ import io.element.android.libraries.matrix.impl.util.anonymizedTokens
 import io.element.android.libraries.network.useragent.UserAgentProvider
 import io.element.android.libraries.sessionstorage.api.SessionData
 import io.element.android.libraries.sessionstorage.api.SessionStore
-import io.element.android.services.analytics.api.AnalyticsService
 import io.element.android.services.toolbox.api.systemclock.SystemClock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.withContext
@@ -54,7 +52,6 @@ class RustMatrixClientFactory(
     private val userCertificatesProvider: UserCertificatesProvider,
     private val proxyProvider: ProxyProvider,
     private val clock: SystemClock,
-    private val analyticsService: AnalyticsService,
     private val featureFlagService: FeatureFlagService,
     private val timelineEventTypeFilterFactory: TimelineEventTypeFilterFactory,
     private val clientBuilderProvider: ClientBuilderProvider,
@@ -79,7 +76,7 @@ class RustMatrixClientFactory(
     suspend fun create(client: Client): RustMatrixClient {
         val (anonymizedAccessToken, anonymizedRefreshToken) = client.session().anonymizedTokens()
 
-        client.setUtdDelegate(UtdTracker(analyticsService))
+        //client.setUtdDelegate(UtdTracker(analyticsService))
 
         val syncService = client.syncService()
             .withSharePos(true)

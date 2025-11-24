@@ -14,7 +14,7 @@ import java.security.KeyStore
 import java.security.KeyStoreException
 
 @ContributesBinding(AppScope::class)
-class DefaultUserCertificatesProvider : UserCertificatesProvider {
+object DefaultUserCertificatesProvider : UserCertificatesProvider {
     /**
      * Get additional user-installed certificates from the `AndroidCAStore` `Keystore`.
      *
@@ -28,6 +28,9 @@ class DefaultUserCertificatesProvider : UserCertificatesProvider {
      *         in encoded form.
      */
     override fun provides(): List<ByteArray> {
+        // TODO?
+        return emptyList()
+        /*
         // At least for API 34 the `AndroidCAStore` `Keystore` type contained user certificates as well.
         // I have not found this to be documented anywhere.
         val keyStore: KeyStore = try {
@@ -72,5 +75,6 @@ class DefaultUserCertificatesProvider : UserCertificatesProvider {
                 // be easily available.
                 Timber.i("Found ${it.size} additional user-provided certificates.")
             }
+         */
     }
 }

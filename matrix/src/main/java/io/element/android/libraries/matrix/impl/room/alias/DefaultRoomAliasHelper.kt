@@ -13,7 +13,7 @@ import io.element.android.libraries.matrix.api.core.RoomAlias
 import io.element.android.libraries.matrix.api.room.alias.RoomAliasHelper
 
 @ContributesBinding(AppScope::class)
-class DefaultRoomAliasHelper : RoomAliasHelper {
+object DefaultRoomAliasHelper : RoomAliasHelper {
     override fun roomAliasNameFromRoomDisplayName(name: String): String {
         return org.matrix.rustcomponents.sdk.roomAliasNameFromRoomDisplayName(name)
     }

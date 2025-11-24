@@ -7,14 +7,8 @@
 
 package io.element.android.libraries.matrix.impl.proxy
 
-import android.content.Context
-import android.net.ConnectivityManager
-import android.provider.Settings
-import androidx.core.content.getSystemService
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
-import io.element.android.libraries.di.annotations.ApplicationContext
-import timber.log.Timber
 
 /**
  * Provides the proxy settings from the system.
@@ -28,21 +22,7 @@ import timber.log.Timber
  * ```
  */
 @ContributesBinding(AppScope::class)
-class DefaultProxyProvider(
-    @ApplicationContext
-    private val context: Context
-) : ProxyProvider {
-    override fun provides(): String? {
-        val defaultProxy = context.getSystemService<ConnectivityManager>()?.defaultProxy
-        if (defaultProxy == null) {
-            // Note: can be tested by running:
-            // adb shell settings put global http_proxy :0
-            Timber.d("No default proxy")
-            return null
-        }
-        return Settings.Global.getString(context.contentResolver, Settings.Global.HTTP_PROXY)
-            ?.also {
-                Timber.d("Using global proxy")
-            }
-    }
+object DefaultProxyProvider : ProxyProvider {
+    // TODO
+    override fun provides(): String? = null
 }

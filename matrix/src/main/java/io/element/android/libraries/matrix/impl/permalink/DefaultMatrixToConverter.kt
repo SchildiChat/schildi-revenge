@@ -19,7 +19,7 @@ import io.element.android.libraries.matrix.api.permalink.MatrixToConverter
  * Mapping of an input URI to a matrix.to compliant URI.
  */
 @ContributesBinding(AppScope::class)
-class DefaultMatrixToConverter : MatrixToConverter {
+object DefaultMatrixToConverter : MatrixToConverter {
     /**
      * Try to convert a URL from an element web instance or from a client permalink to a matrix.to url.
      * To be successfully converted, URL path should contain one of the [SUPPORTED_PATHS].
@@ -50,12 +50,12 @@ class DefaultMatrixToConverter : MatrixToConverter {
         }
     }
 
-    companion object {
+    //companion object {
         private const val MATRIX_TO_CUSTOM_SCHEME_BASE_URL = "element://"
         private val SUPPORTED_PATHS = listOf(
             "/#/room/",
             "/#/user/",
             "/#/group/"
         )
-    }
+    //}
 }

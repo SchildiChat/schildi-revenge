@@ -1,4 +1,5 @@
 /*
+*
  * Copyright 2023, 2024 New Vector Ltd.
  *
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Element-Commercial
@@ -7,12 +8,9 @@
 
 package io.element.android.libraries.androidutils.file
 
-import android.content.Context
-import androidx.annotation.WorkerThread
 import io.element.android.libraries.core.data.tryOrNull
 import timber.log.Timber
 import java.io.File
-import java.util.UUID
 
 fun File.safeDelete() {
     if (exists().not()) return
@@ -41,16 +39,10 @@ fun File.safeRenameTo(dest: File) {
     )
 }
 
-fun Context.createTmpFile(baseDir: File = cacheDir, extension: String? = null): File {
-    val suffix = extension?.let { ".$extension" }
-    return File.createTempFile(UUID.randomUUID().toString(), suffix, baseDir).apply { mkdirs() }
-}
-
 /* ==========================================================================================
  * Size
  * ========================================================================================== */
 
-@WorkerThread
 fun File.getSizeOfFiles(): Long {
     return walkTopDown()
         .onEnter {

@@ -7,11 +7,12 @@
 
 package io.element.android.libraries.matrix.impl.auth
 
-import android.os.Build
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
+import io.element.android.libraries.core.data.tryOrNull
 import io.element.android.libraries.core.extensions.mapFailure
 import io.element.android.libraries.core.extensions.runCatchingExceptions
 import io.element.android.libraries.core.meta.BuildMeta
@@ -50,7 +51,9 @@ import org.matrix.rustcomponents.sdk.QrLoginProgress
 import org.matrix.rustcomponents.sdk.QrLoginProgressListener
 import timber.log.Timber
 import uniffi.matrix_sdk.OAuthAuthorizationData
+import java.net.InetAddress
 
+@Inject
 @ContributesBinding(AppScope::class)
 @SingleIn(AppScope::class)
 class RustMatrixAuthenticationService(
@@ -135,12 +138,25 @@ class RustMatrixAuthenticationService(
             }
         }
 
+    private fun initialDeviceName(): String = buildString {
+        append(buildMeta.applicationName)
+        val deviceName = tryOrNull { InetAddress.getLocalHost().hostName }
+            ?: System.getenv("HOST")
+            ?: System.getenv("HOSTNAME")
+            ?: System.getenv("COMPUTERNAME")
+        if (deviceName != null) {
+            append(" (")
+            append(deviceName)
+            append(")")
+        }
+    }
+
     override suspend fun login(username: String, password: String): Result<SessionId> =
         withContext(coroutineDispatchers.io) {
             runCatchingExceptions {
                 val client = currentClient ?: error("You need to call `setHomeserver()` first")
                 val currentSessionPaths = sessionPaths ?: error("You need to call `setHomeserver()` first")
-                client.login(username, password, "${buildMeta.applicationName} (${Build.MANUFACTURER} ${Build.MODEL})", null)
+                client.login(username, password, initialDeviceName(), null)
                 // Ensure that the user is not already logged in with the same account
                 ensureNotAlreadyLoggedIn(client)
                 val sessionData = client.session()

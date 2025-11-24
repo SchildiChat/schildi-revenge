@@ -8,14 +8,11 @@
 package io.element.android.libraries.core.meta
 
 data class BuildMeta(
-    val scBuildMeta: ScBuildMeta,
     val buildType: BuildType,
     val isDebuggable: Boolean,
     val applicationName: String,
     val productionApplicationName: String,
-    val desktopApplicationName: String,
     val applicationId: String,
-    val isEnterpriseBuild: Boolean,
     val lowPrivacyLoggingEnabled: Boolean,
     val versionName: String,
     val versionCode: Long,
