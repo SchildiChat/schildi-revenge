@@ -3,11 +3,14 @@
     <string name="manage_accounts">Accounts</string>
     <string name="inbox">Inbox</string>
 
-    <string name="title_login_account">Login account</string>
     <string name="action_login">Login</string>
+    <string name="action_verify">Verify</string>
+
+    <string name="title_login_account">Login account</string>
     <string name="hint_username">Username</string>
     <string name="hint_homeserver">Homeserver</string>
     <string name="hint_password">Password</string>
+    <string name="hint_recovery_key">Recovery key</string>
 
     <string name="action_hide">Hide</string>
     <string name="action_show">Show</string>

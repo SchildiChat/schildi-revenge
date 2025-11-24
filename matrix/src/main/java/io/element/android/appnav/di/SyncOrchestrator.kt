@@ -8,19 +8,13 @@
 
 package io.element.android.appnav.di
 
-import androidx.annotation.VisibleForTesting
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
-import io.element.android.features.networkmonitor.api.NetworkMonitor
-import io.element.android.features.networkmonitor.api.NetworkStatus
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
 import io.element.android.libraries.core.coroutine.childScope
 import io.element.android.libraries.matrix.api.sync.SyncService
 import io.element.android.libraries.matrix.api.sync.SyncState
-import io.element.android.services.analytics.api.AnalyticsService
-import io.element.android.services.analytics.api.recordTransaction
-import io.element.android.services.appnavstate.api.AppForegroundStateService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.combine
@@ -38,10 +32,7 @@ import kotlin.time.Duration.Companion.seconds
 class SyncOrchestrator(
     @Assisted private val syncService: SyncService,
     @Assisted sessionCoroutineScope: CoroutineScope,
-    private val appForegroundStateService: AppForegroundStateService,
-    private val networkMonitor: NetworkMonitor,
     dispatchers: CoroutineDispatchers,
-    private val analyticsService: AnalyticsService,
 ) {
     @AssistedFactory
     interface Factory {
@@ -72,23 +63,16 @@ class SyncOrchestrator(
             // Perform an initial sync if the sync service is not running, to check whether the homeserver is accessible
             // Otherwise, if the device is offline the sync service will never start and the SyncState will be Idle, not Offline
             Timber.tag(tag).d("performing initial sync attempt")
-            analyticsService.recordTransaction("First sync", "syncService.startSync()") { transaction ->
-                syncService.startSync()
-
-                // Wait until the sync service is not idle, either it will be running or in error/offline state
-                val firstState = syncService.syncState.first { it != SyncState.Idle }
-                transaction.setData("first_sync_state", firstState.name)
-            }
 
             observeStates()
         }
     }
 
     @OptIn(FlowPreview::class)
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     internal fun observeStates() = coroutineScope.launch {
         Timber.tag(tag).d("start observing the app and network state")
 
+        /* TODO?
         val isAppActiveFlow = combine(
             appForegroundStateService.isInForeground,
             appForegroundStateService.isInCall,
@@ -134,6 +118,7 @@ class SyncOrchestrator(
                     SyncStateAction.NoOp -> Unit
                 }
             }
+         */
     }
 }
 

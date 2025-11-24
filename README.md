@@ -39,9 +39,6 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [ ] Document known limitations in README
         - rebuild is slow and may be forgotten if Cargo.toml didn't update
         - Can always do `cargo clean` in `matrix-rust-sdk` to force a rebuild
-- [x] Persistent storage
-    - [x] MVP to get things working
-    - [ ] Secure storage for passwords and keys and whatnot?
 - [ ] Non-awful theme
 - [ ] Initial config hooked in
     - [x] Accounts with username+homeserver (not: password and secrets)

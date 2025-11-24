@@ -42,4 +42,5 @@ plugins {
 }
 
 include(":composeApp")
+include(":shim")
 include(":matrix")

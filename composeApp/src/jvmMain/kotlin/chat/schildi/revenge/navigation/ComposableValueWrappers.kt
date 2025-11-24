@@ -25,3 +25,5 @@ data class StringResourceHolder(
     @Composable
     override fun render() = stringResource(res, *formatArgs.toTypedArray())
 }
+
+fun String.toStringHolder() = HardcodedStringHolder(this)

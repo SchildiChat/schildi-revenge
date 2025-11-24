@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.input.TextFieldLineLimits
@@ -24,15 +24,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import chat.schildi.revenge.compose.util.rememberInvalidating
-import chat.schildi.revenge.config.AccountsConfig
-import chat.schildi.revenge.matrix.MatrixAppState
+import androidx.lifecycle.viewmodel.compose.viewModel
+import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.compose.model.AccountManagementData
+import chat.schildi.revenge.compose.model.AccountManagementViewModel
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
@@ -40,29 +43,32 @@ import shire.composeapp.generated.resources.action_hide
 import shire.composeapp.generated.resources.action_login
 import shire.composeapp.generated.resources.action_logout
 import shire.composeapp.generated.resources.action_show
+import shire.composeapp.generated.resources.action_verify
 import shire.composeapp.generated.resources.hint_homeserver
 import shire.composeapp.generated.resources.hint_password
+import shire.composeapp.generated.resources.hint_recovery_key
 import shire.composeapp.generated.resources.hint_username
 import shire.composeapp.generated.resources.manage_accounts
 import shire.composeapp.generated.resources.title_login_account
 
 @Composable
 fun AccountManagementScreen() {
-    val accounts = MatrixAppState.accountsConfig.collectAsState().value?.accounts!!
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    val viewModel: AccountManagementViewModel = viewModel()
+    val accounts = viewModel.data.collectAsState().value
+    LazyColumn(Modifier.padding(vertical = Dimens.windowPadding), verticalArrangement = Dimens.verticalArrangement) {
         if (accounts.isNotEmpty()) {
             item {
                 SectionHeader(stringResource(Res.string.manage_accounts))
             }
             items(accounts) { account ->
-                ExistingLogin(account)
+                ExistingLogin(account, viewModel)
             }
         }
         item {
             SectionHeader(stringResource(Res.string.title_login_account))
         }
         item {
-            NewLogin()
+            NewLogin(viewModel)
         }
     }
 }
@@ -73,80 +79,90 @@ private fun SectionHeader(text: String) {
         text,
         color = MaterialTheme.colorScheme.primary,
         style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier.padding(horizontal = Dimens.windowPadding),
     )
 }
 
 @Composable
-private fun ExistingLogin(account: AccountsConfig.Account) {
+private fun ExistingLogin(account: AccountManagementData, viewModel: AccountManagementViewModel) {
     val scope = rememberCoroutineScope()
-    val client = remember(account) {
-        MatrixAppState.getClientOrNull(account)
-    }
-    val userId = rememberInvalidating(2000, client) {
-        client?.userId()
-    }
-    val syncState = client?.syncServiceState?.collectAsState()
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        if (userId != null) {
+    Column(Modifier.fillMaxWidth().padding(horizontal = Dimens.windowPadding)) {
+        Row(
+            horizontalArrangement = Dimens.horizontalArrangement,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Dimens.horizontalArrangement,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    userId,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.alignByBaseline(),
-                )
-                syncState?.value?.let {
+                if (!account.session.isTokenValid) {
                     Text(
-                        syncState.value.toString(),
+                        "❌",
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.alignByBaseline(),
                     )
                 }
+                Text(
+                    account.session.userId,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.alignByBaseline(),
+                )
             }
-            if (client != null) {
-                IconButton(onClick = {
-                    scope.launch {
-                        MatrixAppState.logoutClient(client)
-                    }
-                }) {
-                    Icon(
-                        Icons.AutoMirrored.Default.Logout,
-                        contentDescription = stringResource(Res.string.action_logout),
-                        tint = MaterialTheme.colorScheme.error,
-                    )
+            IconButton(onClick = {
+                // TODO launch with dialog or sth - and ask "are you sure" first
+                scope.launch {
+                    viewModel.logout(account.session)
+                }
+            }) {
+                Icon(
+                    Icons.AutoMirrored.Default.Logout,
+                    contentDescription = stringResource(Res.string.action_logout),
+                    tint = MaterialTheme.colorScheme.error,
+                )
+            }
+        }
+        if (account.needsVerification) {
+            val recoveryKey = rememberTextFieldState()
+            var isVerifying by remember(account) { mutableStateOf(false) }
+            Row(
+                horizontalArrangement = Dimens.horizontalArrangement,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                OutlinedTextField(
+                    state = recoveryKey,
+                    label = { Text(stringResource(Res.string.hint_recovery_key)) },
+                    lineLimits = TextFieldLineLimits.SingleLine,
+                    modifier = Modifier.weight(1f),
+                    onKeyboardAction = {
+                        // TODO launch with dialog or sth.
+                        scope.launch {
+                            isVerifying = true
+                            viewModel.verify(account.session, recoveryKey.text.toString())
+                            isVerifying = false
+                        }
+                    },
+                )
+                Button(
+                    enabled = !isVerifying && recoveryKey.text.isNotBlank(),
+                    onClick = {
+                        scope.launch {
+                            isVerifying = true
+                            viewModel.verify(account.session, recoveryKey.text.toString())
+                            isVerifying = false
+                        }
+                    },
+                ) {
+                    Text(stringResource(Res.string.action_verify))
                 }
             }
-        } else {
-            Text(
-                "❌",
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.alignByBaseline(),
-            )
-            Text(
-                account.username,
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.alignByBaseline(),
-            )
-            Text(
-                account.homeserver,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.alignByBaseline(),
-            )
         }
     }
 }
 
 @Composable
-private fun NewLogin() {
+private fun NewLogin(viewModel: AccountManagementViewModel) {
     val inProgress = remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val error = remember { mutableStateOf<String?>(null) }
@@ -154,7 +170,7 @@ private fun NewLogin() {
     val homeserver = rememberTextFieldState()
     val password = rememberTextFieldState()
     Column(
-        modifier = Modifier.width(256.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = Dimens.windowPadding),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         error.value?.let {
@@ -217,20 +233,18 @@ private fun NewLogin() {
                                 "https://$it"
                             }
                         }
-                        val client = MatrixAppState.getOrCreateClient(
-                            username = username.text.toString(),
-                            homeserver = server,
-                            persist = false
-                        )
-                        val result = client.login(password.text.toString())
+                        val serverResult = viewModel.setHomeserver(server)
+                        if (serverResult.isFailure) {
+                            error.value = serverResult.exceptionOrNull()?.message ?: "Setting server failed without exception"
+                            return@launch
+                        }
+                        val result = viewModel.login(username.text.toString(), password.text.toString())
                         if (result.isSuccess) {
                             password.setTextAndPlaceCursorAtEnd("")
                             username.setTextAndPlaceCursorAtEnd("")
                             homeserver.setTextAndPlaceCursorAtEnd("")
-                            MatrixAppState.persistClientInAccountConfig(client)
                         } else {
                             error.value = result.exceptionOrNull()?.message ?: "Login failed without exception"
-                            MatrixAppState.cleanUpClients()
                         }
                     } finally {
                         inProgress.value = false

@@ -10,12 +10,12 @@ package io.element.android.x.di
 
 import dev.zacsweers.metro.GraphExtension
 import dev.zacsweers.metro.Provides
-import io.element.android.libraries.architecture.NodeFactoriesBindings
 import io.element.android.libraries.di.SessionScope
 import io.element.android.libraries.matrix.api.MatrixClient
 
 @GraphExtension(SessionScope::class)
-interface SessionGraph : NodeFactoriesBindings {
+interface SessionGraph {
+    val matrixClient: MatrixClient
     val roomGraphFactory: RoomGraph.Factory
 
     @GraphExtension.Factory

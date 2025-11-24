@@ -1,36 +1,117 @@
 package chat.schildi.revenge
 
 import androidx.compose.ui.window.ApplicationScope
-import chat.schildi.revenge.navigation.AccountManagementDestination
+import chat.schildi.revenge.navigation.ComposableStringHolder
 import chat.schildi.revenge.navigation.Destination
 import chat.schildi.revenge.navigation.InboxDestination
+import chat.schildi.revenge.navigation.SplashDestination
+import co.touchlab.kermit.Logger
+import dev.zacsweers.metro.createGraphFactory
+import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.x.di.AppGraph
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.concurrent.atomics.fetchAndIncrement
 
 @OptIn(ExperimentalAtomicApi::class)
 object UiState {
+    private val log = Logger.withTag("UiState")
+    private val scope = CoroutineScope(Dispatchers.IO)
+
+    val appGraph: AppGraph = createGraphFactory<AppGraph.Factory>().create()
     private val windowCounter = AtomicInt(0)
     private val _windows = MutableStateFlow<ImmutableList<WindowState>>(
-        // TODO splash screen
         persistentListOf(
-            //createWindow(AccountManagementDestination),
-            createWindow(InboxDestination),
+            createWindow(SplashDestination),
         )
     )
     val windows = _windows.asStateFlow()
+    private var hasClearedSplashScreen = false
 
-    private fun createWindow(initialDestination: Destination): WindowState {
+    init {
+        scope.launch {
+            // Kick initial session load
+            appGraph.sessionStore.getAllSessions()
+        }
+    }
+
+    val matrixClients = appGraph.sessionStore.sessionsFlow().map {
+        val persistedSessions = appGraph.sessionStore.getAllSessions()
+        log.i("Restoring ${persistedSessions.size} sessions")
+        val sessions = persistedSessions.mapNotNull { sessionData ->
+            log.i("Restoring session for ${sessionData.userId}")
+            appGraph.sessionCache.getOrRestore(UserId(sessionData.userId))
+                .onFailure { log.e("Failed to restore session for ${sessionData.userId}", it) }
+                .getOrNull()
+        }
+        log.i("${sessions.size} sessions restored")
+
+        if (!hasClearedSplashScreen) {
+            clearSplashScreen()
+            hasClearedSplashScreen = true
+        }
+        sessions.toPersistentList()
+    }.stateIn(scope, SharingStarted.Eagerly, persistentListOf())
+
+    val combinedSessions: CombinedSessions = matrixClients.map {
+        it.map {
+            LoadedSession(it, appGraph.sessionGraphFactory.create(it)).also { session ->
+                session.client.syncService.startSync()
+                    .onFailure { log.e("Failed to start sync for ${session.client.sessionId}", it) }
+            }
+        }
+    }.stateIn(scope, SharingStarted.Eagerly, persistentListOf())
+
+    fun selectClient(sessionId: SessionId, scope: CoroutineScope) = matrixClients.map {
+        it.find { it.sessionId == sessionId }
+    }.stateIn(scope, SharingStarted.Eagerly, null)
+
+    private fun clearSplashScreen() {
+        _windows.update { windows ->
+            windows.mapNotNull { window ->
+                if (window.destinationHolder.state.value.destination is SplashDestination) {
+                    if (windows.size > 1) {
+                        // Already have other windows open??
+                        null
+                    } else {
+                        window.destinationHolder.navigate(InboxDestination)
+                        window
+                    }
+                } else {
+                    window
+                }
+            }.toPersistentList()
+        }
+    }
+
+    private fun createWindow(
+        initialDestination: Destination,
+        initialTitle: ComposableStringHolder? = null
+    ): WindowState {
         return WindowState(
             windowId = windowCounter.fetchAndIncrement(),
-            destination = DestinationState(MutableStateFlow(initialDestination)),
+            destinationHolder = DestinationStateHolder.forInitialDestination(initialDestination, initialTitle),
         )
+    }
+
+    fun openWindow(destination: Destination, initialTitle: ComposableStringHolder? = null) {
+        val newWindow = createWindow(destination, initialTitle)
+        _windows.update {
+            (it + newWindow).toPersistentList()
+        }
     }
 
     fun closeWindow(windowId: Int, scope: ApplicationScope) {
@@ -46,12 +127,3 @@ object UiState {
         }
     }
 }
-
-data class WindowState(
-    val destination: DestinationState,
-    val windowId: Int,
-)
-
-data class DestinationState(
-    val state: MutableStateFlow<Destination>,
-)

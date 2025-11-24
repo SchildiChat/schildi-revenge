@@ -8,6 +8,7 @@
 
 package io.element.android.x.di
 
+/* TODO delete or mo stuff from the lib one
 import android.content.Context
 import android.content.SharedPreferences
 import android.content.res.Resources
@@ -128,3 +129,4 @@ object AppModule {
         return DefaultEmojibaseProvider(context)
     }
 }
+ */

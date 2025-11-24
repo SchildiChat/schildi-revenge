@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import chat.schildi.revenge.navigation.Destination
 
 @Composable
-fun WindowContent(state: Destination) {
+fun WindowContent(destination: Destination) {
     MaterialTheme {
         Box(
             modifier = Modifier
@@ -20,7 +20,7 @@ fun WindowContent(state: Destination) {
                 .fillMaxSize(),
             contentAlignment = Alignment.Center,
         ) {
-            DestinationContent(state)
+            DestinationContent(destination)
         }
     }
 }

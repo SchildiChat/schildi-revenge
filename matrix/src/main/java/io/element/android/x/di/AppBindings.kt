@@ -8,6 +8,7 @@
 
 package io.element.android.x.di
 
+/* TODO delete or move over from lib?
 import chat.schildi.lib.preferences.ScPreferencesStore
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesTo
@@ -56,3 +57,4 @@ interface AppBindings {
 
     fun buildMeta(): BuildMeta
 }
+ */

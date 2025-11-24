@@ -42,11 +42,11 @@ import java.util.Optional
  * This controller is responsible of using the right timeline to display messages and make associated actions.
  * It can be focused on the live timeline or on a detached timeline (focusing an unknown event).
  */
-@SingleIn(RoomScope::class)
-@ContributesBinding(RoomScope::class, binding = binding<TimelineProvider>())
+//@SingleIn(RoomScope::class)
+//@ContributesBinding(RoomScope::class, binding = binding<TimelineProvider>())
 class TimelineController(
     private val room: JoinedRoom,
-    @LiveTimeline private val liveTimeline: Timeline,
+    @LiveTimeline private val liveTimeline: Timeline = room.liveTimeline,
 ) : Closeable, TimelineProvider {
     private val coroutineScope = CoroutineScope(SupervisorJob())
 

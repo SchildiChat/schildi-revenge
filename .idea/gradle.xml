@@ -9,9 +9,10 @@
         <option name="gradleJvm" value="#GRADLE_LOCAL_JAVA_HOME" />
         <option name="modules">
           <set>
-            <option value="/store/ssd-exthome/dev/schildi-revenge" />
-            <option value="/store/ssd-exthome/dev/schildi-revenge/composeApp" />
-            <option value="/store/ssd-exthome/dev/schildi-revenge/matrix" />
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/composeApp" />
+            <option value="$PROJECT_DIR$/matrix" />
+            <option value="$PROJECT_DIR$/shim" />
           </set>
         </option>
       </GradleProjectSettings>

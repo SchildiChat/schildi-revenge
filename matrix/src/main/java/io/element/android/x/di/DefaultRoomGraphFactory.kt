@@ -9,10 +9,12 @@
 package io.element.android.x.di
 
 import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import io.element.android.appnav.di.RoomGraphFactory
 import io.element.android.libraries.di.SessionScope
 import io.element.android.libraries.matrix.api.room.JoinedRoom
 
+@Inject
 @ContributesBinding(SessionScope::class)
 class DefaultRoomGraphFactory(
     private val sessionGraph: SessionGraph,

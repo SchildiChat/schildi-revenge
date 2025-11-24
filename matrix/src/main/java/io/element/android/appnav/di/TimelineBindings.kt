@@ -8,10 +8,9 @@
 
 package io.element.android.appnav.di
 
-import io.element.android.features.messages.api.pinned.PinnedEventsTimelineProvider
 import io.element.android.libraries.matrix.api.timeline.TimelineProvider
 
 interface TimelineBindings {
-    val timelineProvider: TimelineProvider
-    val pinnedEventsTimelineProvider: PinnedEventsTimelineProvider
+    //val timelineProvider: TimelineProvider
+    //val pinnedEventsTimelineProvider: PinnedEventsTimelineProvider
 }

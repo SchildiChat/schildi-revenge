@@ -8,17 +8,14 @@
 
 package io.element.android.appnav.di
 
-import androidx.annotation.VisibleForTesting
-import com.bumble.appyx.core.state.MutableSavedStateMap
-import com.bumble.appyx.core.state.SavedStateMap
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.MatrixClientProvider
 import io.element.android.libraries.matrix.api.auth.MatrixAuthenticationService
 import io.element.android.libraries.matrix.api.core.SessionId
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
@@ -31,6 +28,7 @@ private const val SAVE_INSTANCE_KEY = "io.element.android.x.di.MatrixClientsHold
  *
  * This component contains both the [MatrixClient] and the [SyncOrchestrator] for each session.
  */
+@Inject
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)
 class MatrixSessionCache(
@@ -67,33 +65,8 @@ class MatrixSessionCache(
         }
     }
 
-    @VisibleForTesting(otherwise = VisibleForTesting.PRIVATE)
     internal fun getSyncOrchestrator(sessionId: SessionId): SyncOrchestrator? {
         return sessionIdsToMatrixSession[sessionId]?.syncOrchestrator
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    fun restoreWithSavedState(state: SavedStateMap?) {
-        Timber.d("Restore state")
-        if (state == null || sessionIdsToMatrixSession.isNotEmpty()) {
-            Timber.w("Restore with non-empty map")
-            return
-        }
-        val sessionIds = state[SAVE_INSTANCE_KEY] as? Array<SessionId>
-        Timber.d("Restore matrix session keys = ${sessionIds?.map { it.value }}")
-        if (sessionIds.isNullOrEmpty()) return
-        // Not ideal but should only happens in case of process recreation. This ensure we restore all the active sessions before restoring the node graphs.
-        runBlocking {
-            sessionIds.forEach { sessionId ->
-                getOrRestore(sessionId)
-            }
-        }
-    }
-
-    fun saveIntoSavedState(state: MutableSavedStateMap) {
-        val sessionKeys = sessionIdsToMatrixSession.keys.toTypedArray()
-        Timber.d("Save matrix session keys = ${sessionKeys.map { it.value }}")
-        state[SAVE_INSTANCE_KEY] = sessionKeys
     }
 
     private suspend fun restore(sessionId: SessionId): Result<MatrixClient> {

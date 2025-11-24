@@ -8,30 +8,21 @@
 
 package io.element.android.x.di
 
-import android.content.Context
-import androidx.work.ListenableWorker
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.DependencyGraph
-import dev.zacsweers.metro.Multibinds
-import dev.zacsweers.metro.Provides
-import io.element.android.libraries.architecture.NodeFactoriesBindings
-import io.element.android.libraries.di.annotations.ApplicationContext
-import io.element.android.libraries.workmanager.api.di.MetroWorkerFactory
-import kotlin.reflect.KClass
+import io.element.android.appnav.di.MatrixSessionCache
+import io.element.android.libraries.matrix.api.auth.MatrixAuthenticationService
+import io.element.android.libraries.sessionstorage.api.SessionStore
 
 @DependencyGraph(AppScope::class)
-interface AppGraph : NodeFactoriesBindings {
+interface AppGraph {
     val sessionGraphFactory: SessionGraph.Factory
-
-    @Multibinds
-    val workerProviders:
-        Map<KClass<out ListenableWorker>, MetroWorkerFactory.WorkerInstanceFactory<*>>
+    val authenticationService: MatrixAuthenticationService
+    val sessionStore: SessionStore
+    val sessionCache: MatrixSessionCache
 
     @DependencyGraph.Factory
     interface Factory {
-        fun create(
-            @ApplicationContext @Provides
-            context: Context
-        ): AppGraph
+        fun create(): AppGraph
     }
 }
