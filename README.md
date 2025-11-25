@@ -131,3 +131,31 @@ in your IDE’s toolbar or run it directly from the terminal:
 ---
 
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+
+
+## Upstream merges
+
+For the Rust SDK itself, we can *almost* use the upstream SchildiChat Next repo, except that we need to disable the
+`android_cleaner` feature for UniFFI generation.
+
+Code in the `matrix` module is based on [Element X Android](https://github.com/element-hq/element-x-android).
+This module makes interacting with the FFI bindings of the Matrix Rust SDK a lot nicer, e.g. by translating listeners
+into kotlin flows, and freeing memory after copying data structures from the FFI-managed counterparts in order to avoid
+memory leaks.
+
+Whenever we update the Rust SDK, we thus also want to merge the related changes from Element X into our code. We cannot
+use the upstream code as is, since it contains Android-specific code rather than being ready for Kotlin multiplatform.
+Furthermore we do not want all of the Element X code, and we do not want to keep Element's very fine-grained module
+structure.
+
+So in order to do an upstream merge:
+- Choose a working version of SchildiChat Next with the desired new changes
+- Merge the appropriate SchildiChat Rust SDK revision into Revenge's `matrix-rust-sdk` git submodule
+- Generate a cleaned version of SchildiChat Next:
+    - `git clone https://github.com/SchildiChat/schildichat-android-next.git schildichat-next-revenge-skeleton`
+    - `cd schildichat-next-revenge-skeleton`
+    - `git filter-repo --paths-from-file /path/to/schildichat-revenge/elex_imports.txt`
+- Merge the cleaned version of Next into Revenge using `git subtree`, where `COMMIT_HASH` is the latest commit from the
+  cleaned Next repo:
+    - `git subtree merge --prefix=matrix COMMIT_HASH /path/to/schildichat-next-revenge-skeleton`
+
