@@ -8,6 +8,8 @@
 
 package io.element.android.libraries.matrix.impl.auth
 
+/* TODO just ContributesBinding?
+
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import io.element.android.libraries.core.extensions.runCatchingExceptions
@@ -36,3 +38,5 @@ class RustHomeServerLoginCompatibilityChecker(
             }
     }
 }
+
+ */

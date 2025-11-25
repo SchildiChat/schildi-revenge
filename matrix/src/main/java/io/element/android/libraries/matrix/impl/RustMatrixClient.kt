@@ -184,7 +184,7 @@ class RustMatrixClient(
         roomListFactory = RoomListFactory(
             innerRoomListService = innerRoomListService,
             sessionCoroutineScope = sessionCoroutineScope,
-            analyticsService = analyticsService,
+            //analyticsService = analyticsService,
         ),
         roomSyncSubscriber = roomSyncSubscriber,
         scPreferencesStore = scPreferencesStore,

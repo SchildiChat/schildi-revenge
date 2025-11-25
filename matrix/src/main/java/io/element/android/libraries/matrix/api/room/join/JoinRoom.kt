@@ -8,6 +8,8 @@
 
 package io.element.android.libraries.matrix.api.room.join
 
+/*
+
 import im.vector.app.features.analytics.plan.JoinedRoom
 import io.element.android.libraries.matrix.api.core.RoomIdOrAlias
 
@@ -22,3 +24,5 @@ interface JoinRoom {
         data object UnauthorizedJoin : Failures()
     }
 }
+
+ */

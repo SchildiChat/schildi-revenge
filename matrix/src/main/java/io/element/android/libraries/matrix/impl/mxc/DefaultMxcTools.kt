@@ -12,7 +12,7 @@ import dev.zacsweers.metro.ContributesBinding
 import io.element.android.libraries.matrix.api.mxc.MxcTools
 
 @ContributesBinding(AppScope::class)
-class DefaultMxcTools : MxcTools {
+object DefaultMxcTools : MxcTools {
     /**
      * Regex to match a Matrix Content (mxc://) URI.
      *

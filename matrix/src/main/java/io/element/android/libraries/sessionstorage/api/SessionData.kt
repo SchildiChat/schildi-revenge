@@ -8,11 +8,13 @@
 
 package io.element.android.libraries.sessionstorage.api
 
+import kotlinx.serialization.Serializable
 import java.util.Date
 
 /**
  * Data class representing the session data to store locally.
  */
+@Serializable
 data class SessionData(
     /** The user ID of the logged in user. */
     val userId: String,
@@ -27,7 +29,7 @@ data class SessionData(
     /** The Open ID Connect info for this session, if any. */
     val oidcData: String?,
     /** The timestamp of the last login. May be `null` in very old sessions. */
-    val loginTimestamp: Date?,
+    val loginTimestamp: Long?, // SC: upstream uses Date but we want @Serializable
     /** Whether the [accessToken] is valid or not. */
     val isTokenValid: Boolean,
     /** The login type used to authenticate the session. */

@@ -53,17 +53,15 @@ class AccountManagementViewModel(
         persistentListOf()
     )
 
-    suspend fun setHomeserver(homeserver: String): Result<Unit> {
-        return authService.setHomeserver(homeserver)
+    suspend fun setHomeserver(homeserver: String) =
+        authService.setHomeserver(homeserver)
             .onSuccess { log.d { "Set homeserver to $homeserver" } }
             .onFailure { log.w { "Failed to set homeserver to $homeserver" } }
-    }
 
-    suspend fun login(username: String, password: String): Result<SessionId> {
-        return authService.login(username, password)
+    suspend fun login(username: String, password: String): Result<SessionId> =
+        authService.login(username, password)
             .onSuccess { log.i { "Logged in to $username" } }
             .onFailure { log.w { "Failed to log in to $username" } }
-    }
 
     suspend fun verify(session: SessionData, recoveryKey: String): Result<Unit> {
         return sessionCache.getOrRestore(SessionId(session.userId))

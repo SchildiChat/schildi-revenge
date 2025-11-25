@@ -28,7 +28,7 @@ internal fun Session.toSessionData(
     refreshToken = refreshToken,
     homeserverUrl = homeserverUrl ?: this.homeserverUrl,
     oidcData = oidcData,
-    loginTimestamp = Date(),
+    loginTimestamp = System.currentTimeMillis(), // SC date -> long
     isTokenValid = isTokenValid,
     loginType = loginType,
     passphrase = passphrase,
@@ -53,7 +53,7 @@ internal fun ExternalSession.toSessionData(
     refreshToken = refreshToken,
     homeserverUrl = homeserverUrl,
     oidcData = null,
-    loginTimestamp = Date(),
+    loginTimestamp = System.currentTimeMillis(), // SC changed
     isTokenValid = isTokenValid,
     loginType = loginType,
     passphrase = passphrase,

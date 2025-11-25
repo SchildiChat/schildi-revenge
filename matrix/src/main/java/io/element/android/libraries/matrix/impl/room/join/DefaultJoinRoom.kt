@@ -8,6 +8,8 @@
 
 package io.element.android.libraries.matrix.impl.room.join
 
+/*
+
 import dev.zacsweers.metro.ContributesBinding
 import im.vector.app.features.analytics.plan.JoinedRoom
 import io.element.android.libraries.core.extensions.mapFailure
@@ -57,3 +59,5 @@ class DefaultJoinRoom(
         }.map { }
     }
 }
+
+ */

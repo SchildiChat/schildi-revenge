@@ -8,6 +8,8 @@
 
 package io.element.android.libraries.matrix.impl.server
 
+/* TODO just ContributesBinding?
+
 import dev.zacsweers.metro.ContributesBinding
 import io.element.android.libraries.di.SessionScope
 import io.element.android.libraries.matrix.api.MatrixClient
@@ -21,3 +23,5 @@ class DefaultUserServerResolver(
         return matrixClient.userIdServerName()
     }
 }
+
+ */
