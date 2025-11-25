@@ -1,6 +1,7 @@
 package chat.schildi.revenge.glue
 
 import chat.schildi.revenge.util.ScAppDirs
+import chat.schildi.revenge.util.ScJson
 import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
@@ -18,7 +19,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 import java.io.File
 
 @Serializable
@@ -43,7 +43,7 @@ object RevengeSessionStore : SessionStore {
         if (sessionsFile.exists()) {
             log.d("Loading sessions from config")
             sessionsFile.inputStream().use {
-                Json.decodeFromString<RevengeSessionStoreData>(it.readAllBytes().decodeToString())
+                ScJson.decodeFromString<RevengeSessionStoreData>(it.readAllBytes().decodeToString())
             }.also {
                 log.i("Found ${it.sessions.size} sessions in config")
             }
@@ -67,7 +67,7 @@ object RevengeSessionStore : SessionStore {
     private suspend fun persistSessions(sessions: List<SessionData>) = withContext(Dispatchers.IO) {
         log.d("Persisting sessions to config")
         val data = RevengeSessionStoreData(sessions)
-        val encoded = Json.encodeToString(data).toByteArray(Charsets.UTF_8)
+        val encoded = ScJson.encodeToString(data).toByteArray(Charsets.UTF_8)
         sessionsFile.outputStream().use {
             it.write(encoded)
         }
