@@ -5,6 +5,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import chat.schildi.revenge.compose.WindowContent
+import chat.schildi.revenge.compose.media.LocalImageLoaderHolder
 import co.touchlab.kermit.Logger
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
@@ -37,6 +38,7 @@ fun main() {
             ) {
                 CompositionLocalProvider(
                     LocalDestinationState provides windowState.destinationHolder,
+                    LocalImageLoaderHolder provides UiState.appGraph.imageLoaderHolder,
                 ) {
                     WindowContent(destinationState.destination)
                 }

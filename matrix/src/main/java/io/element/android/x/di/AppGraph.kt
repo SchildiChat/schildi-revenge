@@ -12,7 +12,7 @@ import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.DependencyGraph
 import io.element.android.appnav.di.MatrixSessionCache
 import io.element.android.libraries.matrix.api.auth.MatrixAuthenticationService
-import io.element.android.libraries.matrix.ui.media.ImageLoaderFactory
+import io.element.android.libraries.matrix.ui.media.ImageLoaderHolder
 import io.element.android.libraries.sessionstorage.api.SessionStore
 
 @DependencyGraph(AppScope::class)
@@ -21,7 +21,7 @@ interface AppGraph {
     val authenticationService: MatrixAuthenticationService
     val sessionStore: SessionStore
     val sessionCache: MatrixSessionCache
-    val imageLoaderFactory: ImageLoaderFactory
+    val imageLoaderHolder: ImageLoaderHolder
 
     @DependencyGraph.Factory
     interface Factory {

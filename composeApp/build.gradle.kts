@@ -24,8 +24,11 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.collections.immutable)
             implementation(libs.kermit)
+            implementation(libs.coil3.compose)
+            implementation(libs.coil3.okhttp)
 
             implementation(projects.matrix)
+            implementation(projects.shim)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
