@@ -153,9 +153,15 @@ So in order to do an upstream merge:
 - Merge the appropriate SchildiChat Rust SDK revision into Revenge's `matrix-rust-sdk` git submodule
 - Generate a cleaned version of SchildiChat Next:
     - `git clone https://github.com/SchildiChat/schildichat-android-next.git schildichat-next-revenge-skeleton`
-    - `cd schildichat-next-revenge-skeleton`
+    - `cd schildichat-next-to-revenge-skeleton`
     - `git filter-repo --paths-from-file /path/to/schildichat-revenge/elex_imports.txt`
-- Merge the cleaned version of Next into Revenge using `git subtree`, where `COMMIT_HASH` is the latest commit from the
+- Merge the new cleaned version into a clone of the previous cleaned version
+    - This is only necessary to support updating `elex_imports.txt`, as changing that will change cleaned commit history
+    - If you need to update the upstream cleaning rules (e.g. add new modules), modify `bump_matrix_imports.sh` and
+      then use it to re-generate `elex_imports.txt`.
+- Merge the cleaned version of Next into Revenge using `git subtree`:
   cleaned Next repo:
-    - `git subtree merge --prefix=matrix COMMIT_HASH /path/to/schildichat-next-revenge-skeleton`
+    - `git remote add skeleton /path/to/schildichat-next-revenge-skeleton`
+    - `git fetch skeleton`
+    - `git subtree merge --prefix=matrix skeleton/main`
 

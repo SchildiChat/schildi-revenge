@@ -9,6 +9,7 @@ jetbrainsKotlinJvm = "2.2.20"
 jna = "5.14.0"
 kotlinxSerialization = "1.9.0"
 metro = "0.7.5"
+coil = "3.3.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -27,6 +28,8 @@ kotlinx-collections-immutable = { group = "org.jetbrains.kotlinx", name = "kotli
 yaml-kt = "net.mamoe.yamlkt:yamlkt:0.13.0"
 metro_gradle_plugin = { module = "dev.zacsweers.metro:gradle-plugin", version.ref = "metro" }
 metro_runtime = { module = "dev.zacsweers.metro:runtime", version.ref = "metro" }
+coil3_compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
+coil3_okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
 
 [plugins]
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }

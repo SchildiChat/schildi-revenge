@@ -27,6 +27,10 @@ libraries/matrix/impl/src/main/kotlin/io/element/android/libraries/matrix/impl/
 libraries/matrix/impl/src/main/kotlin/io/element/android/libraries/matrix/impl/==>src/main/java/io/element/android/libraries/matrix/impl/
 libraries/session-storage/api/src/main/kotlin/io/element/android/libraries/sessionstorage/api/
 libraries/session-storage/api/src/main/kotlin/io/element/android/libraries/sessionstorage/api/==>src/main/java/io/element/android/libraries/sessionstorage/api/
+libraries/matrixmedia/api/src/main/kotlin/io/element/android/libraries/matrix/ui/media/
+libraries/matrixmedia/api/src/main/kotlin/io/element/android/libraries/matrix/ui/media/==>src/main/java/io/element/android/libraries/matrix/ui/media/
+libraries/matrixmedia/impl/src/main/kotlin/io/element/android/libraries/matrix/ui/media/
+libraries/matrixmedia/impl/src/main/kotlin/io/element/android/libraries/matrix/ui/media/==>src/main/java/io/element/android/libraries/matrix/ui/media/
 app/src/main/kotlin/io/element/android/x/di/AppBindings.kt
 app/src/main/kotlin/io/element/android/x/di/AppBindings.kt==>src/main/java/io/element/android/x/di/AppBindings.kt
 app/src/main/kotlin/io/element/android/x/di/AppGraph.kt

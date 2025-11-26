@@ -48,5 +48,7 @@ patch_package libraries/di/src/main/kotlin io/element/android/libraries/di
 patch_package libraries/matrix/api/src/main/kotlin io/element/android/libraries/matrix/api
 patch_package libraries/matrix/impl/src/main/kotlin io/element/android/libraries/matrix/impl
 patch_package libraries/session-storage/api/src/main/kotlin io/element/android/libraries/sessionstorage/api
+patch_package libraries/matrixmedia/api/src/main/kotlin io/element/android/libraries/matrix/ui/media
+patch_package libraries/matrixmedia/impl/src/main/kotlin io/element/android/libraries/matrix/ui/media
 
 patch_partial app/src/main/kotlin io/element/android/x/di
