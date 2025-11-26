@@ -19,6 +19,7 @@ kotlin {
         named("main") {
             dependencies {
                 implementation(libs.kermit)
+                implementation(libs.coil3.compose)
             }
         }
     }

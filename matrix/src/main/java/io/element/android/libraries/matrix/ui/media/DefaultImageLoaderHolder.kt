@@ -11,12 +11,14 @@ package io.element.android.libraries.matrix.ui.media
 import coil3.ImageLoader
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.sessionstorage.api.observer.SessionListener
 import io.element.android.libraries.sessionstorage.api.observer.SessionObserver
 
+@Inject
 @ContributesBinding(AppScope::class)
 @SingleIn(AppScope::class)
 class DefaultImageLoaderHolder(

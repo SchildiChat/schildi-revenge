@@ -10,8 +10,11 @@ import io.element.android.libraries.sessionstorage.api.LoggedInState
 import io.element.android.libraries.sessionstorage.api.SessionData
 import io.element.android.libraries.sessionstorage.api.SessionStore
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -26,6 +29,11 @@ private data class RevengeSessionStoreData(
     val sessions: List<SessionData> = emptyList(),
 )
 
+sealed interface SessionUpdate {
+    data class OnSessionCreated(val userId: String) : SessionUpdate
+    data class OnSessionDeleted(val userId: String, val wasLastSession: Boolean) : SessionUpdate
+}
+
 @SingleIn(AppScope::class)
 @ContributesBinding(AppScope::class)
 object RevengeSessionStore : SessionStore {
@@ -33,6 +41,11 @@ object RevengeSessionStore : SessionStore {
     private val sessionDataMutex = Mutex()
     private val sessions = MutableStateFlow<List<SessionData>?>(null)
     private val safeSessions = sessions.filterNotNull()
+    private val _sessionUpdatesFlow = MutableSharedFlow<SessionUpdate>(
+        extraBufferCapacity = 100,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+    internal val sessionUpdatesFlow = _sessionUpdatesFlow.asSharedFlow()
 
     private val dataDir = File(ScAppDirs.getUserDataDir()).also {
         it.mkdirs()
@@ -99,6 +112,7 @@ object RevengeSessionStore : SessionStore {
             }
             persistSessions(newSessions!!)
         }
+        _sessionUpdatesFlow.emit(SessionUpdate.OnSessionCreated(sessionData.userId))
     }
 
     override suspend fun updateData(sessionData: SessionData) {
@@ -191,5 +205,8 @@ object RevengeSessionStore : SessionStore {
                 persistSessions(new)
             }
         }
+        _sessionUpdatesFlow.emit(
+            SessionUpdate.OnSessionDeleted(sessionId, sessions.value?.isEmpty() == true)
+        )
     }
 }
