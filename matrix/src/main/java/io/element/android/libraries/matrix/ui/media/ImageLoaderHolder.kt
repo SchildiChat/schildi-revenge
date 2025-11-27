@@ -14,5 +14,6 @@ import io.element.android.libraries.matrix.api.core.SessionId
 interface ImageLoaderHolder {
     fun get(): ImageLoader
     fun get(client: MatrixClient): ImageLoader
+    fun getIfExists(sessionId: SessionId): ImageLoader? // SC: non-blocking variant
     fun remove(sessionId: SessionId)
 }

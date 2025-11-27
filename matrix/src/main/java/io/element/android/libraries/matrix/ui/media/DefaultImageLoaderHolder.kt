@@ -46,6 +46,8 @@ class DefaultImageLoaderHolder(
         return notLoggedInImageLoader
     }
 
+    override fun getIfExists(sessionId: SessionId) = map[sessionId] // SC: non-blocking variant
+
     override fun get(client: MatrixClient): ImageLoader {
         return synchronized(map) {
             map.getOrPut(client.sessionId) {

@@ -16,8 +16,9 @@ dependencies {
     implementation(libs.coil3.compose)
     implementation(libs.coil3.okhttp)
     // Compatibility classes for Android specifics that we don't care about but got from Element X files,
-    // so we don't need to change those classes too much
-    implementation(projects.shim)
+    // so we don't need to change those classes too much.
+    // In some case used as supertype so mark as api().
+    api(projects.shim)
 }
 
 java {

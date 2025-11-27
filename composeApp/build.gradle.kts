@@ -28,7 +28,6 @@ kotlin {
             implementation(libs.coil3.okhttp)
 
             implementation(projects.matrix)
-            implementation(projects.shim)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

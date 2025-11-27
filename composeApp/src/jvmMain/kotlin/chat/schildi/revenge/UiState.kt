@@ -11,7 +11,9 @@ import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.x.di.AppGraph
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentHashMapOf
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toPersistentHashMap
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -63,11 +65,11 @@ object UiState {
             clearSplashScreen()
             hasClearedSplashScreen = true
         }
-        sessions.toPersistentList()
-    }.stateIn(scope, SharingStarted.Eagerly, persistentListOf())
+        sessions.associateBy { it.sessionId }.toPersistentHashMap()
+    }.stateIn(scope, SharingStarted.Eagerly, persistentHashMapOf())
 
     val combinedSessions: CombinedSessions = matrixClients.map {
-        it.map {
+        it.values.map {
             LoadedSession(it, appGraph.sessionGraphFactory.create(it)).also { session ->
                 session.client.syncService.startSync()
                     .onFailure { log.e("Failed to start sync for ${session.client.sessionId}", it) }
@@ -76,7 +78,7 @@ object UiState {
     }.stateIn(scope, SharingStarted.Eagerly, persistentListOf())
 
     fun selectClient(sessionId: SessionId, scope: CoroutineScope) = matrixClients.map {
-        it.find { it.sessionId == sessionId }
+        it[sessionId]
     }.stateIn(scope, SharingStarted.Eagerly, null)
 
     private fun clearSplashScreen() {

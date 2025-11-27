@@ -1,5 +1,6 @@
 package chat.schildi.revenge.compose.destination
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,11 +12,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import chat.schildi.revenge.compose.media.AsyncImage
 import chat.schildi.revenge.compose.model.ChatViewModel
 import chat.schildi.revenge.navigation.ChatDestination
 import chat.schildi.revenge.publishTitle
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
+import io.element.android.libraries.matrix.api.timeline.item.event.ImageMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.virtual.VirtualTimelineItem
+import io.element.android.libraries.matrix.ui.media.MediaRequestData
 import kotlinx.collections.immutable.persistentListOf
 
 @Composable
@@ -51,25 +56,46 @@ fun ChatScreen(destination: ChatDestination) {
 
     LazyColumn(Modifier.fillMaxSize(), reverseLayout = true, state = listState) {
         items(timelineItems) { item ->
-            when (item) {
-                is MatrixTimelineItem.Virtual -> {
-                    // TODO
-                    when (val virtualItem = item.virtual) {
-                        is VirtualTimelineItem.DayDivider -> Text(virtualItem.timestamp.toString())
-                        VirtualTimelineItem.LastForwardIndicator -> Text("FWD")
-                        is VirtualTimelineItem.LoadingIndicator -> Text("LOADING")
-                        VirtualTimelineItem.ReadMarker -> Text("NEW")
-                        VirtualTimelineItem.RoomBeginning -> Text("BEGINNING")
-                        VirtualTimelineItem.TypingNotification -> Text("TYPING")
+            Column {
+                when (item) {
+                    is MatrixTimelineItem.Virtual -> {
+                        // TODO
+                        when (val virtualItem = item.virtual) {
+                            is VirtualTimelineItem.DayDivider -> Text(virtualItem.timestamp.toString())
+                            VirtualTimelineItem.LastForwardIndicator -> Text("FWD")
+                            is VirtualTimelineItem.LoadingIndicator -> Text("LOADING")
+                            VirtualTimelineItem.ReadMarker -> Text("NEW")
+                            VirtualTimelineItem.RoomBeginning -> Text("BEGINNING")
+                            VirtualTimelineItem.TypingNotification -> Text("TYPING")
+                        }
                     }
-                }
-                is MatrixTimelineItem.Event -> {
-                   // TODO
-                   Text("${item.eventId}: ${item.event.content}")
-                }
-                MatrixTimelineItem.Other -> {
-                    // TODO
-                    Text("???")
+
+                    is MatrixTimelineItem.Event -> {
+                        when (val content = item.event.content) {
+                            is MessageContent -> {
+                                when (val contentType = content.type) {
+                                    is ImageMessageType -> {
+                                        AsyncImage(
+                                            MediaRequestData(contentType.source, MediaRequestData.Kind.Thumbnail(1000)),
+                                            null,
+                                        )
+                                    }
+
+                                    else -> {} // TODO
+                                }
+                                Text(content.body) // TODO
+                            }
+
+                            else -> {} // TODO
+                        }
+                        // TODO
+                        Text("${item.eventId}: ${item.event.content}")
+                    }
+
+                    MatrixTimelineItem.Other -> {
+                        // TODO
+                        Text("???")
+                    }
                 }
             }
         }

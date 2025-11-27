@@ -11,6 +11,10 @@ sealed interface Destination {
     val title: ComposableStringHolder?
 }
 
+sealed interface SessionSpecificDestination : Destination {
+    val sessionId: SessionId
+}
+
 data object AccountManagementDestination : Destination {
     override val title = StringResourceHolder(Res.string.manage_accounts)
 }
@@ -24,8 +28,8 @@ data object SplashDestination : Destination {
 }
 
 data class ChatDestination(
-    val sessionId: SessionId,
+    override val sessionId: SessionId,
     val roomId: RoomId,
-) : Destination {
+) : SessionSpecificDestination {
     override val title = null
 }
