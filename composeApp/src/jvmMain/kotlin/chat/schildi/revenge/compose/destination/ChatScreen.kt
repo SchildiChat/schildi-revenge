@@ -12,10 +12,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
-import chat.schildi.revenge.compose.media.AsyncImage
+import chat.schildi.revenge.compose.media.imageLoader
+import chat.schildi.revenge.compose.media.onAsyncImageError
 import chat.schildi.revenge.compose.model.ChatViewModel
 import chat.schildi.revenge.navigation.ChatDestination
 import chat.schildi.revenge.publishTitle
+import coil3.compose.AsyncImage
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.ImageMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
@@ -78,6 +80,8 @@ fun ChatScreen(destination: ChatDestination) {
                                         AsyncImage(
                                             MediaRequestData(contentType.source, MediaRequestData.Kind.Thumbnail(1000)),
                                             null,
+                                            imageLoader = imageLoader(),
+                                            onError = ::onAsyncImageError,
                                         )
                                     }
 

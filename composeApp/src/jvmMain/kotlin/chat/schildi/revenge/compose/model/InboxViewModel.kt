@@ -11,6 +11,7 @@ import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.roomlist.RoomListFilter
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
 import io.element.android.libraries.matrix.api.roomlist.ScSdkInboxSettings
+import io.element.android.libraries.matrix.api.roomlist.ScSdkRoomSortOrder
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -31,7 +32,16 @@ class InboxViewModel(
         log.d { "Init" }
     }
 
-    val settings = ScSdkInboxSettings()
+    // TODO settings
+    val settings = ScSdkInboxSettings(
+        ScSdkRoomSortOrder(
+            byUnread = true,
+            pinFavourites = false,
+            buryLowPriority = true,
+            clientSideUnreadCounts = true,
+            withSilentUnread = true,
+        )
+    )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val allRooms = combinedSessions.flatMerge(
