@@ -2,10 +2,8 @@ package chat.schildi.theme
 
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import io.element.android.compound.annotations.CoreColorToken
-import io.element.android.compound.tokens.generated.SemanticColors
-import io.element.android.compound.tokens.generated.internal.LightColorTokens
 
 val scl_fgPrimary = ScColors.colorBlackAlpha_de
 val scl_fgSecondary = ScColors.colorBlackAlpha_8a
@@ -57,11 +55,12 @@ internal val sclMaterialColorScheme = lightColorScheme(
 )
 
 internal val sclExposures = ScThemeExposures(
-    isScTheme = true,
     horizontalDividerThickness = DividerDefaults.Thickness,
     colorOnAccent = ScColors.colorWhite,
     bubbleBgIncoming = ScColors.colorWhite_ee,
     bubbleBgOutgoing = scl_accent.fakeAlpha(0.12f),
+    mentionBadgeColor = Color(0xffd51928),
+    notificationBadgeColor = ScColors.colorAccentGreen,
     unreadBadgeColor = ScColors.colorGray_73,
     unreadBadgeOnToolbarColor = ScColors.colorGray_73,
     appBarBg = scl_bg,
@@ -80,103 +79,4 @@ internal val sclExposures = ScThemeExposures(
     composerBlockBg = null,
     composerBlockFg = null,
     spaceBarBg = ScColors.colorWhite_ee,
-)
-
-@OptIn(CoreColorToken::class)
-internal val sclSemanticColors = SemanticColors(
-    textPrimary = scl_fgPrimary,
-    textSecondary = scl_fgSecondary,
-    textDisabled = scl_fgDisabled,
-    textActionPrimary = scl_fgPrimary,
-    textActionAccent = scl_accent,
-    textLinkExternal = ScColors.colorAccentBlue,
-    textCriticalPrimary = ScColors.colorAccentRed,
-    textSuccessPrimary = ScColors.colorAccentGreen,
-    textInfoPrimary = ScColors.colorAccentBlueLight,
-    textOnSolidPrimary = scd_fgPrimary,
-    textBadgeInfo = scd_fgPrimary,
-    textBadgeAccent = scd_fgPrimary,
-    bgSubtlePrimary = scl_bgDarker,
-    bgSubtleSecondary =  scl_bgBlack,
-    bgSubtleSecondaryLevel0 =  scl_bg,
-    bgCanvasDefault = scl_bg,
-    bgCanvasDefaultLevel1 = scl_bgFloating,
-    bgCanvasDisabled = scl_bgDarker,
-    bgActionPrimaryRest = scl_fgPrimary,
-    bgActionPrimaryHovered = scl_fgSecondary,
-    bgActionPrimaryPressed = scl_fgSecondary,
-    bgActionPrimaryDisabled = scl_fgHint,
-    bgActionSecondaryRest = scl_bg,
-    bgActionSecondaryHovered = scl_bgFloating,
-    bgActionSecondaryPressed = scl_bgFloating,
-    bgCriticalPrimary = LightColorTokens.colorRed900, // TODO
-    bgCriticalHovered = LightColorTokens.colorRed1000, // TODO
-    bgCriticalSubtle = LightColorTokens.colorRed200, // TODO
-    bgCriticalSubtleHovered = LightColorTokens.colorRed300, // TODO
-    borderAccentSubtle = scl_accent,
-    bgSuccessSubtle = ScColors.colorAccentGreen.copy(alpha=0.2f),
-    bgInfoSubtle = ScColors.colorAccentBluePale,
-    borderDisabled = scl_divider,
-    borderFocused = LightColorTokens.colorBlue900, // TODO
-    borderInteractivePrimary = scl_fgSecondary,
-    borderInteractiveSecondary = scl_fgTertiary,
-    borderInteractiveHovered = scl_fgPrimary,
-    borderCriticalPrimary = LightColorTokens.colorRed900, // TODO
-    borderCriticalHovered = LightColorTokens.colorRed1000, // TODO
-    borderCriticalSubtle = LightColorTokens.colorRed500, // TODO
-    borderSuccessSubtle = ScColors.colorAccentGreen,
-    borderInfoSubtle = ScColors.colorAccentBluePale,
-    iconPrimary = scl_fgPrimary,
-    iconSecondary = scl_fgSecondary,
-    iconTertiary = scl_fgSecondary, // This is used as default in ListItem leading icons, i.e. in PreferencesRootView
-    iconQuaternary = scl_fgTertiary,
-    iconDisabled = scl_fgDisabled,
-    iconPrimaryAlpha = scl_fgPrimary.copy(alpha = scl_icon_alpha),
-    iconSecondaryAlpha = scl_fgSecondary.copy(alpha = scl_icon_alpha),
-    iconTertiaryAlpha = scl_fgTertiary.copy(alpha = scl_icon_alpha),
-    iconQuaternaryAlpha = scl_fgTertiary.copy(alpha = scl_icon_alpha),
-    iconAccentPrimary = scl_accent,
-    iconAccentTertiary = scl_accent,
-    iconCriticalPrimary = ScColors.colorAccentRed, // TODO align with other colorRed900?
-    iconSuccessPrimary = ScColors.colorAccentGreen,
-    iconInfoPrimary = ScColors.colorAccentBlue,
-    iconOnSolidPrimary = scd_fgPrimary,
-    bgAccentRest = scl_accent,
-    bgAccentSelected = scl_accent,
-    bgAccentHovered = scl_accent,
-    bgAccentPressed = scl_accent,
-    bgBadgeAccent = ScColors.colorAccentGreenAlpha_21,
-    bgBadgeDefault = ScColors.colorWhite_e0,
-    bgBadgeInfo = LightColorTokens.colorAlphaBlue1100, // TODO?
-    // TODO-start
-    gradientActionStop1 = LightColorTokens.colorGreen500,
-    gradientActionStop2 = LightColorTokens.colorGreen700,
-    gradientActionStop3 = LightColorTokens.colorGreen900,
-    gradientActionStop4 = LightColorTokens.colorGreen1100,
-    gradientInfoStop1 = LightColorTokens.colorAlphaBlue500,
-    gradientInfoStop2 = LightColorTokens.colorAlphaBlue400,
-    gradientInfoStop3 = LightColorTokens.colorAlphaBlue300,
-    gradientInfoStop4 = LightColorTokens.colorAlphaBlue200,
-    gradientInfoStop5 = LightColorTokens.colorAlphaBlue100,
-    gradientInfoStop6 = LightColorTokens.colorTransparent,
-    gradientSubtleStop1 = LightColorTokens.colorAlphaGreen500,
-    gradientSubtleStop2 = LightColorTokens.colorAlphaGreen400,
-    gradientSubtleStop3 = LightColorTokens.colorAlphaGreen300,
-    gradientSubtleStop4 = LightColorTokens.colorAlphaGreen200,
-    gradientSubtleStop5 = LightColorTokens.colorAlphaGreen100,
-    gradientSubtleStop6 = LightColorTokens.colorTransparent,
-    bgDecorative1 = LightColorTokens.colorLime300,
-    bgDecorative2 = LightColorTokens.colorCyan300,
-    bgDecorative3 = LightColorTokens.colorFuchsia300,
-    bgDecorative4 = LightColorTokens.colorPurple300,
-    bgDecorative5 = LightColorTokens.colorPink300,
-    bgDecorative6 = LightColorTokens.colorOrange300,
-    textDecorative1 = LightColorTokens.colorLime1100,
-    textDecorative2 = LightColorTokens.colorCyan1100,
-    textDecorative3 = LightColorTokens.colorFuchsia1100,
-    textDecorative4 = LightColorTokens.colorPurple1100,
-    textDecorative5 = LightColorTokens.colorPink1100,
-    textDecorative6 = LightColorTokens.colorOrange1100,
-    // TODO-end
-    isLight = true,
 )

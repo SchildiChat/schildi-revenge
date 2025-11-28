@@ -1,6 +1,11 @@
 package chat.schildi.theme
 
-import io.element.android.compound.theme.AvatarColors
+import androidx.compose.ui.graphics.Color
+
+data class AvatarColors(
+    val background: Color,
+    val foreground: Color,
+)
 
 val scAvatarColorsDark = listOf(
     AvatarColors(background = MaterialColor.Blue50, foreground = MaterialColor.Blue400),

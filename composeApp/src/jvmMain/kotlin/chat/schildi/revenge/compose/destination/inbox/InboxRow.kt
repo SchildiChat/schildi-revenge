@@ -34,6 +34,7 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.ComposeSessionScope
 import chat.schildi.revenge.compose.model.ScopedRoomSummary
+import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
 import kotlin.math.max
@@ -94,7 +95,7 @@ private fun RowScope.ScNameAndTimestampRow(room: RoomSummary) {
                 imageVector = Icons.Default.Star,
                 contentDescription = null,
                 modifier = Modifier.size(Dimens.Inbox.smallIcon),
-                tint = MaterialTheme.colorScheme.surfaceVariant,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         // Low prio
@@ -103,7 +104,7 @@ private fun RowScope.ScNameAndTimestampRow(room: RoomSummary) {
                 imageVector = Icons.Default.Archive,
                 contentDescription = null,
                 modifier = Modifier.size(Dimens.Inbox.smallIcon),
-                tint = MaterialTheme.colorScheme.surfaceVariant,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         // Timestamp
@@ -111,7 +112,7 @@ private fun RowScope.ScNameAndTimestampRow(room: RoomSummary) {
             Text(
                 text = room.lastMessageTimestamp.toString(), // TODO format
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.surfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -126,7 +127,7 @@ private fun RowScope.ScLastMessageAndIndicatorRow(room: RoomSummary) {
             .weight(1f)
             .padding(end = Dimens.horizontalItemPaddingBig),
         text = messagePreview,
-        color = MaterialTheme.colorScheme.surfaceVariant,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
         style = MaterialTheme.typography.bodyMedium,
         maxLines = 2,
         overflow = TextOverflow.Ellipsis
@@ -160,29 +161,31 @@ private fun ScUnreadCounter(room: RoomSummary) {
     val count: String
     val badgeColor: Color
     var outlinedBadge = false
-    // TODO SC theming exposures
     when {
         ScPrefs.DUAL_MENTION_UNREAD_COUNTS.value() && highlightCount > 0 && (notificationCount > highlightCount || unreadCount > highlightCount) -> {
             val fullUnreadToUse = max(unreadCount, notificationCount)
             count = "${formatUnreadCount(highlightCount)}/${formatUnreadCount(fullUnreadToUse)}"
-            badgeColor = MaterialTheme.colorScheme.error
+            badgeColor = MaterialTheme.scExposures.mentionBadgeColor
         }
         notificationCount > 0 -> {
             count = formatUnreadCount(notificationCount)
-            badgeColor = if (highlightCount > 0) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+            badgeColor = if (highlightCount > 0)
+                MaterialTheme.scExposures.mentionBadgeColor
+            else
+                MaterialTheme.scExposures.notificationBadgeColor
         }
         highlightCount > 0 -> {
             count = formatUnreadCount(highlightCount)
-            badgeColor = MaterialTheme.colorScheme.error
+            badgeColor = MaterialTheme.scExposures.mentionBadgeColor
         }
         room.info.isMarkedUnread -> {
             count = "!"
-            badgeColor = MaterialTheme.colorScheme.primary
+            badgeColor = MaterialTheme.scExposures.notificationBadgeColor
             outlinedBadge = true
         }
         unreadCount > 0 -> {
             count = formatUnreadCount(unreadCount)
-            badgeColor = MaterialTheme.colorScheme.surfaceVariant
+            badgeColor = MaterialTheme.scExposures.unreadBadgeColor
         }
         else -> {
             // No badge to show
@@ -201,7 +204,7 @@ private fun ScUnreadCounter(room: RoomSummary) {
     ) {
         Text(
             text = count,
-            color = if (outlinedBadge) badgeColor else MaterialTheme.colorScheme.onPrimary,
+            color = if (outlinedBadge) badgeColor else MaterialTheme.scExposures.colorOnAccent,
             style = MaterialTheme.typography.bodySmall.let { if (outlinedBadge) it.copy(fontWeight = FontWeight.Bold) else it },
             maxLines = 1,
             textAlign = TextAlign.Center,
