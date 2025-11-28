@@ -7,6 +7,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import io.github.kdroidfilter.platformtools.darkmodedetector.isSystemInDarkMode
 
 // Element defaults to light compound colors, so follow that as fallback default for exposures as well
 internal val LocalScExposures = staticCompositionLocalOf { scdExposures }
@@ -23,7 +24,7 @@ val MaterialTheme.scExposures: ScThemeExposures
 
 @Composable
 fun ScTheme(
-    darkTheme: Boolean = true, // TODO
+    darkTheme: Boolean = isSystemInDarkMode(),
     content: @Composable () -> Unit,
 ) {
     val currentExposures = remember {

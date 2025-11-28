@@ -26,6 +26,7 @@ kotlin {
             implementation(libs.kermit)
             implementation(libs.coil3.compose)
             implementation(libs.coil3.okhttp)
+            implementation(libs.kdroidfilter.platformtools.darkmodedetector)
 
             implementation(projects.matrix)
         }

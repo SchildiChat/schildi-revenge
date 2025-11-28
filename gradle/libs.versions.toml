@@ -10,6 +10,7 @@ jna = "5.14.0"
 kotlinxSerialization = "1.9.0"
 metro = "0.7.5"
 coil = "3.3.0"
+kdroidfilterPlatformtools = "0.7.4"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -30,6 +31,8 @@ metro_gradle_plugin = { module = "dev.zacsweers.metro:gradle-plugin", version.re
 metro_runtime = { module = "dev.zacsweers.metro:runtime", version.ref = "metro" }
 coil3_compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil3_okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
+kdroidfilter_platformtools_core = { group = "io.github.kdroidfilter", name = "platformtools.core", version.ref = "kdroidfilterPlatformtools" }
+kdroidfilter_platformtools_darkmodedetector = { group = "io.github.kdroidfilter", name = "platformtools.darkmodedetector", version.ref = "kdroidfilterPlatformtools" }
 
 [plugins]
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }
