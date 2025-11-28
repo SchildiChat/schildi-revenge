@@ -165,3 +165,22 @@ So in order to do an upstream merge:
     - `git fetch skeleton`
     - `git subtree merge --prefix=matrix skeleton/main`
 
+
+## Troubleshooting
+
+### I'm using [insert Linux desktop/WM here], how to follow system dark mode?
+
+When using some desktop environment or window manager that is not supported out of the box by
+[Platform-Tools](https://github.com/kdroidFilter/Platform-Tools/blob/master/platformtools/darkmodedetector/src/jvmMain/kotlin/io/github/kdroidfilter/platformtools/darkmodedetector/linux/LinuxThemeDetector.kt),
+but the way you toggle dark mode affects GTK applications, you can trick it by launching Revenge with an environment
+variable of `XDG_CURRENT_DESKTOP=gnome`.
+
+### I'm using wayland and HiDPI, everything looks blurry!
+
+Until [compose multiplatform supports wayland natively](https://youtrack.jetbrains.com/issue/SKIKO-28),
+the best solution I found is this hacky workaround:
+
+- Install this [sommelier fork](https://github.com/akvadrako/sommelier)
+- Launch Revenge via sommelier with the same scale setting that you use for HiDPI, e.g.
+  `sommelier -X --scale=1.5 --data-driver=noop --shm-driver=noop --display=wayland-1 --socket=wayland-1 ./gradlew
+  :compose:run`
