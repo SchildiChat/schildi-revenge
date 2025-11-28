@@ -3,8 +3,6 @@ package chat.schildi.revenge
 import androidx.compose.ui.window.ApplicationScope
 import chat.schildi.revenge.navigation.ComposableStringHolder
 import chat.schildi.revenge.navigation.Destination
-import chat.schildi.revenge.navigation.InboxDestination
-import chat.schildi.revenge.navigation.SplashDestination
 import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.createGraphFactory
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -37,7 +35,7 @@ object UiState {
     private val windowCounter = AtomicInt(0)
     private val _windows = MutableStateFlow<ImmutableList<WindowState>>(
         persistentListOf(
-            createWindow(SplashDestination),
+            createWindow(Destination.Splash),
         )
     )
     val windows = _windows.asStateFlow()
@@ -84,13 +82,14 @@ object UiState {
     private fun clearSplashScreen() {
         _windows.update { windows ->
             windows.mapNotNull { window ->
-                if (window.destinationHolder.state.value.destination is SplashDestination) {
+                if (window.destinationHolder.state.value.destination is Destination.Splash) {
                     if (windows.size > 1) {
                         // Already have other windows open??
                         null
                     } else {
-                        window.destinationHolder.navigate(InboxDestination)
-                        window
+                        window.also {
+                            it.destinationHolder.navigate(Destination.Inbox)
+                        }
                     }
                 } else {
                     window

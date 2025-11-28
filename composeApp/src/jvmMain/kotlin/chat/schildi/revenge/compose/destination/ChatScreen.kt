@@ -15,7 +15,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.revenge.compose.media.onAsyncImageError
 import chat.schildi.revenge.compose.model.ChatViewModel
-import chat.schildi.revenge.navigation.ChatDestination
+import chat.schildi.revenge.navigation.Destination
 import chat.schildi.revenge.publishTitle
 import coil3.compose.AsyncImage
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
@@ -26,7 +26,7 @@ import io.element.android.libraries.matrix.ui.media.MediaRequestData
 import kotlinx.collections.immutable.persistentListOf
 
 @Composable
-fun ChatScreen(destination: ChatDestination) {
+fun ChatScreen(destination: Destination.Chat) {
     val viewModel: ChatViewModel = viewModel(factory = ChatViewModel.factory(destination.sessionId, destination.roomId))
     val timelineItems = viewModel.timelineItems.collectAsState(persistentListOf()).value
     val forwardPaginationStatus = viewModel.forwardPaginationStatus.collectAsState(null).value

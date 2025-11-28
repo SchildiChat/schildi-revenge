@@ -6,7 +6,6 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.UiState
-import chat.schildi.revenge.navigation.ChatDestination
 import chat.schildi.revenge.navigation.ComposableStringHolder
 import chat.schildi.revenge.navigation.Destination
 import chat.schildi.revenge.navigation.toStringHolder
@@ -88,7 +87,7 @@ class ChatViewModel(
     }.filterNotNull()
 
     override fun verifyDestination(destination: Destination): Boolean {
-        return destination is ChatDestination && destination.sessionId == sessionId && destination.roomId == roomId
+        return destination is Destination.Chat && destination.sessionId == sessionId && destination.roomId == roomId
     }
 
     fun paginateForward() {

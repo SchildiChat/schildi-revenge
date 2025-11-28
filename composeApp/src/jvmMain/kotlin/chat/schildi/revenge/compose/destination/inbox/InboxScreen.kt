@@ -1,7 +1,6 @@
 package chat.schildi.revenge.compose.destination.inbox
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,7 +13,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.components.clickToNavigate
 import chat.schildi.revenge.compose.model.InboxViewModel
-import chat.schildi.revenge.navigation.ChatDestination
+import chat.schildi.revenge.navigation.Destination
 import chat.schildi.revenge.navigation.toStringHolder
 
 @Composable
@@ -39,7 +38,7 @@ fun InboxScreen() {
                     modifier = Modifier.clickToNavigate(
                         initialTitle = room.summary.info.name?.toStringHolder()
                     ) {
-                        ChatDestination(room.sessionId, room.summary.roomId)
+                        Destination.Chat(room.sessionId, room.summary.roomId)
                     }
                 )
             }
