@@ -1,8 +1,8 @@
 package chat.schildi.revenge
 
 import androidx.compose.ui.window.ApplicationScope
-import chat.schildi.revenge.navigation.ComposableStringHolder
-import chat.schildi.revenge.navigation.Destination
+import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.revenge.Destination
 import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.createGraphFactory
 import io.element.android.libraries.matrix.api.core.SessionId

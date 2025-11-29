@@ -3,7 +3,6 @@ package chat.schildi.revenge.actions
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
@@ -20,7 +19,8 @@ import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.focus.FocusParent
 import chat.schildi.revenge.compose.search.SearchProvider
-import chat.schildi.revenge.navigation.Destination
+import chat.schildi.revenge.Destination
+import chat.schildi.revenge.compose.focus.AbstractFocusRequester
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -37,7 +37,7 @@ private data class FocusTarget(
     val parent: FocusParent?,
     val role: FocusRole,
     val coordinates: Rect,
-    val focusRequester: FocusRequester,
+    val focusRequester: AbstractFocusRequester,
     val destinationStateHolder: DestinationStateHolder?,
     val actions: ActionProvider?,
 )
@@ -96,7 +96,7 @@ class KeyboardActionHandler(
     ): Boolean {
         if (parentId == null || currentFocus == null) {
             // No clue what to do, but maybe compose internals have an idea
-            log.i { "moveFocus: Fall back to FocusManager without current focus" }
+            log.i { "moveFocus: Fall back to FocusManager without current focus for $currentFocus" }
             return focusManager?.moveFocus(focusDirection) == true
         }
         val focusDirectionCheck: (FocusTarget) -> Boolean = when (focusDirection) {
@@ -142,7 +142,13 @@ class KeyboardActionHandler(
         return focusableTargets.values.find { it.role == role }?.focusRequester?.requestFocus() ?: false
     }
 
-    private fun currentFocused() = currentFocus.value?.let { focusableTargets[it] }
+    private fun currentFocused() = currentFocus.value?.let {
+        val target = focusableTargets[it]
+        if (target == null) {
+            log.w { "Unable to find target $it" }
+        }
+        target
+    }
 
     fun executeAction(
         action: InteractionAction,
@@ -180,6 +186,20 @@ class KeyboardActionHandler(
                     ?: currentFocused()?.destinationStateHolder ?:
                     focusableTargets.values.firstNotNullOfOrNull { it.destinationStateHolder }
         )?.navigate(destination) != null
+    }
+
+    private fun navigateCurrentDestination(buildDestination: (Destination) -> Destination?): Boolean {
+        val destinationStateHolder = currentFocused()?.destinationStateHolder
+        return destinationStateHolder?.state?.value.let { destinationState ->
+            destinationState?.destination?.let { destination ->
+                buildDestination(destination)?.let {
+                    navigateCurrentDestination(
+                        destination = it,
+                        destinationStateHolder = destinationStateHolder,
+                    )
+                }
+            }
+        } ?: false
     }
 
     fun onPreviewKeyEvent(event: KeyEvent): Boolean {
@@ -241,7 +261,9 @@ class KeyboardActionHandler(
     }
 
     private fun focusParent(): Boolean {
-        val parent = currentFocused()?.parent ?: return false
+        val parent = currentFocused()?.parent
+        log.v { "Focus parent: $parent" }
+        parent ?: return false
         _currentFocus.value = parent.uuid
         return true
     }
@@ -258,6 +280,22 @@ class KeyboardActionHandler(
                     // Some navigation
                     Key.I -> navigateCurrentDestination(Destination.Inbox)
                     Key.A -> navigateCurrentDestination(Destination.AccountManagement)
+                    // Split actions
+                    Key.V -> navigateCurrentDestination {
+                        Destination.SplitHorizontal(
+                            DestinationStateHolder.forInitialDestination(it),
+                            DestinationStateHolder.forInitialDestination(it),
+                        )
+                    }
+                    Key.S -> navigateCurrentDestination {
+                        Destination.SplitVertical(
+                            DestinationStateHolder.forInitialDestination(it),
+                            DestinationStateHolder.forInitialDestination(it),
+                        )
+                    }
+                    Key.Q -> navigateCurrentDestination {
+                        (it as? Destination.Split)?.primary?.state?.value?.destination
+                    }
                     // Tertiary action (usually same as mouse middle click)
                     Key.Enter -> currentFocused()?.actions?.tertiaryAction?.let(::executeAction) ?: false
                     else -> false
@@ -344,7 +382,7 @@ class KeyboardActionHandler(
         target: UUID,
         parent: FocusParent?,
         coordinates: LayoutCoordinates,
-        focusRequester: FocusRequester,
+        focusRequester: AbstractFocusRequester,
         destinationStateHolder: DestinationStateHolder?,
         actions: ActionProvider?,
         role: FocusRole = FocusRole.SEARCHABLE_ITEM,
@@ -366,12 +404,13 @@ class KeyboardActionHandler(
 
     fun handlePointer(position: Offset) {
         lastPointerPosition = position
-        val focusable = focusableTargets.firstNotNullOfOrNull { target ->
+        val focusable = focusableTargets.values.firstNotNullOfOrNull { target ->
             target.takeIf {
-                it.value.coordinates.contains(position)
+                it.role != FocusRole.CONTAINER && it.coordinates.contains(position)
             }
         }
-        focusable?.value?.focusRequester?.requestFocus()
+        // TODO flow + debounce + separate coroutine to avoid messing with composition
+        focusable?.focusRequester?.requestFocus()
     }
 
     fun onSearchType(query: String) = handleSearchUpdate(query, navigating = false) {

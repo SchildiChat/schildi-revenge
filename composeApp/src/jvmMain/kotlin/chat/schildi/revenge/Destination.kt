@@ -1,5 +1,7 @@
-package chat.schildi.revenge.navigation
+package chat.schildi.revenge
 
+import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.revenge.compose.util.StringResourceHolder
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import shire.composeapp.generated.resources.Res
@@ -31,5 +33,26 @@ sealed interface Destination {
         val roomId: RoomId,
     ) : WithSession {
         override val title = null
+    }
+
+    sealed interface Split : Destination {
+        val primary: DestinationStateHolder
+        val secondary: DestinationStateHolder
+    }
+
+    data class SplitHorizontal(
+        override val primary: DestinationStateHolder,
+        override val secondary: DestinationStateHolder,
+        val fraction: Float = 0.5f,
+    ) : Split {
+        override val title = StringResourceHolder(Res.string.app_title)
+    }
+
+    data class SplitVertical(
+        override val primary: DestinationStateHolder,
+        override val secondary: DestinationStateHolder,
+        val fraction: Float = 0.5f,
+    ) : Split {
+        override val title = StringResourceHolder(Res.string.app_title)
     }
 }

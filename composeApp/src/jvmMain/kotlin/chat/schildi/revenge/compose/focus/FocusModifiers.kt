@@ -1,8 +1,10 @@
 package chat.schildi.revenge.compose.focus
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.PointerMatcher
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
@@ -14,7 +16,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
@@ -52,8 +56,33 @@ fun Modifier.windowFocusContainer(): Modifier {
 }
 
 @Composable
-internal fun Modifier.keyFocusableContainer(parent: FocusParent?): Modifier {
-    return keyFocusableCommon(role = FocusRole.CONTAINER, parent = parent)
+internal fun Modifier.keyFocusableContainer(id: UUID, parent: FocusParent?): Modifier {
+    val keyHandler = LocalKeyboardActionHandler.current
+    val focusRequester = remember(keyHandler) {
+        object : AbstractFocusRequester {
+            override fun requestFocus(focusDirection: FocusDirection): Boolean {
+                keyHandler.onFocusChanged(id, object : FocusState {
+                    override val isFocused = true
+                    override val hasFocus = false
+                    override val isCaptured = false
+
+                })
+                return true
+            }
+        }
+    }
+    return this.keyFocusableCommon(role = FocusRole.CONTAINER, id = id, parent = parent, focusRequester = focusRequester)
+        .background(
+            MaterialTheme.colorScheme.error.copy(
+                alpha = animateFloatAsState(
+                    if (id == keyHandler.currentFocus.collectAsState().value) {
+                        0.1f
+                    } else {
+                        0f
+                    }
+                ).value
+            )
+        )
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -102,18 +131,29 @@ fun Modifier.keyFocusable(
             id = id,
             destinationState = destinationState,
             actionProvider = actionProvider,
-            focusRequester = focusRequester,
+            focusRequester = remember(focusRequester) { FocusRequesterWrapper(focusRequester) },
+        ).border(
+            1.dp,
+            MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                alpha = animateFloatAsState(
+                    if (id == keyHandler.currentFocus.collectAsState().value) {
+                        1f
+                    } else {
+                        0f
+                    }
+                ).value
+            )
         )
 }
 
 @Composable
 private fun Modifier.keyFocusableCommon(
     role: FocusRole,
+    focusRequester: AbstractFocusRequester,
     keyHandler: KeyboardActionHandler = LocalKeyboardActionHandler.current,
     id: UUID = remember { UUID.randomUUID() },
     destinationState: DestinationStateHolder? = LocalDestinationState.current,
     actionProvider: ActionProvider? = null,
-    focusRequester: FocusRequester = remember { FocusRequester() },
     parent: FocusParent? = LocalFocusParent.current,
 ): Modifier {
     DisposableEffect(id) {
@@ -131,16 +171,5 @@ private fun Modifier.keyFocusableCommon(
             actionProvider,
             role,
         )
-    }.border(
-        1.dp,
-        MaterialTheme.colorScheme.onSurfaceVariant.copy(
-            alpha = animateFloatAsState(
-                if (id == keyHandler.currentFocus.collectAsState().value) {
-                    1f
-                } else {
-                    0f
-                }
-            ).value
-        )
-    )
+    }
 }

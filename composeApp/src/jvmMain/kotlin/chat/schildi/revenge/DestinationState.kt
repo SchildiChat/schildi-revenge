@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
-import chat.schildi.revenge.navigation.ComposableStringHolder
-import chat.schildi.revenge.navigation.Destination
+import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.revenge.Destination
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update

@@ -4,8 +4,8 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.Composable
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.compose.search.SearchProvider
-import chat.schildi.revenge.navigation.ComposableStringHolder
-import chat.schildi.revenge.navigation.Destination
+import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.revenge.Destination
 
 data class ActionProvider(
     val searchProvider: SearchProvider?,

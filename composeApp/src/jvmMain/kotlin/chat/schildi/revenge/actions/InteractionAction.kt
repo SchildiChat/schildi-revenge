@@ -1,7 +1,7 @@
 package chat.schildi.revenge.actions
 
-import chat.schildi.revenge.navigation.ComposableStringHolder
-import chat.schildi.revenge.navigation.Destination
+import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.revenge.Destination
 
 sealed interface InteractionAction {
 

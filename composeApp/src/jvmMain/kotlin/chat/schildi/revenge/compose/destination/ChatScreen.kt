@@ -17,7 +17,7 @@ import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.revenge.compose.media.onAsyncImageError
 import chat.schildi.revenge.model.ChatViewModel
-import chat.schildi.revenge.navigation.Destination
+import chat.schildi.revenge.Destination
 import chat.schildi.revenge.publishTitle
 import coil3.compose.AsyncImage
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem

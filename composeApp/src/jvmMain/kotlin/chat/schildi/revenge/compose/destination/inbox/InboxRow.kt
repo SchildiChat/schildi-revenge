@@ -37,8 +37,8 @@ import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.ComposeSessionScope
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.ScopedRoomSummary
-import chat.schildi.revenge.navigation.Destination
-import chat.schildi.revenge.navigation.toStringHolder
+import chat.schildi.revenge.Destination
+import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary

@@ -6,9 +6,9 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.UiState
-import chat.schildi.revenge.navigation.ComposableStringHolder
-import chat.schildi.revenge.navigation.Destination
-import chat.schildi.revenge.navigation.toStringHolder
+import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.revenge.Destination
+import chat.schildi.revenge.compose.util.toStringHolder
 import co.touchlab.kermit.Logger
 import io.element.android.features.messages.impl.timeline.TimelineController
 import io.element.android.libraries.matrix.api.core.RoomId

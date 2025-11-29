@@ -26,7 +26,7 @@ fun FocusContainer(
         LocalFocusParent provides me
     ) {
         Box(
-            modifier = modifier.focusGroup().keyFocusableContainer(parent),
+            modifier = modifier.focusGroup().keyFocusableContainer(me.uuid, parent),
             contentAlignment = contentAlignment,
             content = content,
         )

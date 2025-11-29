@@ -67,12 +67,11 @@ fun main() {
                     }
                 }
                 CompositionLocalProvider(
-                    LocalDestinationState provides windowState.destinationHolder,
                     LocalImageLoaderHolder provides UiState.appGraph.imageLoaderHolder,
                     LocalKeyboardActionHandler provides keyHandler,
                     LocalFocusParent provides focusRoot,
                 ) {
-                    WindowContent(destinationState.destination)
+                    WindowContent(windowState.destinationHolder)
                 }
             }
         }

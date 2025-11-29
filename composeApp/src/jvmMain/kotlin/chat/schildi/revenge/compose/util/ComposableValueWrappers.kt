@@ -1,4 +1,4 @@
-package chat.schildi.revenge.navigation
+package chat.schildi.revenge.compose.util
 
 import androidx.compose.runtime.Composable
 import kotlinx.collections.immutable.ImmutableList
