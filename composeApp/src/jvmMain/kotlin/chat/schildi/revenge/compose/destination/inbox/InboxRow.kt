@@ -58,7 +58,8 @@ fun InboxRow(
                         initialTitle = room.summary.info.name?.toStringHolder()
                     ) {
                         Destination.Chat(room.sessionId, room.summary.roomId)
-                    }
+                    },
+                    searchable = true,
                 )
                 .padding(
                     horizontal = Dimens.windowPadding,

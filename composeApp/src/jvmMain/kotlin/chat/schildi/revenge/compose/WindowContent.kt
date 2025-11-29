@@ -23,7 +23,7 @@ fun WindowContent(destination: Destination) {
                 .keyContainer(),
             contentAlignment = Alignment.Center,
         ) {
-            DestinationContent(destination)
+            DestinationContent(destination, Modifier.fillMaxSize())
         }
     }
 }

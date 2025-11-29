@@ -4,6 +4,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.geometry.toRect
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
@@ -12,8 +13,8 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import chat.schildi.revenge.compose.WindowContent
 import chat.schildi.revenge.compose.media.LocalImageLoaderHolder
-import chat.schildi.revenge.actions.KeyboardNavigationHandler
-import chat.schildi.revenge.actions.LocalKeyboardNavigationHandler
+import chat.schildi.revenge.actions.KeyboardActionHandler
+import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import co.touchlab.kermit.Logger
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
@@ -36,7 +37,7 @@ fun main() {
                 ?: destinationState.destination.title?.render()
                 ?: appTitle
             val keyHandler = remember(windowState.windowId) {
-                KeyboardNavigationHandler(windowState.windowId)
+                KeyboardActionHandler(windowState.windowId)
             }
             val composeWindowState = rememberWindowState()
             Window(
@@ -65,7 +66,7 @@ fun main() {
                 CompositionLocalProvider(
                     LocalDestinationState provides windowState.destinationHolder,
                     LocalImageLoaderHolder provides UiState.appGraph.imageLoaderHolder,
-                    LocalKeyboardNavigationHandler provides keyHandler,
+                    LocalKeyboardActionHandler provides keyHandler,
                 ) {
                     WindowContent(destinationState.destination)
                 }

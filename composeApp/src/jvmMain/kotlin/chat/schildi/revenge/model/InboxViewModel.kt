@@ -81,8 +81,9 @@ class InboxViewModel(
         if (searchTerm.isNullOrBlank()) {
             rooms
         } else {
-            rooms?.filter {
-                it.summary.info.name?.contains(searchTerm) == true
+            val lowercaseSearch = searchTerm.lowercase()
+            rooms.filter {
+                it.summary.info.name?.lowercase()?.contains(lowercaseSearch) == true
             }
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)

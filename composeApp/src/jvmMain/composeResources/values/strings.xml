@@ -11,6 +11,7 @@
     <string name="hint_homeserver">Homeserver</string>
     <string name="hint_password">Password</string>
     <string name="hint_recovery_key">Recovery key</string>
+    <string name="hint_search">Search</string>
 
     <string name="action_hide">Hide</string>
     <string name="action_show">Show</string>

@@ -29,7 +29,7 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
 
 ### MVP
 
-- [ ] Non-awful theme
+- [x] Schildi theme
 - [ ] Initial config hooked in
     - [x] Accounts with username+homeserver (not: password and secrets)
     - [ ] Configurable key bindings
@@ -40,12 +40,12 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
 - [ ] Lock to avoid running multiple instances in parallel, but instead bring to foreground?
 - [ ] Inbox
     - [x] List all chats
-    - [ ] Make it look nice
-    - [ ] Unread counts
+    - [x] Make it look nice
+    - [x] Unread counts
     - [ ] Spaces navigation
     - [ ] Filter by spaces
     - [ ] Filter by account
-    - [ ] Search
+    - [x] Search
 - [ ] Conversation view
     - [x] View event source
     - [ ] Render text and notices
@@ -89,6 +89,7 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
 - [ ] MAS: support generating QR for quick sign in of mobile devices
 - [ ] Threads??? (optional thread view, will want to show threaded messages in the main timeline by default as well)
 - [ ] Expose command line message interface to e.g. "open list for account X with filters Y"
+- [ ] Custom theming
 
 
 ## Building

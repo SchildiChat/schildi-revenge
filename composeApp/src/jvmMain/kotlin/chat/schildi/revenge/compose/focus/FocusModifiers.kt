@@ -10,6 +10,7 @@ import androidx.compose.foundation.onClick
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -23,14 +24,16 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.ActionProvider
-import chat.schildi.revenge.actions.LocalKeyboardNavigationHandler
+import chat.schildi.revenge.actions.FocusRole
+import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.defaultActionProvider
 import chat.schildi.revenge.compose.components.ifNotNull
+import chat.schildi.revenge.compose.components.thenIf
 import java.util.UUID
 
 @Composable
 fun Modifier.keyContainer(): Modifier {
-    val keyHandler = LocalKeyboardNavigationHandler.current
+    val keyHandler = LocalKeyboardActionHandler.current
     return pointerInput(keyHandler) {
         awaitPointerEventScope {
             var lastPos: Offset? = null
@@ -50,22 +53,33 @@ fun Modifier.keyContainer(): Modifier {
 @Composable
 fun Modifier.keyFocusable(
     actionProvider: ActionProvider = defaultActionProvider(),
+    searchable: Boolean = false,
+    role: FocusRole = FocusRole.ITEM,
     enableClicks: Boolean = true,
+    isTextField: Boolean = true,
 ): Modifier {
     val focusRequester = remember { FocusRequester() }
     val id = remember { UUID.randomUUID() }
-    val keyHandler = LocalKeyboardNavigationHandler.current
+    val keyHandler = LocalKeyboardActionHandler.current
     val destinationState = LocalDestinationState.current
     DisposableEffect(id) {
         onDispose {
             keyHandler.unregisterFocusTarget(id)
         }
     }
+    if (role == FocusRole.SEARCH_BAR) {
+        LaunchedEffect(Unit) {
+            focusRequester.requestFocus()
+        }
+    }
     return focusRequester(focusRequester)
         .onFocusChanged {
             keyHandler.onFocusChanged(id, it)
         }
-        .focusable()
+        // Text fields get issues with added focusable
+        .thenIf(!isTextField) {
+            focusable()
+        }
         .ifNotNull(actionProvider.primaryAction) { action ->
             clickable(enabled = enableClicks) {
                 keyHandler.executeAction(action, destinationState)
@@ -88,8 +102,10 @@ fun Modifier.keyFocusable(
                 focusRequester,
                 destinationState,
                 actionProvider,
+                searchable,
+                role,
             )
-        }.border( // TODO nicer design?
+        }.border(
             1.dp,
             MaterialTheme.colorScheme.onSurfaceVariant.copy(
                 alpha = animateFloatAsState(
