@@ -31,10 +31,13 @@ import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.lib.preferences.value
 import chat.schildi.lib.util.formatUnreadCount
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.actions.buildNavigationActionProvider
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.ComposeSessionScope
 import chat.schildi.revenge.compose.focus.keyFocusable
-import chat.schildi.revenge.compose.model.ScopedRoomSummary
+import chat.schildi.revenge.model.ScopedRoomSummary
+import chat.schildi.revenge.navigation.Destination
+import chat.schildi.revenge.navigation.toStringHolder
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
@@ -50,7 +53,13 @@ fun InboxRow(
             modifier = modifier
                 .fillMaxWidth()
                 .heightIn(min = Dimens.Inbox.avatar + Dimens.listPadding * 2)
-                .keyFocusable()
+                .keyFocusable(
+                    buildNavigationActionProvider(
+                        initialTitle = room.summary.info.name?.toStringHolder()
+                    ) {
+                        Destination.Chat(room.sessionId, room.summary.roomId)
+                    }
+                )
                 .padding(
                     horizontal = Dimens.windowPadding,
                     vertical = Dimens.listPadding,

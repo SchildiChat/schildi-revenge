@@ -12,8 +12,8 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import chat.schildi.revenge.compose.WindowContent
 import chat.schildi.revenge.compose.media.LocalImageLoaderHolder
-import chat.schildi.revenge.navigation.KeyboardNavigationHandler
-import chat.schildi.revenge.navigation.LocalKeyboardNavigationHandler
+import chat.schildi.revenge.actions.KeyboardNavigationHandler
+import chat.schildi.revenge.actions.LocalKeyboardNavigationHandler
 import co.touchlab.kermit.Logger
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res

@@ -1,20 +1,27 @@
-package chat.schildi.revenge.navigation
+package chat.schildi.revenge.actions
 
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyDown
+import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInWindow
+import chat.schildi.revenge.DestinationStateHolder
+import chat.schildi.revenge.UiState
 import co.touchlab.kermit.Logger
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.sqrt
@@ -24,6 +31,8 @@ val LocalKeyboardNavigationHandler = compositionLocalOf { KeyboardNavigationHand
 private data class FocusTarget(
     val coordinates: Rect,
     val focusRequester: FocusRequester,
+    val destinationStateHolder: DestinationStateHolder?,
+    val actions: ActionProvider?,
 )
 
 class KeyboardNavigationHandler(
@@ -34,6 +43,8 @@ class KeyboardNavigationHandler(
     var focusManager: FocusManager? = null
     var windowCoordinates: Rect? = null
     private var lastPointerPosition = Offset.Zero
+    private val _currentFocus = MutableStateFlow<UUID?>(null)
+    val currentFocus = _currentFocus.asStateFlow()
 
     private val focusableTargets = ConcurrentHashMap<UUID, FocusTarget>()
 
@@ -62,6 +73,29 @@ class KeyboardNavigationHandler(
         }?.focusRequester?.requestFocus() ?: false
     }
 
+    private fun currentFocused() = currentFocus.value?.let { focusableTargets[it] }
+
+    fun executeAction(
+        action: InteractionAction,
+        destinationStateHolder: DestinationStateHolder? = null
+    ): Boolean {
+        return when (action) {
+            is InteractionAction.NavigationAction -> {
+                val destination = action.buildDestination()
+                when (action) {
+                    is InteractionAction.OpenWindow -> {
+                        UiState.openWindow(destination, action.initialTitle)
+                        true
+                    }
+                    is InteractionAction.NavigateCurrent -> {
+                        (destinationStateHolder ?: currentFocused()?.destinationStateHolder)
+                            ?.navigate(destination) != null
+                    }
+                }
+            }
+        }
+    }
+
     fun onPreviewKeyEvent(event: KeyEvent): Boolean {
         log.v { "Handle key preview $event" }
         // TODO
@@ -73,6 +107,14 @@ class KeyboardNavigationHandler(
                     Key.H -> windowCoordinates?.let { focusClosestTo(it.topCenter) } ?: false
                     Key.M -> windowCoordinates?.let { focusClosestTo(it.center) } ?: false
                     Key.L -> windowCoordinates?.let { focusClosestTo(it.bottomCenter) } ?: false
+                    // Tertiary action (usually same as mouse middle click)
+                    Key.Enter -> currentFocused()?.actions?.tertiaryAction?.let(::executeAction) ?: false
+                    else -> false
+                }
+            } else if (event.isCtrlPressed) {
+                when (event.key) {
+                    // Secondary action (usually same as mouse right click)
+                    Key.Enter -> currentFocused()?.actions?.secondaryAction?.let(::executeAction) ?: false
                     else -> false
                 }
             } else {
@@ -91,6 +133,8 @@ class KeyboardNavigationHandler(
                     Key.E -> moveFocus(FocusDirection.Up)
                     Key.N -> moveFocus(FocusDirection.Down)
                     Key.I -> moveFocus(FocusDirection.Right)
+                    // Primary action (usually same as mouse click)
+                    Key.Enter -> currentFocused()?.actions?.primaryAction?.let(::executeAction) ?: false
                     else -> false
                 }
             }
@@ -104,8 +148,30 @@ class KeyboardNavigationHandler(
         return false
     }
 
-    fun registerFocusTarget(target: UUID, coordinates: LayoutCoordinates, focusRequester: FocusRequester) {
-        focusableTargets[target] = FocusTarget(coordinates.boundsInWindow(), focusRequester)
+    fun onFocusChanged(target: UUID, state: FocusState) {
+        log.v { "Focus changed for $target to $state" }
+        if (state.isFocused) {
+            _currentFocus.value = target
+        } else if (!state.hasFocus) {
+            _currentFocus.update {
+                it.takeIf { it != target }
+            }
+        }
+    }
+
+    fun registerFocusTarget(
+        target: UUID,
+        coordinates: LayoutCoordinates,
+        focusRequester: FocusRequester,
+        destinationStateHolder: DestinationStateHolder?,
+        actions: ActionProvider?,
+    ) {
+        focusableTargets[target] = FocusTarget(
+            coordinates.boundsInWindow(),
+            focusRequester,
+            destinationStateHolder,
+            actions
+        )
     }
 
     fun unregisterFocusTarget(target: UUID) {

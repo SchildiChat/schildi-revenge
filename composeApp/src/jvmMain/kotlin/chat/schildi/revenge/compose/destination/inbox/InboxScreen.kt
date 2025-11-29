@@ -11,16 +11,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.revenge.Dimens
-import chat.schildi.revenge.compose.components.clickToNavigate
-import chat.schildi.revenge.compose.model.InboxViewModel
-import chat.schildi.revenge.navigation.Destination
-import chat.schildi.revenge.navigation.toStringHolder
+import chat.schildi.revenge.model.InboxViewModel
 
 @Composable
 fun InboxScreen() {
     val viewModel: InboxViewModel = viewModel()
     val states = viewModel.allStates.collectAsState().value
-    val rooms = viewModel.allRooms.collectAsState().value
+    val rooms = viewModel.rooms.collectAsState().value
     LazyColumn(Modifier.widthIn(max = Dimens.Inbox.maxWidth).fillMaxSize()) {
         states?.let {
             items(states) { state ->
@@ -33,14 +30,7 @@ fun InboxScreen() {
         }
         rooms?.let {
             items(rooms) { room ->
-                InboxRow(
-                    room = room,
-                    modifier = Modifier.clickToNavigate(
-                        initialTitle = room.summary.info.name?.toStringHolder()
-                    ) {
-                        Destination.Chat(room.sessionId, room.summary.roomId)
-                    }
-                )
+                InboxRow(room)
             }
         }
     }

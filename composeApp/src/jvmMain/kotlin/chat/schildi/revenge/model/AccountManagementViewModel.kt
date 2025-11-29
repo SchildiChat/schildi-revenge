@@ -1,4 +1,4 @@
-package chat.schildi.revenge.compose.model
+package chat.schildi.revenge.model
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.revenge.compose.media.onAsyncImageError
-import chat.schildi.revenge.compose.model.ChatViewModel
+import chat.schildi.revenge.model.ChatViewModel
 import chat.schildi.revenge.navigation.Destination
 import chat.schildi.revenge.publishTitle
 import coil3.compose.AsyncImage
