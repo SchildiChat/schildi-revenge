@@ -4,6 +4,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.geometry.toRect
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
@@ -32,6 +33,7 @@ fun main() {
     }
     application(exitProcessOnExit = false) {
         val windows = UiState.windows.collectAsState().value
+        val scope = rememberCoroutineScope()
         windows.forEach { windowState ->
             val destinationState = windowState.destinationHolder.state.collectAsState().value
             val appTitle = stringResource(Res.string.app_title)
@@ -39,7 +41,7 @@ fun main() {
                 ?: destinationState.destination.title?.render()
                 ?: appTitle
             val keyHandler = remember(windowState.windowId) {
-                KeyboardActionHandler(windowState.windowId)
+                KeyboardActionHandler(windowState.windowId, scope)
             }
             val focusRoot = remember { FocusParent(UUID.randomUUID(), null) }
             val composeWindowState = rememberWindowState()

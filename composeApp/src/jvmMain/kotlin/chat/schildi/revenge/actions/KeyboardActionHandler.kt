@@ -22,15 +22,20 @@ import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
 import co.touchlab.kermit.Logger
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.sqrt
 
-val LocalKeyboardActionHandler = compositionLocalOf { KeyboardActionHandler(-1) }
+val LocalKeyboardActionHandler = compositionLocalOf<KeyboardActionHandler> {
+    throw IllegalArgumentException("No keyboard action handler provided")
+}
 
 private data class FocusTarget(
     val id: UUID,
@@ -61,6 +66,7 @@ sealed interface KeyboardActionMode {
 
 class KeyboardActionHandler(
     windowId: Int,
+    private val scope: CoroutineScope,
 ) {
     private val log = Logger.withTag("Nav/$windowId")
 
@@ -253,9 +259,12 @@ class KeyboardActionHandler(
         focusClosestTo(Offset.Zero, role = FocusRole.SEARCHABLE_ITEM, parentId = parentId)
     }
 
-    private fun focusCurrentContainerRelative(select: (Rect) -> Offset): Boolean {
+    private fun focusCurrentContainerRelative(
+        focused: FocusTarget? = currentFocused(),
+        select: (Rect) -> Offset,
+    ): Boolean {
         return windowCoordinates?.let { coordinates ->
-            val parent = currentFocused()?.parent
+            val parent = focused?.parent
             focusClosestTo(select(coordinates), parentId = parent?.uuid)
         } ?: false
     }
@@ -266,6 +275,41 @@ class KeyboardActionHandler(
         parent ?: return false
         _currentFocus.value = parent.uuid
         return true
+    }
+
+    private fun scrollListToTop(
+        focused: FocusTarget? = currentFocused(),
+    ): Boolean {
+        return focused?.actions?.listActions?.let { listState ->
+            if (listState.layoutInfo.totalItemsCount > 0) {
+                scope.launch {
+                    listState.scrollToItem(0)
+                    delay(100)
+                    focusCurrentContainerRelative(focused) { it.topCenter }
+                }
+                true
+            } else {
+                false
+            }
+        } ?: false
+    }
+
+    private fun scrollListToBottom(
+        focused: FocusTarget? = currentFocused(),
+    ): Boolean {
+        return focused?.actions?.listActions?.let { listState ->
+            val index = listState.layoutInfo.totalItemsCount - 1
+            if (index >= 0) {
+                scope.launch {
+                    listState.scrollToItem(index)
+                    delay(100)
+                    focusCurrentContainerRelative(focused) { it.bottomCenter }
+                }
+                true
+            } else {
+                false
+            }
+        } ?: false
     }
 
     private fun handleNavigationEvent(event: KeyEvent): Boolean {
@@ -298,6 +342,8 @@ class KeyboardActionHandler(
                     }
                     // Tertiary action (usually same as mouse middle click)
                     Key.Enter -> currentFocused()?.actions?.tertiaryAction?.let(::executeAction) ?: false
+                    // List-specific navigation
+                    Key.G -> scrollListToBottom()
                     else -> false
                 }
             } else if (event.isCtrlPressed) {
@@ -332,6 +378,10 @@ class KeyboardActionHandler(
                         }
                     }
                     Key.Escape -> focusParent()
+                    // List-specific navigation
+                    Key.G -> scrollListToTop()
+                    Key.MoveHome -> scrollListToTop()
+                    Key.MoveEnd -> scrollListToBottom()
                     // Mode switching
                     Key.Slash -> handleSearchUpdate("", navigating = false) {
                         // TODO search -> search-nav -> search inserts a slash into search field by accident

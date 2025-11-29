@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -13,18 +14,21 @@ import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
+import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.model.InboxViewModel
 
 @Composable
 fun InboxScreen() {
     val viewModel: InboxViewModel = viewModel(key = LocalDestinationState.current?.id.toString())
+    val listState = rememberLazyListState()
     CompositionLocalProvider(
         LocalSearchProvider provides viewModel,
+        LocalListActionProvider provides listState,
     ) {
         val states = viewModel.allStates.collectAsState().value
         val rooms = viewModel.rooms.collectAsState().value
-        LazyColumn(Modifier.widthIn(max = Dimens.Inbox.maxWidth).fillMaxSize()) {
+        LazyColumn(Modifier.widthIn(max = Dimens.Inbox.maxWidth).fillMaxSize(), state = listState) {
             item {
                 Text(System.identityHashCode(viewModel).toString())
             }
