@@ -22,9 +22,11 @@ import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
+import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.ActionProvider
 import chat.schildi.revenge.actions.FocusRole
+import chat.schildi.revenge.actions.KeyboardActionHandler
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.defaultActionProvider
 import chat.schildi.revenge.compose.components.ifNotNull
@@ -32,7 +34,7 @@ import chat.schildi.revenge.compose.components.thenIf
 import java.util.UUID
 
 @Composable
-fun Modifier.keyContainer(): Modifier {
+fun Modifier.windowFocusContainer(): Modifier {
     val keyHandler = LocalKeyboardActionHandler.current
     return pointerInput(keyHandler) {
         awaitPointerEventScope {
@@ -49,12 +51,16 @@ fun Modifier.keyContainer(): Modifier {
     }
 }
 
+@Composable
+internal fun Modifier.keyFocusableContainer(parent: FocusParent?): Modifier {
+    return keyFocusableCommon(role = FocusRole.CONTAINER, parent = parent)
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Modifier.keyFocusable(
+    role: FocusRole = FocusRole.AUX_ITEM,
     actionProvider: ActionProvider = defaultActionProvider(),
-    searchable: Boolean = false,
-    role: FocusRole = FocusRole.ITEM,
     enableClicks: Boolean = true,
     isTextField: Boolean = true,
 ): Modifier {
@@ -62,11 +68,6 @@ fun Modifier.keyFocusable(
     val id = remember { UUID.randomUUID() }
     val keyHandler = LocalKeyboardActionHandler.current
     val destinationState = LocalDestinationState.current
-    DisposableEffect(id) {
-        onDispose {
-            keyHandler.unregisterFocusTarget(id)
-        }
-    }
     if (role == FocusRole.SEARCH_BAR) {
         LaunchedEffect(Unit) {
             focusRequester.requestFocus()
@@ -95,26 +96,51 @@ fun Modifier.keyFocusable(
                 keyHandler.executeAction(action, destinationState)
             }
         }
-        .onGloballyPositioned { coordinates ->
-            keyHandler.registerFocusTarget(
-                id,
-                coordinates,
-                focusRequester,
-                destinationState,
-                actionProvider,
-                searchable,
-                role,
-            )
-        }.border(
-            1.dp,
-            MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                alpha = animateFloatAsState(
-                    if (id == keyHandler.currentFocus.collectAsState().value) {
-                        1f
-                    } else {
-                        0f
-                    }
-                ).value
-            )
+        .keyFocusableCommon(
+            role = role,
+            keyHandler = keyHandler,
+            id = id,
+            destinationState = destinationState,
+            actionProvider = actionProvider,
+            focusRequester = focusRequester,
         )
+}
+
+@Composable
+private fun Modifier.keyFocusableCommon(
+    role: FocusRole,
+    keyHandler: KeyboardActionHandler = LocalKeyboardActionHandler.current,
+    id: UUID = remember { UUID.randomUUID() },
+    destinationState: DestinationStateHolder? = LocalDestinationState.current,
+    actionProvider: ActionProvider? = null,
+    focusRequester: FocusRequester = remember { FocusRequester() },
+    parent: FocusParent? = LocalFocusParent.current,
+): Modifier {
+    DisposableEffect(id) {
+        onDispose {
+            keyHandler.unregisterFocusTarget(id)
+        }
+    }
+    return onGloballyPositioned { coordinates ->
+        keyHandler.registerFocusTarget(
+            id,
+            parent,
+            coordinates,
+            focusRequester,
+            destinationState,
+            actionProvider,
+            role,
+        )
+    }.border(
+        1.dp,
+        MaterialTheme.colorScheme.onSurfaceVariant.copy(
+            alpha = animateFloatAsState(
+                if (id == keyHandler.currentFocus.collectAsState().value) {
+                    1f
+                } else {
+                    0f
+                }
+            ).value
+        )
+    )
 }

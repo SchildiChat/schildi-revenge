@@ -31,6 +31,7 @@ import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.lib.preferences.value
 import chat.schildi.lib.util.formatUnreadCount
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.buildNavigationActionProvider
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.ComposeSessionScope
@@ -54,12 +55,12 @@ fun InboxRow(
                 .fillMaxWidth()
                 .heightIn(min = Dimens.Inbox.avatar + Dimens.listPadding * 2)
                 .keyFocusable(
+                    FocusRole.SEARCHABLE_ITEM,
                     buildNavigationActionProvider(
                         initialTitle = room.summary.info.name?.toStringHolder()
                     ) {
                         Destination.Chat(room.sessionId, room.summary.roomId)
                     },
-                    searchable = true,
                 )
                 .padding(
                     horizontal = Dimens.windowPadding,

@@ -6,8 +6,6 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.focusGroup
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
@@ -22,14 +20,15 @@ import chat.schildi.revenge.compose.destination.AccountManagementScreen
 import chat.schildi.revenge.compose.destination.ChatScreen
 import chat.schildi.revenge.compose.destination.inbox.InboxScreen
 import chat.schildi.revenge.compose.destination.SplashScreen
+import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.SearchBar
 import chat.schildi.revenge.navigation.Destination
 
 @Composable
 fun DestinationContent(destination: Destination, modifier: Modifier = Modifier) {
     Column(modifier) {
-        Box(
-            modifier = Modifier.focusGroup().fillMaxWidth().weight(1f),
+        FocusContainer(
+            modifier = Modifier.fillMaxWidth().weight(1f),
             contentAlignment = Alignment.Center,
         ) {
             DestinationWrapper(destination) {

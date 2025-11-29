@@ -18,6 +18,7 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInWindow
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.UiState
+import chat.schildi.revenge.compose.focus.FocusParent
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.navigation.Destination
 import co.touchlab.kermit.Logger
@@ -32,16 +33,19 @@ import kotlin.math.sqrt
 val LocalKeyboardActionHandler = compositionLocalOf { KeyboardActionHandler(-1) }
 
 private data class FocusTarget(
+    val id: UUID,
+    val parent: FocusParent?,
     val role: FocusRole,
     val coordinates: Rect,
     val focusRequester: FocusRequester,
     val destinationStateHolder: DestinationStateHolder?,
     val actions: ActionProvider?,
-    val searchable: Boolean,
 )
 
 enum class FocusRole {
-    ITEM,
+    SEARCHABLE_ITEM,
+    AUX_ITEM,
+    CONTAINER,
     SEARCH_BAR,
 }
 
@@ -51,6 +55,7 @@ sealed interface KeyboardActionMode {
         val query: String,
         val searchProvider: SearchProvider,
         val navigating: Boolean,
+        val searchFocusContainer: UUID?,
     ) : KeyboardActionMode
 }
 
@@ -84,19 +89,49 @@ class KeyboardActionHandler(
         return sqrt(dx * dx + dy * dy)
     }
 
-    private fun moveFocus(focusDirection: FocusDirection): Boolean {
-        return focusManager?.moveFocus(focusDirection) == true ||
-                focusableTargets.values.firstOrNull()?.focusRequester?.let {
-                    log.i { "Could not move focus to $focusDirection, force focus anything" }
-                    it.requestFocus()
-                } ?: false
+    private fun moveFocus(
+        focusDirection: FocusDirection,
+        currentFocus: FocusTarget? = currentFocused(),
+        parentId: UUID? = currentFocus?.parent?.uuid,
+    ): Boolean {
+        if (parentId == null || currentFocus == null) {
+            // No clue what to do, but maybe compose internals have an idea
+            log.i { "moveFocus: Fall back to FocusManager without current focus" }
+            return focusManager?.moveFocus(focusDirection) == true
+        }
+        val focusDirectionCheck: (FocusTarget) -> Boolean = when (focusDirection) {
+            FocusDirection.Left -> {{ it.coordinates.right <= currentFocus.coordinates.left }}
+            FocusDirection.Right -> {{ it.coordinates.left >= currentFocus.coordinates.right }}
+            FocusDirection.Up -> {{ it.coordinates.bottom <= currentFocus.coordinates.top }}
+            FocusDirection.Down -> {{ it.coordinates.top >= currentFocus.coordinates.bottom }}
+            // Unsupported directions, unclear what to do; fallback to focus manager
+            else -> {
+                return focusManager?.moveFocus(focusDirection) == true
+            }
+        }
+        val filteredTargets = focusableTargets.values.filter {
+            if (it.parent?.uuid != parentId || it.id == currentFocus.id) {
+                return@filter false
+            }
+            focusDirectionCheck(it)
+        }
+        return filteredTargets.minByOrNull {
+            distanceToRect(it.coordinates, currentFocus.coordinates.center)
+        }?.focusRequester?.requestFocus() ?: false
     }
 
-    private fun focusClosestTo(position: Offset, onlySearchable: Boolean = false): Boolean {
-        val filtered = if (onlySearchable) {
-            focusableTargets.values.filter { it.searchable }
-        } else {
+    private fun focusClosestTo(
+        position: Offset,
+        parentId: UUID? = null,
+        role: FocusRole? = null,
+    ): Boolean {
+        val filtered = if (parentId == null && role == null) {
             focusableTargets.values
+        } else {
+            focusableTargets.values.filter {
+                (role == null || it.role == role) &&
+                        (parentId == null || it.parent?.uuid == parentId)
+            }
         }
         return filtered.minByOrNull {
             distanceToRect(it.coordinates, position)
@@ -149,7 +184,7 @@ class KeyboardActionHandler(
 
     fun onPreviewKeyEvent(event: KeyEvent): Boolean {
         return when (val mode = mode.value) {
-            is KeyboardActionMode.Navigation -> handleNavigationEvent(event, mode)
+            is KeyboardActionMode.Navigation -> handleNavigationEvent(event)
             is KeyboardActionMode.Search -> handleSearchEvent(event, mode)
         }
     }
@@ -173,11 +208,11 @@ class KeyboardActionHandler(
             }
             Key.Enter -> {
                 if (mode.navigating) {
-                    handleNavigationEvent(event, mode)
+                    handleNavigationEvent(event)
                 } else {
                     updateMode { mode.copy(navigating = true) }
                     windowCoordinates?.let {
-                        focusClosestTo(it.topCenter, onlySearchable = true)
+                        focusClosestTo(it.topCenter, role = FocusRole.SEARCHABLE_ITEM)
                     }
                     true
                 }
@@ -186,7 +221,7 @@ class KeyboardActionHandler(
             Key.DirectionDown -> false // TODO cycle search history
             else -> {
                 if (mode.navigating) {
-                    handleNavigationEvent(event, mode)
+                    handleNavigationEvent(event)
                 } else {
                     false
                 }
@@ -194,16 +229,32 @@ class KeyboardActionHandler(
         }
     }
 
-    private fun handleNavigationEvent(event: KeyEvent, mode: KeyboardActionMode): Boolean {
-        // TODO disallow focusing non-search results while in search mode or sth... how to do with focus direction?
+    private fun focusSearchResults(parentId: UUID?) {
+        focusClosestTo(Offset.Zero, role = FocusRole.SEARCHABLE_ITEM, parentId = parentId)
+    }
+
+    private fun focusCurrentContainerRelative(select: (Rect) -> Offset): Boolean {
+        return windowCoordinates?.let { coordinates ->
+            val parent = currentFocused()?.parent
+            focusClosestTo(select(coordinates), parentId = parent?.uuid)
+        } ?: false
+    }
+
+    private fun focusParent(): Boolean {
+        val parent = currentFocused()?.parent ?: return false
+        _currentFocus.value = parent.uuid
+        return true
+    }
+
+    private fun handleNavigationEvent(event: KeyEvent): Boolean {
         if (event.type == KeyDown) {
             // TODO make this configurable
             return if (event.isShiftPressed) {
                 when (event.key) {
-                    // Relative focus - TODO should maintain X offset rather than assuming center
-                    Key.H -> windowCoordinates?.let { focusClosestTo(it.topCenter) } ?: false
-                    Key.M -> windowCoordinates?.let { focusClosestTo(it.center) } ?: false
-                    Key.L -> windowCoordinates?.let { focusClosestTo(it.bottomCenter) } ?: false
+                    // Relative focus - TODO should maintain X offset rather than assuming center?
+                    Key.H -> focusCurrentContainerRelative { it.topCenter }
+                    Key.M -> focusCurrentContainerRelative { it.center }
+                    Key.L -> focusCurrentContainerRelative { it.bottomCenter }
                     // Some navigation
                     Key.I -> navigateCurrentDestination(Destination.Inbox)
                     Key.A -> navigateCurrentDestination(Destination.AccountManagement)
@@ -233,8 +284,16 @@ class KeyboardActionHandler(
                     Key.E -> moveFocus(FocusDirection.Up)
                     Key.N -> moveFocus(FocusDirection.Down)
                     Key.I -> moveFocus(FocusDirection.Right)
-                    // Primary action (usually same as mouse click)
-                    Key.Enter -> currentFocused()?.actions?.primaryAction?.let(::executeAction) ?: false
+                    // Primary action (usually same as mouse click) + container navigation
+                    Key.Enter -> {
+                        val current = currentFocused()
+                        if (current?.role == FocusRole.CONTAINER) {
+                            focusClosestTo(Offset.Zero, parentId = current.id)
+                        } else {
+                            current?.actions?.primaryAction?.let(::executeAction) ?: false
+                        }
+                    }
+                    Key.Escape -> focusParent()
                     // Mode switching
                     Key.Slash -> handleSearchUpdate("", navigating = false) {
                         // TODO search -> search-nav -> search inserts a slash into search field by accident
@@ -283,20 +342,21 @@ class KeyboardActionHandler(
 
     fun registerFocusTarget(
         target: UUID,
+        parent: FocusParent?,
         coordinates: LayoutCoordinates,
         focusRequester: FocusRequester,
         destinationStateHolder: DestinationStateHolder?,
         actions: ActionProvider?,
-        searchable: Boolean = false,
-        role: FocusRole = FocusRole.ITEM,
+        role: FocusRole = FocusRole.SEARCHABLE_ITEM,
     ) {
         focusableTargets[target] = FocusTarget(
+            target,
+            parent,
             role,
             coordinates.boundsInWindow(),
             focusRequester,
             destinationStateHolder,
             actions,
-            searchable,
         )
     }
 
@@ -321,9 +381,7 @@ class KeyboardActionHandler(
     fun onSearchEnter(query: String? = null) {
         handleSearchUpdate(query, navigating = true) {
             it.searchProvider.onSearchEnter(it.query)
-        }
-        windowCoordinates?.let {
-            focusClosestTo(it.topCenter, onlySearchable = true)
+            focusSearchResults(it.searchFocusContainer)
         }
     }
 
@@ -334,30 +392,28 @@ class KeyboardActionHandler(
     ): Boolean {
         var success: KeyboardActionMode.Search? = null
         updateMode { mode ->
-            (mode as? KeyboardActionMode.Search)?.let {
-                it.copy(query = query ?: it.query, navigating = navigating).also {
+            if (mode is KeyboardActionMode.Search) {
+                mode.copy(query = query ?: mode.query, navigating = navigating).also {
                     success = it
                 }
-            } ?: currentFocused()?.let { it.actions?.searchProvider }?.let {
-                KeyboardActionMode.Search(
-                    query = query ?: "",
-                    searchProvider = it,
-                    navigating = navigating,
-                ).also {
-                    success = it
+            } else {
+                val current = currentFocused() ?: focusableTargets.values.firstNotNullOfOrNull {
+                    it.takeIf { it.actions?.searchProvider != null }
                 }
-            } ?: focusableTargets.values.firstNotNullOfOrNull { it.actions?.searchProvider }?.let {
-                KeyboardActionMode.Search(
-                    query = query ?: "",
-                    searchProvider = it,
-                    navigating = navigating,
-                ).also {
-                    success = it
+                if (current?.actions?.searchProvider != null) {
+                    KeyboardActionMode.Search(
+                        query = query ?: "",
+                        searchProvider = current.actions.searchProvider,
+                        navigating = navigating,
+                        searchFocusContainer = current.parent?.uuid,
+                    ).also {
+                        success = it
+                    }
+                } else {
+                    success = null
+                    log.w { "Updates search but no search provider available" }
+                    mode
                 }
-            } ?: run {
-                success = null
-                log.w { "Updates search but no search provider available" }
-                mode
             }
         }
         success?.let(handleSuccess)

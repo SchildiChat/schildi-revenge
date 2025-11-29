@@ -33,10 +33,10 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
 - [ ] Initial config hooked in
     - [x] Accounts with username+homeserver (not: password and secrets)
     - [ ] Configurable key bindings
-- [ ] Initial account management UI
+- [x] Initial account management UI
     - [x] Login via password
     - [x] Enter recovery code
-    - [ ] Logout / delete account
+    - [x] Logout / delete account
 - [ ] Lock to avoid running multiple instances in parallel, but instead bring to foreground?
 - [ ] Inbox
     - [x] List all chats
@@ -79,8 +79,10 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [ ] Set favorite / low priority
 - [ ] Notifications
     - [ ] Allow muting individual accounts
+- [ ] App icon
 - [ ] Tray icon with unread count
 - [ ] Add release flavor that builds release variant of Rust SDK
+- [ ] Release builds ready to install on various OSes
 
 ### Possible advanced features
 
