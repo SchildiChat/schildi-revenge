@@ -34,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.AccountManagementData
 import chat.schildi.revenge.model.AccountManagementViewModel
 import kotlinx.coroutines.launch
@@ -50,6 +51,8 @@ import shire.composeapp.generated.resources.hint_recovery_key
 import shire.composeapp.generated.resources.hint_username
 import shire.composeapp.generated.resources.manage_accounts
 import shire.composeapp.generated.resources.title_login_account
+
+// TODO revise keyboard control
 
 @Composable
 fun AccountManagementScreen() {
@@ -86,7 +89,12 @@ private fun SectionHeader(text: String) {
 @Composable
 private fun ExistingLogin(account: AccountManagementData, viewModel: AccountManagementViewModel) {
     val scope = rememberCoroutineScope()
-    Column(Modifier.fillMaxWidth().padding(horizontal = Dimens.windowPadding)) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .keyFocusable()
+            .padding(horizontal = Dimens.windowPadding)
+    ) {
         Row(
             horizontalArrangement = Dimens.horizontalArrangement,
             verticalAlignment = Alignment.CenterVertically,
@@ -170,7 +178,10 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
     val homeserver = rememberTextFieldState()
     val password = rememberTextFieldState()
     Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = Dimens.windowPadding),
+        modifier = Modifier
+            .fillMaxWidth()
+            .keyFocusable()
+            .padding(horizontal = Dimens.windowPadding),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         error.value?.let {

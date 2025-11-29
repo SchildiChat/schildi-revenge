@@ -18,6 +18,7 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInWindow
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.UiState
+import chat.schildi.revenge.navigation.Destination
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -88,12 +89,22 @@ class KeyboardNavigationHandler(
                         true
                     }
                     is InteractionAction.NavigateCurrent -> {
-                        (destinationStateHolder ?: currentFocused()?.destinationStateHolder)
-                            ?.navigate(destination) != null
+                        navigateCurrentDestination(destination, destinationStateHolder)
                     }
                 }
             }
         }
+    }
+
+    private fun navigateCurrentDestination(
+        destination: Destination,
+        destinationStateHolder: DestinationStateHolder? = null,
+    ): Boolean {
+        return (
+                destinationStateHolder
+                    ?: currentFocused()?.destinationStateHolder ?:
+                    focusableTargets.values.firstNotNullOfOrNull { it.destinationStateHolder }
+        )?.navigate(destination) != null
     }
 
     fun onPreviewKeyEvent(event: KeyEvent): Boolean {
@@ -107,6 +118,9 @@ class KeyboardNavigationHandler(
                     Key.H -> windowCoordinates?.let { focusClosestTo(it.topCenter) } ?: false
                     Key.M -> windowCoordinates?.let { focusClosestTo(it.center) } ?: false
                     Key.L -> windowCoordinates?.let { focusClosestTo(it.bottomCenter) } ?: false
+                    // Some navigation
+                    Key.I -> navigateCurrentDestination(Destination.Inbox)
+                    Key.A -> navigateCurrentDestination(Destination.AccountManagement)
                     // Tertiary action (usually same as mouse middle click)
                     Key.Enter -> currentFocused()?.actions?.tertiaryAction?.let(::executeAction) ?: false
                     else -> false

@@ -2,6 +2,7 @@ package chat.schildi.revenge.compose.destination
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -12,6 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
+import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.revenge.compose.media.onAsyncImageError
 import chat.schildi.revenge.model.ChatViewModel
@@ -58,7 +60,7 @@ fun ChatScreen(destination: Destination.Chat) {
 
     LazyColumn(Modifier.fillMaxSize(), reverseLayout = true, state = listState) {
         items(timelineItems) { item ->
-            Column {
+            Column(Modifier.fillMaxWidth().keyFocusable()) {
                 when (item) {
                     is MatrixTimelineItem.Virtual -> {
                         // TODO
