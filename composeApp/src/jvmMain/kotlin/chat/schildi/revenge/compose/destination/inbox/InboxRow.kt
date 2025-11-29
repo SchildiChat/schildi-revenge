@@ -2,6 +2,7 @@ package chat.schildi.revenge.compose.destination.inbox
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -49,6 +50,7 @@ fun InboxRow(
             modifier = modifier
                 .fillMaxWidth()
                 .heightIn(min = Dimens.Inbox.avatar + Dimens.listPadding * 2)
+                .focusable()
                 .padding(
                     horizontal = Dimens.windowPadding,
                     vertical = Dimens.listPadding,
