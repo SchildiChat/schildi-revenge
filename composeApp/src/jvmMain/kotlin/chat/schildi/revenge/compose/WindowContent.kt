@@ -8,6 +8,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import chat.schildi.revenge.compose.focus.keyContainer
 import chat.schildi.revenge.navigation.Destination
 import chat.schildi.theme.ScTheme
 
@@ -18,7 +19,8 @@ fun WindowContent(destination: Destination) {
             modifier = Modifier
                 .background(MaterialTheme.colorScheme.surface)
                 .safeContentPadding()
-                .fillMaxSize(),
+                .fillMaxSize()
+                .keyContainer(),
             contentAlignment = Alignment.Center,
         ) {
             DestinationContent(destination)

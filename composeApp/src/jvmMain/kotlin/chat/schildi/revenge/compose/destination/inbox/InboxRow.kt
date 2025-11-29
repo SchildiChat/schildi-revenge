@@ -2,7 +2,6 @@ package chat.schildi.revenge.compose.destination.inbox
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +33,7 @@ import chat.schildi.lib.util.formatUnreadCount
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.ComposeSessionScope
+import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.model.ScopedRoomSummary
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.media.MediaSource
@@ -50,7 +50,7 @@ fun InboxRow(
             modifier = modifier
                 .fillMaxWidth()
                 .heightIn(min = Dimens.Inbox.avatar + Dimens.listPadding * 2)
-                .focusable()
+                .keyFocusable()
                 .padding(
                     horizontal = Dimens.windowPadding,
                     vertical = Dimens.listPadding,
