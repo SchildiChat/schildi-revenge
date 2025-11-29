@@ -12,18 +12,22 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.model.InboxViewModel
 
 @Composable
 fun InboxScreen() {
-    val viewModel: InboxViewModel = viewModel()
+    val viewModel: InboxViewModel = viewModel(key = LocalDestinationState.current?.id.toString())
     CompositionLocalProvider(
         LocalSearchProvider provides viewModel,
     ) {
         val states = viewModel.allStates.collectAsState().value
         val rooms = viewModel.rooms.collectAsState().value
         LazyColumn(Modifier.widthIn(max = Dimens.Inbox.maxWidth).fillMaxSize()) {
+            item {
+                Text(System.identityHashCode(viewModel).toString())
+            }
             states?.let {
                 items(states) { state ->
                     Text(

@@ -5,12 +5,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import chat.schildi.revenge.compose.util.ComposableStringHolder
-import chat.schildi.revenge.Destination
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import java.util.UUID
 
 class DestinationStateHolder(
+    val id: UUID,
     val state: MutableStateFlow<DestinationState>,
 ) {
     fun navigate(destination: Destination) {
@@ -23,6 +24,7 @@ class DestinationStateHolder(
             initialTitle: ComposableStringHolder? = null,
         ): DestinationStateHolder {
             return DestinationStateHolder(
+                UUID.randomUUID(),
                 MutableStateFlow(
                     DestinationState(
                         destination,
