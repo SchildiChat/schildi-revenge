@@ -12,6 +12,8 @@ object Dimens {
     val horizontalArrangement = Arrangement.spacedBy(horizontalItemPadding)
     val verticalArrangement = Arrangement.spacedBy(listPadding)
 
+    val avatarShape = RoundedCornerShape(12.dp)
+
     object Inbox {
         val avatar = 48.dp
         val smallIcon = 16.dp
