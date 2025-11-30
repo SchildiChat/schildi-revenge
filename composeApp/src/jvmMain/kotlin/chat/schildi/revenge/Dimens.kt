@@ -23,13 +23,20 @@ object Dimens {
         val avatarItemPadding = 16.dp
         val virtualItemPadding = 8.dp
         val otherSidePadding = 80.dp
-        val messageBubbleShape = RoundedCornerShape(6.dp)
+        val messageBubbleCornerRadius = 10.dp
+        val messageBubbleShape = RoundedCornerShape(messageBubbleCornerRadius)
+        val replyContentShape = RoundedCornerShape(6.dp)
+        val replyItemPadding = 8.dp
+        val messageBubbleInnerPadding = 8.dp
+        val imageBubbleInnerPadding = 2.dp
+        val messageSameSenderPadding = 4.dp
+        val messageOtherSenderPadding = 8.dp
+        val captionPadding = 8.dp
+
         val imageMinWidth = 48.dp
         val imageMinHeight = 48.dp
         val imageMaxWidth = 500.dp
         val imageMaxHeight = 500.dp
-        val messageBubbleInnerPadding = 8.dp
-        val messageSameSenderPadding = 4.dp
-        val messageOtherSenderPadding = 8.dp
+        val imageRepliedToMaxHeight = 200.dp
     }
 }

@@ -16,4 +16,6 @@
     <string name="action_hide">Hide</string>
     <string name="action_show">Show</string>
     <string name="action_logout">Logout</string>
+
+    <string name="reply_failed_to_load">Failed to load replied-to message</string>
 </resources>

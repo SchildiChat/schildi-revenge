@@ -25,6 +25,36 @@ fun MessageLayout(
     messageContent: @Composable () -> Unit,
     reactions: @Composable () -> Unit,
 ) {
+    when (LocalMessageRenderContext.current) {
+        MessageRenderContext.NORMAL -> {
+            MessageLayoutNormal(
+                isOwn = isOwn,
+                modifier = modifier,
+                senderAvatar = senderAvatar,
+                senderName = senderName,
+                messageContent = messageContent,
+                reactions = reactions,
+            )
+        }
+        MessageRenderContext.IN_REPLY_TO -> {
+            MessageLayoutInReplyTo(
+                senderName = senderName,
+                messageContent = messageContent,
+                modifier = modifier,
+            )
+        }
+    }
+}
+
+@Composable
+fun MessageLayoutNormal(
+    isOwn: Boolean,
+    modifier: Modifier = Modifier,
+    senderAvatar: @Composable () -> Unit,
+    senderName: @Composable () -> Unit,
+    messageContent: @Composable () -> Unit,
+    reactions: @Composable () -> Unit,
+) {
     val mainLayoutDirection = LocalLayoutDirection.current
     val thisLayoutDirection = if (isOwn) {
         if (mainLayoutDirection == LayoutDirection.Ltr)
@@ -80,7 +110,30 @@ fun MessageLayout(
 }
 
 @Composable
-fun BoxWithDirection(
+fun MessageLayoutInReplyTo(
+    senderName: @Composable () -> Unit,
+    messageContent: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier) {
+        Box(
+            Modifier
+                .padding(
+                    start = Dimens.Conversation.messageBubbleInnerPadding,
+                    end = Dimens.Conversation.messageBubbleInnerPadding,
+                    top = Dimens.Conversation.messageBubbleInnerPadding,
+                )
+        ) {
+            senderName()
+        }
+        Box {
+            messageContent()
+        }
+    }
+}
+
+@Composable
+private fun BoxWithDirection(
     direction: LayoutDirection,
     modifier: Modifier = Modifier,
     content: @Composable BoxScope.() -> Unit,

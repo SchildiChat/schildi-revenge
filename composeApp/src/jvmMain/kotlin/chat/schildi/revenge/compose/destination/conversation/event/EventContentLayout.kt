@@ -5,23 +5,29 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import chat.schildi.revenge.compose.destination.conversation.event.message.MessageLayout
 import chat.schildi.revenge.compose.destination.conversation.event.message.ImageMessage
+import chat.schildi.revenge.compose.destination.conversation.event.message.LocalMessageRenderContext
+import chat.schildi.revenge.compose.destination.conversation.event.message.MessageRenderContext
 import chat.schildi.revenge.compose.destination.conversation.event.message.TextLikeMessage
 import chat.schildi.revenge.compose.destination.conversation.event.sender.SenderAvatar
 import chat.schildi.revenge.compose.destination.conversation.event.sender.SenderName
-import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
+import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.timeline.item.event.AudioMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.CallNotifyContent
 import io.element.android.libraries.matrix.api.timeline.item.event.EmoteMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.EventContent
+import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.FailedToParseMessageLikeContent
 import io.element.android.libraries.matrix.api.timeline.item.event.FailedToParseStateContent
 import io.element.android.libraries.matrix.api.timeline.item.event.FileMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.ImageMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 import io.element.android.libraries.matrix.api.timeline.item.event.LegacyCallInviteContent
 import io.element.android.libraries.matrix.api.timeline.item.event.LocationMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.event.OtherMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.PollContent
 import io.element.android.libraries.matrix.api.timeline.item.event.ProfileChangeContent
+import io.element.android.libraries.matrix.api.timeline.item.event.ProfileTimelineDetails
 import io.element.android.libraries.matrix.api.timeline.item.event.RedactedContent
 import io.element.android.libraries.matrix.api.timeline.item.event.RoomMembershipContent
 import io.element.android.libraries.matrix.api.timeline.item.event.StateContent
@@ -34,28 +40,50 @@ import io.element.android.libraries.matrix.api.timeline.item.event.VideoMessageT
 import io.element.android.libraries.matrix.api.timeline.item.event.VoiceMessageType
 
 @Composable
-fun EventRow(item: MatrixTimelineItem.Event, modifier: Modifier = Modifier) {
+fun EventContentLayout(
+    event: EventTimelineItem,
+    modifier: Modifier = Modifier
+) {
+    EventContentLayout(
+        content = event.content,
+        senderId = event.sender,
+        senderProfile = event.senderProfile,
+        isOwn = event.isOwn,
+        inReplyTo = event.inReplyTo(),
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun EventContentLayout(
+    content: EventContent,
+    senderId: UserId,
+    senderProfile: ProfileTimelineDetails,
+    isOwn: Boolean,
+    inReplyTo: InReplyTo?,
+    modifier: Modifier = Modifier
+) {
     // TODO make sure every item also renders timestamps in some form
-    when (val content = item.event.content) {
+    when (val content = content) {
         is MessageContent -> {
             MessageLayout(
                 modifier = modifier,
-                isOwn = item.event.isOwn,
+                isOwn = isOwn,
                 senderAvatar = {
                     // TODO only if first message by sender
-                    SenderAvatar(item.event.senderProfile)
+                    SenderAvatar(senderProfile)
                 },
                 senderName = {
                     // TODO only if first message by sender
-                    SenderName(item.event.sender, item.event.senderProfile)
+                    SenderName(senderId, senderProfile)
                 },
                 messageContent = {
                     when (val contentType = content.type) {
                         is TextLikeMessageType -> {
-                            TextLikeMessage(contentType, item.event.isOwn)
+                            TextLikeMessage(contentType, isOwn, inReplyTo)
                         }
                         is ImageMessageType -> {
-                            ImageMessage(contentType)
+                            ImageMessage(contentType, isOwn, inReplyTo)
                         }
                         is EmoteMessageType -> {
                             // TODO

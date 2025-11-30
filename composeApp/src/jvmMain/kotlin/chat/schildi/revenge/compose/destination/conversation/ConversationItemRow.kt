@@ -5,10 +5,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import chat.schildi.revenge.compose.destination.conversation.event.EventRow
+import chat.schildi.revenge.compose.destination.conversation.event.EventContentLayout
 import chat.schildi.revenge.compose.destination.conversation.virtual.NewMessagesLine
 import chat.schildi.revenge.compose.destination.conversation.virtual.PagingIndicator
-import chat.schildi.revenge.compose.focus.keyFocusable
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.virtual.VirtualTimelineItem
 
@@ -31,7 +30,7 @@ fun ConversationItemRow(item: MatrixTimelineItem, modifier: Modifier = Modifier)
             }
 
             is MatrixTimelineItem.Event -> {
-                EventRow(item)
+                EventContentLayout(item.event)
             }
 
             MatrixTimelineItem.Other -> {
