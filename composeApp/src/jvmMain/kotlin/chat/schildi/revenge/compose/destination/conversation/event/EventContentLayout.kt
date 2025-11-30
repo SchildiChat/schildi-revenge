@@ -42,6 +42,7 @@ fun EventContentLayout(
     senderId: UserId,
     senderProfile: ProfileTimelineDetails,
     isOwn: Boolean,
+    isSameAsPreviousSender: Boolean,
     inReplyTo: InReplyTo?,
     modifier: Modifier = Modifier
 ) {
@@ -52,12 +53,14 @@ fun EventContentLayout(
                 modifier = modifier,
                 isOwn = isOwn,
                 senderAvatar = {
-                    // TODO only if first message by sender
-                    SenderAvatar(senderProfile)
+                    if (!isSameAsPreviousSender) {
+                        SenderAvatar(senderProfile)
+                    }
                 },
                 senderName = {
-                    // TODO only if first message by sender
-                    SenderName(senderId, senderProfile)
+                    if (!isSameAsPreviousSender) {
+                        SenderName(senderId, senderProfile)
+                    }
                 },
                 messageContent = {
                     when (val contentType = content.type) {

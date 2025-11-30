@@ -66,13 +66,7 @@ fun MessageLayoutNormal(
         LocalLayoutDirection provides thisLayoutDirection,
     ) {
         Row(
-            modifier
-                .fillMaxWidth()
-                .padding(
-                    // TODO less padding to same sender
-                    top = Dimens.Conversation.virtualItemPadding,
-                    bottom = Dimens.Conversation.virtualItemPadding,
-                )
+            modifier.fillMaxWidth()
         ) {
             if (!isOwn) {
                 BoxWithDirection(

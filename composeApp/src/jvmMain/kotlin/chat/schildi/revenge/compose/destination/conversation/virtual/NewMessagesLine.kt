@@ -18,6 +18,7 @@ fun NewMessagesLine(modifier: Modifier = Modifier) {
         modifier.fillMaxWidth().height(Dimens.Conversation.newMessagesLineHeight)
             .padding(
                 vertical = Dimens.Conversation.virtualItemPadding,
+                horizontal = Dimens.windowPadding,
             )
             .background(
                 color = MaterialTheme.scExposures.colorOnAccent,

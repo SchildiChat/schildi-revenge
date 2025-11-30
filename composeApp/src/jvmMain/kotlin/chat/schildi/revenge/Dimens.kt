@@ -33,7 +33,7 @@ object Dimens {
         val messageBubbleInnerPadding = 8.dp
         val imageBubbleInnerPadding = 2.dp
         val messageSameSenderPadding = 4.dp
-        val messageOtherSenderPadding = 8.dp
+        val messageOtherSenderPadding = 12.dp
         val captionPadding = 8.dp
 
         val imageMinWidth = 48.dp
@@ -43,7 +43,8 @@ object Dimens {
         val imageRepliedToMaxHeight = 200.dp
 
         val reactionShape = RoundedCornerShape(16.dp)
-        val reactionPadding = 8.dp
+        val reactionPaddingHorizontal = 8.dp
+        val reactionPaddingVertical = 4.dp
         val reactionInnerPaddingHorizontal = 12.dp
         val reactionInnerPaddingVertical = 6.dp
         const val reactionMaxLength = 200

@@ -3,6 +3,7 @@ package chat.schildi.revenge.compose.destination.conversation
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -59,8 +60,16 @@ fun ChatScreen(destination: Destination.Conversation) {
     ) {
         // Double reverse helps with stick-to-bottom while paging backwards or receiving messages
         LazyColumn(Modifier.fillMaxSize(), reverseLayout = true, state = listState) {
-            items(timelineItems.reversed()) { item ->
-                ConversationItemRow(item)
+            val renderedItems = timelineItems.reversed()
+            itemsIndexed(renderedItems) { index, item ->
+                // Reversed list, let's not confuse us too much and still say "previous = older"
+                val next = renderedItems.getOrNull(index-1)
+                val previous = renderedItems.getOrNull(index+1)
+                ConversationItemRow(
+                    item = item,
+                    next = next,
+                    previous = previous,
+                )
             }
         }
     }

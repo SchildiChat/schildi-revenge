@@ -23,7 +23,7 @@ fun ColumnScope.ReactionsRow(
     FlowRow(
         modifier = modifier
             .padding(
-                bottom = Dimens.Conversation.reactionPadding,
+                top = Dimens.Conversation.reactionPaddingVertical,
                 start = if (messageIsOwn)
                     Dimens.Conversation.otherSidePadding
                 else
@@ -34,9 +34,9 @@ fun ColumnScope.ReactionsRow(
                     Dimens.Conversation.otherSidePadding,
             )
             .align(alignment),
-        verticalArrangement = Arrangement.spacedBy(Dimens.Conversation.reactionPadding),
+        verticalArrangement = Arrangement.spacedBy(Dimens.Conversation.reactionPaddingVertical),
         horizontalArrangement = Arrangement.spacedBy(
-            Dimens.Conversation.reactionPadding,
+            Dimens.Conversation.reactionPaddingHorizontal,
             alignment,
         ),
     ) {

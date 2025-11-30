@@ -54,6 +54,7 @@ fun ReplyContent(
                         senderProfile = inReplyTo.senderProfile,
                         inReplyTo = null, // No recursive reply lookups please
                         isOwn = inReplyTo.senderId.value == LocalSessionId.current?.value,
+                        isSameAsPreviousSender = false,
                     )
                 }
             }
