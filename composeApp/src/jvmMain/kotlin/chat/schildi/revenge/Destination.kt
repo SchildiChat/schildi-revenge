@@ -28,7 +28,7 @@ sealed interface Destination {
         override val title = StringResourceHolder(Res.string.app_title)
     }
 
-    data class Chat(
+    data class Conversation(
         override val sessionId: SessionId,
         val roomId: RoomId,
     ) : WithSession {

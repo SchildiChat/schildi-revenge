@@ -21,10 +21,11 @@ private const val AVATAR_THUMBNAIL_SIZE = 512L
 fun AvatarImage(
     source: MediaSource?,
     size: Dp,
-    sessionId: SessionId? = LocalSessionId.current
+    sessionId: SessionId? = LocalSessionId.current,
+    modifier: Modifier = Modifier,
 ) {
     if (source == null) {
-        AvatarFallback(Modifier.size(size))
+        AvatarFallback(modifier.size(size))
         return
     }
     SubcomposeAsyncImage(
@@ -32,7 +33,7 @@ fun AvatarImage(
         contentDescription = null,
         imageLoader = imageLoader(sessionId),
         onError = ::onAsyncImageError,
-        modifier = Modifier.size(size),
+        modifier = modifier.size(size),
         loading = {
             AvatarFallback(Modifier.size(size))
         },

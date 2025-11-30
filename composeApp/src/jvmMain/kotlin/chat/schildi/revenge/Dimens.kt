@@ -1,6 +1,7 @@
 package chat.schildi.revenge
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.unit.dp
 
 object Dimens {
@@ -15,5 +16,20 @@ object Dimens {
         val avatar = 48.dp
         val smallIcon = 16.dp
         val maxWidth = 1024.dp
+    }
+
+    object Conversation {
+        val avatar = 48.dp
+        val avatarItemPadding = 16.dp
+        val virtualItemPadding = 8.dp
+        val otherSidePadding = 80.dp
+        val messageBubbleShape = RoundedCornerShape(6.dp)
+        val imageMinWidth = 48.dp
+        val imageMinHeight = 48.dp
+        val imageMaxWidth = 500.dp
+        val imageMaxHeight = 500.dp
+        val messageBubbleInnerPadding = 8.dp
+        val messageSameSenderPadding = 4.dp
+        val messageOtherSenderPadding = 8.dp
     }
 }

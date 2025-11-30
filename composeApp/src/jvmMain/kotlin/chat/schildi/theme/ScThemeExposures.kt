@@ -10,9 +10,10 @@ import androidx.compose.ui.unit.Dp
 @Stable
 class ScThemeExposures(
     horizontalDividerThickness: Dp,
+    accentColor: Color,
     colorOnAccent: Color,
-    bubbleBgIncoming: Color?,
-    bubbleBgOutgoing: Color?,
+    bubbleBgIncoming: Color,
+    bubbleBgOutgoing: Color,
     mentionBadgeColor: Color,
     notificationBadgeColor: Color,
     unreadBadgeColor: Color,
@@ -35,6 +36,8 @@ class ScThemeExposures(
     spaceBarBg: Color?,
 ) {
     var horizontalDividerThickness by mutableStateOf(horizontalDividerThickness)
+        private set
+    var accentColor by mutableStateOf(accentColor)
         private set
     var colorOnAccent by mutableStateOf(colorOnAccent)
         private set
@@ -85,9 +88,10 @@ class ScThemeExposures(
 
     fun copy(
         horizontalDividerThickness: Dp = this.horizontalDividerThickness,
+        accentColor: Color = this.accentColor,
         colorOnAccent: Color = this.colorOnAccent,
-        bubbleBgIncoming: Color? = this.bubbleBgIncoming,
-        bubbleBgOutgoing: Color? = this.bubbleBgOutgoing,
+        bubbleBgIncoming: Color = this.bubbleBgIncoming,
+        bubbleBgOutgoing: Color = this.bubbleBgOutgoing,
         mentionBadgeColor: Color = this.mentionBadgeColor,
         notificationBadgeColor: Color = this.notificationBadgeColor,
         unreadBadgeColor: Color = this.unreadBadgeColor,
@@ -110,6 +114,7 @@ class ScThemeExposures(
         spaceBarBg: Color? = this.spaceBarBg,
     ) = ScThemeExposures(
         horizontalDividerThickness = horizontalDividerThickness,
+        accentColor = accentColor,
         colorOnAccent = colorOnAccent,
         bubbleBgIncoming = bubbleBgIncoming,
         bubbleBgOutgoing = bubbleBgOutgoing,
@@ -137,6 +142,7 @@ class ScThemeExposures(
 
     fun updateColorsFrom(other: ScThemeExposures) {
         horizontalDividerThickness = other.horizontalDividerThickness
+        accentColor = other.accentColor
         colorOnAccent = other.colorOnAccent
         bubbleBgIncoming = other.bubbleBgIncoming
         bubbleBgOutgoing = other.bubbleBgOutgoing

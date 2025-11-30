@@ -30,7 +30,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class ChatViewModel(
+class ConversationViewModel(
     private val sessionId: SessionId,
     private val roomId: RoomId,
     private val appGraph: AppGraph = UiState.appGraph,
@@ -87,7 +87,7 @@ class ChatViewModel(
     }.filterNotNull()
 
     override fun verifyDestination(destination: Destination): Boolean {
-        return destination is Destination.Chat && destination.sessionId == sessionId && destination.roomId == roomId
+        return destination is Destination.Conversation && destination.sessionId == sessionId && destination.roomId == roomId
     }
 
     fun paginateForward() {
@@ -114,7 +114,7 @@ class ChatViewModel(
             roomId: RoomId,
         ) = viewModelFactory {
             initializer {
-                ChatViewModel(sessionId, roomId)
+                ConversationViewModel(sessionId, roomId)
             }
         }
     }

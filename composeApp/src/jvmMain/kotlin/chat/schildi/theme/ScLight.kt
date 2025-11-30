@@ -56,6 +56,7 @@ internal val sclMaterialColorScheme = lightColorScheme(
 
 internal val sclExposures = ScThemeExposures(
     horizontalDividerThickness = DividerDefaults.Thickness,
+    accentColor = scl_accent,
     colorOnAccent = ScColors.colorWhite,
     bubbleBgIncoming = ScColors.colorWhite_ee,
     bubbleBgOutgoing = scl_accent.fakeAlpha(0.12f),

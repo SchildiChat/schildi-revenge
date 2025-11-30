@@ -46,19 +46,24 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [ ] Filter by spaces
     - [ ] Filter by account
     - [x] Search
+    - [ ] Handle invites
 - [ ] Conversation view
     - [x] View event source
-    - [ ] Render text and notices
-    - [ ] Send messages
+    - [x] Render plain text and notices
+    - [ ] Render formatted text and notices
+    - [ ] Send text messages
     - [ ] Render read receipts
     - [ ] Render media
     - [ ] Render reactions
     - [ ] Render joins/leaves
     - [ ] Render link previews
-    - [ ] Mechanism to select messages (for replis, edits, reactions...)
+    - [ ] Render typing indicators
+    - [ ] Mechanism to select messages (for replies, edits, reactions...)
     - [ ] Send replies
     - [ ] Send reactions (just text input is enough for first run, OS may have emoji picker)
     - [ ] Send mentions
+    - [ ] Send attachments
+    - [ ] Send typing indicators
     - [ ] Delete messages
     - [ ] Mark as read, mark as unread (via keyboard shortcut)
     - [ ] Kick/ban users
@@ -77,10 +82,14 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [ ] Set room notification settings
     - [ ] Copy room ID, room link
     - [ ] Set favorite / low priority
+- [ ] Account management screen polish
 - [ ] Notifications
     - [ ] Allow muting individual accounts
 - [ ] App icon
 - [ ] Tray icon with unread count
+- [ ] Mouse-user-friendly mode
+  - [ ] All screens accessible via mouse
+  - [ ] All features accessible via mouse (e.g. search)
 - [ ] Add release flavor that builds release variant of Rust SDK
 - [ ] Release builds ready to install on various OSes
 

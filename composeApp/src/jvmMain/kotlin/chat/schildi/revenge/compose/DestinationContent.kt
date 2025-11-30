@@ -9,7 +9,7 @@ import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.compose.components.ComposeSessionScope
 import chat.schildi.revenge.compose.destination.AccountManagementScreen
-import chat.schildi.revenge.compose.destination.ChatScreen
+import chat.schildi.revenge.compose.destination.conversation.ChatScreen
 import chat.schildi.revenge.compose.destination.inbox.InboxScreen
 import chat.schildi.revenge.compose.destination.SplashScreen
 import chat.schildi.revenge.compose.destination.SplitHorizontal
@@ -32,7 +32,7 @@ fun DestinationContent(destinationHolder: DestinationStateHolder, modifier: Modi
                         is Destination.AccountManagement -> AccountManagementScreen()
                         is Destination.Inbox -> InboxScreen()
                         is Destination.Splash -> SplashScreen()
-                        is Destination.Chat -> ChatScreen(destination)
+                        is Destination.Conversation -> ChatScreen(destination)
                         is Destination.SplitHorizontal -> SplitHorizontal(destination)
                         is Destination.SplitVertical -> SplitVertical(destination)
                     }

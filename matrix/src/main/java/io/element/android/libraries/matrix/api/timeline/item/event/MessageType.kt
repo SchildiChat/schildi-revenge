@@ -20,6 +20,12 @@ import io.element.android.libraries.matrix.api.media.VideoInfo
 sealed interface MessageType
 
 @Immutable
+sealed interface TextLikeMessageType : MessageType { // SC
+    val body: String
+    val formatted: FormattedBody?
+}
+
+@Immutable
 sealed interface MessageTypeWithAttachment : MessageType {
     val filename: String
     val caption: String?
@@ -91,14 +97,14 @@ data class FileMessageType(
 ) : MessageTypeWithAttachment
 
 data class NoticeMessageType(
-    val body: String,
-    val formatted: FormattedBody?
-) : MessageType
+    override val body: String,
+    override val formatted: FormattedBody?
+) : TextLikeMessageType
 
 data class TextMessageType(
-    val body: String,
-    val formatted: FormattedBody?
-) : MessageType
+    override val body: String,
+    override val formatted: FormattedBody?
+) : TextLikeMessageType
 
 data class OtherMessageType(
     val msgType: String,

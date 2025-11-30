@@ -59,7 +59,7 @@ fun InboxRow(
                     buildNavigationActionProvider(
                         initialTitle = room.summary.info.name?.toStringHolder()
                     ) {
-                        Destination.Chat(room.sessionId, room.summary.roomId)
+                        Destination.Conversation(room.sessionId, room.summary.roomId)
                     },
                 )
                 .padding(
