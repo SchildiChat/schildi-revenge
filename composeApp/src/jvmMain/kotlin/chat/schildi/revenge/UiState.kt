@@ -60,7 +60,12 @@ object UiState {
         log.i("${sessions.size} sessions restored")
 
         if (!hasClearedSplashScreen) {
-            clearSplashScreen()
+            val destination = if (sessions.isEmpty()) {
+                Destination.AccountManagement
+            } else {
+                Destination.Inbox
+            }
+            clearSplashScreen(destination)
             hasClearedSplashScreen = true
         }
         sessions.associateBy { it.sessionId }.toPersistentHashMap()
@@ -79,7 +84,7 @@ object UiState {
         it[sessionId]
     }.stateIn(scope, SharingStarted.Eagerly, null)
 
-    private fun clearSplashScreen() {
+    private fun clearSplashScreen(destination: Destination) {
         _windows.update { windows ->
             windows.mapNotNull { window ->
                 if (window.destinationHolder.state.value.destination is Destination.Splash) {
@@ -88,7 +93,7 @@ object UiState {
                         null
                     } else {
                         window.also {
-                            it.destinationHolder.navigate(Destination.Inbox)
+                            it.destinationHolder.navigate(destination)
                         }
                     }
                 } else {
