@@ -23,6 +23,7 @@ object Dimens {
     object Conversation {
         val avatar = 48.dp
         val avatarItemPadding = 16.dp
+        val avatarReservation = avatar + avatarItemPadding
         val virtualItemPadding = 8.dp
         val otherSidePadding = 80.dp
         val messageBubbleCornerRadius = 10.dp
@@ -40,5 +41,13 @@ object Dimens {
         val imageMaxWidth = 500.dp
         val imageMaxHeight = 500.dp
         val imageRepliedToMaxHeight = 200.dp
+
+        val reactionShape = RoundedCornerShape(16.dp)
+        val reactionPadding = 8.dp
+        val reactionInnerPaddingHorizontal = 12.dp
+        val reactionInnerPaddingVertical = 6.dp
+        const val reactionMaxLength = 200
+
+        val newMessagesLineHeight = 4.dp
     }
 }

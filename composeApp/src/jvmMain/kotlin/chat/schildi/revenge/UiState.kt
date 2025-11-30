@@ -49,6 +49,9 @@ object UiState {
         }
     }
 
+    private val _showHiddenItems = MutableStateFlow(false)
+    val showHiddenItems = _showHiddenItems.asStateFlow()
+
     val matrixClients = appGraph.sessionStore.sessionsFlow().map {
         val persistedSessions = appGraph.sessionStore.getAllSessions()
         val startTs = System.currentTimeMillis()
@@ -139,5 +142,9 @@ object UiState {
             // TODO close to tray if we can
             scope.exitApplication()
         }
+    }
+
+    fun setShowHiddenItems(enabled: Boolean) {
+        _showHiddenItems.value = enabled
     }
 }

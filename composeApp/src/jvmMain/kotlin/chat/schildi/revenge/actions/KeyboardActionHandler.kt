@@ -344,6 +344,11 @@ class KeyboardActionHandler(
                     Key.Enter -> currentFocused()?.actions?.tertiaryAction?.let(::executeAction) ?: false
                     // List-specific navigation
                     Key.G -> scrollListToBottom()
+                    // Other
+                    Key.D -> {
+                        UiState.setShowHiddenItems(!UiState.showHiddenItems.value)
+                        true
+                    }
                     else -> false
                 }
             } else if (event.isCtrlPressed) {

@@ -13,8 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import chat.schildi.revenge.Dimens
-import chat.schildi.revenge.actions.FocusRole
-import chat.schildi.revenge.compose.focus.keyFocusable
 
 @Composable
 fun MessageLayout(
@@ -70,10 +68,7 @@ fun MessageLayoutNormal(
         Row(
             modifier
                 .fillMaxWidth()
-                .keyFocusable(FocusRole.SEARCHABLE_ITEM)
                 .padding(
-                    start = Dimens.listPadding,
-                    end = Dimens.listPadding,
                     // TODO less padding to same sender
                     top = Dimens.Conversation.virtualItemPadding,
                     bottom = Dimens.Conversation.virtualItemPadding,
