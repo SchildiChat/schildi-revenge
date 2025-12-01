@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.destination.conversation.event.EventRow
+import chat.schildi.revenge.compose.destination.conversation.virtual.DayHeader
 import chat.schildi.revenge.compose.destination.conversation.virtual.NewMessagesLine
 import chat.schildi.revenge.compose.destination.conversation.virtual.PagingIndicator
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
@@ -30,7 +31,7 @@ fun ConversationItemRow(
             is MatrixTimelineItem.Virtual -> {
                 // TODO
                 when (val virtualItem = item.virtual) {
-                    is VirtualTimelineItem.DayDivider -> Text(virtualItem.timestamp.toString())
+                    is VirtualTimelineItem.DayDivider -> DayHeader(virtualItem)
                     VirtualTimelineItem.LastForwardIndicator -> Text("FWD")
                     is VirtualTimelineItem.LoadingIndicator -> PagingIndicator()
                     VirtualTimelineItem.ReadMarker -> NewMessagesLine()

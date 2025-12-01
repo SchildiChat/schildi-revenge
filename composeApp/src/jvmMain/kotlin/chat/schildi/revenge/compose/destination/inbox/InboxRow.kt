@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.lib.preferences.value
 import chat.schildi.lib.util.formatUnreadCount
+import chat.schildi.revenge.DateTimeFormat
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.buildNavigationActionProvider
@@ -121,9 +122,9 @@ private fun RowScope.ScNameAndTimestampRow(room: RoomSummary) {
             )
         }
         // Timestamp
-        if (room.lastMessageTimestamp != null) {
+        room.lastMessageTimestamp?.let { timestamp ->
             Text(
-                text = room.lastMessageTimestamp.toString(), // TODO format
+                text = DateTimeFormat.formatTimestampAsDateOrTime(timestamp),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )

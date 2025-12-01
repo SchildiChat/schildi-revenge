@@ -23,4 +23,7 @@
     <string name="tray_show">Show</string>
     <string name="tray_minimize">Minimize</string>
     <string name="tray_exit">Quit</string>
+
+    <string name="datetime_today">Today</string>
+    <string name="datetime_yesterday">Yesterday</string>
 </resources>
