@@ -18,9 +18,11 @@ import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.focus.FocusParent
 import chat.schildi.revenge.compose.focus.LocalFocusParent
 import co.touchlab.kermit.Logger
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.app_title
+import shire.composeapp.generated.resources.ic_launcher
 import java.util.UUID
 import kotlin.system.exitProcess
 
@@ -57,9 +59,10 @@ fun main() {
                         "$title - $appTitle"
                     else
                         title,
+                    // TODO update icon
+                    icon = painterResource(Res.drawable.ic_launcher),
                     onPreviewKeyEvent = keyHandler::onPreviewKeyEvent,
                     onKeyEvent = keyHandler::onKeyEvent,
-                    // TODO icon
                 ) {
                     // LocalFocusManager is not set outside the Window composable
                     val focusManager = LocalFocusManager.current
