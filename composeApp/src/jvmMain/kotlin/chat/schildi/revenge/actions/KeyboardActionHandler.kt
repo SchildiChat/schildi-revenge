@@ -25,8 +25,11 @@ import co.touchlab.kermit.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
@@ -79,6 +82,20 @@ class KeyboardActionHandler(
     private val _mode = MutableStateFlow<KeyboardActionMode>(KeyboardActionMode.Navigation)
     val mode = _mode.asStateFlow()
 
+    private val _keyboardPrimary = MutableStateFlow(false)
+    val keyboardPrimary = _keyboardPrimary.asStateFlow()
+
+    val currentKeyboardFocus = combine(
+        currentFocus,
+        keyboardPrimary
+    ) { focus, enabled ->
+        focus?.takeIf { enabled }
+    }.stateIn(scope, SharingStarted.Eagerly, null)
+
+    val needsKeyboardSearchBar = combine(mode, keyboardPrimary) { m, p ->
+        p && m is KeyboardActionMode.Search
+    }.stateIn(scope, SharingStarted.Eagerly, false)
+
     val searchQuery = mode.map {
         (it as? KeyboardActionMode.Search)?.query ?: ""
     }
@@ -100,6 +117,7 @@ class KeyboardActionHandler(
         currentFocus: FocusTarget? = currentFocused(),
         parentId: UUID? = currentFocus?.parent?.uuid,
     ): Boolean {
+        _keyboardPrimary.value = true
         if (parentId == null || currentFocus == null) {
             // No clue what to do, but maybe compose internals have an idea
             log.i { "moveFocus: Fall back to FocusManager without current focus for $currentFocus" }
@@ -131,6 +149,7 @@ class KeyboardActionHandler(
         parentId: UUID? = null,
         role: FocusRole? = null,
     ): Boolean {
+        _keyboardPrimary.value = true
         val filtered = if (parentId == null && role == null) {
             focusableTargets.values
         } else {
@@ -145,6 +164,7 @@ class KeyboardActionHandler(
     }
 
     private fun focusByRole(role: FocusRole): Boolean {
+        _keyboardPrimary.value = true
         return focusableTargets.values.find { it.role == role }?.focusRequester?.requestFocus() ?: false
     }
 
@@ -458,7 +478,10 @@ class KeyboardActionHandler(
     }
 
     fun handlePointer(position: Offset) {
-        lastPointerPosition = position
+        if (lastPointerPosition != position) {
+            lastPointerPosition = position
+            _keyboardPrimary.value = false
+        }
         val focusable = focusableTargets.values.firstNotNullOfOrNull { target ->
             target.takeIf {
                 it.role != FocusRole.CONTAINER && it.coordinates.contains(position)

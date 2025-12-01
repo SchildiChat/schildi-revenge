@@ -17,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import chat.schildi.revenge.Anim
 import chat.schildi.revenge.DestinationStateHolder
-import chat.schildi.revenge.actions.KeyboardActionMode
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.focus.windowFocusContainer
 import chat.schildi.revenge.compose.search.SearchBar
@@ -36,7 +35,7 @@ fun WindowContent(destinationHolder: DestinationStateHolder) {
             DestinationContent(destinationHolder, Modifier.fillMaxWidth().weight(1f))
             val keyboardActionHandler = LocalKeyboardActionHandler.current
             AnimatedVisibility(
-                visible = keyboardActionHandler.mode.collectAsState().value is KeyboardActionMode.Search,
+                visible = keyboardActionHandler.needsKeyboardSearchBar.collectAsState().value,
                 enter = slideInVertically(tween(Anim.DURATION)) { it } +
                         expandVertically(tween(Anim.DURATION), expandFrom = Alignment.Bottom),
                 exit = slideOutVertically(tween(Anim.DURATION)) { it } +

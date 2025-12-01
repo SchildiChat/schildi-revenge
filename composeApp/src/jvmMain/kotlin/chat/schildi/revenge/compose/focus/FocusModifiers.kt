@@ -75,7 +75,7 @@ internal fun Modifier.keyFocusableContainer(id: UUID, parent: FocusParent?): Mod
         .background(
             MaterialTheme.colorScheme.error.copy(
                 alpha = animateFloatAsState(
-                    if (id == keyHandler.currentFocus.collectAsState().value) {
+                    if (id == keyHandler.currentKeyboardFocus.collectAsState().value) {
                         0.1f
                     } else {
                         0f
@@ -136,7 +136,7 @@ fun Modifier.keyFocusable(
             1.dp,
             MaterialTheme.colorScheme.onSurfaceVariant.copy(
                 alpha = animateFloatAsState(
-                    if (id == keyHandler.currentFocus.collectAsState().value) {
+                    if (id == keyHandler.currentKeyboardFocus.collectAsState().value) {
                         1f
                     } else {
                         0f

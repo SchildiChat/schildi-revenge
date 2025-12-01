@@ -1,5 +1,6 @@
 package chat.schildi.revenge.compose.destination.inbox
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -26,24 +27,27 @@ fun InboxScreen() {
         LocalSearchProvider provides viewModel,
         LocalListActionProvider provides listState,
     ) {
-        val states = viewModel.allStates.collectAsState().value
-        val rooms = viewModel.rooms.collectAsState().value
-        LazyColumn(Modifier.widthIn(max = Dimens.Inbox.maxWidth).fillMaxSize(), state = listState) {
-            item {
-                Text(System.identityHashCode(viewModel).toString())
-            }
-            states?.let {
-                items(states) { state ->
-                    Text(
-                        state.toString(),
-                        color = MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
+        Column(Modifier.widthIn(max = Dimens.Inbox.maxWidth).fillMaxSize()) {
+            InboxTopNavigation()
+            val states = viewModel.allStates.collectAsState().value
+            val rooms = viewModel.rooms.collectAsState().value
+            LazyColumn(Modifier.fillMaxSize(), state = listState) {
+                item {
+                    Text(System.identityHashCode(viewModel).toString())
                 }
-            }
-            rooms?.let {
-                items(rooms) { room ->
-                    InboxRow(room)
+                states?.let {
+                    items(states) { state ->
+                        Text(
+                            state.toString(),
+                            color = MaterialTheme.colorScheme.onSurface,
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
+                rooms?.let {
+                    items(rooms) { room ->
+                        InboxRow(room)
+                    }
                 }
             }
         }
