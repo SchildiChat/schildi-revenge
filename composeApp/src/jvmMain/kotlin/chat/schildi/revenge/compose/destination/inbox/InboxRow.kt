@@ -39,6 +39,7 @@ import chat.schildi.revenge.compose.components.ComposeSessionScope
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.ScopedRoomSummary
 import chat.schildi.revenge.Destination
+import chat.schildi.revenge.EventTextFormat
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.media.MediaSource
@@ -134,8 +135,10 @@ private fun RowScope.ScNameAndTimestampRow(room: RoomSummary) {
 
 @Composable
 private fun RowScope.ScLastMessageAndIndicatorRow(room: RoomSummary) {
-    // Last Message - TODO format
-    val messagePreview = room.lastMessage?.eventId?.value ?: ""
+    // Last Message
+    val messagePreview = room.lastMessage?.event?.let {
+        EventTextFormat.eventToText(it.content)
+    } ?: ""
     Text(
         modifier = Modifier
             .weight(1f)
