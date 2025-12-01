@@ -42,6 +42,9 @@ object UiState {
     val windows = _windows.asStateFlow()
     private var hasClearedSplashScreen = false
 
+    private val _minimizedToTray = MutableStateFlow(false)
+    val minimizedToTray = _minimizedToTray.asStateFlow()
+
     init {
         scope.launch {
             // Kick initial session load
@@ -146,5 +149,9 @@ object UiState {
 
     fun setShowHiddenItems(enabled: Boolean) {
         _showHiddenItems.value = enabled
+    }
+
+    fun setMinimized(minimized: Boolean) {
+        _minimizedToTray.value = minimized
     }
 }

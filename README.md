@@ -17,6 +17,7 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
 - Design in the tradition of SchildiChat clients
 - Easy to maintain, with as least effort as possible to make me happy
 - Embrace command mode
+- Long-term: Good enough for non-power-users to use mouse-only / intuitively
 
 ## Non-goals
 
@@ -37,6 +38,9 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [x] Login via password
     - [x] Enter recovery code
     - [x] Logout / delete account
+- [ ] ScPrefs UI and yaml datastores
+    - [ ] One datastore for user prefs
+    - [ ] One datastore for app state (last selected space, opened destinations to restore, etc.)
 - [ ] Lock to avoid running multiple instances in parallel, but instead bring to foreground?
 - [ ] Inbox
     - [x] List all chats
@@ -48,13 +52,13 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [x] Search
     - [ ] Handle invites
 - [ ] Conversation view
-    - [x] View event source
+    - [ ] View event source
     - [x] Render plain text and notices
     - [ ] Render formatted text and notices
     - [ ] Send text messages
     - [ ] Render read receipts
     - [ ] Render media
-    - [ ] Render reactions
+    - [x] Render reactions
     - [ ] Render joins/leaves
     - [ ] Render link previews
     - [ ] Render typing indicators
@@ -87,6 +91,7 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [ ] Allow muting individual accounts
 - [ ] App icon
 - [ ] Tray icon with unread count
+    - [ ] Optional minimize to tray: last window close request doesn't discard window but just sets minimized
 - [ ] Mouse-user-friendly mode
   - [ ] All screens accessible via mouse
   - [ ] All features accessible via mouse (e.g. search)

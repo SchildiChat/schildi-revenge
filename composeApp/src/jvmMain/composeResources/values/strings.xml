@@ -18,4 +18,8 @@
     <string name="action_logout">Logout</string>
 
     <string name="reply_failed_to_load">Failed to load replied-to message</string>
+
+    <string name="tray_show">Show</string>
+    <string name="tray_minimize">Minimize</string>
+    <string name="tray_exit">Quit</string>
 </resources>

@@ -32,48 +32,53 @@ fun main() {
         exitProcess(1)
     }
     application(exitProcessOnExit = false) {
-        val windows = UiState.windows.collectAsState().value
-        val scope = rememberCoroutineScope()
-        windows.forEach { windowState ->
-            val destinationState = windowState.destinationHolder.state.collectAsState().value
-            val appTitle = stringResource(Res.string.app_title)
-            val title = destinationState.titleOverride?.render()
-                ?: destinationState.destination.title?.render()
-                ?: appTitle
-            val keyHandler = remember(windowState.windowId) {
-                KeyboardActionHandler(windowState.windowId, scope)
-            }
-            val focusRoot = remember { FocusParent(UUID.randomUUID(), null) }
-            val composeWindowState = rememberWindowState()
-            Window(
-                state = composeWindowState,
-                onCloseRequest = {
-                    UiState.closeWindow(windowState.windowId, this)
-                },
-                title = if (title != appTitle)
-                    "$title - $appTitle"
-                else
-                    title,
-                onPreviewKeyEvent = keyHandler::onPreviewKeyEvent,
-                onKeyEvent = keyHandler::onKeyEvent,
-            ) {
-                // LocalFocusManager is not set outside the Window composable
-                val focusManager = LocalFocusManager.current
-                val density = LocalDensity.current
-                LaunchedEffect(keyHandler, focusManager) {
-                    keyHandler.focusManager = focusManager
+        val minimized = UiState.minimizedToTray.collectAsState().value
+        TrayIcon(isMinimized = minimized, setMinimized = UiState::setMinimized)
+        if (!minimized) {
+            val windows = UiState.windows.collectAsState().value
+            val scope = rememberCoroutineScope()
+            windows.forEach { windowState ->
+                val destinationState = windowState.destinationHolder.state.collectAsState().value
+                val appTitle = stringResource(Res.string.app_title)
+                val title = destinationState.titleOverride?.render()
+                    ?: destinationState.destination.title?.render()
+                    ?: appTitle
+                val keyHandler = remember(windowState.windowId) {
+                    KeyboardActionHandler(windowState.windowId, scope)
                 }
-                LaunchedEffect(keyHandler, composeWindowState.size) {
-                    keyHandler.windowCoordinates = density.run {
-                        composeWindowState.size.toSize().toRect()
-                    }
-                }
-                CompositionLocalProvider(
-                    LocalImageLoaderHolder provides UiState.appGraph.imageLoaderHolder,
-                    LocalKeyboardActionHandler provides keyHandler,
-                    LocalFocusParent provides focusRoot,
+                val focusRoot = remember { FocusParent(UUID.randomUUID(), null) }
+                val composeWindowState = rememberWindowState()
+                Window(
+                    state = composeWindowState,
+                    onCloseRequest = {
+                        UiState.closeWindow(windowState.windowId, this)
+                    },
+                    title = if (title != appTitle)
+                        "$title - $appTitle"
+                    else
+                        title,
+                    onPreviewKeyEvent = keyHandler::onPreviewKeyEvent,
+                    onKeyEvent = keyHandler::onKeyEvent,
+                    // TODO icon
                 ) {
-                    WindowContent(windowState.destinationHolder)
+                    // LocalFocusManager is not set outside the Window composable
+                    val focusManager = LocalFocusManager.current
+                    val density = LocalDensity.current
+                    LaunchedEffect(keyHandler, focusManager) {
+                        keyHandler.focusManager = focusManager
+                    }
+                    LaunchedEffect(keyHandler, composeWindowState.size) {
+                        keyHandler.windowCoordinates = density.run {
+                            composeWindowState.size.toSize().toRect()
+                        }
+                    }
+                    CompositionLocalProvider(
+                        LocalImageLoaderHolder provides UiState.appGraph.imageLoaderHolder,
+                        LocalKeyboardActionHandler provides keyHandler,
+                        LocalFocusParent provides focusRoot,
+                    ) {
+                        WindowContent(windowState.destinationHolder)
+                    }
                 }
             }
         }
