@@ -42,6 +42,8 @@ object UiState {
     val windows = _windows.asStateFlow()
     private var hasClearedSplashScreen = false
 
+    val darkThemeOverride = MutableStateFlow<Boolean?>(null)
+
     private val _minimizedToTray = MutableStateFlow(false)
     val minimizedToTray = _minimizedToTray.asStateFlow()
 

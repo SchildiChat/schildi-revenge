@@ -4,9 +4,11 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import chat.schildi.revenge.UiState
 import io.github.kdroidfilter.platformtools.darkmodedetector.isSystemInDarkMode
 
 // Element defaults to light compound colors, so follow that as fallback default for exposures as well
@@ -24,7 +26,7 @@ val MaterialTheme.scExposures: ScThemeExposures
 
 @Composable
 fun ScTheme(
-    darkTheme: Boolean = isSystemInDarkMode(),
+    darkTheme: Boolean = UiState.darkThemeOverride.collectAsState().value ?: isSystemInDarkMode(),
     content: @Composable () -> Unit,
 ) {
     val currentExposures = remember {
@@ -36,6 +38,7 @@ fun ScTheme(
     CompositionLocalProvider(
         LocalScExposures provides currentExposures,
         LocalContentColor provides colorScheme.onSurfaceVariant,
+        //androidx.compose.material.LocalContentColor provides colorScheme.onSurfaceVariant,
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

@@ -365,6 +365,13 @@ class KeyboardActionHandler(
                     // List-specific navigation
                     Key.G -> scrollListToBottom()
                     // Other
+                    Key.T -> {
+                        // TODO possible to get back to automatic theme?
+                        UiState.darkThemeOverride.update {
+                            it != true
+                        }
+                        true
+                    }
                     Key.D -> {
                         UiState.setShowHiddenItems(!UiState.showHiddenItems.value)
                         true
