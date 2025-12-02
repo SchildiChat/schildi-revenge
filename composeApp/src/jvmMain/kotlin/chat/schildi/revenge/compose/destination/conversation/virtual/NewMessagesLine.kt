@@ -15,13 +15,15 @@ import chat.schildi.theme.scExposures
 @Composable
 fun NewMessagesLine(modifier: Modifier = Modifier) {
     Box(
-        modifier.fillMaxWidth().height(Dimens.Conversation.newMessagesLineHeight)
+        modifier
             .padding(
                 vertical = Dimens.Conversation.virtualItemPadding,
                 horizontal = Dimens.windowPadding,
             )
+            .fillMaxWidth()
+            .height(Dimens.Conversation.newMessagesLineHeight)
             .background(
-                color = MaterialTheme.scExposures.colorOnAccent,
+                color = MaterialTheme.scExposures.accentColor,
                 shape = RoundedCornerShape(Dimens.Conversation.newMessagesLineHeight)
             )
     )

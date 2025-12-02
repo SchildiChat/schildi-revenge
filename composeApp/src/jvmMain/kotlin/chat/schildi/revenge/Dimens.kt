@@ -49,6 +49,6 @@ object Dimens {
         val reactionInnerPaddingVertical = 6.dp
         const val reactionMaxLength = 200
 
-        val newMessagesLineHeight = 4.dp
+        val newMessagesLineHeight = 2.dp
     }
 }
