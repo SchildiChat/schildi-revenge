@@ -118,7 +118,7 @@ class KeyboardActionHandler(
         parentId: UUID? = currentFocus?.parent?.uuid,
     ): Boolean {
         //_keyboardPrimary.value = true
-        if (parentId == null || currentFocus == null) {
+        if (parentId == null || currentFocus == null || currentFocus.coordinates.isEmpty) {
             // No clue what to do, but maybe compose internals have an idea
             log.i { "moveFocus: Fall back to FocusManager without current focus for $currentFocus" }
             return focusManager?.moveFocus(focusDirection) == true
@@ -141,7 +141,9 @@ class KeyboardActionHandler(
         }
         return filteredTargets.minByOrNull {
             distanceToRect(it.coordinates, currentFocus.coordinates.center)
-        }?.focusRequester?.requestFocus() ?: false
+        }?.focusRequester?.requestFocus()
+            // E.g. at the bottom of a scrolled list, the focus manager can still get us to the next item
+            ?: (focusManager?.moveFocus(focusDirection) == true)
     }
 
     private fun focusClosestTo(
@@ -432,7 +434,7 @@ class KeyboardActionHandler(
     }
 
     fun onFocusChanged(target: UUID, state: FocusState) {
-        log.v { "Focus changed for $target to $state" }
+        //log.v { "Focus changed for $target to $state" }
         var lostFocusTarget: UUID? = null
         if (state.isFocused) {
             _currentFocus.update {
