@@ -26,4 +26,6 @@
 
     <string name="datetime_today">Today</string>
     <string name="datetime_yesterday">Yesterday</string>
+
+    <string name="message_placeholder_tombstone">Room tombstone</string>
 </resources>

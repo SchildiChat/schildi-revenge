@@ -29,8 +29,8 @@ data class ScSdkRoomSortOrder(
                 selectFor(a, b) { it.info.numUnreadMessages > 0 }?.let { return@Comparator it }
             }
         }
-        selectFor(a, b) { it.lastMessageTimestamp != null }?.let { return@Comparator it }
-        ((b.lastMessageTimestamp ?: 0L) - (a.lastMessageTimestamp ?: 0L)).sign
+        selectFor(a, b) { it.latestEventTimestamp != null }?.let { return@Comparator it }
+        ((b.latestEventTimestamp ?: 0L) - (a.latestEventTimestamp ?: 0L)).sign
     }
 }
 

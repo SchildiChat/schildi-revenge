@@ -10,12 +10,12 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.core.UserId
-import io.element.android.libraries.matrix.api.timeline.item.event.ProfileTimelineDetails
+import io.element.android.libraries.matrix.api.timeline.item.event.ProfileDetails
 
 @Composable
-fun SenderName(senderId: UserId, senderProfile: ProfileTimelineDetails, modifier: Modifier = Modifier) {
+fun SenderName(senderId: UserId, senderProfile: ProfileDetails, modifier: Modifier = Modifier) {
     val renderedName = when (senderProfile) {
-        is ProfileTimelineDetails.Ready -> buildAnnotatedString {
+        is ProfileDetails.Ready -> buildAnnotatedString {
             if (senderProfile.displayName == null) {
                 append(senderId.value)
             } else {

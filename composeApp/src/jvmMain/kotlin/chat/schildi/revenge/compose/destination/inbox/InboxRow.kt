@@ -43,7 +43,11 @@ import chat.schildi.revenge.EventTextFormat
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.media.MediaSource
+import io.element.android.libraries.matrix.api.roomlist.LatestEventValue
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
+import org.jetbrains.compose.resources.stringResource
+import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.message_placeholder_tombstone
 import kotlin.math.max
 
 @Composable
@@ -123,7 +127,7 @@ private fun RowScope.ScNameAndTimestampRow(room: RoomSummary) {
             )
         }
         // Timestamp
-        room.lastMessageTimestamp?.let { timestamp ->
+        room.latestEventTimestamp?.let { timestamp ->
             Text(
                 text = DateTimeFormat.formatTimestampAsDateOrTime(timestamp),
                 style = MaterialTheme.typography.bodySmall,
@@ -136,9 +140,15 @@ private fun RowScope.ScNameAndTimestampRow(room: RoomSummary) {
 @Composable
 private fun RowScope.ScLastMessageAndIndicatorRow(room: RoomSummary) {
     // Last Message
-    val messagePreview = room.lastMessage?.event?.let {
-        EventTextFormat.eventToText(it.content)
-    } ?: ""
+    val messagePreview = if (room.info.successorRoom != null) {
+        stringResource(Res.string.message_placeholder_tombstone)
+    } else {
+        when (val event = room.latestEvent) {
+            is LatestEventValue.Local -> EventTextFormat.eventToText(event.content)
+            LatestEventValue.None -> null
+            is LatestEventValue.Remote -> EventTextFormat.eventToText(event.content)
+        } ?: ""
+    }
     Text(
         modifier = Modifier
             .weight(1f)

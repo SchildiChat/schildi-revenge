@@ -24,7 +24,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.MessageConten
 import io.element.android.libraries.matrix.api.timeline.item.event.OtherMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.PollContent
 import io.element.android.libraries.matrix.api.timeline.item.event.ProfileChangeContent
-import io.element.android.libraries.matrix.api.timeline.item.event.ProfileTimelineDetails
+import io.element.android.libraries.matrix.api.timeline.item.event.ProfileDetails
 import io.element.android.libraries.matrix.api.timeline.item.event.RedactedContent
 import io.element.android.libraries.matrix.api.timeline.item.event.RoomMembershipContent
 import io.element.android.libraries.matrix.api.timeline.item.event.StateContent
@@ -40,7 +40,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.VoiceMessageT
 fun EventContentLayout(
     content: EventContent,
     senderId: UserId,
-    senderProfile: ProfileTimelineDetails,
+    senderProfile: ProfileDetails,
     isOwn: Boolean,
     isSameAsPreviousSender: Boolean,
     inReplyTo: InReplyTo?,

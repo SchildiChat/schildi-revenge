@@ -5,12 +5,12 @@ import androidx.compose.ui.Modifier
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.components.AvatarImage
 import io.element.android.libraries.matrix.api.media.MediaSource
-import io.element.android.libraries.matrix.api.timeline.item.event.ProfileTimelineDetails
+import io.element.android.libraries.matrix.api.timeline.item.event.ProfileDetails
 
 @Composable
-fun SenderAvatar(senderProfile: ProfileTimelineDetails, modifier: Modifier = Modifier) {
+fun SenderAvatar(senderProfile: ProfileDetails, modifier: Modifier = Modifier) {
     val avatarUrl = when (senderProfile) {
-        is ProfileTimelineDetails.Ready -> senderProfile.avatarUrl
+        is ProfileDetails.Ready -> senderProfile.avatarUrl
         else -> null
     }
     AvatarImage(
