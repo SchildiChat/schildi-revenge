@@ -1,22 +1,18 @@
 package chat.schildi.revenge.actions
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.compositionLocalOf
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.Destination
-
-val LocalListActionProvider = compositionLocalOf<LazyListState?> { null }
 
 data class ActionProvider(
     val searchProvider: SearchProvider?,
     val primaryAction: InteractionAction? = null,
     val secondaryAction: InteractionAction? = null,
     val tertiaryAction: InteractionAction? = null,
-    val listActions: LazyListState? = null,
+    val listActions: ListAction? = null,
 )
 
 @Composable

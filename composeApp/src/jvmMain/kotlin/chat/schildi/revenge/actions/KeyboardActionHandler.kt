@@ -302,35 +302,16 @@ class KeyboardActionHandler(
     private fun scrollListToTop(
         focused: FocusTarget? = currentFocused(),
     ): Boolean {
-        return focused?.actions?.listActions?.let { listState ->
-            if (listState.layoutInfo.totalItemsCount > 0) {
-                scope.launch {
-                    listState.scrollToItem(0)
-                    delay(100)
-                    focusCurrentContainerRelative(focused) { it.topCenter }
-                }
-                true
-            } else {
-                false
-            }
+        return focused?.actions?.listActions?.scrollToTop(scope) {
+            focusCurrentContainerRelative(focused) { it.topCenter }
         } ?: false
     }
 
     private fun scrollListToBottom(
         focused: FocusTarget? = currentFocused(),
     ): Boolean {
-        return focused?.actions?.listActions?.let { listState ->
-            val index = listState.layoutInfo.totalItemsCount - 1
-            if (index >= 0) {
-                scope.launch {
-                    listState.scrollToItem(index)
-                    delay(100)
-                    focusCurrentContainerRelative(focused) { it.bottomCenter }
-                }
-                true
-            } else {
-                false
-            }
+        return focused?.actions?.listActions?.scrollToBottom(scope) {
+            focusCurrentContainerRelative(focused) { it.bottomCenter }
         } ?: false
     }
 

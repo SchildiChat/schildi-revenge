@@ -9,12 +9,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.revenge.model.ConversationViewModel
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.LocalDestinationState
+import chat.schildi.revenge.actions.ListAction
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.publishTitle
@@ -54,9 +56,10 @@ fun ChatScreen(destination: Destination.Conversation) {
             }
     }
 
+    val listAction = remember(listState) { ListAction(listState, isReverseList = true) }
     CompositionLocalProvider(
         //LocalSearchProvider provides viewModel, // TODO CV search
-        LocalListActionProvider provides listState,
+        LocalListActionProvider provides listAction,
     ) {
         // Double reverse helps with stick-to-bottom while paging backwards or receiving messages
         LazyColumn(Modifier.fillMaxSize(), reverseLayout = true, state = listState) {
