@@ -12,8 +12,8 @@ import chat.schildi.revenge.compose.destination.AccountManagementScreen
 import chat.schildi.revenge.compose.destination.conversation.ChatScreen
 import chat.schildi.revenge.compose.destination.inbox.InboxScreen
 import chat.schildi.revenge.compose.destination.SplashScreen
-import chat.schildi.revenge.compose.destination.SplitHorizontal
-import chat.schildi.revenge.compose.destination.SplitVertical
+import chat.schildi.revenge.compose.destination.split.SplitHorizontal
+import chat.schildi.revenge.compose.destination.split.SplitVertical
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.Destination
 

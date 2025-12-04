@@ -2,7 +2,6 @@ package chat.schildi.revenge.compose.destination.conversation
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
@@ -17,8 +16,9 @@ import chat.schildi.revenge.model.ConversationViewModel
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.ListAction
+import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
-import chat.schildi.revenge.compose.search.LocalSearchProvider
+import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.publishTitle
 import kotlinx.collections.immutable.persistentListOf
 
@@ -59,6 +59,7 @@ fun ChatScreen(destination: Destination.Conversation) {
     val listAction = remember(listState) { ListAction(listState, isReverseList = true) }
     CompositionLocalProvider(
         //LocalSearchProvider provides viewModel, // TODO CV search
+        LocalKeyboardActionProvider provides viewModel.hierarchicalKeyboardActionProvider(),
         LocalListActionProvider provides listAction,
     ) {
         // Double reverse helps with stick-to-bottom while paging backwards or receiving messages

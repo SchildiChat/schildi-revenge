@@ -23,7 +23,6 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,7 +30,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.sqrt
@@ -316,6 +314,11 @@ class KeyboardActionHandler(
     }
 
     private fun handleNavigationEvent(event: KeyEvent): Boolean {
+        val focused = currentFocused()
+        if (focused?.actions?.keyActions?.handleNavigationModeEvent(event) == true) {
+            // Allow focused-item specific handling
+            return true
+        }
         if (event.type == KeyDown) {
             // TODO make this configurable
             return if (event.isShiftPressed) {
@@ -340,11 +343,8 @@ class KeyboardActionHandler(
                             DestinationStateHolder.forInitialDestination(it),
                         )
                     }
-                    Key.Q -> navigateCurrentDestination {
-                        (it as? Destination.Split)?.primary?.state?.value?.destination
-                    }
                     // Tertiary action (usually same as mouse middle click)
-                    Key.Enter -> currentFocused()?.actions?.tertiaryAction?.let(::executeAction) ?: false
+                    Key.Enter -> focused?.actions?.tertiaryAction?.let(::executeAction) ?: false
                     // List-specific navigation
                     Key.G -> scrollListToBottom()
                     // Other
@@ -364,7 +364,7 @@ class KeyboardActionHandler(
             } else if (event.isCtrlPressed) {
                 when (event.key) {
                     // Secondary action (usually same as mouse right click)
-                    Key.Enter -> currentFocused()?.actions?.secondaryAction?.let(::executeAction) ?: false
+                    Key.Enter -> focused?.actions?.secondaryAction?.let(::executeAction) ?: false
                     else -> false
                 }
             } else {
@@ -385,11 +385,10 @@ class KeyboardActionHandler(
                     Key.I -> moveFocus(FocusDirection.Right)
                     // Primary action (usually same as mouse click) + container navigation
                     Key.Enter -> {
-                        val current = currentFocused()
-                        if (current?.role == FocusRole.CONTAINER) {
-                            focusClosestTo(Offset.Zero, parentId = current.id)
+                        if (focused?.role == FocusRole.CONTAINER) {
+                            focusClosestTo(Offset.Zero, parentId = focused.id)
                         } else {
-                            current?.actions?.primaryAction?.let(::executeAction) ?: false
+                            focused?.actions?.primaryAction?.let(::executeAction) ?: false
                         }
                     }
                     Key.Escape -> focusParent()

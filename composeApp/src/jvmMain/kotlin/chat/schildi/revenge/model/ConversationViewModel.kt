@@ -1,5 +1,12 @@
 package chat.schildi.revenge.model
 
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.isAltPressed
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isMetaPressed
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.key
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
@@ -8,6 +15,7 @@ import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.Destination
+import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.compose.util.toStringHolder
 import co.touchlab.kermit.Logger
 import io.element.android.features.messages.impl.timeline.TimelineController
@@ -34,7 +42,7 @@ class ConversationViewModel(
     private val sessionId: SessionId,
     private val roomId: RoomId,
     private val appGraph: AppGraph = UiState.appGraph,
-) : ViewModel(), TitleProvider {
+) : ViewModel(), TitleProvider, KeyboardActionProvider {
     private val log = Logger.withTag("ChatView/$roomId")
 
     private val clientFlow = UiState.selectClient(sessionId, viewModelScope)
@@ -106,6 +114,20 @@ class ConversationViewModel(
                 ?.onFailure { log.w("Cannot paginate backwards") }
                 ?.onSuccess { log.d("Paginated backwards") }
         }
+    }
+
+    override fun handleNavigationModeEvent(event: KeyEvent): Boolean {
+        if (event.isCtrlPressed || event.isAltPressed || event.isShiftPressed || event.isMetaPressed) {
+            return false
+        }
+        when (event.key) {
+            Key.M -> viewModelScope.launch {
+                // TODO
+                val client = clientFlow.value ?: return@launch
+                //clientFlow.value?.markRoomAsFullyRead(roomId, time)
+            }
+        }
+        return false
     }
 
     companion object {

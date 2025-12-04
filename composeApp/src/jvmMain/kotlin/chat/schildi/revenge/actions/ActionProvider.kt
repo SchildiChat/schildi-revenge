@@ -13,15 +13,18 @@ data class ActionProvider(
     val secondaryAction: InteractionAction? = null,
     val tertiaryAction: InteractionAction? = null,
     val listActions: ListAction? = null,
+    val keyActions: KeyboardActionProvider? = null,
 )
 
 @Composable
 fun defaultActionProvider(): ActionProvider {
     val searchProvider = LocalSearchProvider.current
     val listActions = LocalListActionProvider.current
+    val keyActions = LocalKeyboardActionProvider.current
     return ActionProvider(
         searchProvider = searchProvider,
         listActions = listActions,
+        keyActions = keyActions,
     )
 }
 
@@ -33,6 +36,7 @@ fun buildNavigationActionProvider(
 ): ActionProvider {
     val searchProvider = LocalSearchProvider.current
     val listActions = LocalListActionProvider.current
+    val keyActions = LocalKeyboardActionProvider.current
     return ActionProvider(
         searchProvider = searchProvider,
         primaryAction = InteractionAction.NavigateCurrent(
@@ -44,5 +48,6 @@ fun buildNavigationActionProvider(
             buildDestination = buildDestination,
         ),
         listActions = listActions,
+        keyActions = keyActions,
     )
 }
