@@ -92,8 +92,8 @@ class KeyboardActionHandler(
         focus?.takeIf { enabled }
     }.stateIn(scope, SharingStarted.Eagerly, null)
 
-    val needsKeyboardSearchBar = combine(mode, keyboardPrimary) { m, p ->
-        p && m is KeyboardActionMode.Search
+    val needsKeyboardSearchBar = mode.map { m ->
+        m is KeyboardActionMode.Search
     }.stateIn(scope, SharingStarted.Eagerly, false)
 
     val searchQuery = mode.map {
@@ -117,7 +117,7 @@ class KeyboardActionHandler(
         currentFocus: FocusTarget? = currentFocused(),
         parentId: UUID? = currentFocus?.parent?.uuid,
     ): Boolean {
-        //_keyboardPrimary.value = true
+        _keyboardPrimary.value = true
         if (parentId == null || currentFocus == null || currentFocus.coordinates.isEmpty) {
             // No clue what to do, but maybe compose internals have an idea
             log.i { "moveFocus: Fall back to FocusManager without current focus for $currentFocus" }
@@ -151,7 +151,7 @@ class KeyboardActionHandler(
         parentId: UUID? = null,
         role: FocusRole? = null,
     ): Boolean {
-        //_keyboardPrimary.value = true
+        _keyboardPrimary.value = true
         val filtered = if (parentId == null && role == null) {
             focusableTargets.values
         } else {
@@ -166,7 +166,7 @@ class KeyboardActionHandler(
     }
 
     private fun focusByRole(role: FocusRole): Boolean {
-        //_keyboardPrimary.value = true
+        _keyboardPrimary.value = true
         return focusableTargets.values.find { it.role == role }?.focusRequester?.requestFocus() ?: false
     }
 
@@ -470,7 +470,7 @@ class KeyboardActionHandler(
     fun handlePointer(position: Offset) {
         if (lastPointerPosition != position) {
             lastPointerPosition = position
-            //_keyboardPrimary.value = false
+            _keyboardPrimary.value = false
         }
         val focusable = focusableTargets.values.firstNotNullOfOrNull { target ->
             target.takeIf {

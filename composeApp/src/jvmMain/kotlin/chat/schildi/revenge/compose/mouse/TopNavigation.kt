@@ -14,6 +14,7 @@ import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 
 @Composable
 fun TopNavigation(content: @Composable () -> Unit) {
+    if (true) return // TODO figure this one out
     val keyboardActionHandler = LocalKeyboardActionHandler.current
     AnimatedVisibility(
         visible = !keyboardActionHandler.keyboardPrimary.collectAsState().value,
