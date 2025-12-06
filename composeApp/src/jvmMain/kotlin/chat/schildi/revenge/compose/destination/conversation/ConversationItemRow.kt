@@ -13,11 +13,13 @@ import chat.schildi.revenge.compose.destination.conversation.event.EventRow
 import chat.schildi.revenge.compose.destination.conversation.virtual.DayHeader
 import chat.schildi.revenge.compose.destination.conversation.virtual.NewMessagesLine
 import chat.schildi.revenge.compose.destination.conversation.virtual.PagingIndicator
+import chat.schildi.revenge.model.ConversationViewModel
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.virtual.VirtualTimelineItem
 
 @Composable
 fun ConversationItemRow(
+    viewModel: ConversationViewModel,
     item: MatrixTimelineItem,
     next: MatrixTimelineItem?,
     previous: MatrixTimelineItem?,
@@ -51,7 +53,7 @@ fun ConversationItemRow(
                     else -> Dimens.Conversation.messageOtherSenderPadding
                 }
                 Spacer(Modifier.height(padding))
-                EventRow(item.event, isSameAsPreviousSender = isSameAsPreviousSender)
+                EventRow(viewModel, item.event, isSameAsPreviousSender = isSameAsPreviousSender)
             }
 
             MatrixTimelineItem.Other -> {

@@ -70,6 +70,7 @@ fun ChatScreen(destination: Destination.Conversation) {
                 val next = renderedItems.getOrNull(index-1)
                 val previous = renderedItems.getOrNull(index+1)
                 ConversationItemRow(
+                    viewModel = viewModel,
                     item = item,
                     next = next,
                     previous = previous,

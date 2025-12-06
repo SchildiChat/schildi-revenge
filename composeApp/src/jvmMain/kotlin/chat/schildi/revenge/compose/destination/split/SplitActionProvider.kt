@@ -4,10 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
-import androidx.compose.ui.input.key.isAltPressed
-import androidx.compose.ui.input.key.isCtrlPressed
-import androidx.compose.ui.input.key.isMetaPressed
-import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.DestinationStateHolder
@@ -15,13 +11,14 @@ import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
+import chat.schildi.revenge.actions.isOnlyShiftPressed
 
 class SplitKeyboardActionProvider(
     private val destinationStateHolder: DestinationStateHolder?,
     private val isPrimaryDestination: Boolean,
 ) : KeyboardActionProvider {
     override fun handleNavigationModeEvent(event: KeyEvent): Boolean {
-        if (event.isShiftPressed && !event.isAltPressed && !event.isMetaPressed && !event.isCtrlPressed) {
+        if (event.isOnlyShiftPressed) {
             when (event.key) {
                 Key.Q ->  {
                     val currentDestination = destinationStateHolder?.state?.value?.destination

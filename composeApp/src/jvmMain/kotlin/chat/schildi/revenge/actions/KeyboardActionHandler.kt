@@ -9,8 +9,6 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyDown
-import androidx.compose.ui.input.key.isCtrlPressed
-import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.LayoutCoordinates
@@ -321,7 +319,7 @@ class KeyboardActionHandler(
         }
         if (event.type == KeyDown) {
             // TODO make this configurable
-            return if (event.isShiftPressed) {
+            return if (event.isOnlyShiftPressed) {
                 when (event.key) {
                     // Relative focus - TODO should maintain X offset rather than assuming center?
                     Key.H -> focusCurrentContainerRelative { it.topCenter }
@@ -361,13 +359,13 @@ class KeyboardActionHandler(
                     }
                     else -> false
                 }
-            } else if (event.isCtrlPressed) {
+            } else if (event.isOnlyCtrlPressed) {
                 when (event.key) {
                     // Secondary action (usually same as mouse right click)
                     Key.Enter -> focused?.actions?.secondaryAction?.let(::executeAction) ?: false
                     else -> false
                 }
-            } else {
+            } else if (event.isNoModifierPressed) {
                 when (event.key) {
                     // Arrow keys
                     Key.DirectionLeft -> moveFocus(FocusDirection.Left)
@@ -403,6 +401,8 @@ class KeyboardActionHandler(
                     }
                     else -> false
                 }
+            } else {
+                false
             }
         }
         return false

@@ -16,11 +16,15 @@ import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.actions.KeyboardActionProvider
+import chat.schildi.revenge.actions.isNoModifierPressed
+import chat.schildi.revenge.actions.isOnlyCtrlPressed
 import chat.schildi.revenge.compose.util.toStringHolder
 import co.touchlab.kermit.Logger
 import io.element.android.features.messages.impl.timeline.TimelineController
+import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
 import io.element.android.x.di.AppGraph
 import kotlinx.collections.immutable.persistentListOf
@@ -120,14 +124,46 @@ class ConversationViewModel(
         if (event.isCtrlPressed || event.isAltPressed || event.isShiftPressed || event.isMetaPressed) {
             return false
         }
-        when (event.key) {
-            Key.M -> viewModelScope.launch {
-                // TODO
-                val client = clientFlow.value ?: return@launch
-                //clientFlow.value?.markRoomAsFullyRead(roomId, time)
-            }
-        }
+        // TODO?
         return false
+    }
+
+    fun getKeyboardActionProviderForEvent(eventId: EventId): KeyboardActionProvider {
+        return object : KeyboardActionProvider {
+            override fun handleNavigationModeEvent(event: KeyEvent): Boolean {
+                log.i { "hum $event" }
+                when (event.key) {
+                    // Mark message as read
+                    Key.M -> {
+                        val publicRR = event.isNoModifierPressed
+                        val privateRR = event.isOnlyCtrlPressed
+                        if (!publicRR && !privateRR) {
+                            return false
+                        }
+                        val timeline = timelineController.value ?: run {
+                            log.e { "No timeline to execute event action" }
+                            return false
+                        }
+                        viewModelScope.launch {
+                            timeline.invokeOnCurrentTimeline {
+                                if (privateRR) {
+                                    sendReadReceipt(eventId, ReceiptType.READ_PRIVATE)
+                                        .onFailure { log.e("Failed to send private read receipt", it) }
+                                } else {
+                                    sendReadReceipt(eventId, ReceiptType.READ)
+                                        .onFailure { log.e("Failed to send read receipt", it) }
+                                }
+                                sendReadReceipt(eventId, ReceiptType.FULLY_READ)
+                                    .onFailure { log.e("Failed to send fully read marker", it) }
+                            }
+                        }
+                        return true
+                    }
+                }
+                return false
+            }
+
+        }
     }
 
     companion object {

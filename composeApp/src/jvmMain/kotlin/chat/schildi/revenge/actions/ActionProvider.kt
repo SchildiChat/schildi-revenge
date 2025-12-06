@@ -17,10 +17,11 @@ data class ActionProvider(
 )
 
 @Composable
-fun defaultActionProvider(): ActionProvider {
-    val searchProvider = LocalSearchProvider.current
-    val listActions = LocalListActionProvider.current
-    val keyActions = LocalKeyboardActionProvider.current
+fun defaultActionProvider(
+    searchProvider: SearchProvider? = LocalSearchProvider.current,
+    listActions: ListAction? = LocalListActionProvider.current,
+    keyActions: KeyboardActionProvider? = LocalKeyboardActionProvider.current,
+): ActionProvider {
     return ActionProvider(
         searchProvider = searchProvider,
         listActions = listActions,
@@ -32,11 +33,11 @@ fun defaultActionProvider(): ActionProvider {
 @Composable
 fun buildNavigationActionProvider(
     initialTitle: ComposableStringHolder? = null,
+    searchProvider: SearchProvider? = LocalSearchProvider.current,
+    listActions: ListAction? = LocalListActionProvider.current,
+    keyActions: KeyboardActionProvider? = LocalKeyboardActionProvider.current,
     buildDestination: () -> Destination,
 ): ActionProvider {
-    val searchProvider = LocalSearchProvider.current
-    val listActions = LocalListActionProvider.current
-    val keyActions = LocalKeyboardActionProvider.current
     return ActionProvider(
         searchProvider = searchProvider,
         primaryAction = InteractionAction.NavigateCurrent(
