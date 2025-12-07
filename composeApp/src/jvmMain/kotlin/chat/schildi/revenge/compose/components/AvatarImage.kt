@@ -31,7 +31,7 @@ fun AvatarImage(
     shape: Shape = Dimens.avatarShape,
 ) {
     if (source == null) {
-        AvatarFallback(modifier.size(size))
+        AvatarFallback(shape, modifier.size(size))
         return
     }
     SubcomposeAsyncImage(
@@ -42,10 +42,10 @@ fun AvatarImage(
         modifier = modifier.size(size).clip(shape),
         contentScale = ContentScale.Crop,
         loading = {
-            AvatarFallback(Modifier.size(size))
+            AvatarFallback(shape, Modifier.size(size))
         },
         error = {
-            AvatarFallback(Modifier.size(size))
+            AvatarFallback(shape, Modifier.size(size))
         },
         success = {
             SubcomposeAsyncImageContent(Modifier.size(size))
@@ -55,8 +55,9 @@ fun AvatarImage(
 
 @Composable
 fun AvatarFallback(
+    shape: Shape,
     modifier: Modifier = Modifier,
 ) {
     // TODO
-    Box(modifier.background(MaterialTheme.colorScheme.surfaceVariant))
+    Box(modifier.background(MaterialTheme.colorScheme.surfaceVariant, shape))
 }
