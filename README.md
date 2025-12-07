@@ -33,14 +33,16 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
 - [x] Schildi theme
 - [ ] Initial config hooked in
     - [x] Accounts with username+homeserver (not: password and secrets)
-    - [ ] Configurable key bindings
+    - [x] Configurable key bindings
 - [x] Initial account management UI
     - [x] Login via password
     - [x] Enter recovery code
     - [x] Logout / delete account
-- [ ] ScPrefs UI and yaml datastores
+- [ ] ScPrefs
+    - [ ] Via toml
     - [ ] One datastore for user prefs
     - [ ] One datastore for app state (last selected space, opened destinations to restore, etc.)
+    - [ ] UI?
 - [ ] Lock to avoid running multiple instances in parallel, but instead bring to foreground?
 - [ ] Inbox
     - [x] List all chats

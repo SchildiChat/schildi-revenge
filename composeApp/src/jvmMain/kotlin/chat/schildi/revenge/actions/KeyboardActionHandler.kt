@@ -175,12 +175,18 @@ class KeyboardActionHandler(
         return focusableTargets.values.find { it.role == role }?.focusRequester?.requestFocus() ?: false
     }
 
-    private fun currentFocused() = currentFocus.value?.let {
-        val target = focusableTargets[it]
-        if (target == null) {
-            log.w { "Unable to find target $it" }
+    private fun currentFocused(fallbackToRoot: Boolean = true): FocusTarget? {
+        currentFocus.value?.let {
+            val target = focusableTargets[it]
+            if (target == null) {
+                log.w { "Unable to find target $it" }
+            }
+            return target
         }
-        target
+        if (fallbackToRoot) {
+            return focusableTargets.values.find { it.parent == null }
+        }
+        return null
     }
 
     fun executeAction(

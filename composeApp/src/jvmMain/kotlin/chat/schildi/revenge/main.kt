@@ -48,7 +48,6 @@ fun main() {
                 val keyHandler = remember(windowState.windowId) {
                     KeyboardActionHandler(windowState.windowId, scope)
                 }
-                val focusRoot = remember { FocusParent(UUID.randomUUID(), null) }
                 val composeWindowState = rememberWindowState()
                 Window(
                     state = composeWindowState,
@@ -78,7 +77,6 @@ fun main() {
                     CompositionLocalProvider(
                         LocalImageLoaderHolder provides UiState.appGraph.imageLoaderHolder,
                         LocalKeyboardActionHandler provides keyHandler,
-                        LocalFocusParent provides focusRoot,
                     ) {
                         WindowContent(windowState.destinationHolder)
                     }
