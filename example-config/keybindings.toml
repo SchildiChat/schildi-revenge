@@ -1,5 +1,8 @@
 global = [
     { key = "Slash", action = "Search" },
+    { key = "T", shift = true, action = "ToggleTheme" },
+    { key = "T", ctrl = true, action = "AutomaticTheme" },
+    { key = "D", shift = true, action = "ToggleHiddenItems" },
 ]
 navigation = [
     { key = "I", shift = true, action = "InboxInCurrent" },
@@ -32,8 +35,8 @@ focus = [
     { key = "MoveEnd", action = "FocusBottom" },
 ]
 list = [
-    { key = "G", action = "FocusTop" },
-    { key = "G", shift = true, action = "FocusBottom" },
+    { key = "G", action = "ScrollToTop" },
+    { key = "G", shift = true, action = "ScrollToBottom" },
 ]
 split = [
     { key = "Q", shift = true, action = "Close" },
