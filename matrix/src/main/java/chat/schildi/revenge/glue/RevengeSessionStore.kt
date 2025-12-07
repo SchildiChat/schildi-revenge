@@ -1,6 +1,6 @@
 package chat.schildi.revenge.glue
 
-import chat.schildi.revenge.util.ScAppDirs
+import chat.schildi.revenge.config.ScAppDirs
 import chat.schildi.revenge.util.ScJson
 import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.AppScope

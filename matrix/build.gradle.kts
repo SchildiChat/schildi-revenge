@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.skydoves.compose.stable.marker)
     implementation(libs.coil3.compose)
     implementation(libs.coil3.okhttp)
+    implementation(projects.config)
     // Compatibility classes for Android specifics that we don't care about but got from Element X files,
     // so we don't need to change those classes too much.
     // In some case used as supertype so mark as api().
@@ -35,9 +36,7 @@ kotlin {
             kotlin.srcDir(layout.projectDirectory.dir("../matrix-rust-sdk/target/generated-bindings"))
             dependencies {
                 implementation(libs.kermit)
-                implementation(libs.appdirs)
                 implementation(libs.kotlinx.serialization.json)
-                implementation(libs.yaml.kt)
             }
         }
     }

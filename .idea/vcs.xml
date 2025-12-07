@@ -3,5 +3,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/matrix-rust-sdk" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/scripts/skeleton" vcs="Git" />
   </component>
 </project>

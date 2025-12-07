@@ -1,11 +1,6 @@
 package chat.schildi.revenge.model
 
 import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEvent
-import androidx.compose.ui.input.key.isAltPressed
-import androidx.compose.ui.input.key.isCtrlPressed
-import androidx.compose.ui.input.key.isMetaPressed
-import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -19,6 +14,8 @@ import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.isNoModifierPressed
 import chat.schildi.revenge.actions.isOnlyCtrlPressed
 import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.revenge.config.keybindings.Action
+import chat.schildi.revenge.config.keybindings.KeyTrigger
 import co.touchlab.kermit.Logger
 import io.element.android.features.messages.impl.timeline.TimelineController
 import io.element.android.libraries.matrix.api.core.EventId
@@ -120,49 +117,37 @@ class ConversationViewModel(
         }
     }
 
-    override fun handleNavigationModeEvent(event: KeyEvent): Boolean {
-        if (event.isCtrlPressed || event.isAltPressed || event.isShiftPressed || event.isMetaPressed) {
-            return false
-        }
+    override fun handleNavigationModeEvent(key: KeyTrigger): Boolean {
         // TODO?
         return false
     }
 
+    private fun markEventAsRead(eventId: EventId, receiptType: ReceiptType): Boolean {
+        val timeline = timelineController.value ?: run {
+            log.e { "No timeline to execute event action" }
+            return false
+        }
+        viewModelScope.launch {
+            timeline.invokeOnCurrentTimeline {
+                sendReadReceipt(eventId, receiptType)
+                    .onFailure { log.e("Failed to send private read receipt", it) }
+                // Always keep fully read in sync with read receipts for now
+                sendReadReceipt(eventId, ReceiptType.FULLY_READ)
+                    .onFailure { log.e("Failed to send fully read marker", it) }
+            }
+        }
+        return true
+    }
+
     fun getKeyboardActionProviderForEvent(eventId: EventId): KeyboardActionProvider {
         return object : KeyboardActionProvider {
-            override fun handleNavigationModeEvent(event: KeyEvent): Boolean {
-                log.i { "hum $event" }
-                when (event.key) {
-                    // Mark message as read
-                    Key.M -> {
-                        val publicRR = event.isNoModifierPressed
-                        val privateRR = event.isOnlyCtrlPressed
-                        if (!publicRR && !privateRR) {
-                            return false
-                        }
-                        val timeline = timelineController.value ?: run {
-                            log.e { "No timeline to execute event action" }
-                            return false
-                        }
-                        viewModelScope.launch {
-                            timeline.invokeOnCurrentTimeline {
-                                if (privateRR) {
-                                    sendReadReceipt(eventId, ReceiptType.READ_PRIVATE)
-                                        .onFailure { log.e("Failed to send private read receipt", it) }
-                                } else {
-                                    sendReadReceipt(eventId, ReceiptType.READ)
-                                        .onFailure { log.e("Failed to send read receipt", it) }
-                                }
-                                sendReadReceipt(eventId, ReceiptType.FULLY_READ)
-                                    .onFailure { log.e("Failed to send fully read marker", it) }
-                            }
-                        }
-                        return true
-                    }
+            override fun handleNavigationModeEvent(key: KeyTrigger): Boolean {
+                val binding = UiState.keybindingsConfig.value.event.find { it.trigger == key } ?: return false
+                return when (binding.action) {
+                    Action.Event.MarkRead -> markEventAsRead(eventId, ReceiptType.READ)
+                    Action.Event.MarkReadPrivate -> markEventAsRead(eventId, ReceiptType.READ_PRIVATE)
                 }
-                return false
             }
-
         }
     }
 

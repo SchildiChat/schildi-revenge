@@ -3,7 +3,7 @@ package chat.schildi.revenge.actions
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.input.key.KeyEvent
+import chat.schildi.revenge.config.keybindings.KeyTrigger
 
 val LocalKeyboardActionProvider = compositionLocalOf<HierarchicalKeyboardActionProvider?> { null }
 
@@ -15,14 +15,14 @@ fun KeyboardActionProvider.hierarchicalKeyboardActionProvider(): HierarchicalKey
 }
 
 interface KeyboardActionProvider {
-    fun handleNavigationModeEvent(event: KeyEvent): Boolean
+    fun handleNavigationModeEvent(key: KeyTrigger): Boolean
 }
 
 data class HierarchicalKeyboardActionProvider(
     val instance: KeyboardActionProvider,
     val parent: HierarchicalKeyboardActionProvider?,
 ) : KeyboardActionProvider {
-    override fun handleNavigationModeEvent(event: KeyEvent): Boolean {
-        return instance.handleNavigationModeEvent(event) || parent?.handleNavigationModeEvent(event) == true
+    override fun handleNavigationModeEvent(key: KeyTrigger): Boolean {
+        return instance.handleNavigationModeEvent(key) || parent?.handleNavigationModeEvent(key) == true
     }
 }

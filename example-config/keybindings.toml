@@ -1,0 +1,44 @@
+global = [
+    { key = "Slash", action = "Search" },
+]
+navigation = [
+    { key = "I", shift = true, action = "InboxInCurrent" },
+    { key = "I", shift = true, ctrl = true, action = "InboxInNewWindow" },
+    { key = "A", shift = true, action = "AccountManagementInCurrent" },
+    { key = "A", shift = true, ctrl = true, action = "AccountManagementInNewWindow" },
+    { key = "S", shift = true, action = "SplitHorizontal" },
+    { key = "V", shift = true, action = "SplitVertical" },
+]
+navigationItem = [
+    { key = "Enter", shift = true, action = "NavigateInNewWindow" },
+]
+focus = [
+    { key = "DirectionUp", action = "FocusUp" },
+    { key = "DirectionDown", action = "FocusDown" },
+    { key = "DirectionLeft", action = "FocusLeft" },
+    { key = "DirectionRight", action = "FocusRight" },
+    { key = "K", action = "FocusUp" },
+    { key = "J", action = "FocusDown" },
+    { key = "H", action = "FocusLeft" },
+    { key = "L", action = "FocusRight" },
+    { key = "E", action = "FocusUp" },
+    { key = "N", action = "FocusDown" },
+    { key = "I", action = "FocusRight" },
+    { key = "H", shift = true, action = "FocusTop" },
+    { key = "M", shift = true, action = "FocusCenter" },
+    { key = "L", shift = true, action = "FocusBottom" },
+    { key = "Escape", action = "FocusParent" },
+    { key = "MoveHome", action = "FocusTop" },
+    { key = "MoveEnd", action = "FocusBottom" },
+]
+list = [
+    { key = "G", action = "FocusTop" },
+    { key = "G", shift = true, action = "FocusBottom" },
+]
+split = [
+    { key = "Q", shift = true, action = "Close" },
+]
+event = [
+    { key = "M", action = "MarkRead" },
+    { key = "M", ctrl = true, action = "MarkReadPrivate" },
+]

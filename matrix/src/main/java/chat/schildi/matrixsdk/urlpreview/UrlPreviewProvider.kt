@@ -1,8 +1,7 @@
 package chat.schildi.matrixsdk.urlpreview
 
-import chat.schildi.revenge.util.ScAppDirs
+import chat.schildi.revenge.config.ScAppDirs
 import dev.zacsweers.metro.Inject
-import io.element.android.libraries.di.annotations.ApplicationContext
 import io.element.android.libraries.matrix.api.MatrixClient
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.ExperimentalSerializationApi

@@ -11,6 +11,7 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/composeApp" />
+            <option value="$PROJECT_DIR$/config" />
             <option value="$PROJECT_DIR$/matrix" />
             <option value="$PROJECT_DIR$/shim" />
           </set>

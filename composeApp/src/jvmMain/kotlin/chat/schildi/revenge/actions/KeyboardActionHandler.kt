@@ -9,6 +9,10 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyDown
+import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
+import androidx.compose.ui.input.key.isAltPressed
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.LayoutCoordinates
@@ -19,6 +23,9 @@ import chat.schildi.revenge.compose.focus.FocusParent
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
+import chat.schildi.revenge.config.keybindings.Action
+import chat.schildi.revenge.config.keybindings.KeyMapped
+import chat.schildi.revenge.config.keybindings.KeyTrigger
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -97,6 +104,8 @@ class KeyboardActionHandler(
     }
 
     private val focusableTargets = ConcurrentHashMap<UUID, FocusTarget>()
+
+    private val pendingKeyTriggersInAction = ConcurrentHashMap<KeyTrigger, Unit>()
 
     private fun distanceToRect(rect: Rect, p: Offset): Float {
         val nearestX = p.x.coerceIn(rect.left, rect.right)
@@ -227,9 +236,22 @@ class KeyboardActionHandler(
     }
 
     fun onPreviewKeyEvent(event: KeyEvent): Boolean {
-        return when (val mode = mode.value) {
-            is KeyboardActionMode.Navigation -> handleNavigationEvent(event)
-            is KeyboardActionMode.Search -> handleSearchEvent(event, mode)
+        val trigger = event.toTrigger() ?: return false
+        return when (event.type) {
+            KeyDown -> {
+                val consumed = when (val mode = mode.value) {
+                    is KeyboardActionMode.Navigation -> handleNavigationEvent(trigger)
+                    is KeyboardActionMode.Search -> handleSearchEvent(trigger, mode)
+                }
+                if (consumed) {
+                    pendingKeyTriggersInAction[trigger] = Unit
+                }
+                consumed
+            }
+            KeyUp -> {
+                pendingKeyTriggersInAction.remove(trigger) != null
+            }
+            else -> false
         }
     }
 
@@ -244,15 +266,15 @@ class KeyboardActionHandler(
         }
     }
 
-    private fun handleSearchEvent(event: KeyEvent, mode: KeyboardActionMode.Search): Boolean {
-        return when (event.key) {
-            Key.Escape -> {
+    private fun handleSearchEvent(key: KeyTrigger, mode: KeyboardActionMode.Search): Boolean {
+        return when (key.rawKey) {
+            KeyMapped.Escape -> {
                 updateMode { KeyboardActionMode.Navigation }
                 true
             }
-            Key.Enter -> {
+            KeyMapped.Enter -> {
                 if (mode.navigating) {
-                    handleNavigationEvent(event)
+                    handleNavigationEvent(key)
                 } else {
                     updateMode { mode.copy(navigating = true) }
                     windowCoordinates?.let {
@@ -261,11 +283,11 @@ class KeyboardActionHandler(
                     true
                 }
             }
-            Key.DirectionUp -> false // TODO cycle search history
-            Key.DirectionDown -> false // TODO cycle search history
+            KeyMapped.DirectionUp -> false // TODO cycle search history; configurable binding?
+            KeyMapped.DirectionDown -> false // TODO cycle search history; configurable binding?
             else -> {
                 if (mode.navigating) {
-                    handleNavigationEvent(event)
+                    handleNavigationEvent(key)
                 } else {
                     false
                 }
@@ -311,98 +333,102 @@ class KeyboardActionHandler(
         } ?: false
     }
 
-    private fun handleNavigationEvent(event: KeyEvent): Boolean {
+    private fun handleNavigationEvent(key: KeyTrigger): Boolean {
         val focused = currentFocused()
-        if (focused?.actions?.keyActions?.handleNavigationModeEvent(event) == true) {
+        if (focused?.actions?.keyActions?.handleNavigationModeEvent(key) == true) {
             // Allow focused-item specific handling
             return true
         }
-        if (event.type == KeyDown) {
-            // TODO make this configurable
-            return if (event.isOnlyShiftPressed) {
-                when (event.key) {
-                    // Relative focus - TODO should maintain X offset rather than assuming center?
-                    Key.H -> focusCurrentContainerRelative { it.topCenter }
-                    Key.M -> focusCurrentContainerRelative { it.center }
-                    Key.L -> focusCurrentContainerRelative { it.bottomCenter }
-                    // Some navigation
-                    Key.I -> navigateCurrentDestination(Destination.Inbox)
-                    Key.A -> navigateCurrentDestination(Destination.AccountManagement)
-                    // Split actions
-                    Key.V -> navigateCurrentDestination {
-                        Destination.SplitHorizontal(
-                            DestinationStateHolder.forInitialDestination(it),
-                            DestinationStateHolder.forInitialDestination(it),
-                        )
+        val keyConfig = UiState.keybindingsConfig.value
+
+        (focused?.actions?.primaryAction as? InteractionAction.NavigationAction)?.let { navigationActionable ->
+            val navigationAction = keyConfig.navigationItem.find { it.trigger == key}
+            if (navigationAction != null) {
+                val destination = navigationActionable.buildDestination()
+                return when (navigationAction.action) {
+                    Action.NavigationItem.NavigateCurrent -> {
+                        val destinationStateHolder = focused.destinationStateHolder ?: return false
+                        navigateCurrentDestination(destination, destinationStateHolder)
                     }
-                    Key.S -> navigateCurrentDestination {
-                        Destination.SplitVertical(
-                            DestinationStateHolder.forInitialDestination(it),
-                            DestinationStateHolder.forInitialDestination(it),
-                        )
-                    }
-                    // Tertiary action (usually same as mouse middle click)
-                    Key.Enter -> focused?.actions?.tertiaryAction?.let(::executeAction) ?: false
-                    // List-specific navigation
-                    Key.G -> scrollListToBottom()
-                    // Other
-                    Key.T -> {
-                        // TODO possible to get back to automatic theme?
-                        UiState.darkThemeOverride.update {
-                            it != true
-                        }
+                    Action.NavigationItem.NavigateInNewWindow -> {
+                        UiState.openWindow(destination, navigationActionable.initialTitle)
                         true
                     }
-                    Key.D -> {
-                        UiState.setShowHiddenItems(!UiState.showHiddenItems.value)
-                        true
-                    }
-                    else -> false
                 }
-            } else if (event.isOnlyCtrlPressed) {
-                when (event.key) {
-                    // Secondary action (usually same as mouse right click)
-                    Key.Enter -> focused?.actions?.secondaryAction?.let(::executeAction) ?: false
-                    else -> false
+            }
+        }
+
+        val listAction = keyConfig.list.find { it.trigger == key }
+        if (listAction != null) {
+            return when (listAction.action) {
+                Action.List.ScrollToTop -> scrollListToTop(focused)
+                Action.List.ScrollToBottom -> scrollListToBottom(focused)
+            }
+        }
+        val focusAction = keyConfig.focus.find { it.trigger == key }
+        if (focusAction != null) {
+            return when (focusAction.action) {
+                Action.Focus.FocusUp -> moveFocus(FocusDirection.Up)
+                Action.Focus.FocusDown -> moveFocus(FocusDirection.Down)
+                Action.Focus.FocusLeft -> moveFocus(FocusDirection.Left)
+                Action.Focus.FocusRight -> moveFocus(FocusDirection.Right)
+                Action.Focus.FocusTop -> focusCurrentContainerRelative { it.topCenter } // TODO keep X offset rather than assuming center
+                Action.Focus.FocusCenter -> focusCurrentContainerRelative { it.center } // TODO keep X offset rather than assuming center
+                Action.Focus.FocusBottom -> focusCurrentContainerRelative { it.bottomCenter } // TODO keep X offset rather than assuming center
+                Action.Focus.FocusParent -> focusParent()
+            }
+        }
+        val navigationAction = keyConfig.navigation.find { it.trigger == key }
+        if (navigationAction != null) {
+            return when (navigationAction.action) {
+                Action.Navigation.InboxInCurrent -> navigateCurrentDestination { Destination.Inbox }
+                Action.Navigation.AccountManagementInCurrent -> navigateCurrentDestination {
+                    Destination.AccountManagement
                 }
-            } else if (event.isNoModifierPressed) {
-                when (event.key) {
-                    // Arrow keys
-                    Key.DirectionLeft -> moveFocus(FocusDirection.Left)
-                    Key.DirectionRight -> moveFocus(FocusDirection.Right)
-                    Key.DirectionUp -> moveFocus(FocusDirection.Up)
-                    Key.DirectionDown -> moveFocus(FocusDirection.Down)
-                    // QWERTY VIM-like navigation
-                    Key.H -> moveFocus(FocusDirection.Left)
-                    Key.J -> moveFocus(FocusDirection.Down)
-                    Key.K -> moveFocus(FocusDirection.Up)
-                    Key.L -> moveFocus(FocusDirection.Right)
-                    // Colemak VIM-like navigation
-                    Key.E -> moveFocus(FocusDirection.Up)
-                    Key.N -> moveFocus(FocusDirection.Down)
-                    Key.I -> moveFocus(FocusDirection.Right)
-                    // Primary action (usually same as mouse click) + container navigation
-                    Key.Enter -> {
-                        if (focused?.role == FocusRole.CONTAINER) {
-                            focusClosestTo(Offset.Zero, parentId = focused.id)
-                        } else {
-                            focused?.actions?.primaryAction?.let(::executeAction) ?: false
-                        }
-                    }
-                    Key.Escape -> focusParent()
-                    // List-specific navigation
-                    Key.G -> scrollListToTop()
-                    Key.MoveHome -> scrollListToTop()
-                    Key.MoveEnd -> scrollListToBottom()
-                    // Mode switching
-                    Key.Slash -> handleSearchUpdate("", navigating = false) {
-                        // TODO search -> search-nav -> search inserts a slash into search field by accident
-                        focusByRole(FocusRole.SEARCH_BAR)
-                    }
-                    else -> false
+                Action.Navigation.InboxInNewWindow -> {
+                    UiState.openWindow(Destination.Inbox)
+                    true
                 }
-            } else {
-                false
+                Action.Navigation.AccountManagementInNewWindow -> {
+                    UiState.openWindow(Destination.AccountManagement)
+                    true
+                }
+                Action.Navigation.SplitHorizontal -> navigateCurrentDestination {
+                    Destination.SplitHorizontal(
+                        DestinationStateHolder.forInitialDestination(it),
+                        DestinationStateHolder.forInitialDestination(it),
+                    )
+                }
+                Action.Navigation.SplitVertical -> navigateCurrentDestination {
+                    Destination.SplitVertical(
+                        DestinationStateHolder.forInitialDestination(it),
+                        DestinationStateHolder.forInitialDestination(it),
+                    )
+                }
+            }
+        }
+        val globalAction = keyConfig.global.find { it.trigger == key }
+        if (globalAction != null) {
+            return when (globalAction.action) {
+                Action.Global.Search -> handleSearchUpdate("", navigating = false) {
+                    // TODO search -> search-nav -> search inserts a slash into search field by accident
+                    focusByRole(FocusRole.SEARCH_BAR)
+                }
+                Action.Global.ToggleTheme -> {
+                    UiState.darkThemeOverride.update {
+                        // TODO if override is null, read automatic theme
+                        !(it ?: false)
+                    }
+                    true
+                }
+                Action.Global.AutomaticTheme -> {
+                    UiState.darkThemeOverride.value = null
+                    true
+                }
+                Action.Global.ToggleHiddenItems -> {
+                    UiState.setShowHiddenItems(!UiState.showHiddenItems.value)
+                    true
+                }
             }
         }
         return false
@@ -525,4 +551,14 @@ class KeyboardActionHandler(
         success?.let(handleSuccess)
         return success != null
     }
+}
+
+private fun KeyEvent.toTrigger(): KeyTrigger? {
+    val rawKey = KeyMapped.entries.find { it.key.keyCode == key.keyCode } ?: return null
+    return KeyTrigger(
+        rawKey = rawKey,
+        shift = isShiftPressed,
+        alt = isAltPressed,
+        ctrl = isCtrlPressed,
+    )
 }

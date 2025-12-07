@@ -12,6 +12,7 @@ metro = "0.7.5"
 coil = "3.3.0"
 kdroidfilterPlatformtools = "0.7.4"
 kdroidfilterComposeNativeTray = "1.0.4"
+ktoml = "0.7.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -26,8 +27,9 @@ jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 kermit = "co.touchlab:kermit:2.0.8"
 appdirs = "ca.gosyer:kotlin-multiplatform-appdirs:2.0.0"
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
 kotlinx-collections-immutable = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable", version = "0.4.0" }
-yaml-kt = "net.mamoe.yamlkt:yamlkt:0.13.0"
+ktoml-core = { module = "com.akuleshov7:ktoml-core", version.ref = "ktoml" }
 metro_gradle_plugin = { module = "dev.zacsweers.metro:gradle-plugin", version.ref = "metro" }
 metro_runtime = { module = "dev.zacsweers.metro:runtime", version.ref = "metro" }
 coil3_compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }

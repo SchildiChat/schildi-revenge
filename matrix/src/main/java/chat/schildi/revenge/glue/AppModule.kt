@@ -1,7 +1,7 @@
 package chat.schildi.revenge.glue
 
 import android.content.Context
-import chat.schildi.revenge.util.ScAppDirs
+import chat.schildi.revenge.config.ScAppDirs
 import coil3.PlatformContext
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.BindingContainer

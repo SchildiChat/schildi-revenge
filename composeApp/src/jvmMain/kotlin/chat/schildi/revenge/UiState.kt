@@ -3,6 +3,8 @@ package chat.schildi.revenge
 import androidx.compose.ui.window.ApplicationScope
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.Destination
+import chat.schildi.revenge.config.ConfigWatchers
+import chat.schildi.revenge.config.keybindings.KeybindingConfig
 import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.createGraphFactory
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -46,6 +48,9 @@ object UiState {
 
     private val _minimizedToTray = MutableStateFlow(false)
     val minimizedToTray = _minimizedToTray.asStateFlow()
+
+    private val keybindingsConfigWatcher = ConfigWatchers.keybindings(scope)
+    val keybindingsConfig = keybindingsConfigWatcher.config
 
     init {
         scope.launch {

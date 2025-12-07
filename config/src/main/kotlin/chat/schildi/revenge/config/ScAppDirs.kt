@@ -1,4 +1,4 @@
-package chat.schildi.revenge.util
+package chat.schildi.revenge.config
 
 import ca.gosyer.appdirs.AppDirs
 

@@ -30,6 +30,7 @@ kotlin {
             implementation(libs.kdroidfilter.composenativetray)
 
             implementation(projects.matrix)
+            implementation(projects.config)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
