@@ -75,7 +75,10 @@ fun InboxRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             AvatarImage(
-                source = room.summary.info.avatarUrl?.let { MediaSource(it) },
+                source = room.summary.info.avatarUrl?.let { MediaSource(it) }
+                    ?: room.summary.info.heroes.takeIf { it.size == 1}?.firstOrNull()?.avatarUrl?.let {
+                        MediaSource(it)
+                    },
                 size = Dimens.Inbox.avatar,
             )
             Column(
