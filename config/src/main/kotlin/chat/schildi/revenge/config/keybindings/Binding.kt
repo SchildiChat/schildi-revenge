@@ -12,6 +12,7 @@ data class Binding<A : Action>(
     val alt: Boolean = false,
     val ctrl: Boolean = false,
     val action: A,
+    val args: List<String> = emptyList(),
 ) {
     val key: Key
         get() = rawKey.key

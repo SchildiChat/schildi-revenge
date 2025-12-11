@@ -1,18 +1,15 @@
 package chat.schildi.revenge.model
 
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.key
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import chat.schildi.preferences.RevengePrefs
 import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.actions.KeyboardActionProvider
-import chat.schildi.revenge.actions.isNoModifierPressed
-import chat.schildi.revenge.actions.isOnlyCtrlPressed
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
@@ -118,8 +115,22 @@ class ConversationViewModel(
     }
 
     override fun handleNavigationModeEvent(key: KeyTrigger): Boolean {
-        // TODO?
-        return false
+        val keyConfig = UiState.keybindingsConfig.value
+        val conversationAction = keyConfig.conversation.find { it.trigger == key } ?: return false
+        return when (conversationAction.action) {
+            Action.Conversation.SetSetting -> {
+                viewModelScope.launch {
+                    RevengePrefs.handleSetAction(conversationAction.args)
+                }
+                true
+            }
+            Action.Conversation.ToggleSetting -> {
+                viewModelScope.launch {
+                    RevengePrefs.handleToggleAction(conversationAction.args)
+                }
+                true
+            }
+        }
     }
 
     private fun markEventAsRead(eventId: EventId, receiptType: ReceiptType): Boolean {

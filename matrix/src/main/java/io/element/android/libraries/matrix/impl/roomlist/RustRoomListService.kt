@@ -8,8 +8,6 @@
 
 package io.element.android.libraries.matrix.impl.roomlist
 
-import chat.schildi.lib.preferences.ScPreferencesStore
-import chat.schildi.lib.preferences.ScPrefs
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.roomlist.DynamicRoomList
 import io.element.android.libraries.matrix.api.roomlist.RoomList
@@ -39,7 +37,6 @@ internal class RustRoomListService(
     private val sessionDispatcher: CoroutineDispatcher,
     private val roomListFactory: RoomListFactory,
     private val roomSyncSubscriber: RoomSyncSubscriber,
-    private val scPreferencesStore: ScPreferencesStore,
     sessionCoroutineScope: CoroutineScope,
 ) : RoomListService {
 
@@ -69,15 +66,7 @@ internal class RustRoomListService(
         pageSize = DEFAULT_PAGE_SIZE,
         coroutineContext = sessionDispatcher,
         isSpaceList = false,
-        initialInboxSettings = ScSdkInboxSettings(
-            sortOrder = ScSdkRoomSortOrder(
-                byUnread = scPreferencesStore.getCachedOrDefaultValue(ScPrefs.SORT_BY_UNREAD),
-                pinFavourites = scPreferencesStore.getCachedOrDefaultValue(ScPrefs.PIN_FAVORITES),
-                buryLowPriority = scPreferencesStore.getCachedOrDefaultValue(ScPrefs.BURY_LOW_PRIORITY),
-                clientSideUnreadCounts = scPreferencesStore.getCachedOrDefaultValue(ScPrefs.CLIENT_GENERATED_UNREAD_COUNTS),
-                withSilentUnread = scPreferencesStore.getCachedOrDefaultValue(ScPrefs.SORT_WITH_SILENT_UNREAD),
-            )
-        ),
+        initialInboxSettings = ScSdkInboxSettings(), // TODO can we initialize this smarter with prefs
     ) {
         innerRoomListService.allRooms()
     }

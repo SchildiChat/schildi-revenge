@@ -6,7 +6,6 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyDown
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
@@ -17,6 +16,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInWindow
+import chat.schildi.preferences.RevengePrefs
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.focus.FocusParent
@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.math.sqrt
@@ -432,7 +433,20 @@ class KeyboardActionHandler(
                     true
                 }
                 Action.Global.ToggleHiddenItems -> {
+                    // TODO move to normal ScPref
                     UiState.setShowHiddenItems(!UiState.showHiddenItems.value)
+                    true
+                }
+                Action.Global.SetSetting -> {
+                    scope.launch {
+                        RevengePrefs.handleSetAction(globalAction.args)
+                    }
+                    true
+                }
+                Action.Global.ToggleSetting -> {
+                    scope.launch {
+                        RevengePrefs.handleToggleAction(globalAction.args)
+                    }
                     true
                 }
             }

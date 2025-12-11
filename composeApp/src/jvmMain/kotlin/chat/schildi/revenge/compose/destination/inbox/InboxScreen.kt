@@ -17,7 +17,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.ListAction
+import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
+import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.model.InboxViewModel
 
@@ -27,6 +29,7 @@ fun InboxScreen() {
     val listState = rememberLazyListState()
     CompositionLocalProvider(
         LocalSearchProvider provides viewModel,
+        LocalKeyboardActionProvider provides viewModel.hierarchicalKeyboardActionProvider(),
         LocalListActionProvider provides remember(listState) { ListAction(listState) },
     ) {
         Column(Modifier.widthIn(max = Dimens.Inbox.maxWidth).fillMaxSize()) {

@@ -27,4 +27,18 @@ inline fun <I, reified T, M>Flow<List<I>>.flatMerge(
     }
 }
 
+@OptIn(ExperimentalCoroutinesApi::class)
+inline fun <I, reified T, M, S>Flow<List<I>>.flatMergeCombinedWith(
+    crossinline map: suspend (I) -> Flow<T>,
+    crossinline onUpdatedInput: suspend (List<I>, S) -> Unit = ::inlinableNoOp,
+    crossinline merge: suspend (Array<T>, S) -> M,
+    other: Flow<S>,
+) = combine(other) { a, b -> Pair(a, b) }.flatMapLatest { (it, other) ->
+    onUpdatedInput(it, other)
+    combine(it.map { graph -> map(graph) }) {
+        merge(it, other)
+    }
+}
+
 suspend fun <T>inlinableNoOp(ignored: List<T>) {}
+suspend fun <T, S>inlinableNoOp(ignored1: List<T>, ignored2: S) {}

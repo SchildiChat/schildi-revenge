@@ -8,7 +8,6 @@
 
 package io.element.android.libraries.matrix.impl
 
-import chat.schildi.lib.preferences.ScPreferencesStore
 import dev.zacsweers.metro.Inject
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
 import io.element.android.libraries.core.data.ByteUnit
@@ -54,7 +53,6 @@ class RustMatrixClientFactory(
     private val appCoroutineScope: CoroutineScope,
     private val coroutineDispatchers: CoroutineDispatchers,
     private val sessionStore: SessionStore,
-    private val scPreferencesStore: ScPreferencesStore,
     private val userAgentProvider: UserAgentProvider,
     private val userCertificatesProvider: UserCertificatesProvider,
     private val proxyProvider: ProxyProvider,
@@ -114,7 +112,6 @@ class RustMatrixClientFactory(
             baseCacheDirectory = cacheDirectory,
             clock = clock,
             timelineEventTypeFilterFactory = timelineEventTypeFilterFactory,
-            scPreferencesStore = scPreferencesStore,
             featureFlagService = featureFlagService,
             analyticsService = analyticsService,
         ).also {

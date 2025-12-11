@@ -6,6 +6,8 @@ sealed interface Action {
         ToggleTheme,
         AutomaticTheme,
         ToggleHiddenItems,
+        SetSetting,
+        ToggleSetting,
     }
     enum class Navigation : Action {
         InboxInCurrent,
@@ -36,8 +38,14 @@ sealed interface Action {
     enum class Split : Action {
         Close,
     }
-    enum class Inbox : Action
-    enum class Conversation : Action
+    enum class Inbox : Action {
+        SetSetting,
+        ToggleSetting,
+    }
+    enum class Conversation : Action {
+        SetSetting,
+        ToggleSetting,
+    }
     enum class Event : Action {
         MarkRead,
         MarkReadPrivate,

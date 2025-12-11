@@ -21,6 +21,7 @@ kotlin {
                 implementation(libs.kotlinx.serialization.core)
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.ktoml.core)
+                implementation(libs.androidx.datastore.preferences.core)
                 api(libs.appdirs)
             }
         }

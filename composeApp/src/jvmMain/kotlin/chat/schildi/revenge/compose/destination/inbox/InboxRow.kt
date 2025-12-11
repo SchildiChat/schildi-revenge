@@ -27,8 +27,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import chat.schildi.lib.preferences.ScPrefs
-import chat.schildi.lib.preferences.value
+import chat.schildi.preferences.ScPrefs
+import chat.schildi.preferences.value
 import chat.schildi.lib.util.formatUnreadCount
 import chat.schildi.revenge.DateTimeFormat
 import chat.schildi.revenge.Dimens
@@ -112,7 +112,7 @@ private fun RowScope.ScNameAndTimestampRow(room: RoomSummary) {
     )
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         // Favorite
-        if (room.info.isFavorite) {
+        if (room.info.isFavorite && ScPrefs.PIN_FAVORITES.value()) {
             Icon(
                 imageVector = Icons.Default.Star,
                 contentDescription = null,
@@ -121,7 +121,7 @@ private fun RowScope.ScNameAndTimestampRow(room: RoomSummary) {
             )
         }
         // Low prio
-        if (room.info.isLowPriority) {
+        if (room.info.isLowPriority && ScPrefs.BURY_LOW_PRIORITY.value()) {
             Icon(
                 imageVector = Icons.Default.Archive,
                 contentDescription = null,
