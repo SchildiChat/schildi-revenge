@@ -36,9 +36,9 @@ sealed interface MessageTypeWithAttachment : MessageType {
 }
 
 data class EmoteMessageType(
-    val body: String,
-    val formatted: FormattedBody?
-) : MessageType
+    override val body: String,
+    override val formatted: FormattedBody?
+) : TextLikeMessageType
 
 data class ImageMessageType(
     override val filename: String,

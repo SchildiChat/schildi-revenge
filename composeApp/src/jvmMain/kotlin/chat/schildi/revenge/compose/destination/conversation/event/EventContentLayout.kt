@@ -1,6 +1,5 @@
 package chat.schildi.revenge.compose.destination.conversation.event
 
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import chat.schildi.revenge.compose.destination.conversation.event.message.MessageLayout
@@ -11,7 +10,6 @@ import chat.schildi.revenge.compose.destination.conversation.event.sender.Sender
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.timeline.item.event.AudioMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.CallNotifyContent
-import io.element.android.libraries.matrix.api.timeline.item.event.EmoteMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.EventContent
 import io.element.android.libraries.matrix.api.timeline.item.event.FailedToParseMessageLikeContent
 import io.element.android.libraries.matrix.api.timeline.item.event.FailedToParseStateContent
@@ -35,6 +33,11 @@ import io.element.android.libraries.matrix.api.timeline.item.event.UnableToDecry
 import io.element.android.libraries.matrix.api.timeline.item.event.UnknownContent
 import io.element.android.libraries.matrix.api.timeline.item.event.VideoMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.VoiceMessageType
+import org.jetbrains.compose.resources.stringResource
+import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.message_placeholder_message_failed_to_parse
+import shire.composeapp.generated.resources.message_placeholder_message_redacted
+import shire.composeapp.generated.resources.message_placeholder_unable_to_decrypt
 
 @Composable
 fun EventContentLayout(
@@ -46,82 +49,88 @@ fun EventContentLayout(
     inReplyTo: InReplyTo?,
     modifier: Modifier = Modifier
 ) {
+    @Composable
+    fun EventMessageLayout(messageContent: @Composable () -> Unit) {
+        MessageLayout(
+            modifier = modifier,
+            isOwn = isOwn,
+            senderAvatar = {
+                if (!isSameAsPreviousSender) {
+                    SenderAvatar(senderProfile)
+                }
+            },
+            senderName = {
+                if (!isSameAsPreviousSender) {
+                    SenderName(senderId, senderProfile)
+                }
+            },
+            messageContent = messageContent,
+            reactions = {
+                // TODO
+            }
+        )
+    }
+    @Composable
+    fun EventMessageFallback(text: String) {
+        EventMessageLayout {
+            MessageFallback(text, isOwn, inReplyTo)
+        }
+    }
     // TODO make sure every item also renders timestamps in some form
     when (val content = content) {
         is MessageContent -> {
-            MessageLayout(
-                modifier = modifier,
-                isOwn = isOwn,
-                senderAvatar = {
-                    if (!isSameAsPreviousSender) {
-                        SenderAvatar(senderProfile)
+            EventMessageLayout {
+                when (val contentType = content.type) {
+                    is TextLikeMessageType -> {
+                        TextLikeMessage(contentType, isOwn, inReplyTo)
                     }
-                },
-                senderName = {
-                    if (!isSameAsPreviousSender) {
-                        SenderName(senderId, senderProfile)
+                    is ImageMessageType -> {
+                        ImageMessage(contentType, isOwn, inReplyTo)
                     }
-                },
-                messageContent = {
-                    when (val contentType = content.type) {
-                        is TextLikeMessageType -> {
-                            TextLikeMessage(contentType, isOwn, inReplyTo)
-                        }
-                        is ImageMessageType -> {
-                            ImageMessage(contentType, isOwn, inReplyTo)
-                        }
-                        is EmoteMessageType -> {
-                            // TODO
-                            Text("EMOTE")
-                        }
-                        is LocationMessageType -> {
-                            // TODO
-                            Text("LOCATION")
-                        }
-                        is AudioMessageType -> {
-                            // TODO
-                            Text("AUDIO")
-                        }
-                        is FileMessageType -> {
-                            // TODO
-                            Text("FILE")
-                        }
-                        is StickerMessageType -> {
-                            // TODO
-                            Text("STICKER")
-                        }
-                        is VideoMessageType -> {
-                            // TODO
-                            Text("VIDEO")
-                        }
-                        is VoiceMessageType -> {
-                            // TODO
-                            Text("VOICE")
-                        }
-                        is OtherMessageType -> {
-                            // TODO
-                            Text("OTHER_MESSAGE")
-                        }
+                    is LocationMessageType -> {
+                        // TODO
+                        MessageFallback("LOCATION", isOwn, inReplyTo)
                     }
-                },
-                reactions = {
-                    // TODO
-                },
-            )
+                    is AudioMessageType -> {
+                        // TODO
+                        MessageFallback("AUDIO", isOwn, inReplyTo)
+                    }
+                    is FileMessageType -> {
+                        // TODO
+                        MessageFallback("FILE", isOwn, inReplyTo)
+                    }
+                    is StickerMessageType -> {
+                        // TODO
+                        MessageFallback("STICKER", isOwn, inReplyTo)
+                    }
+                    is VideoMessageType -> {
+                        // TODO
+                        MessageFallback("VIDEO", isOwn, inReplyTo)
+                    }
+                    is VoiceMessageType -> {
+                        // TODO
+                        MessageFallback("VOICE", isOwn, inReplyTo)
+                    }
+                    is OtherMessageType -> {
+                        // TODO
+                        MessageFallback("OTHER_MESSAGE", isOwn, inReplyTo)
+                    }
+                }
+            }
         }
 
         // TODO
-        CallNotifyContent -> Text("CALL")
-        is FailedToParseMessageLikeContent -> Text("FAILED TO PARSE")
-        is FailedToParseStateContent -> Text("FAILED TO PARSE STATE")
-        LegacyCallInviteContent -> Text("LEGACY CALL INVITE")
-        is PollContent -> Text("POLL")
-        is ProfileChangeContent -> Text("PROFILE CHANGE")
-        RedactedContent -> Text("REDACTED")
-        is RoomMembershipContent -> Text("MEMBERSHIP")
-        is StateContent -> Text("STATE")
-        is StickerContent -> Text("STICKER")
-        is UnableToDecryptContent -> Text("UTD")
-        UnknownContent -> Text("UNKNOWN")
+        CallNotifyContent -> EventMessageFallback("CALL")
+        is FailedToParseMessageLikeContent -> EventMessageFallback(stringResource(Res.string.message_placeholder_message_failed_to_parse))
+        is FailedToParseStateContent -> EventMessageFallback("FAILED TO PARSE STATE")
+        LegacyCallInviteContent -> EventMessageFallback("LEGACY CALL INVITE")
+        is PollContent -> EventMessageFallback("POLL")
+        is ProfileChangeContent -> EventMessageFallback("PROFILE CHANGE")
+        RedactedContent -> EventMessageFallback(stringResource(Res.string.message_placeholder_message_redacted)) // TODO can I tell if user deleted themselves or someone else?
+        is RoomMembershipContent -> EventMessageFallback("MEMBERSHIP")
+        is StateContent -> EventMessageFallback("STATE")
+        is StickerContent -> EventMessageFallback("STICKER")
+        is UnableToDecryptContent -> EventMessageFallback(stringResource(Res.string.message_placeholder_unable_to_decrypt))
+        UnknownContent -> EventMessageFallback("UNKNOWN")
     }
 }

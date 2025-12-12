@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.AnnotatedString
+import io.element.android.libraries.matrix.api.timeline.item.event.EmoteMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 import io.element.android.libraries.matrix.api.timeline.item.event.NoticeMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.TextLikeMessageType
@@ -22,15 +23,31 @@ fun TextLikeMessage(
     val alpha = when (message) {
         is TextMessageType -> 1f
         is NoticeMessageType -> 0.7f
+        is EmoteMessageType -> 0f // TODO?
     }
     // TODO
+    TextLikeMessage(
+        // TODO message formatting, links, url previews, ...
+        text = AnnotatedString(message.body),
+        isOwn = isOwn,
+        inReplyTo = inReplyTo,
+        modifier = modifier.alpha(alpha),
+    )
+}
+
+@Composable
+fun TextLikeMessage(
+    text: AnnotatedString,
+    isOwn: Boolean,
+    inReplyTo: InReplyTo?,
+    modifier: Modifier = Modifier
+) {
     MessageBubble(
         isOwn = isOwn,
-        modifier = modifier.alpha(alpha),
+        modifier = modifier,
     ) {
         inReplyTo?.let { ReplyContent(it) }
-        // TODO message formatting, links, url previews, ...
-        TextLikeMessageContent(AnnotatedString(message.body))
+        TextLikeMessageContent(text)
     }
 }
 
