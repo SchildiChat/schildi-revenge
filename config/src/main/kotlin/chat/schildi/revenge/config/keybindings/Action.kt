@@ -45,6 +45,12 @@ sealed interface Action {
     enum class Conversation : Action {
         SetSetting,
         ToggleSetting,
+        FocusComposer,
+        HideComposerIfEmpty,
+        ComposeMessage,
+        ComposeNotice,
+        ComposeEmote,
+        ComposerSend,
     }
     enum class Event : Action {
         MarkRead,

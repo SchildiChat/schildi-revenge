@@ -57,7 +57,7 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [ ] View event source
     - [x] Render plain text and notices
     - [ ] Render formatted text and notices
-    - [ ] Send text messages
+    - [x] Send text messages
     - [ ] Render read receipts
     - [ ] Render media
     - [x] Render reactions

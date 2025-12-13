@@ -10,6 +10,14 @@ inbox = [
     { key = "L", ctrl = true, action = "ToggleSetting", args = ["BURY_LOW_PRIORITY"] },
     { key = "F", ctrl = true, action = "ToggleSetting", args = ["PIN_FAVORITES"] },
 ]
+conversation = [
+    { key = "I", ctrl = true, action = "FocusComposer" },
+    { key = "M", ctrl = true, action = "ComposeMessage" },
+    { key = "E", ctrl = true, action = "ComposeEmote" },
+    { key = "N", ctrl = true, action = "ComposeNotice" },
+    { key = "Enter", ctrl = true, action = "ComposerSend" },
+    { key = "Escape", action = "HideComposerIfEmpty" },
+]
 navigation = [
     { key = "I", shift = true, action = "InboxInCurrent" },
     { key = "I", shift = true, ctrl = true, action = "InboxInNewWindow" },

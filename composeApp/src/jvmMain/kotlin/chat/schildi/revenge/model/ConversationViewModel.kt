@@ -9,6 +9,8 @@ import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.Destination
+import chat.schildi.revenge.actions.FocusRole
+import chat.schildi.revenge.actions.KeyboardActionHandler
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
@@ -25,12 +27,14 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -39,8 +43,9 @@ import kotlinx.coroutines.launch
 class ConversationViewModel(
     private val sessionId: SessionId,
     private val roomId: RoomId,
+    private val keyboardActionHandler: KeyboardActionHandler,
     private val appGraph: AppGraph = UiState.appGraph,
-) : ViewModel(), TitleProvider, KeyboardActionProvider {
+) : ViewModel(), TitleProvider, KeyboardActionProvider, ComposerViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
 
     private val clientFlow = UiState.selectClient(sessionId, viewModelScope)
@@ -52,7 +57,7 @@ class ConversationViewModel(
     }
     private val roomPair = clientFlow.map { client ->
         Pair(client?.getRoom(roomId), client?.getJoinedRoom(roomId))
-    }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, Pair(null, null))
 
     private val roomGraphFlow = combine(sessionGraphFlow, roomPair) { sessionGraph, (baseRoom, joinedRoom) ->
         sessionGraph ?: return@combine null
@@ -78,7 +83,7 @@ class ConversationViewModel(
 
     val activeTimeline = timelineController.flatMapLatest {
         it?.activeTimelineFlow() ?: flowOf(null)
-    }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val timelineItems = activeTimeline.flatMapLatest {
         it ?: return@flatMapLatest flowOf(persistentListOf())
@@ -87,6 +92,68 @@ class ConversationViewModel(
 
     val forwardPaginationStatus = activeTimeline.flatMapLatest { it?.forwardPaginationStatus ?: flowOf(null) }
     val backwardPaginationStatus = activeTimeline.flatMapLatest { it?.backwardPaginationStatus ?: flowOf(null) }
+
+    private val draftKey = DraftKey(sessionId, roomId)
+    override val composerState = DraftRepo.followDraft(draftKey).map {
+        it ?: DraftValue()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, DraftValue())
+
+    private val forceShowComposer = MutableStateFlow(false)
+    val shouldShowComposer = combine(composerState, forceShowComposer) { state, force ->
+        force || !state.isEmpty()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, forceShowComposer.value)
+
+    override fun onComposerUpdate(value: DraftValue) {
+        DraftRepo.update(draftKey, value)
+    }
+
+    override fun sendMessage(): Boolean {
+        val draft = composerState.value
+        if (draft.isEmpty()) {
+            log.w("Refuse to send blank message")
+            return false
+        }
+        val currentTimeline = activeTimeline.value
+        if (currentTimeline == null) {
+            log.e("Cannot send message on null timeline")
+            return false
+        }
+        DraftRepo.update(draftKey, draft.copy(isSendInProgress = true))
+        viewModelScope.launch {
+            val result = when (draft.type) {
+                DraftType.TEXT -> {
+                    currentTimeline.sendMessage(
+                        body = draft.body,
+                        htmlBody = draft.htmlBody,
+                        intentionalMentions = draft.intentionalMentions,
+                    )
+                }
+                DraftType.NOTICE -> {
+                    currentTimeline.sendNotice(
+                        body = draft.body,
+                        htmlBody = draft.htmlBody,
+                        intentionalMentions = draft.intentionalMentions,
+                    )
+                }
+                DraftType.EMOTE -> {
+                    currentTimeline.sendEmote(
+                        body = draft.body,
+                        htmlBody = draft.htmlBody,
+                        intentionalMentions = draft.intentionalMentions,
+                    )
+                }
+            }
+            if (result.isSuccess) {
+                log.v("Message sent successfully in $roomId")
+                DraftRepo.deleteDraft(draftKey)
+            } else {
+                log.w("Failed to send message in $roomId")
+                DraftRepo.update(draftKey, draft.copy(isSendInProgress = false))
+            }
+        }
+        forceShowComposer.value = false
+        return true
+    }
 
     override val windowTitle: Flow<ComposableStringHolder?> = roomPair.map { (baseRoom, joinedRoom) ->
         baseRoom?.info()?.name?.toStringHolder()
@@ -130,6 +197,41 @@ class ConversationViewModel(
                 }
                 true
             }
+            Action.Conversation.FocusComposer -> {
+                !forceShowComposer.getAndUpdate { true }
+                keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
+            }
+            Action.Conversation.HideComposerIfEmpty -> {
+                forceShowComposer.getAndUpdate { false }
+            }
+            Action.Conversation.ComposeMessage -> {
+                forceShowComposer.value = true
+                DraftRepo.update(draftKey) {
+                    it?.copy(type = DraftType.TEXT)
+                        ?: DraftValue(type = DraftType.TEXT)
+                }
+                keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
+                true
+            }
+            Action.Conversation.ComposeNotice -> {
+                forceShowComposer.value = true
+                DraftRepo.update(draftKey) {
+                    it?.copy(type = DraftType.NOTICE)
+                        ?: DraftValue(type = DraftType.NOTICE)
+                }
+                keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
+                true
+            }
+            Action.Conversation.ComposeEmote -> {
+                forceShowComposer.value = true
+                DraftRepo.update(draftKey) {
+                    it?.copy(type = DraftType.EMOTE)
+                        ?: DraftValue(type = DraftType.EMOTE)
+                }
+                keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
+                true
+            }
+            Action.Conversation.ComposerSend -> sendMessage()
         }
     }
 
@@ -166,9 +268,10 @@ class ConversationViewModel(
         fun factory(
             sessionId: SessionId,
             roomId: RoomId,
+            keyboardActionHandler: KeyboardActionHandler,
         ) = viewModelFactory {
             initializer {
-                ConversationViewModel(sessionId, roomId)
+                ConversationViewModel(sessionId, roomId, keyboardActionHandler)
             }
         }
     }

@@ -71,6 +71,18 @@ interface Timeline : AutoCloseable {
         intentionalMentions: List<IntentionalMention>,
     ): Result<Unit>
 
+    suspend fun sendNotice( // SC
+        body: String,
+        htmlBody: String?,
+        intentionalMentions: List<IntentionalMention>,
+    ): Result<Unit>
+
+    suspend fun sendEmote( // SC
+        body: String,
+        htmlBody: String?,
+        intentionalMentions: List<IntentionalMention>,
+    ): Result<Unit>
+
     suspend fun editMessage(
         eventOrTransactionId: EventOrTransactionId,
         body: String,

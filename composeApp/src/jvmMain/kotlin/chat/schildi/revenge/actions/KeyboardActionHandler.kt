@@ -24,6 +24,7 @@ import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
 import chat.schildi.revenge.config.keybindings.Action
+import chat.schildi.revenge.config.keybindings.AllowedTextFieldBindingKeys
 import chat.schildi.revenge.config.keybindings.KeyMapped
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import co.touchlab.kermit.Logger
@@ -54,11 +55,13 @@ private data class FocusTarget(
     val actions: ActionProvider?,
 )
 
-enum class FocusRole {
+enum class FocusRole(val consumesPlainKeys: Boolean = false) {
     SEARCHABLE_ITEM,
     AUX_ITEM,
     CONTAINER,
-    SEARCH_BAR,
+    TEXT_FIELD(consumesPlainKeys = true),
+    MESSAGE_COMPOSER(consumesPlainKeys = true),
+    SEARCH_BAR, // Does not need to consume plain keys, key handler has a special mode for that
 }
 
 sealed interface KeyboardActionMode {
@@ -171,7 +174,7 @@ class KeyboardActionHandler(
         }?.focusRequester?.requestFocus() ?: false
     }
 
-    private fun focusByRole(role: FocusRole): Boolean {
+    fun focusByRole(role: FocusRole): Boolean {
         _keyboardPrimary.value = true
         return focusableTargets.values.find { it.role == role }?.focusRequester?.requestFocus() ?: false
     }
@@ -244,11 +247,16 @@ class KeyboardActionHandler(
 
     fun onPreviewKeyEvent(event: KeyEvent): Boolean {
         val trigger = event.toTrigger() ?: return false
+        val focused = currentFocused()
+        // Disallow plain keybindings of keys handled by text fields
+        if (focused?.role?.consumesPlainKeys == true && !event.isCtrlPressed && event.key !in AllowedTextFieldBindingKeys) {
+            return false
+        }
         return when (event.type) {
             KeyDown -> {
                 val consumed = when (val mode = mode.value) {
-                    is KeyboardActionMode.Navigation -> handleNavigationEvent(trigger)
-                    is KeyboardActionMode.Search -> handleSearchEvent(trigger, mode)
+                    is KeyboardActionMode.Navigation -> handleNavigationEvent(trigger, focused)
+                    is KeyboardActionMode.Search -> handleSearchEvent(trigger, focused, mode)
                 }
                 if (consumed) {
                     pendingKeyTriggersInAction[trigger] = Unit
@@ -273,7 +281,11 @@ class KeyboardActionHandler(
         }
     }
 
-    private fun handleSearchEvent(key: KeyTrigger, mode: KeyboardActionMode.Search): Boolean {
+    private fun handleSearchEvent(
+        key: KeyTrigger,
+        focused: FocusTarget?,
+        mode: KeyboardActionMode.Search,
+    ): Boolean {
         return when (key.rawKey) {
             KeyMapped.Escape -> {
                 updateMode { KeyboardActionMode.Navigation }
@@ -281,7 +293,7 @@ class KeyboardActionHandler(
             }
             KeyMapped.Enter -> {
                 if (mode.navigating) {
-                    handleNavigationEvent(key)
+                    handleNavigationEvent(key, focused)
                 } else {
                     updateMode { mode.copy(navigating = true) }
                     windowCoordinates?.let {
@@ -294,7 +306,7 @@ class KeyboardActionHandler(
             KeyMapped.DirectionDown -> false // TODO cycle search history; configurable binding?
             else -> {
                 if (mode.navigating) {
-                    handleNavigationEvent(key)
+                    handleNavigationEvent(key, focused)
                 } else {
                     false
                 }
@@ -340,8 +352,7 @@ class KeyboardActionHandler(
         } ?: false
     }
 
-    private fun handleNavigationEvent(key: KeyTrigger): Boolean {
-        val focused = currentFocused()
+    private fun handleNavigationEvent(key: KeyTrigger, focused: FocusTarget?): Boolean {
         if (focused?.actions?.keyActions?.handleNavigationModeEvent(key) == true) {
             // Allow focused-item specific handling
             return true
