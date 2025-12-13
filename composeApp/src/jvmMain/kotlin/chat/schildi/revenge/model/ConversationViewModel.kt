@@ -256,6 +256,10 @@ class ConversationViewModel(
                 keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
             }
             Action.Conversation.HideComposerIfEmpty -> {
+                // Clear draft state (replies etc.) if empty
+                DraftRepo.update(draftKey) {
+                    it?.takeIf { !it.isEmpty() }
+                }
                 forceShowComposer.getAndUpdate { false }
             }
             Action.Conversation.ComposeMessage -> {

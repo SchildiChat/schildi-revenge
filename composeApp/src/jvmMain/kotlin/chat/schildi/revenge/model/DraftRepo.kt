@@ -54,9 +54,14 @@ object DraftRepo {
         }
     }
 
-    fun update(draftKey: DraftKey, transform: (DraftValue?) -> DraftValue) {
+    fun update(draftKey: DraftKey, transform: (DraftValue?) -> DraftValue?) {
         drafts.update {
-            (it + (draftKey to transform(it[draftKey]))).toPersistentMap()
+            val value = transform(it[draftKey])
+            if (value == null) {
+                it - draftKey
+            } else {
+                it + (draftKey to value)
+            }.toPersistentMap()
         }
     }
 

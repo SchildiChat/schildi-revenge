@@ -6,6 +6,7 @@
     <string name="action_login">Login</string>
     <string name="action_verify">Verify</string>
     <string name="action_send">Send</string>
+    <string name="action_clear_reply">Clear reply</string>
 
     <string name="title_login_account">Login account</string>
     <string name="hint_username">Username</string>
