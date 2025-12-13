@@ -7,20 +7,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.input.TextFieldLineLimits
-import androidx.compose.foundation.text.input.TextObfuscationMode
-import androidx.compose.foundation.text.input.rememberTextFieldState
-import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
-import androidx.compose.material.Button
-import androidx.compose.material.OutlinedTextField
-import androidx.compose.material.SecureTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -31,6 +26,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.revenge.Dimens
@@ -139,32 +137,24 @@ private fun ExistingLogin(account: AccountManagementData, viewModel: AccountMana
             }
         }
         if (account.needsVerification) {
-            val recoveryKey = rememberTextFieldState()
+            var recoveryKey by remember { mutableStateOf(TextFieldValue()) }
             var isVerifying by remember(account) { mutableStateOf(false) }
             Row(
                 horizontalArrangement = Dimens.horizontalArrangement,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 OutlinedTextField(
-                    state = recoveryKey,
+                    value = recoveryKey,
+                    onValueChange = { recoveryKey = it },
                     label = { Text(stringResource(Res.string.hint_recovery_key)) },
-                    lineLimits = TextFieldLineLimits.SingleLine,
                     modifier = Modifier.weight(1f),
-                    onKeyboardAction = {
-                        // TODO launch with dialog or sth.
-                        scope.launch {
-                            isVerifying = true
-                            viewModel.verify(account.session, recoveryKey.text.toString())
-                            isVerifying = false
-                        }
-                    },
                 )
                 Button(
                     enabled = !isVerifying && recoveryKey.text.isNotBlank(),
                     onClick = {
                         scope.launch {
                             isVerifying = true
-                            viewModel.verify(account.session, recoveryKey.text.toString())
+                            viewModel.verify(account.session, recoveryKey.text)
                             isVerifying = false
                         }
                     },
@@ -181,13 +171,12 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
     val inProgress = remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val error = remember { mutableStateOf<String?>(null) }
-    val username = rememberTextFieldState()
-    val homeserver = rememberTextFieldState()
-    val password = rememberTextFieldState()
+    var username by remember { mutableStateOf(TextFieldValue()) }
+    var homeserver by remember { mutableStateOf(TextFieldValue()) }
+    var password by remember { mutableStateOf(TextFieldValue()) }
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .keyFocusable()
             .padding(horizontal = Dimens.windowPadding),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -200,26 +189,30 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
             )
         }
         OutlinedTextField(
-            state = username,
+            value = username,
+            onValueChange = { username = it },
             label = { Text(stringResource(Res.string.hint_username)) },
-            lineLimits = TextFieldLineLimits.SingleLine,
-            modifier = Modifier.fillMaxWidth(),
+            maxLines = 1,
+            modifier = Modifier.fillMaxWidth().keyFocusable(FocusRole.TEXT_FIELD_SINGLE_LINE),
         )
         OutlinedTextField(
-            state = homeserver,
+            value = homeserver,
+            onValueChange = { homeserver = it },
             label = { Text(stringResource(Res.string.hint_homeserver)) },
-            lineLimits = TextFieldLineLimits.SingleLine,
-            modifier = Modifier.fillMaxWidth(),
+            maxLines = 1,
+            modifier = Modifier.fillMaxWidth().keyFocusable(FocusRole.TEXT_FIELD_SINGLE_LINE),
         )
         val passwordVisible = remember { mutableStateOf(false) }
-        SecureTextField(
-            state = password,
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
             label = { Text(stringResource(Res.string.hint_password)) },
-            modifier = Modifier.fillMaxWidth(),
-            textObfuscationMode = if (passwordVisible.value)
-                TextObfuscationMode.Visible
-            else
-                TextObfuscationMode.Hidden,
+            modifier = Modifier.fillMaxWidth().keyFocusable(FocusRole.TEXT_FIELD_SINGLE_LINE),
+            visualTransformation = if (passwordVisible.value) {
+                VisualTransformation.None
+            } else {
+                PasswordVisualTransformation()
+            },
             trailingIcon = {
                 IconButton(onClick = { passwordVisible.value = !passwordVisible.value }) {
                     Icon(
@@ -246,7 +239,7 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
                     try {
                         val server = homeserver.text.let {
                             if (it.contains("://")) {
-                                it.toString()
+                                it
                             } else {
                                 "https://$it"
                             }
@@ -256,11 +249,11 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
                             error.value = serverResult.exceptionOrNull()?.message ?: "Setting server failed without exception"
                             return@launch
                         }
-                        val result = viewModel.login(username.text.toString(), password.text.toString())
+                        val result = viewModel.login(username.text, password.text)
                         if (result.isSuccess) {
-                            password.setTextAndPlaceCursorAtEnd("")
-                            username.setTextAndPlaceCursorAtEnd("")
-                            homeserver.setTextAndPlaceCursorAtEnd("")
+                            password = TextFieldValue()
+                            username = TextFieldValue()
+                            homeserver = TextFieldValue()
                         } else {
                             error.value = result.exceptionOrNull()?.message ?: "Login failed without exception"
                         }
@@ -269,6 +262,7 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
                     }
                 }
             },
+            modifier = Modifier.keyFocusable(),
         ) {
             Text(stringResource(Res.string.action_login))
         }

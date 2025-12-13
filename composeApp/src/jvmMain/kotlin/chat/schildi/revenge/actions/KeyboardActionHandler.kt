@@ -6,6 +6,7 @@ import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyDown
 import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
@@ -24,6 +25,7 @@ import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
 import chat.schildi.revenge.config.keybindings.Action
+import chat.schildi.revenge.config.keybindings.AllowedSingleLineTextFieldBindingKeys
 import chat.schildi.revenge.config.keybindings.AllowedTextFieldBindingKeys
 import chat.schildi.revenge.config.keybindings.KeyMapped
 import chat.schildi.revenge.config.keybindings.KeyTrigger
@@ -55,12 +57,13 @@ private data class FocusTarget(
     val actions: ActionProvider?,
 )
 
-enum class FocusRole(val consumesPlainKeys: Boolean = false) {
+enum class FocusRole(val consumesKeyWhitelist: List<Key>? = null) {
     SEARCHABLE_ITEM,
     AUX_ITEM,
     CONTAINER,
-    TEXT_FIELD(consumesPlainKeys = true),
-    MESSAGE_COMPOSER(consumesPlainKeys = true),
+    TEXT_FIELD_SINGLE_LINE(consumesKeyWhitelist = AllowedSingleLineTextFieldBindingKeys),
+    TEXT_FIELD_MULTI_LINE(consumesKeyWhitelist = AllowedTextFieldBindingKeys),
+    MESSAGE_COMPOSER(consumesKeyWhitelist = AllowedTextFieldBindingKeys),
     SEARCH_BAR, // Does not need to consume plain keys, key handler has a special mode for that
 }
 
@@ -249,7 +252,7 @@ class KeyboardActionHandler(
         val trigger = event.toTrigger() ?: return false
         val focused = currentFocused()
         // Disallow plain keybindings of keys handled by text fields
-        if (focused?.role?.consumesPlainKeys == true && !event.isCtrlPressed && event.key !in AllowedTextFieldBindingKeys) {
+        if (!event.isCtrlPressed && focused?.role?.consumesKeyWhitelist?.let { event.key in it } == false) {
             return false
         }
         return when (event.type) {

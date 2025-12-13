@@ -17,3 +17,10 @@ val AllowedTextFieldBindingKeys = listOf(
     Key.F11,
     Key.F12,
 )
+
+val AllowedSingleLineTextFieldBindingKeys = listOf(
+    Key.DirectionUp,
+    Key.DirectionDown,
+    Key.DirectionLeft,
+    Key.DirectionRight,
+) + AllowedTextFieldBindingKeys
