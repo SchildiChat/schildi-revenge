@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -20,17 +19,19 @@ import chat.schildi.revenge.actions.ListAction
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
+import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.model.InboxViewModel
 
 @Composable
-fun InboxScreen() {
+fun InboxScreen(modifier: Modifier = Modifier) {
     val viewModel: InboxViewModel = viewModel(key = LocalDestinationState.current?.id.toString())
     val listState = rememberLazyListState()
-    CompositionLocalProvider(
+    FocusContainer(
         LocalSearchProvider provides viewModel,
         LocalKeyboardActionProvider provides viewModel.hierarchicalKeyboardActionProvider(),
         LocalListActionProvider provides remember(listState) { ListAction(listState) },
+        modifier = modifier
     ) {
         Column(Modifier.widthIn(max = Dimens.Inbox.maxWidth).fillMaxSize()) {
             InboxTopNavigation()

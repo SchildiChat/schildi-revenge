@@ -13,42 +13,47 @@ import androidx.compose.ui.Modifier
 import chat.schildi.revenge.compose.DestinationContent
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
+import chat.schildi.revenge.compose.focus.FocusContainer
 
 @Composable
-fun SplitHorizontal(destination: Destination.SplitHorizontal) {
-    Row(Modifier.fillMaxSize()) {
-        CompositionLocalProvider(
-            LocalKeyboardActionProvider provides splitKeyboardActionProvider(true),
-        ) {
-            Box(Modifier.fillMaxHeight().fillMaxWidth(destination.fraction), Alignment.Center) {
-                DestinationContent(destination.primary, Modifier.fillMaxSize())
+fun SplitHorizontal(destination: Destination.SplitHorizontal, modifier: Modifier = Modifier) {
+    FocusContainer(modifier = modifier) {
+        Row(Modifier.fillMaxSize()) {
+            CompositionLocalProvider(
+                LocalKeyboardActionProvider provides splitKeyboardActionProvider(true),
+            ) {
+                Box(Modifier.fillMaxHeight().fillMaxWidth(destination.fraction), Alignment.Center) {
+                    DestinationContent(destination.primary, Modifier.fillMaxSize())
+                }
             }
-        }
-        CompositionLocalProvider(
-            LocalKeyboardActionProvider provides splitKeyboardActionProvider(false),
-        ) {
-            Box(Modifier.fillMaxSize(), Alignment.Center) {
-                DestinationContent(destination.secondary, Modifier.fillMaxSize())
+            CompositionLocalProvider(
+                LocalKeyboardActionProvider provides splitKeyboardActionProvider(false),
+            ) {
+                Box(Modifier.fillMaxSize(), Alignment.Center) {
+                    DestinationContent(destination.secondary, Modifier.fillMaxSize())
+                }
             }
         }
     }
 }
 
 @Composable
-fun SplitVertical(destination: Destination.SplitVertical) {
-    Column(Modifier.fillMaxSize()) {
-        CompositionLocalProvider(
-            LocalKeyboardActionProvider provides splitKeyboardActionProvider(true),
-        ) {
-            Box(Modifier.fillMaxWidth().fillMaxHeight(destination.fraction), Alignment.Center) {
-                DestinationContent(destination.primary, Modifier.fillMaxSize())
+fun SplitVertical(destination: Destination.SplitVertical, modifier: Modifier = Modifier) {
+    FocusContainer(modifier = modifier) {
+        Column(Modifier.fillMaxSize()) {
+            CompositionLocalProvider(
+                LocalKeyboardActionProvider provides splitKeyboardActionProvider(true),
+            ) {
+                Box(Modifier.fillMaxWidth().fillMaxHeight(destination.fraction), Alignment.Center) {
+                    DestinationContent(destination.primary, Modifier.fillMaxSize())
+                }
             }
-        }
-        CompositionLocalProvider(
-            LocalKeyboardActionProvider provides splitKeyboardActionProvider(false),
-        ) {
-            Box(Modifier.fillMaxSize(), Alignment.Center) {
-                DestinationContent(destination.secondary, Modifier.fillMaxSize())
+            CompositionLocalProvider(
+                LocalKeyboardActionProvider provides splitKeyboardActionProvider(false),
+            ) {
+                Box(Modifier.fillMaxSize(), Alignment.Center) {
+                    DestinationContent(destination.secondary, Modifier.fillMaxSize())
+                }
             }
         }
     }

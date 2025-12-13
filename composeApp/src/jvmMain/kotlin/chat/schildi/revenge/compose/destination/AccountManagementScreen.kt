@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
+import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.AccountManagementData
 import chat.schildi.revenge.model.AccountManagementViewModel
@@ -56,23 +57,28 @@ import shire.composeapp.generated.resources.title_login_account
 // TODO revise keyboard control
 
 @Composable
-fun AccountManagementScreen() {
+fun AccountManagementScreen(modifier: Modifier = Modifier) {
     val viewModel: AccountManagementViewModel = viewModel()
     val accounts = viewModel.data.collectAsState().value
-    LazyColumn(Modifier.padding(vertical = Dimens.windowPadding), verticalArrangement = Dimens.verticalArrangement) {
-        if (accounts.isNotEmpty()) {
+    FocusContainer(modifier = modifier) {
+        LazyColumn(
+            Modifier.padding(vertical = Dimens.windowPadding),
+            verticalArrangement = Dimens.verticalArrangement
+        ) {
+            if (accounts.isNotEmpty()) {
+                item {
+                    SectionHeader(stringResource(Res.string.manage_accounts))
+                }
+                items(accounts) { account ->
+                    ExistingLogin(account, viewModel)
+                }
+            }
             item {
-                SectionHeader(stringResource(Res.string.manage_accounts))
+                SectionHeader(stringResource(Res.string.title_login_account))
             }
-            items(accounts) { account ->
-                ExistingLogin(account, viewModel)
+            item {
+                NewLogin(viewModel)
             }
-        }
-        item {
-            SectionHeader(stringResource(Res.string.title_login_account))
-        }
-        item {
-            NewLogin(viewModel)
         }
     }
 }

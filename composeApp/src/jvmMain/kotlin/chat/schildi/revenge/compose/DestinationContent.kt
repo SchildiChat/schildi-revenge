@@ -3,18 +3,16 @@ package chat.schildi.revenge.compose
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.compose.components.ComposeSessionScope
 import chat.schildi.revenge.compose.destination.AccountManagementScreen
-import chat.schildi.revenge.compose.destination.conversation.ChatScreen
+import chat.schildi.revenge.compose.destination.conversation.ConversationScreen
 import chat.schildi.revenge.compose.destination.inbox.InboxScreen
 import chat.schildi.revenge.compose.destination.SplashScreen
 import chat.schildi.revenge.compose.destination.split.SplitHorizontal
 import chat.schildi.revenge.compose.destination.split.SplitVertical
-import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.Destination
 
 @Composable
@@ -23,21 +21,16 @@ fun DestinationContent(destinationHolder: DestinationStateHolder, modifier: Modi
         LocalDestinationState provides destinationHolder,
     ) {
         val destination = destinationHolder.state.collectAsState().value.destination
-            FocusContainer(
-                modifier = modifier,
-                contentAlignment = Alignment.Center,
-            ) {
-                DestinationWrapper(destination) {
-                    when (destination) {
-                        is Destination.AccountManagement -> AccountManagementScreen()
-                        is Destination.Inbox -> InboxScreen()
-                        is Destination.Splash -> SplashScreen()
-                        is Destination.Conversation -> ChatScreen(destination)
-                        is Destination.SplitHorizontal -> SplitHorizontal(destination)
-                        is Destination.SplitVertical -> SplitVertical(destination)
-                    }
-                }
+        DestinationWrapper(destination) {
+            when (destination) {
+                is Destination.AccountManagement -> AccountManagementScreen(modifier)
+                is Destination.Inbox -> InboxScreen(modifier)
+                is Destination.Splash -> SplashScreen(modifier)
+                is Destination.Conversation -> ConversationScreen(destination, modifier)
+                is Destination.SplitHorizontal -> SplitHorizontal(destination, modifier)
+                is Destination.SplitVertical -> SplitVertical(destination, modifier)
             }
+        }
     }
 }
 

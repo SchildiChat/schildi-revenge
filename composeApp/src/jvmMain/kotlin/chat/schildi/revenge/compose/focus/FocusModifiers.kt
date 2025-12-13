@@ -152,7 +152,7 @@ private fun Modifier.keyFocusableCommon(
     keyHandler: KeyboardActionHandler = LocalKeyboardActionHandler.current,
     id: UUID = remember { UUID.randomUUID() },
     destinationState: DestinationStateHolder? = LocalDestinationState.current,
-    actionProvider: ActionProvider? = null,
+    actionProvider: ActionProvider? = defaultActionProvider(),
     parent: FocusParent? = LocalFocusParent.current,
 ): Modifier {
     DisposableEffect(id) {

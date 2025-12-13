@@ -7,13 +7,11 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
@@ -32,12 +30,12 @@ import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.composer.ComposerRow
-import chat.schildi.revenge.compose.search.SearchBar
+import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.publishTitle
 import kotlinx.collections.immutable.persistentListOf
 
 @Composable
-fun ChatScreen(destination: Destination.Conversation) {
+fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier = Modifier) {
     val keyHandler = LocalKeyboardActionHandler.current
     val viewModel: ConversationViewModel = viewModel(
         key = "${LocalDestinationState.current?.id}/${destination.sessionId}/${destination.roomId}",
@@ -72,10 +70,11 @@ fun ChatScreen(destination: Destination.Conversation) {
     }
 
     val listAction = remember(listState) { ListAction(listState, isReverseList = true) }
-    CompositionLocalProvider(
+    FocusContainer(
         //LocalSearchProvider provides viewModel, // TODO CV search
         LocalKeyboardActionProvider provides viewModel.hierarchicalKeyboardActionProvider(),
         LocalListActionProvider provides listAction,
+        modifier = modifier,
     ) {
         Column {
             // Double reverse helps with stick-to-bottom while paging backwards or receiving messages
