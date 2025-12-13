@@ -21,12 +21,16 @@ import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
+import chat.schildi.revenge.model.DraftKey
+import chat.schildi.revenge.model.DraftRepo
 import chat.schildi.revenge.model.InboxViewModel
+import kotlinx.collections.immutable.persistentSetOf
 
 @Composable
 fun InboxScreen(modifier: Modifier = Modifier) {
     val viewModel: InboxViewModel = viewModel(key = LocalDestinationState.current?.id.toString())
     val listState = rememberLazyListState()
+    val drafts = DraftRepo.roomsWithDrafts.collectAsState(persistentSetOf())
     FocusContainer(
         LocalSearchProvider provides viewModel,
         LocalKeyboardActionProvider provides viewModel.hierarchicalKeyboardActionProvider(),
@@ -52,7 +56,7 @@ fun InboxScreen(modifier: Modifier = Modifier) {
                 }
                 rooms?.let {
                     items(rooms) { room ->
-                        InboxRow(room)
+                        InboxRow(room, hasDraft = room.draftKey in drafts.value)
                     }
                 }
             }

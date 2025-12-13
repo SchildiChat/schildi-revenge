@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Archive
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -53,6 +54,7 @@ import kotlin.math.max
 @Composable
 fun InboxRow(
     room: ScopedRoomSummary,
+    hasDraft: Boolean,
     modifier: Modifier = Modifier,
 ) {
     ComposeSessionScope(room.sessionId) {
@@ -87,7 +89,7 @@ fun InboxRow(
                     .padding(start = Dimens.horizontalItemPadding)
             ) {
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    ScNameAndTimestampRow(room.summary)
+                    ScNameAndTimestampRow(room.summary, hasDraft)
                 }
                 Row(modifier = Modifier.fillMaxWidth()) {
                     ScLastMessageAndIndicatorRow(room.summary)
@@ -98,7 +100,7 @@ fun InboxRow(
 }
 
 @Composable
-private fun RowScope.ScNameAndTimestampRow(room: RoomSummary) {
+private fun RowScope.ScNameAndTimestampRow(room: RoomSummary, hasDraft: Boolean) {
     // Name
     Text(
         modifier = Modifier
@@ -111,6 +113,14 @@ private fun RowScope.ScNameAndTimestampRow(room: RoomSummary) {
         overflow = TextOverflow.Ellipsis
     )
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        if (hasDraft) {
+            Icon(
+                imageVector = Icons.Default.Edit,
+                contentDescription = null,
+                modifier = Modifier.size(Dimens.Inbox.smallIcon),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         // Favorite
         if (room.info.isFavorite && ScPrefs.PIN_FAVORITES.value()) {
             Icon(
