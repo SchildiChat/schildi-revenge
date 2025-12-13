@@ -13,6 +13,8 @@ import shire.composeapp.generated.resources.sc_pref_bury_low_priority_summary
 import shire.composeapp.generated.resources.sc_pref_bury_low_priority_title
 import shire.composeapp.generated.resources.sc_pref_category_chat_overview
 import shire.composeapp.generated.resources.sc_pref_category_chat_sorting
+import shire.composeapp.generated.resources.sc_pref_category_general
+import shire.composeapp.generated.resources.sc_pref_category_general_summary
 import shire.composeapp.generated.resources.sc_pref_category_unread_counts
 import shire.composeapp.generated.resources.sc_pref_client_side_sort_by_unread_summary
 import shire.composeapp.generated.resources.sc_pref_client_side_sort_by_unread_title
@@ -36,6 +38,7 @@ object ScPrefs {
     val MAX_WIDTH_INBOX = ScIntPref("MAX_WIDTH_INBOX", 1024, Res.string.pref_max_width_inbox_title)
     val MAX_WIDTH_CONVERSATION = ScIntPref("MAX_WIDTH_CONVERSATION", 1600, Res.string.pref_max_width_conversation_title)
     val MAX_WIDTH_SETTINGS = ScIntPref("MAX_WIDTH_SETTINGS", 1024, Res.string.pref_max_width_settings_title)
+    val ALWAYS_SHOW_KEYBOARD_FOCUS = ScBoolPref("ALWAYS_SHOW_KEYBOARD_FOCUS", false, Res.string.pref_max_width_settings_title)
 
     /*
     object SpaceUnreadCountMode {
@@ -168,8 +171,9 @@ object ScPrefs {
      */
 
     val rootPrefs = ScPrefScreen(Res.string.sc_pref_tweaks_title, null, listOf<AbstractScPref>(
-        /*
         ScPrefScreen(Res.string.sc_pref_category_general, Res.string.sc_pref_category_general_summary, listOf(
+            ALWAYS_SHOW_KEYBOARD_FOCUS,
+            /*
             ScPrefCategory(Res.string.sc_pref_category_general_appearance, null, listOf(
                 SC_THEME,
                 EL_TYPOGRAPHY,
@@ -181,8 +185,8 @@ object ScPrefs {
             ScPrefCategory(Res.string.sc_pref_category_general_behaviour, null, listOf(
                 FAST_TRANSITIONS,
             )),
+            */
         )),
-         */
         ScPrefScreen(Res.string.sc_pref_category_chat_overview, null, listOf(
             HIDE_INVITES,
             ScPrefCategory(Res.string.sc_pref_category_chat_sorting, null, listOf(

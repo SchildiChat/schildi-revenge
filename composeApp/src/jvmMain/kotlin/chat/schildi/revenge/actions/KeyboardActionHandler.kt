@@ -1,5 +1,6 @@
 package chat.schildi.revenge.actions
 
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
@@ -18,6 +19,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInWindow
 import chat.schildi.preferences.RevengePrefs
+import chat.schildi.preferences.ScPrefs
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.focus.FocusParent
@@ -93,7 +95,11 @@ class KeyboardActionHandler(
     val mode = _mode.asStateFlow()
 
     private val _keyboardPrimary = MutableStateFlow(true)
-    val keyboardPrimary = _keyboardPrimary.asStateFlow()
+    val keyboardPrimary = combine(
+        _keyboardPrimary,
+        RevengePrefs.settingFlow(ScPrefs.ALWAYS_SHOW_KEYBOARD_FOCUS),
+        Boolean::or,
+    ).stateIn(scope, SharingStarted.Eagerly, false)
 
     val currentKeyboardFocus = combine(
         currentFocus,
