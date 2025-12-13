@@ -55,5 +55,7 @@ sealed interface Action {
     enum class Event : Action {
         MarkRead,
         MarkReadPrivate,
+        ComposeEdit,
+        ComposeReply,
     }
 }

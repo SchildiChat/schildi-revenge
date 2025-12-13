@@ -21,9 +21,9 @@ fun TextLikeMessage(
     modifier: Modifier = Modifier
 ) {
     val alpha = when (message) {
-        is TextMessageType -> 1f
         is NoticeMessageType -> 0.7f
-        is EmoteMessageType -> 0f // TODO?
+        is EmoteMessageType,
+        is TextMessageType -> 1f
     }
     // TODO
     TextLikeMessage(
@@ -32,6 +32,7 @@ fun TextLikeMessage(
         isOwn = isOwn,
         inReplyTo = inReplyTo,
         modifier = modifier.alpha(alpha),
+        outlined = message is EmoteMessageType,
     )
 }
 
@@ -40,11 +41,13 @@ fun TextLikeMessage(
     text: AnnotatedString,
     isOwn: Boolean,
     inReplyTo: InReplyTo?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    outlined: Boolean = false,
 ) {
     MessageBubble(
         isOwn = isOwn,
         modifier = modifier,
+        outlined = outlined,
     ) {
         inReplyTo?.let { ReplyContent(it) }
         TextLikeMessageContent(text)

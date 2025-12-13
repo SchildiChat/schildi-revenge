@@ -2,7 +2,10 @@ package chat.schildi.revenge.compose.composer
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
@@ -14,7 +17,9 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
+import chat.schildi.revenge.compose.destination.conversation.event.message.ReplyContent
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.ComposerViewModel
 import chat.schildi.revenge.model.DraftType
@@ -22,6 +27,8 @@ import chat.schildi.theme.scExposures
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_send
+import shire.composeapp.generated.resources.hint_composer_edit
+import shire.composeapp.generated.resources.hint_composer_edit_caption
 import shire.composeapp.generated.resources.hint_composer_emote
 import shire.composeapp.generated.resources.hint_composer_notice
 import shire.composeapp.generated.resources.hint_composer_text
@@ -33,30 +40,37 @@ import shire.composeapp.generated.resources.hint_composer_text
 @Composable
 fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
     val draftState = viewModel.composerState.collectAsState().value
-    Row(modifier) {
-        TextField(
-            value = draftState.body,
-            onValueChange = {
-                viewModel.onComposerUpdate(draftState.copy(body = it))
-            },
-            label = {
-                val hint = when (draftState.type) {
-                    DraftType.TEXT -> stringResource(Res.string.hint_composer_text)
-                    DraftType.NOTICE -> stringResource(Res.string.hint_composer_notice)
-                    DraftType.EMOTE -> stringResource(Res.string.hint_composer_emote)
-                }
-                Text(hint)
-            },
-            modifier = Modifier
-                .weight(1f)
-                .background(MaterialTheme.colorScheme.surface)
-                .keyFocusable(role = FocusRole.MESSAGE_COMPOSER, isTextField = true),
-            colors = TextFieldDefaults.colors().copy(
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+    Column(modifier) {
+        if (draftState.inReplyTo != null) {
+            ReplyContent(draftState.inReplyTo, Modifier.fillMaxWidth().padding(horizontal = Dimens.windowPadding))
+        }
+        Row {
+            TextField(
+                value = draftState.body,
+                onValueChange = {
+                    viewModel.onComposerUpdate(draftState.copy(body = it))
+                },
+                label = {
+                    val hint = when (draftState.type) {
+                        DraftType.TEXT -> stringResource(Res.string.hint_composer_text)
+                        DraftType.NOTICE -> stringResource(Res.string.hint_composer_notice)
+                        DraftType.EMOTE -> stringResource(Res.string.hint_composer_emote)
+                        DraftType.EDIT -> stringResource(Res.string.hint_composer_edit)
+                        DraftType.EDIT_CAPTION -> stringResource(Res.string.hint_composer_edit_caption)
+                    }
+                    Text(hint)
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .background(MaterialTheme.colorScheme.surface)
+                    .keyFocusable(role = FocusRole.MESSAGE_COMPOSER, isTextField = true),
+                colors = TextFieldDefaults.colors().copy(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                )
             )
-        )
-        SendButton(enabled = draftState.canSend(), onClick = viewModel::sendMessage)
+            SendButton(enabled = draftState.canSend(), onClick = viewModel::sendMessage)
+        }
     }
 }
 

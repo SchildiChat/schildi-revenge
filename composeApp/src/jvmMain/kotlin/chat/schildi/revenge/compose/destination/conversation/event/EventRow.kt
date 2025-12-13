@@ -52,11 +52,9 @@ fun EventRow(
 private fun eventRowKeyboardActionProvider(
     viewModel: ConversationViewModel,
     event: EventTimelineItem
-): HierarchicalKeyboardActionProvider? {
-    val ownHandler = remember(viewModel, event.eventId) {
-        event.eventId?.let {
-            viewModel.getKeyboardActionProviderForEvent(it)
-        }
+): HierarchicalKeyboardActionProvider {
+    val ownHandler = remember(viewModel, event) {
+        viewModel.getKeyboardActionProviderForEvent(event)
     }
-    return ownHandler?.hierarchicalKeyboardActionProvider() ?: LocalKeyboardActionProvider.current
+    return ownHandler.hierarchicalKeyboardActionProvider()
 }

@@ -286,10 +286,15 @@ class RustTimeline(
         body: String,
         htmlBody: String?,
         intentionalMentions: List<IntentionalMention>,
+        inReplyToEventId: EventId?
     ): Result<Unit> = withContext(dispatcher) {
         NoticeEventContent.from(body, htmlBody, intentionalMentions).use { content ->
             runCatchingExceptions<Unit> {
-                inner.send(content)
+                if (inReplyToEventId == null) {
+                    inner.send(content)
+                } else {
+                    inner.sendReply(content, inReplyToEventId.value)
+                }
             }
         }
     }
@@ -298,10 +303,15 @@ class RustTimeline(
         body: String,
         htmlBody: String?,
         intentionalMentions: List<IntentionalMention>,
+        inReplyToEventId: EventId?
     ): Result<Unit> = withContext(dispatcher) {
         EmoteEventContent.from(body, htmlBody, intentionalMentions).use { content ->
             runCatchingExceptions<Unit> {
-                inner.send(content)
+                if (inReplyToEventId == null) {
+                    inner.send(content)
+                } else {
+                    inner.sendReply(content, inReplyToEventId.value)
+                }
             }
         }
     }

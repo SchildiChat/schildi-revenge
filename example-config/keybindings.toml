@@ -11,12 +11,17 @@ inbox = [
     { key = "F", ctrl = true, action = "ToggleSetting", args = ["PIN_FAVORITES"] },
 ]
 conversation = [
-    { key = "I", ctrl = true, action = "FocusComposer" },
-    { key = "M", ctrl = true, action = "ComposeMessage" },
-    { key = "E", ctrl = true, action = "ComposeEmote" },
+    { key = "I", ctrl = true, action = "ComposeMessage" },
     { key = "N", ctrl = true, action = "ComposeNotice" },
+    { key = "M", ctrl = true, action = "ComposeEmote" },
     { key = "Enter", ctrl = true, action = "ComposerSend" },
     { key = "Escape", action = "HideComposerIfEmpty" },
+]
+event = [
+    { key = "M", action = "MarkRead" },
+    { key = "M", ctrl = true, action = "MarkReadPrivate" },
+    { key = "R", ctrl = true, action = "ComposeReply" },
+    { key = "E", ctrl = true, action = "ComposeEdit" },
 ]
 navigation = [
     { key = "I", shift = true, action = "InboxInCurrent" },
@@ -54,8 +59,4 @@ list = [
 ]
 split = [
     { key = "Q", shift = true, action = "Close" },
-]
-event = [
-    { key = "M", action = "MarkRead" },
-    { key = "M", ctrl = true, action = "MarkReadPrivate" },
 ]

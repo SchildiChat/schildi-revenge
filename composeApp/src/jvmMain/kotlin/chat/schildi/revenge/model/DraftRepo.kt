@@ -1,9 +1,10 @@
 package chat.schildi.revenge.model
 
-import androidx.compose.runtime.collectAsState
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.room.IntentionalMention
+import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
+import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentListOf
@@ -22,6 +23,8 @@ enum class DraftType {
     TEXT,
     NOTICE,
     EMOTE,
+    EDIT,
+    EDIT_CAPTION,
 }
 
 data class DraftValue(
@@ -29,6 +32,8 @@ data class DraftValue(
     val body: String = "",
     val htmlBody: String? = null,
     val intentionalMentions: ImmutableList<IntentionalMention> = persistentListOf(),
+    val inReplyTo: InReplyTo.Ready? = null,
+    val editEventId: EventOrTransactionId? = null, // Only for DraftType.EDIT and DraftType.EDIT_CAPTION
     val isSendInProgress: Boolean = false,
 ) {
     fun isEmpty() = body.isBlank()
