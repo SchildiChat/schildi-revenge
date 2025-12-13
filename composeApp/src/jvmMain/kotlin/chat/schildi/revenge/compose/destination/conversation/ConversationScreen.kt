@@ -8,6 +8,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -18,7 +19,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import chat.schildi.preferences.ScPrefs
+import chat.schildi.preferences.value
 import chat.schildi.revenge.Anim
 import chat.schildi.revenge.model.ConversationViewModel
 import chat.schildi.revenge.Destination
@@ -76,7 +80,7 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
         LocalListActionProvider provides listAction,
         modifier = modifier,
     ) {
-        Column {
+        Column(Modifier.widthIn(max = ScPrefs.MAX_WIDTH_CONVERSATION.value().dp)) {
             // Double reverse helps with stick-to-bottom while paging backwards or receiving messages
             LazyColumn(Modifier.fillMaxWidth().weight(1f), reverseLayout = true, state = listState) {
                 val renderedItems = timelineItems.reversed()

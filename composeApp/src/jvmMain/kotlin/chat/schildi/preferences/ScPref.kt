@@ -3,6 +3,7 @@ package chat.schildi.preferences
 import androidx.compose.ui.graphics.Color
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import co.touchlab.kermit.Logger
@@ -113,6 +114,27 @@ data class ScIntPref(
         return value
     }
     override fun parseType(value: String): Int? = value.toIntOrNull()
+}
+
+data class ScFloatPref(
+    override val sKey: String,
+    override val defaultValue: Float,
+    override val titleRes: StringResource,
+    override val summaryRes: StringResource? = null,
+    override val disabledValue: Float? = defaultValue,
+    override val dependencies: List<ScPrefDependency> = emptyList(),
+    val minValue: Float = Float.MIN_VALUE,
+    val maxValue: Float = Float.MAX_VALUE,
+): ScPref<Float> {
+    override val key = floatPreferencesKey(sKey)
+    override fun ensureType(value: Any?): Float? {
+        if (value !is Float?) {
+            Logger.withTag("ScIntPref").e("Parse float failed of $sKey for ${value?.javaClass?.simpleName}")
+            return null
+        }
+        return value
+    }
+    override fun parseType(value: String): Float? = value.toFloatOrNull()
 }
 
 sealed interface ScListPref<T>: ScPref<T> {

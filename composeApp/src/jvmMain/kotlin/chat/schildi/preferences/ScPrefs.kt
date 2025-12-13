@@ -1,9 +1,41 @@
 package chat.schildi.preferences
 
 import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.*
+import shire.composeapp.generated.resources.pref_category_dimensions
+import shire.composeapp.generated.resources.pref_font_scale
+import shire.composeapp.generated.resources.pref_max_width_conversation_title
+import shire.composeapp.generated.resources.pref_max_width_inbox_title
+import shire.composeapp.generated.resources.pref_max_width_settings_title
+import shire.composeapp.generated.resources.pref_render_scale
+import shire.composeapp.generated.resources.sc_client_generated_unread_counts_summary
+import shire.composeapp.generated.resources.sc_client_generated_unread_counts_title
+import shire.composeapp.generated.resources.sc_pref_bury_low_priority_summary
+import shire.composeapp.generated.resources.sc_pref_bury_low_priority_title
+import shire.composeapp.generated.resources.sc_pref_category_chat_overview
+import shire.composeapp.generated.resources.sc_pref_category_chat_sorting
+import shire.composeapp.generated.resources.sc_pref_category_unread_counts
+import shire.composeapp.generated.resources.sc_pref_client_side_sort_by_unread_summary
+import shire.composeapp.generated.resources.sc_pref_client_side_sort_by_unread_title
+import shire.composeapp.generated.resources.sc_pref_dual_mention_unread_counts_summary
+import shire.composeapp.generated.resources.sc_pref_dual_mention_unread_counts_title
+import shire.composeapp.generated.resources.sc_pref_hide_invites_summary
+import shire.composeapp.generated.resources.sc_pref_hide_invites_title
+import shire.composeapp.generated.resources.sc_pref_pin_favorites_summary
+import shire.composeapp.generated.resources.sc_pref_pin_favorites_title
+import shire.composeapp.generated.resources.sc_pref_render_silent_unread_summary
+import shire.composeapp.generated.resources.sc_pref_render_silent_unread_title
+import shire.composeapp.generated.resources.sc_pref_sort_with_silent_unread_summary
+import shire.composeapp.generated.resources.sc_pref_sort_with_silent_unread_title
+import shire.composeapp.generated.resources.sc_pref_tweaks_title
 
 object ScPrefs {
+
+    // Measures
+    val RENDER_SCALE = ScFloatPref("RENDER_SCALE", 1f, Res.string.pref_render_scale)
+    val FONT_SCALE = ScFloatPref("FONT_SCALE", 1f, Res.string.pref_font_scale)
+    val MAX_WIDTH_INBOX = ScIntPref("MAX_WIDTH_INBOX", 1024, Res.string.pref_max_width_inbox_title)
+    val MAX_WIDTH_CONVERSATION = ScIntPref("MAX_WIDTH_CONVERSATION", 1600, Res.string.pref_max_width_conversation_title)
+    val MAX_WIDTH_SETTINGS = ScIntPref("MAX_WIDTH_SETTINGS", 1024, Res.string.pref_max_width_settings_title)
 
     /*
     object SpaceUnreadCountMode {
@@ -164,6 +196,13 @@ object ScPrefs {
                 DUAL_MENTION_UNREAD_COUNTS,
             )),
         )),
+        ScPrefScreen(Res.string.pref_category_dimensions, null, listOf(
+            RENDER_SCALE,
+            FONT_SCALE,
+            MAX_WIDTH_INBOX,
+            MAX_WIDTH_CONVERSATION,
+            MAX_WIDTH_SETTINGS,
+        ))
         /*
         ScPrefScreen(Res.string.sc_pref_category_spaces, null, listOf(
             SPACE_NAV,

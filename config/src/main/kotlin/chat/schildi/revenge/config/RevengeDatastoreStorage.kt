@@ -20,6 +20,7 @@ import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.mutablePreferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -189,12 +190,14 @@ internal class RevengeStorageConnection(private val path: String) : StorageConne
                     rawValue.startsWith("\"") && rawValue.endsWith("\"") -> rawValue.substring(1, rawValue.length - 1)
                     rawValue.startsWith("'''") && rawValue.endsWith("'''") -> rawValue.substring(3, rawValue.length - 3)
                     rawValue.toIntOrNull() != null -> rawValue.toInt()
+                    rawValue.toFloatOrNull() != null -> rawValue.toFloat()
                     else -> rawValue.trim('"') // fallback to string
                 }
                 when (value) {
                     is Boolean -> prefs[booleanPreferencesKey(rawKey)] = value
                     is Int -> prefs[intPreferencesKey(rawKey)] = value
                     is String -> prefs[stringPreferencesKey(rawKey)] = value
+                    is Float -> prefs[floatPreferencesKey(rawKey)] = value
                     else -> {}
                 }
             }

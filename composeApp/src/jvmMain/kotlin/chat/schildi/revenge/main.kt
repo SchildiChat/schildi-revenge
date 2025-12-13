@@ -8,22 +8,22 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.geometry.toRect
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import chat.schildi.preferences.ScPrefs
+import chat.schildi.preferences.value
 import chat.schildi.revenge.compose.WindowContent
 import chat.schildi.revenge.compose.media.LocalImageLoaderHolder
 import chat.schildi.revenge.actions.KeyboardActionHandler
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
-import chat.schildi.revenge.compose.focus.FocusParent
-import chat.schildi.revenge.compose.focus.LocalFocusParent
 import co.touchlab.kermit.Logger
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.app_title
 import shire.composeapp.generated.resources.ic_launcher
-import java.util.UUID
 import kotlin.system.exitProcess
 
 fun main() {
@@ -65,18 +65,32 @@ fun main() {
                 ) {
                     // LocalFocusManager is not set outside the Window composable
                     val focusManager = LocalFocusManager.current
-                    val density = LocalDensity.current
                     LaunchedEffect(keyHandler, focusManager) {
                         keyHandler.focusManager = focusManager
                     }
+
+                    // Scaling settings
+                    val renderScale = ScPrefs.RENDER_SCALE.value()
+                    val fontScale = ScPrefs.FONT_SCALE.value()
+                    val rootDensity = LocalDensity.current
+                    val localDensity = if (renderScale == 1f && fontScale == 1f) {
+                        rootDensity
+                    } else {
+                        Density(
+                            density = rootDensity.density * renderScale,
+                            fontScale = rootDensity.fontScale * fontScale,
+                        )
+                    }
+
                     LaunchedEffect(keyHandler, composeWindowState.size) {
-                        keyHandler.windowCoordinates = density.run {
+                        keyHandler.windowCoordinates = rootDensity.run {
                             composeWindowState.size.toSize().toRect()
                         }
                     }
                     CompositionLocalProvider(
                         LocalImageLoaderHolder provides UiState.appGraph.imageLoaderHolder,
                         LocalKeyboardActionHandler provides keyHandler,
+                        LocalDensity provides localDensity,
                     ) {
                         WindowContent(windowState.destinationHolder)
                     }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -31,6 +32,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import chat.schildi.preferences.ScPrefs
+import chat.schildi.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.compose.focus.FocusContainer
@@ -60,7 +63,7 @@ fun AccountManagementScreen(modifier: Modifier = Modifier) {
     val accounts = viewModel.data.collectAsState().value
     FocusContainer(modifier = modifier) {
         LazyColumn(
-            Modifier.padding(vertical = Dimens.windowPadding),
+            Modifier.widthIn(max = ScPrefs.MAX_WIDTH_SETTINGS.value().dp).padding(vertical = Dimens.windowPadding),
             verticalArrangement = Dimens.verticalArrangement
         ) {
             if (accounts.isNotEmpty()) {

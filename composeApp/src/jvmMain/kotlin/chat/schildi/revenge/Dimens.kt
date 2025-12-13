@@ -17,7 +17,6 @@ object Dimens {
     object Inbox {
         val avatar = 48.dp
         val smallIcon = 16.dp
-        val maxWidth = 1024.dp
     }
 
     object Conversation {

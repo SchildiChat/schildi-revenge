@@ -39,4 +39,11 @@
     <string name="message_placeholder_message_deleted">Message deleted</string>
     <string name="message_placeholder_message_redacted">Message redacted</string>
     <string name="message_placeholder_message_failed_to_parse">Message failed to parse</string>
+
+    <string name="pref_category_dimensions">Dimensions</string>
+    <string name="pref_render_scale">Render scale</string>
+    <string name="pref_font_scale">Font scale</string>
+    <string name="pref_max_width_inbox_title">Inbox max width</string>
+    <string name="pref_max_width_conversation_title">Conversation max width</string>
+    <string name="pref_max_width_settings_title">Settings max width</string>
 </resources>
