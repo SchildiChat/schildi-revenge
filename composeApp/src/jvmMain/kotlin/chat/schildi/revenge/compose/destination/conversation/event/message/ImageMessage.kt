@@ -8,6 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.Dp
@@ -49,7 +50,7 @@ fun ImageMessage(
             bottomEnd = bottomRadius,
         )
         ImageMessageContent(
-            model = MediaRequestData(image.source, Thumbnail(1000)),
+            model = MediaRequestData(image.source, MediaRequestData.Kind.Content),
             minWidth = Dimens.Conversation.imageMinWidth,
             minHeight = Dimens.Conversation.imageMinHeight,
             maxWidth = Dimens.Conversation.imageMaxWidth,
@@ -80,6 +81,7 @@ fun ColumnScope.ImageMessageContent(
         null,
         imageLoader = imageLoader(),
         onError = ::onAsyncImageError,
+        filterQuality = FilterQuality.High,
         modifier = Modifier
             .sizeIn(
                 minWidth = minWidth,
