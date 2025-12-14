@@ -41,6 +41,12 @@ sealed interface Action {
     enum class Inbox : Action {
         SetSetting,
         ToggleSetting,
+        SetAccountHidden,
+        SetAccountSelected,
+        SetAccountExclusivelySelected,
+        ToggleAccountHidden,
+        ToggleAccountSelected,
+        ToggleAccountExclusivelySelected,
     }
     enum class Conversation : Action {
         SetSetting,

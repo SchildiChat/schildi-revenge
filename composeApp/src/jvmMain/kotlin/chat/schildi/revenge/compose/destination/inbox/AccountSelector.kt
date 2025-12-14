@@ -1,13 +1,9 @@
 package chat.schildi.revenge.compose.destination.inbox
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -26,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.InteractionAction
@@ -34,12 +31,12 @@ import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.InboxAccount
 import chat.schildi.revenge.model.InboxViewModel
+import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.sync.SyncState
 import kotlinx.collections.immutable.ImmutableList
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.hint_hidden
 import shire.composeapp.generated.resources.hint_sync_state_error
 import shire.composeapp.generated.resources.hint_sync_state_idle
 import shire.composeapp.generated.resources.hint_sync_state_offline
@@ -65,16 +62,36 @@ fun AccountButton(
     account: InboxAccount,
     modifier: Modifier = Modifier,
 ) {
+    val outlineColor = animateColorAsState(
+        if (account.isSelected)
+            MaterialTheme.scExposures.accentColor
+        else
+            Color.Transparent
+    ).value
+    val backgroundColor = animateColorAsState(
+        if (account.isCurrentlyVisible)
+            MaterialTheme.scExposures.bubbleBgIncoming // TODO
+        else
+            MaterialTheme.colorScheme.surfaceDim
+    ).value
     Row(modifier
         .keyFocusable(
             actionProvider = defaultActionProvider(
                 primaryAction = InteractionAction.Invoke {
-                    viewModel.setAccountVisible(account.user.userId, account.isHidden)
+                    viewModel.setAccountSelected(account.user.userId, !account.isSelected)
                     true
-                }
+                },
+                secondaryAction = InteractionAction.Invoke {
+                    if (account.isSelected) {
+                        viewModel.setAccountSelected(account.user.userId, false)
+                    }
+                    viewModel.setAccountHidden(account.user.userId, !account.isHidden)
+                    true
+                },
             )
         )
-        .background(MaterialTheme.colorScheme.surfaceDim, RoundedCornerShape(50))
+        .background(backgroundColor, RoundedCornerShape(50))
+        .border(1.dp, outlineColor, RoundedCornerShape(50))
         .padding(8.dp),
         horizontalArrangement = Dimens.horizontalArrangement,
         verticalAlignment = Alignment.CenterVertically,
@@ -86,15 +103,17 @@ fun AccountButton(
             shape = Dimens.ownAccountAvatarShape,
             contentDescription = account.user.userId.value,
         )
-        AnimatedContent(account.syncState) { syncState ->
-            val icon = when (syncState) {
-                SyncState.Error -> Icons.Default.Error
-                SyncState.Idle -> Icons.Default.CheckCircleOutline
-                SyncState.Running -> Icons.Default.Sync
-                SyncState.Terminated -> Icons.Default.Stop
-                SyncState.Offline -> Icons.Default.CloudOff
-            }
-            val hint = when (syncState) {
+        val icon = if (account.isHidden && !account.isSelected)
+            Icons.Default.VisibilityOff
+        else when (account.syncState) {
+            SyncState.Error -> Icons.Default.Error
+            SyncState.Idle -> Icons.Default.CheckCircleOutline
+            SyncState.Running -> Icons.Default.Sync
+            SyncState.Terminated -> Icons.Default.Stop
+            SyncState.Offline -> Icons.Default.CloudOff
+        }
+        AnimatedContent(icon) { icon ->
+            val hint = when (account.syncState) {
                 SyncState.Error -> stringResource(Res.string.hint_sync_state_error)
                 SyncState.Idle -> stringResource(Res.string.hint_sync_state_idle)
                 SyncState.Running -> stringResource(Res.string.hint_sync_state_running)
@@ -105,22 +124,10 @@ fun AccountButton(
                 icon,
                 hint,
                 Modifier.size(16.dp),
-                tint = if (syncState == SyncState.Error)
+                tint = if (account.syncState == SyncState.Error)
                     MaterialTheme.colorScheme.error
                 else
                     MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        AnimatedVisibility(
-            account.isHidden,
-            enter = scaleIn(Dimens.tween()) + expandHorizontally(Dimens.tween()),
-            exit = scaleOut(Dimens.tween()) + shrinkHorizontally(Dimens.tween())
-        ) {
-            Icon(
-                Icons.Default.VisibilityOff,
-                stringResource(Res.string.hint_hidden),
-                Modifier.size(16.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }

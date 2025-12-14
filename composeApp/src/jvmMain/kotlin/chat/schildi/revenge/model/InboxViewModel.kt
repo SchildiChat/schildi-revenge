@@ -47,11 +47,14 @@ data class InboxAccount(
     val roomListState: RoomListService.State,
     val syncState: SyncState,
     val isHidden: Boolean,
+    val isSelected: Boolean,
+    val isCurrentlyVisible: Boolean,
 )
 
 private data class InboxSettings(
     val sdkSettings: ScSdkInboxSettings,
     val hiddenAccounts: Set<SessionId>,
+    val selectedAccounts: Set<SessionId>,
 )
 
 class InboxViewModel(
@@ -77,13 +80,22 @@ class InboxViewModel(
         )
     }
 
+    // If an account is selected, automatically all non-selected accounts are treated as hidden,
+    // and selected accounts are even shown even if they're otherwise muted.
+    // Think of this as a selected=single, hidden=mute from a mixing control table.
+    val selectedAccounts = MutableStateFlow(setOf<SessionId>())
     val hiddenAccounts = MutableStateFlow(setOf<SessionId>())
 
     private val settings = combine(
         sdkSettings,
-        hiddenAccounts
-    ) { sdkSettings, hiddenAccounts ->
-        InboxSettings(sdkSettings, hiddenAccounts)
+        hiddenAccounts,
+        selectedAccounts,
+    ) { sdkSettings, hiddenAccounts, selectedAccounts ->
+        InboxSettings(
+            sdkSettings = sdkSettings,
+            hiddenAccounts = hiddenAccounts,
+            selectedAccounts = selectedAccounts,
+        )
     }.stateIn(viewModelScope, SharingStarted.Eagerly,
         InboxSettings(
             ScSdkInboxSettings(
@@ -96,20 +108,27 @@ class InboxViewModel(
                 )
             ),
             emptySet(),
+            emptySet(),
         )
     )
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val allRooms = combinedSessions.flatMergeCombinedWith(
         map = { input, settings ->
-            if (input.client.sessionId in settings.hiddenAccounts) {
-                flowOf(emptyList())
-            } else {
+            val sessionId = input.client.sessionId
+            val isAccountEnabled = when {
+                settings.selectedAccounts.isNotEmpty() -> sessionId in settings.selectedAccounts
+                sessionId in settings.hiddenAccounts -> false
+                else -> true
+            }
+            if (isAccountEnabled) {
                 input.client.roomListService.allRooms.summaries.map {
                     it.map {
                         ScopedRoomSummary(input.client.sessionId, it)
                     }
                 }
+            } else {
+                flowOf(emptyList())
             }
         },
         onUpdatedInput = { it, settings ->
@@ -153,8 +172,18 @@ class InboxViewModel(
                 it.client.roomListService.state,
                 it.client.syncService.syncState,
                 hiddenAccounts,
-            ) { user, roomListState, syncState, hiddenAccounts ->
-                InboxAccount(user, roomListState, syncState, user.userId in hiddenAccounts)
+                selectedAccounts,
+            ) { user, roomListState, syncState, hiddenAccounts, selectedAccounts ->
+                val isHidden = user.userId in hiddenAccounts
+                val isSelected = user.userId in selectedAccounts
+                InboxAccount(
+                    user = user,
+                    roomListState = roomListState,
+                    syncState = syncState,
+                    isHidden = isHidden,
+                    isSelected = isSelected,
+                    isCurrentlyVisible = if (selectedAccounts.isEmpty()) !isHidden else isSelected,
+                )
             }
         },
         merge = {
@@ -188,15 +217,141 @@ class InboxViewModel(
                 }
                 true
             }
+            Action.Inbox.SetAccountHidden -> {
+                if (inboxAction.args.size != 2) {
+                    log.e("Invalid parameter size for SetAccountHidden action, expected 2 got ${inboxAction.args.size}")
+                    return false
+                }
+                val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return false
+                val hidden = inboxAction.args[1].toBoolean()
+                setAccountHidden(sessionId, hidden)
+                true
+            }
+            Action.Inbox.SetAccountSelected -> {
+                if (inboxAction.args.size != 2) {
+                    log.e("Invalid parameter size for SetAccountSelected action, expected 2 got ${inboxAction.args.size}")
+                    return false
+                }
+                val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return false
+                val selected = inboxAction.args[1].toBoolean()
+                setAccountSelected(sessionId, selected)
+                true
+            }
+            Action.Inbox.SetAccountExclusivelySelected -> {
+                if (inboxAction.args.size != 2) {
+                    log.e("Invalid parameter size for SetAccountExclusivelySelected action, expected 2 got ${inboxAction.args.size}")
+                    return false
+                }
+                val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return false
+                val selected = inboxAction.args[1].toBoolean()
+                setAccountExclusivelySelected(sessionId, selected)
+                true
+            }
+            Action.Inbox.ToggleAccountHidden -> {
+                if (inboxAction.args.size != 1) {
+                    log.e("Invalid parameter size for ToggleAccountHidden action, expected 1 got ${inboxAction.args.size}")
+                    return false
+                }
+                val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return false
+                toggleAccountHidden(sessionId)
+                true
+            }
+            Action.Inbox.ToggleAccountSelected -> {
+                if (inboxAction.args.size != 1) {
+                    log.e("Invalid parameter size for ToggleAccountSelected action, expected 1 got ${inboxAction.args.size}")
+                    return false
+                }
+                val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return false
+                toggleAccountSelected(sessionId)
+                true
+            }
+            Action.Inbox.ToggleAccountExclusivelySelected -> {
+                if (inboxAction.args.size != 1) {
+                    log.e("Invalid parameter size for ToggleAccountExclusivelySelected action, expected 1 got ${inboxAction.args.size}")
+                    return false
+                }
+                val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return false
+                toggleAccountExclusivelySelected(sessionId)
+                true
+            }
         }
     }
 
-    fun setAccountVisible(sessionId: SessionId, visible: Boolean) {
+    private fun findSessionIdForAccountAction(parameter: String): SessionId? {
+        val index = parameter.toIntOrNull()
+        val currentAccounts = accounts.value ?: return null
+        return if (index != null) {
+            if (index > 0 && index <= currentAccounts.size) {
+                currentAccounts[index-1].user.userId
+            } else {
+                log.e("Invalid index for account action: $index")
+                null
+            }
+        } else {
+            val found = currentAccounts.find { it.user.userId.value == parameter }
+            if (found == null) {
+                log.e("Cannot find account by ID: $parameter")
+                null
+            } else {
+                found.user.userId
+            }
+        }
+    }
+
+    fun setAccountHidden(sessionId: SessionId, hidden: Boolean) {
         hiddenAccounts.update {
-            if (visible) {
+            if (hidden) {
+                it + sessionId
+            } else {
+                it - sessionId
+            }
+        }
+    }
+
+    fun setAccountSelected(sessionId: SessionId, selected: Boolean) {
+        selectedAccounts.update {
+            if (selected) {
+                it + sessionId
+            } else {
+                it - sessionId
+            }
+        }
+    }
+
+    fun setAccountExclusivelySelected(sessionId: SessionId, selected: Boolean) {
+        if (selected) {
+            selectedAccounts.value = setOf(sessionId)
+        } else {
+            selectedAccounts.value = setOf()
+        }
+    }
+
+    fun toggleAccountHidden(sessionId: SessionId) {
+        hiddenAccounts.update {
+            if (sessionId in it) {
                 it - sessionId
             } else {
                 it + sessionId
+            }
+        }
+    }
+
+    fun toggleAccountSelected(sessionId: SessionId) {
+        selectedAccounts.update {
+            if (sessionId in it) {
+                it - sessionId
+            } else {
+                it + sessionId
+            }
+        }
+    }
+
+    fun toggleAccountExclusivelySelected(sessionId: SessionId) {
+        selectedAccounts.update {
+            if (it.size == 1 && sessionId in it) {
+                setOf()
+            } else {
+                setOf(sessionId)
             }
         }
     }
