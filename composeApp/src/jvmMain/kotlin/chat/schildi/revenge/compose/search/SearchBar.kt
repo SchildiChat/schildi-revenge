@@ -29,7 +29,7 @@ fun SearchBar(modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
-            .keyFocusable(role = FocusRole.SEARCH_BAR, isTextField = true),
+            .keyFocusable(role = FocusRole.SEARCH_BAR),
         maxLines = 1,
         keyboardActions = KeyboardActions {
             handler.onSearchEnter()

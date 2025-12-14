@@ -19,11 +19,17 @@ data class ActionProvider(
 @Composable
 fun defaultActionProvider(
     searchProvider: SearchProvider? = LocalSearchProvider.current,
+    primaryAction: InteractionAction? = null,
+    secondaryAction: InteractionAction? = null,
+    tertiaryAction: InteractionAction? = null,
     listActions: ListAction? = LocalListActionProvider.current,
     keyActions: KeyboardActionProvider? = LocalKeyboardActionProvider.current,
 ): ActionProvider {
     return ActionProvider(
         searchProvider = searchProvider,
+        primaryAction = primaryAction,
+        secondaryAction = secondaryAction,
+        tertiaryAction = tertiaryAction,
         listActions = listActions,
         keyActions = keyActions,
     )

@@ -70,7 +70,7 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
                 modifier = Modifier
                     .weight(1f)
                     .background(MaterialTheme.colorScheme.surface)
-                    .keyFocusable(role = FocusRole.MESSAGE_COMPOSER, isTextField = true),
+                    .keyFocusable(role = FocusRole.MESSAGE_COMPOSER),
                 colors = TextFieldDefaults.colors().copy(
                     focusedContainerColor = MaterialTheme.colorScheme.surface,
                     unfocusedContainerColor = MaterialTheme.colorScheme.surface,

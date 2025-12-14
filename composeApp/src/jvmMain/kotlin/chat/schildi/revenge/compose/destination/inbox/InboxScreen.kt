@@ -2,12 +2,11 @@ package chat.schildi.revenge.compose.destination.inbox
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
@@ -16,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
+import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.ListAction
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
@@ -40,18 +40,15 @@ fun InboxScreen(modifier: Modifier = Modifier) {
     ) {
         Column(Modifier.widthIn(max = ScPrefs.MAX_WIDTH_INBOX.value().dp).fillMaxSize()) {
             InboxTopNavigation()
-            val states = viewModel.allStates.collectAsState().value
+            val accounts = viewModel.accounts.collectAsState().value
             val rooms = viewModel.rooms.collectAsState().value
             LazyColumn(Modifier.fillMaxSize(), state = listState) {
-                item {
-                    Text(System.identityHashCode(viewModel).toString())
-                }
-                states?.let {
-                    items(states) { state ->
-                        Text(
-                            state.toString(),
-                            color = MaterialTheme.colorScheme.onSurface,
-                            style = MaterialTheme.typography.bodyMedium,
+                if (!accounts.isNullOrEmpty()) {
+                    item {
+                        AccountSelectorRow(
+                            viewModel = viewModel,
+                            accounts = accounts,
+                            modifier = Modifier.padding(vertical = Dimens.listPadding),
                         )
                     }
                 }

@@ -1,0 +1,127 @@
+package chat.schildi.revenge.compose.destination.inbox
+
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircleOutline
+import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.actions.InteractionAction
+import chat.schildi.revenge.actions.defaultActionProvider
+import chat.schildi.revenge.compose.components.AvatarImage
+import chat.schildi.revenge.compose.focus.keyFocusable
+import chat.schildi.revenge.model.InboxAccount
+import chat.schildi.revenge.model.InboxViewModel
+import io.element.android.libraries.matrix.api.media.MediaSource
+import io.element.android.libraries.matrix.api.sync.SyncState
+import kotlinx.collections.immutable.ImmutableList
+import org.jetbrains.compose.resources.stringResource
+import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.hint_hidden
+import shire.composeapp.generated.resources.hint_sync_state_error
+import shire.composeapp.generated.resources.hint_sync_state_idle
+import shire.composeapp.generated.resources.hint_sync_state_offline
+import shire.composeapp.generated.resources.hint_sync_state_running
+import shire.composeapp.generated.resources.hint_sync_state_terminated
+
+@Composable
+fun AccountSelectorRow(
+    viewModel: InboxViewModel,
+    accounts: ImmutableList<InboxAccount>,
+    modifier: Modifier = Modifier,
+) {
+    LazyRow(modifier, horizontalArrangement = Dimens.horizontalArrangement) {
+        items(accounts) { account ->
+            AccountButton(viewModel, account)
+        }
+    }
+}
+
+@Composable
+fun AccountButton(
+    viewModel: InboxViewModel,
+    account: InboxAccount,
+    modifier: Modifier = Modifier,
+) {
+    Row(modifier
+        .keyFocusable(
+            actionProvider = defaultActionProvider(
+                primaryAction = InteractionAction.Invoke {
+                    viewModel.setAccountVisible(account.user.userId, account.isHidden)
+                    true
+                }
+            )
+        )
+        .background(MaterialTheme.colorScheme.surfaceDim, RoundedCornerShape(50))
+        .padding(8.dp),
+        horizontalArrangement = Dimens.horizontalArrangement,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        AvatarImage(
+            source = account.user.avatarUrl?.let { MediaSource(it) },
+            size = 24.dp,
+            sessionId = account.user.userId,
+            shape = Dimens.ownAccountAvatarShape,
+            contentDescription = account.user.userId.value,
+        )
+        AnimatedContent(account.syncState) { syncState ->
+            val icon = when (syncState) {
+                SyncState.Error -> Icons.Default.Error
+                SyncState.Idle -> Icons.Default.CheckCircleOutline
+                SyncState.Running -> Icons.Default.Sync
+                SyncState.Terminated -> Icons.Default.Stop
+                SyncState.Offline -> Icons.Default.CloudOff
+            }
+            val hint = when (syncState) {
+                SyncState.Error -> stringResource(Res.string.hint_sync_state_error)
+                SyncState.Idle -> stringResource(Res.string.hint_sync_state_idle)
+                SyncState.Running -> stringResource(Res.string.hint_sync_state_running)
+                SyncState.Terminated -> stringResource(Res.string.hint_sync_state_terminated)
+                SyncState.Offline -> stringResource(Res.string.hint_sync_state_offline)
+            }
+            Icon(
+                icon,
+                hint,
+                Modifier.size(16.dp),
+                tint = if (syncState == SyncState.Error)
+                    MaterialTheme.colorScheme.error
+                else
+                    MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        AnimatedVisibility(
+            account.isHidden,
+            enter = scaleIn(Dimens.tween()) + expandHorizontally(Dimens.tween()),
+            exit = scaleOut(Dimens.tween()) + shrinkHorizontally(Dimens.tween())
+        ) {
+            Icon(
+                Icons.Default.VisibilityOff,
+                stringResource(Res.string.hint_hidden),
+                Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}

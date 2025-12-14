@@ -32,6 +32,7 @@ fun AvatarImage(
     sessionId: SessionId? = LocalSessionId.current,
     modifier: Modifier = Modifier,
     shape: Shape = Dimens.avatarShape,
+    contentDescription: String? = null,
 ) {
     if (source == null) {
         AvatarFallback(shape, modifier.size(size))
@@ -40,7 +41,7 @@ fun AvatarImage(
     SubcomposeAsyncImage(
         model = MediaRequestData(source, MediaRequestData.Kind.Content),
         filterQuality = FilterQuality.High,
-        contentDescription = null,
+        contentDescription = contentDescription,
         imageLoader = imageLoader(sessionId),
         onError = ::onAsyncImageError,
         modifier = modifier.size(size).clip(shape),

@@ -90,7 +90,6 @@ fun Modifier.keyFocusable(
     role: FocusRole = FocusRole.AUX_ITEM,
     actionProvider: ActionProvider = defaultActionProvider(),
     enableClicks: Boolean = true,
-    isTextField: Boolean = true,
 ): Modifier {
     val focusRequester = remember { FocusRequester() }
     val id = remember { UUID.randomUUID() }
@@ -100,6 +99,15 @@ fun Modifier.keyFocusable(
         LaunchedEffect(Unit) {
             focusRequester.requestFocus()
         }
+    }
+    val isTextField = when (role) {
+        FocusRole.SEARCHABLE_ITEM,
+        FocusRole.AUX_ITEM,
+        FocusRole.CONTAINER -> false
+        FocusRole.TEXT_FIELD_SINGLE_LINE,
+        FocusRole.TEXT_FIELD_MULTI_LINE,
+        FocusRole.MESSAGE_COMPOSER,
+        FocusRole.SEARCH_BAR -> true
     }
     return focusRequester(focusRequester)
         .onFocusChanged {

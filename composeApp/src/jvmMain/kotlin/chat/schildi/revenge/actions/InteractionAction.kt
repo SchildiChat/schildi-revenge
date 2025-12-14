@@ -20,4 +20,8 @@ sealed interface InteractionAction {
         override val buildDestination: () -> Destination,
     ) : NavigationAction
 
+    data class Invoke(
+        val invoke: () -> Boolean,
+    ) : InteractionAction
+
 }

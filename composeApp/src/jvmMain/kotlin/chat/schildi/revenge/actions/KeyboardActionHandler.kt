@@ -231,6 +231,7 @@ class KeyboardActionHandler(
                     }
                 }
             }
+            is InteractionAction.Invoke -> action.invoke()
         }
     }
 

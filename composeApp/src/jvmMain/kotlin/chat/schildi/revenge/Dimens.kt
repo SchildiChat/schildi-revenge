@@ -1,7 +1,10 @@
 package chat.schildi.revenge
 
+import androidx.compose.animation.core.TweenSpec
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -16,11 +19,15 @@ object Dimens {
     val verticalArrangement = Arrangement.spacedBy(listPadding)
 
     val avatarShape = RoundedCornerShape(12.dp)
+    val ownAccountAvatarShape = CircleShape
 
     object Inbox {
         val avatar = 48.dp
         val smallIcon = 16.dp
     }
+
+    val animationDurationMs = 50
+    fun <T>tween(): TweenSpec<T> = tween(animationDurationMs)
 
     object Conversation {
         val avatar = 48.dp
