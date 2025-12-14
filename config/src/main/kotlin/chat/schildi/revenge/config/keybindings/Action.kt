@@ -57,5 +57,6 @@ sealed interface Action {
         MarkReadPrivate,
         ComposeEdit,
         ComposeReply,
+        CopyContent,
     }
 }

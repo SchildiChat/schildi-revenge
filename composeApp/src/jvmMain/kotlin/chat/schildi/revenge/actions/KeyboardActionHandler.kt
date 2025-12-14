@@ -18,6 +18,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.platform.Clipboard
 import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.revenge.DestinationStateHolder
@@ -85,7 +86,10 @@ class KeyboardActionHandler(
 ) {
     private val log = Logger.withTag("Nav/$windowId")
 
+    // Set once available via LocalCompositionProvider
     var focusManager: FocusManager? = null
+    var clipboard: Clipboard? = null
+
     var windowCoordinates: Rect? = null
     private var lastPointerPosition = Offset.Zero
     private val _currentFocus = MutableStateFlow<UUID?>(null)

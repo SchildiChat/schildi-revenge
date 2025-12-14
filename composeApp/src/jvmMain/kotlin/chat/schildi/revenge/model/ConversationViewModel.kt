@@ -1,5 +1,6 @@
 package chat.schildi.revenge.model
 
+import androidx.compose.ui.platform.ClipEntry
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
@@ -23,25 +24,14 @@ import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
-import io.element.android.libraries.matrix.api.timeline.item.event.AudioMessageType
-import io.element.android.libraries.matrix.api.timeline.item.event.EmoteMessageType
-import io.element.android.libraries.matrix.api.timeline.item.event.EventContent
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
-import io.element.android.libraries.matrix.api.timeline.item.event.FileMessageType
-import io.element.android.libraries.matrix.api.timeline.item.event.ImageMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 import io.element.android.libraries.matrix.api.timeline.item.event.LocationMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
-import io.element.android.libraries.matrix.api.timeline.item.event.NoticeMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.OtherMessageType
-import io.element.android.libraries.matrix.api.timeline.item.event.StickerMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.TextLikeMessageType
-import io.element.android.libraries.matrix.api.timeline.item.event.TextMessageType
-import io.element.android.libraries.matrix.api.timeline.item.event.VideoMessageType
-import io.element.android.libraries.matrix.api.timeline.item.event.VoiceMessageType
-import io.element.android.libraries.matrix.api.timeline.item.event.toEventOrTransactionId
 import io.element.android.x.di.AppGraph
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
@@ -369,6 +359,17 @@ class ConversationViewModel(
                             false
                         }
                     } ?: false
+                    Action.Event.CopyContent -> {
+                        (event.content as? MessageContent)?.body?.let { content ->
+                            viewModelScope.launch {
+                                keyboardActionHandler.clipboard?.setClipEntry(
+                                    ClipEntry(java.awt.datatransfer.StringSelection(content))
+                                )
+                            }
+                            // TODO notify about copy success
+                            true
+                        } ?: false
+                    }
                 }
             }
         }

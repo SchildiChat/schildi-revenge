@@ -6,6 +6,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.geometry.toRect
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.Density
@@ -63,11 +64,11 @@ fun main() {
                     onPreviewKeyEvent = keyHandler::onPreviewKeyEvent,
                     onKeyEvent = keyHandler::onKeyEvent,
                 ) {
-                    // LocalFocusManager is not set outside the Window composable
+                    // LocalFocusManager and LocalClipboard are not set outside the Window composable
                     val focusManager = LocalFocusManager.current
-                    LaunchedEffect(keyHandler, focusManager) {
-                        keyHandler.focusManager = focusManager
-                    }
+                    val clipboard = LocalClipboard.current
+                    LaunchedEffect(keyHandler, focusManager) { keyHandler.focusManager = focusManager }
+                    LaunchedEffect(keyHandler, clipboard) { keyHandler.clipboard = clipboard }
 
                     // Scaling settings
                     val renderScale = ScPrefs.RENDER_SCALE.value()
