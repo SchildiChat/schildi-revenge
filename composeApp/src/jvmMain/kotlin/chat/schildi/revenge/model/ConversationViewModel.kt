@@ -16,6 +16,7 @@ import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
+import chat.schildi.revenge.toPrettyJson
 import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
 import io.element.android.features.messages.impl.timeline.TimelineController
@@ -361,13 +362,12 @@ class ConversationViewModel(
                     } ?: false
                     Action.Event.CopyContent -> {
                         (event.content as? MessageContent)?.body?.let { content ->
-                            viewModelScope.launch {
-                                keyboardActionHandler.clipboard?.setClipEntry(
-                                    ClipEntry(java.awt.datatransfer.StringSelection(content))
-                                )
-                            }
-                            // TODO notify about copy success
-                            true
+                            keyboardActionHandler.copyToClipboard(content)
+                        } ?: false
+                    }
+                    Action.Event.CopyEventSource -> {
+                        event.timelineItemDebugInfoProvider().originalJson?.toPrettyJson()?.let { eventSource ->
+                            keyboardActionHandler.copyToClipboard(eventSource)
                         } ?: false
                     }
                 }

@@ -18,6 +18,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.Clipboard
 import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPrefs
@@ -594,6 +595,17 @@ class KeyboardActionHandler(
         }
         success?.let(handleSuccess)
         return success != null
+    }
+
+    fun copyToClipboard(content: String): Boolean {
+        val localClipboard = clipboard ?: return false
+        scope.launch {
+            localClipboard.setClipEntry(
+                ClipEntry(java.awt.datatransfer.StringSelection(content))
+            )
+        }
+        // TODO toast or something
+        return true
     }
 }
 
