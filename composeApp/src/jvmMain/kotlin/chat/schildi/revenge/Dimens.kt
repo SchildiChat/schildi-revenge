@@ -1,7 +1,10 @@
 package chat.schildi.revenge
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
 
 object Dimens {
@@ -34,6 +37,14 @@ object Dimens {
         val messageSameSenderPadding = 4.dp
         val messageOtherSenderPadding = 12.dp
         val captionPadding = 8.dp
+        val timestampPaddingWithOverlayBg = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+        val timestampHorizontalPaddingToText = 8.dp
+        val timestampVerticalMarginToText = 4.dp
+
+        val textMessageStyle
+            @Composable get() = MaterialTheme.typography.bodyLarge
+        val messageTimestampStyle
+            @Composable get() = MaterialTheme.typography.bodyMedium
 
         val imageMinWidth = 48.dp
         val imageMinHeight = 48.dp

@@ -7,12 +7,14 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.withStyle
 import chat.schildi.revenge.compose.destination.conversation.event.message.TextLikeMessage
+import chat.schildi.revenge.compose.destination.conversation.event.message.TimestampOverlayContent
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 
 @Composable
 fun MessageFallback(
     text: String,
     isOwn: Boolean,
+    timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
     modifier: Modifier = Modifier
 ) {
@@ -21,5 +23,5 @@ fun MessageFallback(
             append(text)
         }
     }
-    TextLikeMessage(formatted, isOwn, inReplyTo, modifier)
+    TextLikeMessage(formatted, isOwn, timestamp, inReplyTo, modifier)
 }

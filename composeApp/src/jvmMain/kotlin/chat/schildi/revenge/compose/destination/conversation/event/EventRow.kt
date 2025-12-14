@@ -11,6 +11,7 @@ import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.defaultActionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
+import chat.schildi.revenge.compose.destination.conversation.event.message.timestampOverlayContent
 import chat.schildi.revenge.compose.destination.conversation.event.reaction.ReactionsRow
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.ConversationViewModel
@@ -38,6 +39,7 @@ fun EventRow(
             senderId = event.sender,
             senderProfile = event.senderProfile,
             isOwn = event.isOwn,
+            timestamp = remember(event) { event.timestampOverlayContent() },
             isSameAsPreviousSender = isSameAsPreviousSender,
             inReplyTo = event.inReplyTo(),
         )

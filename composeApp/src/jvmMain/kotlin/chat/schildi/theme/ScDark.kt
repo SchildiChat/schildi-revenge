@@ -69,6 +69,7 @@ internal val scdExposures = ScThemeExposures(
     commonLayoutRadius = 10.dp,
     timestampRadius = 6.dp,
     timestampOverlayBg = ScColors.colorBlackAlpha_80,
+    timestampOverlayFgOnBg = scd_fgSecondary,
     unreadIndicatorLine = ScColors.colorAccentGreen,
     unreadIndicatorThickness = 2.dp,
     mentionFg = ScColors.colorWhite,

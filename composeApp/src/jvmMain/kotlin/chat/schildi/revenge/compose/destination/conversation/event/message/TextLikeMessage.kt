@@ -4,9 +4,13 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextLayoutResult
+import chat.schildi.revenge.Dimens
 import io.element.android.libraries.matrix.api.timeline.item.event.EmoteMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 import io.element.android.libraries.matrix.api.timeline.item.event.NoticeMessageType
@@ -17,6 +21,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.TextMessageTy
 fun TextLikeMessage(
     message: TextLikeMessageType,
     isOwn: Boolean,
+    timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
     modifier: Modifier = Modifier
 ) {
@@ -30,6 +35,7 @@ fun TextLikeMessage(
         // TODO message formatting, links, url previews, ...
         text = AnnotatedString(message.body),
         isOwn = isOwn,
+        timestamp = timestamp,
         inReplyTo = inReplyTo,
         modifier = modifier.alpha(alpha),
         outlined = message is EmoteMessageType,
@@ -40,28 +46,39 @@ fun TextLikeMessage(
 fun TextLikeMessage(
     text: AnnotatedString,
     isOwn: Boolean,
+    timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
     modifier: Modifier = Modifier,
     outlined: Boolean = false,
 ) {
+    val textLayoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
     MessageBubble(
         isOwn = isOwn,
+        timestamp = timestamp,
         modifier = modifier,
         outlined = outlined,
+        contentTextLayoutResult = textLayoutResult.value,
     ) {
         inReplyTo?.let { ReplyContent(it) }
-        TextLikeMessageContent(text)
+        TextLikeMessageContent(text) {
+            textLayoutResult.value = it
+        }
     }
 }
 
 @Composable
-fun TextLikeMessageContent(text: AnnotatedString, modifier: Modifier = Modifier) {
+fun TextLikeMessageContent(
+    text: AnnotatedString,
+    modifier: Modifier = Modifier,
+    onTextLayout: (TextLayoutResult) -> Unit,
+) {
     SelectionContainer {
         Text(
             text,
             color = MaterialTheme.colorScheme.primary,
-            style = MaterialTheme.typography.bodyMedium,
+            style = Dimens.Conversation.textMessageStyle,
             modifier = modifier,
+            onTextLayout = onTextLayout,
         )
     }
 }

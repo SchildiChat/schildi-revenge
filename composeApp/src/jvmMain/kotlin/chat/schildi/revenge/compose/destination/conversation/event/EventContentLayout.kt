@@ -5,6 +5,7 @@ import androidx.compose.ui.Modifier
 import chat.schildi.revenge.compose.destination.conversation.event.message.MessageLayout
 import chat.schildi.revenge.compose.destination.conversation.event.message.ImageMessage
 import chat.schildi.revenge.compose.destination.conversation.event.message.TextLikeMessage
+import chat.schildi.revenge.compose.destination.conversation.event.message.TimestampOverlayContent
 import chat.schildi.revenge.compose.destination.conversation.event.sender.SenderAvatar
 import chat.schildi.revenge.compose.destination.conversation.event.sender.SenderName
 import io.element.android.libraries.matrix.api.core.UserId
@@ -45,6 +46,7 @@ fun EventContentLayout(
     senderId: UserId,
     senderProfile: ProfileDetails,
     isOwn: Boolean,
+    timestamp: TimestampOverlayContent?,
     isSameAsPreviousSender: Boolean,
     inReplyTo: InReplyTo?,
     modifier: Modifier = Modifier
@@ -73,7 +75,7 @@ fun EventContentLayout(
     @Composable
     fun EventMessageFallback(text: String) {
         EventMessageLayout {
-            MessageFallback(text, isOwn, inReplyTo)
+            MessageFallback(text, isOwn, timestamp, inReplyTo)
         }
     }
     // TODO make sure every item also renders timestamps in some form
@@ -82,38 +84,38 @@ fun EventContentLayout(
             EventMessageLayout {
                 when (val contentType = content.type) {
                     is TextLikeMessageType -> {
-                        TextLikeMessage(contentType, isOwn, inReplyTo)
+                        TextLikeMessage(contentType, isOwn, timestamp, inReplyTo)
                     }
                     is ImageMessageType -> {
-                        ImageMessage(contentType, isOwn, inReplyTo)
+                        ImageMessage(contentType, isOwn, timestamp, inReplyTo)
                     }
                     is LocationMessageType -> {
                         // TODO
-                        MessageFallback("LOCATION", isOwn, inReplyTo)
+                        MessageFallback("LOCATION", isOwn, timestamp, inReplyTo)
                     }
                     is AudioMessageType -> {
                         // TODO
-                        MessageFallback("AUDIO", isOwn, inReplyTo)
+                        MessageFallback("AUDIO", isOwn, timestamp, inReplyTo)
                     }
                     is FileMessageType -> {
                         // TODO
-                        MessageFallback("FILE", isOwn, inReplyTo)
+                        MessageFallback("FILE", isOwn, timestamp, inReplyTo)
                     }
                     is StickerMessageType -> {
                         // TODO
-                        MessageFallback("STICKER", isOwn, inReplyTo)
+                        MessageFallback("STICKER", isOwn, timestamp, inReplyTo)
                     }
                     is VideoMessageType -> {
                         // TODO
-                        MessageFallback("VIDEO", isOwn, inReplyTo)
+                        MessageFallback("VIDEO", isOwn, timestamp, inReplyTo)
                     }
                     is VoiceMessageType -> {
                         // TODO
-                        MessageFallback("VOICE", isOwn, inReplyTo)
+                        MessageFallback("VOICE", isOwn, timestamp, inReplyTo)
                     }
                     is OtherMessageType -> {
                         // TODO
-                        MessageFallback("OTHER_MESSAGE", isOwn, inReplyTo)
+                        MessageFallback("OTHER_MESSAGE", isOwn, timestamp, inReplyTo)
                     }
                 }
             }

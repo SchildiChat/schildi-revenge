@@ -23,6 +23,7 @@ class ScThemeExposures(
     timestampRadius: Dp,
     commonLayoutRadius: Dp,
     timestampOverlayBg: Color,
+    timestampOverlayFgOnBg: Color,
     unreadIndicatorLine: Color?,
     unreadIndicatorThickness: Dp,
     mentionFg: Color?,
@@ -63,6 +64,8 @@ class ScThemeExposures(
         private set
     var timestampOverlayBg by mutableStateOf(timestampOverlayBg)
         private set
+    var timestampOverlayFgOnBg by mutableStateOf(timestampOverlayFgOnBg)
+        private set
     var unreadIndicatorLine by mutableStateOf(unreadIndicatorLine)
         private set
     var unreadIndicatorThickness by mutableStateOf(unreadIndicatorThickness)
@@ -101,6 +104,7 @@ class ScThemeExposures(
         commonLayoutRadius: Dp = this.commonLayoutRadius,
         timestampRadius: Dp = this.timestampRadius,
         timestampOverlayBg: Color = this.timestampOverlayBg,
+        timestampOverlayFgOnBg: Color = this.timestampOverlayFgOnBg,
         unreadIndicatorLine: Color? = this.unreadIndicatorLine,
         unreadIndicatorThickness: Dp = this.unreadIndicatorThickness,
         mentionFg: Color? = this.mentionFg,
@@ -127,6 +131,7 @@ class ScThemeExposures(
         commonLayoutRadius = commonLayoutRadius,
         timestampRadius = timestampRadius,
         timestampOverlayBg = timestampOverlayBg,
+        timestampOverlayFgOnBg = timestampOverlayFgOnBg,
         unreadIndicatorLine = unreadIndicatorLine,
         unreadIndicatorThickness = unreadIndicatorThickness,
         mentionFg = mentionFg,
@@ -155,6 +160,7 @@ class ScThemeExposures(
         commonLayoutRadius = other.commonLayoutRadius
         timestampRadius = other.timestampRadius
         timestampOverlayBg = other.timestampOverlayBg
+        timestampOverlayFgOnBg = other.timestampOverlayFgOnBg
         unreadIndicatorLine = other.unreadIndicatorLine
         unreadIndicatorThickness = other.unreadIndicatorThickness
         mentionFg = other.mentionFg
