@@ -80,6 +80,7 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
         LocalListActionProvider provides listAction,
         modifier = modifier,
     ) {
+        val roomMembersById = viewModel.roomMembersById.collectAsState()
         Column(Modifier.widthIn(max = ScPrefs.MAX_WIDTH_CONVERSATION.value().dp)) {
             // Double reverse helps with stick-to-bottom while paging backwards or receiving messages
             LazyColumn(Modifier.fillMaxWidth().weight(1f), reverseLayout = true, state = listState) {
@@ -93,6 +94,7 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
                         item = item,
                         next = next,
                         previous = previous,
+                        roomMembersById = roomMembersById.value,
                     )
                 }
             }

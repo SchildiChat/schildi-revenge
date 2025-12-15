@@ -15,13 +15,17 @@ import chat.schildi.revenge.compose.destination.conversation.event.message.times
 import chat.schildi.revenge.compose.destination.conversation.event.reaction.ReactionsRow
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.ConversationViewModel
+import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
+import kotlinx.collections.immutable.ImmutableMap
 
 @Composable
 fun EventRow(
     viewModel: ConversationViewModel,
     event: EventTimelineItem,
     isSameAsPreviousSender: Boolean,
+    roomMembersById: ImmutableMap<UserId, RoomMember>,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -46,6 +50,10 @@ fun EventRow(
         ReactionsRow(
             reactions = event.reactions,
             messageIsOwn = event.isOwn,
+        )
+        ReadReceiptsRow(
+            receipts = event.receipts,
+            roomMembersById = roomMembersById,
         )
     }
 }

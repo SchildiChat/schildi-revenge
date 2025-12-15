@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.FilterQuality
@@ -14,7 +13,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import chat.schildi.revenge.Dimens
-import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.revenge.compose.media.onAsyncImageError
 import coil3.compose.SubcomposeAsyncImage
@@ -67,16 +65,12 @@ fun AvatarFallback(
 ) {
     // TODO better design
     val color = animateColorAsState(
-        if (UiState.showHiddenItems.collectAsState().value) {
-            if (isError) {
-                MaterialTheme.colorScheme.error
-            } else if (isLoading) {
-                MaterialTheme.colorScheme.primary
-            } else {
-                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-            }
+        if (isError) {
+            MaterialTheme.colorScheme.error
+        } else if (isLoading) {
+            MaterialTheme.colorScheme.primary
         } else {
-            MaterialTheme.colorScheme.surfaceVariant
+            MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
         }
     ).value
     Box(modifier.background(color, shape))

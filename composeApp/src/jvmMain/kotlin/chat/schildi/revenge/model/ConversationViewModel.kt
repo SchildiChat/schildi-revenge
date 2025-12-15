@@ -22,6 +22,8 @@ import io.element.android.features.messages.impl.timeline.TimelineController
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.room.RoomMembersState
+import io.element.android.libraries.matrix.api.room.roomMembers
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
@@ -33,7 +35,10 @@ import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWi
 import io.element.android.libraries.matrix.api.timeline.item.event.OtherMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.TextLikeMessageType
 import io.element.android.x.di.AppGraph
+import kotlinx.collections.immutable.persistentHashMapOf
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toPersistentHashMap
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -45,7 +50,9 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.getAndUpdate
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -102,6 +109,18 @@ class ConversationViewModel(
 
     val forwardPaginationStatus = activeTimeline.flatMapLatest { it?.forwardPaginationStatus ?: flowOf(null) }
     val backwardPaginationStatus = activeTimeline.flatMapLatest { it?.backwardPaginationStatus ?: flowOf(null) }
+
+    private val roomMembersState = roomPair.flatMapLatest { (_, joined) ->
+        joined?.membersStateFlow ?: flowOf()
+    }
+
+    val roomMembers = roomMembersState.map {
+        it.roomMembers()?.toImmutableList() ?: persistentListOf()
+    }.stateIn(viewModelScope, SharingStarted.Lazily, persistentListOf())
+
+    val roomMembersById = roomMembers.map {
+        it.associateBy { it.userId }.toPersistentHashMap()
+    }.stateIn(viewModelScope, SharingStarted.Lazily, persistentHashMapOf())
 
     private val draftKey = DraftKey(sessionId, roomId)
     override val composerState = DraftRepo.followDraft(draftKey).map {
@@ -217,6 +236,12 @@ class ConversationViewModel(
             }.toStringHolder()
         }
     }.filterNotNull()
+
+    init {
+        roomPair.onEach { (_, joinedRoom) ->
+            joinedRoom?.updateMembers()
+        }.launchIn(viewModelScope)
+    }
 
     override fun verifyDestination(destination: Destination): Boolean {
         return destination is Destination.Conversation && destination.sessionId == sessionId && destination.roomId == roomId
