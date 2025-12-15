@@ -60,7 +60,7 @@ private data class InboxSettings(
 )
 
 class InboxViewModel(
-    combinedSessions: CombinedSessions = UiState.combinedSessions,
+    private val combinedSessions: CombinedSessions = UiState.combinedSessions,
 ) : ViewModel(), SearchProvider, KeyboardActionProvider {
     private val log = Logger.withTag("Inbox")
 
@@ -210,6 +210,18 @@ class InboxViewModel(
     val dmsByHeroes = allRooms.map {
         it.filter { it.summary.isOneToOne }.groupBy { it.summary.info.heroes }.toPersistentHashMap()
     }.stateIn(viewModelScope, SharingStarted.Lazily, persistentHashMapOf())
+
+    fun onVisibleRoomsChanged(visibleRooms: List<ScopedRoomSummary>) {
+        val roomsBySession = visibleRooms.groupBy { it.sessionId }
+        viewModelScope.launch {
+            combinedSessions.value.forEach { session ->
+                roomsBySession[session.client.sessionId]?.takeIf { it.isNotEmpty() }?.let {
+                    log.v { "Subscribe to ${it.size} visible rooms for ${session.client.sessionId}" }
+                    session.client.roomListService.subscribeToVisibleRooms(it.map { it.summary.roomId })
+                }
+            }
+        }
+    }
 
     override fun onSearchType(query: String) {
         searchTerm.value = query

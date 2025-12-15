@@ -8,11 +8,14 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import chat.schildi.revenge.model.ScopedRoomSummary
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Dimens
@@ -26,7 +29,10 @@ import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.model.DraftRepo
 import chat.schildi.revenge.model.InboxViewModel
 import kotlinx.collections.immutable.persistentSetOf
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
 
+@OptIn(FlowPreview::class)
 @Composable
 fun InboxScreen(modifier: Modifier = Modifier) {
     val viewModel: InboxViewModel = viewModel(key = LocalDestinationState.current?.id.toString())
@@ -46,6 +52,20 @@ fun InboxScreen(modifier: Modifier = Modifier) {
             val roomsByRoomId = viewModel.roomsByRoomId.collectAsState().value
             val dmsByHeroes = viewModel.dmsByHeroes.collectAsState().value
             val needsAccountDisambiguation = (accountsSorted?.count { it.isCurrentlyVisible } ?: 0) > 0
+
+            // Observe which rooms are visible in the list so subscribe to room list updates
+            LaunchedEffect(listState, rooms, accountsSorted) {
+                snapshotFlow {
+                    // Adjust for header account selector offset
+                    val roomsOffset = if (!accountsSorted.isNullOrEmpty()) 1 else 0
+                    listState.layoutInfo.visibleItemsInfo.map { it.index - roomsOffset }
+                }
+                    .debounce(200)
+                    .collect { indices ->
+                        val visibleRooms = indices.mapNotNull { rooms?.getOrNull(it) }
+                        viewModel.onVisibleRoomsChanged(visibleRooms)
+                    }
+            }
             LazyColumn(Modifier.fillMaxSize(), state = listState) {
                 if (!accountsSorted.isNullOrEmpty()) {
                     item {
