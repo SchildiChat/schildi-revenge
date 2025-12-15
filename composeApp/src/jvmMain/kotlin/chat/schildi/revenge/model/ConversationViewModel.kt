@@ -1,6 +1,5 @@
 package chat.schildi.revenge.model
 
-import androidx.compose.ui.platform.ClipEntry
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
@@ -200,8 +199,23 @@ class ConversationViewModel(
         return true
     }
 
-    override val windowTitle: Flow<ComposableStringHolder?> = roomPair.map { (baseRoom, joinedRoom) ->
-        baseRoom?.info()?.name?.toStringHolder()
+    val userProfile = clientFlow.flatMapLatest { it?.userProfile ?: flowOf(null) }
+
+    override val windowTitle: Flow<ComposableStringHolder?> = combine(
+        roomPair,
+        userProfile,
+    ) { (baseRoom, joinedRoom), user ->
+        baseRoom?.info()?.name?.let {
+            buildString {
+                append(it)
+                append(" - ")
+                if (user?.displayName != null) {
+                    append(user.displayName)
+                } else {
+                    append(sessionId.value)
+                }
+            }.toStringHolder()
+        }
     }.filterNotNull()
 
     override fun verifyDestination(destination: Destination): Boolean {
