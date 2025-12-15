@@ -84,12 +84,23 @@ internal fun Modifier.keyFocusableContainer(id: UUID, parent: FocusParent?): Mod
         )
 }
 
+fun FocusRole.allowsFocusable() = when (this) {
+    FocusRole.SEARCHABLE_ITEM,
+    FocusRole.AUX_ITEM,
+    FocusRole.CONTAINER -> true
+    FocusRole.TEXT_FIELD_SINGLE_LINE,
+    FocusRole.TEXT_FIELD_MULTI_LINE,
+    FocusRole.MESSAGE_COMPOSER,
+    FocusRole.SEARCH_BAR -> false
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Modifier.keyFocusable(
     role: FocusRole = FocusRole.AUX_ITEM,
     actionProvider: ActionProvider = defaultActionProvider(),
     enableClicks: Boolean = true,
+    addMouseFocusable: Boolean = role.allowsFocusable() && actionProvider.primaryAction == null,
 ): Modifier {
     val focusRequester = remember { FocusRequester() }
     val id = remember { UUID.randomUUID() }
@@ -100,21 +111,11 @@ fun Modifier.keyFocusable(
             focusRequester.requestFocus()
         }
     }
-    val isTextField = when (role) {
-        FocusRole.SEARCHABLE_ITEM,
-        FocusRole.AUX_ITEM,
-        FocusRole.CONTAINER -> false
-        FocusRole.TEXT_FIELD_SINGLE_LINE,
-        FocusRole.TEXT_FIELD_MULTI_LINE,
-        FocusRole.MESSAGE_COMPOSER,
-        FocusRole.SEARCH_BAR -> true
-    }
     return focusRequester(focusRequester)
         .onFocusChanged {
             keyHandler.onFocusChanged(id, it)
         }
-        // Text fields get issues with added focusable
-        .thenIf(!isTextField) {
+        .thenIf(addMouseFocusable) {
             focusable()
         }
         .ifNotNull(actionProvider.primaryAction) { action ->
