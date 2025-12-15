@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.components.AvatarImage
 import io.element.android.libraries.matrix.api.core.UserId
@@ -37,10 +38,11 @@ fun ColumnScope.ReadReceiptsRow(
             Alignment.Start,
         ),
     ) {
-        receipts.forEach { receipt ->
+        receipts.forEachIndexed { index, receipt ->
             ReadReceiptItem(
                 receipt = receipt,
                 member = roomMembersById[receipt.userId],
+                modifier = Modifier.zIndex(-index.toFloat())
             )
         }
     }
