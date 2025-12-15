@@ -41,20 +41,35 @@ fun InboxScreen(modifier: Modifier = Modifier) {
         Column(Modifier.widthIn(max = ScPrefs.MAX_WIDTH_INBOX.value().dp).fillMaxSize()) {
             InboxTopNavigation()
             val accounts = viewModel.accounts.collectAsState().value
+            val accountsSorted = viewModel.accountsSorted.collectAsState().value
             val rooms = viewModel.rooms.collectAsState().value
+            val roomsByRoomId = viewModel.roomsByRoomId.collectAsState().value
+            val dmsByHeroes = viewModel.dmsByHeroes.collectAsState().value
+            val needsAccountDisambiguation = (accountsSorted?.count { it.isCurrentlyVisible } ?: 0) > 0
             LazyColumn(Modifier.fillMaxSize(), state = listState) {
-                if (!accounts.isNullOrEmpty()) {
+                if (!accountsSorted.isNullOrEmpty()) {
                     item {
                         AccountSelectorRow(
                             viewModel = viewModel,
-                            accounts = accounts,
+                            accounts = accountsSorted,
                             modifier = Modifier.padding(vertical = Dimens.listPadding),
                         )
                     }
                 }
                 rooms?.let {
                     items(rooms) { room ->
-                        InboxRow(room, hasDraft = room.draftKey in drafts.value)
+                        val needsDisambiguation = needsAccountDisambiguation &&
+                                ((roomsByRoomId[room.summary.roomId]?.size ?: 0) > 1 ||
+                                    room.summary.isOneToOne && (dmsByHeroes[room.summary.info.heroes]?.size ?: 0) > 1
+                                )
+                        InboxRow(
+                            room,
+                            hasDraft = room.draftKey in drafts.value,
+                            user = if (needsDisambiguation)
+                                accounts?.get(room.sessionId)?.user
+                            else
+                                null
+                        )
                     }
                 }
             }

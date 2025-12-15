@@ -23,6 +23,7 @@ object Dimens {
 
     object Inbox {
         val avatar = 48.dp
+        val accountAvatar = 16.dp
         val smallIcon = 16.dp
     }
 

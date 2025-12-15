@@ -46,6 +46,7 @@ import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.roomlist.LatestEventValue
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
+import io.element.android.libraries.matrix.api.user.MatrixUser
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.message_placeholder_tombstone
@@ -55,6 +56,7 @@ import kotlin.math.max
 fun InboxRow(
     room: ScopedRoomSummary,
     hasDraft: Boolean,
+    user: MatrixUser?,
     modifier: Modifier = Modifier,
 ) {
     ComposeSessionScope(room.sessionId) {
@@ -76,13 +78,23 @@ fun InboxRow(
                 ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            AvatarImage(
-                source = room.summary.info.avatarUrl?.let { MediaSource(it) }
-                    ?: room.summary.info.heroes.takeIf { it.size == 1}?.firstOrNull()?.avatarUrl?.let {
-                        MediaSource(it)
-                    },
-                size = Dimens.Inbox.avatar,
-            )
+            Box {
+                AvatarImage(
+                    source = room.summary.info.avatarUrl?.let { MediaSource(it) }
+                        ?: room.summary.info.heroes.takeIf { it.size == 1 }?.firstOrNull()?.avatarUrl?.let {
+                            MediaSource(it)
+                        },
+                    size = Dimens.Inbox.avatar,
+                )
+                user?.avatarUrl?.let { userAvatar ->
+                    AvatarImage(
+                        source = MediaSource(userAvatar),
+                        size = Dimens.Inbox.accountAvatar,
+                        shape = Dimens.ownAccountAvatarShape,
+                        modifier = Modifier.align(Alignment.BottomEnd),
+                    )
+                }
+            }
             Column(
                 modifier = Modifier
                     .fillMaxWidth()

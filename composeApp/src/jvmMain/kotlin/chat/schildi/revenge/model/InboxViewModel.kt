@@ -23,7 +23,9 @@ import io.element.android.libraries.matrix.api.roomlist.ScSdkInboxSettings
 import io.element.android.libraries.matrix.api.roomlist.ScSdkRoomSortOrder
 import io.element.android.libraries.matrix.api.sync.SyncState
 import io.element.android.libraries.matrix.api.user.MatrixUser
-import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.persistentHashMapOf
+import kotlinx.collections.immutable.toPersistentHashMap
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -112,6 +114,9 @@ class InboxViewModel(
         )
     )
 
+    /**
+     * All rooms for the current account selection, merged together with appropriate sort order.
+     */
     @OptIn(ExperimentalCoroutinesApi::class)
     val allRooms = combinedSessions.flatMergeCombinedWith(
         map = { input, settings ->
@@ -150,6 +155,9 @@ class InboxViewModel(
         other = settings,
     )
 
+    /**
+     * Rooms filtered by search and TODO space selection.
+     */
     val rooms = combine(
         allRooms,
         searchTerm,
@@ -187,9 +195,21 @@ class InboxViewModel(
             }
         },
         merge = {
-            it.toImmutableList()
+            it.associateBy { it.user.userId }.toPersistentHashMap()
         }
     ).stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    // TODO user-defined sort order
+    val accountsSorted = accounts.map { it?.values?.sortedBy { it.user.userId.value }?.toPersistentList() }
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val roomsByRoomId = allRooms.map {
+        it.groupBy { it.summary.roomId }.toPersistentHashMap()
+    }.stateIn(viewModelScope, SharingStarted.Lazily, persistentHashMapOf())
+
+    val dmsByHeroes = allRooms.map {
+        it.filter { it.summary.isOneToOne }.groupBy { it.summary.info.heroes }.toPersistentHashMap()
+    }.stateIn(viewModelScope, SharingStarted.Lazily, persistentHashMapOf())
 
     override fun onSearchType(query: String) {
         searchTerm.value = query
@@ -279,7 +299,7 @@ class InboxViewModel(
 
     private fun findSessionIdForAccountAction(parameter: String): SessionId? {
         val index = parameter.toIntOrNull()
-        val currentAccounts = accounts.value ?: return null
+        val currentAccounts = accountsSorted.value ?: return null
         return if (index != null) {
             if (index > 0 && index <= currentAccounts.size) {
                 currentAccounts[index-1].user.userId
