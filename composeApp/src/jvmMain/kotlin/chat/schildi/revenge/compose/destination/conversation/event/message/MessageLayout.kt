@@ -83,8 +83,10 @@ fun MessageLayoutNormal(
                     .padding(end = Dimens.Conversation.otherSidePadding)
             ) {
                 Column(Modifier.fillMaxWidth()) {
-                    BoxWithDirection(mainLayoutDirection) {
-                        senderName()
+                    if (!isOwn) {
+                        BoxWithDirection(mainLayoutDirection) {
+                            senderName()
+                        }
                     }
                     BoxWithDirection(mainLayoutDirection) {
                         messageContent()
