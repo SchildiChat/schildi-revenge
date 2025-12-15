@@ -17,6 +17,7 @@ import chat.schildi.revenge.model.ConversationViewModel
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
+import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.virtual.VirtualTimelineItem
 import kotlinx.collections.immutable.ImmutableMap
 
@@ -49,8 +50,10 @@ fun ConversationItemRow(
             }
 
             is MatrixTimelineItem.Event -> {
-                val previousSender = (previous as? MatrixTimelineItem.Event)?.event?.sender
-                val isSameAsPreviousSender = previousSender == item.event.sender
+                val previousEvent = (previous as? MatrixTimelineItem.Event)?.event
+                val previousSender = previousEvent?.sender
+                val isSameAsPreviousSender = previousSender == item.event.sender &&
+                        previousEvent.content is MessageContent
                 val padding = when (previousSender) {
                     null -> 0.dp
                     item.event.sender -> Dimens.Conversation.messageSameSenderPadding

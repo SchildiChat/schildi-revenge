@@ -32,6 +32,7 @@ object Dimens {
 
     object Conversation {
         val avatar = 48.dp
+        val avatarForState = 16.dp
         val avatarItemPadding = 16.dp
         val avatarReservation = avatar + avatarItemPadding
         val virtualItemPadding = 8.dp

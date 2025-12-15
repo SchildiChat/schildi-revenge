@@ -46,6 +46,33 @@
     <string name="message_placeholder_message_redacted">Message redacted</string>
     <string name="message_placeholder_message_failed_to_parse">Message failed to parse</string>
 
+    <string name="membership_change_none">%1$s made no changes</string>
+    <string name="membership_change_error">%1$s made a suspicious membership change</string>
+    <string name="membership_change_joined">%1$s joined</string>
+    <string name="membership_change_left">%1$s left</string>
+    <string name="membership_change_banned">%1$s banned %2$s</string>
+    <string name="membership_change_unbanned">%1$s unbanned %2$s</string>
+    <string name="membership_change_kicked">%1$s kicked %2$s</string>
+    <string name="membership_change_invited">%1$s invited %2$s</string>
+    <string name="membership_change_kicked_and_banned">%1$s kicked and banned %2$s</string>
+    <string name="membership_change_invitation_accepted">%1$s joined upon invitation</string>
+    <string name="membership_change_invitation_rejected">%1$s rejected their invitation</string>
+    <string name="membership_change_invitation_revoked">%1$s revoked the invitation for %2$s</string>
+    <string name="membership_change_knocked">%1$s knocked</string>
+    <string name="membership_change_knock_accepted">%1$s accepted the knock for %2$s</string>
+    <string name="membership_change_knock_retracted">%1$s retracted their knock</string>
+    <string name="membership_change_knock_denied">%1$s denied the knock by %2$s</string>
+    <string name="membership_change_not_implemented">%1$s sent an unsupported membership change</string>
+    <string name="membership_reason">Reason: %1$s</string>
+
+    <string name="profile_update_none">%1$s made no changes</string>
+    <string name="profile_update_name">%1$s changed their name (was %2$s)</string>
+    <string name="profile_update_set_name">%1$s set their name</string>
+    <string name="profile_update_cleared_name">%1$s cleared their name (was %2$s)</string>
+    <string name="profile_update_avatar">%1$s changed their avatar</string>
+    <string name="profile_update_name_and_avatar">%1$s changed their avatar and name (was %2$s)</string>
+    <string name="profile_update_set_name_and_avatar">%1$s changed their avatar and set their name</string>
+
     <string name="pref_category_dimensions">Dimensions</string>
     <string name="pref_render_scale">Render scale</string>
     <string name="pref_font_scale">Font scale</string>

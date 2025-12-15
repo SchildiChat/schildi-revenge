@@ -79,7 +79,7 @@ fun EventContentLayout(
         }
     }
     // TODO make sure every item also renders timestamps in some form
-    when (val content = content) {
+    when (content) {
         is MessageContent -> {
             EventMessageLayout {
                 when (val contentType = content.type) {
@@ -121,15 +121,16 @@ fun EventContentLayout(
             }
         }
 
+        is RoomMembershipContent -> RoomMembershipRow(content, senderId, senderProfile, timestamp)
+        is ProfileChangeContent -> ProfileChangeRow(content, senderId, senderProfile, timestamp)
+
         // TODO
         CallNotifyContent -> EventMessageFallback("CALL")
         is FailedToParseMessageLikeContent -> EventMessageFallback(stringResource(Res.string.message_placeholder_message_failed_to_parse))
         is FailedToParseStateContent -> EventMessageFallback("FAILED TO PARSE STATE")
         LegacyCallInviteContent -> EventMessageFallback("LEGACY CALL INVITE")
         is PollContent -> EventMessageFallback("POLL")
-        is ProfileChangeContent -> EventMessageFallback("PROFILE CHANGE")
         RedactedContent -> EventMessageFallback(stringResource(Res.string.message_placeholder_message_redacted)) // TODO can I tell if user deleted themselves or someone else?
-        is RoomMembershipContent -> EventMessageFallback("MEMBERSHIP")
         is StateContent -> EventMessageFallback("STATE")
         is StickerContent -> EventMessageFallback("STICKER")
         is UnableToDecryptContent -> EventMessageFallback(stringResource(Res.string.message_placeholder_unable_to_decrypt))
