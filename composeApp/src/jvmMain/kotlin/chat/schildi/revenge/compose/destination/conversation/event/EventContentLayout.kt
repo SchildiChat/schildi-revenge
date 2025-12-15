@@ -121,8 +121,8 @@ fun EventContentLayout(
             }
         }
 
-        is RoomMembershipContent -> RoomMembershipRow(content, senderId, senderProfile, timestamp)
-        is ProfileChangeContent -> ProfileChangeRow(content, senderId, senderProfile, timestamp)
+        is RoomMembershipContent -> RoomMembershipRow(content, senderId, senderProfile, timestamp, modifier)
+        is ProfileChangeContent -> ProfileChangeRow(content, senderId, senderProfile, timestamp, modifier)
 
         // TODO
         CallNotifyContent -> EventMessageFallback("CALL")

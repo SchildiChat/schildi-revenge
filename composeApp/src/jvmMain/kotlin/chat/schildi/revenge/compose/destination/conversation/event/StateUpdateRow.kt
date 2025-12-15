@@ -3,6 +3,7 @@ package chat.schildi.revenge.compose.destination.conversation.event
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -23,7 +24,7 @@ fun StateUpdateRow(
     modifier: Modifier = Modifier,
 ) {
     Row(
-        modifier,
+        modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Box(Modifier.width(Dimens.Inbox.avatar), contentAlignment = Alignment.CenterEnd) {

@@ -42,7 +42,7 @@ fun ProfileChangeRow(
     } else {
         when {
             content.prevDisplayName == null -> stringResource(Res.string.profile_update_set_name, senderName)
-            content.displayName == null -> stringResource(Res.string.profile_update_cleared_name, senderName)
+            content.displayName == null -> stringResource(Res.string.profile_update_cleared_name, senderName, content.prevDisplayName ?: "")
             else -> stringResource(Res.string.profile_update_name, senderName, content.prevDisplayName ?: "")
         }
     }
