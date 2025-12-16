@@ -481,6 +481,16 @@ class ConversationViewModel(
                                 keyboardActionHandler.copyToClipboard(eventSource)
                             } ?: false
                         }
+
+                        Action.Event.CopyEventId -> {
+                            (eventId?.value ?: event.transactionId?.value)?.let {
+                                keyboardActionHandler.copyToClipboard(it)
+                            } ?: false
+                        }
+
+                        Action.Event.CopyMxId -> {
+                            keyboardActionHandler.copyToClipboard(event.sender.value)
+                        }
                     }
                 }
             }

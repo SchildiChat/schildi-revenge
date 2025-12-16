@@ -66,5 +66,7 @@ sealed interface Action {
         ComposeReply,
         CopyContent,
         CopyEventSource,
+        CopyEventId,
+        CopyMxId,
     }
 }
