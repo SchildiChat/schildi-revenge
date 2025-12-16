@@ -54,24 +54,24 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [x] Search
     - [ ] Handle invites
 - [ ] Conversation view
-    - [ ] View event source
     - [x] Render plain text and notices
     - [ ] Render formatted text and notices
     - [x] Send text messages
-    - [ ] Render read receipts
+    - [x] Render read receipts
     - [ ] Render media
     - [x] Render reactions
-    - [ ] Render joins/leaves
+    - [x] Render joins/leaves
     - [ ] Render link previews
     - [ ] Render typing indicators
-    - [ ] Mechanism to select messages (for replies, edits, reactions...)
-    - [ ] Send replies
+    - [x] Mechanism to select messages (for replies, edits, reactions...)
+    - [x] Send replies
     - [ ] Send reactions (just text input is enough for first run, OS may have emoji picker)
     - [ ] Send mentions
     - [ ] Send attachments
     - [ ] Send typing indicators
     - [ ] Delete messages
-    - [ ] Mark as read, mark as unread (via keyboard shortcut)
+    - [x] Mark as read (via keyboard shortcut)
+    - [ ] Mark as unread (via keyboard shortcut)
     - [ ] Kick/ban users
     - [ ] Devtools
         - [ ] View room state
@@ -80,6 +80,7 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
         - [ ] Send room state
         - [ ] Send account state
         - [ ] Send custom events
+    - [ ] User trust shields
 - [ ] Room member list
 - [ ] Commands
     - [ ] Create room
@@ -102,6 +103,8 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
 
 ### Possible advanced features
 
+- [ ] Mark as read automatically while you scroll
+- [ ] View event source (can already copy event source via custom action though)
 - [ ] Verify other devices via emoji
 - [ ] MAS + rotating token support (need to re-persist session data)
 - [ ] MAS: support generating QR for quick sign in of mobile devices
