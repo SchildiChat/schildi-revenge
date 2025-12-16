@@ -29,10 +29,12 @@ inbox = [
     { key = "Nine", ctrl = true, shift = true, action = "ToggleAccountSelected", args = ["9"] },
 ]
 conversation = [
-    { key = "I", ctrl = true, action = "ComposeMessage" },
+    { key = "I", action = "ComposeMessage" },
     { key = "N", ctrl = true, action = "ComposeNotice" },
     { key = "M", ctrl = true, action = "ComposeEmote" },
+    { key = "Enter", action = "ComposerSend" },
     { key = "Enter", ctrl = true, action = "ComposerSend" },
+    { key = "Enter", shift = true, action = "ComposerInsertAddCursor", args = ["\n"] },
     { key = "Escape", action = "HideComposerIfEmpty" },
 ]
 event = [
@@ -62,11 +64,8 @@ focus = [
     { key = "DirectionRight", action = "FocusRight" },
     { key = "K", action = "FocusUp" },
     { key = "J", action = "FocusDown" },
-    { key = "H", action = "FocusLeft" },
-    { key = "L", action = "FocusRight" },
     { key = "E", action = "FocusUp" },
     { key = "N", action = "FocusDown" },
-    { key = "I", action = "FocusRight" },
     { key = "H", shift = true, action = "FocusTop" },
     { key = "M", shift = true, action = "FocusCenter" },
     { key = "L", shift = true, action = "FocusBottom" },

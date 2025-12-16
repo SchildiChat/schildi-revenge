@@ -1,5 +1,6 @@
 package chat.schildi.revenge.model
 
+import androidx.compose.ui.text.input.TextFieldValue
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.room.IntentionalMention
@@ -29,15 +30,19 @@ enum class DraftType {
 
 data class DraftValue(
     val type: DraftType = DraftType.TEXT,
-    val body: String = "",
-    val htmlBody: String? = null,
+    val textFieldValue: TextFieldValue = TextFieldValue(""),
     val intentionalMentions: ImmutableList<IntentionalMention> = persistentListOf(),
     val inReplyTo: InReplyTo.Ready? = null,
     val editEventId: EventOrTransactionId? = null, // Only for DraftType.EDIT and DraftType.EDIT_CAPTION
     val isSendInProgress: Boolean = false,
     val initialBody: String = "", // For edits the original message content, else empty
 ) {
-    fun isEmpty() = body.isBlank() || body == initialBody
+    val body: String
+        get() = textFieldValue.text
+    val htmlBody: String?
+        get() = null // TODO?
+
+    fun isEmpty() = textFieldValue.text.isBlank() || textFieldValue.text == initialBody
     fun canSend() = !isSendInProgress && !isEmpty()
 }
 

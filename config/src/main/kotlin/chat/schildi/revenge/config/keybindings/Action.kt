@@ -57,6 +57,7 @@ sealed interface Action {
         ComposeNotice,
         ComposeEmote,
         ComposerSend,
+        ComposerInsertAddCursor,
     }
     enum class Event : Action {
         MarkRead,

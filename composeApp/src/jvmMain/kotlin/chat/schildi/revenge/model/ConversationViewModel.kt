@@ -1,5 +1,6 @@
 package chat.schildi.revenge.model
 
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
@@ -16,6 +17,8 @@ import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.KeyboardActionHandler
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
+import chat.schildi.revenge.compose.util.insertAtCursor
+import chat.schildi.revenge.compose.util.insertTextFieldValue
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
@@ -359,6 +362,21 @@ class ConversationViewModel(
                 }
 
                 Action.Conversation.ComposerSend -> sendMessage()
+
+                Action.Conversation.ComposerInsertAddCursor -> {
+                    if (conversationAction.args.size != 1) {
+                        log.e("Invalid parameter size for ComposerInsertAddCursor action, expected 1 got ${conversationAction.args.size}")
+                        return@execute false
+                    }
+                    var hasDraft = false
+                    DraftRepo.update(draftKey) {
+                        hasDraft = it != null
+                        it?.copy(
+                            textFieldValue = it.textFieldValue.insertAtCursor(conversationAction.args[0])
+                        )
+                    }
+                    hasDraft
+                }
             }
         }
     }
@@ -419,7 +437,7 @@ class ConversationViewModel(
                                 val draftValue = when (val messageType = eventContent.type) {
                                     is TextLikeMessageType -> DraftValue(
                                         type = DraftType.EDIT,
-                                        body = messageType.body,
+                                        textFieldValue = insertTextFieldValue(messageType.body),
                                         editEventId = eventOrTransactionId,
                                         initialBody = messageType.body,
                                         // Not supported yet, TODO formatted edits?
@@ -429,7 +447,7 @@ class ConversationViewModel(
 
                                     is MessageTypeWithAttachment -> DraftValue(
                                         type = DraftType.EDIT_CAPTION,
-                                        body = messageType.caption ?: "",
+                                        textFieldValue = insertTextFieldValue(messageType.caption ?: ""),
                                         editEventId = eventOrTransactionId,
                                         initialBody = messageType.caption ?: "",
                                         // Not supported yet, TODO formatted edits?

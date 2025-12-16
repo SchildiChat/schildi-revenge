@@ -53,9 +53,9 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
         }
         Row {
             TextField(
-                value = draftState.body,
+                value = draftState.textFieldValue,
                 onValueChange = {
-                    viewModel.onComposerUpdate(draftState.copy(body = it))
+                    viewModel.onComposerUpdate(draftState.copy(textFieldValue = it))
                 },
                 label = {
                     val hint = when (draftState.type) {
