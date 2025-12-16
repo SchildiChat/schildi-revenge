@@ -1,6 +1,5 @@
 package chat.schildi.revenge.actions
 
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
@@ -190,7 +189,17 @@ class KeyboardActionHandler(
 
     fun focusByRole(role: FocusRole): Boolean {
         _keyboardPrimary.value = true
-        return focusableTargets.values.find { it.role == role }?.focusRequester?.requestFocus() ?: false
+        val focusRequester = focusableTargets.values.find { it.role == role }?.focusRequester
+        return if (focusRequester != null) {
+            // Don't immediately request focus, it causes issues where text fields
+            // may still consume the key in addition to us focusing it
+            scope.launch {
+                focusRequester.requestFocus()
+            }
+            true
+        } else {
+            false
+        }
     }
 
     private fun currentFocused(fallbackToRoot: Boolean = true): FocusTarget? {
