@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.preferences.RevengePrefs
+import chat.schildi.preferences.ScPref
+import chat.schildi.preferences.ScPrefs
+import chat.schildi.preferences.safeLookup
 import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.util.ComposableStringHolder
@@ -22,7 +25,6 @@ import io.element.android.features.messages.impl.timeline.TimelineController
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
-import io.element.android.libraries.matrix.api.room.RoomMembersState
 import io.element.android.libraries.matrix.api.room.roomMembers
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
@@ -56,6 +58,16 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+private data class ComposerSettings(
+    val autoHideComposer: Boolean,
+) {
+    companion object {
+        fun from(lookup: (ScPref<*>) -> Any?) = ComposerSettings(
+            autoHideComposer = ScPrefs.AUTO_HIDE_COMPOSER.safeLookup(lookup),
+        )
+    }
+}
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConversationViewModel(
     private val sessionId: SessionId,
@@ -75,6 +87,12 @@ class ConversationViewModel(
     private val roomPair = clientFlow.map { client ->
         Pair(client?.getRoom(roomId), client?.getJoinedRoom(roomId))
     }.stateIn(viewModelScope, SharingStarted.Eagerly, Pair(null, null))
+
+    private val composerSettings = RevengePrefs.combinedSettingFlow { lookup ->
+        ComposerSettings.from(lookup)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly,
+        ComposerSettings.from { RevengePrefs.getCachedOrDefaultValue(it) }
+    )
 
     private val roomGraphFlow = combine(sessionGraphFlow, roomPair) { sessionGraph, (baseRoom, joinedRoom) ->
         sessionGraph ?: return@combine null
@@ -214,7 +232,9 @@ class ConversationViewModel(
                 DraftRepo.update(draftKey, draft.copy(isSendInProgress = false))
             }
         }
-        forceShowComposer.value = false
+        if (composerSettings.value.autoHideComposer) {
+            forceShowComposer.value = false
+        }
         return true
     }
 

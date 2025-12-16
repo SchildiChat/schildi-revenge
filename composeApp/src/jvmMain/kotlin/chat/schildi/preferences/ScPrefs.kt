@@ -1,6 +1,8 @@
 package chat.schildi.preferences
 
 import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.pref_auto_hide_composer_summary
+import shire.composeapp.generated.resources.pref_auto_hide_composer_title
 import shire.composeapp.generated.resources.pref_category_dimensions
 import shire.composeapp.generated.resources.pref_font_scale
 import shire.composeapp.generated.resources.pref_max_width_conversation_title
@@ -141,7 +143,12 @@ object ScPrefs {
     val REPLY_PREVIEW_LINE_COUNT = ScIntPref("REPLY_PREVIEW_LINE_COUNT", 4, Res.string.sc_reply_preview_line_count_title, Res.string.sc_reply_preview_line_count_summary, minValue = 1, authorsChoice = 4, upstreamChoice = 2)
     val FULLY_EXPAND_MESSAGE_MENU = ScBoolPref("FULLY_EXPAND_MESSAGE_MENU", false, Res.string.sc_pref_fully_expand_message_menu_title, Res.string.sc_pref_fully_expand_message_menu_summary, authorsChoice = true, upstreamChoice = false)
     val MESSAGE_CONTEXT_MENU_TEXT_SELECTABLE = ScBoolPref("MESSAGE_CONTEXT_MENU_TEXT_SELECTABLE", true, Res.string.sc_pref_message_context_menu_text_selectable_title, Res.string.sc_pref_message_context_menu_text_selectable_summary, authorsChoice = true, upstreamChoice = false)
+     */
 
+    // Composer
+    val AUTO_HIDE_COMPOSER = ScBoolPref("AUTO_HIDE_COMPOSER", false, Res.string.pref_auto_hide_composer_title, Res.string.pref_auto_hide_composer_summary)
+
+    /*
     // Advanced theming options - Light theme
     val BUBBLE_BG_LIGHT_OUTGOING = ScColorPref("BUBBLE_BG_LIGHT_OUTGOING", Res.string.sc_pref_bubble_color_outgoing_title)
     val BUBBLE_BG_LIGHT_INCOMING = ScColorPref("BUBBLE_BG_LIGHT_INCOMING", Res.string.sc_pref_bubble_color_incoming_title)
