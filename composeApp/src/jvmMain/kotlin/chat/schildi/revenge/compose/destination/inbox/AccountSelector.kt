@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -49,7 +50,11 @@ fun AccountSelectorRow(
     accounts: ImmutableList<InboxAccount>,
     modifier: Modifier = Modifier,
 ) {
-    LazyRow(modifier, horizontalArrangement = Dimens.horizontalArrangement) {
+    LazyRow(
+        modifier,
+        horizontalArrangement = Dimens.horizontalArrangement,
+        contentPadding = PaddingValues(horizontal = Dimens.windowPadding),
+    ) {
         items(accounts) { account ->
             AccountButton(viewModel, account)
         }
