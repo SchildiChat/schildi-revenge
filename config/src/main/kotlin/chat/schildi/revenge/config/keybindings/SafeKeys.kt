@@ -18,6 +18,11 @@ val AllowedTextFieldBindingKeys = listOf(
     Key.F12,
 )
 
+val AllowedComposerTextFieldBindingKeys = listOf(
+    // Allow setting up enter-to-send
+    Key.Enter,
+) + AllowedTextFieldBindingKeys
+
 val AllowedSingleLineTextFieldBindingKeys = listOf(
     Key.DirectionUp,
     Key.DirectionDown,

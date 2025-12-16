@@ -28,6 +28,7 @@ import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
 import chat.schildi.revenge.config.keybindings.Action
+import chat.schildi.revenge.config.keybindings.AllowedComposerTextFieldBindingKeys
 import chat.schildi.revenge.config.keybindings.AllowedSingleLineTextFieldBindingKeys
 import chat.schildi.revenge.config.keybindings.AllowedTextFieldBindingKeys
 import chat.schildi.revenge.config.keybindings.Binding
@@ -67,7 +68,7 @@ enum class FocusRole(val consumesKeyWhitelist: List<Key>? = null) {
     CONTAINER,
     TEXT_FIELD_SINGLE_LINE(consumesKeyWhitelist = AllowedSingleLineTextFieldBindingKeys),
     TEXT_FIELD_MULTI_LINE(consumesKeyWhitelist = AllowedTextFieldBindingKeys),
-    MESSAGE_COMPOSER(consumesKeyWhitelist = AllowedTextFieldBindingKeys),
+    MESSAGE_COMPOSER(consumesKeyWhitelist = AllowedComposerTextFieldBindingKeys),
     SEARCH_BAR, // Does not need to consume plain keys, key handler has a special mode for that
 }
 
