@@ -36,14 +36,18 @@ conversation = [
     { key = "Enter", ctrl = true, action = "ComposerSend" },
     { key = "Enter", shift = true, action = "ComposerInsertAddCursor", args = ["\n"] },
     { key = "Escape", action = "HideComposerIfEmpty" },
+    { key = "T", ctrl = true, action = "ComposerInsertAddCursor", args = ["🤔"] },
 ]
 event = [
     { key = "M", action = "MarkRead" },
     { key = "M", ctrl = true, action = "MarkReadPrivate" },
     { key = "R", ctrl = true, action = "ComposeReply" },
+    { key = "C", ctrl = true, action = "ComposeReaction" },
     { key = "E", ctrl = true, action = "ComposeEdit" },
     { key = "Y", action = "CopyContent" },
     { key = "Y", shift = true, action = "CopyEventSource" },
+    { key = "Y", ctrl = true, action = "CopyEventId" },
+    { key = "Y", ctrl = true, shift = true, action = "CopyMxId" },
 ]
 navigation = [
     { key = "I", shift = true, action = "InboxInCurrent" },

@@ -20,6 +20,7 @@
     <string name="hint_composer_emote">Emote</string>
     <string name="hint_composer_edit">Edit message</string>
     <string name="hint_composer_edit_caption">Edit caption</string>
+    <string name="hint_composer_reaction">React</string>
     <string name="hint_sync_state_error">Error</string>
     <string name="hint_sync_state_idle">Idle</string>
     <string name="hint_sync_state_running">Running</string>

@@ -40,6 +40,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.MessageConten
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
 import io.element.android.libraries.matrix.api.timeline.item.event.OtherMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.TextLikeMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.toEventOrTransactionId
 import io.element.android.x.di.AppGraph
 import kotlinx.collections.immutable.persistentHashMapOf
 import kotlinx.collections.immutable.persistentListOf
@@ -225,6 +226,16 @@ class ConversationViewModel(
                         eventOrTransactionId = editEventId,
                         caption = draft.body,
                         formattedCaption = draft.htmlBody,
+                    )
+                }
+                DraftType.REACTION -> {
+                    val relatesToEventId = draft.inReplyTo?.eventId ?: run {
+                        log.e("Tried to react without message eventId")
+                        return@launch
+                    }
+                    currentTimeline.toggleReaction(
+                        emoji = draft.body,
+                        eventOrTransactionId = relatesToEventId.toEventOrTransactionId(),
                     )
                 }
             }
@@ -468,6 +479,21 @@ class ConversationViewModel(
                             } else {
                                 false
                             }
+                        } ?: false
+
+                        Action.Event.ComposeReaction -> eventId?.let {
+                            forceShowComposer.value = true
+                            val inReplyTo = InReplyTo.Ready(
+                                eventId = eventId,
+                                content = event.content,
+                                senderId = event.sender,
+                                senderProfile = event.senderProfile,
+                            )
+                            DraftRepo.update(draftKey) {
+                                it?.copy(inReplyTo = inReplyTo, type = DraftType.REACTION)
+                                    ?: DraftValue(inReplyTo = inReplyTo, type = DraftType.REACTION)
+                            }
+                            keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
                         } ?: false
 
                         Action.Event.CopyContent -> {

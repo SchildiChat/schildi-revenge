@@ -64,6 +64,7 @@ sealed interface Action {
         MarkReadPrivate,
         ComposeEdit,
         ComposeReply,
+        ComposeReaction,
         CopyContent,
         CopyEventSource,
         CopyEventId,

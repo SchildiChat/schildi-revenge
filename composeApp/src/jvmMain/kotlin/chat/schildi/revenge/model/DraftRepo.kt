@@ -26,6 +26,7 @@ enum class DraftType {
     EMOTE,
     EDIT,
     EDIT_CAPTION,
+    REACTION,
 }
 
 data class DraftValue(

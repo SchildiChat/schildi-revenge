@@ -33,6 +33,7 @@ import shire.composeapp.generated.resources.hint_composer_edit
 import shire.composeapp.generated.resources.hint_composer_edit_caption
 import shire.composeapp.generated.resources.hint_composer_emote
 import shire.composeapp.generated.resources.hint_composer_notice
+import shire.composeapp.generated.resources.hint_composer_reaction
 import shire.composeapp.generated.resources.hint_composer_text
 
 // TODO
@@ -64,6 +65,7 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
                         DraftType.EMOTE -> stringResource(Res.string.hint_composer_emote)
                         DraftType.EDIT -> stringResource(Res.string.hint_composer_edit)
                         DraftType.EDIT_CAPTION -> stringResource(Res.string.hint_composer_edit_caption)
+                        DraftType.REACTION -> stringResource(Res.string.hint_composer_reaction)
                     }
                     Text(hint)
                 },
