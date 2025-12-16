@@ -222,13 +222,6 @@ class KeyboardActionHandler(
         action: InteractionAction,
         destinationStateHolder: DestinationStateHolder? = null
     ): Boolean {
-        updateMode {
-            if (it !is KeyboardActionMode.Search) {
-                it
-            } else {
-                KeyboardActionMode.Navigation
-            }
-        }
         return when (action) {
             is InteractionAction.NavigationAction -> {
                 val destination = action.buildDestination()
@@ -238,6 +231,7 @@ class KeyboardActionHandler(
                         true
                     }
                     is InteractionAction.NavigateCurrent -> {
+                        updateMode { KeyboardActionMode.Navigation }
                         navigateCurrentDestination(destination, destinationStateHolder)
                     }
                 }
@@ -391,6 +385,7 @@ class KeyboardActionHandler(
                 return@execute when (navigationAction.action) {
                     Action.NavigationItem.NavigateCurrent -> {
                         val destinationStateHolder = focused.destinationStateHolder ?: return@execute false
+                        updateMode { KeyboardActionMode.Navigation }
                         navigateCurrentDestination(destination, destinationStateHolder)
                     }
                     Action.NavigationItem.NavigateInNewWindow -> {
