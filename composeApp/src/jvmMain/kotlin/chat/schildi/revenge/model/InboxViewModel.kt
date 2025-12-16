@@ -3,6 +3,7 @@ package chat.schildi.revenge.model
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import chat.schildi.preferences.RevengePrefs
+import chat.schildi.preferences.ScPref
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.safeLookup
 import chat.schildi.revenge.CombinedSessions
@@ -59,6 +60,16 @@ private data class InboxSettings(
     val selectedAccounts: Set<SessionId>,
 )
 
+private fun buildScSdkInboxSettings(lookup: (ScPref<*>) -> Any?) = ScSdkInboxSettings(
+    sortOrder = ScSdkRoomSortOrder(
+        byUnread = ScPrefs.SORT_BY_UNREAD.safeLookup(lookup),
+        pinFavourites = ScPrefs.PIN_FAVORITES.safeLookup(lookup),
+        buryLowPriority = ScPrefs.BURY_LOW_PRIORITY.safeLookup(lookup),
+        clientSideUnreadCounts = ScPrefs.CLIENT_GENERATED_UNREAD_COUNTS.safeLookup(lookup),
+        withSilentUnread = ScPrefs.SORT_WITH_SILENT_UNREAD.safeLookup(lookup),
+    )
+)
+
 class InboxViewModel(
     private val combinedSessions: CombinedSessions = UiState.combinedSessions,
 ) : ViewModel(), SearchProvider, KeyboardActionProvider {
@@ -71,15 +82,7 @@ class InboxViewModel(
     private val searchTerm = MutableStateFlow<String?>(null)
 
     private val sdkSettings = RevengePrefs.combinedSettingFlow { lookup ->
-        ScSdkInboxSettings(
-            sortOrder = ScSdkRoomSortOrder(
-                byUnread = ScPrefs.SORT_BY_UNREAD.safeLookup(lookup),
-                pinFavourites = ScPrefs.PIN_FAVORITES.safeLookup(lookup),
-                buryLowPriority = ScPrefs.BURY_LOW_PRIORITY.safeLookup(lookup),
-                clientSideUnreadCounts = ScPrefs.CLIENT_GENERATED_UNREAD_COUNTS.safeLookup(lookup),
-                withSilentUnread = ScPrefs.SORT_WITH_SILENT_UNREAD.safeLookup(lookup),
-            )
-        )
+        buildScSdkInboxSettings(lookup)
     }
 
     // If an account is selected, automatically all non-selected accounts are treated as hidden,
@@ -100,15 +103,7 @@ class InboxViewModel(
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly,
         InboxSettings(
-            ScSdkInboxSettings(
-                sortOrder = ScSdkRoomSortOrder(
-                    byUnread = RevengePrefs.getCachedOrDefaultValue(ScPrefs.SORT_BY_UNREAD),
-                    pinFavourites = RevengePrefs.getCachedOrDefaultValue(ScPrefs.PIN_FAVORITES),
-                    buryLowPriority = RevengePrefs.getCachedOrDefaultValue(ScPrefs.BURY_LOW_PRIORITY),
-                    clientSideUnreadCounts = RevengePrefs.getCachedOrDefaultValue(ScPrefs.CLIENT_GENERATED_UNREAD_COUNTS),
-                    withSilentUnread = RevengePrefs.getCachedOrDefaultValue(ScPrefs.SORT_WITH_SILENT_UNREAD),
-                )
-            ),
+            buildScSdkInboxSettings { RevengePrefs.getCachedOrDefaultValue(it) },
             emptySet(),
             emptySet(),
         )
