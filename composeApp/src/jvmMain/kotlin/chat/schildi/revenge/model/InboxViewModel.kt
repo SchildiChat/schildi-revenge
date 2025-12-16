@@ -9,6 +9,7 @@ import chat.schildi.preferences.safeLookup
 import chat.schildi.revenge.CombinedSessions
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.KeyboardActionProvider
+import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
@@ -230,76 +231,84 @@ class InboxViewModel(
 
     override fun handleNavigationModeEvent(key: KeyTrigger): Boolean {
         val keyConfig = UiState.keybindingsConfig.value
-        val inboxAction = keyConfig.inbox.find { it.trigger == key } ?: return false
-        return when (inboxAction.action) {
-            Action.Inbox.SetSetting -> {
-                viewModelScope.launch {
-                    RevengePrefs.handleSetAction(inboxAction.args)
+        return keyConfig.inbox.execute(key) { inboxAction ->
+            when (inboxAction.action) {
+                Action.Inbox.SetSetting -> {
+                    viewModelScope.launch {
+                        RevengePrefs.handleSetAction(inboxAction.args)
+                    }
+                    true
                 }
-                true
-            }
-            Action.Inbox.ToggleSetting -> {
-                viewModelScope.launch {
-                    RevengePrefs.handleToggleAction(inboxAction.args)
+
+                Action.Inbox.ToggleSetting -> {
+                    viewModelScope.launch {
+                        RevengePrefs.handleToggleAction(inboxAction.args)
+                    }
+                    true
                 }
-                true
-            }
-            Action.Inbox.SetAccountHidden -> {
-                if (inboxAction.args.size != 2) {
-                    log.e("Invalid parameter size for SetAccountHidden action, expected 2 got ${inboxAction.args.size}")
-                    return false
+
+                Action.Inbox.SetAccountHidden -> {
+                    if (inboxAction.args.size != 2) {
+                        log.e("Invalid parameter size for SetAccountHidden action, expected 2 got ${inboxAction.args.size}")
+                        return@execute false
+                    }
+                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return@execute false
+                    val hidden = inboxAction.args[1].toBoolean()
+                    setAccountHidden(sessionId, hidden)
+                    true
                 }
-                val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return false
-                val hidden = inboxAction.args[1].toBoolean()
-                setAccountHidden(sessionId, hidden)
-                true
-            }
-            Action.Inbox.SetAccountSelected -> {
-                if (inboxAction.args.size != 2) {
-                    log.e("Invalid parameter size for SetAccountSelected action, expected 2 got ${inboxAction.args.size}")
-                    return false
+
+                Action.Inbox.SetAccountSelected -> {
+                    if (inboxAction.args.size != 2) {
+                        log.e("Invalid parameter size for SetAccountSelected action, expected 2 got ${inboxAction.args.size}")
+                        return@execute false
+                    }
+                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return@execute false
+                    val selected = inboxAction.args[1].toBoolean()
+                    setAccountSelected(sessionId, selected)
+                    true
                 }
-                val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return false
-                val selected = inboxAction.args[1].toBoolean()
-                setAccountSelected(sessionId, selected)
-                true
-            }
-            Action.Inbox.SetAccountExclusivelySelected -> {
-                if (inboxAction.args.size != 2) {
-                    log.e("Invalid parameter size for SetAccountExclusivelySelected action, expected 2 got ${inboxAction.args.size}")
-                    return false
+
+                Action.Inbox.SetAccountExclusivelySelected -> {
+                    if (inboxAction.args.size != 2) {
+                        log.e("Invalid parameter size for SetAccountExclusivelySelected action, expected 2 got ${inboxAction.args.size}")
+                        return@execute false
+                    }
+                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return@execute false
+                    val selected = inboxAction.args[1].toBoolean()
+                    setAccountExclusivelySelected(sessionId, selected)
+                    true
                 }
-                val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return false
-                val selected = inboxAction.args[1].toBoolean()
-                setAccountExclusivelySelected(sessionId, selected)
-                true
-            }
-            Action.Inbox.ToggleAccountHidden -> {
-                if (inboxAction.args.size != 1) {
-                    log.e("Invalid parameter size for ToggleAccountHidden action, expected 1 got ${inboxAction.args.size}")
-                    return false
+
+                Action.Inbox.ToggleAccountHidden -> {
+                    if (inboxAction.args.size != 1) {
+                        log.e("Invalid parameter size for ToggleAccountHidden action, expected 1 got ${inboxAction.args.size}")
+                        return@execute false
+                    }
+                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return@execute false
+                    toggleAccountHidden(sessionId)
+                    true
                 }
-                val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return false
-                toggleAccountHidden(sessionId)
-                true
-            }
-            Action.Inbox.ToggleAccountSelected -> {
-                if (inboxAction.args.size != 1) {
-                    log.e("Invalid parameter size for ToggleAccountSelected action, expected 1 got ${inboxAction.args.size}")
-                    return false
+
+                Action.Inbox.ToggleAccountSelected -> {
+                    if (inboxAction.args.size != 1) {
+                        log.e("Invalid parameter size for ToggleAccountSelected action, expected 1 got ${inboxAction.args.size}")
+                        return@execute false
+                    }
+                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return@execute false
+                    toggleAccountSelected(sessionId)
+                    true
                 }
-                val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return false
-                toggleAccountSelected(sessionId)
-                true
-            }
-            Action.Inbox.ToggleAccountExclusivelySelected -> {
-                if (inboxAction.args.size != 1) {
-                    log.e("Invalid parameter size for ToggleAccountExclusivelySelected action, expected 1 got ${inboxAction.args.size}")
-                    return false
+
+                Action.Inbox.ToggleAccountExclusivelySelected -> {
+                    if (inboxAction.args.size != 1) {
+                        log.e("Invalid parameter size for ToggleAccountExclusivelySelected action, expected 1 got ${inboxAction.args.size}")
+                        return@execute false
+                    }
+                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return@execute false
+                    toggleAccountExclusivelySelected(sessionId)
+                    true
                 }
-                val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return false
-                toggleAccountExclusivelySelected(sessionId)
-                true
             }
         }
     }

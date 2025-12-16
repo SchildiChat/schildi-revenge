@@ -30,6 +30,7 @@ import chat.schildi.revenge.compose.focus.AbstractFocusRequester
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.AllowedSingleLineTextFieldBindingKeys
 import chat.schildi.revenge.config.keybindings.AllowedTextFieldBindingKeys
+import chat.schildi.revenge.config.keybindings.Binding
 import chat.schildi.revenge.config.keybindings.KeyMapped
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import co.touchlab.kermit.Logger
@@ -384,12 +385,11 @@ class KeyboardActionHandler(
         val keyConfig = UiState.keybindingsConfig.value
 
         (focused?.actions?.primaryAction as? InteractionAction.NavigationAction)?.let { navigationActionable ->
-            val navigationAction = keyConfig.navigationItem.find { it.trigger == key}
-            if (navigationAction != null) {
+            keyConfig.navigationItem.execute(key) { navigationAction ->
                 val destination = navigationActionable.buildDestination()
-                return when (navigationAction.action) {
+                return@execute when (navigationAction.action) {
                     Action.NavigationItem.NavigateCurrent -> {
-                        val destinationStateHolder = focused.destinationStateHolder ?: return false
+                        val destinationStateHolder = focused.destinationStateHolder ?: return@execute false
                         navigateCurrentDestination(destination, destinationStateHolder)
                     }
                     Action.NavigationItem.NavigateInNewWindow -> {
@@ -397,19 +397,18 @@ class KeyboardActionHandler(
                         true
                     }
                 }
-            }
+            } && return true
         }
 
-        val listAction = keyConfig.list.find { it.trigger == key }
-        if (listAction != null) {
-            return when (listAction.action) {
+        keyConfig.list.execute(key) { listAction ->
+            when (listAction.action) {
                 Action.List.ScrollToTop -> scrollListToTop(focused)
                 Action.List.ScrollToBottom -> scrollListToBottom(focused)
             }
-        }
-        val focusAction = keyConfig.focus.find { it.trigger == key }
-        if (focusAction != null) {
-            return when (focusAction.action) {
+        } && return true
+
+        keyConfig.focus.execute(key) { focusAction ->
+            when (focusAction.action) {
                 Action.Focus.FocusUp -> moveFocus(FocusDirection.Up)
                 Action.Focus.FocusDown -> moveFocus(FocusDirection.Down)
                 Action.Focus.FocusLeft -> moveFocus(FocusDirection.Left)
@@ -419,10 +418,10 @@ class KeyboardActionHandler(
                 Action.Focus.FocusBottom -> focusCurrentContainerRelative { it.bottomCenter } // TODO keep X offset rather than assuming center
                 Action.Focus.FocusParent -> focusParent()
             }
-        }
-        val navigationAction = keyConfig.navigation.find { it.trigger == key }
-        if (navigationAction != null) {
-            return when (navigationAction.action) {
+        } && return true
+
+        keyConfig.navigation.execute(key) { navigationAction ->
+            when (navigationAction.action) {
                 Action.Navigation.InboxInCurrent -> navigateCurrentDestination { Destination.Inbox }
                 Action.Navigation.AccountManagementInCurrent -> navigateCurrentDestination {
                     Destination.AccountManagement
@@ -448,10 +447,10 @@ class KeyboardActionHandler(
                     )
                 }
             }
-        }
-        val globalAction = keyConfig.global.find { it.trigger == key }
-        if (globalAction != null) {
-            return when (globalAction.action) {
+        } && return true
+
+        keyConfig.global.execute(key) { globalAction ->
+            when (globalAction.action) {
                 Action.Global.Search -> handleSearchUpdate("", navigating = false) {
                     // TODO search -> search-nav -> search inserts a slash into search field by accident
                     focusByRole(FocusRole.SEARCH_BAR)
@@ -485,7 +484,7 @@ class KeyboardActionHandler(
                     true
                 }
             }
-        }
+        } && return true
         return false
     }
 
@@ -627,4 +626,17 @@ private fun KeyEvent.toTrigger(): KeyTrigger? {
         alt = isAltPressed,
         ctrl = isCtrlPressed,
     )
+}
+
+/**
+ * Try all possible bindings for a given key until the first one returns true.
+ */
+fun <A: Action>List<Binding<A>>.execute(key: KeyTrigger, block: (Binding<A>) -> Boolean): Boolean {
+    val actions = filter { it.trigger == key }
+    actions.forEach { action ->
+        if (block(action)) {
+            return true
+        }
+    }
+    return false
 }

@@ -8,6 +8,7 @@ import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.KeyboardActionProvider
+import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
@@ -17,20 +18,21 @@ class SplitKeyboardActionProvider(
     private val isPrimaryDestination: Boolean,
 ) : KeyboardActionProvider {
     override fun handleNavigationModeEvent(key: KeyTrigger): Boolean {
-        val binding = UiState.keybindingsConfig.value.split.find { it.trigger == key } ?: return false
-        return when (binding.action) {
-            Action.Split.Close -> {
-                val currentDestination = destinationStateHolder?.state?.value?.destination
-                val newDestination = (currentDestination as? Destination.Split)?.let {
-                    // Close the *current* destination -> navigate to the *other* destination
-                    if (isPrimaryDestination)
-                        it.secondary
-                    else
-                        it.primary
+        return UiState.keybindingsConfig.value.split.execute(key) { binding ->
+            when (binding.action) {
+                Action.Split.Close -> {
+                    val currentDestination = destinationStateHolder?.state?.value?.destination
+                    val newDestination = (currentDestination as? Destination.Split)?.let {
+                        // Close the *current* destination -> navigate to the *other* destination
+                        if (isPrimaryDestination)
+                            it.secondary
+                        else
+                            it.primary
 
-                }?.state?.value?.destination ?: return false
-                destinationStateHolder.navigate(newDestination)
-                true
+                    }?.state?.value?.destination ?: return@execute false
+                    destinationStateHolder.navigate(newDestination)
+                    true
+                }
             }
         }
     }

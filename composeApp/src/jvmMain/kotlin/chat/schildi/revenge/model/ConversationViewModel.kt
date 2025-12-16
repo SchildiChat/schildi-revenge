@@ -15,6 +15,7 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.KeyboardActionHandler
 import chat.schildi.revenge.actions.KeyboardActionProvider
+import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
@@ -287,59 +288,67 @@ class ConversationViewModel(
 
     override fun handleNavigationModeEvent(key: KeyTrigger): Boolean {
         val keyConfig = UiState.keybindingsConfig.value
-        val conversationAction = keyConfig.conversation.find { it.trigger == key } ?: return false
-        return when (conversationAction.action) {
-            Action.Conversation.SetSetting -> {
-                viewModelScope.launch {
-                    RevengePrefs.handleSetAction(conversationAction.args)
+        return keyConfig.conversation.execute(key) { conversationAction ->
+            when (conversationAction.action) {
+                Action.Conversation.SetSetting -> {
+                    viewModelScope.launch {
+                        RevengePrefs.handleSetAction(conversationAction.args)
+                    }
+                    true
                 }
-                true
-            }
-            Action.Conversation.ToggleSetting -> {
-                viewModelScope.launch {
-                    RevengePrefs.handleToggleAction(conversationAction.args)
+
+                Action.Conversation.ToggleSetting -> {
+                    viewModelScope.launch {
+                        RevengePrefs.handleToggleAction(conversationAction.args)
+                    }
+                    true
                 }
-                true
-            }
-            Action.Conversation.FocusComposer -> {
-                !forceShowComposer.getAndUpdate { true }
-                keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
-            }
-            Action.Conversation.HideComposerIfEmpty -> {
-                // Clear draft state (replies etc.) if empty
-                DraftRepo.update(draftKey) {
-                    it?.takeIf { !it.isEmpty() }
+
+                Action.Conversation.FocusComposer -> {
+                    !forceShowComposer.getAndUpdate { true }
+                    keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
                 }
-                forceShowComposer.getAndUpdate { false }
-            }
-            Action.Conversation.ComposeMessage -> {
-                forceShowComposer.value = true
-                DraftRepo.update(draftKey) {
-                    it?.copy(type = DraftType.TEXT, editEventId = null)
-                        ?: DraftValue(type = DraftType.TEXT)
+
+                Action.Conversation.HideComposerIfEmpty -> {
+                    // Clear draft state (replies etc.) if empty
+                    DraftRepo.update(draftKey) {
+                        it?.takeIf { !it.isEmpty() }
+                    }
+                    forceShowComposer.getAndUpdate { false }
                 }
-                keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
-                true
-            }
-            Action.Conversation.ComposeNotice -> {
-                forceShowComposer.value = true
-                DraftRepo.update(draftKey) {
-                    it?.copy(type = DraftType.NOTICE, editEventId = null)
-                        ?: DraftValue(type = DraftType.NOTICE)
+
+                Action.Conversation.ComposeMessage -> {
+                    forceShowComposer.value = true
+                    DraftRepo.update(draftKey) {
+                        it?.copy(type = DraftType.TEXT, editEventId = null)
+                            ?: DraftValue(type = DraftType.TEXT)
+                    }
+                    keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
+                    true
                 }
-                keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
-                true
-            }
-            Action.Conversation.ComposeEmote -> {
-                forceShowComposer.value = true
-                DraftRepo.update(draftKey) {
-                    it?.copy(type = DraftType.EMOTE, editEventId = null)
-                        ?: DraftValue(type = DraftType.EMOTE)
+
+                Action.Conversation.ComposeNotice -> {
+                    forceShowComposer.value = true
+                    DraftRepo.update(draftKey) {
+                        it?.copy(type = DraftType.NOTICE, editEventId = null)
+                            ?: DraftValue(type = DraftType.NOTICE)
+                    }
+                    keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
+                    true
                 }
-                keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
-                true
+
+                Action.Conversation.ComposeEmote -> {
+                    forceShowComposer.value = true
+                    DraftRepo.update(draftKey) {
+                        it?.copy(type = DraftType.EMOTE, editEventId = null)
+                            ?: DraftValue(type = DraftType.EMOTE)
+                    }
+                    keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
+                    true
+                }
+
+                Action.Conversation.ComposerSend -> sendMessage()
             }
-            Action.Conversation.ComposerSend -> sendMessage()
         }
     }
 
@@ -367,67 +376,79 @@ class ConversationViewModel(
         }
         return object : KeyboardActionProvider {
             override fun handleNavigationModeEvent(key: KeyTrigger): Boolean {
-                val binding = UiState.keybindingsConfig.value.event.find { it.trigger == key } ?: return false
-                return when (binding.action) {
-                    Action.Event.MarkRead -> eventId?.let { markEventAsRead(eventId, ReceiptType.READ) } ?: false
-                    Action.Event.MarkReadPrivate -> eventId?.let { markEventAsRead(eventId, ReceiptType.READ_PRIVATE) } ?: false
-                    Action.Event.ComposeReply -> eventId?.let {
-                        forceShowComposer.value = true
-                        val inReplyTo = InReplyTo.Ready(
-                            eventId = eventId,
-                            content = event.content,
-                            senderId = event.sender,
-                            senderProfile = event.senderProfile,
-                        )
-                        DraftRepo.update(draftKey) {
-                            it?.copy(inReplyTo = inReplyTo)
-                                ?: DraftValue(inReplyTo = inReplyTo)
-                        }
-                        keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
-                        true
-                    } ?: false
-                    Action.Event.ComposeEdit -> eventOrTransactionId?.let {
-                        val eventContent = event.content
-                        if (eventContent is MessageContent) {
-                            val draftValue = when (val messageType = eventContent.type) {
-                                is TextLikeMessageType -> DraftValue(
-                                    type = DraftType.EDIT,
-                                    body = messageType.body,
-                                    editEventId = eventOrTransactionId,
-                                    // Not supported yet, TODO formatted edits?
-                                    //htmlBody = messageType.formatted?.body,
-                                    //intentionalMentions = // TODO?
-                                )
-                                is MessageTypeWithAttachment -> DraftValue(
-                                    type = DraftType.EDIT_CAPTION,
-                                    body = messageType.caption ?: "",
-                                    // Not supported yet, TODO formatted edits?
-                                    //htmlBody = messageType.formattedCaption?.body,
-                                )
-                                is LocationMessageType,
-                                is OtherMessageType -> null
+                return UiState.keybindingsConfig.value.event.execute(key) { binding ->
+                    when (binding.action) {
+                        Action.Event.MarkRead -> eventId?.let { markEventAsRead(eventId, ReceiptType.READ) } ?: false
+                        Action.Event.MarkReadPrivate -> eventId?.let {
+                            markEventAsRead(
+                                eventId,
+                                ReceiptType.READ_PRIVATE
+                            )
+                        } ?: false
+
+                        Action.Event.ComposeReply -> eventId?.let {
+                            forceShowComposer.value = true
+                            val inReplyTo = InReplyTo.Ready(
+                                eventId = eventId,
+                                content = event.content,
+                                senderId = event.sender,
+                                senderProfile = event.senderProfile,
+                            )
+                            DraftRepo.update(draftKey) {
+                                it?.copy(inReplyTo = inReplyTo)
+                                    ?: DraftValue(inReplyTo = inReplyTo)
                             }
-                            if (draftValue == null) {
-                                false
+                            keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
+                            true
+                        } ?: false
+
+                        Action.Event.ComposeEdit -> eventOrTransactionId?.let {
+                            val eventContent = event.content
+                            if (eventContent is MessageContent) {
+                                val draftValue = when (val messageType = eventContent.type) {
+                                    is TextLikeMessageType -> DraftValue(
+                                        type = DraftType.EDIT,
+                                        body = messageType.body,
+                                        editEventId = eventOrTransactionId,
+                                        // Not supported yet, TODO formatted edits?
+                                        //htmlBody = messageType.formatted?.body,
+                                        //intentionalMentions = // TODO?
+                                    )
+
+                                    is MessageTypeWithAttachment -> DraftValue(
+                                        type = DraftType.EDIT_CAPTION,
+                                        body = messageType.caption ?: "",
+                                        // Not supported yet, TODO formatted edits?
+                                        //htmlBody = messageType.formattedCaption?.body,
+                                    )
+
+                                    is LocationMessageType,
+                                    is OtherMessageType -> null
+                                }
+                                if (draftValue == null) {
+                                    false
+                                } else {
+                                    forceShowComposer.value = true
+                                    DraftRepo.update(draftKey, draftValue)
+                                    keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
+                                    true
+                                }
                             } else {
-                                forceShowComposer.value = true
-                                DraftRepo.update(draftKey, draftValue)
-                                keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
-                                true
+                                false
                             }
-                        } else {
-                            false
+                        } ?: false
+
+                        Action.Event.CopyContent -> {
+                            (event.content as? MessageContent)?.body?.let { content ->
+                                keyboardActionHandler.copyToClipboard(content)
+                            } ?: false
                         }
-                    } ?: false
-                    Action.Event.CopyContent -> {
-                        (event.content as? MessageContent)?.body?.let { content ->
-                            keyboardActionHandler.copyToClipboard(content)
-                        } ?: false
-                    }
-                    Action.Event.CopyEventSource -> {
-                        event.timelineItemDebugInfoProvider().originalJson?.toPrettyJson()?.let { eventSource ->
-                            keyboardActionHandler.copyToClipboard(eventSource)
-                        } ?: false
+
+                        Action.Event.CopyEventSource -> {
+                            event.timelineItemDebugInfoProvider().originalJson?.toPrettyJson()?.let { eventSource ->
+                                keyboardActionHandler.copyToClipboard(eventSource)
+                            } ?: false
+                        }
                     }
                 }
             }
