@@ -311,16 +311,27 @@ class ConversationViewModel(
 
                 Action.Conversation.HideComposerIfEmpty -> {
                     // Clear draft state (replies etc.) if empty
+                    var wasEmpty = false
                     DraftRepo.update(draftKey) {
-                        it?.takeIf { !it.isEmpty() }
+                        val isEmpty = it?.isEmpty() != false
+                        wasEmpty = isEmpty
+                        if (isEmpty) {
+                            null
+                        } else {
+                            it
+                        }
                     }
-                    forceShowComposer.getAndUpdate { false }
+                    if (wasEmpty) {
+                        forceShowComposer.getAndUpdate { false }
+                    } else {
+                        false
+                    }
                 }
 
                 Action.Conversation.ComposeMessage -> {
                     forceShowComposer.value = true
                     DraftRepo.update(draftKey) {
-                        it?.copy(type = DraftType.TEXT, editEventId = null)
+                        it?.copy(type = DraftType.TEXT, editEventId = null, initialBody = "")
                             ?: DraftValue(type = DraftType.TEXT)
                     }
                     keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
@@ -330,7 +341,7 @@ class ConversationViewModel(
                 Action.Conversation.ComposeNotice -> {
                     forceShowComposer.value = true
                     DraftRepo.update(draftKey) {
-                        it?.copy(type = DraftType.NOTICE, editEventId = null)
+                        it?.copy(type = DraftType.NOTICE, editEventId = null, initialBody = "")
                             ?: DraftValue(type = DraftType.NOTICE)
                     }
                     keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
@@ -340,7 +351,7 @@ class ConversationViewModel(
                 Action.Conversation.ComposeEmote -> {
                     forceShowComposer.value = true
                     DraftRepo.update(draftKey) {
-                        it?.copy(type = DraftType.EMOTE, editEventId = null)
+                        it?.copy(type = DraftType.EMOTE, editEventId = null, initialBody = "")
                             ?: DraftValue(type = DraftType.EMOTE)
                     }
                     keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
@@ -410,6 +421,7 @@ class ConversationViewModel(
                                         type = DraftType.EDIT,
                                         body = messageType.body,
                                         editEventId = eventOrTransactionId,
+                                        initialBody = messageType.body,
                                         // Not supported yet, TODO formatted edits?
                                         //htmlBody = messageType.formatted?.body,
                                         //intentionalMentions = // TODO?
@@ -418,6 +430,8 @@ class ConversationViewModel(
                                     is MessageTypeWithAttachment -> DraftValue(
                                         type = DraftType.EDIT_CAPTION,
                                         body = messageType.caption ?: "",
+                                        editEventId = eventOrTransactionId,
+                                        initialBody = messageType.caption ?: "",
                                         // Not supported yet, TODO formatted edits?
                                         //htmlBody = messageType.formattedCaption?.body,
                                     )

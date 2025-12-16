@@ -35,8 +35,9 @@ data class DraftValue(
     val inReplyTo: InReplyTo.Ready? = null,
     val editEventId: EventOrTransactionId? = null, // Only for DraftType.EDIT and DraftType.EDIT_CAPTION
     val isSendInProgress: Boolean = false,
+    val initialBody: String = "", // For edits the original message content, else empty
 ) {
-    fun isEmpty() = body.isBlank()
+    fun isEmpty() = body.isBlank() || body == initialBody
     fun canSend() = !isSendInProgress && !isEmpty()
 }
 
