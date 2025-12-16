@@ -451,9 +451,15 @@ class KeyboardActionHandler(
 
         keyConfig.global.execute(key) { globalAction ->
             when (globalAction.action) {
-                Action.Global.Search -> handleSearchUpdate("", navigating = false) {
-                    // TODO search -> search-nav -> search inserts a slash into search field by accident
-                    focusByRole(FocusRole.SEARCH_BAR)
+                Action.Global.Search -> {
+                    if (mode.value is KeyboardActionMode.Search) {
+                        // Search already active, just focus again
+                        focusByRole(FocusRole.SEARCH_BAR)
+                    } else {
+                        handleSearchUpdate("", navigating = false) {
+                            focusByRole(FocusRole.SEARCH_BAR)
+                        }
+                    }
                 }
                 Action.Global.ToggleTheme -> {
                     UiState.darkThemeOverride.update {
