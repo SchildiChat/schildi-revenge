@@ -47,6 +47,7 @@ import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import io.element.android.libraries.matrix.api.roomlist.LatestEventValue
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
+import io.element.android.libraries.matrix.api.timeline.item.event.getDisambiguatedDisplayName
 import io.element.android.libraries.matrix.api.user.MatrixUser
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
@@ -184,7 +185,14 @@ private fun RowScope.ScLastMessageAndIndicatorRow(room: RoomSummary) {
         when (val event = room.latestEvent) {
             is LatestEventValue.Local -> EventTextFormat.eventToText(event.content)
             LatestEventValue.None -> null
-            is LatestEventValue.Remote -> EventTextFormat.eventToText(event.content)
+            is LatestEventValue.Remote -> {
+                val eventText = EventTextFormat.eventToText(event.content)
+                if (event.isOwn || room.isOneToOne) {
+                    eventText
+                } else {
+                    "${event.senderProfile.getDisambiguatedDisplayName(event.senderId)}: $eventText"
+                }
+            }
         } ?: ""
     }
     Row(
