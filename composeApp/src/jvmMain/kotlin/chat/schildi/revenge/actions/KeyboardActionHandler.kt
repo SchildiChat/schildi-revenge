@@ -211,11 +211,14 @@ class KeyboardActionHandler(
             val target = focusableTargets[it]
             if (target == null) {
                 log.w { "Unable to find target $it" }
+            } else {
+                return target
             }
-            return target
         }
         if (fallbackToRoot) {
-            return focusableTargets.values.find { it.parent == null }
+            val root = focusableTargets.values.find { it.parent == null }
+            log.i { "No active focus, use root ${root?.id}" }
+            return root
         }
         return null
     }
