@@ -3,6 +3,7 @@ package chat.schildi.revenge.compose.destination.conversation.event
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
+import chat.schildi.revenge.EventTextFormat
 import chat.schildi.revenge.compose.destination.conversation.event.message.TimestampOverlayContent
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.timeline.item.event.ProfileChangeContent
@@ -26,26 +27,7 @@ fun ProfileChangeRow(
     timestamp: TimestampOverlayContent?,
     modifier: Modifier = Modifier,
 ) {
-    val senderName = senderProfile.getDisambiguatedDisplayName(senderId)
-    val text = if (content.prevDisplayName == content.displayName) {
-        if (content.prevAvatarUrl == content.avatarUrl) {
-            stringResource(Res.string.profile_update_none, senderName)
-        } else {
-            stringResource(Res.string.profile_update_avatar, senderName)
-        }
-    } else if (content.prevAvatarUrl != content.avatarUrl) {
-        if (content.prevDisplayName == null) {
-            stringResource(Res.string.profile_update_set_name_and_avatar, senderName)
-        } else {
-            stringResource(Res.string.profile_update_name_and_avatar, senderName, content.prevDisplayName ?: "")
-        }
-    } else {
-        when {
-            content.prevDisplayName == null -> stringResource(Res.string.profile_update_set_name, senderName)
-            content.displayName == null -> stringResource(Res.string.profile_update_cleared_name, senderName, content.prevDisplayName ?: "")
-            else -> stringResource(Res.string.profile_update_name, senderName, content.prevDisplayName ?: "")
-        }
-    }
+    val text = EventTextFormat.profileChangeToText(content, senderProfile, senderId)
     StateUpdateRow(
         text = AnnotatedString(text),
         senderProfile = senderProfile,

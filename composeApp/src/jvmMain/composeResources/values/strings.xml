@@ -50,6 +50,9 @@
     <string name="message_placeholder_message_deleted">Message deleted</string>
     <string name="message_placeholder_message_redacted">Message redacted</string>
     <string name="message_placeholder_message_failed_to_parse">Message failed to parse</string>
+    <string name="message_placeholder_call">Call</string>
+    <string name="message_placeholder_state">State event</string>
+    <string name="message_placeholder_unknown">Unknown event</string>
 
     <string name="membership_change_none">%1$s made no changes</string>
     <string name="membership_change_error">%1$s made a suspicious membership change</string>
