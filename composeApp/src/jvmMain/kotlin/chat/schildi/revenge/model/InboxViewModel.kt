@@ -143,7 +143,8 @@ class InboxViewModel(
         merge = { it, settings ->
             log.v("Merging room lists [${it.joinToString { it.size.toString() }}]")
             mergeLists(
-                *it,
+                // In theory the SDK should have already sorted them for us... but it's somewhat bad at it sometimes?
+                *it.map { it.sortedWith(settings.sdkSettings.sortOrder.toComparator { it.summary }) }.toTypedArray(),
                 key = { it },
                 comparator = settings.sdkSettings.sortOrder.toComparator { it.summary },
             )
