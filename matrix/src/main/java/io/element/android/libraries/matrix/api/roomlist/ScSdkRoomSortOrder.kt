@@ -1,5 +1,6 @@
 package io.element.android.libraries.matrix.api.roomlist
 
+import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import kotlin.math.sign
 
 data class ScSdkInboxSettings(
@@ -16,7 +17,8 @@ data class ScSdkRoomSortOrder(
     fun <T>toComparator(map: (T) -> RoomSummary) = Comparator<T> { ua, ub ->
         val a = map(ua)
         val b = map(ub)
-        // TODO invites on top?
+        // Invites on top
+        selectFor(a, b) { it.info.currentUserMembership == CurrentUserMembership.INVITED }?.let { return@Comparator it }
         if (pinFavourites) {
             selectFor(a, b) { it.info.isFavorite }?.let { return@Comparator it }
         }

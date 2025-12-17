@@ -42,6 +42,9 @@
     <string name="datetime_yesterday">Yesterday</string>
 
     <string name="message_placeholder_tombstone">Room tombstone</string>
+    <string name="message_placeholder_invite">Room invite</string>
+    <string name="message_placeholder_invite_by">Invite by %1$s</string>
+    <string name="message_placeholder_invite_by_disambiguated">Invite by %1$s (%2$s)</string>
     <string name="message_placeholder_unable_to_decrypt">Unable to decrypt</string>
     <string name="message_placeholder_message_deleted">Message deleted</string>
     <string name="message_placeholder_message_redacted">Message redacted</string>

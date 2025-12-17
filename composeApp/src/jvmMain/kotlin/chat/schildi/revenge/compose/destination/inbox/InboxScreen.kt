@@ -51,7 +51,7 @@ fun InboxScreen(modifier: Modifier = Modifier) {
             val rooms = viewModel.rooms.collectAsState().value
             val roomsByRoomId = viewModel.roomsByRoomId.collectAsState().value
             val dmsByHeroes = viewModel.dmsByHeroes.collectAsState().value
-            val needsAccountDisambiguation = (accountsSorted?.count { it.isCurrentlyVisible } ?: 0) > 0
+            val needsAccountDisambiguation = (accountsSorted?.count { it.isCurrentlyVisible } ?: 0) > 1
 
             // Observe which rooms are visible in the list so subscribe to room list updates
             LaunchedEffect(listState, rooms, accountsSorted) {
@@ -78,9 +78,10 @@ fun InboxScreen(modifier: Modifier = Modifier) {
                 }
                 rooms?.let {
                     items(rooms) { room ->
-                        val needsDisambiguation = needsAccountDisambiguation &&
-                                ((roomsByRoomId[room.summary.roomId]?.size ?: 0) > 1 ||
-                                    room.summary.isOneToOne && (dmsByHeroes[room.summary.info.heroes]?.size ?: 0) > 1
+                        val needsDisambiguation = needsAccountDisambiguation && (
+                                room.summary.isInvite() ||
+                                        (roomsByRoomId[room.summary.roomId]?.size ?: 0) > 1 ||
+                                        room.summary.isOneToOne && (dmsByHeroes[room.summary.info.heroes]?.size ?: 0) > 1
                                 )
                         InboxRow(
                             room,

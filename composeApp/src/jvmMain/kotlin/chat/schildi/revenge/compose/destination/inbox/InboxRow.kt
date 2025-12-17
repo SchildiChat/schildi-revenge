@@ -44,11 +44,15 @@ import chat.schildi.revenge.EventTextFormat
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.media.MediaSource
+import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import io.element.android.libraries.matrix.api.roomlist.LatestEventValue
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
 import io.element.android.libraries.matrix.api.user.MatrixUser
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.message_placeholder_invite
+import shire.composeapp.generated.resources.message_placeholder_invite_by
+import shire.composeapp.generated.resources.message_placeholder_invite_by_disambiguated
 import shire.composeapp.generated.resources.message_placeholder_tombstone
 import kotlin.math.max
 
@@ -165,7 +169,16 @@ private fun RowScope.ScNameAndTimestampRow(room: RoomSummary, hasDraft: Boolean)
 @Composable
 private fun RowScope.ScLastMessageAndIndicatorRow(room: RoomSummary) {
     // Last Message
-    val messagePreview = if (room.info.successorRoom != null) {
+    val messagePreview = if (room.isInvite()) {
+        room.info.inviter?.let { inviter ->
+            val displayName = inviter.displayName
+            if (displayName != null && room.info.name != displayName) {
+                stringResource(Res.string.message_placeholder_invite_by_disambiguated, displayName, inviter.userId.value)
+            } else {
+                stringResource(Res.string.message_placeholder_invite_by, inviter.userId.value)
+            }
+        } ?: stringResource(Res.string.message_placeholder_invite)
+    } else if (room.info.successorRoom != null) {
         stringResource(Res.string.message_placeholder_tombstone)
     } else {
         when (val event = room.latestEvent) {
@@ -174,16 +187,29 @@ private fun RowScope.ScLastMessageAndIndicatorRow(room: RoomSummary) {
             is LatestEventValue.Remote -> EventTextFormat.eventToText(event.content)
         } ?: ""
     }
-    Text(
+    Row(
         modifier = Modifier
             .weight(1f)
             .padding(end = Dimens.horizontalItemPaddingBig),
-        text = messagePreview,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        style = MaterialTheme.typography.bodyMedium,
-        maxLines = 2,
-        overflow = TextOverflow.Ellipsis
-    )
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        if (room.isInvite()) {
+            room.info.inviter?.avatarUrl?.let {
+                AvatarImage(
+                    source = MediaSource(it),
+                    size = 12.dp,
+                    modifier = Modifier.padding(end = Dimens.horizontalItemPadding),
+                )
+            }
+        }
+        Text(
+            text = messagePreview,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyMedium,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
 
     // Unread
     Row(
@@ -214,6 +240,10 @@ private fun ScUnreadCounter(room: RoomSummary) {
     val badgeColor: Color
     var outlinedBadge = false
     when {
+        room.isInvite() -> {
+            count = "!"
+            badgeColor = MaterialTheme.scExposures.notificationBadgeColor
+        }
         ScPrefs.DUAL_MENTION_UNREAD_COUNTS.value() && highlightCount > 0 && (notificationCount > highlightCount || unreadCount > highlightCount) -> {
             val fullUnreadToUse = max(unreadCount, notificationCount)
             count = "${formatUnreadCount(highlightCount)}/${formatUnreadCount(fullUnreadToUse)}"
@@ -266,3 +296,5 @@ private fun ScUnreadCounter(room: RoomSummary) {
         )
     }
 }
+
+fun RoomSummary.isInvite() = info.currentUserMembership == CurrentUserMembership.INVITED
