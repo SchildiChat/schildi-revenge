@@ -24,6 +24,7 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
 - Features I don't use or need
     - I may still accept PR's though
 - Being a fully-featured Matrix client for users who rely on UI to get things done
+    - At least at the current stage, maybe later
 
 
 ## Implementation process
@@ -31,7 +32,7 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
 ### MVP
 
 - [x] Schildi theme
-- [ ] Initial config hooked in
+- [x] Initial config hooked in
     - [x] Accounts with username+homeserver (not: password and secrets)
     - [x] Configurable key bindings
 - [x] Initial account management UI
@@ -39,8 +40,8 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [x] Enter recovery code
     - [x] Logout / delete account
 - [ ] ScPrefs
-    - [ ] Via toml
-    - [ ] One datastore for user prefs
+    - [x] Via toml
+    - [x] One datastore for user prefs
     - [ ] One datastore for app state (last selected space, opened destinations to restore, etc.)
     - [ ] UI?
 - [ ] Lock to avoid running multiple instances in parallel, but instead bring to foreground?
@@ -50,7 +51,7 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [x] Unread counts
     - [ ] Spaces navigation
     - [ ] Filter by spaces
-    - [ ] Filter by account
+    - [x] Filter by account
     - [x] Search
     - [ ] Handle invites
 - [ ] Conversation view
@@ -200,9 +201,43 @@ variable of `XDG_CURRENT_DESKTOP=gnome`.
 ### I'm using wayland and HiDPI, everything looks blurry!
 
 Until [compose multiplatform supports wayland natively](https://youtrack.jetbrains.com/issue/SKIKO-28),
-the best solution I found is this hacky workaround:
+the best solution *depends* (I have not found a fully satisfying solution yet).
 
-- Install this [sommelier fork](https://github.com/akvadrako/sommelier)
+#### Disable scaling for xwayland
+
+If your window manager / desktop environment supports disabling scaling for xwayland applications, that's probably the
+best. You can then scale Revenge via the `RENDER_SCALE` setting. If you read this before I built a preferences UI for
+it, put `RENDER_SCALE=2.0` (or the scale of your choice) in `$HOME/.config/SchildiChatRevenge/preferences.toml`.
+
+- [hyprland support this out of the box](https://deepwiki.com/hyprwm/hyprland-wiki/4.4-xwayland-integration) via `force_zero_scaling`.
+
+#### Use xwayland-xprop + wlroots-hidpi-xprop
+
+If you can configure your WM to use a custom xwayland implementation, you may have luck with
+[wlroots-hidpi-xprop](https://aur.archlinux.org/packages/wlroots-hidpi-xprop-git). E.g. for sway on Arch Linux:
+
+- Install `xorg-xwayland-hidpi-xprop`, `wlroots-hidpi-xprop-git`, `sway-git`
+- Run `xprop -root -format _XWAYLAND_GLOBAL_OUTPUT_SCALE 32c -set _XWAYLAND_GLOBAL_OUTPUT_SCALE 2`
+
+Here you ideally should enter the correct scale that also your wayland desktop environment uses (or maybe it even picks
+it automatically?).
+However it only supports full integer scaling. If you're using fractional scaling, you may have luck by choosing a
+higher scale for xwayland (which will make xwayland apps even smaller), but then compensating that by choosing a higher
+application-side scaling - for SchildiChat Revenge via the `RENDER_SCALE` setting.
+If you read this before I built a preferences UI for it, put `RENDER_SCALE=2.0` (or the scale of your choice) in `$HOME/.config/SchildiChatRevenge/preferences.toml`.
+
+#### sommelier
+
+- Install this [sommelier fork](https://github.com/akvadrako/sommelier). You probably need to compile it yourself.
 - Launch Revenge via sommelier with the same scale setting that you use for HiDPI, e.g.
   `sommelier -X --scale=1.5 --data-driver=noop --shm-driver=noop --display=wayland-1 --socket=wayland-1 ./gradlew
   :compose:run`
+- I found it to have some issues with mouse input towards the edges that I haven't figured out how to resolve yet,
+  so if you prefer to use your mouse over your keyboard this may not be a good solution for you.
+
+#### Patch SchildiChat Revenge to get Compose to run without AWT (?)
+
+It seems to be somewhat possible to use a different rendering backend for jetpack compose, [like
+LWJGL](https://github.com/JetBrains/compose-multiplatform/tree/master/experimental/lwjgl-integration)
+[another link](https://github.com/JetBrains/compose-multiplatform/issues/652),
+which could in theory support wayland natively? But may introduce other bugs? Outcome unclear.

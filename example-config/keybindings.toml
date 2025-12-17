@@ -37,6 +37,11 @@ conversation = [
     { key = "Enter", shift = true, action = "ComposerInsertAddCursor", args = ["\n"] },
     { key = "Escape", action = "HideComposerIfEmpty" },
     { key = "T", ctrl = true, action = "ComposerInsertAddCursor", args = ["🤔"] },
+    { key = "J", ctrl = true, action = "ComposerInsertAddCursor", args = ["😂"] },
+    { key = "R", ctrl = true, action = "ComposerInsertAddCursor", args = ["🤣"] },
+    { key = "H", ctrl = true, action = "ComposerInsertAddCursor", args = ["❤️"] },
+    { key = "U", ctrl = true, action = "ComposerInsertAddCursor", args = ["👍"] },
+    { key = "D", ctrl = true, action = "ComposerInsertAddCursor", args = ["🙃"] },
 ]
 event = [
     { key = "M", action = "MarkRead" },
@@ -74,6 +79,7 @@ focus = [
     { key = "M", shift = true, action = "FocusCenter" },
     { key = "L", shift = true, action = "FocusBottom" },
     { key = "Escape", action = "FocusParent" },
+    { key = "Enter", action = "FocusEnterContainer" },
     { key = "MoveHome", action = "FocusTop" },
     { key = "MoveEnd", action = "FocusBottom" },
 ]
