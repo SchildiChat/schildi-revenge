@@ -30,6 +30,7 @@ sealed interface Action {
         FocusCenter,
         FocusBottom,
         FocusParent,
+        FocusEnterContainer,
     }
     enum class List : Action {
         ScrollToTop,

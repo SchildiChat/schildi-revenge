@@ -65,7 +65,9 @@ private data class FocusTarget(
 enum class FocusRole(val consumesKeyWhitelist: List<Key>? = null) {
     SEARCHABLE_ITEM,
     AUX_ITEM,
+    DESTINATION_ROOT_CONTAINER,
     CONTAINER,
+    CONTAINER_ITEM, // Can both like AUX_ITEM and CONTAINER
     TEXT_FIELD_SINGLE_LINE(consumesKeyWhitelist = AllowedSingleLineTextFieldBindingKeys),
     TEXT_FIELD_MULTI_LINE(consumesKeyWhitelist = AllowedTextFieldBindingKeys),
     MESSAGE_COMPOSER(consumesKeyWhitelist = AllowedComposerTextFieldBindingKeys),
@@ -339,21 +341,35 @@ class KeyboardActionHandler(
     }
 
     private fun focusCurrentContainerRelative(
-        focused: FocusTarget? = currentFocused(),
+        currentFocus: FocusTarget?,
+        select: (Rect) -> Offset,
+    ) = focusCurrentContainerRelative(parentId =  currentFocus?.parent?.uuid, select = select)
+
+    private fun focusCurrentContainerRelative(
+        parentId: UUID? = currentFocused()?.parent?.uuid,
         select: (Rect) -> Offset,
     ): Boolean {
         return windowCoordinates?.let { coordinates ->
-            val parent = focused?.parent
-            focusClosestTo(select(coordinates), parentId = parent?.uuid)
+            focusClosestTo(select(coordinates), parentId = parentId)
         } ?: false
     }
 
-    private fun focusParent(): Boolean {
-        val parent = currentFocused()?.parent
+    private fun focusParent(focused: FocusTarget? = currentFocused()): Boolean {
+        val parent = focused?.parent
         log.v { "Focus parent: $parent" }
         parent ?: return false
         _currentFocus.value = parent.uuid
         return true
+    }
+
+    private fun focusEnterContainer(
+        focused: FocusTarget? = currentFocused(),
+    ): Boolean {
+        focused ?: return false
+        if (focused.role != FocusRole.CONTAINER && focused.role != FocusRole.CONTAINER_ITEM) {
+            return false
+        }
+        return focusCurrentContainerRelative(focused.id) { it.topCenter }
     }
 
     private fun scrollListToTop(
@@ -405,14 +421,15 @@ class KeyboardActionHandler(
 
         keyConfig.focus.execute(key) { focusAction ->
             when (focusAction.action) {
-                Action.Focus.FocusUp -> moveFocus(FocusDirection.Up)
-                Action.Focus.FocusDown -> moveFocus(FocusDirection.Down)
-                Action.Focus.FocusLeft -> moveFocus(FocusDirection.Left)
-                Action.Focus.FocusRight -> moveFocus(FocusDirection.Right)
-                Action.Focus.FocusTop -> focusCurrentContainerRelative { it.topCenter } // TODO keep X offset rather than assuming center
-                Action.Focus.FocusCenter -> focusCurrentContainerRelative { it.center } // TODO keep X offset rather than assuming center
-                Action.Focus.FocusBottom -> focusCurrentContainerRelative { it.bottomCenter } // TODO keep X offset rather than assuming center
-                Action.Focus.FocusParent -> focusParent()
+                Action.Focus.FocusUp -> moveFocus(FocusDirection.Up, focused)
+                Action.Focus.FocusDown -> moveFocus(FocusDirection.Down, focused)
+                Action.Focus.FocusLeft -> moveFocus(FocusDirection.Left, focused)
+                Action.Focus.FocusRight -> moveFocus(FocusDirection.Right, focused)
+                Action.Focus.FocusTop -> focusCurrentContainerRelative(focused) { it.topCenter } // TODO keep X offset rather than assuming center
+                Action.Focus.FocusCenter -> focusCurrentContainerRelative(focused) { it.center } // TODO keep X offset rather than assuming center
+                Action.Focus.FocusBottom -> focusCurrentContainerRelative(focused) { it.bottomCenter } // TODO keep X offset rather than assuming center
+                Action.Focus.FocusParent -> focusParent(focused)
+                Action.Focus.FocusEnterContainer -> focusEnterContainer(focused)
             }
         } && return true
 

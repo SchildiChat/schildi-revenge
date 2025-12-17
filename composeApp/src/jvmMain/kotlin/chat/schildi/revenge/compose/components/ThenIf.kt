@@ -10,8 +10,8 @@ fun Modifier.thenIf(condition: Boolean, block: Modifier.() -> Modifier) = let {
     }
 }
 
-fun <T>Modifier.ifNotNull(item: T?, block: Modifier.(T) -> Modifier) = let {
-    if (item == null) {
+fun <T>Modifier.ifNotNull(item: T?, additionalCondition: Boolean = true, block: Modifier.(T) -> Modifier) = let {
+    if (item == null || !additionalCondition) {
         it
     } else {
         it.block(item)

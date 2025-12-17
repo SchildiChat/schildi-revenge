@@ -9,6 +9,7 @@ import androidx.compose.runtime.ProvidedValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import chat.schildi.revenge.actions.FocusRole
 import java.util.UUID
 
 /**
@@ -19,6 +20,7 @@ import java.util.UUID
 fun FocusContainer(
     vararg providedValues: ProvidedValue<*>,
     modifier: Modifier = Modifier,
+    role: FocusRole = FocusRole.CONTAINER,
     contentAlignment: Alignment = Alignment.Center,
     content: @Composable BoxScope.() -> Unit,
 ) {
@@ -29,7 +31,7 @@ fun FocusContainer(
         *providedValues
     ) {
         Box(
-            modifier = modifier.focusGroup().keyFocusableContainer(me.uuid, parent),
+            modifier = modifier.focusGroup().keyFocusableContainer(me.uuid, parent, role),
             contentAlignment = contentAlignment,
             content = content,
         )

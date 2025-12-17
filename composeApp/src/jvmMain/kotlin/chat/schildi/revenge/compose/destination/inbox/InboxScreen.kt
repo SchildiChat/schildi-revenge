@@ -20,6 +20,7 @@ import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
+import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.ListAction
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
@@ -42,7 +43,8 @@ fun InboxScreen(modifier: Modifier = Modifier) {
         LocalSearchProvider provides viewModel,
         LocalKeyboardActionProvider provides viewModel.hierarchicalKeyboardActionProvider(),
         LocalListActionProvider provides remember(listState) { ListAction(listState) },
-        modifier = modifier
+        modifier = modifier,
+        role = FocusRole.DESTINATION_ROOT_CONTAINER,
     ) {
         Column(Modifier.widthIn(max = ScPrefs.MAX_WIDTH_INBOX.value().dp).fillMaxSize()) {
             InboxTopNavigation()

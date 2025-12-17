@@ -12,12 +12,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import chat.schildi.revenge.compose.DestinationContent
 import chat.schildi.revenge.Destination
+import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.compose.focus.FocusContainer
 
 @Composable
 fun SplitHorizontal(destination: Destination.SplitHorizontal, modifier: Modifier = Modifier) {
-    FocusContainer(modifier = modifier) {
+    FocusContainer(
+        modifier = modifier,
+        role = FocusRole.DESTINATION_ROOT_CONTAINER,
+    ) {
         Row(Modifier.fillMaxSize()) {
             CompositionLocalProvider(
                 LocalKeyboardActionProvider provides splitKeyboardActionProvider(true),
@@ -39,7 +43,10 @@ fun SplitHorizontal(destination: Destination.SplitHorizontal, modifier: Modifier
 
 @Composable
 fun SplitVertical(destination: Destination.SplitVertical, modifier: Modifier = Modifier) {
-    FocusContainer(modifier = modifier) {
+    FocusContainer(
+        modifier = modifier,
+        role = FocusRole.DESTINATION_ROOT_CONTAINER,
+    ) {
         Column(Modifier.fillMaxSize()) {
             CompositionLocalProvider(
                 LocalKeyboardActionProvider provides splitKeyboardActionProvider(true),

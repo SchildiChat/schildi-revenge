@@ -36,6 +36,7 @@ import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
+import chat.schildi.revenge.compose.components.IconButtonWithConfirmation
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.AccountManagementData
@@ -61,7 +62,10 @@ import shire.composeapp.generated.resources.title_login_account
 fun AccountManagementScreen(modifier: Modifier = Modifier) {
     val viewModel: AccountManagementViewModel = viewModel()
     val accounts = viewModel.data.collectAsState().value
-    FocusContainer(modifier = modifier) {
+    FocusContainer(
+        modifier = modifier,
+        role = FocusRole.DESTINATION_ROOT_CONTAINER,
+    ) {
         LazyColumn(
             Modifier.widthIn(max = ScPrefs.MAX_WIDTH_SETTINGS.value().dp).padding(vertical = Dimens.windowPadding),
             verticalArrangement = Dimens.verticalArrangement
@@ -97,72 +101,70 @@ private fun SectionHeader(text: String) {
 @Composable
 private fun ExistingLogin(account: AccountManagementData, viewModel: AccountManagementViewModel) {
     val scope = rememberCoroutineScope()
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .keyFocusable()
-            .padding(horizontal = Dimens.windowPadding)
-    ) {
-        Row(
-            horizontalArrangement = Dimens.horizontalArrangement,
-            verticalAlignment = Alignment.CenterVertically,
+    FocusContainer(role = FocusRole.CONTAINER_ITEM) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Dimens.windowPadding)
         ) {
             Row(
                 horizontalArrangement = Dimens.horizontalArrangement,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                if (!account.session.isTokenValid) {
+                Row(
+                    horizontalArrangement = Dimens.horizontalArrangement,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    if (!account.session.isTokenValid) {
+                        Text(
+                            "❌",
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.alignByBaseline(),
+                        )
+                    }
                     Text(
-                        "❌",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        account.session.userId,
+                        color = MaterialTheme.colorScheme.onSurface,
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.alignByBaseline(),
                     )
                 }
-                Text(
-                    account.session.userId,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.alignByBaseline(),
-                )
-            }
-            IconButton(onClick = {
-                // TODO launch with dialog or sth - and ask "are you sure" first
-                scope.launch {
-                    viewModel.logout(account.session)
-                }
-            }) {
-                Icon(
-                    Icons.AutoMirrored.Default.Logout,
-                    contentDescription = stringResource(Res.string.action_logout),
-                    tint = MaterialTheme.colorScheme.error,
-                )
-            }
-        }
-        if (account.needsVerification) {
-            var recoveryKey by remember { mutableStateOf(TextFieldValue()) }
-            var isVerifying by remember(account) { mutableStateOf(false) }
-            Row(
-                horizontalArrangement = Dimens.horizontalArrangement,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                OutlinedTextField(
-                    value = recoveryKey,
-                    onValueChange = { recoveryKey = it },
-                    label = { Text(stringResource(Res.string.hint_recovery_key)) },
-                    modifier = Modifier.weight(1f),
-                )
-                Button(
-                    enabled = !isVerifying && recoveryKey.text.isNotBlank(),
-                    onClick = {
-                        scope.launch {
-                            isVerifying = true
-                            viewModel.verify(account.session, recoveryKey.text)
-                            isVerifying = false
-                        }
-                    },
+                IconButtonWithConfirmation(
+                    icon = Icons.AutoMirrored.Default.Logout,
+                    confirmText = stringResource(Res.string.action_logout),
                 ) {
-                    Text(stringResource(Res.string.action_verify))
+                    // TODO view progress, and move all the scope.launch into the viewModel with state tracked in there
+                    scope.launch {
+                        viewModel.logout(account.session)
+                    }
+                }
+            }
+            if (account.needsVerification) {
+                var recoveryKey by remember { mutableStateOf(TextFieldValue()) }
+                var isVerifying by remember(account) { mutableStateOf(false) }
+                Row(
+                    horizontalArrangement = Dimens.horizontalArrangement,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    OutlinedTextField(
+                        value = recoveryKey,
+                        onValueChange = { recoveryKey = it },
+                        label = { Text(stringResource(Res.string.hint_recovery_key)) },
+                        modifier = Modifier.weight(1f),
+                    )
+                    Button(
+                        enabled = !isVerifying && recoveryKey.text.isNotBlank(),
+                        onClick = {
+                            scope.launch {
+                                isVerifying = true
+                                viewModel.verify(account.session, recoveryKey.text)
+                                isVerifying = false
+                            }
+                        },
+                    ) {
+                        Text(stringResource(Res.string.action_verify))
+                    }
                 }
             }
         }

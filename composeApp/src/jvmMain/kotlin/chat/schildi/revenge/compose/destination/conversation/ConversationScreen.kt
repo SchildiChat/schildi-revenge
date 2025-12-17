@@ -79,6 +79,7 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
         LocalKeyboardActionProvider provides viewModel.hierarchicalKeyboardActionProvider(),
         LocalListActionProvider provides listAction,
         modifier = modifier,
+        role = FocusRole.DESTINATION_ROOT_CONTAINER,
     ) {
         val roomMembersById = viewModel.roomMembersById.collectAsState()
         Column(Modifier.widthIn(max = ScPrefs.MAX_WIDTH_CONVERSATION.value().dp)) {
