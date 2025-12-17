@@ -1,4 +1,4 @@
-# Schildi's Revenge
+# SchildiChat Revenge
 
 A desktop Matrix client that seeks revenge for all the pain suffered from maintaining an Element Web fork, built from scratch using the Rust SDK and Jetpack Compose Multiplatform.
 
