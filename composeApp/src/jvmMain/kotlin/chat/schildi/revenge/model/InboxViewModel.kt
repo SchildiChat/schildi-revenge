@@ -28,11 +28,13 @@ import io.element.android.libraries.matrix.api.user.MatrixUser
 import kotlinx.collections.immutable.persistentHashMapOf
 import kotlinx.collections.immutable.toPersistentHashMap
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -150,7 +152,7 @@ class InboxViewModel(
             )
         },
         other = settings,
-    )
+    ).flowOn(Dispatchers.IO)
 
     /**
      * Rooms filtered by search and TODO space selection.
@@ -167,7 +169,9 @@ class InboxViewModel(
                 it.summary.info.name?.lowercase()?.contains(lowercaseSearch) == true
             }
         }
-    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+    }
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val accounts = combinedSessions.flatMerge(
@@ -194,23 +198,30 @@ class InboxViewModel(
         merge = {
             it.associateBy { it.user.userId }.toPersistentHashMap()
         }
-    ).stateIn(viewModelScope, SharingStarted.Lazily, null)
+    )
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     // TODO user-defined sort order
     val accountsSorted = accounts.map { it?.values?.sortedBy { it.user.userId.value }?.toPersistentList() }
+        .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val roomsByRoomId = allRooms.map {
         it.groupBy { it.summary.roomId }.toPersistentHashMap()
-    }.stateIn(viewModelScope, SharingStarted.Lazily, persistentHashMapOf())
+    }
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Lazily, persistentHashMapOf())
 
     val dmsByHeroes = allRooms.map {
         it.filter { it.summary.isOneToOne }.groupBy { it.summary.info.heroes }.toPersistentHashMap()
-    }.stateIn(viewModelScope, SharingStarted.Lazily, persistentHashMapOf())
+    }
+        .flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Lazily, persistentHashMapOf())
 
     fun onVisibleRoomsChanged(visibleRooms: List<ScopedRoomSummary>) {
         val roomsBySession = visibleRooms.groupBy { it.sessionId }
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             combinedSessions.value.forEach { session ->
                 roomsBySession[session.client.sessionId]?.takeIf { it.isNotEmpty() }?.let {
                     log.v { "Subscribe to ${it.size} visible rooms for ${session.client.sessionId}" }
