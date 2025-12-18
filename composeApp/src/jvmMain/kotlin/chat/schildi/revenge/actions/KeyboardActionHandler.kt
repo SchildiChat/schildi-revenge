@@ -19,6 +19,7 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.Clipboard
+import androidx.compose.ui.unit.toIntSize
 import androidx.compose.ui.window.ApplicationScope
 import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPrefs
@@ -58,6 +59,7 @@ private data class FocusTarget(
     val parent: FocusParent?,
     val role: FocusRole,
     val coordinates: Rect,
+    val isFullyVisible: Boolean,
     val focusRequester: AbstractFocusRequester,
     val destinationStateHolder: DestinationStateHolder?,
     val actions: ActionProvider?,
@@ -560,11 +562,13 @@ class KeyboardActionHandler(
         actions: ActionProvider?,
         role: FocusRole = FocusRole.SEARCHABLE_ITEM,
     ) {
+        val bounds = coordinates.boundsInWindow()
         focusableTargets[target] = FocusTarget(
             target,
             parent,
             role,
-            coordinates.boundsInWindow(),
+            bounds,
+            bounds.size.toIntSize() == coordinates.size,
             focusRequester,
             destinationStateHolder,
             actions,
@@ -582,7 +586,8 @@ class KeyboardActionHandler(
         }
         val focusable = focusableTargets.values.firstNotNullOfOrNull { target ->
             target.takeIf {
-                it.role != FocusRole.CONTAINER &&
+                it.isFullyVisible &&
+                        it.role != FocusRole.CONTAINER &&
                         it.role != FocusRole.DESTINATION_ROOT_CONTAINER &&
                         it.role != FocusRole.NESTED_AUX_ITEM &&
                         it.coordinates.contains(position)
