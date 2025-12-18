@@ -41,6 +41,7 @@ import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.composer.ComposerRow
 import chat.schildi.revenge.compose.focus.FocusContainer
+import chat.schildi.revenge.model.EventJumpTarget
 import chat.schildi.revenge.publishTitle
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.core.EventId
@@ -63,27 +64,37 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
         val backwardPaginationStatus = viewModel.backwardPaginationStatus.collectAsState(null).value
 
         var initialListOffset by remember { mutableStateOf(Pair(0, 0)) }
-        var scrolledToEventId by remember { mutableStateOf<EventId?>(null) }
-        val highlightedEventId = viewModel.highlightEventId.collectAsState().value
-        LaunchedEffect(highlightedEventId, timelineItems) {
-            if (highlightedEventId == scrolledToEventId) {
+        var scrolledToEvent by remember { mutableStateOf<EventJumpTarget?>(null) }
+        val targetEvent = viewModel.targetEvent.collectAsState().value
+        LaunchedEffect(targetEvent, timelineItems) {
+            if (targetEvent == scrolledToEvent || timelineItems.isEmpty()) {
                 return@LaunchedEffect
             }
-            if (highlightedEventId == null) {
-                scrolledToEventId = null
-                initialListOffset = Pair(0, 0)
+            if (targetEvent == null) {
+                // Ignore / keep last
                 return@LaunchedEffect
             }
-            val index = timelineItems.indexOfFirst { item ->
-                (item as? MatrixTimelineItem.Event)?.eventId == highlightedEventId
+            val index = when(targetEvent) {
+                is EventJumpTarget.Event -> timelineItems.indexOfFirst { item ->
+                    (item as? MatrixTimelineItem.Event)?.eventId == targetEvent.eventId
+                }.let {
+                    if (it >= 0) {
+                        // Reverse list not applied here yet
+                        timelineItems.size - it - 1
+                    } else {
+                        null
+                    }
+                }
+                is EventJumpTarget.Index -> targetEvent.index.takeIf {
+                    forwardPaginationStatus?.hasMoreToLoad == false && it in 0..<timelineItems.size
+                }
             }
-            if (index >= 0) {
-                val offset = density.run { contentHeight.roundToPx() } * 2 / 3
-                // Reverse list not applied here yet
-                initialListOffset = Pair(timelineItems.size - index - 1, -offset)
-                scrolledToEventId = highlightedEventId
+            if (index == null) {
+                Logger.withTag("ConversationScreen").w("Cannot find target event $targetEvent in ${timelineItems.size} items")
             } else {
-                Logger.withTag("ConversationScreen").e("Cannot find highlighted event $highlightedEventId in ${timelineItems.size} items")
+                val offset = density.run { contentHeight.roundToPx() } * 2 / 3
+                initialListOffset = Pair(index, -offset)
+                scrolledToEvent = targetEvent
             }
         }
 
@@ -125,9 +136,14 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
             modifier = modifier,
             role = FocusRole.DESTINATION_ROOT_CONTAINER,
         ) {
-
-
             val roomMembersById = viewModel.roomMembersById.collectAsState()
+            val highlightedEventId = (targetEvent as? EventJumpTarget.Event)?.let {
+                if (it.hightlight) {
+                    it.eventId
+                } else {
+                    null
+                }
+            }
             Column(Modifier.widthIn(max = ScPrefs.MAX_WIDTH_CONVERSATION.value().dp)) {
                 // Double reverse helps with stick-to-bottom while paging backwards or receiving messages
                 LazyColumn(

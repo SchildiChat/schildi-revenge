@@ -30,7 +30,6 @@ import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.room.roomMembers
-import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
@@ -48,7 +47,6 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentHashMap
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,7 +57,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -77,6 +74,11 @@ private data class ComposerSettings(
     }
 }
 
+sealed interface EventJumpTarget {
+    data class Event(val eventId: EventId, val hightlight: Boolean = true) : EventJumpTarget
+    data class Index(val index: Int) : EventJumpTarget
+}
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConversationViewModel(
     private val sessionId: SessionId,
@@ -88,8 +90,8 @@ class ConversationViewModel(
 
     private val clientFlow = UiState.selectClient(sessionId, viewModelScope)
 
-    private val _highlightEventId = MutableStateFlow<EventId?>(null)
-    val highlightEventId = _highlightEventId.asStateFlow()
+    private val _targetEvent = MutableStateFlow<EventJumpTarget?>(EventJumpTarget.Index(0))
+    val targetEvent = _targetEvent.asStateFlow()
 
     private val sessionGraphFlow = clientFlow.map { client ->
         client?.let {
@@ -396,7 +398,7 @@ class ConversationViewModel(
                     hasDraft
                 }
 
-                Action.Conversation.ScrollToLastFullyRead -> {
+                Action.Conversation.JumpToLastFullyRead -> {
                     viewModelScope.launch {
                         activeTimeline.value?.fullyReadEventId()?.let { eventId ->
                             focusOnEvent(EventId(eventId))
@@ -404,6 +406,15 @@ class ConversationViewModel(
                             log.e("Could not find fully read eventId")
                         }
                     }
+                    true
+                }
+
+                Action.Conversation.JumpToBottom -> {
+                    timelineController.value?.focusOnLive() ?: run {
+                        log.e("Could not find timeline controller")
+                        return@execute false
+                    }
+                    _targetEvent.value = EventJumpTarget.Index(0)
                     true
                 }
             }
@@ -417,7 +428,7 @@ class ConversationViewModel(
         }
         return controller.focusOnEvent(eventId, null)
             .onFailure { log.e("Failed to focus on event $eventId", it) }
-            .onSuccess { _highlightEventId.emit(eventId) }
+            .onSuccess { _targetEvent.emit(EventJumpTarget.Event(eventId)) }
     }
 
     private fun markEventAsRead(eventId: EventId, receiptType: ReceiptType): Boolean {
