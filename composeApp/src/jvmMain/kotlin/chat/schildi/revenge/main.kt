@@ -47,7 +47,7 @@ fun main() {
                     ?: destinationState.destination.title?.render()
                     ?: appTitle
                 val keyHandler = remember(windowState.windowId) {
-                    KeyboardActionHandler(windowState.windowId, scope)
+                    KeyboardActionHandler(scope, windowState.windowId, this)
                 }
                 val composeWindowState = rememberWindowState()
                 Window(

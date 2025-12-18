@@ -19,6 +19,7 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.Clipboard
+import androidx.compose.ui.window.ApplicationScope
 import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.revenge.DestinationStateHolder
@@ -86,8 +87,9 @@ sealed interface KeyboardActionMode {
 }
 
 class KeyboardActionHandler(
-    windowId: Int,
     private val scope: CoroutineScope,
+    private val windowId: Int,
+    private val applicationScope: ApplicationScope,
 ) {
     private val log = Logger.withTag("Nav/$windowId")
 
@@ -462,6 +464,10 @@ class KeyboardActionHandler(
                         DestinationStateHolder.forInitialDestination(it),
                         DestinationStateHolder.forInitialDestination(it),
                     )
+                }
+                Action.Navigation.CloseWindow -> {
+                    UiState.closeWindow(windowId, applicationScope)
+                    true
                 }
             }
         } && return true

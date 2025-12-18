@@ -16,6 +16,7 @@ sealed interface Action {
         AccountManagementInNewWindow,
         SplitHorizontal,
         SplitVertical,
+        CloseWindow,
     }
     enum class NavigationItem : Action {
         NavigateCurrent,
