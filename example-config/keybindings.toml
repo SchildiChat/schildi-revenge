@@ -27,6 +27,10 @@ inbox = [
     { key = "Seven", ctrl = true, shift = true, action = "ToggleAccountSelected", args = ["7"] },
     { key = "Eight", ctrl = true, shift = true, action = "ToggleAccountSelected", args = ["8"] },
     { key = "Nine", ctrl = true, shift = true, action = "ToggleAccountSelected", args = ["9"] },
+    { key = "H", action = "NavigateSpaceRelative", args = ["-1"] },
+    { key = "I", action = "NavigateSpaceRelative", args = ["1"] },
+    { key = "S", ctrl = true, action = "SelectSpace", args = ["!JqHnTLVyzdzYSgOJYR:matrix.org"] },
+    { key = "I", ctrl = true, action = "SelectSpace", args = ["5"] },
 ]
 conversation = [
     { key = "I", action = "ComposeMessage" },

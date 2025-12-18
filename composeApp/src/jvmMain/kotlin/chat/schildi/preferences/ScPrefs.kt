@@ -11,6 +11,8 @@ import shire.composeapp.generated.resources.pref_max_width_settings_title
 import shire.composeapp.generated.resources.pref_render_scale
 import shire.composeapp.generated.resources.sc_client_generated_unread_counts_summary
 import shire.composeapp.generated.resources.sc_client_generated_unread_counts_title
+import shire.composeapp.generated.resources.sc_compact_root_spaces_summary
+import shire.composeapp.generated.resources.sc_compact_root_spaces_title
 import shire.composeapp.generated.resources.sc_pref_bury_low_priority_summary
 import shire.composeapp.generated.resources.sc_pref_bury_low_priority_title
 import shire.composeapp.generated.resources.sc_pref_category_chat_overview
@@ -31,6 +33,21 @@ import shire.composeapp.generated.resources.sc_pref_render_silent_unread_title
 import shire.composeapp.generated.resources.sc_pref_sort_with_silent_unread_summary
 import shire.composeapp.generated.resources.sc_pref_sort_with_silent_unread_title
 import shire.composeapp.generated.resources.sc_pref_tweaks_title
+import shire.composeapp.generated.resources.sc_pseudo_space_dms
+import shire.composeapp.generated.resources.sc_pseudo_space_favorites
+import shire.composeapp.generated.resources.sc_pseudo_space_groups
+import shire.composeapp.generated.resources.sc_pseudo_space_hide_empty_unread
+import shire.composeapp.generated.resources.sc_pseudo_space_invites
+import shire.composeapp.generated.resources.sc_pseudo_space_notifications
+import shire.composeapp.generated.resources.sc_pseudo_space_spaceless
+import shire.composeapp.generated.resources.sc_pseudo_space_spaceless_groups
+import shire.composeapp.generated.resources.sc_pseudo_space_unread
+import shire.composeapp.generated.resources.sc_space_all_rooms_summary
+import shire.composeapp.generated.resources.sc_space_all_rooms_title
+import shire.composeapp.generated.resources.sc_space_swipe_summary
+import shire.composeapp.generated.resources.sc_space_swipe_title
+import shire.composeapp.generated.resources.sc_space_unread_counts_mode_title
+import shire.composeapp.generated.resources.sc_space_unread_counts_names
 
 object ScPrefs {
 
@@ -42,13 +59,13 @@ object ScPrefs {
     val MAX_WIDTH_SETTINGS = ScIntPref("MAX_WIDTH_SETTINGS", 1024, Res.string.pref_max_width_settings_title)
     val ALWAYS_SHOW_KEYBOARD_FOCUS = ScBoolPref("ALWAYS_SHOW_KEYBOARD_FOCUS", false, Res.string.pref_max_width_settings_title)
 
-    /*
     object SpaceUnreadCountMode {
         const val MESSAGES = "MESSAGES"
         const val CHATS = "CHATS"
         const val HIDE = "HIDE"
     }
 
+    /*
     // Developer options
     private const val SC_DEVELOPER_OPTIONS_CATEGORY_KEY = "SC_DEVELOPER_OPTIONS_CATEGORY"
     private val SC_DANGER_ZONE = ScBoolPref("SC_DANGER_ZONE", false, Res.string.sc_pref_danger_zone, Res.string.sc_pref_danger_zone_summary, authorsChoice = true)
@@ -93,36 +110,30 @@ object ScPrefs {
     val DUAL_MENTION_UNREAD_COUNTS = ScBoolPref("DUAL_MENTION_UNREAD_COUNTS", false, Res.string.sc_pref_dual_mention_unread_counts_title, Res.string.sc_pref_dual_mention_unread_counts_summary)
     val HIDE_INVITES = ScBoolPref("HIDE_INVITES", false, Res.string.sc_pref_hide_invites_title, Res.string.sc_pref_hide_invites_summary)
 
-    /*
     // Spaces
-    val SPACE_NAV = ScBoolPref("SPACE_NAV", true, Res.string.sc_space_nav_title, Res.string.sc_space_nav_summary, upstreamChoice = false, authorsChoice = true)
-    val COMPACT_ROOT_SPACES = ScBoolPref("COMPACT_ROOT_SPACES", false, Res.string.sc_compact_root_spaces_title, Res.string.sc_compact_root_spaces_summary, authorsChoice = true, dependencies = SPACE_NAV.asDependencies())
+    val COMPACT_ROOT_SPACES = ScBoolPref("COMPACT_ROOT_SPACES", false, Res.string.sc_compact_root_spaces_title, Res.string.sc_compact_root_spaces_summary)
     val SPACE_UNREAD_COUNTS = ScStringListPref(
         "SPACE_UNREAD_COUNTS",
         SpaceUnreadCountMode.MESSAGES,
         arrayOf(SpaceUnreadCountMode.MESSAGES, SpaceUnreadCountMode.CHATS, SpaceUnreadCountMode.HIDE),
-        R.array.sc_space_unread_counts_names,
+        Res.array.sc_space_unread_counts_names,
         null,
         Res.string.sc_space_unread_counts_mode_title,
-        dependencies = SPACE_NAV.asDependencies(),
     )
-    val SPACE_SWIPE = ScBoolPref("SPACE_SWIPE", true, Res.string.sc_space_swipe_title, Res.string.sc_space_swipe_summary, upstreamChoice = false, authorsChoice = true, dependencies = SPACE_NAV.asDependencies())
-    val PSEUDO_SPACE_ALL_ROOMS = ScBoolPref("PSEUDO_SPACE_ALL_CHATS", true, Res.string.sc_space_all_rooms_title, Res.string.sc_space_all_rooms_summary, dependencies = SPACE_NAV.asDependencies())
-    val PSEUDO_SPACE_FAVORITES = ScBoolPref("PSEUDO_SPACE_FAVORITES", false, Res.string.sc_pseudo_space_favorites, null, dependencies = SPACE_NAV.asDependencies())
-    val PSEUDO_SPACE_DMS = ScBoolPref("PSEUDO_SPACE_DMS", false, Res.string.sc_pseudo_space_dms, null, dependencies = SPACE_NAV.asDependencies())
-    val PSEUDO_SPACE_GROUPS = ScBoolPref("PSEUDO_SPACE_GROUPS", false, Res.string.sc_pseudo_space_groups, null, dependencies = SPACE_NAV.asDependencies())
-    val PSEUDO_SPACE_SPACELESS_GROUPS = ScBoolPref("PSEUDO_SPACE_SPACELESS_GROUPS", false, Res.string.sc_pseudo_space_spaceless_groups, null, dependencies = SPACE_NAV.asDependencies())
-    val PSEUDO_SPACE_SPACELESS = ScBoolPref("PSEUDO_SPACE_SPACELESS", false, Res.string.sc_pseudo_space_spaceless, null, dependencies = SPACE_NAV.asDependencies())
-    val PSEUDO_SPACE_NOTIFICATIONS = ScBoolPref("PSEUDO_SPACE_NOTIFICATIONS", false, Res.string.sc_pseudo_space_notifications, null, dependencies = SPACE_NAV.asDependencies())
-    val PSEUDO_SPACE_UNREAD = ScBoolPref("PSEUDO_SPACE_UNREAD", false, Res.string.sc_pseudo_space_unread, null, dependencies = SPACE_NAV.asDependencies())
-    val PSEUDO_SPACE_INVITES = ScBoolPref("PSEUDO_SPACE_INVITES", false, Res.string.sc_pseudo_space_invites, null, dependencies = listOf(SPACE_NAV.toDependency(), HIDE_INVITES.toDependency().not()), authorsChoice = true)
-    val PSEUDO_SPACE_HIDE_EMPTY_UNREAD = ScBoolPref("PSEUDO_SPACE_HIDE_EMPTY_UNREAD", false, Res.string.sc_pseudo_space_hide_empty_unread, null, dependencies = listOf(
+    val PSEUDO_SPACE_ALL_ROOMS = ScBoolPref("PSEUDO_SPACE_ALL_CHATS", true, Res.string.sc_space_all_rooms_title, Res.string.sc_space_all_rooms_summary)
+    val PSEUDO_SPACE_FAVORITES = ScBoolPref("PSEUDO_SPACE_FAVORITES", true, Res.string.sc_pseudo_space_favorites, null)
+    val PSEUDO_SPACE_DMS = ScBoolPref("PSEUDO_SPACE_DMS", true, Res.string.sc_pseudo_space_dms, null)
+    val PSEUDO_SPACE_GROUPS = ScBoolPref("PSEUDO_SPACE_GROUPS", false, Res.string.sc_pseudo_space_groups, null)
+    val PSEUDO_SPACE_SPACELESS_GROUPS = ScBoolPref("PSEUDO_SPACE_SPACELESS_GROUPS", false, Res.string.sc_pseudo_space_spaceless_groups, null)
+    val PSEUDO_SPACE_SPACELESS = ScBoolPref("PSEUDO_SPACE_SPACELESS", false, Res.string.sc_pseudo_space_spaceless, null)
+    val PSEUDO_SPACE_NOTIFICATIONS = ScBoolPref("PSEUDO_SPACE_NOTIFICATIONS", true, Res.string.sc_pseudo_space_notifications, null)
+    val PSEUDO_SPACE_UNREAD = ScBoolPref("PSEUDO_SPACE_UNREAD", false, Res.string.sc_pseudo_space_unread, null)
+    val PSEUDO_SPACE_INVITES = ScBoolPref("PSEUDO_SPACE_INVITES", true, Res.string.sc_pseudo_space_invites, null, dependencies = listOf(HIDE_INVITES.toDependency().not()))
+    val PSEUDO_SPACE_HIDE_EMPTY_UNREAD = ScBoolPref("PSEUDO_SPACE_HIDE_EMPTY_UNREAD", true, Res.string.sc_pseudo_space_hide_empty_unread, null, dependencies = listOf(
         ScPrefFulfilledForAnyDependency(listOf(PSEUDO_SPACE_NOTIFICATIONS.toDependency(), PSEUDO_SPACE_UNREAD.toDependency(), PSEUDO_SPACE_INVITES.toDependency()))
-    ), authorsChoice = true)
-    val ELEMENT_ROOM_LIST_FILTERS = ScBoolPref("ELEMENT_ROOM_LIST_FILTERS", false, Res.string.sc_upstream_feature_flag_room_list_filters, Res.string.sc_upstream_feature_flag_room_list_filters_summary, authorsChoice = false, upstreamChoice = true)
-    // Chat overview settings depending on spaces
-    val SNC_FAB = ScBoolPref("SNC_FAB", true, Res.string.sc_pref_snc_fab_title, Res.string.sc_pref_snc_fab_summary, disabledValue = false, authorsChoice = false, upstreamChoice = true)
+    ))
 
+    /*
     // Timeline
     val PINNED_MESSAGE_OVERLAY = ScBoolPref("PINNED_MESSAGE_OVERLAY", false, Res.string.sc_pref_pinned_message_overlay_title, Res.string.sc_pref_pinned_message_overlay_summary, authorsChoice = false, upstreamChoice = true)
     val PINNED_MESSAGE_TOOLBAR_ACTION = ScBoolPref("PINNED_MESSAGE_TOOLBAR_ACTION", true, Res.string.sc_pref_pinned_message_toolbar_title, Res.string.sc_pref_pinned_message_toolbar_summary, authorsChoice = true, upstreamChoice = false, dependencies = PINNED_MESSAGE_OVERLAY.asDependencies(expect = false), disabledValue = false)

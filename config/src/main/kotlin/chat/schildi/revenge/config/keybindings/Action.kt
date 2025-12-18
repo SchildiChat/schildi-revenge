@@ -48,6 +48,8 @@ sealed interface Action {
         ToggleAccountHidden,
         ToggleAccountSelected,
         ToggleAccountExclusivelySelected,
+        NavigateSpaceRelative,
+        SelectSpace,
     }
     enum class Conversation : Action {
         SetSetting,

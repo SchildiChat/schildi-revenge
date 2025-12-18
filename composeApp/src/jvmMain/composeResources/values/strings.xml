@@ -90,4 +90,6 @@
     <string name="pref_always_show_keyboard_focus">Always highlight keyboard focus</string>
     <string name="pref_auto_hide_composer_title">Auto-hide composer</string>
     <string name="pref_auto_hide_composer_summary">Hide composer on send</string>
+
+    <string name="nameless_space_fallback_title">Nameless space</string>
 </resources>

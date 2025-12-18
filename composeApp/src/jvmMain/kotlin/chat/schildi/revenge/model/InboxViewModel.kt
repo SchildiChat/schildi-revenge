@@ -3,42 +3,54 @@ package chat.schildi.revenge.model
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import chat.schildi.preferences.RevengePrefs
-import chat.schildi.preferences.ScPref
+import chat.schildi.preferences.ScPreferencesStore
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.safeLookup
 import chat.schildi.revenge.CombinedSessions
+import chat.schildi.revenge.Destination
+import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.compose.search.SearchProvider
+import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.flatMerge
-import chat.schildi.revenge.flatMergeCombinedWith
-import chat.schildi.revenge.util.mergeLists
+import chat.schildi.revenge.model.spaces.RevengeSpaceUnreadCountsDataSource
+import chat.schildi.revenge.model.spaces.SpaceListDataSource
+import chat.schildi.revenge.model.spaces.SpaceUnreadCountsDataSource
+import chat.schildi.revenge.model.spaces.filterByUnread
+import chat.schildi.revenge.model.spaces.filterHierarchical
+import chat.schildi.revenge.model.spaces.findInHierarchy
+import chat.schildi.revenge.model.spaces.resolveSelection
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.core.SessionId
-import io.element.android.libraries.matrix.api.roomlist.RoomListFilter
 import io.element.android.libraries.matrix.api.roomlist.RoomListService
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
-import io.element.android.libraries.matrix.api.roomlist.ScSdkInboxSettings
-import io.element.android.libraries.matrix.api.roomlist.ScSdkRoomSortOrder
 import io.element.android.libraries.matrix.api.sync.SyncState
 import io.element.android.libraries.matrix.api.user.MatrixUser
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentHashMapOf
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentHashMap
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.inbox
 
 data class ScopedRoomSummary(
     val sessionId: SessionId,
@@ -58,24 +70,18 @@ data class InboxAccount(
 )
 
 private data class InboxSettings(
-    val sdkSettings: ScSdkInboxSettings,
+    val hideEmptyUnreadPseudoSpaces: Boolean,
+    val showAllRoomsSpace: Boolean,
     val hiddenAccounts: Set<SessionId>,
     val selectedAccounts: Set<SessionId>,
 )
 
-private fun buildScSdkInboxSettings(lookup: (ScPref<*>) -> Any?) = ScSdkInboxSettings(
-    sortOrder = ScSdkRoomSortOrder(
-        byUnread = ScPrefs.SORT_BY_UNREAD.safeLookup(lookup),
-        pinFavourites = ScPrefs.PIN_FAVORITES.safeLookup(lookup),
-        buryLowPriority = ScPrefs.BURY_LOW_PRIORITY.safeLookup(lookup),
-        clientSideUnreadCounts = ScPrefs.CLIENT_GENERATED_UNREAD_COUNTS.safeLookup(lookup),
-        withSilentUnread = ScPrefs.SORT_WITH_SILENT_UNREAD.safeLookup(lookup),
-    )
-)
-
 class InboxViewModel(
     private val combinedSessions: CombinedSessions = UiState.combinedSessions,
-) : ViewModel(), SearchProvider, KeyboardActionProvider {
+    private val roomListDataSource: RoomListDataSource = RevengeRoomListDataSource,
+    private val spaceDataSource: SpaceUnreadCountsDataSource = RevengeSpaceUnreadCountsDataSource,
+    private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
+) : ViewModel(), SearchProvider, KeyboardActionProvider, TitleProvider {
     private val log = Logger.withTag("Inbox")
 
     init {
@@ -84,10 +90,6 @@ class InboxViewModel(
 
     private val searchTerm = MutableStateFlow<String?>(null)
 
-    private val sdkSettings = RevengePrefs.combinedSettingFlow { lookup ->
-        buildScSdkInboxSettings(lookup)
-    }
-
     // If an account is selected, automatically all non-selected accounts are treated as hidden,
     // and selected accounts are even shown even if they're otherwise muted.
     // Think of this as a selected=single, hidden=mute from a mixing control table.
@@ -95,18 +97,25 @@ class InboxViewModel(
     val hiddenAccounts = MutableStateFlow(setOf<SessionId>())
 
     private val settings = combine(
-        sdkSettings,
+        scPreferencesStore.combinedSettingFlow { lookup ->
+            Pair(
+                ScPrefs.PSEUDO_SPACE_HIDE_EMPTY_UNREAD.safeLookup(lookup),
+                ScPrefs.PSEUDO_SPACE_ALL_ROOMS.safeLookup(lookup),
+            )
+        },
         hiddenAccounts,
         selectedAccounts,
-    ) { sdkSettings, hiddenAccounts, selectedAccounts ->
+    ) { (hideEmptyUnreadPseudoSpaces, showAllRoomsSpace), hiddenAccounts, selectedAccounts ->
         InboxSettings(
-            sdkSettings = sdkSettings,
+            hideEmptyUnreadPseudoSpaces = hideEmptyUnreadPseudoSpaces,
+            showAllRoomsSpace = showAllRoomsSpace,
             hiddenAccounts = hiddenAccounts,
             selectedAccounts = selectedAccounts,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly,
         InboxSettings(
-            buildScSdkInboxSettings { RevengePrefs.getCachedOrDefaultValue(it) },
+            scPreferencesStore.getCachedOrDefaultValue(ScPrefs.PSEUDO_SPACE_HIDE_EMPTY_UNREAD),
+            scPreferencesStore.getCachedOrDefaultValue(ScPrefs.PSEUDO_SPACE_ALL_ROOMS),
             emptySet(),
             emptySet(),
         )
@@ -116,53 +125,54 @@ class InboxViewModel(
      * All rooms for the current account selection, merged together with appropriate sort order.
      */
     @OptIn(ExperimentalCoroutinesApi::class)
-    val allRooms = combinedSessions.flatMergeCombinedWith(
-        map = { input, settings ->
-            val sessionId = input.client.sessionId
-            val isAccountEnabled = when {
-                settings.selectedAccounts.isNotEmpty() -> sessionId in settings.selectedAccounts
-                sessionId in settings.hiddenAccounts -> false
+    val allRooms = combine(
+        roomListDataSource.allRooms,
+        settings,
+    ) { rooms, settings ->
+        rooms.filter { room ->
+            when {
+                settings.selectedAccounts.isNotEmpty() -> room.sessionId in settings.selectedAccounts
+                room.sessionId in settings.hiddenAccounts -> false
                 else -> true
             }
-            if (isAccountEnabled) {
-                input.client.roomListService.allRooms.summaries.map {
-                    it.map {
-                        ScopedRoomSummary(input.client.sessionId, it)
-                    }
-                }
-            } else {
-                flowOf(emptyList())
-            }
-        },
-        onUpdatedInput = { it, settings ->
-            it.forEach {
-                log.v("Init for ${it.client.sessionId}")
-                it.client.roomListService.allRooms.updateSettings(settings.sdkSettings)
-                it.client.roomListService.allRooms.updateFilter(RoomListFilter.All(emptyList()))
-                it.client.roomListService.allRooms.loadMore()
-            }
-        },
-        merge = { it, settings ->
-            log.v("Merging room lists [${it.joinToString { it.size.toString() }}]")
-            mergeLists(
-                // In theory the SDK should have already sorted them for us... but it's somewhat bad at it sometimes?
-                *it.map { it.sortedWith(settings.sdkSettings.sortOrder.toComparator { it.summary }) }.toTypedArray(),
-                key = { it },
-                comparator = settings.sdkSettings.sortOrder.toComparator { it.summary },
-            )
-        },
-        other = settings,
-    ).flowOn(Dispatchers.IO)
+        }
+    }.flowOn(Dispatchers.IO)
+
+    val spaces = combine(
+        spaceDataSource.state,
+        hiddenAccounts,
+        selectedAccounts,
+    ) { spaces, hiddenAccounts, selectedAccounts ->
+        spaces.enrichedSpaces?.filterHierarchical {
+            val sessionIds = it.sessionIds
+            sessionIds == null ||
+                    selectedAccounts.isEmpty() && !hiddenAccounts.containsAll(sessionIds) ||
+                    sessionIds.any { it in selectedAccounts }
+        }?.toImmutableList()
+    }.flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    private val _spaceSelection = MutableStateFlow<ImmutableList<String>>(persistentListOf())
+    val spaceSelection = _spaceSelection.asStateFlow()
+
+    val selectedSpace = combine(
+        spaces,
+        spaceSelection
+    ) { spaces, spaceSelection ->
+        spaces?.resolveSelection(spaceSelection)
+    }
 
     /**
-     * Rooms filtered by search and TODO space selection.
+     * Rooms filtered by search and space selection.
      */
     val rooms = combine(
         allRooms,
         searchTerm,
-    ) { rooms, searchTerm ->
+        selectedSpace,
+    ) { rooms, searchTerm, selectedSpace ->
+        // Only filter by spaces if search term is empty
         if (searchTerm.isNullOrBlank()) {
-            rooms
+            selectedSpace?.applyFilter(rooms) ?: rooms
         } else {
             val lowercaseSearch = searchTerm.lowercase()
             rooms.filter {
@@ -247,14 +257,14 @@ class InboxViewModel(
             when (inboxAction.action) {
                 Action.Inbox.SetSetting -> {
                     viewModelScope.launch {
-                        RevengePrefs.handleSetAction(inboxAction.args)
+                        scPreferencesStore.handleSetAction(inboxAction.args)
                     }
                     true
                 }
 
                 Action.Inbox.ToggleSetting -> {
                     viewModelScope.launch {
-                        RevengePrefs.handleToggleAction(inboxAction.args)
+                        scPreferencesStore.handleToggleAction(inboxAction.args)
                     }
                     true
                 }
@@ -321,8 +331,109 @@ class InboxViewModel(
                     toggleAccountExclusivelySelected(sessionId)
                     true
                 }
+
+                Action.Inbox.NavigateSpaceRelative -> {
+                    if (inboxAction.args.size != 1) {
+                        log.e("Invalid parameter size for NavigateSpaceRelative action, expected 1 got ${inboxAction.args.size}")
+                        return@execute false
+                    }
+                    val diff = inboxAction.args[0].toIntOrNull()
+                    if (diff == null) {
+                        log.e("Invalid parameter for NavigateSpaceRelative action, expected integer")
+                        return@execute false
+                    }
+                    navigateSpaceRelative(diff)
+                }
+
+                Action.Inbox.SelectSpace -> {
+                    if (inboxAction.args.isEmpty()) {
+                        setSpaceSelection(emptyList())
+                        return@execute true
+                    }
+                    if (inboxAction.args.size != 1) {
+                        log.e("Invalid parameter size for SelectSpace action, expected 1 got ${inboxAction.args.size}")
+                        return@execute false
+                    }
+                    val spaceSelection = inboxAction.args[0]
+                    val asIndex = spaceSelection.toIntOrNull()
+                    if (asIndex != null) {
+                        navigateToSpaceIndex(asIndex)
+                    } else {
+                        navigateToSpaceById(spaceSelection)
+                    }
+                }
             }
         }
+    }
+
+    private fun navigateSpaceInCurrentHierarchyLevel(
+        select: (List<SpaceListDataSource.AbstractSpaceHierarchyItem?>, List<String>, List<String>) -> Boolean
+    ): Boolean {
+        val currentSpaces = spaces.value ?: return false
+        val currentSelection = spaceSelection.value
+        val currentParentSelection = if (currentSelection.isEmpty()) {
+            emptyList()
+        } else {
+            currentSelection.subList(0, currentSelection.size - 1)
+        }
+        val currentSettings = settings.value
+        val currentSpaceLevel = if (currentParentSelection.isEmpty()) {
+            currentSpaces.filterByUnread(currentSelection, currentSettings.hideEmptyUnreadPseudoSpaces).let {
+                if (currentSettings.showAllRoomsSpace) {
+                    listOf(null) + it
+                } else {
+                    it
+                }
+            }
+        } else {
+            currentSpaces.resolveSelection(currentParentSelection)?.spaces
+                ?: currentSpaces
+        }
+        if (currentSpaceLevel.size <= 1) {
+            return false
+        }
+        return select(currentSpaceLevel, currentSelection, currentParentSelection)
+    }
+
+    private fun navigateSpaceRelative(diff: Int): Boolean = navigateSpaceInCurrentHierarchyLevel { currentSpaceLevel, currentSelection, currentParentSelection ->
+        val currentIndex = if (currentSelection.isEmpty()) {
+            0
+        } else {
+            val currentSpaceSelectionId = currentSelection.last()
+            currentSpaceLevel.indexOfFirst { it?.selectionId == currentSpaceSelectionId }.takeIf { it >= 0 } ?: 0
+        }
+        val navigatedIndex = (currentIndex + diff).coerceIn(0, currentSpaceLevel.size - 1)
+        if (navigatedIndex == currentIndex) {
+            return@navigateSpaceInCurrentHierarchyLevel false
+        }
+        setSpaceSelection(currentParentSelection + listOfNotNull(currentSpaceLevel[navigatedIndex]?.selectionId))
+        return@navigateSpaceInCurrentHierarchyLevel true
+    }
+
+    private fun navigateToSpaceIndex(index: Int): Boolean = navigateSpaceInCurrentHierarchyLevel { currentSpaceLevel, currentSelection, currentParentSelection ->
+        val navigatedIndex = index.coerceIn(0, currentSpaceLevel.size - 1)
+        val newSelectionId = currentSpaceLevel[navigatedIndex]?.selectionId
+        if (newSelectionId == currentSelection.lastOrNull()) {
+            return@navigateSpaceInCurrentHierarchyLevel false
+        }
+        setSpaceSelection(currentParentSelection + listOfNotNull(newSelectionId))
+        return@navigateSpaceInCurrentHierarchyLevel true
+    }
+
+    private fun navigateToSpaceById(spaceId: String): Boolean {
+        val currentSpaces = spaces.value ?: return false
+        val condition: (SpaceListDataSource.AbstractSpaceHierarchyItem) -> Boolean = when {
+            spaceId.startsWith("!") -> {{
+                (it as? SpaceListDataSource.SpaceHierarchyItem)?.room?.summary?.roomId?.value == spaceId
+            }}
+            else -> {{
+                it.selectionId == spaceId
+            }}
+        }
+        return currentSpaces.findInHierarchy(condition)?.let {
+            setSpaceSelection(it)
+            true
+        } ?: false
     }
 
     private fun findSessionIdForAccountAction(parameter: String): SessionId? {
@@ -403,4 +514,14 @@ class InboxViewModel(
             }
         }
     }
+
+    fun setSpaceSelection(selection: List<String>) {
+        _spaceSelection.value = selection.toImmutableList()
+    }
+
+    override val windowTitle: Flow<ComposableStringHolder?> = selectedSpace.map {
+        it?.name ?: StringResourceHolder(Res.string.inbox)
+    }
+
+    override fun verifyDestination(destination: Destination) = destination is Destination.Inbox
 }
