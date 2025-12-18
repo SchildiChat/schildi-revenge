@@ -162,6 +162,10 @@ class InboxViewModel(
         spaces?.resolveSelection(spaceSelection)
     }
 
+    val showSpaceUi = searchTerm.map {
+        it.isNullOrBlank()
+    }.stateIn(viewModelScope, SharingStarted.Lazily, false)
+
     /**
      * Rooms filtered by search and space selection.
      */

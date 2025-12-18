@@ -1,5 +1,11 @@
 package chat.schildi.revenge.compose.destination.inbox
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -18,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
+import chat.schildi.revenge.Anim
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.FocusRole
@@ -66,14 +73,22 @@ fun InboxScreen(modifier: Modifier = Modifier) {
             val selectedSpace = spaces?.resolveSelection(spaceSelection)
 
             if (spaces != null) {
-                SpaceSelectorRow(
-                    lazyListState = listState,
-                    spacesList = spaces,
-                    totalUnreadCounts = null, // TODO
-                    spaceSelectionHierarchy = spaceSelection,
-                    onSpaceSelected = viewModel::setSpaceSelection,
-                    modifier = Modifier,
-                )
+                AnimatedVisibility(
+                    visible = viewModel.showSpaceUi.collectAsState().value,
+                    enter = slideInVertically(tween(Anim.DURATION)) { -it } +
+                            expandVertically(tween(Anim.DURATION), expandFrom = Alignment.Top),
+                    exit = slideOutVertically(tween(Anim.DURATION)) { -it } +
+                            shrinkVertically(tween(Anim.DURATION), shrinkTowards = Alignment.Top),
+                ) {
+                    SpaceSelectorRow(
+                        lazyListState = listState,
+                        spacesList = spaces,
+                        totalUnreadCounts = null, // TODO
+                        spaceSelectionHierarchy = spaceSelection,
+                        onSpaceSelected = viewModel::setSpaceSelection,
+                        modifier = Modifier,
+                    )
+                }
             }
 
             // Observe which rooms are visible in the list so subscribe to room list updates
