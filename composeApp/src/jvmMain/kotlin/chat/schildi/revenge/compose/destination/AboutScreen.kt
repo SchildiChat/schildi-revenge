@@ -57,6 +57,7 @@ import shire.composeapp.generated.resources.ic_launcher
 
 private data class ThirdPartyAcknowledgement(
     val name: String,
+    val nameAdd: String? = null,
     val url: String,
     val author: String,
     val authorUrl: String?,
@@ -96,11 +97,21 @@ private val ThirdPartyAcknowledgements = listOf(
     ),
     ThirdPartyAcknowledgement(
         name = "Inter",
+        nameAdd = "font",
         url = "https://fonts.google.com/specimen/Inter",
         author = "Rasmus Andersson",
         authorUrl = null,
         license = "OFL-1.1",
         licenseUrl = "https://fonts.google.com/specimen/Inter/license",
+    ),
+    ThirdPartyAcknowledgement(
+        name = "Noto Color Emoji",
+        nameAdd = "font",
+        url = "https://fonts.google.com/noto/specimen/Noto+Color+Emoji",
+        author = "Google Inc.",
+        authorUrl = null,
+        license = "OFL-1.1",
+        licenseUrl = "https://fonts.google.com/noto/specimen/Noto+Color+Emoji/license",
     ),
 )
 
@@ -259,6 +270,10 @@ private fun AcknowledgementItem(item: ThirdPartyAcknowledgement, modifier: Modif
     val text = remember(item) {
         buildAnnotatedString {
             appendUrlText(item.url, item.name, linkStyle)
+            if (item.nameAdd != null) {
+                append(" ")
+                append(item.nameAdd)
+            }
             append(" by ")
             appendUrlText(item.authorUrl, item.author, linkStyle)
             append(" under the terms of ")

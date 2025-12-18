@@ -45,7 +45,9 @@ fun ScTheme(
     }.apply { updateColorsFrom(getThemeExposures(darkTheme)) }
 
     val colorScheme = if (darkTheme) scdMaterialColorScheme else sclMaterialColorScheme
-    val textStyle = TextStyle(fontFamily = rememberInterFontFamily())
+    // Latest font wins
+    val textStyle = TextStyle(fontFamily = rememberEmojiFontFamily())
+            .merge(fontFamily = rememberInterFontFamily())
     val typography = MaterialTheme.typography.let {
         it.copy(
             displayLarge = it.displayLarge.merge(textStyle),

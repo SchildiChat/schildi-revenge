@@ -46,12 +46,14 @@ fun CommandSuggestions(
                 } else {
                     MaterialTheme.colorScheme.onSurface
                 },
+                style = Dimens.suggestionsTextStyle,
                 modifier = Modifier.weight(0.5f, fill = false),
             )
             if (suggestion.hint != null) {
                 Text(
                     suggestion.hint.render(),
                     color = MaterialTheme.colorScheme.tertiary,
+                    style = Dimens.suggestionsTextStyle,
                     modifier = Modifier.weight(0.5f, fill = false),
                 )
             }

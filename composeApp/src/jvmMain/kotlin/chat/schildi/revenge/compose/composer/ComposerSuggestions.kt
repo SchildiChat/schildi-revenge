@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.command.TextFieldSuggestions
+import chat.schildi.revenge.model.ComposerEmojiSuggestion
 import chat.schildi.revenge.model.ComposerSuggestion
 import chat.schildi.revenge.model.ComposerSuggestionsState
 import chat.schildi.theme.scExposures
@@ -35,12 +36,17 @@ fun ComposerSuggestions(
                 } else {
                     MaterialTheme.colorScheme.onSurface
                 },
+                style = if (suggestion is ComposerEmojiSuggestion)
+                    Dimens.emojiSuggestionsTextStyle
+                else
+                    Dimens.suggestionsTextStyle,
                 modifier = Modifier.weight(0.5f, fill = false),
             )
             suggestion.hint?.let { hint ->
                 Text(
                     hint.render(),
                     color = MaterialTheme.colorScheme.tertiary,
+                    style = Dimens.suggestionsTextStyle,
                     modifier = Modifier.weight(0.5f, fill = false),
                 )
             }

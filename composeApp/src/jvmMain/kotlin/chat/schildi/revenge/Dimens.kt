@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
+import chat.schildi.theme.rememberEmojiFontFamily
 
 object Dimens {
     val windowPadding = 16.dp
@@ -36,6 +37,11 @@ object Dimens {
     val animationDurationSlowMs = 300
     fun <T>tweenSmooth(): TweenSpec<T> = tween(animationDurationSlowMs)
 
+    val suggestionsTextStyle
+        @Composable get() = MaterialTheme.typography.bodyMedium
+    val emojiSuggestionsTextStyle
+        @Composable get() = suggestionsTextStyle.merge(fontFamily = rememberEmojiFontFamily())
+
     object Conversation {
         val avatar = 48.dp
         val avatarForState = 16.dp
@@ -61,6 +67,7 @@ object Dimens {
             @Composable get() = MaterialTheme.typography.bodyLarge
         val emojiOnlyMessageStyle
             @Composable get() = MaterialTheme.typography.headlineLarge
+                .merge(fontFamily = rememberEmojiFontFamily())
         val messageTimestampStyle
             @Composable get() = MaterialTheme.typography.bodyMedium
 

@@ -11,6 +11,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -24,7 +25,9 @@ import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.compose.components.LocalSessionId
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.media.imageLoader
+import chat.schildi.revenge.compose.util.containsOnlyEmojis
 import chat.schildi.revenge.model.ConversationViewModel
+import chat.schildi.theme.rememberEmojiFontFamily
 import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.SubcomposeAsyncImageContent
@@ -70,6 +73,15 @@ fun ReactionsBubble(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
+        val isRealEmojiReaction = remember(reaction.key) {
+            reaction.key.containsOnlyEmojis()
+        }
+        val reactionTextStyle = if (isRealEmojiReaction) {
+            MaterialTheme.typography.bodyMedium
+                .merge(fontFamily = rememberEmojiFontFamily())
+        } else {
+            MaterialTheme.typography.bodyMedium
+        }
         if (reaction.key.startsWith("mxc://")) {
             SubcomposeAsyncImage(
                 model = MediaRequestData(MediaSource(reaction.key), MediaRequestData.Kind.Content),
@@ -89,7 +101,7 @@ fun ReactionsBubble(
                         Text(
                             reaction.key.take(Dimens.Conversation.reactionMaxLength),
                             color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = reactionTextStyle,
                         )
                     }
                 }
@@ -98,7 +110,7 @@ fun ReactionsBubble(
             Text(
                 reaction.key.take(Dimens.Conversation.reactionMaxLength),
                 color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyMedium,
+                style = reactionTextStyle,
             )
         }
         Text(
