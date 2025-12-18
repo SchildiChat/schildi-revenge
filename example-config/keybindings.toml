@@ -29,10 +29,12 @@ inbox = [
     { key = "Nine", ctrl = true, shift = true, action = "ToggleAccountSelected", args = ["9"] },
     { key = "H", action = "NavigateSpaceRelative", args = ["-1"] },
     { key = "I", action = "NavigateSpaceRelative", args = ["1"] },
+    { key = "Zero", shift = true, action = "SelectSpace", args = ["0"] },
     { key = "S", ctrl = true, action = "SelectSpace", args = ["!JqHnTLVyzdzYSgOJYR:matrix.org"] },
-    { key = "I", ctrl = true, action = "SelectSpace", args = ["5"] },
 ]
 conversation = [
+    { key = "G", shift = true, action = "JumpToBottom", chain = true },
+    { key = "U", action = "JumpToLastFullyRead" },
     { key = "I", action = "ComposeMessage" },
     { key = "N", ctrl = true, action = "ComposeNotice" },
     { key = "M", ctrl = true, action = "ComposeEmote" },
@@ -46,6 +48,7 @@ conversation = [
     { key = "H", ctrl = true, action = "ComposerInsertAddCursor", args = ["❤️"] },
     { key = "U", ctrl = true, action = "ComposerInsertAddCursor", args = ["👍"] },
     { key = "D", ctrl = true, action = "ComposerInsertAddCursor", args = ["🙃"] },
+    { key = "Y", ctrl = true, action = "ComposerInsertAddCursor", args = ["👀"] },
 ]
 event = [
     { key = "M", action = "MarkRead" },
@@ -65,10 +68,11 @@ navigation = [
     { key = "A", shift = true, ctrl = true, action = "AccountManagementInNewWindow" },
     { key = "S", shift = true, action = "SplitHorizontal" },
     { key = "V", shift = true, action = "SplitVertical" },
+    { key = "Q", shift = true, action = "CloseWindow" },
 ]
 navigationItem = [
-    { key = "Enter", action = "NavigateCurrent" },
-    { key = "Enter", shift = true, action = "NavigateInNewWindow" },
+    { key = "Enter", action = "NavigateInNewWindow" },
+    { key = "Enter", shift = true, action = "NavigateCurrent" },
 ]
 focus = [
     { key = "DirectionUp", action = "FocusUp" },

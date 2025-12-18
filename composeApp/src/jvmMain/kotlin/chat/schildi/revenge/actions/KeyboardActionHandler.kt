@@ -672,7 +672,8 @@ fun <A: Action>List<Binding<A>>.execute(key: KeyTrigger, block: (Binding<A>) -> 
     val actions = filter { it.trigger == key }
     actions.forEach { action ->
         if (block(action)) {
-            return true
+            // True if consumed. If `chain` is true, we want to allow other actions after this one.
+            return !action.chain
         }
     }
     return false

@@ -11,6 +11,7 @@ data class Binding<A : Action>(
     val shift: Boolean = false,
     val alt: Boolean = false,
     val ctrl: Boolean = false,
+    val chain: Boolean = false,
     val action: A,
     val args: List<String> = emptyList(),
 ) {
