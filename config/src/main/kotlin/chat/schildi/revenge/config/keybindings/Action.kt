@@ -62,6 +62,7 @@ sealed interface Action {
         ComposeEmote,
         ComposerSend,
         ComposerInsertAddCursor,
+        ScrollToLastFullyRead,
     }
     enum class Event : Action {
         MarkRead,

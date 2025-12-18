@@ -115,7 +115,12 @@ fun InboxScreen(modifier: Modifier = Modifier) {
                     }
                 }
                 rooms?.let {
-                    items(rooms) { room ->
+                    items(
+                        rooms,
+                        key = { room ->
+                            Pair(room.sessionId, room.summary.roomId)
+                        }
+                    ) { room ->
                         val needsDisambiguation = needsAccountDisambiguation &&
                                 selectedSpace?.sessionIds.let { it == null || it.size > 1 } &&
                                 (

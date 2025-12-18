@@ -28,6 +28,7 @@ fun ConversationItemRow(
     roomMembersById: ImmutableMap<UserId, RoomMember>,
     next: MatrixTimelineItem?,
     previous: MatrixTimelineItem?,
+    highlight: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier.fillMaxWidth()) {
@@ -65,6 +66,7 @@ fun ConversationItemRow(
                     item.event,
                     isSameAsPreviousSender = isSameAsPreviousSender,
                     roomMembersById = roomMembersById,
+                    highlight = highlight,
                 )
             }
 

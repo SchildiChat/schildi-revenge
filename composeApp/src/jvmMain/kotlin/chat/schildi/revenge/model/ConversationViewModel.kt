@@ -1,6 +1,5 @@
 package chat.schildi.revenge.model
 
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
@@ -25,11 +24,13 @@ import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.toPrettyJson
 import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
+import io.element.android.features.messages.impl.timeline.EventFocusResult
 import io.element.android.features.messages.impl.timeline.TimelineController
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.room.roomMembers
+import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
@@ -47,15 +48,18 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentHashMap
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -83,6 +87,9 @@ class ConversationViewModel(
     private val log = Logger.withTag("ChatView/$roomId")
 
     private val clientFlow = UiState.selectClient(sessionId, viewModelScope)
+
+    private val _highlightEventId = MutableStateFlow<EventId?>(null)
+    val highlightEventId = _highlightEventId.asStateFlow()
 
     private val sessionGraphFlow = clientFlow.map { client ->
         client?.let {
@@ -388,8 +395,29 @@ class ConversationViewModel(
                     }
                     hasDraft
                 }
+
+                Action.Conversation.ScrollToLastFullyRead -> {
+                    viewModelScope.launch {
+                        activeTimeline.value?.fullyReadEventId()?.let { eventId ->
+                            focusOnEvent(EventId(eventId))
+                        } ?: run {
+                            log.e("Could not find fully read eventId")
+                        }
+                    }
+                    true
+                }
             }
         }
+    }
+
+    suspend fun focusOnEvent(eventId: EventId): Result<EventFocusResult> {
+        val controller = timelineController.value ?: run {
+            log.e("No timeline controller to execute action")
+            return Result.failure(RuntimeException("No TimelineController available"))
+        }
+        return controller.focusOnEvent(eventId, null)
+            .onFailure { log.e("Failed to focus on event $eventId", it) }
+            .onSuccess { _highlightEventId.emit(eventId) }
     }
 
     private fun markEventAsRead(eventId: EventId, receiptType: ReceiptType): Boolean {
