@@ -65,6 +65,7 @@ private data class FocusTarget(
 enum class FocusRole(val consumesKeyWhitelist: List<Key>? = null) {
     SEARCHABLE_ITEM,
     AUX_ITEM,
+    NESTED_AUX_ITEM,
     DESTINATION_ROOT_CONTAINER,
     CONTAINER,
     CONTAINER_ITEM, // Can both like AUX_ITEM and CONTAINER
@@ -575,7 +576,10 @@ class KeyboardActionHandler(
         }
         val focusable = focusableTargets.values.firstNotNullOfOrNull { target ->
             target.takeIf {
-                it.role != FocusRole.CONTAINER && it.coordinates.contains(position)
+                it.role != FocusRole.CONTAINER &&
+                        it.role != FocusRole.DESTINATION_ROOT_CONTAINER &&
+                        it.role != FocusRole.NESTED_AUX_ITEM &&
+                        it.coordinates.contains(position)
             }
         }
         // TODO flow + debounce + separate coroutine to avoid messing with composition

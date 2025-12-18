@@ -23,6 +23,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.defaultActionProvider
 import chat.schildi.revenge.compose.focus.keyFocusable
@@ -68,6 +69,7 @@ fun ButtonWithConfirmation(
     onConfirm: () -> Unit,
     modifier: Modifier = Modifier,
     cancelText: String = stringResource(Res.string.action_cancel),
+    focusRole: FocusRole = FocusRole.NESTED_AUX_ITEM,
     button: @Composable (Modifier, confirmationVisible: Boolean, onClick: () -> Unit) -> Unit,
 ) {
     var confirmationVisible by remember { mutableStateOf(false) }
@@ -90,6 +92,7 @@ fun ButtonWithConfirmation(
         button(
             Modifier
                 .keyFocusable(
+                    role = focusRole,
                     actionProvider = defaultActionProvider(
                         primaryAction = InteractionAction.Invoke {
                             confirmationVisible = !confirmationVisible

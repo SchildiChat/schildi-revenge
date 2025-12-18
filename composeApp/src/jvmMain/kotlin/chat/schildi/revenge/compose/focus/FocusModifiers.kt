@@ -90,6 +90,7 @@ internal fun Modifier.keyFocusableContainer(
 fun FocusRole.allowsFocusable() = when (this) {
     FocusRole.SEARCHABLE_ITEM,
     FocusRole.AUX_ITEM,
+    FocusRole.NESTED_AUX_ITEM,
     FocusRole.CONTAINER_ITEM,
     FocusRole.DESTINATION_ROOT_CONTAINER,
     FocusRole.CONTAINER -> true
