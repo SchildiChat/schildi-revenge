@@ -96,7 +96,7 @@ fun InboxRow(
                         source = MediaSource(userAvatar),
                         size = Dimens.Inbox.accountAvatar,
                         shape = Dimens.ownAccountAvatarShape,
-                        modifier = Modifier.align(Alignment.BottomEnd),
+                        modifier = Modifier.align(Alignment.BottomStart),
                     )
                 }
             }
