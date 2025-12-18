@@ -8,6 +8,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 
@@ -42,6 +43,26 @@ fun ScTheme(
     }.apply { updateColorsFrom(getThemeExposures(darkTheme)) }
 
     val colorScheme = if (darkTheme) scdMaterialColorScheme else sclMaterialColorScheme
+    val textStyle = TextStyle(fontFamily = rememberInterFontFamily())
+    val typography = MaterialTheme.typography.let {
+        it.copy(
+            displayLarge = it.displayLarge.merge(textStyle),
+            displayMedium = it.displayMedium.merge(textStyle),
+            displaySmall = it.displaySmall.merge(textStyle),
+            headlineLarge = it.headlineLarge.merge(textStyle),
+            headlineMedium = it.headlineMedium.merge(textStyle),
+            headlineSmall = it.headlineSmall.merge(textStyle),
+            titleLarge = it.titleLarge.merge(textStyle),
+            titleMedium = it.titleMedium.merge(textStyle),
+            titleSmall = it.titleSmall.merge(textStyle),
+            bodyLarge = it.bodyLarge.merge(textStyle),
+            bodyMedium = it.bodyMedium.merge(textStyle),
+            bodySmall = it.bodySmall.merge(textStyle),
+            labelLarge = it.labelLarge.merge(textStyle),
+            labelMedium = it.labelMedium.merge(textStyle),
+            labelSmall = it.labelSmall.merge(textStyle),
+        )
+    }
 
     CompositionLocalProvider(
         LocalScExposures provides currentExposures,
@@ -51,6 +72,7 @@ fun ScTheme(
         MaterialTheme(
             colorScheme = colorScheme,
             content = content,
+            typography = typography,
         )
     }
 }
