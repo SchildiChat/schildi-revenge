@@ -11,6 +11,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.compose.util.containsOnlyEmojis
 import io.element.android.libraries.matrix.api.timeline.item.event.EmoteMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 import io.element.android.libraries.matrix.api.timeline.item.event.NoticeMessageType
@@ -23,7 +24,8 @@ fun TextLikeMessage(
     isOwn: Boolean,
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    allowBigEmojiOnly: Boolean = true,
 ) {
     val alpha = when (message) {
         is NoticeMessageType -> 0.7f
@@ -38,6 +40,7 @@ fun TextLikeMessage(
         timestamp = timestamp,
         inReplyTo = inReplyTo,
         modifier = modifier.alpha(alpha),
+        allowBigEmojiOnly = allowBigEmojiOnly,
         outlined = message is EmoteMessageType,
     )
 }
@@ -49,6 +52,7 @@ fun TextLikeMessage(
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
     modifier: Modifier = Modifier,
+    allowBigEmojiOnly: Boolean = true,
     outlined: Boolean = false,
 ) {
     val textLayoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
@@ -60,7 +64,7 @@ fun TextLikeMessage(
         contentTextLayoutResult = textLayoutResult.value,
     ) {
         inReplyTo?.let { ReplyContent(it) }
-        TextLikeMessageContent(text) {
+        TextLikeMessageContent(text, allowBigEmojiOnly) {
             textLayoutResult.value = it
         }
     }
@@ -69,14 +73,22 @@ fun TextLikeMessage(
 @Composable
 fun TextLikeMessageContent(
     text: AnnotatedString,
+    allowBigEmojiOnly: Boolean,
     modifier: Modifier = Modifier,
     onTextLayout: (TextLayoutResult) -> Unit,
 ) {
+    val isEmojiOnly = allowBigEmojiOnly && LocalMessageRenderContext.current == MessageRenderContext.NORMAL &&
+         remember(text) {
+            text.toString().containsOnlyEmojis()
+        }
     SelectionContainer {
         Text(
             text,
             color = MaterialTheme.colorScheme.primary,
-            style = Dimens.Conversation.textMessageStyle,
+            style = if (isEmojiOnly)
+                Dimens.Conversation.emojiOnlyMessageStyle
+            else
+                Dimens.Conversation.textMessageStyle,
             modifier = modifier,
             onTextLayout = onTextLayout,
         )

@@ -52,6 +52,8 @@ object Dimens {
 
         val textMessageStyle
             @Composable get() = MaterialTheme.typography.bodyLarge
+        val emojiOnlyMessageStyle
+            @Composable get() = MaterialTheme.typography.headlineLarge
         val messageTimestampStyle
             @Composable get() = MaterialTheme.typography.bodyMedium
 

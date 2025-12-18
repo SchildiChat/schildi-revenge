@@ -39,6 +39,7 @@ coil3_okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", versi
 kdroidfilter_platformtools_core = { group = "io.github.kdroidfilter", name = "platformtools.core", version.ref = "kdroidfilterPlatformtools" }
 kdroidfilter_platformtools_darkmodedetector = { group = "io.github.kdroidfilter", name = "platformtools.darkmodedetector", version.ref = "kdroidfilterPlatformtools" }
 kdroidfilter_composenativetray = { group = "io.github.kdroidfilter", name = "composenativetray", version.ref = "kdroidfilterComposeNativeTray" }
+kodein-emojiKt = { group = "org.kodein.emoji", name = "emoji-kt", version = "2.3.0" }
 
 [plugins]
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }

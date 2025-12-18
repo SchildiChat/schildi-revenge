@@ -105,6 +105,7 @@ fun ColumnScope.ImageMessageContent(
     if (caption != null) {
         TextLikeMessageContent(
             caption,
+            allowBigEmojiOnly = false,
             modifier = Modifier.padding(
                 top = Dimens.Conversation.captionPadding,
                 bottom = Dimens.Conversation.messageBubbleInnerPadding,
