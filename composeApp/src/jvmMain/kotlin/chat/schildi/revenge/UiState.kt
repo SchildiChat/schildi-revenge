@@ -2,9 +2,7 @@ package chat.schildi.revenge
 
 import androidx.compose.ui.window.ApplicationScope
 import chat.schildi.revenge.compose.util.ComposableStringHolder
-import chat.schildi.revenge.Destination
 import chat.schildi.revenge.config.ConfigWatchers
-import chat.schildi.revenge.config.keybindings.KeybindingConfig
 import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.createGraphFactory
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -28,6 +26,8 @@ import kotlinx.coroutines.launch
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.concurrent.atomics.fetchAndIncrement
+
+val GlobalActionsScope = CoroutineScope(Dispatchers.IO)
 
 @OptIn(ExperimentalAtomicApi::class)
 object UiState {

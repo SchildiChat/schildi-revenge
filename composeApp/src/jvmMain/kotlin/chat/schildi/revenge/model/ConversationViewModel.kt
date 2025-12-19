@@ -12,6 +12,7 @@ import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.Destination
+import chat.schildi.revenge.GlobalActionsScope
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.KeyboardActionHandler
 import chat.schildi.revenge.actions.KeyboardActionProvider
@@ -182,7 +183,7 @@ class ConversationViewModel(
             return false
         }
         DraftRepo.update(draftKey, draft.copy(isSendInProgress = true))
-        viewModelScope.launch(Dispatchers.IO) {
+        GlobalActionsScope.launch(Dispatchers.IO) {
             val result = when (draft.type) {
                 DraftType.TEXT -> {
                     if (draft.inReplyTo != null) {
@@ -427,7 +428,7 @@ class ConversationViewModel(
                         log.e("Could not find room")
                         return@execute false
                     }
-                    viewModelScope.launch(Dispatchers.IO) {
+                    GlobalActionsScope.launch(Dispatchers.IO) {
                         room.setUnreadFlag(true)
                             .onFailure { log.e("Failed to set unread flag", it) }
                     }
@@ -439,7 +440,7 @@ class ConversationViewModel(
                         log.e("Could not find timeline")
                         return@execute false
                     }
-                    viewModelScope.launch(Dispatchers.IO) {
+                    GlobalActionsScope.launch(Dispatchers.IO) {
                         timeline.markAsRead(ReceiptType.READ)
                         timeline.markAsRead(ReceiptType.FULLY_READ)
                     }
@@ -451,7 +452,7 @@ class ConversationViewModel(
                         log.e("Could not find timeline")
                         return@execute false
                     }
-                    viewModelScope.launch(Dispatchers.IO) {
+                    GlobalActionsScope.launch(Dispatchers.IO) {
                         timeline.markAsRead(ReceiptType.READ_PRIVATE)
                         timeline.markAsRead(ReceiptType.FULLY_READ)
                     }
@@ -476,7 +477,7 @@ class ConversationViewModel(
             log.e { "No timeline to execute event action" }
             return false
         }
-        viewModelScope.launch(Dispatchers.IO) {
+        GlobalActionsScope.launch(Dispatchers.IO) {
             timeline.invokeOnCurrentTimeline {
                 sendReadReceipt(eventId, receiptType)
                     .onFailure { log.e("Failed to send private read receipt", it) }

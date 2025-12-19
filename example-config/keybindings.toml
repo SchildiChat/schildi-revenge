@@ -37,7 +37,7 @@ conversation = [
     { key = "I", action = "ComposeMessage" },
     { key = "N", ctrl = true, action = "ComposeNotice" },
     { key = "U", ctrl = true, action = "MarkUnread" },
-    { key = "M", ctrl = true, action = "MarkRead" },
+    { key = "M", ctrl = true, action = "MarkRead", chain = true },
     { key = "Enter", action = "ComposerSend" },
     { key = "Enter", ctrl = true, action = "ComposerSend" },
     { key = "Enter", shift = true, action = "ComposerInsertAddCursor", args = ["\n"] },
@@ -70,6 +70,7 @@ navigation = [
     { key = "V", shift = true, action = "SplitVertical" },
     { key = "Q", ctrl = true, action = "CloseWindow" },
     { key = "Q", action = "CloseWindow", destinations = ["Conversation"] },
+    { key = "M", ctrl = true, action = "CloseWindow", destinations = ["Conversation"] },
 ]
 navigationItem = [
     { key = "Enter", action = "NavigateInNewWindow" },
