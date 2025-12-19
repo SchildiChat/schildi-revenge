@@ -66,6 +66,9 @@ sealed interface Action {
         ComposerInsertAddCursor,
         JumpToLastFullyRead,
         JumpToBottom,
+        MarkUnread,
+        MarkRead,
+        MarkReadPrivate,
     }
     enum class Event : Action {
         MarkRead,

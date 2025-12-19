@@ -47,6 +47,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentHashMap
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,6 +58,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -180,7 +182,7 @@ class ConversationViewModel(
             return false
         }
         DraftRepo.update(draftKey, draft.copy(isSendInProgress = true))
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             val result = when (draft.type) {
                 DraftType.TEXT -> {
                     if (draft.inReplyTo != null) {
@@ -284,7 +286,9 @@ class ConversationViewModel(
     init {
         roomPair.onEach { (_, joinedRoom) ->
             joinedRoom?.updateMembers()
-        }.launchIn(viewModelScope)
+        }
+            .flowOn(Dispatchers.IO)
+            .launchIn(viewModelScope)
     }
 
     override fun verifyDestination(destination: Destination): Boolean {
@@ -292,7 +296,7 @@ class ConversationViewModel(
     }
 
     fun paginateForward() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             log.d("Request forward pagination")
             timelineController.value?.paginate(Timeline.PaginationDirection.FORWARDS)
                 ?.onFailure { log.w("Cannot paginate forwards") }
@@ -301,7 +305,7 @@ class ConversationViewModel(
     }
 
     fun paginateBackward() {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             log.d("Request backward pagination")
             timelineController.value?.paginate(Timeline.PaginationDirection.BACKWARDS)
                 ?.onFailure { log.w("Cannot paginate backwards") }
@@ -399,7 +403,7 @@ class ConversationViewModel(
                 }
 
                 Action.Conversation.JumpToLastFullyRead -> {
-                    viewModelScope.launch {
+                    viewModelScope.launch(Dispatchers.IO) {
                         activeTimeline.value?.fullyReadEventId()?.let { eventId ->
                             focusOnEvent(EventId(eventId))
                         } ?: run {
@@ -415,6 +419,42 @@ class ConversationViewModel(
                         return@execute false
                     }
                     _targetEvent.value = EventJumpTarget.Index(0)
+                    true
+                }
+
+                Action.Conversation.MarkUnread -> {
+                    val room = roomPair.value.first ?: run {
+                        log.e("Could not find room")
+                        return@execute false
+                    }
+                    viewModelScope.launch(Dispatchers.IO) {
+                        room.setUnreadFlag(true)
+                            .onFailure { log.e("Failed to set unread flag", it) }
+                    }
+                    true
+                }
+
+                Action.Conversation.MarkRead -> {
+                    val timeline = activeTimeline.value ?: run {
+                        log.e("Could not find timeline")
+                        return@execute false
+                    }
+                    viewModelScope.launch(Dispatchers.IO) {
+                        timeline.markAsRead(ReceiptType.READ)
+                        timeline.markAsRead(ReceiptType.FULLY_READ)
+                    }
+                    true
+                }
+
+                Action.Conversation.MarkReadPrivate -> {
+                    val timeline = activeTimeline.value ?: run {
+                        log.e("Could not find timeline")
+                        return@execute false
+                    }
+                    viewModelScope.launch(Dispatchers.IO) {
+                        timeline.markAsRead(ReceiptType.READ_PRIVATE)
+                        timeline.markAsRead(ReceiptType.FULLY_READ)
+                    }
                     true
                 }
             }
@@ -436,7 +476,7 @@ class ConversationViewModel(
             log.e { "No timeline to execute event action" }
             return false
         }
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             timeline.invokeOnCurrentTimeline {
                 sendReadReceipt(eventId, receiptType)
                     .onFailure { log.e("Failed to send private read receipt", it) }
