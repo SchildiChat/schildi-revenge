@@ -38,7 +38,7 @@ import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.model.DraftRepo
 import chat.schildi.revenge.model.InboxViewModel
-import chat.schildi.revenge.model.spaces.filterByUnread
+import chat.schildi.revenge.model.spaces.filterByVisible
 import chat.schildi.revenge.model.spaces.resolveSelection
 import chat.schildi.revenge.publishTitle
 import kotlinx.collections.immutable.persistentSetOf
@@ -57,7 +57,7 @@ fun InboxScreen(modifier: Modifier = Modifier) {
     val accountsSorted = viewModel.accountsSorted.collectAsState().value
     val accountUnreadCounts = viewModel.accountUnreadCounts.collectAsState().value
     val spaceSelection = viewModel.spaceSelection.collectAsState().value
-    val spaces = viewModel.spaces.collectAsState().value?.filterByUnread(
+    val spaces = viewModel.spaces.collectAsState().value?.filterByVisible(
         spaceSelection,
         ScPrefs.PSEUDO_SPACE_HIDE_EMPTY_UNREAD.value(),
     )

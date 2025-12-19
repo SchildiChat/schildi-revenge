@@ -343,12 +343,25 @@ private fun AbstractSpaceIcon(
             sessionId = space.room.sessionId,
             modifier = modifier,
         )
-        is SpaceListDataSource.PseudoSpaceItem -> PseudoSpaceIcon(
-            imageVector = space.icon,
-            size = size,
-            color = color,
-            modifier = modifier,
-        )
+        is SpaceListDataSource.PseudoSpaceItem -> when (val icon = space.icon) {
+            is SpaceListDataSource.PseudoSpaceIconSource.Icon -> {
+                PseudoSpaceIcon(
+                    imageVector = icon.icon,
+                    size = size,
+                    color = color,
+                    modifier = modifier,
+                )
+            }
+            is SpaceListDataSource.PseudoSpaceIconSource.Avatar -> {
+                AvatarImage(
+                    MediaSource(icon.url),
+                    size = size,
+                    shape = shape,
+                    sessionId = icon.sessionId,
+                    modifier = modifier,
+                )
+            }
+        }
         else -> PseudoSpaceIcon(
             Icons.Filled.Home,
             size = size,

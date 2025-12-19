@@ -18,7 +18,9 @@ import shire.composeapp.generated.resources.sc_pref_bury_low_priority_title
 import shire.composeapp.generated.resources.sc_pref_category_chat_overview
 import shire.composeapp.generated.resources.sc_pref_category_chat_sorting
 import shire.composeapp.generated.resources.sc_pref_category_general
+import shire.composeapp.generated.resources.sc_pref_category_general_behaviour
 import shire.composeapp.generated.resources.sc_pref_category_general_summary
+import shire.composeapp.generated.resources.sc_pref_category_spaces
 import shire.composeapp.generated.resources.sc_pref_category_unread_counts
 import shire.composeapp.generated.resources.sc_pref_client_side_sort_by_unread_summary
 import shire.composeapp.generated.resources.sc_pref_client_side_sort_by_unread_title
@@ -33,6 +35,8 @@ import shire.composeapp.generated.resources.sc_pref_render_silent_unread_title
 import shire.composeapp.generated.resources.sc_pref_sort_with_silent_unread_summary
 import shire.composeapp.generated.resources.sc_pref_sort_with_silent_unread_title
 import shire.composeapp.generated.resources.sc_pref_tweaks_title
+import shire.composeapp.generated.resources.sc_pseudo_space_accounts_summary
+import shire.composeapp.generated.resources.sc_pseudo_space_accounts_title
 import shire.composeapp.generated.resources.sc_pseudo_space_dms
 import shire.composeapp.generated.resources.sc_pseudo_space_favorites
 import shire.composeapp.generated.resources.sc_pseudo_space_groups
@@ -42,6 +46,8 @@ import shire.composeapp.generated.resources.sc_pseudo_space_notifications
 import shire.composeapp.generated.resources.sc_pseudo_space_spaceless
 import shire.composeapp.generated.resources.sc_pseudo_space_spaceless_groups
 import shire.composeapp.generated.resources.sc_pseudo_space_unread
+import shire.composeapp.generated.resources.sc_pseudo_spaces_summary
+import shire.composeapp.generated.resources.sc_pseudo_spaces_title
 import shire.composeapp.generated.resources.sc_space_all_rooms_summary
 import shire.composeapp.generated.resources.sc_space_all_rooms_title
 import shire.composeapp.generated.resources.sc_space_swipe_summary
@@ -129,6 +135,7 @@ object ScPrefs {
     val PSEUDO_SPACE_NOTIFICATIONS = ScBoolPref("PSEUDO_SPACE_NOTIFICATIONS", true, Res.string.sc_pseudo_space_notifications, null)
     val PSEUDO_SPACE_UNREAD = ScBoolPref("PSEUDO_SPACE_UNREAD", false, Res.string.sc_pseudo_space_unread, null)
     val PSEUDO_SPACE_INVITES = ScBoolPref("PSEUDO_SPACE_INVITES", true, Res.string.sc_pseudo_space_invites, null, dependencies = listOf(HIDE_INVITES.toDependency().not()))
+    val PSEUDO_SPACE_ACCOUNTS = ScBoolPref("PSEUDO_SPACE_ACCOUNTS", false, Res.string.sc_pseudo_space_accounts_title, Res.string.sc_pseudo_space_accounts_summary)
     val PSEUDO_SPACE_HIDE_EMPTY_UNREAD = ScBoolPref("PSEUDO_SPACE_HIDE_EMPTY_UNREAD", true, Res.string.sc_pseudo_space_hide_empty_unread, null, dependencies = listOf(
         ScPrefFulfilledForAnyDependency(listOf(PSEUDO_SPACE_NOTIFICATIONS.toDependency(), PSEUDO_SPACE_UNREAD.toDependency(), PSEUDO_SPACE_INVITES.toDependency()))
     ))
@@ -224,14 +231,11 @@ object ScPrefs {
             MAX_WIDTH_INBOX,
             MAX_WIDTH_CONVERSATION,
             MAX_WIDTH_SETTINGS,
-        ))
-        /*
+        )),
         ScPrefScreen(Res.string.sc_pref_category_spaces, null, listOf(
-            SPACE_NAV,
             SPACE_UNREAD_COUNTS,
-            SPACE_SWIPE,
             COMPACT_ROOT_SPACES,
-            ScPrefScreen(Res.string.sc_pseudo_spaces_title, Res.string.sc_pseudo_spaces_summary_experimental, listOf(
+            ScPrefScreen(Res.string.sc_pseudo_spaces_title, Res.string.sc_pseudo_spaces_summary, listOf(
                 ScPrefCategory(Res.string.sc_pseudo_spaces_title, null, listOf(
                     PSEUDO_SPACE_ALL_ROOMS,
                     PSEUDO_SPACE_FAVORITES,
@@ -242,12 +246,13 @@ object ScPrefs {
                     PSEUDO_SPACE_NOTIFICATIONS,
                     PSEUDO_SPACE_UNREAD,
                     PSEUDO_SPACE_INVITES,
+                    PSEUDO_SPACE_ACCOUNTS,
                 )),
                 ScPrefCategory(Res.string.sc_pref_category_general_behaviour, null, listOf(
                     PSEUDO_SPACE_HIDE_EMPTY_UNREAD,
                 )),
-            ), dependencies = SPACE_NAV.asDependencies())
-        )),
+            ))
+        )), /*
         ScPrefScreen(Res.string.sc_pref_category_timeline, null, listOf(
             SC_TIMELINE_LAYOUT,
             RENDER_INLINE_IMAGES,

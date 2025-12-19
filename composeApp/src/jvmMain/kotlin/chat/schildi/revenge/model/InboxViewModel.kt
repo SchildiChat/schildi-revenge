@@ -14,7 +14,6 @@ import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.compose.util.ComposableStringHolder
-import chat.schildi.revenge.compose.util.HardcodedStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
@@ -22,7 +21,7 @@ import chat.schildi.revenge.flatMerge
 import chat.schildi.revenge.model.spaces.RevengeSpaceListDataSource
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
 import chat.schildi.revenge.model.spaces.SpaceListDataSource
-import chat.schildi.revenge.model.spaces.filterByUnread
+import chat.schildi.revenge.model.spaces.filterByVisible
 import chat.schildi.revenge.model.spaces.filterHierarchical
 import chat.schildi.revenge.model.spaces.findInHierarchy
 import chat.schildi.revenge.model.spaces.resolveSelection
@@ -45,7 +44,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -241,20 +239,11 @@ class InboxViewModel(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    private val accountAggregationDataSource = SpaceAggregationDataSource(
-        accounts.map {
-            it?.map { account ->
-                SpaceListDataSource.SessionIdPseudoSpaceItem(
-                    sessionId = account.key,
-                    name = HardcodedStringHolder(account.key.value),
-                )
-            }.orEmpty()
-        },
-        roomListDataSource.allRooms,
-    )
-    val accountUnreadCounts = accountAggregationDataSource.state.map {
-        it.enrichedSpaces?.associate {
-            (it as SpaceListDataSource.SessionIdPseudoSpaceItem).sessionId to (it.unreadCounts ?: SpaceAggregationDataSource.SpaceUnreadCounts())
+    val accountUnreadCounts = spaceAggregationDataSource.state.map {
+        it.enrichedSpaces?.mapNotNull {
+            it as? SpaceListDataSource.SessionIdPseudoSpaceItem
+        }?.associate {
+            it.sessionId to (it.unreadCounts ?: SpaceAggregationDataSource.SpaceUnreadCounts())
         }.orEmpty().toPersistentHashMap()
     }.flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Lazily, persistentHashMapOf())
@@ -420,7 +409,7 @@ class InboxViewModel(
         }
         val currentSettings = settings.value
         val currentSpaceLevel = if (currentParentSelection.isEmpty()) {
-            currentSpaces.filterByUnread(currentSelection, currentSettings.hideEmptyUnreadPseudoSpaces).let {
+            currentSpaces.filterByVisible(currentSelection, currentSettings.hideEmptyUnreadPseudoSpaces).let {
                 if (currentSettings.showAllRoomsSpace) {
                     listOf(null) + it
                 } else {
@@ -467,6 +456,9 @@ class InboxViewModel(
         val condition: (SpaceListDataSource.AbstractSpaceHierarchyItem) -> Boolean = when {
             spaceId.startsWith("!") -> {{
                 (it as? SpaceListDataSource.SpaceHierarchyItem)?.room?.summary?.roomId?.value == spaceId
+            }}
+            spaceId.startsWith("@") -> {{
+                (it as? SpaceListDataSource.SessionIdPseudoSpaceItem)?.sessionId?.value == spaceId
             }}
             else -> {{
                 it.selectionId == spaceId

@@ -92,4 +92,7 @@
     <string name="pref_auto_hide_composer_summary">Hide composer on send</string>
 
     <string name="nameless_space_fallback_title">Nameless space</string>
+
+    <string name="sc_pseudo_space_accounts_title">Accounts</string>
+    <string name="sc_pseudo_space_accounts_summary">One pseudo-space for each logged-in account</string>
 </resources>

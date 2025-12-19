@@ -67,6 +67,7 @@ class SpaceAggregationDataSource(
                 if (useClientGeneratedUnreadCounts) info.numUnreadMessages else info.unreadCount,
                 info.isMarkedUnread,
                 info.currentUserMembership == CurrentUserMembership.INVITED,
+                false,
             )
         }
         return unread
@@ -77,7 +78,8 @@ class SpaceAggregationDataSource(
         notifications: Long,
         unread: Long,
         markedUnread: Boolean,
-        isInvite: Boolean
+        isInvite: Boolean,
+        isEmpty: Boolean,
     ): SpaceUnreadCounts = if (isInvite) {
         copy(
             notifiedMessages = this.notifiedMessages + 1,
@@ -85,6 +87,7 @@ class SpaceAggregationDataSource(
             notifiedChats = this.notifiedChats + 1,
             unreadChats = this.unreadChats + 1,
             inviteCount = this.inviteCount + 1,
+            isEmptySpace = false,
         )
     } else {
         SpaceUnreadCounts(
@@ -96,6 +99,7 @@ class SpaceAggregationDataSource(
             this.unreadChats + if (unread > 0) 1 else 0,
             this.markedUnreadChats + if (markedUnread) 1 else 0,
             this.inviteCount,
+            this.isEmptySpace && isEmpty
         )
     }
 
@@ -109,6 +113,7 @@ class SpaceAggregationDataSource(
         val unreadChats: Long = 0,
         val markedUnreadChats: Long = 0,
         val inviteCount: Long = 0,
+        val isEmptySpace: Boolean = true,
     )
 }
 

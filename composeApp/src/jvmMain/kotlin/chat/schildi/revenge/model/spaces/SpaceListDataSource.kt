@@ -22,6 +22,7 @@ import chat.schildi.preferences.safeLookup
 import chat.schildi.revenge.CombinedSessions
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.revenge.compose.util.HardcodedStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.flatMerge
@@ -35,6 +36,7 @@ import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import io.element.android.libraries.matrix.api.room.MatrixSpaceChildInfo
 import io.element.android.libraries.matrix.api.roomlist.RoomListFilter
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
+import io.element.android.libraries.matrix.api.user.MatrixUser
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
@@ -114,78 +116,101 @@ class SpaceListDataSource(
         },
     ).flowOn(Dispatchers.IO)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val accounts = combinedSessions.flatMerge(
+        map = {
+            it.client.userProfile
+        },
+        merge = {
+            it.toList()
+        }
+    )
+
     val allSpacesHierarchical = combine(
+        accounts,
         allSpacesFlat,
         scPreferencesStore.pseudoSpaceSettingsFlow(),
         _forceRebuildFlow,
-    ) { flatSpaces, settings, _ ->
+    ) { accounts, flatSpaces, settings, _ ->
         Timber.d("Rebuilding space hierarchy for ${flatSpaces.size} spaces")
-        buildSpaceHierarchy(flatSpaces, settings)
+        buildSpaceHierarchy(accounts, flatSpaces, settings)
     }.flowOn(Dispatchers.IO)
 
     private suspend fun buildSpaceHierarchy(
+        accounts: List<MatrixUser>,
         spaceSummaries: List<SpaceBuilderRoom>,
         pseudoSpaceSettings: PseudoSpaceSettings,
     ): List<AbstractSpaceHierarchyItem> {
         val pseudoSpaces = mutableListOf<PseudoSpaceItem>()
-        if (pseudoSpaceSettings.favorites) {
-            pseudoSpaces.add(
-                FavoritesPseudoSpaceItem(StringResourceHolder(Res.string.sc_pseudo_space_favorites))
+        pseudoSpaces.add(
+            FavoritesPseudoSpaceItem(
+                StringResourceHolder(Res.string.sc_pseudo_space_favorites),
+                pseudoSpaceSettings.favorites
             )
-        }
-        if (pseudoSpaceSettings.dms) {
-            pseudoSpaces.add(
-                DmsPseudoSpaceItem(StringResourceHolder(Res.string.sc_pseudo_space_dms))
+        )
+        pseudoSpaces.add(
+            DmsPseudoSpaceItem(
+                StringResourceHolder(Res.string.sc_pseudo_space_dms),
+                pseudoSpaceSettings.dms
             )
-        }
-        if (pseudoSpaceSettings.groups) {
-            pseudoSpaces.add(
-                GroupsPseudoSpaceItem(StringResourceHolder(Res.string.sc_pseudo_space_groups))
+        )
+        pseudoSpaces.add(
+            GroupsPseudoSpaceItem(
+                StringResourceHolder(Res.string.sc_pseudo_space_groups),
+                pseudoSpaceSettings.groups,
             )
-        }
-        if (pseudoSpaceSettings.spaceless || pseudoSpaceSettings.spacelessGroups) {
-            val excludedRooms = spaceSummaries.flatMap { it.summary.info.spaceChildren.map { it.roomId } }.toImmutableList()
-            if (pseudoSpaceSettings.spacelessGroups) {
-                pseudoSpaces.add(
-                    SpacelessGroupsPseudoSpaceItem(StringResourceHolder(Res.string.sc_pseudo_space_spaceless_groups_short), excludedRooms)
+        )
+        val spacelessRooms = spaceSummaries.flatMap { it.summary.info.spaceChildren.map { it.roomId } }.toImmutableList()
+        pseudoSpaces.add(
+            SpacelessGroupsPseudoSpaceItem(
+                StringResourceHolder(Res.string.sc_pseudo_space_spaceless_groups_short),
+                pseudoSpaceSettings.spacelessGroups,
+                spacelessRooms,
+            )
+        )
+        pseudoSpaces.add(
+            SpacelessPseudoSpaceItem(
+                StringResourceHolder(Res.string.sc_pseudo_space_spaceless_short),
+                pseudoSpaceSettings.spaceless,
+                spacelessRooms,
+                pseudoSpaceSettings.spacelessGroups
+            )
+        )
+        pseudoSpaces.add(
+            NotificationsPseudoSpaceItem(
+                StringResourceHolder(
+                    if (pseudoSpaceSettings.unread)
+                        Res.string.sc_pseudo_space_notifications_short
+                    else
+                        Res.string.sc_pseudo_space_unread
+                ),
+                pseudoSpaceSettings.notifications,
+                pseudoSpaceSettings.clientUnreadCounts
+            )
+        )
+        pseudoSpaces.add(
+            UnreadPseudoSpaceItem(
+                StringResourceHolder(Res.string.sc_pseudo_space_unread),
+                pseudoSpaceSettings.unread,
+                pseudoSpaceSettings.clientUnreadCounts
+            )
+        )
+        pseudoSpaces.add(
+            InvitePseudoSpaceItem(
+                StringResourceHolder(Res.string.sc_pseudo_space_invites),
+                pseudoSpaceSettings.invites,
+            )
+        )
+        pseudoSpaces.addAll(
+            accounts.map {
+                SessionIdPseudoSpaceItem(
+                    sessionId = it.userId,
+                    avatarUrl = it.avatarUrl,
+                    enabled = pseudoSpaceSettings.accounts,
+                    name = HardcodedStringHolder(it.displayName ?: it.userId.value),
                 )
             }
-            if (pseudoSpaceSettings.spaceless) {
-                pseudoSpaces.add(
-                    SpacelessPseudoSpaceItem(
-                        StringResourceHolder(Res.string.sc_pseudo_space_spaceless_short),
-                        excludedRooms,
-                        pseudoSpaceSettings.spacelessGroups
-                    )
-                )
-            }
-        }
-        if (pseudoSpaceSettings.notifications) {
-            pseudoSpaces.add(
-                NotificationsPseudoSpaceItem(
-                    StringResourceHolder(
-                        if (pseudoSpaceSettings.unread)
-                            Res.string.sc_pseudo_space_notifications_short
-                        else
-                            Res.string.sc_pseudo_space_unread
-                    ),
-                    pseudoSpaceSettings.clientUnreadCounts
-                )
-            )
-        }
-        if (pseudoSpaceSettings.unread) {
-            pseudoSpaces.add(
-                UnreadPseudoSpaceItem(
-                    StringResourceHolder(Res.string.sc_pseudo_space_unread),
-                    pseudoSpaceSettings.clientUnreadCounts
-                )
-            )
-        }
-        if (pseudoSpaceSettings.invites) {
-            pseudoSpaces.add(
-                InvitePseudoSpaceItem(StringResourceHolder(Res.string.sc_pseudo_space_invites))
-            )
-        }
+        )
         return pseudoSpaces + buildSpaceHierarchy(spaceSummaries)
     }
 
@@ -267,6 +292,7 @@ class SpaceListDataSource(
         val selectionId: String
         val spaces: ImmutableList<SpaceHierarchyItem>
         val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts?
+        val enabled: Boolean
         fun applyFilter(rooms: List<ScopedRoomSummary>): ImmutableList<ScopedRoomSummary>
         fun canHide(spaceUnreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts): Boolean = false
         // To add additional space information independent of the actual space hierarchy, use separate flows to enrich
@@ -285,6 +311,7 @@ class SpaceListDataSource(
     ) : AbstractSpaceHierarchyItem {
         override val name = room.summary.info.name?.toStringHolder() ?: StringResourceHolder(Res.string.nameless_space_fallback_title)
         override val selectionId = "$REAL_SPACE_ID_PREFIX{${sessionIds.sortedBy(SessionId::value).joinToString(separator = ";")}}:${room.summary.roomId.value}"
+        override val enabled = true
 
         override fun enrich(
             getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?
@@ -296,10 +323,15 @@ class SpaceListDataSource(
             rooms.filter { it.sessionId in sessionIds && flattenedRooms.contains(it.summary.roomId.value) }.toImmutableList()
     }
 
+    sealed interface PseudoSpaceIconSource {
+        data class Icon(val icon: ImageVector):  PseudoSpaceIconSource
+        data class Avatar(val url: String, val sessionId: SessionId): PseudoSpaceIconSource
+    }
+
     @Immutable
     abstract class PseudoSpaceItem(
         val id: String,
-        open val icon: ImageVector,
+        open val icon: PseudoSpaceIconSource,
     ) : AbstractSpaceHierarchyItem {
         override val sessionIds: ImmutableList<SessionId>? = null
         override val selectionId = "$PSEUDO_SPACE_ID_PREFIX$id"
@@ -309,10 +341,11 @@ class SpaceListDataSource(
     @Immutable
     data class FavoritesPseudoSpaceItem(
         override val name: StringResourceHolder,
+        override val enabled: Boolean,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
     ) : PseudoSpaceItem(
         "fav",
-        Icons.Default.Star,
+        Icons.Default.Star.spaceIcon(),
     ) {
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
@@ -324,10 +357,11 @@ class SpaceListDataSource(
     @Immutable
     data class DmsPseudoSpaceItem(
         override val name: StringResourceHolder,
+        override val enabled: Boolean,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
     ) : PseudoSpaceItem(
         "dm",
-        Icons.Default.Person,
+        Icons.Default.Person.spaceIcon(),
     ) {
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
@@ -339,10 +373,11 @@ class SpaceListDataSource(
     @Immutable
     data class GroupsPseudoSpaceItem(
         override val name: StringResourceHolder,
+        override val enabled: Boolean,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
     ) : PseudoSpaceItem(
         "group",
-        Icons.Default.Groups,
+        Icons.Default.Groups.spaceIcon(),
     ) {
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
@@ -354,11 +389,12 @@ class SpaceListDataSource(
     @Immutable
     data class SpacelessGroupsPseudoSpaceItem(
         override val name: StringResourceHolder,
+        override val enabled: Boolean,
         val excludedRooms: ImmutableList<String>,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
     ) : PseudoSpaceItem(
         "spaceless/group",
-        Icons.Default.Tag,
+        Icons.Default.Tag.spaceIcon(),
     ) {
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
@@ -370,12 +406,13 @@ class SpaceListDataSource(
     @Immutable
     data class SpacelessPseudoSpaceItem(
         override val name: StringResourceHolder,
+        override val enabled: Boolean,
         val excludedRooms: ImmutableList<String>,
         val conflictsWithSpacelessGroups: Boolean,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
     ) : PseudoSpaceItem(
         "spaceless",
-        if (conflictsWithSpacelessGroups) Icons.Default.Rocket else Icons.Default.Tag,
+        if (conflictsWithSpacelessGroups) Icons.Default.Rocket.spaceIcon() else Icons.Default.Tag.spaceIcon(),
     ) {
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
@@ -387,11 +424,12 @@ class SpaceListDataSource(
     @Immutable
     data class NotificationsPseudoSpaceItem(
         override val name: StringResourceHolder,
+        override val enabled: Boolean,
         val clientUnreadCounts: Boolean,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
     ) : PseudoSpaceItem(
         "notif",
-        Icons.Default.Notifications,
+        Icons.Default.Notifications.spaceIcon(),
     ) {
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
@@ -416,11 +454,12 @@ class SpaceListDataSource(
     @Immutable
     data class UnreadPseudoSpaceItem(
         override val name: StringResourceHolder,
+        override val enabled: Boolean,
         val clientUnreadCounts: Boolean,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
     ) : PseudoSpaceItem(
         "unread",
-        Icons.Default.RemoveRedEye,
+        Icons.Default.RemoveRedEye.spaceIcon(),
     ) {
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
@@ -439,10 +478,11 @@ class SpaceListDataSource(
     @Immutable
     data class InvitePseudoSpaceItem(
         override val name: StringResourceHolder,
+        override val enabled: Boolean,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
     ) : PseudoSpaceItem(
         "invites",
-        Icons.Default.MeetingRoom,
+        Icons.Default.MeetingRoom.spaceIcon(),
     ) {
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
@@ -453,19 +493,22 @@ class SpaceListDataSource(
             spaceUnreadCounts.inviteCount == 0L
     }
 
-    @Immutable // Not meant to be rendered as space, but to calculate unread counts for account filters
+    @Immutable
     data class SessionIdPseudoSpaceItem(
         val sessionId: SessionId,
+        val avatarUrl: String?,
+        override val enabled: Boolean,
         override val name: ComposableStringHolder,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
     ) : PseudoSpaceItem(
         "account/$sessionId",
-        Icons.Default.AccountCircle,
+        avatarUrl?.let { PseudoSpaceIconSource.Avatar(it, sessionId) } ?: Icons.Default.AccountCircle.spaceIcon(),
     ) {
         override val sessionIds = persistentListOf(sessionId)
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
         )
+        override fun canHide(spaceUnreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts) = spaceUnreadCounts.isEmptySpace
         override fun applyFilter(rooms: List<ScopedRoomSummary>): ImmutableList<ScopedRoomSummary> =
             rooms.filter { it.sessionId == sessionId }.toImmutableList()
     }
@@ -479,11 +522,14 @@ class SpaceListDataSource(
         val notifications: Boolean,
         val unread: Boolean,
         val invites: Boolean,
+        val accounts: Boolean,
         val clientUnreadCounts: Boolean,
     ) {
         fun hasSpaceIndependentPseudoSpace() = favorites || dms || groups || notifications || unread || invites
     }
 }
+
+private fun ImageVector.spaceIcon() = SpaceListDataSource.PseudoSpaceIconSource.Icon(this)
 
 fun ScPreferencesStore.pseudoSpaceSettingsFlow(): Flow<SpaceListDataSource.PseudoSpaceSettings> {
     return combinedSettingFlow { lookup ->
@@ -496,6 +542,7 @@ fun ScPreferencesStore.pseudoSpaceSettingsFlow(): Flow<SpaceListDataSource.Pseud
             notifications = ScPrefs.PSEUDO_SPACE_NOTIFICATIONS.safeLookup(lookup),
             unread = ScPrefs.PSEUDO_SPACE_UNREAD.safeLookup(lookup),
             invites = ScPrefs.PSEUDO_SPACE_INVITES.safeLookup(lookup),
+            accounts = ScPrefs.PSEUDO_SPACE_ACCOUNTS.safeLookup(lookup),
             clientUnreadCounts = ScPrefs.CLIENT_GENERATED_UNREAD_COUNTS.safeLookup(lookup),
         )
     }
@@ -542,16 +589,21 @@ fun List<SpaceListDataSource.AbstractSpaceHierarchyItem>.resolveSpaceName(select
     return resolveSelection(selection)?.name ?: StringResourceHolder(Res.string.sc_space_all_rooms_title)
 }
 
-fun ImmutableList<SpaceListDataSource.AbstractSpaceHierarchyItem>.filterByUnread(
+fun ImmutableList<SpaceListDataSource.AbstractSpaceHierarchyItem>.filterByVisible(
     selection: ImmutableList<String>?,
-    filterEnabled: Boolean,
+    filterByUnread: Boolean,
 ): ImmutableList<SpaceListDataSource.AbstractSpaceHierarchyItem> {
     val currentSelection = selection?.firstOrNull()
-    return if (filterEnabled) {
-        filter { space -> space.selectionId == currentSelection || space.unreadCounts?.let { space.canHide(it) } != true }.toImmutableList()
+    return if (filterByUnread) {
+        filter { space ->
+            space.selectionId == currentSelection ||
+                    space.enabled && space.unreadCounts?.let { space.canHide(it) } != true
+        }
     } else {
-        this
-    }
+        filter { space ->
+            space.selectionId == currentSelection || space.enabled
+        }
+    }.toImmutableList()
 }
 
 fun List<SpaceListDataSource.AbstractSpaceHierarchyItem>.flattenWithParents(
