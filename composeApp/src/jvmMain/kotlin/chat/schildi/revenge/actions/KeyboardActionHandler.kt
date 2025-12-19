@@ -398,6 +398,30 @@ class KeyboardActionHandler(
         } ?: false
     }
 
+    private fun scrollListToStart(
+        focused: FocusTarget? = currentFocused(),
+    ): Boolean {
+        return focused?.actions?.listActions?.scrollToStart(scope) {
+            if (focused.actions.listActions.isReverseList) {
+                focusCurrentContainerRelative(focused, FocusRole.LIST_ITEM) { it.bottomCenter }
+            } else {
+                focusCurrentContainerRelative(focused, FocusRole.LIST_ITEM) { it.topCenter }
+            }
+        } ?: false
+    }
+
+    private fun scrollListToEnd(
+        focused: FocusTarget? = currentFocused(),
+    ): Boolean {
+        return focused?.actions?.listActions?.scrollToEnd(scope) {
+            if (focused.actions.listActions.isReverseList) {
+                focusCurrentContainerRelative(focused, FocusRole.LIST_ITEM) { it.topCenter }
+            } else {
+                focusCurrentContainerRelative(focused, FocusRole.LIST_ITEM) { it.bottomCenter }
+            }
+        } ?: false
+    }
+
     private fun handleNavigationEvent(key: KeyTrigger, focused: FocusTarget?): Boolean {
         if (focused?.actions?.keyActions?.handleNavigationModeEvent(key) == true) {
             // Allow focused-item specific handling
@@ -426,6 +450,8 @@ class KeyboardActionHandler(
             when (listAction.action) {
                 Action.List.ScrollToTop -> scrollListToTop(focused)
                 Action.List.ScrollToBottom -> scrollListToBottom(focused)
+                Action.List.ScrollToStart -> scrollListToStart(focused)
+                Action.List.ScrollToEnd -> scrollListToEnd(focused)
             }
         } && return true
 

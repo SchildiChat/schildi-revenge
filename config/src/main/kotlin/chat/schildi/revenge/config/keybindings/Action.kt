@@ -36,6 +36,8 @@ sealed interface Action {
     enum class List : Action {
         ScrollToTop,
         ScrollToBottom,
+        ScrollToStart,
+        ScrollToEnd,
     }
     enum class Split : Action {
         Close,
