@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -29,6 +30,7 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.ListAction
+import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
@@ -48,7 +50,22 @@ import kotlinx.coroutines.flow.debounce
 fun InboxScreen(modifier: Modifier = Modifier) {
     val viewModel: InboxViewModel = viewModel(key = LocalDestinationState.current?.id.toString())
     publishTitle(viewModel)
-    val listState = rememberLazyListState()
+
+    // Filters that should reset list state
+    val searchQuery = LocalKeyboardActionHandler.current.searchQuery.collectAsState("").value
+    val accounts = viewModel.accounts.collectAsState().value
+    val accountsSorted = viewModel.accountsSorted.collectAsState().value
+    val spaceSelection = viewModel.spaceSelection.collectAsState().value
+    val spaces = viewModel.spaces.collectAsState().value?.filterByUnread(
+        spaceSelection,
+        ScPrefs.PSEUDO_SPACE_HIDE_EMPTY_UNREAD.value(),
+    )
+    val selectedSpace = spaces?.resolveSelection(spaceSelection)
+
+    val listState = key(searchQuery, selectedSpace?.selectionId, accountsSorted) {
+        rememberLazyListState()
+    }
+
     val drafts = DraftRepo.roomsWithDrafts.collectAsState(persistentSetOf())
     FocusContainer(
         LocalSearchProvider provides viewModel,
@@ -59,18 +76,10 @@ fun InboxScreen(modifier: Modifier = Modifier) {
     ) {
         Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
             InboxTopNavigation()
-            val accounts = viewModel.accounts.collectAsState().value
-            val accountsSorted = viewModel.accountsSorted.collectAsState().value
             val rooms = viewModel.rooms.collectAsState().value
             val roomsByRoomId = viewModel.roomsByRoomId.collectAsState().value
             val dmsByHeroes = viewModel.dmsByHeroes.collectAsState().value
             val needsAccountDisambiguation = (accountsSorted?.count { it.isCurrentlyVisible } ?: 0) > 1
-            val spaceSelection = viewModel.spaceSelection.collectAsState().value
-            val spaces = viewModel.spaces.collectAsState().value?.filterByUnread(
-                spaceSelection,
-                ScPrefs.PSEUDO_SPACE_HIDE_EMPTY_UNREAD.value(),
-            )
-            val selectedSpace = spaces?.resolveSelection(spaceSelection)
 
             if (spaces != null) {
                 AnimatedVisibility(
