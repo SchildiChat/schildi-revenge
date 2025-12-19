@@ -4,11 +4,15 @@ import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.pref_auto_hide_composer_summary
 import shire.composeapp.generated.resources.pref_auto_hide_composer_title
 import shire.composeapp.generated.resources.pref_category_dimensions
+import shire.composeapp.generated.resources.pref_category_theme_dark
+import shire.composeapp.generated.resources.pref_category_theme_light
 import shire.composeapp.generated.resources.pref_font_scale
 import shire.composeapp.generated.resources.pref_max_width_conversation_title
 import shire.composeapp.generated.resources.pref_max_width_inbox_title
 import shire.composeapp.generated.resources.pref_max_width_settings_title
 import shire.composeapp.generated.resources.pref_render_scale
+import shire.composeapp.generated.resources.pref_window_transparency_summary
+import shire.composeapp.generated.resources.pref_window_transparency_title
 import shire.composeapp.generated.resources.sc_client_generated_unread_counts_summary
 import shire.composeapp.generated.resources.sc_client_generated_unread_counts_title
 import shire.composeapp.generated.resources.sc_compact_root_spaces_summary
@@ -18,6 +22,7 @@ import shire.composeapp.generated.resources.sc_pref_bury_low_priority_title
 import shire.composeapp.generated.resources.sc_pref_category_chat_overview
 import shire.composeapp.generated.resources.sc_pref_category_chat_sorting
 import shire.composeapp.generated.resources.sc_pref_category_general
+import shire.composeapp.generated.resources.sc_pref_category_general_appearance
 import shire.composeapp.generated.resources.sc_pref_category_general_behaviour
 import shire.composeapp.generated.resources.sc_pref_category_general_summary
 import shire.composeapp.generated.resources.sc_pref_category_spaces
@@ -32,6 +37,7 @@ import shire.composeapp.generated.resources.sc_pref_pin_favorites_summary
 import shire.composeapp.generated.resources.sc_pref_pin_favorites_title
 import shire.composeapp.generated.resources.sc_pref_render_silent_unread_summary
 import shire.composeapp.generated.resources.sc_pref_render_silent_unread_title
+import shire.composeapp.generated.resources.sc_pref_screen_advanced_theming_summary
 import shire.composeapp.generated.resources.sc_pref_sort_with_silent_unread_summary
 import shire.composeapp.generated.resources.sc_pref_sort_with_silent_unread_title
 import shire.composeapp.generated.resources.sc_pref_tweaks_title
@@ -83,8 +89,12 @@ object ScPrefs {
     val SC_RESTORE_ADVANCED_THEME_DEFAULTS = ScActionablePref("SC_RESTORE_ADVANCED_THEME_DEFAULTS", Res.string.sc_pref_restore_defaults)
     val SC_RESTORE_UPSTREAM = ScActionablePref("SC_RESTORE_UPSTREAM", Res.string.sc_pref_restore_element, dependencies = SC_DANGER_ZONE.asDependencies())
     val SC_RESTORE_AUTHORS_CHOICE = ScActionablePref("SC_RESTORE_AUTHORS_CHOICE", Res.string.sc_pref_restore_authors_choice, dependencies = SC_DANGER_ZONE.asDependencies())
+    */
 
     // Appearance
+    val BACKGROUND_ALPHA_LIGHT = ScFloatPref("BACKGROUND_ALPHA_LIGHT", 1f, Res.string.pref_window_transparency_title, Res.string.pref_window_transparency_summary, minValue = 0f, maxValue = 1f)
+    val BACKGROUND_ALPHA_DARK = ScFloatPref("BACKGROUND_ALPHA_DARK", 1f, Res.string.pref_window_transparency_title, Res.string.pref_window_transparency_summary, minValue = 0f, maxValue = 1f)
+    /*
     val SC_THEME = ScBoolPref("SC_THEMES", true, Res.string.sc_pref_sc_themes_title, Res.string.sc_pref_sc_themes_summary, upstreamChoice = false)
     val EL_TYPOGRAPHY = ScBoolPref("EL_TYPOGRAPHY", false, Res.string.sc_pref_el_typography_title, Res.string.sc_pref_el_typography_summary, upstreamChoice = true)
 
@@ -173,40 +183,45 @@ object ScPrefs {
     // Advanced theming options - Dark theme
     val BUBBLE_BG_DARK_OUTGOING = ScColorPref("BUBBLE_BG_DARK_OUTGOING", Res.string.sc_pref_bubble_color_outgoing_title)
     val BUBBLE_BG_DARK_INCOMING = ScColorPref("BUBBLE_BG_DARK_INCOMING", Res.string.sc_pref_bubble_color_incoming_title)
-
-    // Tests to be removed before release
-    /*
-    val SC_TEST = ScStringListPref("TEST", "b", arrayOf("a", "b", "c"), arrayOf("A", "B", "C"), null, Res.string.test)
      */
 
     // Separate collection so we can restore defaults for these only
     val scTweaksAdvancedTheming = ScPrefCollection(
         Res.string.sc_pref_screen_advanced_theming_summary,
         listOf(
-            ScPrefCategory(io.element.android.libraries.ui.strings.Res.string.common_light, null, listOf(
+            ScPrefCategory(Res.string.pref_category_theme_light, null, listOf(
+                BACKGROUND_ALPHA_LIGHT,
+                /*
                 BUBBLE_BG_LIGHT_INCOMING,
                 BUBBLE_BG_LIGHT_OUTGOING,
+                 */
             )),
-            ScPrefCategory(io.element.android.libraries.ui.strings.Res.string.common_dark, null, listOf(
+            ScPrefCategory(Res.string.pref_category_theme_dark, null, listOf(
+                BACKGROUND_ALPHA_DARK,
+                /*
                 BUBBLE_BG_DARK_INCOMING,
                 BUBBLE_BG_DARK_OUTGOING,
+                 */
             )),
         )
     )
-     */
 
     val rootPrefs = ScPrefScreen(Res.string.sc_pref_tweaks_title, null, listOf<AbstractScPref>(
         ScPrefScreen(Res.string.sc_pref_category_general, Res.string.sc_pref_category_general_summary, listOf(
             ALWAYS_SHOW_KEYBOARD_FOCUS,
-            /*
             ScPrefCategory(Res.string.sc_pref_category_general_appearance, null, listOf(
+                /*
                 SC_THEME,
                 EL_TYPOGRAPHY,
                 ScPrefScreen(Res.string.sc_pref_screen_advanced_theming_title, Res.string.sc_pref_screen_advanced_theming_summary, listOf(
-                    SC_RESTORE_ADVANCED_THEME_DEFAULTS,
+                */
+                    //SC_RESTORE_ADVANCED_THEME_DEFAULTS,
                     scTweaksAdvancedTheming,
+                /*
                 ))
+                 */
             )),
+            /*
             ScPrefCategory(Res.string.sc_pref_category_general_behaviour, null, listOf(
                 FAST_TRANSITIONS,
             )),

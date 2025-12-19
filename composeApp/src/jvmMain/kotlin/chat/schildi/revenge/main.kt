@@ -5,14 +5,17 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.geometry.toRect
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowDecoration
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.compose.WindowContent
@@ -20,6 +23,7 @@ import chat.schildi.revenge.compose.media.LocalImageLoaderHolder
 import chat.schildi.revenge.actions.KeyboardActionHandler
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import co.touchlab.kermit.Logger
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
@@ -27,6 +31,7 @@ import shire.composeapp.generated.resources.app_title
 import shire.composeapp.generated.resources.ic_launcher
 import kotlin.system.exitProcess
 
+@OptIn(ExperimentalComposeUiApi::class)
 fun main() {
     SdkLoader.ensureLoaded()
     // Avoid ugly JVM crash dialog. May want to replace with our own branded crash screen later.
@@ -50,6 +55,13 @@ fun main() {
                     KeyboardActionHandler(scope, windowState.windowId, this)
                 }
                 val composeWindowState = rememberWindowState()
+                // Changing transparency later will cause a crash, so require restarts and blocking read for that
+                val hasTransparency = remember {
+                    runBlocking {
+                        RevengePrefs.getSetting(ScPrefs.BACKGROUND_ALPHA_LIGHT) < 1f ||
+                                RevengePrefs.getSetting(ScPrefs.BACKGROUND_ALPHA_DARK) < 1f
+                    }
+                }
                 Window(
                     state = composeWindowState,
                     onCloseRequest = {
@@ -63,6 +75,8 @@ fun main() {
                     icon = painterResource(Res.drawable.ic_launcher),
                     onPreviewKeyEvent = keyHandler::onPreviewKeyEvent,
                     onKeyEvent = keyHandler::onKeyEvent,
+                    transparent = hasTransparency,
+                    decoration = WindowDecoration.Undecorated(),
                 ) {
                     // LocalFocusManager and LocalClipboard are not set outside the Window composable
                     val focusManager = LocalFocusManager.current

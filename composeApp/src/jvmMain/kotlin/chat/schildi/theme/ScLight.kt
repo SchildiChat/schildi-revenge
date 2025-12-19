@@ -55,6 +55,7 @@ internal val sclMaterialColorScheme = lightColorScheme(
 )
 
 internal val sclExposures = ScThemeExposures(
+    isDarkTheme = false,
     horizontalDividerThickness = DividerDefaults.Thickness,
     accentColor = scl_accent,
     colorOnAccent = ScColors.colorWhite,

@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.Dp
 
 @Stable
 class ScThemeExposures(
+    isDarkTheme: Boolean,
     horizontalDividerThickness: Dp,
     accentColor: Color,
     colorOnAccent: Color,
@@ -36,6 +37,8 @@ class ScThemeExposures(
     composerBlockFg: Color?,
     spaceBarBg: Color?,
 ) {
+    var isDarkTheme by mutableStateOf(isDarkTheme)
+        private set
     var horizontalDividerThickness by mutableStateOf(horizontalDividerThickness)
         private set
     var accentColor by mutableStateOf(accentColor)
@@ -90,6 +93,7 @@ class ScThemeExposures(
         private set
 
     fun copy(
+        isDarkTheme: Boolean = this.isDarkTheme,
         horizontalDividerThickness: Dp = this.horizontalDividerThickness,
         accentColor: Color = this.accentColor,
         colorOnAccent: Color = this.colorOnAccent,
@@ -117,6 +121,7 @@ class ScThemeExposures(
         composerBlockFg: Color? = this.composerBlockFg,
         spaceBarBg: Color? = this.spaceBarBg,
     ) = ScThemeExposures(
+        isDarkTheme = isDarkTheme,
         horizontalDividerThickness = horizontalDividerThickness,
         accentColor = accentColor,
         colorOnAccent = colorOnAccent,
@@ -146,6 +151,7 @@ class ScThemeExposures(
     )
 
     fun updateColorsFrom(other: ScThemeExposures) {
+        isDarkTheme = other.isDarkTheme
         horizontalDividerThickness = other.horizontalDividerThickness
         accentColor = other.accentColor
         colorOnAccent = other.colorOnAccent

@@ -15,19 +15,27 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import chat.schildi.preferences.ScPrefs
+import chat.schildi.preferences.value
 import chat.schildi.revenge.Anim
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.focus.windowFocusContainer
 import chat.schildi.revenge.compose.search.SearchBar
 import chat.schildi.theme.ScTheme
+import chat.schildi.theme.scExposures
 
 @Composable
 fun WindowContent(destinationHolder: DestinationStateHolder) {
     ScTheme {
+        val backgroundAlpha = if (MaterialTheme.scExposures.isDarkTheme) {
+            ScPrefs.BACKGROUND_ALPHA_DARK.value()
+        } else {
+            ScPrefs.BACKGROUND_ALPHA_LIGHT.value()
+        }
         Column(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.surface)
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = backgroundAlpha))
                 .safeContentPadding()
                 .fillMaxSize()
                 .windowFocusContainer(),

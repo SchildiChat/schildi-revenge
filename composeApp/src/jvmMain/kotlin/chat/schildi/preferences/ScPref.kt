@@ -111,9 +111,9 @@ data class ScIntPref(
             Logger.withTag("ScIntPref").e("Parse int failed of $sKey for ${value?.javaClass?.simpleName}")
             return null
         }
-        return value
+        return value?.coerceIn(minValue, maxValue)
     }
-    override fun parseType(value: String): Int? = value.toIntOrNull()
+    override fun parseType(value: String): Int? = value.toIntOrNull()?.coerceIn(minValue, maxValue)
 }
 
 data class ScFloatPref(
@@ -132,9 +132,9 @@ data class ScFloatPref(
             Logger.withTag("ScIntPref").e("Parse float failed of $sKey for ${value?.javaClass?.simpleName}")
             return null
         }
-        return value
+        return value?.coerceIn(minValue, maxValue)
     }
-    override fun parseType(value: String): Float? = value.toFloatOrNull()
+    override fun parseType(value: String): Float? = value.toFloatOrNull()?.coerceIn(minValue, maxValue)
 }
 
 sealed interface ScListPref<T>: ScPref<T> {
