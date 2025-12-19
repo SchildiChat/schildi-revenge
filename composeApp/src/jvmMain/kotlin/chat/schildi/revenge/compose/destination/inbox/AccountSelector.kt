@@ -32,10 +32,13 @@ import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.InboxAccount
 import chat.schildi.revenge.model.InboxViewModel
+import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
 import chat.schildi.theme.scExposures
+import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.sync.SyncState
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableMap
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.hint_sync_state_error
@@ -48,6 +51,7 @@ import shire.composeapp.generated.resources.hint_sync_state_terminated
 fun AccountSelectorRow(
     viewModel: InboxViewModel,
     accounts: ImmutableList<InboxAccount>,
+    unreadCounts: ImmutableMap<SessionId, SpaceAggregationDataSource.SpaceUnreadCounts>,
     modifier: Modifier = Modifier,
 ) {
     LazyRow(
@@ -56,7 +60,7 @@ fun AccountSelectorRow(
         contentPadding = PaddingValues(horizontal = Dimens.windowPadding),
     ) {
         items(accounts) { account ->
-            AccountButton(viewModel, account)
+            AccountButton(viewModel, account, unreadCounts[account.user.userId])
         }
     }
 }
@@ -65,6 +69,7 @@ fun AccountSelectorRow(
 fun AccountButton(
     viewModel: InboxViewModel,
     account: InboxAccount,
+    unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts?,
     modifier: Modifier = Modifier,
 ) {
     val outlineColor = animateColorAsState(
@@ -101,13 +106,20 @@ fun AccountButton(
         horizontalArrangement = Dimens.horizontalArrangement,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        AvatarImage(
-            source = account.user.avatarUrl?.let { MediaSource(it) },
-            size = 24.dp,
-            sessionId = account.user.userId,
-            shape = Dimens.ownAccountAvatarShape,
-            contentDescription = account.user.userId.value,
+        // Only care about actual notifications here, not silent unreads
+        val renderedUnreadCounts = unreadCounts?.copy(
+            unreadChats = 0,
+            unreadMessages = 0,
         )
+        SpaceUnreadCountBox(renderedUnreadCounts, 4.dp) {
+            AvatarImage(
+                source = account.user.avatarUrl?.let { MediaSource(it) },
+                size = 24.dp,
+                sessionId = account.user.userId,
+                shape = Dimens.ownAccountAvatarShape,
+                contentDescription = account.user.userId.value,
+            )
+        }
         val icon = if (account.isHidden && !account.isSelected)
             Icons.Default.VisibilityOff
         else when (account.syncState) {

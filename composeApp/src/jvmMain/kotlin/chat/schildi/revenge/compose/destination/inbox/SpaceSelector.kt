@@ -321,7 +321,7 @@ private fun SpaceTab(
         compact = compact,
         onClick = onClick,
     ) {
-        UnreadCountBox(space.unreadCounts, spaceTabUnreadBadgeOffset(compact)) {
+        SpaceUnreadCountBox(space.unreadCounts, spaceTabUnreadBadgeOffset(compact)) {
             AbstractSpaceIcon(space = space, size = spaceTabIconSize(compact), shape = spaceTabIconShape(compact))
         }
     }
@@ -389,14 +389,14 @@ private fun ShowAllTab(
         compact = compact,
         onClick = onClick,
     ) {
-        UnreadCountBox(unreadCounts, spaceTabUnreadBadgeOffset(compact)) {
+        SpaceUnreadCountBox(unreadCounts, spaceTabUnreadBadgeOffset(compact)) {
             PseudoSpaceIcon(Icons.Filled.Home, spaceTabIconSize(compact))
         }
     }
 }
 
 @Composable
-private fun UnreadCountBox(unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts?, offset: Dp, content: @Composable () -> Unit) {
+fun SpaceUnreadCountBox(unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts?, offset: Dp, content: @Composable () -> Unit) {
     val mode = ScPrefs.SPACE_UNREAD_COUNTS.value()
     if (unreadCounts == null || mode == ScPrefs.SpaceUnreadCountMode.HIDE) {
         content()

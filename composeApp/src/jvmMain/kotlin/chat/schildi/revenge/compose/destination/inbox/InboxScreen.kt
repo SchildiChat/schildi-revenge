@@ -55,6 +55,7 @@ fun InboxScreen(modifier: Modifier = Modifier) {
     val searchQuery = LocalKeyboardActionHandler.current.searchQuery.collectAsState("").value
     val accounts = viewModel.accounts.collectAsState().value
     val accountsSorted = viewModel.accountsSorted.collectAsState().value
+    val accountUnreadCounts = viewModel.accountUnreadCounts.collectAsState().value
     val spaceSelection = viewModel.spaceSelection.collectAsState().value
     val spaces = viewModel.spaces.collectAsState().value?.filterByUnread(
         spaceSelection,
@@ -119,6 +120,7 @@ fun InboxScreen(modifier: Modifier = Modifier) {
                         AccountSelectorRow(
                             viewModel = viewModel,
                             accounts = accountsSorted,
+                            unreadCounts = accountUnreadCounts,
                             modifier = Modifier.padding(vertical = Dimens.listPadding),
                         )
                     }

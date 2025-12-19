@@ -1,6 +1,7 @@
 package chat.schildi.revenge.model.spaces
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.MeetingRoom
 import androidx.compose.material.icons.filled.Notifications
@@ -300,7 +301,7 @@ class SpaceListDataSource(
         val id: String,
         open val icon: ImageVector,
     ) : AbstractSpaceHierarchyItem {
-        override val sessionIds = null
+        override val sessionIds: ImmutableList<SessionId>? = null
         override val selectionId = "$PSEUDO_SPACE_ID_PREFIX$id"
         override val spaces = persistentListOf<SpaceHierarchyItem>()
     }
@@ -450,6 +451,23 @@ class SpaceListDataSource(
             rooms.filter { it.summary.info.currentUserMembership == CurrentUserMembership.INVITED }.toImmutableList()
         override fun canHide(spaceUnreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts): Boolean =
             spaceUnreadCounts.inviteCount == 0L
+    }
+
+    @Immutable // Not meant to be rendered as space, but to calculate unread counts for account filters
+    data class SessionIdPseudoSpaceItem(
+        val sessionId: SessionId,
+        override val name: ComposableStringHolder,
+        override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
+    ) : PseudoSpaceItem(
+        "account/$sessionId",
+        Icons.Default.AccountCircle,
+    ) {
+        override val sessionIds = persistentListOf(sessionId)
+        override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
+            unreadCounts = getUnreadCounts(this)
+        )
+        override fun applyFilter(rooms: List<ScopedRoomSummary>): ImmutableList<ScopedRoomSummary> =
+            rooms.filter { it.sessionId == sessionId }.toImmutableList()
     }
 
     data class PseudoSpaceSettings(

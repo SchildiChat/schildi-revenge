@@ -14,6 +14,7 @@ import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.revenge.compose.util.HardcodedStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
@@ -44,6 +45,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -238,6 +240,24 @@ class InboxViewModel(
     val accountsSorted = accounts.map { it?.values?.sortedBy { it.user.userId.value }?.toPersistentList() }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    private val accountAggregationDataSource = SpaceAggregationDataSource(
+        accounts.map {
+            it?.map { account ->
+                SpaceListDataSource.SessionIdPseudoSpaceItem(
+                    sessionId = account.key,
+                    name = HardcodedStringHolder(account.key.value),
+                )
+            }.orEmpty()
+        },
+        roomListDataSource.allRooms,
+    )
+    val accountUnreadCounts = accountAggregationDataSource.state.map {
+        it.enrichedSpaces?.associate {
+            (it as SpaceListDataSource.SessionIdPseudoSpaceItem).sessionId to (it.unreadCounts ?: SpaceAggregationDataSource.SpaceUnreadCounts())
+        }.orEmpty().toPersistentHashMap()
+    }.flowOn(Dispatchers.IO)
+        .stateIn(viewModelScope, SharingStarted.Lazily, persistentHashMapOf())
 
     val roomsByRoomId = allRooms.map {
         it.groupBy { it.summary.roomId }.toPersistentHashMap()
