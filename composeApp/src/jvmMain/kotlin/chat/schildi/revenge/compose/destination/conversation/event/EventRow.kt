@@ -33,7 +33,7 @@ fun EventRow(
     Column(
         modifier
             .keyFocusable(
-                FocusRole.SEARCHABLE_ITEM,
+                FocusRole.LIST_ITEM,
                 actionProvider = defaultActionProvider(
                     keyActions = eventRowKeyboardActionProvider(viewModel, event),
                 ),

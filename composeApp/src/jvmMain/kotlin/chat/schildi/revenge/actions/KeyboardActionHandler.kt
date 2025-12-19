@@ -66,7 +66,7 @@ private data class FocusTarget(
 )
 
 enum class FocusRole(val consumesKeyWhitelist: List<Key>? = null) {
-    SEARCHABLE_ITEM,
+    LIST_ITEM,
     AUX_ITEM,
     NESTED_AUX_ITEM,
     DESTINATION_ROOT_CONTAINER,
@@ -327,7 +327,7 @@ class KeyboardActionHandler(
                 } else {
                     updateMode { mode.copy(navigating = true) }
                     windowCoordinates?.let {
-                        focusClosestTo(it.topCenter, role = FocusRole.SEARCHABLE_ITEM)
+                        focusClosestTo(it.topCenter, role = FocusRole.LIST_ITEM)
                     }
                     true
                 }
@@ -345,20 +345,22 @@ class KeyboardActionHandler(
     }
 
     private fun focusSearchResults(parentId: UUID?) {
-        focusClosestTo(Offset.Zero, role = FocusRole.SEARCHABLE_ITEM, parentId = parentId)
+        focusClosestTo(Offset.Zero, role = FocusRole.LIST_ITEM, parentId = parentId)
     }
 
     private fun focusCurrentContainerRelative(
         currentFocus: FocusTarget?,
+        role: FocusRole? = null,
         select: (Rect) -> Offset,
-    ) = focusCurrentContainerRelative(parentId =  currentFocus?.parent?.uuid, select = select)
+    ) = focusCurrentContainerRelative(parentId =  currentFocus?.parent?.uuid, select = select, role = role)
 
     private fun focusCurrentContainerRelative(
         parentId: UUID? = currentFocused()?.parent?.uuid,
+        role: FocusRole? = null,
         select: (Rect) -> Offset,
     ): Boolean {
         return windowCoordinates?.let { coordinates ->
-            focusClosestTo(select(coordinates), parentId = parentId)
+            focusClosestTo(select(coordinates), parentId = parentId, role = role)
         } ?: false
     }
 
@@ -384,7 +386,7 @@ class KeyboardActionHandler(
         focused: FocusTarget? = currentFocused(),
     ): Boolean {
         return focused?.actions?.listActions?.scrollToTop(scope) {
-            focusCurrentContainerRelative(focused) { it.topCenter }
+            focusCurrentContainerRelative(focused, FocusRole.LIST_ITEM) { it.topCenter }
         } ?: false
     }
 
@@ -392,7 +394,7 @@ class KeyboardActionHandler(
         focused: FocusTarget? = currentFocused(),
     ): Boolean {
         return focused?.actions?.listActions?.scrollToBottom(scope) {
-            focusCurrentContainerRelative(focused) { it.bottomCenter }
+            focusCurrentContainerRelative(focused, FocusRole.LIST_ITEM) { it.bottomCenter }
         } ?: false
     }
 
@@ -560,7 +562,7 @@ class KeyboardActionHandler(
         focusRequester: AbstractFocusRequester,
         destinationStateHolder: DestinationStateHolder?,
         actions: ActionProvider?,
-        role: FocusRole = FocusRole.SEARCHABLE_ITEM,
+        role: FocusRole = FocusRole.LIST_ITEM,
     ) {
         val bounds = coordinates.boundsInWindow()
         focusableTargets[target] = FocusTarget(

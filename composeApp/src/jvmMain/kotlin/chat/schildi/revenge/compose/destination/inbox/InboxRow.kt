@@ -70,7 +70,7 @@ fun InboxRow(
                 .fillMaxWidth()
                 .heightIn(min = Dimens.Inbox.avatar + Dimens.listPadding * 2)
                 .keyFocusable(
-                    FocusRole.SEARCHABLE_ITEM,
+                    FocusRole.LIST_ITEM,
                     buildNavigationActionProvider(
                         initialTitle = room.summary.info.name?.toStringHolder()
                     ) {
