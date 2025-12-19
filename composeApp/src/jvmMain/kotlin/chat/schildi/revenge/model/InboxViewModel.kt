@@ -18,9 +18,9 @@ import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.flatMerge
-import chat.schildi.revenge.model.spaces.RevengeSpaceUnreadCountsDataSource
+import chat.schildi.revenge.model.spaces.RevengeSpaceListDataSource
+import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
 import chat.schildi.revenge.model.spaces.SpaceListDataSource
-import chat.schildi.revenge.model.spaces.SpaceUnreadCountsDataSource
 import chat.schildi.revenge.model.spaces.filterByUnread
 import chat.schildi.revenge.model.spaces.filterHierarchical
 import chat.schildi.revenge.model.spaces.findInHierarchy
@@ -79,7 +79,7 @@ private data class InboxSettings(
 class InboxViewModel(
     private val combinedSessions: CombinedSessions = UiState.combinedSessions,
     private val roomListDataSource: RoomListDataSource = RevengeRoomListDataSource,
-    private val spaceDataSource: SpaceUnreadCountsDataSource = RevengeSpaceUnreadCountsDataSource,
+    private val spaceListDataSource: SpaceListDataSource = RevengeSpaceListDataSource,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
 ) : ViewModel(), SearchProvider, KeyboardActionProvider, TitleProvider {
     private val log = Logger.withTag("Inbox")
@@ -138,8 +138,26 @@ class InboxViewModel(
         }
     }.flowOn(Dispatchers.IO)
 
+    private val spacesFilteredByAccount = combine(
+        spaceListDataSource.allSpacesHierarchical,
+        hiddenAccounts,
+        selectedAccounts,
+    ) { spaces, hiddenAccounts, selectedAccounts ->
+        spaces.filterHierarchical {
+            val sessionIds = it.sessionIds
+            sessionIds == null ||
+                    selectedAccounts.isEmpty() && !hiddenAccounts.containsAll(sessionIds) ||
+                    sessionIds.any { it in selectedAccounts }
+        }.toImmutableList()
+    }.flowOn(Dispatchers.IO)
+
+    private val spaceAggregationDataSource = SpaceAggregationDataSource(
+        spacesFilteredByAccount,
+        allRooms,
+    )
+
     val spaces = combine(
-        spaceDataSource.state,
+        spaceAggregationDataSource.state,
         hiddenAccounts,
         selectedAccounts,
     ) { spaces, hiddenAccounts, selectedAccounts ->

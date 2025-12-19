@@ -50,7 +50,7 @@ import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.ScrollableTabRow
 import chat.schildi.revenge.compose.components.TabRowDefaults.tabIndicatorOffset
 import chat.schildi.revenge.model.spaces.SpaceListDataSource
-import chat.schildi.revenge.model.spaces.SpaceUnreadCountsDataSource
+import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
 import chat.schildi.theme.scExposures
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.media.MediaSource
@@ -65,7 +65,7 @@ import shire.composeapp.generated.resources.sc_space_all_rooms_title
 fun SpaceSelectorRow(
     lazyListState: LazyListState,
     spacesList: ImmutableList<SpaceListDataSource.AbstractSpaceHierarchyItem>,
-    totalUnreadCounts: SpaceUnreadCountsDataSource.SpaceUnreadCounts?,
+    totalUnreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts?,
     spaceSelectionHierarchy: ImmutableList<String>,
     onSpaceSelected: (List<String>) -> Unit,
     modifier: Modifier = Modifier,
@@ -95,7 +95,7 @@ fun SpaceSelectorRow(
 private fun ColumnScope.SpaceSelector(
     lazyListState: LazyListState,
     spacesList: ImmutableList<SpaceListDataSource.AbstractSpaceHierarchyItem>,
-    totalUnreadCounts: SpaceUnreadCountsDataSource.SpaceUnreadCounts?,
+    totalUnreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts?,
     spaceSelection: ImmutableList<String>,
     defaultSpace: SpaceListDataSource.AbstractSpaceHierarchyItem?,
     parentSelection: ImmutableList<String>,
@@ -375,7 +375,7 @@ private fun PseudoSpaceIcon(
 
 @Composable
 private fun ShowAllTab(
-    unreadCounts: SpaceUnreadCountsDataSource.SpaceUnreadCounts?,
+    unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts?,
     selected: Boolean,
     collapsed: Boolean,
     compact: Boolean,
@@ -396,7 +396,7 @@ private fun ShowAllTab(
 }
 
 @Composable
-private fun UnreadCountBox(unreadCounts: SpaceUnreadCountsDataSource.SpaceUnreadCounts?, offset: Dp, content: @Composable () -> Unit) {
+private fun UnreadCountBox(unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts?, offset: Dp, content: @Composable () -> Unit) {
     val mode = ScPrefs.SPACE_UNREAD_COUNTS.value()
     if (unreadCounts == null || mode == ScPrefs.SpaceUnreadCountMode.HIDE) {
         content()

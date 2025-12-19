@@ -4,10 +4,8 @@ import androidx.compose.runtime.Immutable
 import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPreferencesStore
 import chat.schildi.preferences.ScPrefs
-import chat.schildi.revenge.model.RevengeRoomListDataSource
-import chat.schildi.revenge.model.RoomListDataSource
 import chat.schildi.revenge.model.ScopedRoomSummary
-import chat.schildi.revenge.model.spaces.SpaceUnreadCountsDataSource.SpaceUnreadCounts
+import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource.SpaceUnreadCounts
 import dev.zacsweers.metro.Inject
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import kotlinx.collections.immutable.ImmutableList
@@ -20,23 +18,22 @@ import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 
-data class SpaceUnreadDataSourceState(
+data class SpaceAggregationState(
     val enrichedSpaces: ImmutableList<SpaceListDataSource.AbstractSpaceHierarchyItem>? = null,
     val totalUnreadCounts: SpaceUnreadCounts? = null,
 )
 
-val RevengeSpaceUnreadCountsDataSource = SpaceUnreadCountsDataSource()
-
+// TODO also use for merging spaces from multiple accounts together
 @Inject
-class SpaceUnreadCountsDataSource(
-    private val roomListDataSource: RoomListDataSource = RevengeRoomListDataSource,
-    private val spaceListDataSource: SpaceListDataSource = RevengeSpaceListDataSource,
-    private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
+class SpaceAggregationDataSource(
+    allSpacesHierarchical: Flow<List<SpaceListDataSource.AbstractSpaceHierarchyItem>>,
+    allRooms: Flow<List<ScopedRoomSummary>>,
+    scPreferencesStore: ScPreferencesStore = RevengePrefs,
 ) {
 
     val state = combine(
-        roomListDataSource.allRooms.throttleLatest(300),
-        spaceListDataSource.allSpacesHierarchical,
+        allRooms.throttleLatest(300),
+        allSpacesHierarchical.throttleLatest(300),
         scPreferencesStore.settingFlow(ScPrefs.CLIENT_GENERATED_UNREAD_COUNTS),
     ) { allRoomsValue, rootSpaces, useClientGeneratedCounts ->
         val totalUnreadCounts = getAggregatedUnreadCounts(allRoomsValue, useClientGeneratedCounts)
@@ -45,7 +42,7 @@ class SpaceUnreadCountsDataSource(
                 getUnreadCountsForSpace(it, allRoomsValue, useClientGeneratedCounts)
             }
         }.toImmutableList()
-        SpaceUnreadDataSourceState(newEnrichedSpaces, totalUnreadCounts)
+        SpaceAggregationState(newEnrichedSpaces, totalUnreadCounts)
     }.flowOn(Dispatchers.IO)
 
     private fun getUnreadCountsForSpace(
