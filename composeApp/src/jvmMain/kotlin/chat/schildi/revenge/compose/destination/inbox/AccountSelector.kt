@@ -137,11 +137,17 @@ fun AccountButton(
                 SyncState.Terminated -> stringResource(Res.string.hint_sync_state_terminated)
                 SyncState.Offline -> stringResource(Res.string.hint_sync_state_offline)
             }
+            val renderAsError = when (account.syncState) {
+                SyncState.Terminated,
+                SyncState.Offline,
+                SyncState.Error -> true
+                else -> false
+            }
             Icon(
                 icon,
                 hint,
                 Modifier.size(16.dp),
-                tint = if (account.syncState == SyncState.Error)
+                tint = if (renderAsError)
                     MaterialTheme.colorScheme.error
                 else
                     MaterialTheme.colorScheme.onSurfaceVariant,
