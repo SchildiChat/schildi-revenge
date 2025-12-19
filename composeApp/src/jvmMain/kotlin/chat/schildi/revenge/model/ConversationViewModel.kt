@@ -256,7 +256,7 @@ class ConversationViewModel(
                 DraftRepo.update(draftKey, draft.copy(isSendInProgress = false))
             }
         }
-        if (composerSettings.value.autoHideComposer) {
+        if (composerSettings.value.autoHideComposer || draft.type == DraftType.REACTION) {
             forceShowComposer.value = false
         }
         return true
