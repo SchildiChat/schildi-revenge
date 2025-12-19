@@ -179,6 +179,7 @@ class KeyboardActionHandler(
 
     private fun focusClosestTo(
         position: Offset,
+        allowPartial: Boolean,
         parentId: UUID? = null,
         role: FocusRole? = null,
     ): Boolean {
@@ -188,6 +189,7 @@ class KeyboardActionHandler(
         } else {
             focusableTargets.values.filter {
                 (role == null || it.role == role) &&
+                        (allowPartial || it.isFullyVisible) &&
                         (parentId == null || it.parent?.uuid == parentId)
             }
         }
@@ -327,7 +329,7 @@ class KeyboardActionHandler(
                 } else {
                     updateMode { mode.copy(navigating = true) }
                     windowCoordinates?.let {
-                        focusClosestTo(it.topCenter, role = FocusRole.LIST_ITEM)
+                        focusClosestTo(it.topCenter, allowPartial = true, role = FocusRole.LIST_ITEM)
                     }
                     true
                 }
@@ -345,7 +347,7 @@ class KeyboardActionHandler(
     }
 
     private fun focusSearchResults(parentId: UUID?) {
-        focusClosestTo(Offset.Zero, role = FocusRole.LIST_ITEM, parentId = parentId)
+        focusClosestTo(Offset.Zero, allowPartial = true, role = FocusRole.LIST_ITEM, parentId = parentId)
     }
 
     private fun focusCurrentContainerRelative(
@@ -360,7 +362,7 @@ class KeyboardActionHandler(
         select: (Rect) -> Offset,
     ): Boolean {
         return windowCoordinates?.let { coordinates ->
-            focusClosestTo(select(coordinates), parentId = parentId, role = role)
+            focusClosestTo(select(coordinates), allowPartial = false, parentId = parentId, role = role)
         } ?: false
     }
 
