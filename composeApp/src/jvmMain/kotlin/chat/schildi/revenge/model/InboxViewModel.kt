@@ -293,9 +293,9 @@ class InboxViewModel(
         searchTerm.value = null
     }
 
-    override fun handleNavigationModeEvent(key: KeyTrigger): Boolean {
+    override fun handleNavigationModeEvent(key: KeyTrigger, currentDestinationName: String?): Boolean {
         val keyConfig = UiState.keybindingsConfig.value
-        return keyConfig.inbox.execute(key) { inboxAction ->
+        return keyConfig.inbox.execute(key, currentDestinationName) { inboxAction ->
             when (inboxAction.action) {
                 Action.Inbox.SetSetting -> {
                     viewModelScope.launch {

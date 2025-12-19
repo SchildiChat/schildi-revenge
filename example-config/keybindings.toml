@@ -30,14 +30,14 @@ inbox = [
     { key = "H", action = "NavigateSpaceRelative", args = ["-1"] },
     { key = "I", action = "NavigateSpaceRelative", args = ["1"] },
     { key = "Zero", shift = true, action = "SelectSpace", args = ["0"] },
-    { key = "S", ctrl = true, action = "SelectSpace", args = ["!JqHnTLVyzdzYSgOJYR:matrix.org"] },
 ]
 conversation = [
     { key = "G", shift = true, action = "JumpToBottom", chain = true },
     { key = "U", action = "JumpToLastFullyRead" },
     { key = "I", action = "ComposeMessage" },
     { key = "N", ctrl = true, action = "ComposeNotice" },
-    { key = "M", ctrl = true, action = "ComposeEmote" },
+    { key = "U", ctrl = true, action = "MarkUnread" },
+    { key = "M", ctrl = true, action = "MarkRead" },
     { key = "Enter", action = "ComposerSend" },
     { key = "Enter", ctrl = true, action = "ComposerSend" },
     { key = "Enter", shift = true, action = "ComposerInsertAddCursor", args = ["\n"] },
@@ -49,12 +49,12 @@ conversation = [
     { key = "U", ctrl = true, action = "ComposerInsertAddCursor", args = ["👍"] },
     { key = "D", ctrl = true, action = "ComposerInsertAddCursor", args = ["🙃"] },
     { key = "Y", ctrl = true, action = "ComposerInsertAddCursor", args = ["👀"] },
+    { key = "X", ctrl = true, action = "ComposerInsertAddCursor", args = ["😆"] },
 ]
 event = [
     { key = "M", action = "MarkRead" },
-    { key = "M", ctrl = true, action = "MarkReadPrivate" },
     { key = "R", ctrl = true, action = "ComposeReply" },
-    { key = "C", ctrl = true, action = "ComposeReaction" },
+    { key = "C", action = "ComposeReaction" },
     { key = "E", ctrl = true, action = "ComposeEdit" },
     { key = "Y", action = "CopyContent" },
     { key = "Y", shift = true, action = "CopyEventSource" },
@@ -68,7 +68,8 @@ navigation = [
     { key = "A", shift = true, ctrl = true, action = "AccountManagementInNewWindow" },
     { key = "S", shift = true, action = "SplitHorizontal" },
     { key = "V", shift = true, action = "SplitVertical" },
-    { key = "Q", shift = true, action = "CloseWindow" },
+    { key = "Q", ctrl = true, action = "CloseWindow" },
+    { key = "Q", action = "CloseWindow", destinations = ["Conversation"] },
 ]
 navigationItem = [
     { key = "Enter", action = "NavigateInNewWindow" },
@@ -92,7 +93,7 @@ focus = [
     { key = "MoveEnd", action = "FocusBottom" },
 ]
 list = [
-    { key = "G", action = "ScrollToTop" },
+    { key = "G", action = "ScrollToStart" },
     { key = "G", shift = true, action = "ScrollToBottom" },
 ]
 split = [

@@ -313,9 +313,9 @@ class ConversationViewModel(
         }
     }
 
-    override fun handleNavigationModeEvent(key: KeyTrigger): Boolean {
+    override fun handleNavigationModeEvent(key: KeyTrigger, currentDestinationName: String?): Boolean {
         val keyConfig = UiState.keybindingsConfig.value
-        return keyConfig.conversation.execute(key) { conversationAction ->
+        return keyConfig.conversation.execute(key, currentDestinationName) { conversationAction ->
             when (conversationAction.action) {
                 Action.Conversation.SetSetting -> {
                     viewModelScope.launch {
@@ -494,8 +494,8 @@ class ConversationViewModel(
             EventOrTransactionId.from(event.eventId, event.transactionId)
         }
         return object : KeyboardActionProvider {
-            override fun handleNavigationModeEvent(key: KeyTrigger): Boolean {
-                return UiState.keybindingsConfig.value.event.execute(key) { binding ->
+            override fun handleNavigationModeEvent(key: KeyTrigger, currentDestinationName: String?): Boolean {
+                return UiState.keybindingsConfig.value.event.execute(key, currentDestinationName) { binding ->
                     when (binding.action) {
                         Action.Event.MarkRead -> eventId?.let { markEventAsRead(eventId, ReceiptType.READ) } ?: false
                         Action.Event.MarkReadPrivate -> eventId?.let {

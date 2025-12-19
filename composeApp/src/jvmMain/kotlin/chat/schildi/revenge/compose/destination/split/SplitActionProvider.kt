@@ -17,8 +17,8 @@ class SplitKeyboardActionProvider(
     private val destinationStateHolder: DestinationStateHolder?,
     private val isPrimaryDestination: Boolean,
 ) : KeyboardActionProvider {
-    override fun handleNavigationModeEvent(key: KeyTrigger): Boolean {
-        return UiState.keybindingsConfig.value.split.execute(key) { binding ->
+    override fun handleNavigationModeEvent(key: KeyTrigger, currentDestinationName: String?): Boolean {
+        return UiState.keybindingsConfig.value.split.execute(key, currentDestinationName) { binding ->
             when (binding.action) {
                 Action.Split.Close -> {
                     val currentDestination = destinationStateHolder?.state?.value?.destination

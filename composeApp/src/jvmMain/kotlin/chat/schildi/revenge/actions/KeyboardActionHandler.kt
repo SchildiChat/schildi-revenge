@@ -423,14 +423,16 @@ class KeyboardActionHandler(
     }
 
     private fun handleNavigationEvent(key: KeyTrigger, focused: FocusTarget?): Boolean {
-        if (focused?.actions?.keyActions?.handleNavigationModeEvent(key) == true) {
+        val currentDestination = focused?.destinationStateHolder?.state?.value?.destination
+        val currentDestinationName = currentDestination?.name
+        if (focused?.actions?.keyActions?.handleNavigationModeEvent(key, currentDestinationName) == true) {
             // Allow focused-item specific handling
             return true
         }
         val keyConfig = UiState.keybindingsConfig.value
 
         (focused?.actions?.primaryAction as? InteractionAction.NavigationAction)?.let { navigationActionable ->
-            keyConfig.navigationItem.execute(key) { navigationAction ->
+            keyConfig.navigationItem.execute(key, currentDestinationName) { navigationAction ->
                 val destination = navigationActionable.buildDestination()
                 return@execute when (navigationAction.action) {
                     Action.NavigationItem.NavigateCurrent -> {
@@ -446,7 +448,7 @@ class KeyboardActionHandler(
             } && return true
         }
 
-        keyConfig.list.execute(key) { listAction ->
+        keyConfig.list.execute(key, currentDestinationName) { listAction ->
             when (listAction.action) {
                 Action.List.ScrollToTop -> scrollListToTop(focused)
                 Action.List.ScrollToBottom -> scrollListToBottom(focused)
@@ -455,7 +457,7 @@ class KeyboardActionHandler(
             }
         } && return true
 
-        keyConfig.focus.execute(key) { focusAction ->
+        keyConfig.focus.execute(key, currentDestinationName) { focusAction ->
             when (focusAction.action) {
                 Action.Focus.FocusUp -> moveFocus(FocusDirection.Up, focused)
                 Action.Focus.FocusDown -> moveFocus(FocusDirection.Down, focused)
@@ -469,7 +471,7 @@ class KeyboardActionHandler(
             }
         } && return true
 
-        keyConfig.navigation.execute(key) { navigationAction ->
+        keyConfig.navigation.execute(key, currentDestinationName) { navigationAction ->
             when (navigationAction.action) {
                 Action.Navigation.InboxInCurrent -> navigateCurrentDestination { Destination.Inbox }
                 Action.Navigation.AccountManagementInCurrent -> navigateCurrentDestination {
@@ -502,7 +504,7 @@ class KeyboardActionHandler(
             }
         } && return true
 
-        keyConfig.global.execute(key) { globalAction ->
+        keyConfig.global.execute(key, currentDestinationName) { globalAction ->
             when (globalAction.action) {
                 Action.Global.Search -> {
                     if (mode.value is KeyboardActionMode.Search) {
@@ -696,8 +698,14 @@ private fun KeyEvent.toTrigger(): KeyTrigger? {
 /**
  * Try all possible bindings for a given key until the first one returns true.
  */
-fun <A: Action>List<Binding<A>>.execute(key: KeyTrigger, block: (Binding<A>) -> Boolean): Boolean {
-    val actions = filter { it.trigger == key }
+fun <A: Action>List<Binding<A>>.execute(
+    key: KeyTrigger,
+    currentDestinationName: String?,
+    block: (Binding<A>) -> Boolean
+): Boolean {
+    val actions = filter {
+        it.trigger == key && (it.destinations.isEmpty() || it.destinations.contains(currentDestinationName))
+    }
     actions.forEach { action ->
         if (block(action)) {
             // True if consumed. If `chain` is true, we want to allow other actions after this one.
