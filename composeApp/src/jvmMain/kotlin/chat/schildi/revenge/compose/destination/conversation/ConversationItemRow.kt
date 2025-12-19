@@ -40,10 +40,11 @@ fun ConversationItemRow(
                 // TODO
                 when (val virtualItem = item.virtual) {
                     is VirtualTimelineItem.DayDivider -> DayHeader(virtualItem)
-                    VirtualTimelineItem.LastForwardIndicator -> Text("FWD")
                     is VirtualTimelineItem.LoadingIndicator -> PagingIndicator()
                     VirtualTimelineItem.ReadMarker -> NewMessagesLine()
                     VirtualTimelineItem.RoomBeginning -> Text("BEGINNING")
+                    // Not sure if we're supposed to render something for that one
+                    VirtualTimelineItem.LastForwardIndicator -> {}
                     VirtualTimelineItem.TypingNotification -> {
                         // TODO?
                     }
