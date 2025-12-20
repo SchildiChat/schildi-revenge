@@ -51,8 +51,42 @@
     <string name="message_placeholder_message_redacted">Message redacted</string>
     <string name="message_placeholder_message_failed_to_parse">Message failed to parse</string>
     <string name="message_placeholder_call">Call</string>
-    <string name="message_placeholder_state">State event</string>
     <string name="message_placeholder_unknown">Unknown event</string>
+    <string name="message_placeholder_state_event">%1$s sent a %2$s state event</string>
+    <string name="message_placeholder_state_event_policy_rule_room">%1$s changed the policy rule room</string>
+    <string name="message_placeholder_state_event_policy_rule_server">%1$s changed the policy rule server</string>
+    <string name="message_placeholder_state_event_policy_rule_user">%1$s changed the policy rule user</string>
+    <string name="message_placeholder_state_event_room_aliases">%1$s changed the room aliases</string>
+    <string name="message_placeholder_state_event_room_avatar_cleared">%1$s cleared the room avatar</string>
+    <string name="message_placeholder_state_event_room_avatar_set">%1$s set the room avatar</string>
+    <string name="message_placeholder_state_event_room_canonical_alias">%1$s changed the room canonical alias</string>
+    <string name="message_placeholder_state_event_room_create">%1$s created the room</string>
+    <string name="message_placeholder_state_event_room_encryption">%1$s enabled encryption</string>
+    <string name="message_placeholder_state_event_room_guest_access">%1$s changed the guest access</string>
+    <string name="message_placeholder_state_event_room_history_visibility">%1$s changed the history visibility</string>
+    <string name="message_placeholder_state_event_room_join_rules">%1$s changed the join rules</string>
+    <string name="message_placeholder_state_event_room_join_rules_to">%1$s changed the join rules to %2$s</string>
+    <string name="message_placeholder_state_event_room_name_cleared">%1$s cleared the room name</string>
+    <string name="message_placeholder_state_event_room_name_set">%1$s set the room name to %2$s</string>
+    <string name="message_placeholder_state_event_room_pinned_events_added">%1$s added pinned events</string>
+    <string name="message_placeholder_state_event_room_pinned_events_removed">%1$s removed pinned events</string>
+    <string name="message_placeholder_state_event_room_pinned_events_changed">%1$s changed pinned events</string>
+    <string name="message_placeholder_state_event_room_server_acl">%1$s changed the server ACL</string>
+    <string name="message_placeholder_state_event_room_third_party_invite">%1$s sent a 3rd-party invite for %2$s</string>
+    <string name="message_placeholder_state_event_room_tombstone">%1$s upgraded the room</string>
+    <string name="message_placeholder_state_event_room_topic_cleared">%1$s cleared the room topic</string>
+    <string name="message_placeholder_state_event_room_topic_set">%1$s set the room topic</string>
+    <string name="message_placeholder_state_event_room_user_power_levels">%1$s changed user power levels</string>
+    <string name="message_placeholder_state_event_space_child">%1$s changed the space children</string>
+    <string name="message_placeholder_state_event_space_parent">%1$s changed the space parents</string>
+
+    <!-- Join rules mapping -->
+    <string name="join_rule_public">public</string>
+    <string name="join_rule_private">private</string>
+    <string name="join_rule_knock">knock</string>
+    <string name="join_rule_invite">invite</string>
+    <string name="join_rule_restricted">restricted</string>
+    <string name="join_rule_knock_restricted">knock_restricted</string>
 
     <string name="membership_change_none">%1$s made no changes</string>
     <string name="membership_change_error">%1$s made a suspicious membership change</string>

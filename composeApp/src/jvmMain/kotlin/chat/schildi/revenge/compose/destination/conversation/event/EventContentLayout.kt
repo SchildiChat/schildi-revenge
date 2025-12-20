@@ -123,15 +123,15 @@ fun EventContentLayout(
 
         is RoomMembershipContent -> RoomMembershipRow(content, senderId, senderProfile, timestamp, modifier)
         is ProfileChangeContent -> ProfileChangeRow(content, senderId, senderProfile, timestamp, modifier)
+        is StateContent -> StateEventRow(content, senderId, senderProfile, timestamp, modifier)
+        is FailedToParseStateContent -> StateEventFallbackRow(content.eventType, senderId, senderProfile, timestamp, modifier)
 
         // TODO
         CallNotifyContent -> EventMessageFallback("CALL")
         is FailedToParseMessageLikeContent -> EventMessageFallback(stringResource(Res.string.message_placeholder_message_failed_to_parse))
-        is FailedToParseStateContent -> EventMessageFallback("FAILED TO PARSE STATE")
         LegacyCallInviteContent -> EventMessageFallback("LEGACY CALL INVITE")
         is PollContent -> EventMessageFallback("POLL")
         RedactedContent -> EventMessageFallback(stringResource(Res.string.message_placeholder_message_redacted)) // TODO can I tell if user deleted themselves or someone else?
-        is StateContent -> EventMessageFallback("STATE")
         is StickerContent -> EventMessageFallback("STICKER")
         is UnableToDecryptContent -> EventMessageFallback(stringResource(Res.string.message_placeholder_unable_to_decrypt))
         UnknownContent -> EventMessageFallback("UNKNOWN")
