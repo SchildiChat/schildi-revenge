@@ -7,6 +7,7 @@ global = [
     { key = "U", ctrl = true, action = "ToggleSetting", args = ["SORT_BY_UNREAD"], destinations = ["inbox"] },
     { key = "L", ctrl = true, action = "ToggleSetting", args = ["BURY_LOW_PRIORITY"], destinations = ["inbox"] },
     { key = "F", ctrl = true, action = "ToggleSetting", args = ["PIN_FAVORITES"], destinations = ["inbox"] },
+    { key = "Escape", action = "ClearAppMessages" },
 ]
 inbox = [
     { key = "One", ctrl = true, action = "ToggleAccountExclusivelySelected", args = ["1"] },
@@ -35,7 +36,8 @@ inbox = [
 ]
 conversation = [
     { key = "G", shift = true, action = "JumpToBottom", chain = true },
-    { key = "U", action = "JumpToLastFullyRead" },
+    { key = "U", action = "JumpToOwnReadReceipt" },
+    { key = "U", shift = true, action = "JumpToFullyRead" },
     { key = "I", action = "ComposeMessage" },
     { key = "N", ctrl = true, action = "ComposeNotice" },
     { key = "U", ctrl = true, action = "MarkUnread" },
@@ -90,7 +92,7 @@ focus = [
     { key = "H", shift = true, action = "FocusTop" },
     { key = "M", shift = true, action = "FocusCenter" },
     { key = "L", shift = true, action = "FocusBottom" },
-    { key = "Escape", action = "FocusParent" },
+    { key = "Escape", ctrl = true, action = "FocusParent" },
     { key = "Enter", action = "FocusEnterContainer" },
     { key = "MoveHome", action = "FocusTop" },
     { key = "MoveEnd", action = "FocusBottom" },

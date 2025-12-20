@@ -22,6 +22,7 @@ import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.actions.launchActionAsync
 import chat.schildi.revenge.actions.orActionInapplicable
 import chat.schildi.revenge.actions.orActionValidationError
+import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.revenge.compose.util.insertAtCursor
 import chat.schildi.revenge.compose.util.insertTextFieldValue
 import chat.schildi.revenge.compose.util.toStringHolder
@@ -390,15 +391,20 @@ class ConversationViewModel(
                     hasDraft.orActionInapplicable()
                 }
 
-                Action.Conversation.JumpToLastFullyRead -> launchActionAsync(
+                Action.Conversation.JumpToOwnReadReceipt -> jumpToMessage(
                     conversationAction.action.name,
-                    viewModelScope,
-                    Dispatchers.IO
+                    "own read receipt",
+                    "jumpTo",
                 ) {
-                    activeTimeline.value?.fullyReadEventId()?.let { eventId ->
-                        focusOnEvent(EventId(eventId))
-                        ActionResult.Success()
-                    } ?: ActionResult.Failure("Could not find fully read eventId")
+                    activeTimeline.value?.latestUserReceiptEventId(sessionId.value)?.let(::EventId)
+                }
+
+                Action.Conversation.JumpToFullyRead -> jumpToMessage(
+                    conversationAction.action.name,
+                    "fully read marker",
+                    "jumpTo",
+                ) {
+                    activeTimeline.value?.fullyReadEventId()?.let(::EventId)
                 }
 
                 Action.Conversation.JumpToBottom -> {
@@ -447,6 +453,25 @@ class ConversationViewModel(
                 }
             }
         }
+    }
+
+    private fun ActionContext.jumpToMessage(
+        actionName: String,
+        eventName: String,
+        appMessageId: String,
+        getEventId: suspend () -> EventId?,
+    ): ActionResult = launchActionAsync(
+        actionName,
+        viewModelScope,
+        Dispatchers.IO
+    ) {
+        publishMessage("Loading $eventName", uniqueId = appMessageId, canAutoDismiss = false)
+        getEventId()?.let { eventId ->
+            publishMessage("Loading timeline at $eventName", uniqueId = appMessageId, canAutoDismiss = false)
+            focusOnEvent(eventId).toActionResult().also {
+                dismissMessage(appMessageId)
+            }
+        } ?: ActionResult.Failure("Could not find $eventName")
     }
 
     suspend fun focusOnEvent(eventId: EventId): Result<EventFocusResult> {

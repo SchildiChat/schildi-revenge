@@ -99,6 +99,7 @@ data class AppMessage(
     val isError: Boolean,
     val timestamp: Long,
     val uniqueId: String?,
+    val canAutoDismiss: Boolean,
     val dismissedTimestamp: Long? = null,
 )
 
@@ -297,12 +298,18 @@ class KeyboardActionHandler(
         } ?: false
     }
 
-    fun publishMessage(message: String, isError: Boolean = false, uniqueId: String? = null) {
+    fun publishMessage(
+        message: String,
+        isError: Boolean = false,
+        uniqueId: String? = null,
+        canAutoDismiss: Boolean = true,
+    ) {
         val now = System.currentTimeMillis()
         val appMessage = AppMessage(
             message = message,
             isError = isError,
             uniqueId = uniqueId,
+            canAutoDismiss = canAutoDismiss,
             timestamp = now,
         )
         _messageBoard.update {
@@ -315,6 +322,19 @@ class KeyboardActionHandler(
         }
     }
 
+    fun dismissMessage(uniqueId: String) {
+        val now = System.currentTimeMillis()
+        _messageBoard.update {
+            it.map {
+                if (it.uniqueId == uniqueId) {
+                    it.copy(dismissedTimestamp = it.dismissedTimestamp ?: now)
+                } else {
+                    it
+                }
+            }.toPersistentList()
+        }
+    }
+
     fun cleanUpMessageBoard() {
         val now = System.currentTimeMillis()
         _messageBoard.update {
@@ -324,7 +344,7 @@ class KeyboardActionHandler(
                 it.mapNotNull {
                     if (it.dismissedTimestamp?.let { now > it + MESSAGE_EXPIRY_DURATION * 2 } == true) {
                         null
-                    } else if (now > it.timestamp + MESSAGE_EXPIRY_DURATION) {
+                    } else if (it.canAutoDismiss && now > it.timestamp + MESSAGE_EXPIRY_DURATION) {
                         it.copy(dismissedTimestamp = now)
                     } else {
                         it
@@ -486,8 +506,10 @@ class KeyboardActionHandler(
         val keyConfig = UiState.keybindingsConfig.value
 
         val context = object : ActionContext {
-            override fun publishMessage(message: String, isError: Boolean) =
-                this@KeyboardActionHandler.publishMessage(message, isError)
+            override fun publishMessage(message: String, isError: Boolean, uniqueId: String?, canAutoDismiss: Boolean) =
+                this@KeyboardActionHandler.publishMessage(message, isError, uniqueId, canAutoDismiss)
+            override fun dismissMessage(uniqueId: String) =
+                this@KeyboardActionHandler.dismissMessage(uniqueId)
             override fun copyToClipboard(content: String, description: String) =
                 this@KeyboardActionHandler.copyToClipboard(this, content, description)
             override fun focusByRole(role: FocusRole) =
@@ -838,6 +860,11 @@ class ActionValidationException() : Exception("Internal action parsing validatio
 fun Boolean.orActionInapplicable() = if (this) ActionResult.Success() else ActionResult.Inapplicable
 fun Boolean.orActionFailure(message: String) = if (this) ActionResult.Success() else ActionResult.Failure(message)
 fun <T>T?.orActionValidationError() = this ?: throw ActionValidationException()
+fun <T>Result<T>.toActionResult(async: Boolean = false, notifySuccess: Boolean = false) = if (isSuccess) {
+    ActionResult.Success(async = async, notifySuccess = notifySuccess)
+} else {
+    ActionResult.Failure(exceptionOrNull()?.message ?: "Unknown failure")
+}
 
 /**
  * Try all possible bindings for a given key until the first one returns true.
@@ -949,7 +976,8 @@ fun Binding<*>.checkArguments(
 }
 
 interface ActionContext {
-    fun publishMessage(message: String, isError: Boolean = false)
+    fun publishMessage(message: String, isError: Boolean = false, uniqueId: String? = null, canAutoDismiss: Boolean = true)
+    fun dismissMessage(uniqueId: String)
     fun copyToClipboard(content: String, description: String): ActionResult
     fun focusByRole(role: FocusRole): Boolean
     val currentDestinationName: String?
@@ -959,15 +987,16 @@ fun ActionContext.launchActionAsync(
     actionName: String,
     scope: CoroutineScope,
     context: CoroutineContext = EmptyCoroutineContext,
+    appMessageId: String? = null,
     block: suspend () -> ActionResult,
 ): ActionResult {
     scope.launch(context) {
         val result = block()
         if (result is ActionResult.Failure) {
             Logger.withTag("AsyncAction").e("Failed to execute $actionName: ${result.message}")
-            publishMessage(result.message, isError = true)
+            publishMessage(result.message, isError = true, uniqueId = appMessageId)
         } else if ((result as? ActionResult.Success)?.notifySuccess == true) {
-            publishMessage("Success: $actionName", isError = true)
+            publishMessage("Success: $actionName", isError = true, uniqueId = appMessageId)
         }
     }
     return ActionResult.Success(async = true)
