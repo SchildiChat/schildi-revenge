@@ -192,6 +192,7 @@ private fun Modifier.keyFocusableCommon(
         }
     }
     return onGloballyPositioned { coordinates ->
+        cached = coordinates
         keyHandler.registerFocusTarget(
             id,
             parent,
