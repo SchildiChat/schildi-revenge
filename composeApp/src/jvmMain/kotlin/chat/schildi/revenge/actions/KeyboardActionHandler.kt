@@ -890,7 +890,9 @@ fun <A: Action>List<Binding<A>>.execute(
     var hasChainableSuccess = false
     actions.forEach { action ->
         val actionResult = try {
-            action.checkArguments() ?: block(action).withChainSetting(action.chain)
+            action.checkArguments()?.also {
+                Logger.e(it.message)
+            } ?: block(action).withChainSetting(action.chain)
         } catch (e: IndexOutOfBoundsException) {
             Logger.e("Error executing action", e)
             ActionResult.Failure(e.message ?: "Exception occurred trying to execute action")
@@ -908,11 +910,11 @@ fun <A: Action>List<Binding<A>>.execute(
     return if (hasChainableSuccess) ActionResult.Success(shouldExit = false) else ActionResult.NoMatch
 }
 
-fun Binding<*>.checkArguments(
+fun <A : Action>Binding<A>.checkArguments(
     validSessionIds: List<String>? = UiState.currentValidSessionIds.value,
     validSettingKeys: List<String> = ScPrefs.validSettingKeys,
 ): ActionResult.Malformed? {
-    val actionName = javaClass.simpleName
+    val actionName = action.name
     if (action.args.size != args.size) {
         return ActionResult.Malformed(
             "Invalid parameter size for $actionName, expected ${action.args.size} got ${args.size}"
@@ -936,8 +938,22 @@ fun Binding<*>.checkArguments(
                 }
             }
             ActionArgument.SessionId,
+            ActionArgument.SessionIdOrIndex,
             ActionArgument.Mxid -> {
-                if (argDef == ActionArgument.SessionId && validSessionIds != null) {
+                if (argDef == ActionArgument.SessionIdOrIndex) {
+                    val asIndex = argVal.toIntOrNull()
+                    if (asIndex != null) {
+                        return if (asIndex in 0..(validSessionIds?.size ?: Integer.MAX_VALUE)) {
+                            null
+                        } else {
+                            ActionResult.Malformed(
+                                "Invalid parameter for $actionName, index out of range: $argVal"
+                            )
+                        }
+                    }
+                }
+                if (validSessionIds != null &&
+                    (argDef == ActionArgument.SessionId || argDef == ActionArgument.SessionIdOrIndex)) {
                     if (!validSessionIds.contains(argVal)) {
                         return ActionResult.Malformed(
                             "Invalid parameter for $actionName, not an existing user login: $argVal"

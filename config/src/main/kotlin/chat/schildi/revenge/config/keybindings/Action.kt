@@ -6,6 +6,7 @@ enum class ActionArgument {
     Integer,
     Mxid,
     SessionId,
+    SessionIdOrIndex,
     RoomId,
     EventId,
     SettingKey,
@@ -13,6 +14,7 @@ enum class ActionArgument {
 }
 
 sealed interface Action {
+    val name: String
     val aliases: kotlin.collections.List<String>
     val args: kotlin.collections.List<ActionArgument>
     enum class Global(
@@ -77,12 +79,12 @@ sealed interface Action {
         override val aliases: kotlin.collections.List<String> = emptyList(),
         override val args: kotlin.collections.List<ActionArgument> = emptyList()
     ) : Action {
-        SetAccountHidden(args = listOf(ActionArgument.SessionId, ActionArgument.Boolean)),
-        SetAccountSelected(args = listOf(ActionArgument.SessionId, ActionArgument.Boolean)),
-        SetAccountExclusivelySelected(args = listOf(ActionArgument.SessionId, ActionArgument.Boolean)),
-        ToggleAccountHidden(args = listOf(ActionArgument.SessionId)),
-        ToggleAccountSelected(args = listOf(ActionArgument.SessionId)),
-        ToggleAccountExclusivelySelected(args = listOf(ActionArgument.SessionId)),
+        SetAccountHidden(args = listOf(ActionArgument.SessionIdOrIndex, ActionArgument.Boolean)),
+        SetAccountSelected(args = listOf(ActionArgument.SessionIdOrIndex, ActionArgument.Boolean)),
+        SetAccountExclusivelySelected(args = listOf(ActionArgument.SessionIdOrIndex, ActionArgument.Boolean)),
+        ToggleAccountHidden(args = listOf(ActionArgument.SessionIdOrIndex)),
+        ToggleAccountSelected(args = listOf(ActionArgument.SessionIdOrIndex)),
+        ToggleAccountExclusivelySelected(args = listOf(ActionArgument.SessionIdOrIndex)),
         NavigateSpaceRelative(args = listOf(ActionArgument.Integer)),
         SelectSpace(args = listOf(ActionArgument.Text)),
     }
