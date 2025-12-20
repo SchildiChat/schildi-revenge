@@ -31,6 +31,7 @@ import chat.schildi.revenge.model.spaces.filterHierarchical
 import chat.schildi.revenge.model.spaces.findInHierarchy
 import chat.schildi.revenge.model.spaces.resolveSelection
 import co.touchlab.kermit.Logger
+import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.roomlist.RoomListService
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
@@ -61,9 +62,13 @@ data class ScopedRoomSummary(
     val sessionId: SessionId,
     val summary: RoomSummary,
 ) {
-    val draftKey: DraftKey
-        get() = DraftKey(sessionId, summary.roomId)
+    val key = ScopedRoomKey(sessionId, summary.roomId)
 }
+
+data class ScopedRoomKey(
+    val sessionId: SessionId,
+    val roomId: RoomId,
+)
 
 data class InboxAccount(
     val user: MatrixUser,

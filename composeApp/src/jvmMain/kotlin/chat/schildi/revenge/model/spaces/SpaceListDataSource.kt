@@ -26,6 +26,7 @@ import chat.schildi.revenge.compose.util.HardcodedStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.flatMerge
+import chat.schildi.revenge.model.ScopedRoomKey
 import chat.schildi.revenge.model.ScopedRoomSummary
 import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.Inject
@@ -65,17 +66,14 @@ import timber.log.Timber
 private const val REAL_SPACE_ID_PREFIX = "s:"
 private const val PSEUDO_SPACE_ID_PREFIX = "p:"
 
-private data class ScopedSpaceId(
-    val roomId: RoomId,
-    val sessionId: SessionId?, // only null for pseudo-spaces!
-)
+private typealias ScopedSpaceId = ScopedRoomKey
 
 private data class SpaceBuilderRoom(
     val client: MatrixClient,
     val summary: RoomSummary,
 ) {
     val id: ScopedSpaceId
-        get() = ScopedSpaceId(summary.roomId, client.sessionId)
+        get() = ScopedSpaceId(client.sessionId, summary.roomId)
     fun toScopedRoomSummary() = ScopedRoomSummary(
         client.sessionId,
         summary,
@@ -88,8 +86,12 @@ val RevengeSpaceListDataSource = SpaceListDataSource()
 class SpaceListDataSource(
     private val combinedSessions: CombinedSessions = UiState.combinedSessions,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
+    // TODO user-defined account order
+    private val sessionIdComparator: Comparator<SessionId> = compareBy { it.value },
 ) {
     private val log = Logger.withTag("SpaceListDataSource")
+
+    private val spaceComparator = SpaceComparator(sessionIdComparator)
 
     private val _forceRebuildFlow = MutableStateFlow(System.currentTimeMillis())
 
@@ -230,7 +232,8 @@ class SpaceListDataSource(
         val rootSpaces = HashSet<SpaceBuilderRoom>(spaceSummaries)
         spaceSummaries.forEach { parentSpace ->
             parentSpace.summary.info.spaceChildren.forEach childLoop@{ spaceChild ->
-                val child = spaceSummaries.find { it.summary.roomId.value == spaceChild.roomId }
+                val childId = ScopedSpaceId(parentSpace.client.sessionId, RoomId(spaceChild.roomId))
+                val child = spaceSummaries.find { it.id == childId }
                 if (child == null) {
                     // Treat as regular child, since it doesn't appear to be a space (at least none known to us at this point)
                     regularChildren[parentSpace.id] =
@@ -249,7 +252,7 @@ class SpaceListDataSource(
             val order = it.client.getRoomAccountData(it.summary.roomId, ROOM_ACCOUNT_DATA_SPACE_ORDER)
                 ?.let { SpaceOrderSerializer.deserializeContent(it) }?.getOrNull()?.order
             createSpaceHierarchyItem(it, order, spaceHierarchyMap, regularChildren)
-        }.sortedWith(SpaceComparator)
+        }.sortedWith(spaceComparator)
     }
 
     private fun createSpaceHierarchyItem(
@@ -267,13 +270,14 @@ class SpaceListDataSource(
             } else {
                 createSpaceHierarchyItem(child, spaceChildInfo.order, hierarchy, regularChildren, forbiddenChildren + listOf(spaceSummary.id))
             }
-        }?.sortedWith(SpaceComparator)?.toImmutableList() ?: persistentListOf()
+        }?.sortedWith(spaceComparator)?.toImmutableList() ?: persistentListOf()
 
         // Room children
-        val directChildrenRooms = regularChildren[spaceSummary.id].orEmpty().map { it.roomId }
+        val directChildrenRooms = regularChildren[spaceSummary.id].orEmpty().map {
+            ScopedRoomKey(spaceSummary.client.sessionId, RoomId(it.roomId))
+        }
 
         return SpaceHierarchyItem(
-            sessionIds = persistentListOf(spaceSummary.client.sessionId), // TOOD space merging
             room = spaceSummary.toScopedRoomSummary(),
             order = order,
             spaces = children,
@@ -301,17 +305,20 @@ class SpaceListDataSource(
 
     @Immutable
     data class SpaceHierarchyItem(
-        override val sessionIds: ImmutableList<SessionId>,
         val room: ScopedRoomSummary,
         val order: String?,
         override val spaces: ImmutableList<SpaceHierarchyItem>,
-        val directChildren: ImmutableSet<String>,
-        val flattenedRooms: ImmutableSet<String>,
+        val directChildren: ImmutableSet<ScopedRoomKey>,
+        val flattenedRooms: ImmutableSet<ScopedRoomKey>,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
+        val mergedRooms: ImmutableList<ScopedRoomSummary> = persistentListOf(),
     ) : AbstractSpaceHierarchyItem {
         override val name = room.summary.info.name?.toStringHolder() ?: StringResourceHolder(Res.string.nameless_space_fallback_title)
         override val selectionId = "$REAL_SPACE_ID_PREFIX{${sessionIds.sortedBy(SessionId::value).joinToString(separator = ";")}}:${room.summary.roomId.value}"
         override val enabled = true
+
+        override val sessionIds: ImmutableList<SessionId>
+            get() = persistentListOf(room.sessionId, *mergedRooms.map { it.sessionId }.toTypedArray())
 
         override fun enrich(
             getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?
@@ -320,7 +327,7 @@ class SpaceListDataSource(
             spaces = spaces.map { it.enrich(getUnreadCounts) as SpaceHierarchyItem }.toImmutableList(),
         )
         override fun applyFilter(rooms: List<ScopedRoomSummary>) =
-            rooms.filter { it.sessionId in sessionIds && flattenedRooms.contains(it.summary.roomId.value) }.toImmutableList()
+            rooms.filter { flattenedRooms.contains(it.key) }.toImmutableList()
     }
 
     sealed interface PseudoSpaceIconSource {

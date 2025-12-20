@@ -17,13 +17,19 @@
 
 package chat.schildi.revenge.model.spaces
 
+import io.element.android.libraries.matrix.api.core.SessionId
+
 // Can't use regular compare by because Null is considered less than any value, and for space order it's the opposite
-object SpaceComparator : Comparator<SpaceListDataSource.SpaceHierarchyItem> {
+class SpaceComparator(
+    private val sessionIdComparator: Comparator<SessionId> = compareBy { it.value },
+) : Comparator<SpaceListDataSource.SpaceHierarchyItem> {
     override fun compare(left: SpaceListDataSource.SpaceHierarchyItem?, right: SpaceListDataSource.SpaceHierarchyItem?): Int {
         val leftOrder = left?.order
         val rightOrder = right?.order
         return if (leftOrder != null && rightOrder != null) {
-            leftOrder.compareTo(rightOrder)
+            leftOrder.compareTo(rightOrder).orCompare {
+                sessionIdComparator.compare(left.room.sessionId, right.room.sessionId)
+            }
         } else {
             if (leftOrder == null) {
                 if (rightOrder == null) {
@@ -32,7 +38,9 @@ object SpaceComparator : Comparator<SpaceListDataSource.SpaceHierarchyItem> {
                     compareValues(
                         left?.room?.summary?.info?.name?.lowercase(),
                         right?.room?.summary?.info?.name?.lowercase()
-                    )
+                    ).orCompare {
+                        sessionIdComparator.compare(left?.room?.sessionId, right?.room?.sessionId)
+                    }
                 } else {
                     1
                 }
@@ -42,3 +50,10 @@ object SpaceComparator : Comparator<SpaceListDataSource.SpaceHierarchyItem> {
         }
     }
 }
+
+private fun Int.orCompare(block: () -> Int) =
+    if (this == 0) {
+        block()
+    } else {
+        this
+    }

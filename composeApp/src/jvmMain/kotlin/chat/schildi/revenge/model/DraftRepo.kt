@@ -15,10 +15,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
-data class DraftKey(
-    val sessionId: SessionId,
-    val roomId: RoomId,
-)
+typealias DraftKey = ScopedRoomKey
 
 enum class DraftType {
     TEXT,

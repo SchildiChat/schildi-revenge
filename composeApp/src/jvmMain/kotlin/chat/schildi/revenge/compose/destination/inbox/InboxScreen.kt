@@ -141,7 +141,7 @@ fun InboxScreen(modifier: Modifier = Modifier) {
                                 )
                         InboxRow(
                             room,
-                            hasDraft = room.draftKey in drafts.value,
+                            hasDraft = room.key in drafts.value,
                             user = if (needsDisambiguation)
                                 accounts?.get(room.sessionId)?.user
                             else

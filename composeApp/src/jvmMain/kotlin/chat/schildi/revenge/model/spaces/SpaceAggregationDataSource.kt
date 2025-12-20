@@ -4,19 +4,20 @@ import androidx.compose.runtime.Immutable
 import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPreferencesStore
 import chat.schildi.preferences.ScPrefs
+import chat.schildi.revenge.compose.util.throttleLatest
 import chat.schildi.revenge.model.ScopedRoomSummary
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource.SpaceUnreadCounts
 import dev.zacsweers.metro.Inject
+import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableSet
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.conflate
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 
 data class SpaceAggregationState(
     val enrichedSpaces: ImmutableList<SpaceListDataSource.AbstractSpaceHierarchyItem>? = null,
@@ -29,11 +30,20 @@ class SpaceAggregationDataSource(
     allSpacesHierarchical: Flow<List<SpaceListDataSource.AbstractSpaceHierarchyItem>>,
     allRooms: Flow<List<ScopedRoomSummary>>,
     scPreferencesStore: ScPreferencesStore = RevengePrefs,
+    // TODO user-defined account order
+    sessionIdComparator: Comparator<SessionId> = compareBy { it.value },
 ) {
+
+    val allSpacesHierarchicalMerged = allSpacesHierarchical.map {
+        val pseudoSpaces = it.mapNotNull { it as? SpaceListDataSource.PseudoSpaceItem }
+        val realSpaces = it.mapNotNull { it as? SpaceListDataSource.SpaceHierarchyItem }
+        val mergedSpaces = realSpaces.mergeSpaceSessionDuplicates(sessionIdComparator)
+        (pseudoSpaces + mergedSpaces).toImmutableList()
+    }.flowOn(Dispatchers.IO)
 
     val state = combine(
         allRooms.throttleLatest(300),
-        allSpacesHierarchical.throttleLatest(300),
+        allSpacesHierarchicalMerged.throttleLatest(300),
         scPreferencesStore.settingFlow(ScPrefs.CLIENT_GENERATED_UNREAD_COUNTS),
     ) { allRoomsValue, rootSpaces, useClientGeneratedCounts ->
         val totalUnreadCounts = getAggregatedUnreadCounts(allRoomsValue, useClientGeneratedCounts)
@@ -73,36 +83,6 @@ class SpaceAggregationDataSource(
         return unread
     }
 
-    private fun SpaceUnreadCounts.add(
-        mentions: Long,
-        notifications: Long,
-        unread: Long,
-        markedUnread: Boolean,
-        isInvite: Boolean,
-        isEmpty: Boolean,
-    ): SpaceUnreadCounts = if (isInvite) {
-        copy(
-            notifiedMessages = this.notifiedMessages + 1,
-            unreadMessages = this.unreadMessages + 1,
-            notifiedChats = this.notifiedChats + 1,
-            unreadChats = this.unreadChats + 1,
-            inviteCount = this.inviteCount + 1,
-            isEmptySpace = false,
-        )
-    } else {
-        SpaceUnreadCounts(
-            this.mentionedMessages + mentions,
-            this.notifiedMessages + notifications,
-            this.unreadMessages + unread,
-            this.mentionedChats + if (mentions > 0) 1 else 0,
-            this.notifiedChats + if (notifications > 0) 1 else 0,
-            this.unreadChats + if (unread > 0) 1 else 0,
-            this.markedUnreadChats + if (markedUnread) 1 else 0,
-            this.inviteCount,
-            this.isEmptySpace && isEmpty
-        )
-    }
-
     @Immutable
     data class SpaceUnreadCounts(
         val mentionedMessages: Long = 0,
@@ -117,10 +97,83 @@ class SpaceAggregationDataSource(
     )
 }
 
-// Emit immediately but delay too fast updates after that
-fun <T> Flow<T>.throttleLatest(period: Long) = flow {
-    conflate().collect {
-        emit(it)
-        delay(period)
-    }
+private fun SpaceUnreadCounts.add(
+    mentions: Long,
+    notifications: Long,
+    unread: Long,
+    markedUnread: Boolean,
+    isInvite: Boolean,
+    isEmpty: Boolean,
+): SpaceUnreadCounts = if (isInvite) {
+    copy(
+        notifiedMessages = this.notifiedMessages + 1,
+        unreadMessages = this.unreadMessages + 1,
+        notifiedChats = this.notifiedChats + 1,
+        unreadChats = this.unreadChats + 1,
+        inviteCount = this.inviteCount + 1,
+        isEmptySpace = false,
+    )
+} else {
+    SpaceUnreadCounts(
+        this.mentionedMessages + mentions,
+        this.notifiedMessages + notifications,
+        this.unreadMessages + unread,
+        this.mentionedChats + if (mentions > 0) 1 else 0,
+        this.notifiedChats + if (notifications > 0) 1 else 0,
+        this.unreadChats + if (unread > 0) 1 else 0,
+        this.markedUnreadChats + if (markedUnread) 1 else 0,
+        this.inviteCount,
+        this.isEmptySpace && isEmpty
+    )
+}
+
+private fun SpaceUnreadCounts.add(
+    other: SpaceUnreadCounts?,
+): SpaceUnreadCounts = if (other == null) {
+    this
+} else {
+    SpaceUnreadCounts(
+        this.mentionedMessages + other.mentionedMessages,
+        this.notifiedMessages + other.notifiedMessages,
+        this.unreadMessages + other.unreadMessages,
+        this.mentionedChats + other.mentionedChats,
+        this.notifiedChats + other.notifiedChats,
+        this.unreadChats + other.unreadChats,
+        this.markedUnreadChats + other.markedUnreadChats,
+        this.inviteCount + other.inviteCount,
+        this.isEmptySpace && other.isEmptySpace,
+    )
+}
+
+private fun List<SpaceListDataSource.SpaceHierarchyItem>.mergeSpaceSessionDuplicates(
+    sessionIdComparator: Comparator<SessionId> = compareBy { it.value },
+): List<SpaceListDataSource.SpaceHierarchyItem> {
+    return groupBy {
+        it.room.summary.roomId
+    }.map { (_, duplicates) ->
+        if (duplicates.size == 1) {
+            duplicates.first()
+        } else {
+            val prioritized = duplicates.sortedWith { left, right ->
+                sessionIdComparator.compare(left.room.sessionId, right.room.sessionId)
+            }
+            val mainSpace = prioritized.first()
+            val mergedRooms = prioritized.subList(1, prioritized.size)
+            var unreadCount = SpaceUnreadCounts()
+            prioritized.forEach { other ->
+                unreadCount = unreadCount.add(other.unreadCounts)
+            }
+            // TODO is this a good heuristic for sort order?
+            val sortOrder = duplicates.mapNotNull { it.order }.takeIf { it.isNotEmpty() }?.min()
+            SpaceListDataSource.SpaceHierarchyItem(
+                room = mainSpace.room,
+                order = sortOrder,
+                spaces = prioritized.flatMap { it.spaces }.mergeSpaceSessionDuplicates(sessionIdComparator).toImmutableList(),
+                directChildren = prioritized.flatMap { it.directChildren }.toImmutableSet(),
+                flattenedRooms = prioritized.flatMap { it.flattenedRooms }.toImmutableSet(),
+                unreadCounts = unreadCount,
+                mergedRooms = mergedRooms.map { it.room }.toImmutableList(),
+            )
+        }
+    }.sortedWith(SpaceComparator(sessionIdComparator))
 }
