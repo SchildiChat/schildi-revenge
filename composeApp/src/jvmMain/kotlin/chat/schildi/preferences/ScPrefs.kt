@@ -395,4 +395,6 @@ object ScPrefs {
         )),
     )
      */
+
+    val validSettingKeys = rootPrefs.prefs.collectScPrefs().map { it.sKey }
 }

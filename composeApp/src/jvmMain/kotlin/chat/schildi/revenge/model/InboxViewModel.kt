@@ -10,8 +10,12 @@ import chat.schildi.revenge.CombinedSessions
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.UiState
+import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
+import chat.schildi.revenge.actions.orActionFailure
+import chat.schildi.revenge.actions.orActionInapplicable
+import chat.schildi.revenge.actions.orActionValidationError
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
@@ -282,101 +286,67 @@ class InboxViewModel(
         searchTerm.value = null
     }
 
-    override fun handleNavigationModeEvent(key: KeyTrigger, currentDestinationName: String?): Boolean {
+    override fun handleNavigationModeEvent(key: KeyTrigger, currentDestinationName: String?): ActionResult {
         val keyConfig = UiState.keybindingsConfig.value
         return keyConfig.inbox.execute(key, currentDestinationName) { inboxAction ->
             when (inboxAction.action) {
                 Action.Inbox.SetAccountHidden -> {
-                    if (inboxAction.args.size != 2) {
-                        log.e("Invalid parameter size for SetAccountHidden action, expected 2 got ${inboxAction.args.size}")
-                        return@execute false
-                    }
-                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return@execute false
+                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0])
+                        ?: return@execute ActionResult.Failure("Failed to find user session")
                     val hidden = inboxAction.args[1].toBoolean()
                     setAccountHidden(sessionId, hidden)
-                    true
+                    ActionResult.Success()
                 }
 
                 Action.Inbox.SetAccountSelected -> {
-                    if (inboxAction.args.size != 2) {
-                        log.e("Invalid parameter size for SetAccountSelected action, expected 2 got ${inboxAction.args.size}")
-                        return@execute false
-                    }
-                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return@execute false
+                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0])
+                        ?: return@execute ActionResult.Failure("Failed to find user session")
                     val selected = inboxAction.args[1].toBoolean()
                     setAccountSelected(sessionId, selected)
-                    true
+                    ActionResult.Success()
                 }
 
                 Action.Inbox.SetAccountExclusivelySelected -> {
-                    if (inboxAction.args.size != 2) {
-                        log.e("Invalid parameter size for SetAccountExclusivelySelected action, expected 2 got ${inboxAction.args.size}")
-                        return@execute false
-                    }
-                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return@execute false
+                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0])
+                        ?: return@execute ActionResult.Failure("Failed to find user session")
                     val selected = inboxAction.args[1].toBoolean()
                     setAccountExclusivelySelected(sessionId, selected)
-                    true
+                    ActionResult.Success()
                 }
 
                 Action.Inbox.ToggleAccountHidden -> {
-                    if (inboxAction.args.size != 1) {
-                        log.e("Invalid parameter size for ToggleAccountHidden action, expected 1 got ${inboxAction.args.size}")
-                        return@execute false
-                    }
-                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return@execute false
+                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0])
+                        ?: return@execute ActionResult.Failure("Failed to find user session")
                     toggleAccountHidden(sessionId)
-                    true
+                    ActionResult.Success()
                 }
 
                 Action.Inbox.ToggleAccountSelected -> {
-                    if (inboxAction.args.size != 1) {
-                        log.e("Invalid parameter size for ToggleAccountSelected action, expected 1 got ${inboxAction.args.size}")
-                        return@execute false
-                    }
-                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return@execute false
+                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0])
+                        ?: return@execute ActionResult.Failure("Failed to find user session")
                     toggleAccountSelected(sessionId)
-                    true
+                    ActionResult.Success()
                 }
 
                 Action.Inbox.ToggleAccountExclusivelySelected -> {
-                    if (inboxAction.args.size != 1) {
-                        log.e("Invalid parameter size for ToggleAccountExclusivelySelected action, expected 1 got ${inboxAction.args.size}")
-                        return@execute false
-                    }
-                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0]) ?: return@execute false
+                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0])
+                        ?: return@execute ActionResult.Failure("Failed to find user session")
                     toggleAccountExclusivelySelected(sessionId)
-                    true
+                    ActionResult.Success()
                 }
 
                 Action.Inbox.NavigateSpaceRelative -> {
-                    if (inboxAction.args.size != 1) {
-                        log.e("Invalid parameter size for NavigateSpaceRelative action, expected 1 got ${inboxAction.args.size}")
-                        return@execute false
-                    }
-                    val diff = inboxAction.args[0].toIntOrNull()
-                    if (diff == null) {
-                        log.e("Invalid parameter for NavigateSpaceRelative action, expected integer")
-                        return@execute false
-                    }
-                    navigateSpaceRelative(diff)
+                    val diff = inboxAction.args[0].toIntOrNull().orActionValidationError()
+                    navigateSpaceRelative(diff).orActionInapplicable()
                 }
 
                 Action.Inbox.SelectSpace -> {
-                    if (inboxAction.args.isEmpty()) {
-                        setSpaceSelection(emptyList())
-                        return@execute true
-                    }
-                    if (inboxAction.args.size != 1) {
-                        log.e("Invalid parameter size for SelectSpace action, expected 1 got ${inboxAction.args.size}")
-                        return@execute false
-                    }
                     val spaceSelection = inboxAction.args[0]
                     val asIndex = spaceSelection.toIntOrNull()
                     if (asIndex != null) {
-                        navigateToSpaceIndex(asIndex)
+                        navigateToSpaceIndex(asIndex).orActionInapplicable()
                     } else {
-                        navigateToSpaceById(spaceSelection)
+                        navigateToSpaceById(spaceSelection).orActionFailure("Space with ID $spaceSelection not found")
                     }
                 }
             }

@@ -6,6 +6,7 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.UiState
+import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
@@ -17,7 +18,7 @@ class SplitKeyboardActionProvider(
     private val destinationStateHolder: DestinationStateHolder?,
     private val isPrimaryDestination: Boolean,
 ) : KeyboardActionProvider {
-    override fun handleNavigationModeEvent(key: KeyTrigger, currentDestinationName: String?): Boolean {
+    override fun handleNavigationModeEvent(key: KeyTrigger, currentDestinationName: String?): ActionResult {
         return UiState.keybindingsConfig.value.split.execute(key, currentDestinationName) { binding ->
             when (binding.action) {
                 Action.Split.Close -> {
@@ -29,9 +30,9 @@ class SplitKeyboardActionProvider(
                         else
                             it.primary
 
-                    }?.state?.value?.destination ?: return@execute false
+                    }?.state?.value?.destination ?: return@execute ActionResult.Inapplicable
                     destinationStateHolder.navigate(newDestination)
-                    true
+                    ActionResult.Success()
                 }
             }
         }

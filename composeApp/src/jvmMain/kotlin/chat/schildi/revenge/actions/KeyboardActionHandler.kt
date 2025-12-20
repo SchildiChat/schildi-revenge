@@ -23,13 +23,16 @@ import androidx.compose.ui.unit.toIntSize
 import androidx.compose.ui.window.ApplicationScope
 import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPrefs
+import chat.schildi.preferences.collectScPrefs
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.focus.FocusParent
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.Destination
+import chat.schildi.revenge.GlobalActionsScope
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
 import chat.schildi.revenge.config.keybindings.Action
+import chat.schildi.revenge.config.keybindings.ActionArgument
 import chat.schildi.revenge.config.keybindings.AllowedComposerTextFieldBindingKeys
 import chat.schildi.revenge.config.keybindings.AllowedSingleLineTextFieldBindingKeys
 import chat.schildi.revenge.config.keybindings.AllowedTextFieldBindingKeys
@@ -48,6 +51,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.sqrt
 
 val LocalKeyboardActionHandler = compositionLocalOf<KeyboardActionHandler> {
@@ -287,7 +292,7 @@ class KeyboardActionHandler(
         return when (event.type) {
             KeyDown -> {
                 val consumed = when (val mode = mode.value) {
-                    is KeyboardActionMode.Navigation -> handleNavigationEvent(trigger, focused)
+                    is KeyboardActionMode.Navigation -> handleNavigationEvent(trigger, focused) is ActionResult.Actioned
                     is KeyboardActionMode.Search -> handleSearchEvent(trigger, focused, mode)
                 }
                 if (consumed) {
@@ -325,7 +330,7 @@ class KeyboardActionHandler(
             }
             KeyMapped.Enter -> {
                 if (mode.navigating) {
-                    handleNavigationEvent(key, focused)
+                    handleNavigationEvent(key, focused) is ActionResult.Actioned
                 } else {
                     updateMode { mode.copy(navigating = true) }
                     windowCoordinates?.let {
@@ -338,7 +343,7 @@ class KeyboardActionHandler(
             KeyMapped.DirectionDown -> false // TODO cycle search history; configurable binding?
             else -> {
                 if (mode.navigating) {
-                    handleNavigationEvent(key, focused)
+                    handleNavigationEvent(key, focused) is ActionResult.Actioned
                 } else {
                     false
                 }
@@ -424,142 +429,137 @@ class KeyboardActionHandler(
         } ?: false
     }
 
-    private fun handleNavigationEvent(key: KeyTrigger, focused: FocusTarget?): Boolean {
+    private fun handleNavigationEvent(key: KeyTrigger, focused: FocusTarget?): ActionResult {
         val currentDestination = focused?.destinationStateHolder?.state?.value?.destination
         val currentDestinationName = currentDestination?.name
-        if (focused?.actions?.keyActions?.handleNavigationModeEvent(key, currentDestinationName) == true) {
-            // Allow focused-item specific handling
-            return true
-        }
         val keyConfig = UiState.keybindingsConfig.value
 
-        (focused?.actions?.primaryAction as? InteractionAction.NavigationAction)?.let { navigationActionable ->
-            keyConfig.navigationItem.execute(key, currentDestinationName) { navigationAction ->
-                val destination = navigationActionable.buildDestination()
-                return@execute when (navigationAction.action) {
-                    Action.NavigationItem.NavigateCurrent -> {
-                        val destinationStateHolder = focused.destinationStateHolder ?: return@execute false
-                        updateMode { KeyboardActionMode.Navigation }
-                        navigateCurrentDestination(destination, destinationStateHolder)
+        return ActionResult.chain(
+            {
+                focused?.actions?.keyActions?.handleNavigationModeEvent(key, currentDestinationName) ?: ActionResult.NoMatch
+            },
+            {
+                (focused?.actions?.primaryAction as? InteractionAction.NavigationAction)?.let { navigationActionable ->
+                    keyConfig.navigationItem.execute(key, currentDestinationName) { navigationAction ->
+                        val destination = navigationActionable.buildDestination()
+                        when (navigationAction.action) {
+                            Action.NavigationItem.NavigateCurrent -> {
+                                val destinationStateHolder = focused.destinationStateHolder ?: return@execute ActionResult.Inapplicable
+                                updateMode { KeyboardActionMode.Navigation }
+                                navigateCurrentDestination(destination, destinationStateHolder).orActionInapplicable()
+                            }
+                            Action.NavigationItem.NavigateInNewWindow -> {
+                                UiState.openWindow(destination, navigationActionable.initialTitle)
+                                ActionResult.Success()
+                            }
+                        }
                     }
-                    Action.NavigationItem.NavigateInNewWindow -> {
-                        UiState.openWindow(destination, navigationActionable.initialTitle)
-                        true
+                } ?: ActionResult.NoMatch
+            },
+            {
+                keyConfig.list.execute(key, currentDestinationName) { listAction ->
+                    when (listAction.action) {
+                        Action.List.ScrollToTop -> scrollListToTop(focused).orActionInapplicable()
+                        Action.List.ScrollToBottom -> scrollListToBottom(focused).orActionInapplicable()
+                        Action.List.ScrollToStart -> scrollListToStart(focused).orActionInapplicable()
+                        Action.List.ScrollToEnd -> scrollListToEnd(focused).orActionInapplicable()
                     }
                 }
-            } && return true
-        }
-
-        keyConfig.list.execute(key, currentDestinationName) { listAction ->
-            when (listAction.action) {
-                Action.List.ScrollToTop -> scrollListToTop(focused)
-                Action.List.ScrollToBottom -> scrollListToBottom(focused)
-                Action.List.ScrollToStart -> scrollListToStart(focused)
-                Action.List.ScrollToEnd -> scrollListToEnd(focused)
-            }
-        } && return true
-
-        keyConfig.focus.execute(key, currentDestinationName) { focusAction ->
-            when (focusAction.action) {
-                Action.Focus.FocusUp -> moveFocus(FocusDirection.Up, focused)
-                Action.Focus.FocusDown -> moveFocus(FocusDirection.Down, focused)
-                Action.Focus.FocusLeft -> moveFocus(FocusDirection.Left, focused)
-                Action.Focus.FocusRight -> moveFocus(FocusDirection.Right, focused)
-                Action.Focus.FocusTop -> focusCurrentContainerRelative(focused) { it.topCenter } // TODO keep X offset rather than assuming center
-                Action.Focus.FocusCenter -> focusCurrentContainerRelative(focused) { it.center } // TODO keep X offset rather than assuming center
-                Action.Focus.FocusBottom -> focusCurrentContainerRelative(focused) { it.bottomCenter } // TODO keep X offset rather than assuming center
-                Action.Focus.FocusParent -> focusParent(focused)
-                Action.Focus.FocusEnterContainer -> focusEnterContainer(focused)
-            }
-        } && return true
-
-        keyConfig.navigation.execute(key, currentDestinationName) { navigationAction ->
-            when (navigationAction.action) {
-                Action.Navigation.NavigateCurrent -> {
-                    if (navigationAction.args.size != 1) {
-                        log.e("Invalid parameter size for NavigateCurrent action, expected 1 got ${navigationAction.args.size}")
-                        return@execute false
-                    }
-                    val destination = navigationAction.args[0].toDestinationOrNull() ?: run {
-                        log.e("Invalid destination for NavigateCurrent action")
-                        return@execute false
-                    }
-                    navigateCurrentDestination { destination }
+            },
+            {
+                keyConfig.focus.execute(key, currentDestinationName) { focusAction ->
+                    when (focusAction.action) {
+                        Action.Focus.FocusUp -> moveFocus(FocusDirection.Up, focused)
+                        Action.Focus.FocusDown -> moveFocus(FocusDirection.Down, focused)
+                        Action.Focus.FocusLeft -> moveFocus(FocusDirection.Left, focused)
+                        Action.Focus.FocusRight -> moveFocus(FocusDirection.Right, focused)
+                        Action.Focus.FocusTop -> focusCurrentContainerRelative(focused) { it.topCenter } // TODO keep X offset rather than assuming center
+                        Action.Focus.FocusCenter -> focusCurrentContainerRelative(focused) { it.center } // TODO keep X offset rather than assuming center
+                        Action.Focus.FocusBottom -> focusCurrentContainerRelative(focused) { it.bottomCenter } // TODO keep X offset rather than assuming center
+                        Action.Focus.FocusParent -> focusParent(focused)
+                        Action.Focus.FocusEnterContainer -> focusEnterContainer(focused)
+                    }.orActionInapplicable()
                 }
-                Action.Navigation.NavigateInNewWindow -> {
-                    if (navigationAction.args.size != 1) {
-                        log.e("Invalid parameter size for NavigateCurrent action, expected 1 got ${navigationAction.args.size}")
-                        return@execute false
-                    }
-                    val destination = navigationAction.args[0].toDestinationOrNull() ?: run {
-                        log.e("Invalid destination for NavigateCurrent action")
-                        return@execute false
-                    }
-                    UiState.openWindow(destination)
-                    true
-                }
-                Action.Navigation.SplitHorizontal -> navigateCurrentDestination {
-                    Destination.SplitHorizontal(
-                        DestinationStateHolder.forInitialDestination(it),
-                        DestinationStateHolder.forInitialDestination(it),
-                    )
-                }
-                Action.Navigation.SplitVertical -> navigateCurrentDestination {
-                    Destination.SplitVertical(
-                        DestinationStateHolder.forInitialDestination(it),
-                        DestinationStateHolder.forInitialDestination(it),
-                    )
-                }
-                Action.Navigation.CloseWindow -> {
-                    UiState.closeWindow(windowId, applicationScope)
-                    true
-                }
-            }
-        } && return true
-
-        keyConfig.global.execute(key, currentDestinationName) { globalAction ->
-            when (globalAction.action) {
-                Action.Global.Search -> {
-                    if (mode.value is KeyboardActionMode.Search) {
-                        // Search already active, just focus again
-                        focusByRole(FocusRole.SEARCH_BAR)
-                    } else {
-                        handleSearchUpdate("", navigating = false) {
-                            focusByRole(FocusRole.SEARCH_BAR)
+            },
+            {
+                keyConfig.navigation.execute(key, currentDestinationName) { navigationAction ->
+                    when (navigationAction.action) {
+                        Action.Navigation.NavigateCurrent -> {
+                            val destination = navigationAction.args[0].toDestinationOrNull().orActionValidationError()
+                            navigateCurrentDestination { destination }.orActionInapplicable()
+                        }
+                        Action.Navigation.NavigateInNewWindow -> {
+                            // We should have checked this already
+                            val destination = navigationAction.args[0].toDestinationOrNull().orActionValidationError()
+                            UiState.openWindow(destination)
+                            ActionResult.Success()
+                        }
+                        Action.Navigation.SplitHorizontal -> navigateCurrentDestination {
+                            Destination.SplitHorizontal(
+                                DestinationStateHolder.forInitialDestination(it),
+                                DestinationStateHolder.forInitialDestination(it),
+                            )
+                        }.orActionInapplicable()
+                        Action.Navigation.SplitVertical -> navigateCurrentDestination {
+                            Destination.SplitVertical(
+                                DestinationStateHolder.forInitialDestination(it),
+                                DestinationStateHolder.forInitialDestination(it),
+                            )
+                        }.orActionInapplicable()
+                        Action.Navigation.CloseWindow -> {
+                            UiState.closeWindow(windowId, applicationScope)
+                            ActionResult.Success()
                         }
                     }
                 }
-                Action.Global.ToggleTheme -> {
-                    UiState.darkThemeOverride.update {
-                        // TODO if override is null, read automatic theme
-                        !(it ?: false)
+            },
+            {
+                keyConfig.global.execute(key, currentDestinationName) { globalAction ->
+                    when (globalAction.action) {
+                        Action.Global.Search -> {
+                            if (mode.value is KeyboardActionMode.Search) {
+                                // Search already active, just focus again
+                                focusByRole(FocusRole.SEARCH_BAR).orActionInapplicable()
+                            } else {
+                                handleSearchUpdate("", navigating = false) {
+                                    focusByRole(FocusRole.SEARCH_BAR)
+                                }.orActionInapplicable()
+                            }
+                        }
+                        Action.Global.ToggleTheme -> {
+                            UiState.darkThemeOverride.update {
+                                // TODO if override is null, read automatic theme
+                                !(it ?: false)
+                            }
+                            ActionResult.Success()
+                        }
+                        Action.Global.AutomaticTheme -> {
+                            UiState.darkThemeOverride.value = null
+                            ActionResult.Success()
+                        }
+                        Action.Global.ToggleHiddenItems -> {
+                            // TODO move to normal ScPref
+                            UiState.setShowHiddenItems(!UiState.showHiddenItems.value)
+                            ActionResult.Success()
+                        }
+                        Action.Global.SetSetting -> {
+                            scope.launch {
+                                RevengePrefs.handleSetAction(globalAction.args)
+                            }
+                            ActionResult.Success()
+                        }
+                        Action.Global.ToggleSetting -> {
+                            scope.launch {
+                                RevengePrefs.handleToggleAction(globalAction.args)
+                            }
+                            ActionResult.Success()
+                        }
                     }
-                    true
-                }
-                Action.Global.AutomaticTheme -> {
-                    UiState.darkThemeOverride.value = null
-                    true
-                }
-                Action.Global.ToggleHiddenItems -> {
-                    // TODO move to normal ScPref
-                    UiState.setShowHiddenItems(!UiState.showHiddenItems.value)
-                    true
-                }
-                Action.Global.SetSetting -> {
-                    scope.launch {
-                        RevengePrefs.handleSetAction(globalAction.args)
-                    }
-                    true
-                }
-                Action.Global.ToggleSetting -> {
-                    scope.launch {
-                        RevengePrefs.handleToggleAction(globalAction.args)
-                    }
-                    true
                 }
             }
-        } && return true
-        return false
+        )
+
+        return ActionResult.NoMatch
     }
 
     fun onKeyEvent(event: KeyEvent): Boolean {
@@ -686,15 +686,16 @@ class KeyboardActionHandler(
         return success != null
     }
 
-    fun copyToClipboard(content: String): Boolean {
-        val localClipboard = clipboard ?: return false
-        scope.launch {
+    fun copyToClipboard(content: String): ActionResult {
+        val localClipboard = clipboard ?: return ActionResult.Failure("No clipboard found")
+        launchActionAsync("copyToClipboard", scope) {
             localClipboard.setClipEntry(
                 ClipEntry(java.awt.datatransfer.StringSelection(content))
             )
+            // TODO toast or something
+            ActionResult.Success()
         }
-        // TODO toast or something
-        return true
+        return ActionResult.Success()
     }
 }
 
@@ -708,24 +709,177 @@ private fun KeyEvent.toTrigger(): KeyTrigger? {
     )
 }
 
+sealed interface ActionResult {
+    val shouldExit: Boolean
+    fun withChainSetting(chain: Boolean): ActionResult = this
+
+    sealed interface Actioned : ActionResult
+
+    data class Success(
+        // True after launching a coroutine that may still fail, causing the action to be considered "failed" eventually later
+        val async: Boolean = false,
+        override val shouldExit: Boolean = true
+    ) : ActionResult, Actioned {
+        override fun withChainSetting(chain: Boolean) = copy(shouldExit = !chain)
+    }
+    data class Failure(val message: String, override val shouldExit: Boolean = true) : ActionResult, Actioned {
+        override fun withChainSetting(chain: Boolean) = copy(shouldExit = !chain)
+    }
+    data class Malformed(val message: String, override val shouldExit: Boolean = true) : ActionResult {
+        override fun withChainSetting(chain: Boolean) = copy(shouldExit = !chain)
+    }
+    data object Inapplicable : ActionResult {
+        override val shouldExit = false
+    }
+    data object NoMatch : ActionResult {
+        override val shouldExit = false
+    }
+    companion object {
+        fun chain(vararg actionHandlers: () -> ActionResult): ActionResult {
+            var hasChainableSuccess = false
+            actionHandlers.forEach { handler ->
+                val actionResult = handler()
+                if (actionResult.shouldExit) {
+                    return actionResult
+                }
+                if (actionResult is Success) {
+                    hasChainableSuccess = true
+                }
+            }
+            return if (hasChainableSuccess) Success(shouldExit = false) else NoMatch
+        }
+    }
+}
+
+class ActionValidationException() : Exception("Internal action parsing validation error")
+
+fun Boolean.orActionInapplicable() = if (this) ActionResult.Success() else ActionResult.Inapplicable
+fun Boolean.orActionFailure(message: String) = if (this) ActionResult.Success() else ActionResult.Failure(message)
+fun <T>T?.orActionValidationError() = this ?: throw ActionValidationException()
+
 /**
  * Try all possible bindings for a given key until the first one returns true.
  */
 fun <A: Action>List<Binding<A>>.execute(
     key: KeyTrigger,
     currentDestinationName: String?,
-    block: (Binding<A>) -> Boolean
-): Boolean {
+    block: (Binding<A>) -> ActionResult
+): ActionResult {
     val actions = filter {
         it.trigger == key && (it.destinations.isEmpty() || it.destinations.contains(currentDestinationName))
     }
+    var hasChainableSuccess = false
     actions.forEach { action ->
-        if (block(action)) {
-            // True if consumed. If `chain` is true, we want to allow other actions after this one.
-            return !action.chain
+        val actionResult = try {
+            action.checkArguments() ?: block(action).withChainSetting(action.chain)
+        } catch (e: IndexOutOfBoundsException) {
+            Logger.e("Error executing action", e)
+            ActionResult.Failure(e.message ?: "Exception occurred trying to execute action")
+        } catch (e: ActionValidationException) {
+            Logger.e("Error executing action", e)
+            ActionResult.Failure(e.message ?: "Exception occurred trying to execute action")
+        }
+        if (actionResult.shouldExit) {
+            return actionResult
+        }
+        if (actionResult is ActionResult.Success) {
+            hasChainableSuccess = true
         }
     }
-    return false
+    return if (hasChainableSuccess) ActionResult.Success(shouldExit = false) else ActionResult.NoMatch
+}
+
+fun Binding<*>.checkArguments(
+    validSessionIds: List<String>? = UiState.currentValidSessionIds.value,
+    validSettingKeys: List<String> = ScPrefs.validSettingKeys,
+): ActionResult.Malformed? {
+    val actionName = javaClass.simpleName
+    if (action.args.size != args.size) {
+        return ActionResult.Malformed(
+            "Invalid parameter size for $actionName, expected ${action.args.size} got ${args.size}"
+        )
+    }
+    action.args.zip(args).forEach { (argDef, argVal) ->
+        when (argDef) {
+            ActionArgument.Text -> {}
+            ActionArgument.Boolean -> {
+                if (argVal.toBooleanStrictOrNull() == null) {
+                    return ActionResult.Malformed(
+                        "Invalid parameter for $actionName, expected boolean got $argVal"
+                    )
+                }
+            }
+            ActionArgument.Integer -> {
+                if (argVal.toIntOrNull() == null) {
+                    return ActionResult.Malformed(
+                        "Invalid parameter for $actionName, expected int got $argVal"
+                    )
+                }
+            }
+            ActionArgument.SessionId,
+            ActionArgument.Mxid -> {
+                if (argDef == ActionArgument.SessionId && validSessionIds != null) {
+                    if (!validSessionIds.contains(argVal)) {
+                        return ActionResult.Malformed(
+                            "Invalid parameter for $actionName, not an existing user login: $argVal"
+                        )
+                    }
+                } else {
+                    // TODO full mxid regex checking
+                    if (!argVal.startsWith("@") || !argVal.contains(":")) {
+                        return ActionResult.Malformed(
+                            "Invalid parameter for $actionName, expected MXID got $argVal"
+                        )
+                    }
+                }
+            }
+            ActionArgument.RoomId -> {
+                if (!argVal.startsWith("!")) {
+                    return ActionResult.Malformed(
+                        "Invalid parameter for $actionName, expected room ID got $argVal"
+                    )
+                }
+            }
+            ActionArgument.EventId -> {
+                if (!argVal.startsWith("$")) {
+                    return ActionResult.Malformed(
+                        "Invalid parameter for $actionName, expected room ID got $argVal"
+                    )
+                }
+            }
+            ActionArgument.SettingKey -> {
+                if (argVal !in validSettingKeys) {
+                    return ActionResult.Malformed(
+                        "Invalid parameter for $actionName, not a valid settings key: $argVal"
+                    )
+                }
+            }
+            ActionArgument.NavigatableDestinationName -> {
+                if (argVal.toDestinationOrNull() == null) {
+                    return ActionResult.Malformed(
+                        "Invalid parameter for $actionName, not a valid destination: $argVal"
+                    )
+                }
+            }
+        }
+    }
+    return null
+}
+
+fun launchActionAsync(
+    actionName: String,
+    scope: CoroutineScope,
+    context: CoroutineContext = EmptyCoroutineContext,
+    block: suspend () -> ActionResult,
+): ActionResult {
+    // TODO track error for UI and stuff
+    scope.launch(context) {
+        val result = block()
+        if (result is ActionResult.Failure) {
+            Logger.withTag("AsyncAction").e("Failed to execute $actionName: ${result.message}")
+        }
+    }
+    return ActionResult.Success(async = true)
 }
 
 private fun String.toDestinationOrNull() = when (lowercase()) {

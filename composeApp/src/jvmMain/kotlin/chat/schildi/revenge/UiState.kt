@@ -101,6 +101,9 @@ object UiState {
         }
     }.stateIn(scope, SharingStarted.Eagerly, persistentListOf())
 
+    val currentValidSessionIds = combinedSessions.map { it.map { it.client.sessionId.value } }
+        .stateIn(scope, SharingStarted.Eagerly, null)
+
     fun selectClient(sessionId: SessionId, scope: CoroutineScope) = matrixClients.map {
         it[sessionId]
     }.stateIn(scope, SharingStarted.Eagerly, null)

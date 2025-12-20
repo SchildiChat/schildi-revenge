@@ -13,10 +13,14 @@ import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.GlobalActionsScope
+import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.KeyboardActionHandler
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
+import chat.schildi.revenge.actions.launchActionAsync
+import chat.schildi.revenge.actions.orActionInapplicable
+import chat.schildi.revenge.actions.orActionValidationError
 import chat.schildi.revenge.compose.util.insertAtCursor
 import chat.schildi.revenge.compose.util.insertTextFieldValue
 import chat.schildi.revenge.compose.util.toStringHolder
@@ -171,16 +175,16 @@ class ConversationViewModel(
         DraftRepo.update(draftKey, value)
     }
 
-    override fun sendMessage(): Boolean {
+    override fun sendMessage(): ActionResult {
         val draft = composerState.value
         if (draft.isEmpty()) {
             log.w("Refuse to send blank message")
-            return false
+            return ActionResult.Inapplicable
         }
         val currentTimeline = activeTimeline.value
         if (currentTimeline == null) {
             log.e("Cannot send message on null timeline")
-            return false
+            return ActionResult.Failure("No timeline available for chat")
         }
         DraftRepo.update(draftKey, draft.copy(isSendInProgress = true))
         GlobalActionsScope.launch(Dispatchers.IO) {
@@ -262,7 +266,7 @@ class ConversationViewModel(
         if (composerSettings.value.autoHideComposer || draft.type == DraftType.REACTION) {
             forceShowComposer.value = false
         }
-        return true
+        return ActionResult.Success(async = true)
     }
 
     val userProfile = clientFlow.flatMapLatest { it?.userProfile ?: flowOf(null) }
@@ -314,13 +318,14 @@ class ConversationViewModel(
         }
     }
 
-    override fun handleNavigationModeEvent(key: KeyTrigger, currentDestinationName: String?): Boolean {
+    override fun handleNavigationModeEvent(key: KeyTrigger, currentDestinationName: String?): ActionResult {
         val keyConfig = UiState.keybindingsConfig.value
         return keyConfig.conversation.execute(key, currentDestinationName) { conversationAction ->
             when (conversationAction.action) {
                 Action.Conversation.FocusComposer -> {
                     !forceShowComposer.getAndUpdate { true }
                     keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
+                    ActionResult.Success()
                 }
 
                 Action.Conversation.HideComposerIfEmpty -> {
@@ -336,9 +341,9 @@ class ConversationViewModel(
                         }
                     }
                     if (wasEmpty) {
-                        forceShowComposer.getAndUpdate { false }
+                        forceShowComposer.getAndUpdate { false }.orActionInapplicable()
                     } else {
-                        false
+                        ActionResult.Inapplicable
                     }
                 }
 
@@ -349,7 +354,7 @@ class ConversationViewModel(
                             ?: DraftValue(type = DraftType.TEXT)
                     }
                     keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
-                    true
+                    ActionResult.Success()
                 }
 
                 Action.Conversation.ComposeNotice -> {
@@ -359,7 +364,7 @@ class ConversationViewModel(
                             ?: DraftValue(type = DraftType.NOTICE)
                     }
                     keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
-                    true
+                    ActionResult.Success()
                 }
 
                 Action.Conversation.ComposeEmote -> {
@@ -369,16 +374,12 @@ class ConversationViewModel(
                             ?: DraftValue(type = DraftType.EMOTE)
                     }
                     keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
-                    true
+                    ActionResult.Success()
                 }
 
                 Action.Conversation.ComposerSend -> sendMessage()
 
                 Action.Conversation.ComposerInsertAtCursor -> {
-                    if (conversationAction.args.size != 1) {
-                        log.e("Invalid parameter size for ComposerInsertAtCursor action, expected 1 got ${conversationAction.args.size}")
-                        return@execute false
-                    }
                     var hasDraft = false
                     DraftRepo.update(draftKey) {
                         hasDraft = it != null
@@ -386,63 +387,63 @@ class ConversationViewModel(
                             textFieldValue = it.textFieldValue.insertAtCursor(conversationAction.args[0])
                         )
                     }
-                    hasDraft
+                    hasDraft.orActionInapplicable()
                 }
 
-                Action.Conversation.JumpToLastFullyRead -> {
-                    viewModelScope.launch(Dispatchers.IO) {
-                        activeTimeline.value?.fullyReadEventId()?.let { eventId ->
-                            focusOnEvent(EventId(eventId))
-                        } ?: run {
-                            log.e("Could not find fully read eventId")
-                        }
-                    }
-                    true
+                Action.Conversation.JumpToLastFullyRead -> launchActionAsync(
+                    conversationAction.action.name,
+                    viewModelScope,
+                    Dispatchers.IO
+                ) {
+                    activeTimeline.value?.fullyReadEventId()?.let { eventId ->
+                        focusOnEvent(EventId(eventId))
+                        ActionResult.Success()
+                    } ?: ActionResult.Failure("Could not find fully read eventId")
                 }
 
                 Action.Conversation.JumpToBottom -> {
                     timelineController.value?.focusOnLive() ?: run {
                         log.e("Could not find timeline controller")
-                        return@execute false
+                        return@execute ActionResult.Failure("Timeline not ready")
                     }
                     _targetEvent.value = EventJumpTarget.Index(0)
-                    true
+                    ActionResult.Success(async = true)
                 }
 
                 Action.Conversation.MarkUnread -> {
                     val room = roomPair.value.first ?: run {
                         log.e("Could not find room")
-                        return@execute false
+                        return@execute ActionResult.Failure("Room not ready")
                     }
                     GlobalActionsScope.launch(Dispatchers.IO) {
                         room.setUnreadFlag(true)
                             .onFailure { log.e("Failed to set unread flag", it) }
                     }
-                    true
+                    ActionResult.Success(async = true)
                 }
 
                 Action.Conversation.MarkRead -> {
                     val timeline = activeTimeline.value ?: run {
                         log.e("Could not find timeline")
-                        return@execute false
+                        return@execute ActionResult.Failure("Timeline not ready")
                     }
                     GlobalActionsScope.launch(Dispatchers.IO) {
                         timeline.markAsRead(ReceiptType.READ)
                         timeline.markAsRead(ReceiptType.FULLY_READ)
                     }
-                    true
+                    ActionResult.Success(async = true)
                 }
 
                 Action.Conversation.MarkReadPrivate -> {
                     val timeline = activeTimeline.value ?: run {
                         log.e("Could not find timeline")
-                        return@execute false
+                        return@execute ActionResult.Failure("Timeline not ready")
                     }
                     GlobalActionsScope.launch(Dispatchers.IO) {
                         timeline.markAsRead(ReceiptType.READ_PRIVATE)
                         timeline.markAsRead(ReceiptType.FULLY_READ)
                     }
-                    true
+                    ActionResult.Success(async = true)
                 }
             }
         }
@@ -458,21 +459,29 @@ class ConversationViewModel(
             .onSuccess { _targetEvent.emit(EventJumpTarget.Event(eventId)) }
     }
 
-    private fun markEventAsRead(eventId: EventId, receiptType: ReceiptType): Boolean {
-        val timeline = timelineController.value ?: run {
-            log.e { "No timeline to execute event action" }
-            return false
-        }
-        GlobalActionsScope.launch(Dispatchers.IO) {
+    private fun markEventAsRead(eventId: EventId, receiptType: ReceiptType): ActionResult {
+        val timeline = timelineController.value ?: return ActionResult.Failure("Timeline not ready")
+        return launchActionAsync("MarkEventAsRead", GlobalActionsScope, Dispatchers.IO) {
+            var hasFailure = false
             timeline.invokeOnCurrentTimeline {
                 sendReadReceipt(eventId, receiptType)
-                    .onFailure { log.e("Failed to send private read receipt", it) }
+                    .onFailure {
+                        log.e("Failed to send private read receipt", it)
+                        hasFailure = true
+                    }
                 // Always keep fully read in sync with read receipts for now
                 sendReadReceipt(eventId, ReceiptType.FULLY_READ)
-                    .onFailure { log.e("Failed to send fully read marker", it) }
+                    .onFailure {
+                        log.e("Failed to send fully read marker", it)
+                        hasFailure = true
+                    }
+            }
+            if (hasFailure) {
+                ActionResult.Failure("Failed to send read receipt or read marker")
+            } else {
+                ActionResult.Success()
             }
         }
-        return true
     }
 
     fun getKeyboardActionProviderForEvent(event: EventTimelineItem): KeyboardActionProvider {
@@ -481,16 +490,16 @@ class ConversationViewModel(
             EventOrTransactionId.from(event.eventId, event.transactionId)
         }
         return object : KeyboardActionProvider {
-            override fun handleNavigationModeEvent(key: KeyTrigger, currentDestinationName: String?): Boolean {
+            override fun handleNavigationModeEvent(key: KeyTrigger, currentDestinationName: String?): ActionResult {
                 return UiState.keybindingsConfig.value.event.execute(key, currentDestinationName) { binding ->
                     when (binding.action) {
-                        Action.Event.MarkRead -> eventId?.let { markEventAsRead(eventId, ReceiptType.READ) } ?: false
+                        Action.Event.MarkRead -> eventId?.let { markEventAsRead(eventId, ReceiptType.READ) } ?: ActionResult.Inapplicable
                         Action.Event.MarkReadPrivate -> eventId?.let {
                             markEventAsRead(
                                 eventId,
                                 ReceiptType.READ_PRIVATE
                             )
-                        } ?: false
+                        } ?: ActionResult.Inapplicable
 
                         Action.Event.ComposeReply -> eventId?.let {
                             forceShowComposer.value = true
@@ -505,8 +514,8 @@ class ConversationViewModel(
                                     ?: DraftValue(inReplyTo = inReplyTo)
                             }
                             keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
-                            true
-                        } ?: false
+                            ActionResult.Success()
+                        } ?: ActionResult.Inapplicable
 
                         Action.Event.ComposeEdit -> eventOrTransactionId?.let {
                             val eventContent = event.content
@@ -535,17 +544,17 @@ class ConversationViewModel(
                                     is OtherMessageType -> null
                                 }
                                 if (draftValue == null) {
-                                    false
+                                    ActionResult.Inapplicable
                                 } else {
                                     forceShowComposer.value = true
                                     DraftRepo.update(draftKey, draftValue)
                                     keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
-                                    true
+                                    ActionResult.Success()
                                 }
                             } else {
-                                false
+                                ActionResult.Inapplicable
                             }
-                        } ?: false
+                        } ?: ActionResult.Inapplicable
 
                         Action.Event.ComposeReaction -> eventId?.let {
                             forceShowComposer.value = true
@@ -560,24 +569,25 @@ class ConversationViewModel(
                                     ?: DraftValue(inReplyTo = inReplyTo, type = DraftType.REACTION)
                             }
                             keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
-                        } ?: false
+                            ActionResult.Success()
+                        } ?: ActionResult.Inapplicable
 
                         Action.Event.CopyContent -> {
                             (event.content as? MessageContent)?.body?.let { content ->
                                 keyboardActionHandler.copyToClipboard(content)
-                            } ?: false
+                            } ?: ActionResult.Inapplicable
                         }
 
                         Action.Event.CopyEventSource -> {
                             event.timelineItemDebugInfoProvider().originalJson?.toPrettyJson()?.let { eventSource ->
                                 keyboardActionHandler.copyToClipboard(eventSource)
-                            } ?: false
+                            } ?: ActionResult.Inapplicable
                         }
 
                         Action.Event.CopyEventId -> {
                             (eventId?.value ?: event.transactionId?.value)?.let {
                                 keyboardActionHandler.copyToClipboard(it)
-                            } ?: false
+                            } ?: ActionResult.Inapplicable
                         }
 
                         Action.Event.CopyMxId -> {
