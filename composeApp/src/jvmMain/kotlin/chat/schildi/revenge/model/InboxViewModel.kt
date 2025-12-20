@@ -286,20 +286,6 @@ class InboxViewModel(
         val keyConfig = UiState.keybindingsConfig.value
         return keyConfig.inbox.execute(key, currentDestinationName) { inboxAction ->
             when (inboxAction.action) {
-                Action.Inbox.SetSetting -> {
-                    viewModelScope.launch {
-                        scPreferencesStore.handleSetAction(inboxAction.args)
-                    }
-                    true
-                }
-
-                Action.Inbox.ToggleSetting -> {
-                    viewModelScope.launch {
-                        scPreferencesStore.handleToggleAction(inboxAction.args)
-                    }
-                    true
-                }
-
                 Action.Inbox.SetAccountHidden -> {
                     if (inboxAction.args.size != 2) {
                         log.e("Invalid parameter size for SetAccountHidden action, expected 2 got ${inboxAction.args.size}")

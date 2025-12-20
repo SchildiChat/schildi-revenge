@@ -475,16 +475,27 @@ class KeyboardActionHandler(
 
         keyConfig.navigation.execute(key, currentDestinationName) { navigationAction ->
             when (navigationAction.action) {
-                Action.Navigation.InboxInCurrent -> navigateCurrentDestination { Destination.Inbox }
-                Action.Navigation.AccountManagementInCurrent -> navigateCurrentDestination {
-                    Destination.AccountManagement
+                Action.Navigation.NavigateCurrent -> {
+                    if (navigationAction.args.size != 1) {
+                        log.e("Invalid parameter size for NavigateCurrent action, expected 1 got ${navigationAction.args.size}")
+                        return@execute false
+                    }
+                    val destination = navigationAction.args[0].toDestinationOrNull() ?: run {
+                        log.e("Invalid destination for NavigateCurrent action")
+                        return@execute false
+                    }
+                    navigateCurrentDestination { destination }
                 }
-                Action.Navigation.InboxInNewWindow -> {
-                    UiState.openWindow(Destination.Inbox)
-                    true
-                }
-                Action.Navigation.AccountManagementInNewWindow -> {
-                    UiState.openWindow(Destination.AccountManagement)
+                Action.Navigation.NavigateInNewWindow -> {
+                    if (navigationAction.args.size != 1) {
+                        log.e("Invalid parameter size for NavigateCurrent action, expected 1 got ${navigationAction.args.size}")
+                        return@execute false
+                    }
+                    val destination = navigationAction.args[0].toDestinationOrNull() ?: run {
+                        log.e("Invalid destination for NavigateCurrent action")
+                        return@execute false
+                    }
+                    UiState.openWindow(destination)
                     true
                 }
                 Action.Navigation.SplitHorizontal -> navigateCurrentDestination {
@@ -715,4 +726,11 @@ fun <A: Action>List<Binding<A>>.execute(
         }
     }
     return false
+}
+
+private fun String.toDestinationOrNull() = when (lowercase()) {
+    "inbox" -> Destination.Inbox
+    "accountmanagement",
+    "accounts" -> Destination.AccountManagement
+    else -> null
 }

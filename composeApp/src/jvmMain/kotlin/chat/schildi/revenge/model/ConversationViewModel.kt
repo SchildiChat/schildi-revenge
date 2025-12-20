@@ -318,20 +318,6 @@ class ConversationViewModel(
         val keyConfig = UiState.keybindingsConfig.value
         return keyConfig.conversation.execute(key, currentDestinationName) { conversationAction ->
             when (conversationAction.action) {
-                Action.Conversation.SetSetting -> {
-                    viewModelScope.launch {
-                        RevengePrefs.handleSetAction(conversationAction.args)
-                    }
-                    true
-                }
-
-                Action.Conversation.ToggleSetting -> {
-                    viewModelScope.launch {
-                        RevengePrefs.handleToggleAction(conversationAction.args)
-                    }
-                    true
-                }
-
                 Action.Conversation.FocusComposer -> {
                     !forceShowComposer.getAndUpdate { true }
                     keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
@@ -388,9 +374,9 @@ class ConversationViewModel(
 
                 Action.Conversation.ComposerSend -> sendMessage()
 
-                Action.Conversation.ComposerInsertAddCursor -> {
+                Action.Conversation.ComposerInsertAtCursor -> {
                     if (conversationAction.args.size != 1) {
-                        log.e("Invalid parameter size for ComposerInsertAddCursor action, expected 1 got ${conversationAction.args.size}")
+                        log.e("Invalid parameter size for ComposerInsertAtCursor action, expected 1 got ${conversationAction.args.size}")
                         return@execute false
                     }
                     var hasDraft = false
