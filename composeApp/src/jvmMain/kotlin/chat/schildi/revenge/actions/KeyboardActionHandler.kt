@@ -23,13 +23,11 @@ import androidx.compose.ui.unit.toIntSize
 import androidx.compose.ui.window.ApplicationScope
 import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPrefs
-import chat.schildi.preferences.collectScPrefs
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.focus.FocusParent
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.Destination
-import chat.schildi.revenge.GlobalActionsScope
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.ActionArgument
@@ -40,6 +38,9 @@ import chat.schildi.revenge.config.keybindings.Binding
 import chat.schildi.revenge.config.keybindings.KeyMapped
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import co.touchlab.kermit.Logger
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -93,12 +94,26 @@ sealed interface KeyboardActionMode {
     ) : KeyboardActionMode
 }
 
+data class AppMessage(
+    val message: String,
+    val isError: Boolean,
+    val timestamp: Long,
+    val uniqueId: String?,
+    val dismissedTimestamp: Long? = null,
+)
+
+// TODO config or something
+const val MESSAGE_EXPIRY_DURATION = 5000L
+
 class KeyboardActionHandler(
     private val scope: CoroutineScope,
     private val windowId: Int,
     private val applicationScope: ApplicationScope,
 ) {
     private val log = Logger.withTag("Nav/$windowId")
+
+    private val _messageBoard = MutableStateFlow<ImmutableList<AppMessage>>(persistentListOf())
+    val messageBoard = _messageBoard.asStateFlow()
 
     // Set once available via LocalCompositionProvider
     var focusManager: FocusManager? = null
@@ -282,6 +297,43 @@ class KeyboardActionHandler(
         } ?: false
     }
 
+    fun publishMessage(message: String, isError: Boolean = false, uniqueId: String? = null) {
+        val now = System.currentTimeMillis()
+        val appMessage = AppMessage(
+            message = message,
+            isError = isError,
+            uniqueId = uniqueId,
+            timestamp = now,
+        )
+        _messageBoard.update {
+            val filtered = if (uniqueId == null) {
+                it
+            } else {
+                it.filter { it.uniqueId != uniqueId }
+            }
+            (filtered + appMessage).toPersistentList()
+        }
+    }
+
+    fun cleanUpMessageBoard() {
+        val now = System.currentTimeMillis()
+        _messageBoard.update {
+            if (it.isEmpty()) {
+                it
+            } else {
+                it.mapNotNull {
+                    if (it.dismissedTimestamp?.let { now > it + MESSAGE_EXPIRY_DURATION * 2 } == true) {
+                        null
+                    } else if (now > it.timestamp + MESSAGE_EXPIRY_DURATION) {
+                        it.copy(dismissedTimestamp = now)
+                    } else {
+                        it
+                    }
+                }.toPersistentList()
+            }
+        }
+    }
+
     fun onPreviewKeyEvent(event: KeyEvent): Boolean {
         val trigger = event.toTrigger() ?: return false
         val focused = currentFocused()
@@ -431,16 +483,25 @@ class KeyboardActionHandler(
 
     private fun handleNavigationEvent(key: KeyTrigger, focused: FocusTarget?): ActionResult {
         val currentDestination = focused?.destinationStateHolder?.state?.value?.destination
-        val currentDestinationName = currentDestination?.name
         val keyConfig = UiState.keybindingsConfig.value
+
+        val context = object : ActionContext {
+            override fun publishMessage(message: String, isError: Boolean) =
+                this@KeyboardActionHandler.publishMessage(message, isError)
+            override fun copyToClipboard(content: String, description: String) =
+                this@KeyboardActionHandler.copyToClipboard(this, content, description)
+            override fun focusByRole(role: FocusRole) =
+                this@KeyboardActionHandler.focusByRole(role)
+            override val currentDestinationName: String? = currentDestination?.name
+        }
 
         return ActionResult.chain(
             {
-                focused?.actions?.keyActions?.handleNavigationModeEvent(key, currentDestinationName) ?: ActionResult.NoMatch
+                focused?.actions?.keyActions?.handleNavigationModeEvent(context, key) ?: ActionResult.NoMatch
             },
             {
                 (focused?.actions?.primaryAction as? InteractionAction.NavigationAction)?.let { navigationActionable ->
-                    keyConfig.navigationItem.execute(key, currentDestinationName) { navigationAction ->
+                    keyConfig.navigationItem.execute(context, key) { navigationAction ->
                         val destination = navigationActionable.buildDestination()
                         when (navigationAction.action) {
                             Action.NavigationItem.NavigateCurrent -> {
@@ -457,7 +518,7 @@ class KeyboardActionHandler(
                 } ?: ActionResult.NoMatch
             },
             {
-                keyConfig.list.execute(key, currentDestinationName) { listAction ->
+                keyConfig.list.execute(context, key) { listAction ->
                     when (listAction.action) {
                         Action.List.ScrollToTop -> scrollListToTop(focused).orActionInapplicable()
                         Action.List.ScrollToBottom -> scrollListToBottom(focused).orActionInapplicable()
@@ -467,7 +528,7 @@ class KeyboardActionHandler(
                 }
             },
             {
-                keyConfig.focus.execute(key, currentDestinationName) { focusAction ->
+                keyConfig.focus.execute(context, key) { focusAction ->
                     when (focusAction.action) {
                         Action.Focus.FocusUp -> moveFocus(FocusDirection.Up, focused)
                         Action.Focus.FocusDown -> moveFocus(FocusDirection.Down, focused)
@@ -482,7 +543,7 @@ class KeyboardActionHandler(
                 }
             },
             {
-                keyConfig.navigation.execute(key, currentDestinationName) { navigationAction ->
+                keyConfig.navigation.execute(context, key) { navigationAction ->
                     when (navigationAction.action) {
                         Action.Navigation.NavigateCurrent -> {
                             val destination = navigationAction.args[0].toDestinationOrNull().orActionValidationError()
@@ -514,7 +575,7 @@ class KeyboardActionHandler(
                 }
             },
             {
-                keyConfig.global.execute(key, currentDestinationName) { globalAction ->
+                keyConfig.global.execute(context, key) { globalAction ->
                     when (globalAction.action) {
                         Action.Global.Search -> {
                             if (mode.value is KeyboardActionMode.Search) {
@@ -554,12 +615,28 @@ class KeyboardActionHandler(
                             }
                             ActionResult.Success()
                         }
+                        Action.Global.ClearAppMessages -> {
+                            var wasEmpty = true
+                            val now = System.currentTimeMillis()
+                            _messageBoard.update {
+                                if (it.isEmpty()) {
+                                    wasEmpty = true
+                                    it
+                                } else {
+                                    wasEmpty = false
+                                    it.map { it.copy(dismissedTimestamp = now) }.toPersistentList()
+                                }
+                            }
+                            if (wasEmpty) {
+                                ActionResult.Success()
+                            } else {
+                                ActionResult.Inapplicable
+                            }
+                        }
                     }
                 }
             }
         )
-
-        return ActionResult.NoMatch
     }
 
     fun onKeyEvent(event: KeyEvent): Boolean {
@@ -686,13 +763,17 @@ class KeyboardActionHandler(
         return success != null
     }
 
-    fun copyToClipboard(content: String): ActionResult {
+    fun copyToClipboard(context: ActionContext, content: String, description: String): ActionResult {
         val localClipboard = clipboard ?: return ActionResult.Failure("No clipboard found")
-        launchActionAsync("copyToClipboard", scope) {
+        context.launchActionAsync("copyToClipboard", scope) {
             localClipboard.setClipEntry(
                 ClipEntry(java.awt.datatransfer.StringSelection(content))
             )
-            // TODO toast or something
+            // TODO how to do string resources here
+            publishMessage(
+                "Copied $description to clipboard",
+                uniqueId = "clipboard",
+            )
             ActionResult.Success()
         }
         return ActionResult.Success()
@@ -718,6 +799,7 @@ sealed interface ActionResult {
     data class Success(
         // True after launching a coroutine that may still fail, causing the action to be considered "failed" eventually later
         val async: Boolean = false,
+        val notifySuccess: Boolean = async,
         override val shouldExit: Boolean = true
     ) : ActionResult, Actioned {
         override fun withChainSetting(chain: Boolean) = copy(shouldExit = !chain)
@@ -761,12 +843,12 @@ fun <T>T?.orActionValidationError() = this ?: throw ActionValidationException()
  * Try all possible bindings for a given key until the first one returns true.
  */
 fun <A: Action>List<Binding<A>>.execute(
+    context: ActionContext,
     key: KeyTrigger,
-    currentDestinationName: String?,
-    block: (Binding<A>) -> ActionResult
-): ActionResult {
+    block: ActionContext.(Binding<A>) -> ActionResult
+): ActionResult = context.run {
     val actions = filter {
-        it.trigger == key && (it.destinations.isEmpty() || it.destinations.contains(currentDestinationName))
+        it.trigger == key && (it.destinations.isEmpty() || it.destinations.contains(context.currentDestinationName))
     }
     var hasChainableSuccess = false
     actions.forEach { action ->
@@ -866,17 +948,26 @@ fun Binding<*>.checkArguments(
     return null
 }
 
-fun launchActionAsync(
+interface ActionContext {
+    fun publishMessage(message: String, isError: Boolean = false)
+    fun copyToClipboard(content: String, description: String): ActionResult
+    fun focusByRole(role: FocusRole): Boolean
+    val currentDestinationName: String?
+}
+
+fun ActionContext.launchActionAsync(
     actionName: String,
     scope: CoroutineScope,
     context: CoroutineContext = EmptyCoroutineContext,
     block: suspend () -> ActionResult,
 ): ActionResult {
-    // TODO track error for UI and stuff
     scope.launch(context) {
         val result = block()
         if (result is ActionResult.Failure) {
             Logger.withTag("AsyncAction").e("Failed to execute $actionName: ${result.message}")
+            publishMessage(result.message, isError = true)
+        } else if ((result as? ActionResult.Success)?.notifySuccess == true) {
+            publishMessage("Success: $actionName", isError = true)
         }
     }
     return ActionResult.Success(async = true)

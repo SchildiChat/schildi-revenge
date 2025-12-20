@@ -25,6 +25,7 @@ sealed interface Action {
         ToggleHiddenItems,
         SetSetting(args = listOf(ActionArgument.SettingKey, ActionArgument.Text)),
         ToggleSetting(args = listOf(ActionArgument.SettingKey)),
+        ClearAppMessages,
     }
     enum class Navigation(
         override val aliases: kotlin.collections.List<String> = emptyList(),

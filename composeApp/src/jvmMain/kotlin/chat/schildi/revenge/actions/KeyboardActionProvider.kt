@@ -15,17 +15,17 @@ fun KeyboardActionProvider.hierarchicalKeyboardActionProvider(): HierarchicalKey
 }
 
 interface KeyboardActionProvider {
-    fun handleNavigationModeEvent(key: KeyTrigger, currentDestinationName: String?): ActionResult
+    fun handleNavigationModeEvent(context: ActionContext, key: KeyTrigger): ActionResult
 }
 
 data class HierarchicalKeyboardActionProvider(
     val instance: KeyboardActionProvider,
     val parent: HierarchicalKeyboardActionProvider?,
 ) : KeyboardActionProvider {
-    override fun handleNavigationModeEvent(key: KeyTrigger, currentDestinationName: String?): ActionResult {
+    override fun handleNavigationModeEvent(context: ActionContext, key: KeyTrigger): ActionResult {
         return ActionResult.chain(
-            { instance.handleNavigationModeEvent(key, currentDestinationName) },
-            { parent?.handleNavigationModeEvent(key, currentDestinationName) ?: ActionResult.NoMatch }
+            { instance.handleNavigationModeEvent(context, key) },
+            { parent?.handleNavigationModeEvent(context, key) ?: ActionResult.NoMatch }
         )
     }
 }

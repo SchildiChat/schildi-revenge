@@ -50,14 +50,14 @@ import kotlinx.collections.immutable.persistentListOf
 
 @Composable
 fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier = Modifier) {
-    BoxWithConstraints {
+    BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
         val contentHeight = maxHeight
         val density = LocalDensity.current
 
         val keyHandler = LocalKeyboardActionHandler.current
         val viewModel: ConversationViewModel = viewModel(
             key = "${LocalDestinationState.current?.id}/${destination.sessionId}/${destination.roomId}",
-            factory = ConversationViewModel.factory(destination.sessionId, destination.roomId, keyHandler)
+            factory = ConversationViewModel.factory(destination.sessionId, destination.roomId)
         )
         val timelineItems = viewModel.timelineItems.collectAsState(persistentListOf()).value
         val forwardPaginationStatus = viewModel.forwardPaginationStatus.collectAsState(null).value
@@ -133,7 +133,6 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
             //LocalSearchProvider provides viewModel, // TODO CV search
             LocalKeyboardActionProvider provides viewModel.hierarchicalKeyboardActionProvider(),
             LocalListActionProvider provides listAction,
-            modifier = modifier,
             role = FocusRole.DESTINATION_ROOT_CONTAINER,
         ) {
             val roomMembersById = viewModel.roomMembersById.collectAsState()

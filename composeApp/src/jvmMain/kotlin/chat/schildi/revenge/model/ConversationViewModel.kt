@@ -13,6 +13,7 @@ import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.GlobalActionsScope
+import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.KeyboardActionHandler
@@ -90,7 +91,6 @@ sealed interface EventJumpTarget {
 class ConversationViewModel(
     private val sessionId: SessionId,
     private val roomId: RoomId,
-    private val keyboardActionHandler: KeyboardActionHandler,
     private val appGraph: AppGraph = UiState.appGraph,
 ) : ViewModel(), TitleProvider, KeyboardActionProvider, ComposerViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
@@ -318,13 +318,13 @@ class ConversationViewModel(
         }
     }
 
-    override fun handleNavigationModeEvent(key: KeyTrigger, currentDestinationName: String?): ActionResult {
+    override fun handleNavigationModeEvent(context: ActionContext, key: KeyTrigger): ActionResult {
         val keyConfig = UiState.keybindingsConfig.value
-        return keyConfig.conversation.execute(key, currentDestinationName) { conversationAction ->
+        return keyConfig.conversation.execute(context, key) { conversationAction ->
             when (conversationAction.action) {
                 Action.Conversation.FocusComposer -> {
                     !forceShowComposer.getAndUpdate { true }
-                    keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
+                    focusByRole(FocusRole.MESSAGE_COMPOSER)
                     ActionResult.Success()
                 }
 
@@ -353,7 +353,7 @@ class ConversationViewModel(
                         it?.copy(type = DraftType.TEXT, editEventId = null, initialBody = "")
                             ?: DraftValue(type = DraftType.TEXT)
                     }
-                    keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
+                    focusByRole(FocusRole.MESSAGE_COMPOSER)
                     ActionResult.Success()
                 }
 
@@ -363,7 +363,7 @@ class ConversationViewModel(
                         it?.copy(type = DraftType.NOTICE, editEventId = null, initialBody = "")
                             ?: DraftValue(type = DraftType.NOTICE)
                     }
-                    keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
+                    focusByRole(FocusRole.MESSAGE_COMPOSER)
                     ActionResult.Success()
                 }
 
@@ -373,7 +373,7 @@ class ConversationViewModel(
                         it?.copy(type = DraftType.EMOTE, editEventId = null, initialBody = "")
                             ?: DraftValue(type = DraftType.EMOTE)
                     }
-                    keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
+                    focusByRole(FocusRole.MESSAGE_COMPOSER)
                     ActionResult.Success()
                 }
 
@@ -459,7 +459,7 @@ class ConversationViewModel(
             .onSuccess { _targetEvent.emit(EventJumpTarget.Event(eventId)) }
     }
 
-    private fun markEventAsRead(eventId: EventId, receiptType: ReceiptType): ActionResult {
+    private fun ActionContext.markEventAsRead(eventId: EventId, receiptType: ReceiptType): ActionResult {
         val timeline = timelineController.value ?: return ActionResult.Failure("Timeline not ready")
         return launchActionAsync("MarkEventAsRead", GlobalActionsScope, Dispatchers.IO) {
             var hasFailure = false
@@ -490,8 +490,8 @@ class ConversationViewModel(
             EventOrTransactionId.from(event.eventId, event.transactionId)
         }
         return object : KeyboardActionProvider {
-            override fun handleNavigationModeEvent(key: KeyTrigger, currentDestinationName: String?): ActionResult {
-                return UiState.keybindingsConfig.value.event.execute(key, currentDestinationName) { binding ->
+            override fun handleNavigationModeEvent(context: ActionContext, key: KeyTrigger): ActionResult {
+                return UiState.keybindingsConfig.value.event.execute(context, key) { binding ->
                     when (binding.action) {
                         Action.Event.MarkRead -> eventId?.let { markEventAsRead(eventId, ReceiptType.READ) } ?: ActionResult.Inapplicable
                         Action.Event.MarkReadPrivate -> eventId?.let {
@@ -513,7 +513,7 @@ class ConversationViewModel(
                                 it?.copy(inReplyTo = inReplyTo)
                                     ?: DraftValue(inReplyTo = inReplyTo)
                             }
-                            keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
+                            focusByRole(FocusRole.MESSAGE_COMPOSER)
                             ActionResult.Success()
                         } ?: ActionResult.Inapplicable
 
@@ -548,7 +548,7 @@ class ConversationViewModel(
                                 } else {
                                     forceShowComposer.value = true
                                     DraftRepo.update(draftKey, draftValue)
-                                    keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
+                                    focusByRole(FocusRole.MESSAGE_COMPOSER)
                                     ActionResult.Success()
                                 }
                             } else {
@@ -568,30 +568,30 @@ class ConversationViewModel(
                                 it?.copy(inReplyTo = inReplyTo, type = DraftType.REACTION)
                                     ?: DraftValue(inReplyTo = inReplyTo, type = DraftType.REACTION)
                             }
-                            keyboardActionHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
+                            focusByRole(FocusRole.MESSAGE_COMPOSER)
                             ActionResult.Success()
                         } ?: ActionResult.Inapplicable
 
                         Action.Event.CopyContent -> {
                             (event.content as? MessageContent)?.body?.let { content ->
-                                keyboardActionHandler.copyToClipboard(content)
+                                copyToClipboard(content, "message content")
                             } ?: ActionResult.Inapplicable
                         }
 
                         Action.Event.CopyEventSource -> {
                             event.timelineItemDebugInfoProvider().originalJson?.toPrettyJson()?.let { eventSource ->
-                                keyboardActionHandler.copyToClipboard(eventSource)
+                                copyToClipboard(eventSource, "event source")
                             } ?: ActionResult.Inapplicable
                         }
 
                         Action.Event.CopyEventId -> {
                             (eventId?.value ?: event.transactionId?.value)?.let {
-                                keyboardActionHandler.copyToClipboard(it)
+                                copyToClipboard(it, "event ID")
                             } ?: ActionResult.Inapplicable
                         }
 
                         Action.Event.CopyMxId -> {
-                            keyboardActionHandler.copyToClipboard(event.sender.value)
+                            copyToClipboard(event.sender.value, "MXID")
                         }
                     }
                 }
@@ -603,10 +603,9 @@ class ConversationViewModel(
         fun factory(
             sessionId: SessionId,
             roomId: RoomId,
-            keyboardActionHandler: KeyboardActionHandler,
         ) = viewModelFactory {
             initializer {
-                ConversationViewModel(sessionId, roomId, keyboardActionHandler)
+                ConversationViewModel(sessionId, roomId)
             }
         }
     }

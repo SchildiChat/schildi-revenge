@@ -10,6 +10,7 @@ import chat.schildi.revenge.CombinedSessions
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.UiState
+import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
@@ -286,9 +287,9 @@ class InboxViewModel(
         searchTerm.value = null
     }
 
-    override fun handleNavigationModeEvent(key: KeyTrigger, currentDestinationName: String?): ActionResult {
+    override fun handleNavigationModeEvent(context: ActionContext, key: KeyTrigger): ActionResult {
         val keyConfig = UiState.keybindingsConfig.value
-        return keyConfig.inbox.execute(key, currentDestinationName) { inboxAction ->
+        return keyConfig.inbox.execute(context, key) { inboxAction ->
             when (inboxAction.action) {
                 Action.Inbox.SetAccountHidden -> {
                     val sessionId = findSessionIdForAccountAction(inboxAction.args[0])

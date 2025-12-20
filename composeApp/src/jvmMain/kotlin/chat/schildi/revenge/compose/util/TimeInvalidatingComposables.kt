@@ -12,15 +12,17 @@ import kotlinx.coroutines.delay
  */
 @Composable
 inline fun <T>rememberInvalidating(
-    expiryMs: Long,
+    expiryMs: Long?,
     vararg keys: Any?,
     crossinline calculation: @DisallowComposableCalls () -> T,
 ): T {
     val invalidationCounter = remember(expiryMs, *keys) { mutableIntStateOf(0) }
-    LaunchedEffect(expiryMs, *keys) {
-        while (true) {
-            delay(expiryMs)
-            invalidationCounter.intValue = invalidationCounter.intValue + 1
+    if (expiryMs != null) {
+        LaunchedEffect(expiryMs, *keys) {
+            while (true) {
+                delay(expiryMs)
+                invalidationCounter.intValue += 1
+            }
         }
     }
     return remember(invalidationCounter.intValue, *keys, calculation = calculation)
