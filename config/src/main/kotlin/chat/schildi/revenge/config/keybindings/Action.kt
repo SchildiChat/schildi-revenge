@@ -117,5 +117,7 @@ sealed interface Action {
         CopyEventSource,
         CopyEventId,
         CopyMxId,
+        CopyContentLink,
+        OpenContentLinks,
     }
 }

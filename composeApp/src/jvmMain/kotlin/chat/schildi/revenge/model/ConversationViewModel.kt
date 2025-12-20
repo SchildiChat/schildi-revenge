@@ -23,6 +23,7 @@ import chat.schildi.revenge.actions.launchActionAsync
 import chat.schildi.revenge.actions.orActionInapplicable
 import chat.schildi.revenge.actions.orActionValidationError
 import chat.schildi.revenge.actions.toActionResult
+import chat.schildi.revenge.compose.util.UrlUtil
 import chat.schildi.revenge.compose.util.insertAtCursor
 import chat.schildi.revenge.compose.util.insertTextFieldValue
 import chat.schildi.revenge.compose.util.toStringHolder
@@ -617,6 +618,32 @@ class ConversationViewModel(
 
                         Action.Event.CopyMxId -> {
                             copyToClipboard(event.sender.value, "MXID")
+                        }
+
+                        Action.Event.CopyContentLink -> {
+                            (event.content as? MessageContent)?.body?.let { content ->
+                                UrlUtil.extractUrlsFromText(content).firstOrNull()?.let {
+                                    copyToClipboard(content, "URL")
+                                }
+                            } ?: ActionResult.Inapplicable
+                        }
+
+                        Action.Event.OpenContentLinks -> {
+                            (event.content as? MessageContent)?.body?.let { content ->
+                                val links = UrlUtil.extractUrlsFromText(content)
+                                if (links.isEmpty()) {
+                                    ActionResult.Inapplicable
+                                } else {
+                                    links.forEach {
+                                        openLinkInExternalBrowser(it).let {
+                                            if (it is ActionResult.Failure) {
+                                                return@execute it
+                                            }
+                                        }
+                                    }
+                                    ActionResult.Success()
+                                }
+                            } ?: ActionResult.Inapplicable
                         }
                     }
                 }

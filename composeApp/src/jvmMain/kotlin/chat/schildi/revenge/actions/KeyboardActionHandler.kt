@@ -19,6 +19,7 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.Clipboard
+import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.unit.toIntSize
 import androidx.compose.ui.window.ApplicationScope
 import chat.schildi.preferences.RevengePrefs
@@ -119,6 +120,7 @@ class KeyboardActionHandler(
     // Set once available via LocalCompositionProvider
     var focusManager: FocusManager? = null
     var clipboard: Clipboard? = null
+    var uriHandler: UriHandler? = null
 
     var windowCoordinates: Rect? = null
     private var lastPointerPosition = Offset.Zero
@@ -512,6 +514,8 @@ class KeyboardActionHandler(
                 this@KeyboardActionHandler.dismissMessage(uniqueId)
             override fun copyToClipboard(content: String, description: String) =
                 this@KeyboardActionHandler.copyToClipboard(this, content, description)
+            override fun openLinkInExternalBrowser(uri: String): ActionResult =
+                this@KeyboardActionHandler.openLinkInExternalBrowser(uri)
             override fun focusByRole(role: FocusRole) =
                 this@KeyboardActionHandler.focusByRole(role)
             override val currentDestinationName: String? = currentDestination?.name
@@ -800,6 +804,12 @@ class KeyboardActionHandler(
         }
         return ActionResult.Success()
     }
+
+    fun openLinkInExternalBrowser(uri: String): ActionResult {
+        val localUriHandler = uriHandler ?: return ActionResult.Failure("No uri handler found")
+        localUriHandler.openUri(uri)
+        return ActionResult.Success()
+    }
 }
 
 private fun KeyEvent.toTrigger(): KeyTrigger? {
@@ -979,6 +989,7 @@ interface ActionContext {
     fun publishMessage(message: String, isError: Boolean = false, uniqueId: String? = null, canAutoDismiss: Boolean = true)
     fun dismissMessage(uniqueId: String)
     fun copyToClipboard(content: String, description: String): ActionResult
+    fun openLinkInExternalBrowser(uri: String): ActionResult
     fun focusByRole(role: FocusRole): Boolean
     val currentDestinationName: String?
 }

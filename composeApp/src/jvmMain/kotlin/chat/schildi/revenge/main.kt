@@ -11,6 +11,7 @@ import androidx.compose.ui.geometry.toRect
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowDecoration
@@ -83,8 +84,10 @@ fun main() {
                         // LocalFocusManager and LocalClipboard are not set outside the Window composable
                         val focusManager = LocalFocusManager.current
                         val clipboard = LocalClipboard.current
+                        val uriHandler = LocalUriHandler.current
                         LaunchedEffect(keyHandler, focusManager) { keyHandler.focusManager = focusManager }
                         LaunchedEffect(keyHandler, clipboard) { keyHandler.clipboard = clipboard }
+                        LaunchedEffect(keyHandler, uriHandler) { keyHandler.uriHandler = uriHandler }
 
                         // Scaling settings
                         val renderScale = ScPrefs.RENDER_SCALE.value()
