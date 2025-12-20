@@ -24,6 +24,11 @@ sealed interface TextLikeMessageType : MessageType { // SC
     val body: String
     val formatted: FormattedBody?
 }
+@Immutable
+sealed interface ImageLikeMessageType : MessageTypeWithAttachment { // SC
+    val source: MediaSource
+    val info: ImageInfo?
+}
 
 @Immutable
 sealed interface MessageTypeWithAttachment : MessageType {
@@ -44,18 +49,18 @@ data class ImageMessageType(
     override val filename: String,
     override val caption: String?,
     override val formattedCaption: FormattedBody?,
-    val source: MediaSource,
-    val info: ImageInfo?
-) : MessageTypeWithAttachment
+    override val source: MediaSource,
+    override val info: ImageInfo?
+) : ImageLikeMessageType
 
 // FIXME This is never used in production code.
 data class StickerMessageType(
     override val filename: String,
     override val caption: String?,
     override val formattedCaption: FormattedBody?,
-    val source: MediaSource,
-    val info: ImageInfo?
-) : MessageTypeWithAttachment
+    override val source: MediaSource,
+    override val info: ImageInfo?
+) : ImageLikeMessageType
 
 data class LocationMessageType(
     val body: String,

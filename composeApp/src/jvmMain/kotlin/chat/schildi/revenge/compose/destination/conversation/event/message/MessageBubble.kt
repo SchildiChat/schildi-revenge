@@ -12,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.DateTimeFormat
@@ -43,13 +44,16 @@ fun MessageBubble(
     modifier: Modifier = Modifier,
     padding: PaddingValues = PaddingValues(Dimens.Conversation.messageBubbleInnerPadding),
     outlined: Boolean = false,
+    transparent: Boolean = false,
     content: @Composable ColumnScope.() -> Unit
 ) {
     // Bypass double message bubble when nested in a reply
     if (LocalMessageRenderContext.current == MessageRenderContext.IN_REPLY_TO) {
         Column(modifier.padding(padding), content = content)
     } else {
-        val color = if (isOwn)
+        val color = if (transparent)
+            Color.Transparent
+        else if (isOwn)
             MaterialTheme.scExposures.bubbleBgOutgoing
         else
             MaterialTheme.scExposures.bubbleBgIncoming

@@ -15,6 +15,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.EventContent
 import io.element.android.libraries.matrix.api.timeline.item.event.FailedToParseMessageLikeContent
 import io.element.android.libraries.matrix.api.timeline.item.event.FailedToParseStateContent
 import io.element.android.libraries.matrix.api.timeline.item.event.FileMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.ImageLikeMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.ImageMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 import io.element.android.libraries.matrix.api.timeline.item.event.LegacyCallInviteContent
@@ -86,7 +87,7 @@ fun EventContentLayout(
                     is TextLikeMessageType -> {
                         TextLikeMessage(contentType, isOwn, timestamp, inReplyTo)
                     }
-                    is ImageMessageType -> {
+                    is ImageLikeMessageType -> {
                         ImageMessage(contentType, isOwn, timestamp, inReplyTo)
                     }
                     is LocationMessageType -> {
@@ -100,10 +101,6 @@ fun EventContentLayout(
                     is FileMessageType -> {
                         // TODO
                         MessageFallback("FILE", isOwn, timestamp, inReplyTo)
-                    }
-                    is StickerMessageType -> {
-                        // TODO
-                        MessageFallback("STICKER", isOwn, timestamp, inReplyTo)
                     }
                     is VideoMessageType -> {
                         // TODO
@@ -121,6 +118,18 @@ fun EventContentLayout(
             }
         }
 
+        is StickerContent -> EventMessageLayout {
+            val caption = content.body?.takeIf { content.filename.isNotEmpty() && content.filename != it }
+            ImageMessage(
+                source = content.source,
+                caption = caption,
+                isOwn = isOwn,
+                timestamp = timestamp,
+                inReplyTo = inReplyTo,
+                isSticker = true,
+            )
+        }
+
         is RoomMembershipContent -> RoomMembershipRow(content, senderId, senderProfile, timestamp, modifier)
         is ProfileChangeContent -> ProfileChangeRow(content, senderId, senderProfile, timestamp, modifier)
         is StateContent -> StateEventRow(content, senderId, senderProfile, timestamp, modifier)
@@ -132,7 +141,6 @@ fun EventContentLayout(
         LegacyCallInviteContent -> EventMessageFallback("LEGACY CALL INVITE")
         is PollContent -> EventMessageFallback("POLL")
         RedactedContent -> EventMessageFallback(stringResource(Res.string.message_placeholder_message_redacted)) // TODO can I tell if user deleted themselves or someone else?
-        is StickerContent -> EventMessageFallback("STICKER")
         is UnableToDecryptContent -> EventMessageFallback(stringResource(Res.string.message_placeholder_unable_to_decrypt))
         UnknownContent -> EventMessageFallback("UNKNOWN")
     }

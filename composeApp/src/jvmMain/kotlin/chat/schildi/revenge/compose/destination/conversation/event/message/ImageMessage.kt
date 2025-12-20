@@ -21,19 +21,43 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.revenge.compose.media.onAsyncImageError
 import coil3.compose.AsyncImage
-import io.element.android.libraries.matrix.api.timeline.item.event.ImageMessageType
+import io.element.android.libraries.matrix.api.media.MediaSource
+import io.element.android.libraries.matrix.api.timeline.item.event.ImageLikeMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
+import io.element.android.libraries.matrix.api.timeline.item.event.StickerMessageType
 import io.element.android.libraries.matrix.ui.media.MediaRequestData
 
 @Composable
 fun ImageMessage(
-    image: ImageMessageType,
+    image: ImageLikeMessageType,
     isOwn: Boolean,
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
     modifier: Modifier = Modifier,
 ) {
+    ImageMessage(
+        source = image.source,
+        caption = image.caption,
+        isOwn = isOwn,
+        timestamp = timestamp,
+        inReplyTo = inReplyTo,
+        isSticker = image is StickerMessageType,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun ImageMessage(
+    source: MediaSource,
+    caption: String?,
+    isOwn: Boolean,
+    timestamp: TimestampOverlayContent?,
+    inReplyTo: InReplyTo?,
+    isSticker: Boolean,
+    modifier: Modifier = Modifier,
+) {
     val captionLayoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
+    val isTransparent = isSticker && caption == null && inReplyTo == null
     MessageBubble(
         isOwn = isOwn,
         timestamp = timestamp,
@@ -41,6 +65,7 @@ fun ImageMessage(
         padding = PaddingValues(Dimens.Conversation.imageBubbleInnerPadding),
         contentTextLayoutResult = captionLayoutResult.value,
         isMediaOverlay = true,
+        transparent = isTransparent,
     ) {
         inReplyTo?.let {
             ReplyContent(
@@ -50,7 +75,7 @@ fun ImageMessage(
         }
         val topRadius = if (inReplyTo == null) Dimens.Conversation.messageBubbleCornerRadius else 0.dp
         // TODO formatted caption
-        val bottomRadius = if (image.caption == null) Dimens.Conversation.messageBubbleCornerRadius else 0.dp
+        val bottomRadius = if (caption == null) Dimens.Conversation.messageBubbleCornerRadius else 0.dp
         val shape = RoundedCornerShape(
             topStart = topRadius,
             topEnd = topRadius,
@@ -58,7 +83,7 @@ fun ImageMessage(
             bottomEnd = bottomRadius,
         )
         ImageMessageContent(
-            model = MediaRequestData(image.source, MediaRequestData.Kind.Content),
+            model = MediaRequestData(source, MediaRequestData.Kind.Content),
             minWidth = Dimens.Conversation.imageMinWidth,
             minHeight = Dimens.Conversation.imageMinHeight,
             maxWidth = Dimens.Conversation.imageMaxWidth,
@@ -67,7 +92,7 @@ fun ImageMessage(
                 MessageRenderContext.IN_REPLY_TO -> Dimens.Conversation.imageRepliedToMaxHeight
             },
             // TODO formatted caption
-            caption = image.caption?.let { AnnotatedString(it) },
+            caption = caption?.let { AnnotatedString(it) },
             shape = shape,
         ) {
             captionLayoutResult.value = it
