@@ -63,8 +63,8 @@ import shire.composeapp.generated.resources.sc_pseudo_space_unread
 import shire.composeapp.generated.resources.sc_space_all_rooms_title
 import timber.log.Timber
 
-private const val REAL_SPACE_ID_PREFIX = "s:"
-private const val PSEUDO_SPACE_ID_PREFIX = "p:"
+const val REAL_SPACE_ID_PREFIX = "s:"
+const val PSEUDO_SPACE_ID_PREFIX = "p:"
 
 private typealias ScopedSpaceId = ScopedRoomKey
 

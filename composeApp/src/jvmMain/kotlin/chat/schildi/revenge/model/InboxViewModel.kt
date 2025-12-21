@@ -299,7 +299,7 @@ class InboxViewModel(
                 Action.Inbox.SetAccountHidden -> {
                     val sessionId = findSessionIdForAccountAction(inboxAction.args[0])
                         ?: return@execute ActionResult.Failure("Failed to find user session")
-                    val hidden = inboxAction.args[1].toBoolean()
+                    val hidden = inboxAction.args.getOrNull(1)?.toBoolean() ?: true
                     setAccountHidden(sessionId, hidden)
                     ActionResult.Success()
                 }
@@ -307,7 +307,7 @@ class InboxViewModel(
                 Action.Inbox.SetAccountSelected -> {
                     val sessionId = findSessionIdForAccountAction(inboxAction.args[0])
                         ?: return@execute ActionResult.Failure("Failed to find user session")
-                    val selected = inboxAction.args[1].toBoolean()
+                    val selected = inboxAction.args.getOrNull(1)?.toBoolean() ?: true
                     setAccountSelected(sessionId, selected)
                     ActionResult.Success()
                 }
@@ -315,7 +315,7 @@ class InboxViewModel(
                 Action.Inbox.SetAccountExclusivelySelected -> {
                     val sessionId = findSessionIdForAccountAction(inboxAction.args[0])
                         ?: return@execute ActionResult.Failure("Failed to find user session")
-                    val selected = inboxAction.args[1].toBoolean()
+                    val selected = inboxAction.args.getOrNull(1)?.toBoolean() ?: true
                     setAccountExclusivelySelected(sessionId, selected)
                     ActionResult.Success()
                 }

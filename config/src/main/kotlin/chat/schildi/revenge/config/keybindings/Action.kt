@@ -1,17 +1,44 @@
 package chat.schildi.revenge.config.keybindings
 
-enum class ActionArgument {
+sealed interface ActionArgument {
+    val name: String
+}
+
+data class ActionArgumentOptional(val argument: ActionArgument) : ActionArgument {
+    override val name: String
+        get() = "[$argument]"
+}
+data class ActionArgumentAnyOf(val arguments: List<ActionArgumentPrimitive>) : ActionArgument {
+    constructor(vararg arguments: ActionArgumentPrimitive) : this(arguments.toList())
+    override val name: String
+        get() = "any of: ${arguments.joinToString { it.name }}"
+}
+
+enum class ActionArgumentPrimitive : ActionArgument {
     Text,
     Boolean,
     Integer,
     Mxid,
     SessionId,
-    SessionIdOrIndex,
+    SessionIndex,
     RoomId,
     EventId,
     SettingKey,
     NavigatableDestinationName,
+    SpaceId,
+    SpaceSelectionId,
+    SpaceIndex,
 }
+
+private val SessionIdOrIndex =
+    ActionArgumentAnyOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.SessionIndex)
+private val SpaceIdSelectable =
+    ActionArgumentAnyOf(
+        ActionArgumentPrimitive.SpaceId,
+        ActionArgumentPrimitive.SpaceSelectionId,
+        ActionArgumentPrimitive.SpaceIndex
+    )
+private val OptionalBoolean = ActionArgumentOptional(ActionArgumentPrimitive.Boolean)
 
 sealed interface Action {
     val name: String
@@ -25,16 +52,16 @@ sealed interface Action {
         ToggleTheme,
         AutomaticTheme,
         ToggleHiddenItems,
-        SetSetting(args = listOf(ActionArgument.SettingKey, ActionArgument.Text)),
-        ToggleSetting(args = listOf(ActionArgument.SettingKey)),
+        SetSetting(args = listOf(ActionArgumentPrimitive.SettingKey, ActionArgumentPrimitive.Text)),
+        ToggleSetting(args = listOf(ActionArgumentPrimitive.SettingKey)),
         ClearAppMessages,
     }
     enum class Navigation(
         override val aliases: kotlin.collections.List<String> = emptyList(),
         override val args: kotlin.collections.List<ActionArgument> = emptyList()
     ) : Action {
-        NavigateCurrent(aliases = listOf("navigate"), args = listOf(ActionArgument.NavigatableDestinationName)),
-        NavigateInNewWindow(args = listOf(ActionArgument.NavigatableDestinationName)),
+        NavigateCurrent(aliases = listOf("navigate"), args = listOf(ActionArgumentPrimitive.NavigatableDestinationName)),
+        NavigateInNewWindow(args = listOf(ActionArgumentPrimitive.NavigatableDestinationName)),
         SplitHorizontal(aliases = listOf("vsplit")),
         SplitVertical(aliases = listOf("split")),
         CloseWindow,
@@ -79,14 +106,14 @@ sealed interface Action {
         override val aliases: kotlin.collections.List<String> = emptyList(),
         override val args: kotlin.collections.List<ActionArgument> = emptyList()
     ) : Action {
-        SetAccountHidden(args = listOf(ActionArgument.SessionIdOrIndex, ActionArgument.Boolean)),
-        SetAccountSelected(args = listOf(ActionArgument.SessionIdOrIndex, ActionArgument.Boolean)),
-        SetAccountExclusivelySelected(args = listOf(ActionArgument.SessionIdOrIndex, ActionArgument.Boolean)),
-        ToggleAccountHidden(args = listOf(ActionArgument.SessionIdOrIndex)),
-        ToggleAccountSelected(args = listOf(ActionArgument.SessionIdOrIndex)),
-        ToggleAccountExclusivelySelected(args = listOf(ActionArgument.SessionIdOrIndex)),
-        NavigateSpaceRelative(args = listOf(ActionArgument.Integer)),
-        SelectSpace(args = listOf(ActionArgument.Text)),
+        SetAccountHidden(args = listOf(SessionIdOrIndex, OptionalBoolean)),
+        SetAccountSelected(args = listOf(SessionIdOrIndex, OptionalBoolean)),
+        SetAccountExclusivelySelected(args = listOf(SessionIdOrIndex, OptionalBoolean)),
+        ToggleAccountHidden(args = listOf(SessionIdOrIndex)),
+        ToggleAccountSelected(args = listOf(SessionIdOrIndex)),
+        ToggleAccountExclusivelySelected(args = listOf(SessionIdOrIndex)),
+        NavigateSpaceRelative(args = listOf(ActionArgumentPrimitive.Integer)),
+        SelectSpace(args = listOf(SpaceIdSelectable)),
     }
     enum class Conversation(
         override val aliases: kotlin.collections.List<String> = emptyList(),
@@ -98,7 +125,7 @@ sealed interface Action {
         ComposeNotice,
         ComposeEmote,
         ComposerSend,
-        ComposerInsertAtCursor(args = listOf(ActionArgument.Text)),
+        ComposerInsertAtCursor(args = listOf(ActionArgumentPrimitive.Text)),
         JumpToOwnReadReceipt,
         JumpToFullyRead,
         JumpToBottom,

@@ -29,15 +29,21 @@ import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.focus.FocusParent
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.Destination
+import chat.schildi.revenge.actions.ActionResult.*
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.ActionArgument
+import chat.schildi.revenge.config.keybindings.ActionArgumentAnyOf
+import chat.schildi.revenge.config.keybindings.ActionArgumentOptional
+import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
 import chat.schildi.revenge.config.keybindings.AllowedComposerTextFieldBindingKeys
 import chat.schildi.revenge.config.keybindings.AllowedSingleLineTextFieldBindingKeys
 import chat.schildi.revenge.config.keybindings.AllowedTextFieldBindingKeys
 import chat.schildi.revenge.config.keybindings.Binding
 import chat.schildi.revenge.config.keybindings.KeyMapped
 import chat.schildi.revenge.config.keybindings.KeyTrigger
+import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_PREFIX
+import chat.schildi.revenge.model.spaces.REAL_SPACE_ID_PREFIX
 import co.touchlab.kermit.Logger
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -910,92 +916,160 @@ fun <A: Action>List<Binding<A>>.execute(
     return if (hasChainableSuccess) ActionResult.Success(shouldExit = false) else ActionResult.NoMatch
 }
 
+fun <A : Action>Binding<A>.checkArgument(
+    argDef: ActionArgument,
+    argVal: String,
+    validSessionIds: List<String>?,
+    validSettingKeys: List<String>,
+): ActionResult.Malformed? {
+    val actionName = action.name
+    return when (argDef) {
+        is ActionArgumentAnyOf -> {
+            if (argDef.arguments.any {
+                checkArgument(it, argVal, validSessionIds, validSettingKeys) != null
+            }) {
+                null
+            } else {
+                Malformed(
+                    "Invalid parameter for $actionName, expected ${argDef.name}; got $argVal"
+                )
+            }
+        }
+        is ActionArgumentOptional -> {
+            checkArgument(argDef.argument, argVal, validSessionIds, validSettingKeys)
+        }
+        ActionArgumentPrimitive.Text -> null
+        ActionArgumentPrimitive.Boolean -> {
+            if (argVal.toBooleanStrictOrNull() == null) {
+                Malformed(
+                    "Invalid parameter for $actionName, expected boolean got $argVal"
+                )
+            } else {
+                null
+            }
+        }
+        ActionArgumentPrimitive.Integer -> {
+            if (argVal.toIntOrNull() == null) {
+                 Malformed(
+                    "Invalid parameter for $actionName, expected int got $argVal"
+                )
+            } else {
+                null
+            }
+        }
+        ActionArgumentPrimitive.SessionIndex -> {
+            val asIndex = argVal.toIntOrNull()
+            if (asIndex != null) {
+                if (asIndex in 0..(validSessionIds?.size ?: Integer.MAX_VALUE)) {
+                    null
+                } else {
+                    Malformed(
+                        "Invalid parameter for $actionName, index out of range: $argVal"
+                    )
+                }
+            } else {
+                null
+            }
+        }
+        ActionArgumentPrimitive.SessionId,
+        ActionArgumentPrimitive.Mxid -> {
+            if (validSessionIds != null && argDef == ActionArgumentPrimitive.SessionId) {
+                if (!validSessionIds.contains(argVal)) {
+                    Malformed(
+                        "Invalid parameter for $actionName, not an existing user login: $argVal"
+                    )
+                } else {
+                    null
+                }
+            } else {
+                // TODO full mxid regex checking
+                if (!argVal.startsWith("@") || !argVal.contains(":")) {
+                    Malformed(
+                        "Invalid parameter for $actionName, expected MXID got $argVal"
+                    )
+                } else {
+                    null
+                }
+            }
+        }
+        ActionArgumentPrimitive.SpaceId,
+        ActionArgumentPrimitive.RoomId -> {
+            if (!argVal.startsWith("!")) {
+                Malformed(
+                    "Invalid parameter for $actionName, expected room ID got $argVal"
+                )
+            } else {
+                null
+            }
+        }
+        ActionArgumentPrimitive.EventId -> {
+            if (!argVal.startsWith("$")) {
+                Malformed(
+                    "Invalid parameter for $actionName, expected room ID got $argVal"
+                )
+            } else {
+                null
+            }
+        }
+        ActionArgumentPrimitive.SettingKey -> {
+            if (argVal !in validSettingKeys) {
+                Malformed(
+                    "Invalid parameter for $actionName, not a valid settings key: $argVal"
+                )
+            } else {
+                null
+            }
+        }
+        ActionArgumentPrimitive.NavigatableDestinationName -> {
+            if (argVal.toDestinationOrNull() == null) {
+                Malformed(
+                    "Invalid parameter for $actionName, not a valid destination: $argVal"
+                )
+            } else {
+                null
+            }
+        }
+        ActionArgumentPrimitive.SpaceSelectionId -> {
+            if (argVal.startsWith(REAL_SPACE_ID_PREFIX) || argVal.startsWith(PSEUDO_SPACE_ID_PREFIX)) {
+                null
+            } else {
+                Malformed(
+                    "Invalid parameter for $actionName, not a valid space selection ID: $argVal"
+                )
+            }
+        }
+        ActionArgumentPrimitive.SpaceIndex -> {
+            val asIndex = argVal.toIntOrNull()
+            if (asIndex != null && asIndex >= 0) {
+                null
+            } else {
+                Malformed(
+                    "Invalid parameter for $actionName, expected non-negative integer got $argVal"
+                )
+            }
+        }
+    }
+}
+
 fun <A : Action>Binding<A>.checkArguments(
     validSessionIds: List<String>? = UiState.currentValidSessionIds.value,
     validSettingKeys: List<String> = ScPrefs.validSettingKeys,
 ): ActionResult.Malformed? {
     val actionName = action.name
-    if (action.args.size != args.size) {
+    val minArgSize = action.args.count { it !is ActionArgumentOptional }
+    if (args.size !in minArgSize..action.args.size) {
         return ActionResult.Malformed(
-            "Invalid parameter size for $actionName, expected ${action.args.size} got ${args.size}"
+            if (minArgSize != args.size) {
+                "Invalid parameter size for $actionName, expected $minArgSize-${action.args.size} got ${args.size}"
+            } else {
+                "Invalid parameter size for $actionName, expected ${action.args.size} got ${args.size}"
+            }
         )
     }
+    // Optional arguments only supported to leave away at the end right now
     action.args.zip(args).forEach { (argDef, argVal) ->
-        when (argDef) {
-            ActionArgument.Text -> {}
-            ActionArgument.Boolean -> {
-                if (argVal.toBooleanStrictOrNull() == null) {
-                    return ActionResult.Malformed(
-                        "Invalid parameter for $actionName, expected boolean got $argVal"
-                    )
-                }
-            }
-            ActionArgument.Integer -> {
-                if (argVal.toIntOrNull() == null) {
-                    return ActionResult.Malformed(
-                        "Invalid parameter for $actionName, expected int got $argVal"
-                    )
-                }
-            }
-            ActionArgument.SessionId,
-            ActionArgument.SessionIdOrIndex,
-            ActionArgument.Mxid -> {
-                if (argDef == ActionArgument.SessionIdOrIndex) {
-                    val asIndex = argVal.toIntOrNull()
-                    if (asIndex != null) {
-                        return if (asIndex in 0..(validSessionIds?.size ?: Integer.MAX_VALUE)) {
-                            null
-                        } else {
-                            ActionResult.Malformed(
-                                "Invalid parameter for $actionName, index out of range: $argVal"
-                            )
-                        }
-                    }
-                }
-                if (validSessionIds != null &&
-                    (argDef == ActionArgument.SessionId || argDef == ActionArgument.SessionIdOrIndex)) {
-                    if (!validSessionIds.contains(argVal)) {
-                        return ActionResult.Malformed(
-                            "Invalid parameter for $actionName, not an existing user login: $argVal"
-                        )
-                    }
-                } else {
-                    // TODO full mxid regex checking
-                    if (!argVal.startsWith("@") || !argVal.contains(":")) {
-                        return ActionResult.Malformed(
-                            "Invalid parameter for $actionName, expected MXID got $argVal"
-                        )
-                    }
-                }
-            }
-            ActionArgument.RoomId -> {
-                if (!argVal.startsWith("!")) {
-                    return ActionResult.Malformed(
-                        "Invalid parameter for $actionName, expected room ID got $argVal"
-                    )
-                }
-            }
-            ActionArgument.EventId -> {
-                if (!argVal.startsWith("$")) {
-                    return ActionResult.Malformed(
-                        "Invalid parameter for $actionName, expected room ID got $argVal"
-                    )
-                }
-            }
-            ActionArgument.SettingKey -> {
-                if (argVal !in validSettingKeys) {
-                    return ActionResult.Malformed(
-                        "Invalid parameter for $actionName, not a valid settings key: $argVal"
-                    )
-                }
-            }
-            ActionArgument.NavigatableDestinationName -> {
-                if (argVal.toDestinationOrNull() == null) {
-                    return ActionResult.Malformed(
-                        "Invalid parameter for $actionName, not a valid destination: $argVal"
-                    )
-                }
-            }
+        checkArgument(argDef, argVal, validSessionIds, validSettingKeys)?.let {
+            return it
         }
     }
     return null
