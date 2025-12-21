@@ -18,6 +18,8 @@ fun ScSdkInboxSettings.toSdkSettings() = uniffi.matrix_sdk.ScInboxSettings(
 
 fun List<RoomListEntriesDynamicFilterKind>.initialFilterForSpaces(isSpaceList: Boolean) = if (isSpaceList) {
     filter { it != RoomListEntriesDynamicFilterKind.NonSpace } + RoomListEntriesDynamicFilterKind.Space
-} else {
+} else if (RoomListEntriesDynamicFilterKind.NonSpace in this) {
     this
+} else {
+    this + RoomListEntriesDynamicFilterKind.NonSpace
 }
