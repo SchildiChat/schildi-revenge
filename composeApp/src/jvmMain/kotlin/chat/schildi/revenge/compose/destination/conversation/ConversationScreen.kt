@@ -1,13 +1,16 @@
 package chat.schildi.revenge.compose.destination.conversation
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,7 +26,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draganddrop.DragAndDropEvent
+import androidx.compose.ui.draganddrop.DragAndDropTarget
+import androidx.compose.ui.draganddrop.DragData
+import androidx.compose.ui.draganddrop.dragData
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -38,18 +47,20 @@ import chat.schildi.revenge.actions.ListAction
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
+import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
+import chat.schildi.revenge.compose.components.thenIf
 import chat.schildi.revenge.compose.composer.ComposerRow
 import chat.schildi.revenge.compose.destination.conversation.event.EventHighlight
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.model.EventJumpTarget
 import chat.schildi.revenge.publishTitle
 import co.touchlab.kermit.Logger
-import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import kotlinx.collections.immutable.persistentListOf
 
+@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier = Modifier) {
     BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
@@ -64,6 +75,32 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
         val timelineItems = viewModel.timelineItems.collectAsState(persistentListOf()).value
         val forwardPaginationStatus = viewModel.forwardPaginationStatus.collectAsState(null).value
         val backwardPaginationStatus = viewModel.backwardPaginationStatus.collectAsState(null).value
+
+        val actionContext = currentActionContext()
+        var isDragging by remember { mutableStateOf(false) }
+        val dragAlpha = animateFloatAsState(if (isDragging) 0.4f else 1f)
+        val fileDragTarget = remember {
+            object : DragAndDropTarget {
+                override fun onEntered(event: DragAndDropEvent) {
+                    Logger.withTag("DnD").d { "Entered $event" }
+                    isDragging = true
+                }
+                override fun onExited(event: DragAndDropEvent) {
+                    Logger.withTag("DnD").d { "Exited $event" }
+                    isDragging = false
+                }
+                override fun onDrop(event: DragAndDropEvent): Boolean {
+                    isDragging = false
+                    val file = (event.dragData() as? DragData.FilesList)?.readFiles()?.firstOrNull()
+                    Logger.withTag("DnD").d { "Received drop $event, file ${file != null}" }
+                    return if (file != null) {
+                        viewModel.attachFile(actionContext, file)
+                    } else {
+                        false
+                    }
+                }
+            }
+        }
 
         var initialListOffset by remember { mutableStateOf(Pair(0, 0)) }
         var scrolledToEvent by remember { mutableStateOf<EventJumpTarget?>(null) }
@@ -146,7 +183,17 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
                 }
             }
             val highlightedActionEventId = viewModel.highlightedActionEventId.collectAsState().value
-            Column(Modifier.widthIn(max = ScPrefs.MAX_WIDTH_CONVERSATION.value().dp)) {
+            Column(Modifier
+                .fillMaxSize()
+                .widthIn(max = ScPrefs.MAX_WIDTH_CONVERSATION.value().dp)
+                .alpha(dragAlpha.value)
+                .dragAndDropTarget(
+                    shouldStartDragAndDrop = { event ->
+                        event.dragData() is DragData.FilesList
+                    },
+                    target = fileDragTarget,
+                ),
+            ) {
                 // Double reverse helps with stick-to-bottom while paging backwards or receiving messages
                 LazyColumn(
                     Modifier.fillMaxWidth().weight(1f),

@@ -78,9 +78,9 @@ fun AvatarFallback(
 ) {
     val color = if (ScPrefs.RENDER_AVATAR_STATES.value()) animateColorAsState(
         if (isError) {
-            MaterialTheme.colorScheme.error
+            MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
         } else if (isLoading) {
-            ScColors.colorAccentBlue
+            ScColors.colorAccentBlue.copy(alpha = 0.5f)
         } else {
             MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
         }

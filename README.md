@@ -41,16 +41,16 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [x] Logout / delete account
 - [ ] ScPrefs
     - [x] Via toml
-    - [x] One datastore for user prefs
-    - [ ] One datastore for app state (last selected space, opened destinations to restore, etc.)
-    - [ ] UI?
+    - [x] Datastore for user prefs
+    - [x] Datastore for other app state
+    - [ ] UI
 - [ ] Lock to avoid running multiple instances in parallel, but instead bring to foreground?
 - [ ] Inbox
     - [x] List all chats
     - [x] Make it look nice
     - [x] Unread counts
-    - [ ] Spaces navigation
-    - [ ] Filter by spaces
+    - [x] Spaces navigation
+    - [x] Filter by spaces
     - [x] Filter by account
     - [x] Search
     - [ ] Handle invites
@@ -68,7 +68,11 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [x] Send replies
     - [ ] Send reactions (just text input is enough for first run, OS may have emoji picker)
     - [ ] Send mentions
-    - [ ] Send attachments
+    - [x] Send attachments
+        - [x] Via file picker
+        - [x] Via drag&drop ([broken from some wayland
+          windows](https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/841), sorry)
+        - [x] Via copy&paste (if configured in key bindings)
     - [ ] Send typing indicators
     - [ ] Delete messages
     - [x] Mark as read (via keyboard shortcut)

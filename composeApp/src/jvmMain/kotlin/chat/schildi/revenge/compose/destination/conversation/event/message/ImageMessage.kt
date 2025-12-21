@@ -102,14 +102,14 @@ fun ImageMessage(
 
 @Composable
 fun ColumnScope.ImageMessageContent(
-    model: MediaRequestData,
+    model: Any,
     minWidth: Dp,
     minHeight: Dp,
     maxWidth: Dp,
     maxHeight: Dp,
-    caption: AnnotatedString?,
+    caption: AnnotatedString? = null,
     shape: Shape = Dimens.Conversation.messageBubbleShape,
-    onCaptionTextLayout: (TextLayoutResult?) -> Unit,
+    onCaptionTextLayout: (TextLayoutResult?) -> Unit = {},
 ) {
     // TODO placeholder, ...
     AsyncImage(

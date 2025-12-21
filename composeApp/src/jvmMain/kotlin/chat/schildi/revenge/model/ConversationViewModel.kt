@@ -1,5 +1,6 @@
 package chat.schildi.revenge.model
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
@@ -33,13 +34,20 @@ import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.toPrettyJson
+import chat.schildi.revenge.util.MimeUtil
 import chat.schildi.revenge.util.tryOrNull
+import chat.schildi.revenge.util.MediaInfoUtil
 import co.touchlab.kermit.Logger
 import io.element.android.features.messages.impl.timeline.EventFocusResult
 import io.element.android.features.messages.impl.timeline.TimelineController
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.media.AudioInfo
+import io.element.android.libraries.matrix.api.media.FileInfo
+import io.element.android.libraries.matrix.api.media.ImageInfo
+import io.element.android.libraries.matrix.api.media.VideoInfo
+import kotlin.time.Duration.Companion.milliseconds
 import io.element.android.libraries.matrix.api.room.roomMembers
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
@@ -79,6 +87,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.awt.FileDialog
+import java.awt.Frame
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_redact
 import shire.composeapp.generated.resources.action_redact_event_by_sender_prompt
@@ -94,6 +105,8 @@ import shire.composeapp.generated.resources.command_event_name_fully_read_marker
 import shire.composeapp.generated.resources.command_event_name_own_read_receipt
 import shire.composeapp.generated.resources.command_loading_event
 import shire.composeapp.generated.resources.command_loading_timeline_at
+import java.io.File
+import kotlin.io.path.toPath
 
 private data class ComposerSettings(
     val autoHideComposer: Boolean,
@@ -224,7 +237,7 @@ class ConversationViewModel(
         DraftRepo.update(draftKey, value)
     }
 
-    override fun sendMessage(): ActionResult {
+    override fun sendMessage(context: ActionContext): ActionResult {
         val draft = composerState.value
         if (draft.isEmpty()) {
             log.w("Refuse to send blank message")
@@ -236,7 +249,11 @@ class ConversationViewModel(
             return ActionResult.Failure("No timeline available for chat")
         }
         DraftRepo.update(draftKey, draft.copy(isSendInProgress = true))
-        GlobalActionsScope.launch(Dispatchers.IO) {
+        context.launchActionAsync(
+            "sendMessage",
+            GlobalActionsScope,
+            Dispatchers.IO
+        ) {
             val result = when (draft.type) {
                 DraftType.TEXT -> {
                     if (draft.inReplyTo != null) {
@@ -272,8 +289,7 @@ class ConversationViewModel(
                 }
                 DraftType.EDIT -> {
                     val editEventId = draft.editEventId ?: run {
-                        log.e("Tried to edit message without eventId")
-                        return@launch
+                        return@launchActionAsync ActionResult.Failure("Tried to edit message without eventId")
                     }
                     currentTimeline.editMessage(
                         eventOrTransactionId = editEventId,
@@ -284,8 +300,7 @@ class ConversationViewModel(
                 }
                 DraftType.EDIT_CAPTION -> {
                     val editEventId = draft.editEventId ?: run {
-                        log.e("Tried to edit caption without eventId")
-                        return@launch
+                        return@launchActionAsync ActionResult.Failure("Tried to edit caption without eventId")
                     }
                     currentTimeline.editCaption(
                         eventOrTransactionId = editEventId,
@@ -295,27 +310,99 @@ class ConversationViewModel(
                 }
                 DraftType.REACTION -> {
                     val relatesToEventId = draft.inReplyTo?.eventId ?: run {
-                        log.e("Tried to react without message eventId")
-                        return@launch
+                        return@launchActionAsync ActionResult.Failure("Tried to react without message eventId")
                     }
                     currentTimeline.toggleReaction(
                         emoji = draft.body,
                         eventOrTransactionId = relatesToEventId.toEventOrTransactionId(),
                     )
                 }
+                DraftType.ATTACHMENT -> {
+                    val caption = draft.body.takeIf { it.isNotBlank() }
+                    val formattedCaption = null // TODO?
+                    when (val attachment = draft.attachment) {
+                        is Attachment.Audio -> {
+                            currentTimeline.sendAudio(
+                                file = attachment.file,
+                                audioInfo = attachment.audioInfo,
+                                caption = caption,
+                                formattedCaption = formattedCaption,
+                                inReplyToEventId = draft.inReplyTo?.eventId,
+                            )
+                        }
+                        is Attachment.Generic -> {
+                            currentTimeline.sendFile(
+                                file = attachment.file,
+                                fileInfo = attachment.fileInfo,
+                                caption = caption,
+                                formattedCaption = formattedCaption,
+                                inReplyToEventId = draft.inReplyTo?.eventId,
+                            )
+                        }
+                        is Attachment.Image -> {
+                            currentTimeline.sendImage(
+                                file = attachment.file,
+                                thumbnailFile = attachment.thumbnailFile,
+                                imageInfo = attachment.imageInfo,
+                                caption = caption,
+                                formattedCaption = formattedCaption,
+                                inReplyToEventId = draft.inReplyTo?.eventId,
+                            )
+                        }
+                        is Attachment.Video -> {
+                            currentTimeline.sendVideo(
+                                file = attachment.file,
+                                thumbnailFile = attachment.thumbnailFile,
+                                videoInfo = attachment.videoInfo,
+                                caption = caption,
+                                formattedCaption = formattedCaption,
+                                inReplyToEventId = draft.inReplyTo?.eventId,
+                            )
+                        }
+                        null -> Result.failure(IllegalStateException("No attachment attached"))
+                    }
+                }
             }
             if (result.isSuccess) {
                 log.v("Message sent successfully in $roomId")
                 DraftRepo.deleteDraft(draftKey)
+                ActionResult.Success()
             } else {
-                log.w("Failed to send message in $roomId")
+                log.w("Failed to send message in $roomId", result.exceptionOrNull())
                 DraftRepo.update(draftKey, draft.copy(isSendInProgress = false))
+                ActionResult.Failure("Failed to send message")
             }
         }
         if (composerSettings.value.autoHideComposer || draft.type == DraftType.REACTION) {
             forceShowComposer.value = false
         }
         return ActionResult.Success(async = true)
+    }
+
+    override fun clearAttachment() {
+        DraftRepo.update(draftKey) {
+            it?.copy(
+                attachment = null,
+                type = it.type.takeIf { it != DraftType.ATTACHMENT } ?: DraftType.TEXT,
+            )?.takeIf { !it.isEmpty() }
+        }
+    }
+
+    override fun attachFile(context: ActionContext, path: String): Boolean {
+        val file = try {
+            Uri.create(path).toPath().toFile()
+        } catch (e: Exception) {
+            log.w("Failed to parse file uri: $path", e)
+            return false
+        }
+        return context.launchActionAsync(
+            "addAttachment",
+            viewModelScope,
+            Dispatchers.IO,
+            "addAttachment",
+        ) {
+            loadAttachmentFileIntoComposer(file)
+        } is ActionResult.Success
     }
 
     val userProfile = clientFlow.flatMapLatest { it?.userProfile ?: flowOf(null) }
@@ -396,6 +483,21 @@ class ConversationViewModel(
                     }
                 }
 
+                Action.Conversation.ClearComposer -> {
+                    // Discard all draft state
+                    var wasEmpty = false
+                    DraftRepo.update(draftKey) {
+                        wasEmpty = it?.isEmpty() != false
+                        null
+                    }
+                    if (wasEmpty) {
+                        forceShowComposer.getAndUpdate { false }.orActionInapplicable()
+                    } else {
+                        forceShowComposer.value = false
+                        ActionResult.Success()
+                    }
+                }
+
                 Action.Conversation.ComposeMessage -> {
                     forceShowComposer.value = true
                     DraftRepo.update(draftKey) {
@@ -426,7 +528,7 @@ class ConversationViewModel(
                     ActionResult.Success()
                 }
 
-                Action.Conversation.ComposerSend -> sendMessage()
+                Action.Conversation.ComposerSend -> sendMessage(context)
 
                 Action.Conversation.ComposerInsertAtCursor -> {
                     var hasDraft = false
@@ -438,6 +540,24 @@ class ConversationViewModel(
                     }
                     hasDraft.orActionInapplicable()
                 }
+
+                Action.Conversation.ComposerPasteAttachment -> {
+                    val files = getFilesFromClipboard()
+                    if (files.isEmpty() || files.size > 1) {
+                        ActionResult.Inapplicable
+                    } else {
+                        launchActionAsync(
+                            "addAttachment",
+                            viewModelScope,
+                            Dispatchers.IO,
+                            "addAttachment",
+                        ) {
+                            loadAttachmentFileIntoComposer(files[0])
+                        }
+                    }
+                }
+
+                Action.Conversation.ComposerAddAttachment -> launchAttachmentPicker(this)
 
                 Action.Conversation.JumpToOwnReadReceipt -> jumpToMessage(
                     conversationAction.action.name,
@@ -501,6 +621,107 @@ class ConversationViewModel(
                 }
             }
         }
+    }
+
+    override fun launchAttachmentPicker(context: ActionContext) = context.launchActionAsync(
+        "attachmentPicker",
+        viewModelScope,
+        Dispatchers.IO
+    ) {
+        return@launchActionAsync try {
+            val dialog = FileDialog(null as Frame?, "Select attachment", FileDialog.LOAD)
+            dialog.isMultipleMode = false
+            dialog.isVisible = true
+
+            val files = dialog.files
+            if (files?.size == 1) {
+                loadAttachmentFileIntoComposer(files[0])
+            } else if ((files?.size ?: 0) > 1) {
+                ActionResult.Failure("Selecting multiple attachments at once is not supported")
+            } else {
+                log.d("Attachment selection cancelled")
+                ActionResult.Success()
+            }
+        } catch (t: Throwable) {
+            log.e("Failed to open native file picker", t)
+            ActionResult.Failure("Failed to open native file picker")
+        }
+    }
+
+    suspend fun loadAttachmentFileIntoComposer(file: File): ActionResult = withContext(Dispatchers.IO) {
+        if (!file.exists()) {
+            return@withContext ActionResult.Failure("File does not exist: ${file.absolutePath}")
+        }
+        val mimetype = MimeUtil.detectMimeType(file)
+        val attachmentType = MimeUtil.classifyFromMime(mimetype)
+        val fileSize = file.length()
+        val attachment = when (attachmentType) {
+            MimeUtil.AttachmentKind.IMAGE -> {
+                val measures = MediaInfoUtil.probeImage(file)
+                Attachment.Image(
+                    file = file,
+                    thumbnailFile = null, // TODO?
+                    imageInfo = ImageInfo(
+                        height = measures.height?.toLong(),
+                        width = measures.width?.toLong(),
+                        mimetype = mimetype,
+                        size = fileSize,
+                        thumbnailInfo = null,
+                        thumbnailSource = null,
+                        blurhash = "", // TODO why is SDK/FFI refusing to send without blurhash
+                    ),
+                )
+            }
+            MimeUtil.AttachmentKind.VIDEO -> {
+                Attachment.Video(
+                    file = file,
+                    thumbnailFile = null, // TODO?
+                    videoInfo = VideoInfo(
+                        duration = null,
+                        height = null,
+                        width = null,
+                        mimetype = mimetype,
+                        size = fileSize,
+                        thumbnailInfo = null,
+                        thumbnailSource = null,
+                        blurhash = "", // TODO why is SDK/FFI refusing to send without blurhash
+                    ),
+                )
+            }
+            MimeUtil.AttachmentKind.AUDIO -> {
+                Attachment.Audio(
+                    file,
+                    AudioInfo(
+                        duration = null, // TODO
+                        size = fileSize,
+                        mimetype = mimetype,
+                    )
+                )
+            }
+            MimeUtil.AttachmentKind.OTHER -> {
+                Attachment.Generic(
+                    file,
+                    FileInfo(
+                        mimetype = mimetype,
+                        size = fileSize,
+                        thumbnailInfo = null,
+                        thumbnailSource = null,
+                    )
+                )
+            }
+        }
+        DraftRepo.update(draftKey) {
+            it?.copy(
+                attachment = attachment,
+                type = DraftType.ATTACHMENT,
+                editEventId = null,
+                isSendInProgress = false,
+            ) ?: DraftValue(
+                attachment = attachment,
+                type = DraftType.ATTACHMENT,
+            )
+        }
+        ActionResult.Success()
     }
 
     private fun ActionContext.jumpToMessage(

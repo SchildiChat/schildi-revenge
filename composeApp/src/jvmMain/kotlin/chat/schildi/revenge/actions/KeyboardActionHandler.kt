@@ -1,6 +1,9 @@
 package chat.schildi.revenge.actions
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusState
@@ -29,6 +32,7 @@ import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.focus.FocusParent
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.Destination
+import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
@@ -67,6 +71,9 @@ import shire.composeapp.generated.resources.action_cancel
 import shire.composeapp.generated.resources.action_processing
 import shire.composeapp.generated.resources.action_processing_done
 import shire.composeapp.generated.resources.command_copied_to_clipboard
+import java.awt.Toolkit
+import java.awt.datatransfer.DataFlavor
+import java.io.File
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.CoroutineContext
@@ -401,7 +408,19 @@ class KeyboardActionHandler(
         return when (event.type) {
             KeyDown -> {
                 val consumed = when (val mode = mode.value) {
-                    is KeyboardActionMode.Navigation -> handleNavigationEvent(trigger, focused) is ActionResult.Actioned
+                    is KeyboardActionMode.Navigation -> {
+                        val result = handleNavigationEvent(trigger, focused)
+                        if (result is ActionResult.Failure) {
+                            publishMessage(
+                                AppMessage(
+                                    result.message.toStringHolder(),
+                                    uniqueId = "actionError",
+                                    isError = true,
+                                )
+                            )
+                        }
+                        result is ActionResult.Actioned
+                    }
                     is KeyboardActionMode.Search -> handleSearchEvent(trigger, focused, mode)
                 }
                 if (consumed) {
@@ -538,23 +557,30 @@ class KeyboardActionHandler(
         } ?: false
     }
 
+    fun getActionContext(destination: Destination?) = getActionContext(destination?.name)
+
+    private fun getActionContext(currentDestinationName: String?) = object : ActionContext {
+        override fun publishMessage(message: AbstractAppMessage) =
+            this@KeyboardActionHandler.publishMessage(message)
+        override fun dismissMessage(uniqueId: String) =
+            this@KeyboardActionHandler.dismissMessage(uniqueId)
+        override fun copyToClipboard(content: String, description: ComposableStringHolder) =
+            this@KeyboardActionHandler.copyToClipboard(this, content, description)
+        override fun readFromClipboard(handle: suspend (ClipEntry) -> ActionResult) =
+            this@KeyboardActionHandler.readFromClipboard(this, handle)
+        override fun getFilesFromClipboard() = this@KeyboardActionHandler.getFilesFromClipboard()
+        override fun openLinkInExternalBrowser(uri: String): ActionResult =
+            this@KeyboardActionHandler.openLinkInExternalBrowser(uri)
+        override fun focusByRole(role: FocusRole) =
+            this@KeyboardActionHandler.focusByRole(role)
+        override val currentDestinationName = currentDestinationName
+    }
+
     private fun handleNavigationEvent(key: KeyTrigger, focused: FocusTarget?): ActionResult {
         val currentDestination = focused?.destinationStateHolder?.state?.value?.destination
         val keyConfig = UiState.keybindingsConfig.value ?: return ActionResult.NoMatch
 
-        val context = object : ActionContext {
-            override fun publishMessage(message: AbstractAppMessage) =
-                this@KeyboardActionHandler.publishMessage(message)
-            override fun dismissMessage(uniqueId: String) =
-                this@KeyboardActionHandler.dismissMessage(uniqueId)
-            override fun copyToClipboard(content: String, description: ComposableStringHolder) =
-                this@KeyboardActionHandler.copyToClipboard(this, content, description)
-            override fun openLinkInExternalBrowser(uri: String): ActionResult =
-                this@KeyboardActionHandler.openLinkInExternalBrowser(uri)
-            override fun focusByRole(role: FocusRole) =
-                this@KeyboardActionHandler.focusByRole(role)
-            override val currentDestinationName: String? = currentDestination?.name
-        }
+        val context = getActionContext(currentDestination?.name)
 
         return ActionResult.chain(
             {
@@ -834,6 +860,27 @@ class KeyboardActionHandler(
         return ActionResult.Success()
     }
 
+    fun readFromClipboard(context: ActionContext, handle: suspend (ClipEntry) -> ActionResult): ActionResult {
+        val localClipboard = clipboard ?: return ActionResult.Failure("No clipboard found")
+        return context.launchActionAsync("readFromClipboard", scope) {
+            localClipboard.getClipEntry()?.let {
+                handle(it)
+            } ?: ActionResult.Inapplicable
+        }
+    }
+
+    fun getFilesFromClipboard(): List<File> {
+        val systemClipboard = Toolkit.getDefaultToolkit().systemClipboard
+        val contents = systemClipboard.getContents(null) ?: return emptyList()
+
+        return if (contents.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
+            @Suppress("UNCHECKED_CAST")
+            contents.getTransferData(DataFlavor.javaFileListFlavor) as? List<File> ?: emptyList()
+        } else {
+            emptyList()
+        }
+    }
+
     fun openLinkInExternalBrowser(uri: String): ActionResult {
         val localUriHandler = uriHandler ?: return ActionResult.Failure("No uri handler found")
         localUriHandler.openUri(uri)
@@ -1104,6 +1151,8 @@ interface ActionContext {
     fun publishMessage(message: AbstractAppMessage)
     fun dismissMessage(uniqueId: String)
     fun copyToClipboard(content: String, description: ComposableStringHolder): ActionResult
+    fun readFromClipboard(handle: suspend (ClipEntry) -> ActionResult): ActionResult
+    fun getFilesFromClipboard(): List<File>
     fun openLinkInExternalBrowser(uri: String): ActionResult
     fun focusByRole(role: FocusRole): Boolean
     val currentDestinationName: String?
@@ -1169,4 +1218,13 @@ private fun String.toDestinationOrNull(args: List<String>) = when (lowercase()) 
         Destination.Conversation(SessionId(args[0]), RoomId(args[1]))
     } else null
     else -> null
+}
+
+@Composable
+fun currentActionContext(): ActionContext {
+    val keyHandler = LocalKeyboardActionHandler.current
+    val destination = LocalDestinationState.current?.state?.collectAsState()?.value?.destination
+    return remember(keyHandler, destination) {
+        keyHandler.getActionContext(destination)
+    }
 }

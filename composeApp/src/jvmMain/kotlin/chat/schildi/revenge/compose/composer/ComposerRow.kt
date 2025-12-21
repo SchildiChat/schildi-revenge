@@ -1,5 +1,6 @@
 package chat.schildi.revenge.compose.composer
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -20,26 +22,33 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
+import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.compose.destination.conversation.event.message.ReplyContent
 import chat.schildi.revenge.compose.focus.keyFocusable
+import chat.schildi.revenge.model.Attachment
 import chat.schildi.revenge.model.ComposerViewModel
 import chat.schildi.revenge.model.DraftType
 import chat.schildi.theme.scExposures
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.action_add_attachment
 import shire.composeapp.generated.resources.action_clear_reply
 import shire.composeapp.generated.resources.action_send
+import shire.composeapp.generated.resources.hint_composer_audio
+import shire.composeapp.generated.resources.hint_composer_caption
 import shire.composeapp.generated.resources.hint_composer_edit
 import shire.composeapp.generated.resources.hint_composer_edit_caption
 import shire.composeapp.generated.resources.hint_composer_emote
+import shire.composeapp.generated.resources.hint_composer_file
+import shire.composeapp.generated.resources.hint_composer_image
 import shire.composeapp.generated.resources.hint_composer_notice
 import shire.composeapp.generated.resources.hint_composer_reaction
 import shire.composeapp.generated.resources.hint_composer_text
+import shire.composeapp.generated.resources.hint_composer_video
 
 // TODO
 //  formatted messages: markdown toggle + rendered preview
 //  intentional mentions: requires auto-completion suggestions etc.
-//  attachments (drag&drop? keeps text functionality for captions)
 @Composable
 fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
     val draftState = viewModel.composerState.collectAsState().value
@@ -52,7 +61,26 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
                 }
             }
         }
-        Row {
+        if (draftState.attachment != null) {
+            ComposerAttachment(draftState.attachment, viewModel::clearAttachment)
+        }
+        Row(
+            verticalAlignment = Alignment.Bottom,
+        ) {
+            val actionContext = currentActionContext()
+            AnimatedVisibility(
+                draftState.canAddAttachment(),
+            ) {
+                IconButton(
+                    onClick = { viewModel.launchAttachmentPicker(actionContext) },
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        stringResource(Res.string.action_add_attachment),
+                        tint = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
+            }
             TextField(
                 value = draftState.textFieldValue,
                 onValueChange = {
@@ -66,6 +94,13 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
                         DraftType.EDIT -> stringResource(Res.string.hint_composer_edit)
                         DraftType.EDIT_CAPTION -> stringResource(Res.string.hint_composer_edit_caption)
                         DraftType.REACTION -> stringResource(Res.string.hint_composer_reaction)
+                        DraftType.ATTACHMENT -> when (draftState.attachment) {
+                            is Attachment.Audio -> stringResource(Res.string.hint_composer_audio)
+                            is Attachment.Generic -> stringResource(Res.string.hint_composer_file)
+                            is Attachment.Image -> stringResource(Res.string.hint_composer_image)
+                            is Attachment.Video -> stringResource(Res.string.hint_composer_video)
+                            null -> stringResource(Res.string.hint_composer_caption)
+                        }
                     }
                     Text(hint)
                 },
@@ -78,7 +113,10 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
                     unfocusedContainerColor = MaterialTheme.colorScheme.surface,
                 )
             )
-            SendButton(enabled = draftState.canSend(), onClick = viewModel::sendMessage)
+            SendButton(
+                enabled = draftState.canSend(),
+                onClick = { viewModel.sendMessage(actionContext) }
+            )
         }
     }
 }
