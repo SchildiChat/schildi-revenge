@@ -16,12 +16,10 @@ import chat.schildi.revenge.GlobalActionsScope
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.FocusRole
-import chat.schildi.revenge.actions.KeyboardActionHandler
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.actions.launchActionAsync
 import chat.schildi.revenge.actions.orActionInapplicable
-import chat.schildi.revenge.actions.orActionValidationError
 import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.revenge.compose.util.UrlUtil
 import chat.schildi.revenge.compose.util.insertAtCursor
@@ -321,7 +319,7 @@ class ConversationViewModel(
     }
 
     override fun handleNavigationModeEvent(context: ActionContext, key: KeyTrigger): ActionResult {
-        val keyConfig = UiState.keybindingsConfig.value
+        val keyConfig = UiState.keybindingsConfig.value ?: return ActionResult.NoMatch
         return keyConfig.conversation.execute(context, key) { conversationAction ->
             when (conversationAction.action) {
                 Action.Conversation.FocusComposer -> {
@@ -517,7 +515,8 @@ class ConversationViewModel(
         }
         return object : KeyboardActionProvider {
             override fun handleNavigationModeEvent(context: ActionContext, key: KeyTrigger): ActionResult {
-                return UiState.keybindingsConfig.value.event.execute(context, key) { binding ->
+                val keyConfig = UiState.keybindingsConfig.value ?: return ActionResult.NoMatch
+                return keyConfig.event.execute(context, key) { binding ->
                     when (binding.action) {
                         Action.Event.MarkRead -> eventId?.let { markEventAsRead(eventId, ReceiptType.READ) } ?: ActionResult.Inapplicable
                         Action.Event.MarkReadPrivate -> eventId?.let {

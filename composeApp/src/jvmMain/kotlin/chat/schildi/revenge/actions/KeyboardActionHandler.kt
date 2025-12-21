@@ -29,7 +29,6 @@ import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.focus.FocusParent
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.Destination
-import chat.schildi.revenge.actions.ActionResult.*
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.ActionArgument
@@ -511,7 +510,7 @@ class KeyboardActionHandler(
 
     private fun handleNavigationEvent(key: KeyTrigger, focused: FocusTarget?): ActionResult {
         val currentDestination = focused?.destinationStateHolder?.state?.value?.destination
-        val keyConfig = UiState.keybindingsConfig.value
+        val keyConfig = UiState.keybindingsConfig.value ?: return ActionResult.NoMatch
 
         val context = object : ActionContext {
             override fun publishMessage(message: String, isError: Boolean, uniqueId: String?, canAutoDismiss: Boolean) =
@@ -930,7 +929,7 @@ fun <A : Action>Binding<A>.checkArgument(
             }) {
                 null
             } else {
-                Malformed(
+                ActionResult.Malformed(
                     "Invalid parameter for $actionName, expected ${argDef.name}; got $argVal"
                 )
             }
@@ -941,7 +940,7 @@ fun <A : Action>Binding<A>.checkArgument(
         ActionArgumentPrimitive.Text -> null
         ActionArgumentPrimitive.Boolean -> {
             if (argVal.toBooleanStrictOrNull() == null) {
-                Malformed(
+                ActionResult.Malformed(
                     "Invalid parameter for $actionName, expected boolean got $argVal"
                 )
             } else {
@@ -950,7 +949,7 @@ fun <A : Action>Binding<A>.checkArgument(
         }
         ActionArgumentPrimitive.Integer -> {
             if (argVal.toIntOrNull() == null) {
-                 Malformed(
+                ActionResult.Malformed(
                     "Invalid parameter for $actionName, expected int got $argVal"
                 )
             } else {
@@ -963,7 +962,7 @@ fun <A : Action>Binding<A>.checkArgument(
                 if (asIndex in 0..(validSessionIds?.size ?: Integer.MAX_VALUE)) {
                     null
                 } else {
-                    Malformed(
+                    ActionResult.Malformed(
                         "Invalid parameter for $actionName, index out of range: $argVal"
                     )
                 }
@@ -975,7 +974,7 @@ fun <A : Action>Binding<A>.checkArgument(
         ActionArgumentPrimitive.Mxid -> {
             if (validSessionIds != null && argDef == ActionArgumentPrimitive.SessionId) {
                 if (!validSessionIds.contains(argVal)) {
-                    Malformed(
+                    ActionResult.Malformed(
                         "Invalid parameter for $actionName, not an existing user login: $argVal"
                     )
                 } else {
@@ -984,7 +983,7 @@ fun <A : Action>Binding<A>.checkArgument(
             } else {
                 // TODO full mxid regex checking
                 if (!argVal.startsWith("@") || !argVal.contains(":")) {
-                    Malformed(
+                    ActionResult.Malformed(
                         "Invalid parameter for $actionName, expected MXID got $argVal"
                     )
                 } else {
@@ -995,7 +994,7 @@ fun <A : Action>Binding<A>.checkArgument(
         ActionArgumentPrimitive.SpaceId,
         ActionArgumentPrimitive.RoomId -> {
             if (!argVal.startsWith("!")) {
-                Malformed(
+                ActionResult.Malformed(
                     "Invalid parameter for $actionName, expected room ID got $argVal"
                 )
             } else {
@@ -1004,7 +1003,7 @@ fun <A : Action>Binding<A>.checkArgument(
         }
         ActionArgumentPrimitive.EventId -> {
             if (!argVal.startsWith("$")) {
-                Malformed(
+                ActionResult.Malformed(
                     "Invalid parameter for $actionName, expected room ID got $argVal"
                 )
             } else {
@@ -1013,7 +1012,7 @@ fun <A : Action>Binding<A>.checkArgument(
         }
         ActionArgumentPrimitive.SettingKey -> {
             if (argVal !in validSettingKeys) {
-                Malformed(
+                ActionResult.Malformed(
                     "Invalid parameter for $actionName, not a valid settings key: $argVal"
                 )
             } else {
@@ -1022,7 +1021,7 @@ fun <A : Action>Binding<A>.checkArgument(
         }
         ActionArgumentPrimitive.NavigatableDestinationName -> {
             if (argVal.toDestinationOrNull() == null) {
-                Malformed(
+                ActionResult.Malformed(
                     "Invalid parameter for $actionName, not a valid destination: $argVal"
                 )
             } else {
@@ -1033,7 +1032,7 @@ fun <A : Action>Binding<A>.checkArgument(
             if (argVal.startsWith(REAL_SPACE_ID_PREFIX) || argVal.startsWith(PSEUDO_SPACE_ID_PREFIX)) {
                 null
             } else {
-                Malformed(
+                ActionResult.Malformed(
                     "Invalid parameter for $actionName, not a valid space selection ID: $argVal"
                 )
             }
@@ -1043,7 +1042,7 @@ fun <A : Action>Binding<A>.checkArgument(
             if (asIndex != null && asIndex >= 0) {
                 null
             } else {
-                Malformed(
+                ActionResult.Malformed(
                     "Invalid parameter for $actionName, expected non-negative integer got $argVal"
                 )
             }

@@ -23,29 +23,29 @@ import io.element.android.libraries.matrix.api.core.SessionId
 class SpaceComparator(
     private val sessionIdComparator: Comparator<SessionId> = compareBy { it.value },
 ) : Comparator<SpaceListDataSource.SpaceHierarchyItem> {
-    override fun compare(left: SpaceListDataSource.SpaceHierarchyItem?, right: SpaceListDataSource.SpaceHierarchyItem?): Int {
-        val leftOrder = left?.order
-        val rightOrder = right?.order
-        return if (leftOrder != null && rightOrder != null) {
-            leftOrder.compareTo(rightOrder).orCompare {
-                sessionIdComparator.compare(left.room.sessionId, right.room.sessionId)
-            }
-        } else {
-            if (leftOrder == null) {
-                if (rightOrder == null) {
-                    // Spec says to fallback to roomId, but we at SchildiChat find lowercase names more suitable
-                    //compareValues(left?.info?.roomId?.value, right?.info?.roomId?.value)
-                    compareValues(
-                        left?.room?.summary?.info?.name?.lowercase(),
-                        right?.room?.summary?.info?.name?.lowercase()
-                    ).orCompare {
-                        sessionIdComparator.compare(left?.room?.sessionId, right?.room?.sessionId)
+    override fun compare(left: SpaceListDataSource.SpaceHierarchyItem, right: SpaceListDataSource.SpaceHierarchyItem): Int {
+        val leftSessionId = left.sessionIds.minWith(sessionIdComparator)
+        val rightSessionId = right.sessionIds.minWith(sessionIdComparator)
+        return sessionIdComparator.compare(leftSessionId, rightSessionId).orCompare {
+            val leftOrder = left.order
+            val rightOrder = right.order
+            if (leftOrder != null && rightOrder != null) {
+                leftOrder.compareTo(rightOrder)
+            } else {
+                if (leftOrder == null) {
+                    if (rightOrder == null) {
+                        // Spec says to fallback to roomId, but we at SchildiChat find lowercase names more suitable
+                        //compareValues(left?.info?.roomId?.value, right?.info?.roomId?.value)
+                        compareValues(
+                            left.room.summary.info.name?.lowercase(),
+                            right.room.summary.info.name?.lowercase()
+                        )
+                    } else {
+                        1
                     }
                 } else {
-                    1
+                    -1
                 }
-            } else {
-                -1
             }
         }
     }

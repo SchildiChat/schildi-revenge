@@ -23,6 +23,7 @@ import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.flatMerge
+import chat.schildi.revenge.flatMergeCombinedWith
 import chat.schildi.revenge.model.spaces.RevengeSpaceListDataSource
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
 import chat.schildi.revenge.model.spaces.SpaceListDataSource
@@ -91,6 +92,7 @@ class InboxViewModel(
     private val roomListDataSource: RoomListDataSource = RevengeRoomListDataSource,
     private val spaceListDataSource: SpaceListDataSource = RevengeSpaceListDataSource,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
+    private val sessionIdComparatorFlow: Flow<Comparator<SessionId>> = UiState.sessionIdComparator,
 ) : ViewModel(), SearchProvider, KeyboardActionProvider, TitleProvider {
     private val log = Logger.withTag("Inbox")
 
@@ -244,8 +246,14 @@ class InboxViewModel(
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    // TODO user-defined sort order
-    val accountsSorted = accounts.map { it?.values?.sortedBy { it.user.userId.value }?.toPersistentList() }
+    val accountsSorted = combine(
+        accounts,
+        sessionIdComparatorFlow
+    ) { it, comparator ->
+        it?.values?.sortedWith { l, r ->
+            comparator.compare(l.user.userId, r.user.userId)
+        }?.toPersistentList()
+    }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
@@ -293,7 +301,7 @@ class InboxViewModel(
     }
 
     override fun handleNavigationModeEvent(context: ActionContext, key: KeyTrigger): ActionResult {
-        val keyConfig = UiState.keybindingsConfig.value
+        val keyConfig = UiState.keybindingsConfig.value ?: return ActionResult.NoMatch
         return keyConfig.inbox.execute(context, key) { inboxAction ->
             when (inboxAction.action) {
                 Action.Inbox.SetAccountHidden -> {

@@ -3,6 +3,7 @@ package chat.schildi.revenge
 import androidx.compose.ui.window.ApplicationScope
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.config.ConfigWatchers
+import chat.schildi.revenge.store.AppStateStore
 import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.createGraphFactory
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -19,6 +20,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -51,13 +54,6 @@ object UiState {
 
     private val keybindingsConfigWatcher = ConfigWatchers.keybindings(scope)
     val keybindingsConfig = keybindingsConfigWatcher.config
-
-    init {
-        scope.launch {
-            // Kick initial session load
-            appGraph.sessionStore.getAllSessions()
-        }
-    }
 
     private val _showHiddenItems = MutableStateFlow(false)
     val showHiddenItems = _showHiddenItems.asStateFlow()
@@ -103,6 +99,32 @@ object UiState {
 
     val currentValidSessionIds = combinedSessions.map { it.map { it.client.sessionId.value } }
         .stateIn(scope, SharingStarted.Eagerly, null)
+
+    private val appStateStore = AppStateStore(scope)
+    val sessionIdComparator = appStateStore.sessionIdComparator
+
+    init {
+        scope.launch {
+            // Kick initial session load
+            appGraph.sessionStore.getAllSessions()
+        }
+        // Ensure all accounts tracked in meta info
+        combine(
+            appStateStore.config,
+            currentValidSessionIds
+        ) { currentAccountMeta, sessionIds ->
+            currentAccountMeta ?: return@combine
+            sessionIds ?: return@combine
+            if (sessionIds.any { it !in currentAccountMeta.sortedAccounts }) {
+                // Fill in missing accounts, so we get a deterministic order and user has it easier to modify manually
+                appStateStore.update { meta ->
+                    meta.copy(
+                        sortedAccounts = meta.sortedAccounts + sessionIds.filter { it !in meta.sortedAccounts }
+                    )
+                }
+            }
+        }.launchIn(scope)
+    }
 
     fun selectClient(sessionId: SessionId, scope: CoroutineScope) = matrixClients.map {
         it[sessionId]

@@ -86,12 +86,11 @@ val RevengeSpaceListDataSource = SpaceListDataSource()
 class SpaceListDataSource(
     private val combinedSessions: CombinedSessions = UiState.combinedSessions,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
-    // TODO user-defined account order
-    private val sessionIdComparator: Comparator<SessionId> = compareBy { it.value },
+    private val sessionIdComparatorFlow: Flow<Comparator<SessionId>> = UiState.sessionIdComparator,
 ) {
     private val log = Logger.withTag("SpaceListDataSource")
 
-    private val spaceComparator = SpaceComparator(sessionIdComparator)
+    private val spaceComparatorFlow = sessionIdComparatorFlow.map { SpaceComparator(it) }
 
     private val _forceRebuildFlow = MutableStateFlow(System.currentTimeMillis())
 
@@ -132,16 +131,18 @@ class SpaceListDataSource(
         accounts,
         allSpacesFlat,
         scPreferencesStore.pseudoSpaceSettingsFlow(),
+        spaceComparatorFlow,
         _forceRebuildFlow,
-    ) { accounts, flatSpaces, settings, _ ->
+    ) { accounts, flatSpaces, settings, spaceComparator, _ ->
         Timber.d("Rebuilding space hierarchy for ${flatSpaces.size} spaces")
-        buildSpaceHierarchy(accounts, flatSpaces, settings)
+        buildSpaceHierarchy(accounts, flatSpaces, settings, spaceComparator)
     }.flowOn(Dispatchers.IO)
 
     private suspend fun buildSpaceHierarchy(
         accounts: List<MatrixUser>,
         spaceSummaries: List<SpaceBuilderRoom>,
         pseudoSpaceSettings: PseudoSpaceSettings,
+        spaceComparator: SpaceComparator,
     ): List<AbstractSpaceHierarchyItem> {
         val pseudoSpaces = mutableListOf<PseudoSpaceItem>()
         pseudoSpaces.add(
@@ -213,7 +214,7 @@ class SpaceListDataSource(
                 )
             }
         )
-        return pseudoSpaces + buildSpaceHierarchy(spaceSummaries)
+        return pseudoSpaces + buildSpaceHierarchy(spaceSummaries, spaceComparator)
     }
 
     // Force rebuilding a space filter. Only a workaround until we can do proper listener to m.space.child state events...
@@ -224,7 +225,10 @@ class SpaceListDataSource(
     /**
      * Build the space hierarchy and avoid loops
      */
-    private suspend fun buildSpaceHierarchy(spaceSummaries: List<SpaceBuilderRoom>): List<AbstractSpaceHierarchyItem> {
+    private suspend fun buildSpaceHierarchy(
+        spaceSummaries: List<SpaceBuilderRoom>,
+        spaceComparator: SpaceComparator,
+    ): List<AbstractSpaceHierarchyItem> {
         // Map spaceId -> list of child spaces
         val spaceHierarchyMap = HashMap<ScopedSpaceId, MutableList<Pair<MatrixSpaceChildInfo, SpaceBuilderRoom>>>()
         // Map spaceId -> list of regular child rooms
@@ -251,13 +255,20 @@ class SpaceListDataSource(
         return rootSpaces.map {
             val order = it.client.getRoomAccountData(it.summary.roomId, ROOM_ACCOUNT_DATA_SPACE_ORDER)
                 ?.let { SpaceOrderSerializer.deserializeContent(it) }?.getOrNull()?.order
-            createSpaceHierarchyItem(it, order, spaceHierarchyMap, regularChildren)
+            createSpaceHierarchyItem(
+                it,
+                order,
+                spaceComparator,
+                spaceHierarchyMap,
+                regularChildren
+            )
         }.sortedWith(spaceComparator)
     }
 
     private fun createSpaceHierarchyItem(
         spaceSummary: SpaceBuilderRoom,
         order: String?,
+        spaceComparator: SpaceComparator,
         hierarchy: HashMap<ScopedSpaceId, MutableList<Pair<MatrixSpaceChildInfo, SpaceBuilderRoom>>>,
         regularChildren: HashMap<ScopedSpaceId, MutableList<MatrixSpaceChildInfo>>,
         forbiddenChildren: List<ScopedSpaceId> = emptyList(),
@@ -268,7 +279,14 @@ class SpaceListDataSource(
                 Timber.w("Detected space loop: ${spaceSummary.summary.roomId} -> ${child.summary.roomId.value}")
                 null
             } else {
-                createSpaceHierarchyItem(child, spaceChildInfo.order, hierarchy, regularChildren, forbiddenChildren + listOf(spaceSummary.id))
+                createSpaceHierarchyItem(
+                    child,
+                    spaceChildInfo.order,
+                    spaceComparator,
+                    hierarchy,
+                    regularChildren,
+                    forbiddenChildren + listOf(spaceSummary.id),
+                )
             }
         }?.sortedWith(spaceComparator)?.toImmutableList() ?: persistentListOf()
 

@@ -4,16 +4,21 @@ import co.touchlab.kermit.Logger
 import com.akuleshov7.ktoml.Toml
 import com.akuleshov7.ktoml.TomlInputConfig
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.json.Json
 import java.io.File
+import java.io.IOException
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import java.nio.file.StandardWatchEventKinds
 import java.nio.file.WatchEvent
 import java.time.Instant
@@ -21,15 +26,74 @@ import kotlin.io.path.name
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
-class ConfigWatcher<T : Any>(
+class JsonConfigWatcher<T : Any>(
     tag: String,
-    scope: CoroutineScope,
+    private val scope: CoroutineScope,
     private val file: File,
     private val serializer: KSerializer<T>,
-    private val debounce: Duration = 150.milliseconds,
-    default: T,
+    debounce: Duration = 150.milliseconds,
+    private val default: T,
+    private val createIfMissing: Boolean = false,
+) : ConfigWatcher<T>(
+    tag, scope, file, debounce,
 ) {
     private val log = Logger.withTag(tag)
+    private val json = Json {
+        ignoreUnknownKeys = true
+        prettyPrint = true
+    }
+
+    init {
+        launch()
+    }
+
+    override fun decodeFromString(text: String): T =
+        json.decodeFromString(serializer, text)
+    suspend fun persist(value: T) {
+        withContext(Dispatchers.IO) {
+            try {
+                // Ensure directory exists
+                file.parentFile?.let { parent -> if (!parent.exists()) parent.mkdirs() }
+
+                // Serialize data
+                val data = json.encodeToString(serializer, value)
+
+                // Atomic replace
+                val tmp = File(file.parentFile, file.name + ".tmp")
+                tmp.writeText(data)
+                Files.move(
+                    tmp.toPath(),
+                    file.toPath(),
+                    StandardCopyOption.REPLACE_EXISTING,
+                    StandardCopyOption.ATOMIC_MOVE
+                )
+            } catch (e: IOException) {
+                log.e("Failed to persist file", e)
+            }
+        }
+    }
+
+    override fun reloadNow(): Boolean {
+        val success = super.reloadNow()
+        if (!success && createIfMissing) {
+            log.d { "Failed to load file, persisting default" }
+            scope.launch(Dispatchers.IO) {
+                persist(config.value ?: default)
+            }
+        }
+        return success
+    }
+}
+
+class TomlConfigWatcher<T : Any>(
+    tag: String,
+    scope: CoroutineScope,
+    file: File,
+    private val serializer: KSerializer<T>,
+    debounce: Duration = 150.milliseconds,
+) : ConfigWatcher<T>(
+    tag, scope, file, debounce
+) {
     private val toml = Toml(
         inputConfig = TomlInputConfig(
             ignoreUnknownNames = true,
@@ -40,13 +104,29 @@ class ConfigWatcher<T : Any>(
         )
     )
 
-    private val _config = MutableStateFlow(default)
+    override fun decodeFromString(text: String): T =
+        toml.decodeFromString(serializer, text)
+
+    init {
+        launch()
+    }
+}
+
+abstract class ConfigWatcher<T : Any>(
+    tag: String,
+    scope: CoroutineScope,
+    private val file: File,
+    private val debounce: Duration = 150.milliseconds,
+) {
+    private val log = Logger.withTag(tag)
+
+    private val _config = MutableStateFlow<T?>(null)
     val config = _config.asStateFlow()
 
     // Watcher job
-    private val watchJob = scope.launch(Dispatchers.IO) {
-        // Initial load if present
-        tryReload()
+    private val watchJob = scope.launch(Dispatchers.IO, CoroutineStart.LAZY) {
+        // Initial load if present. This is the open function variant so subclasses can persist the file if missing here.
+        reloadNow()
 
         if (!File(file.parent).exists()) {
             // Parent does not exist; nothing to watch yet. We'll still try to reload on demand.
@@ -94,18 +174,25 @@ class ConfigWatcher<T : Any>(
         }
     }
 
+    // Allow launching later so child class initialization can be ensured to be finished
+    open fun launch() {
+        watchJob.start()
+    }
+
     /** Force a reload from disk. Returns true if a new value was emitted. */
-    fun reloadNow(): Boolean = tryReload()
+    open fun reloadNow(): Boolean = tryReload()
 
     fun close() {
         watchJob.cancel()
     }
 
+    abstract fun decodeFromString(text: String): T
+
     private fun tryReload(): Boolean {
         return try {
             if (file.exists()) {
                 val text = Files.readString(Path.of(file.path))
-                val parsed = toml.decodeFromString(serializer, text)
+                val parsed = decodeFromString(text)
                 log.d("Config loaded from ${file.path}")
                 _config.value = parsed
                 true

@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.metro)
+    alias(libs.plugins.kotlinxSerialization)
 }
 kotlin {
     jvm()

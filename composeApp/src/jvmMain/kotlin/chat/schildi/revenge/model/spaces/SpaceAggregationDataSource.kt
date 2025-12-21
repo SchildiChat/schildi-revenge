@@ -4,6 +4,7 @@ import androidx.compose.runtime.Immutable
 import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPreferencesStore
 import chat.schildi.preferences.ScPrefs
+import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.util.throttleLatest
 import chat.schildi.revenge.model.ScopedRoomSummary
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource.SpaceUnreadCounts
@@ -17,27 +18,27 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 
 data class SpaceAggregationState(
     val enrichedSpaces: ImmutableList<SpaceListDataSource.AbstractSpaceHierarchyItem>? = null,
     val totalUnreadCounts: SpaceUnreadCounts? = null,
 )
 
-// TODO also use for merging spaces from multiple accounts together
 @Inject
 class SpaceAggregationDataSource(
     allSpacesHierarchical: Flow<List<SpaceListDataSource.AbstractSpaceHierarchyItem>>,
     allRooms: Flow<List<ScopedRoomSummary>>,
+    sessionIdComparatorFlow: Flow<Comparator<SessionId>> = UiState.sessionIdComparator,
     scPreferencesStore: ScPreferencesStore = RevengePrefs,
-    // TODO user-defined account order
-    sessionIdComparator: Comparator<SessionId> = compareBy { it.value },
 ) {
 
-    val allSpacesHierarchicalMerged = allSpacesHierarchical.map {
+    val allSpacesHierarchicalMerged = combine(
+        allSpacesHierarchical,
+        sessionIdComparatorFlow,
+    ) { it, comparator ->
         val pseudoSpaces = it.mapNotNull { it as? SpaceListDataSource.PseudoSpaceItem }
         val realSpaces = it.mapNotNull { it as? SpaceListDataSource.SpaceHierarchyItem }
-        val mergedSpaces = realSpaces.mergeSpaceSessionDuplicates(sessionIdComparator)
+        val mergedSpaces = realSpaces.mergeSpaceSessionDuplicates(comparator)
         (pseudoSpaces + mergedSpaces).toImmutableList()
     }.flowOn(Dispatchers.IO)
 
@@ -146,7 +147,7 @@ private fun SpaceUnreadCounts.add(
 }
 
 private fun List<SpaceListDataSource.SpaceHierarchyItem>.mergeSpaceSessionDuplicates(
-    sessionIdComparator: Comparator<SessionId> = compareBy { it.value },
+    sessionIdComparator: Comparator<SessionId>,
 ): List<SpaceListDataSource.SpaceHierarchyItem> {
     return groupBy {
         it.room.summary.roomId

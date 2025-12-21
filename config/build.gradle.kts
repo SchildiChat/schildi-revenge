@@ -19,6 +19,7 @@ kotlin {
                 implementation(libs.kermit)
                 implementation(libs.coil3.compose)
                 implementation(libs.kotlinx.serialization.core)
+                implementation(libs.kotlinx.serialization.json)
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.ktoml.core)
                 implementation(libs.androidx.datastore.preferences.core)
