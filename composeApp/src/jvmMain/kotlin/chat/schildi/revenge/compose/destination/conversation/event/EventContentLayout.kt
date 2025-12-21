@@ -59,7 +59,7 @@ fun EventContentLayout(
             isOwn = isOwn,
             senderAvatar = {
                 if (!isSameAsPreviousSender) {
-                    SenderAvatar(senderProfile)
+                    SenderAvatar(senderProfile, senderId)
                 }
             },
             senderName = {

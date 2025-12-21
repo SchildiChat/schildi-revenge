@@ -117,6 +117,7 @@ fun AccountButton(
                 size = 24.dp,
                 sessionId = account.user.userId,
                 shape = Dimens.ownAccountAvatarShape,
+                displayName = account.user.displayName ?: account.user.userId.value,
                 contentDescription = account.user.userId.value,
             )
         }

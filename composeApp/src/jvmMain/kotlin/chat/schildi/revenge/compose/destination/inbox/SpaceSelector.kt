@@ -341,6 +341,7 @@ private fun AbstractSpaceIcon(
             size = size,
             shape = shape,
             sessionId = space.room.sessionId,
+            displayName = space.room.summary.info.name ?: "",
             modifier = modifier,
         )
         is SpaceListDataSource.PseudoSpaceItem -> when (val icon = space.icon) {
@@ -358,6 +359,7 @@ private fun AbstractSpaceIcon(
                     size = size,
                     shape = shape,
                     sessionId = icon.sessionId,
+                    displayName = space.name.render(),
                     modifier = modifier,
                 )
             }

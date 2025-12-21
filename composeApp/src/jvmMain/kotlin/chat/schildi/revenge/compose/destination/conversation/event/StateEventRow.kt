@@ -25,6 +25,7 @@ fun StateEventRow(
     StateUpdateRow(
         text = AnnotatedString(text),
         senderProfile = senderProfile,
+        senderId = senderId,
         timestamp = timestamp,
         modifier = modifier,
     )
@@ -42,6 +43,7 @@ fun StateEventFallbackRow(
     StateUpdateRow(
         text = AnnotatedString(stringResource(Res.string.message_placeholder_state_event, senderName, eventType)),
         senderProfile = senderProfile,
+        senderId = senderId,
         timestamp = timestamp,
         modifier = modifier,
     )

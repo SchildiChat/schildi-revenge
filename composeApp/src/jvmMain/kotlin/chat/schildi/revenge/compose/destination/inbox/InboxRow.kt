@@ -90,12 +90,14 @@ fun InboxRow(
                             MediaSource(it)
                         },
                     size = Dimens.Inbox.avatar,
+                    displayName = room.summary.info.name ?: "",
                 )
                 user?.avatarUrl?.let { userAvatar ->
                     AvatarImage(
                         source = MediaSource(userAvatar),
                         size = Dimens.Inbox.accountAvatar,
                         shape = Dimens.ownAccountAvatarShape,
+                        displayName = user.displayName ?: user.userId.value,
                         modifier = Modifier.align(Alignment.BottomStart),
                     )
                 }
@@ -202,10 +204,12 @@ private fun RowScope.ScLastMessageAndIndicatorRow(room: RoomSummary) {
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (room.isInvite()) {
-            room.info.inviter?.avatarUrl?.let {
+            val inviter = room.info.inviter
+            inviter?.avatarUrl?.let {
                 AvatarImage(
                     source = MediaSource(it),
                     size = 12.dp,
+                    displayName = inviter.displayName ?: inviter.userId.value,
                     modifier = Modifier.padding(end = Dimens.horizontalItemPadding),
                 )
             }

@@ -31,6 +31,7 @@ fun ProfileChangeRow(
     StateUpdateRow(
         text = AnnotatedString(text),
         senderProfile = senderProfile,
+        senderId = senderId,
         timestamp = timestamp,
         modifier = modifier,
     )

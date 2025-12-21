@@ -54,11 +54,12 @@ fun ReadReceiptItem(
     member: RoomMember?,
     modifier: Modifier = Modifier,
 ) {
-    // TODO really need to work on display-name based avatar fallbacks
+    val senderName = member?.displayName ?: receipt.userId.value
     AvatarImage(
         source = member?.avatarUrl?.let { MediaSource(it) },
         size = Dimens.Conversation.receiptSize,
-        contentDescription = member?.displayName ?: receipt.userId.value,
+        contentDescription = senderName,
+        displayName = senderName,
         modifier = modifier,
     )
 }

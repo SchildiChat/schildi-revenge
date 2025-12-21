@@ -5,12 +5,16 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.media.imageLoader
@@ -27,13 +31,14 @@ private const val AVATAR_THUMBNAIL_SIZE = 512L
 fun AvatarImage(
     source: MediaSource?,
     size: Dp,
+    displayName: String,
     sessionId: SessionId? = LocalSessionId.current,
     modifier: Modifier = Modifier,
     shape: Shape = Dimens.avatarShape,
     contentDescription: String? = null,
 ) {
     if (source == null) {
-        AvatarFallback(shape, modifier.size(size))
+        AvatarFallback(displayName, shape, size)
         return
     }
     SubcomposeAsyncImage(
@@ -45,10 +50,10 @@ fun AvatarImage(
         modifier = modifier.size(size).clip(shape),
         contentScale = ContentScale.Crop,
         loading = {
-            AvatarFallback(shape, Modifier.size(size), isLoading = true)
+            AvatarFallback(displayName, shape, size, isLoading = true)
         },
         error = {
-            AvatarFallback(shape, Modifier.size(size), isError = true)
+            AvatarFallback(displayName, shape, size, isError = true)
         },
         success = {
             SubcomposeAsyncImageContent(Modifier.size(size))
@@ -58,7 +63,9 @@ fun AvatarImage(
 
 @Composable
 fun AvatarFallback(
+    displayName: String,
     shape: Shape,
+    size: Dp,
     modifier: Modifier = Modifier,
     isLoading: Boolean = false,
     isError: Boolean = false,
@@ -73,5 +80,29 @@ fun AvatarFallback(
             MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
         }
     ).value
-    Box(modifier.background(color, shape))
+    Box(modifier.size(size).background(color, shape), contentAlignment = Alignment.Center) {
+        val text = remember(displayName) {
+            val cleanedName = displayName.removePrefix("@")
+            val firstChar = cleanedName.firstOrNull() ?: "?"
+            val firstNonAlphaNum = cleanedName.indexOfFirst { !it.isLetterOrDigit() }
+            val secondChar = if (firstNonAlphaNum != -1)
+                cleanedName.substring(firstNonAlphaNum).firstOrNull { it.isLetterOrDigit() }
+            else
+                null
+            if (secondChar == null) {
+                firstChar.toString()
+            } else {
+                "$firstChar$secondChar"
+            }
+        }
+        val textSize = LocalDensity.current.run {
+            (size/2).toSp()
+        }
+        Text(
+            text,
+            color = MaterialTheme.colorScheme.inverseOnSurface,
+            style = MaterialTheme.typography.headlineSmall.copy(fontSize = textSize, lineHeight = textSize),
+            maxLines = 1,
+        )
+    }
 }

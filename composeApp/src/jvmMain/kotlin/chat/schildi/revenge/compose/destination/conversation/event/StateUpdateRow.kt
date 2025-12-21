@@ -14,12 +14,14 @@ import androidx.compose.ui.text.AnnotatedString
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.destination.conversation.event.message.TimestampOverlayContent
 import chat.schildi.revenge.compose.destination.conversation.event.sender.SenderAvatar
+import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.timeline.item.event.ProfileDetails
 
 @Composable
 fun StateUpdateRow(
     text: AnnotatedString,
     senderProfile: ProfileDetails,
+    senderId: UserId,
     timestamp: TimestampOverlayContent?,
     modifier: Modifier = Modifier,
 ) {
@@ -30,6 +32,7 @@ fun StateUpdateRow(
         Box(Modifier.width(Dimens.Inbox.avatar), contentAlignment = Alignment.CenterEnd) {
             SenderAvatar(
                 senderProfile = senderProfile,
+                senderId = senderId,
                 size = Dimens.Conversation.avatarForState,
             )
         }
