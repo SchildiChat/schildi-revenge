@@ -645,22 +645,6 @@ class KeyboardActionHandler(
                                 }.orActionInapplicable()
                             }
                         }
-                        Action.Global.ToggleTheme -> {
-                            UiState.darkThemeOverride.update {
-                                // TODO if override is null, read automatic theme
-                                !(it ?: false)
-                            }
-                            ActionResult.Success()
-                        }
-                        Action.Global.AutomaticTheme -> {
-                            UiState.darkThemeOverride.value = null
-                            ActionResult.Success()
-                        }
-                        Action.Global.ToggleHiddenItems -> {
-                            // TODO move to normal ScPref
-                            UiState.setShowHiddenItems(!UiState.showHiddenItems.value)
-                            ActionResult.Success()
-                        }
                         Action.Global.SetSetting -> {
                             scope.launch {
                                 RevengePrefs.handleSetAction(globalAction.args)

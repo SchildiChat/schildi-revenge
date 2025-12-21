@@ -136,6 +136,7 @@
     <string name="profile_update_set_name_and_avatar">%1$s changed their avatar and set their name</string>
 
     <string name="pref_category_dimensions">Dimensions</string>
+    <string name="pref_category_developer_options">Developer options</string>
     <string name="pref_render_scale">Render scale</string>
     <string name="pref_font_scale">Font scale</string>
     <string name="pref_max_width_inbox_title">Inbox max width</string>
@@ -148,6 +149,10 @@
     <string name="pref_window_transparency_summary">Control the window transparency. Results may vary depending on your operating systems / window manager.</string>
     <string name="pref_category_theme_light">Light theme</string>
     <string name="pref_category_theme_dark">Dark theme</string>
+    <string name="pref_debug_avatar_render_states_title">Render avatar states</string>
+    <string name="pref_theme_follow_system_title">Follow system theme</string>
+    <string name="pref_theme_follow_system_summary">Choose dark or light theme based on system settings</string>
+    <string name="pref_dark_theme_title">Dark theme</string>
 
     <string name="nameless_space_fallback_title">Nameless space</string>
 

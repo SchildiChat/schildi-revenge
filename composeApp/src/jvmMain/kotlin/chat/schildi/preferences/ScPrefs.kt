@@ -3,14 +3,19 @@ package chat.schildi.preferences
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.pref_auto_hide_composer_summary
 import shire.composeapp.generated.resources.pref_auto_hide_composer_title
+import shire.composeapp.generated.resources.pref_category_developer_options
 import shire.composeapp.generated.resources.pref_category_dimensions
 import shire.composeapp.generated.resources.pref_category_theme_dark
 import shire.composeapp.generated.resources.pref_category_theme_light
+import shire.composeapp.generated.resources.pref_dark_theme_title
+import shire.composeapp.generated.resources.pref_debug_avatar_render_states_title
 import shire.composeapp.generated.resources.pref_font_scale
 import shire.composeapp.generated.resources.pref_max_width_conversation_title
 import shire.composeapp.generated.resources.pref_max_width_inbox_title
 import shire.composeapp.generated.resources.pref_max_width_settings_title
 import shire.composeapp.generated.resources.pref_render_scale
+import shire.composeapp.generated.resources.pref_theme_follow_system_summary
+import shire.composeapp.generated.resources.pref_theme_follow_system_title
 import shire.composeapp.generated.resources.pref_window_transparency_summary
 import shire.composeapp.generated.resources.pref_window_transparency_title
 import shire.composeapp.generated.resources.sc_client_generated_unread_counts_summary
@@ -77,9 +82,10 @@ object ScPrefs {
         const val HIDE = "HIDE"
     }
 
-    /*
     // Developer options
     private const val SC_DEVELOPER_OPTIONS_CATEGORY_KEY = "SC_DEVELOPER_OPTIONS_CATEGORY"
+    val RENDER_AVATAR_STATES = ScBoolPref("RENDER_AVATAR_STATES", false, Res.string.pref_debug_avatar_render_states_title)
+    /*
     private val SC_DANGER_ZONE = ScBoolPref("SC_DANGER_ZONE", false, Res.string.sc_pref_danger_zone, Res.string.sc_pref_danger_zone_summary, authorsChoice = true)
     val SC_PUSH_INFO = ScActionablePref("SC_PUSH_INFO", Res.string.sc_push_info_title, Res.string.sc_push_info_summary)
     val SC_USER_CHANGED_SETTINGS = ScActionablePref("SC_USER_CHANGED_SETTINGS", Res.string.sc_pref_user_changed_prefs_title, Res.string.sc_pref_user_changed_prefs_summary)
@@ -94,6 +100,8 @@ object ScPrefs {
     // Appearance
     val BACKGROUND_ALPHA_LIGHT = ScFloatPref("BACKGROUND_ALPHA_LIGHT", 1f, Res.string.pref_window_transparency_title, Res.string.pref_window_transparency_summary, minValue = 0f, maxValue = 1f)
     val BACKGROUND_ALPHA_DARK = ScFloatPref("BACKGROUND_ALPHA_DARK", 1f, Res.string.pref_window_transparency_title, Res.string.pref_window_transparency_summary, minValue = 0f, maxValue = 1f)
+    val THEME_FOLLOW_SYSTEM = ScBoolPref("THEME_FOLLOW_SYSTEM", true, Res.string.pref_theme_follow_system_title, Res.string.pref_theme_follow_system_summary)
+    val THEME_DARK = ScBoolPref("THEME_DARK", false, Res.string.pref_dark_theme_title, dependencies = listOf(ScPrefNotDependency(THEME_FOLLOW_SYSTEM.toDependency())))
     /*
     val SC_THEME = ScBoolPref("SC_THEMES", true, Res.string.sc_pref_sc_themes_title, Res.string.sc_pref_sc_themes_summary, upstreamChoice = false)
     val EL_TYPOGRAPHY = ScBoolPref("EL_TYPOGRAPHY", false, Res.string.sc_pref_el_typography_title, Res.string.sc_pref_el_typography_summary, upstreamChoice = true)
@@ -210,6 +218,8 @@ object ScPrefs {
         ScPrefScreen(Res.string.sc_pref_category_general, Res.string.sc_pref_category_general_summary, listOf(
             ALWAYS_SHOW_KEYBOARD_FOCUS,
             ScPrefCategory(Res.string.sc_pref_category_general_appearance, null, listOf(
+                THEME_FOLLOW_SYSTEM,
+                THEME_DARK,
                 /*
                 SC_THEME,
                 EL_TYPOGRAPHY,
@@ -310,7 +320,10 @@ object ScPrefs {
             SC_USER_CHANGED_SETTINGS,
             SC_PUSH_INFO,
         )),
-        ScPrefCategoryCollapsed(SC_DEVELOPER_OPTIONS_CATEGORY_KEY, CommonStrings.common_developer_options, prefs = listOf(
+        */
+        ScPrefCategoryCollapsed(SC_DEVELOPER_OPTIONS_CATEGORY_KEY, Res.string.pref_category_developer_options, prefs = listOf(
+            RENDER_AVATAR_STATES,
+            /*
             SC_DEV_QUICK_OPTIONS,
             READ_MARKER_DEBUG,
             SC_DANGER_ZONE,
@@ -323,8 +336,8 @@ object ScPrefs {
             SC_RESTORE_DEFAULTS,
             SC_RESTORE_UPSTREAM,
             SC_RESTORE_AUTHORS_CHOICE,
-        ), authorsChoice = true),
          */
+        )),
     ))
 
     /*

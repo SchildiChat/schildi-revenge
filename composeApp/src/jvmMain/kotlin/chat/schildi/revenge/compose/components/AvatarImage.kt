@@ -16,11 +16,13 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
+import chat.schildi.preferences.ScPrefs
+import chat.schildi.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.revenge.compose.media.onAsyncImageError
+import chat.schildi.theme.ScColors
 import coil3.compose.SubcomposeAsyncImage
-import coil3.compose.SubcomposeAsyncImageContent
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.ui.media.MediaRequestData
@@ -55,9 +57,6 @@ fun AvatarImage(
         error = {
             AvatarFallback(displayName, shape, size, isError = true)
         },
-        success = {
-            SubcomposeAsyncImageContent(Modifier.size(size))
-        }
     )
 }
 
@@ -70,16 +69,15 @@ fun AvatarFallback(
     isLoading: Boolean = false,
     isError: Boolean = false,
 ) {
-    // TODO better design
-    val color = animateColorAsState(
+    val color = if (ScPrefs.RENDER_AVATAR_STATES.value()) animateColorAsState(
         if (isError) {
             MaterialTheme.colorScheme.error
         } else if (isLoading) {
-            MaterialTheme.colorScheme.primary
+            ScColors.colorAccentBlue
         } else {
             MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
         }
-    ).value
+    ).value else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
     Box(modifier.size(size).background(color, shape), contentAlignment = Alignment.Center) {
         val text = remember(displayName) {
             val cleanedName = displayName.removePrefix("@")

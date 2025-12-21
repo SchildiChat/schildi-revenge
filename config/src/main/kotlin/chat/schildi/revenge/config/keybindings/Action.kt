@@ -49,9 +49,6 @@ sealed interface Action {
         override val args: kotlin.collections.List<ActionArgument> = emptyList()
     ) : Action {
         Search,
-        ToggleTheme,
-        AutomaticTheme,
-        ToggleHiddenItems,
         SetSetting(args = listOf(ActionArgumentPrimitive.SettingKey, ActionArgumentPrimitive.Text)),
         ToggleSetting(args = listOf(ActionArgumentPrimitive.SettingKey)),
         ClearAppMessages,

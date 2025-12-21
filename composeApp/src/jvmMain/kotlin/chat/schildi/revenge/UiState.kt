@@ -47,16 +47,11 @@ object UiState {
     val windows = _windows.asStateFlow()
     private var hasClearedSplashScreen = false
 
-    val darkThemeOverride = MutableStateFlow<Boolean?>(null)
-
     private val _minimizedToTray = MutableStateFlow(false)
     val minimizedToTray = _minimizedToTray.asStateFlow()
 
     private val keybindingsConfigWatcher = ConfigWatchers.keybindings(scope)
     val keybindingsConfig = keybindingsConfigWatcher.config
-
-    private val _showHiddenItems = MutableStateFlow(false)
-    val showHiddenItems = _showHiddenItems.asStateFlow()
 
     val matrixClients = appGraph.sessionStore.sessionsFlow().map {
         val persistedSessions = appGraph.sessionStore.getAllSessions()
@@ -177,10 +172,6 @@ object UiState {
             // TODO close to tray if we can
             scope.exitApplication()
         }
-    }
-
-    fun setShowHiddenItems(enabled: Boolean) {
-        _showHiddenItems.value = enabled
     }
 
     fun setMinimized(minimized: Boolean) {
