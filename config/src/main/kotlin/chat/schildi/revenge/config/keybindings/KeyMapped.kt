@@ -59,8 +59,14 @@ enum class KeyMapped(val key: Key) {
     Escape(Key.Escape),
     MoveHome(Key.MoveHome),
     MoveEnd(Key.MoveEnd),
+    Delete(Key.Delete),
+    Backspace(Key.Backspace),
     Slash(Key.Slash),
     Semicolon(Key.Semicolon),
+    Plus(Key.Plus),
+    Comma(Key.Comma),
+    Period(Key.Period),
+    Equals(Key.Equals),
 
     // F-keys
     F1(Key.F1),

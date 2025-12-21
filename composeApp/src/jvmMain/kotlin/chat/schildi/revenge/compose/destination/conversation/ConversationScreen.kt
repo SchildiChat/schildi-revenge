@@ -40,12 +40,14 @@ import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.composer.ComposerRow
+import chat.schildi.revenge.compose.destination.conversation.event.EventHighlight
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.model.EventJumpTarget
 import chat.schildi.revenge.publishTitle
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
+import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import kotlinx.collections.immutable.persistentListOf
 
 @Composable
@@ -136,13 +138,14 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
             role = FocusRole.DESTINATION_ROOT_CONTAINER,
         ) {
             val roomMembersById = viewModel.roomMembersById.collectAsState()
-            val highlightedEventId = (targetEvent as? EventJumpTarget.Event)?.let {
-                if (it.hightlight) {
+            val highlightedJumpTargetEventId = (targetEvent as? EventJumpTarget.Event)?.let {
+                if (it.highlight) {
                     it.eventId
                 } else {
                     null
                 }
             }
+            val highlightedActionEventId = viewModel.highlightedActionEventId.collectAsState().value
             Column(Modifier.widthIn(max = ScPrefs.MAX_WIDTH_CONVERSATION.value().dp)) {
                 // Double reverse helps with stick-to-bottom while paging backwards or receiving messages
                 LazyColumn(
@@ -164,13 +167,22 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
                         // Reversed list, let's not confuse us too much and still say "previous = older"
                         val next = renderedItems.getOrNull(index - 1)
                         val previous = renderedItems.getOrNull(index + 1)
+                        val highlight = when {
+                            item !is MatrixTimelineItem.Event -> EventHighlight.NONE
+                            highlightedActionEventId is EventOrTransactionId.Event &&
+                                    item.eventId == highlightedActionEventId.eventId -> EventHighlight.ACTION_TARGET
+                            highlightedActionEventId is EventOrTransactionId.Transaction &&
+                                    item.transactionId == highlightedActionEventId.id -> EventHighlight.ACTION_TARGET
+                            highlightedJumpTargetEventId != null && item.eventId == highlightedJumpTargetEventId -> EventHighlight.JUMP_TARGET
+                            else -> EventHighlight.NONE
+                        }
                         ConversationItemRow(
                             viewModel = viewModel,
                             item = item,
                             next = next,
                             previous = previous,
                             roomMembersById = roomMembersById.value,
-                            highlight = highlightedEventId != null && (item as? MatrixTimelineItem.Event)?.eventId == highlightedEventId,
+                            highlight = highlight,
                         )
                     }
                 }

@@ -30,6 +30,9 @@ import chat.schildi.revenge.compose.focus.FocusParent
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
+import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.revenge.compose.util.StringResourceHolder
+import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.ActionArgument
 import chat.schildi.revenge.config.keybindings.ActionArgumentAnyOf
@@ -56,6 +59,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.action_cancel
+import shire.composeapp.generated.resources.action_processing
+import shire.composeapp.generated.resources.action_processing_done
+import shire.composeapp.generated.resources.command_copied_to_clipboard
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.coroutines.CoroutineContext
@@ -100,14 +108,44 @@ sealed interface KeyboardActionMode {
     ) : KeyboardActionMode
 }
 
+sealed interface AbstractAppMessage {
+    val message: ComposableStringHolder
+    val timestamp: Long
+    val uniqueId: String?
+    val canAutoDismiss: Boolean
+    val dismissedTimestamp: Long?
+    fun copyDismissed(dismissedTimestamp: Long): AbstractAppMessage
+}
+
 data class AppMessage(
-    val message: String,
-    val isError: Boolean,
-    val timestamp: Long,
-    val uniqueId: String?,
-    val canAutoDismiss: Boolean,
-    val dismissedTimestamp: Long? = null,
-)
+    override val message: ComposableStringHolder,
+    val isError: Boolean = false,
+    override val timestamp: Long = System.currentTimeMillis(),
+    override val uniqueId: String? = null,
+    override val canAutoDismiss: Boolean = true,
+    override val dismissedTimestamp: Long? = null,
+) : AbstractAppMessage {
+    override fun copyDismissed(dismissedTimestamp: Long) = copy(dismissedTimestamp = dismissedTimestamp)
+}
+
+data class ConfirmActionAppMessage(
+    override val message: ComposableStringHolder,
+    override val timestamp: Long = System.currentTimeMillis(),
+    override val dismissedTimestamp: Long? = null,
+    val confirmText: ComposableStringHolder,
+    val cancelText: ComposableStringHolder = StringResourceHolder(Res.string.action_cancel),
+    val onDismiss: () -> Unit = {},
+    val action: () -> Unit,
+) : AbstractAppMessage {
+    override val uniqueId = MESSAGE_ID
+    override val canAutoDismiss = false
+    override fun copyDismissed(dismissedTimestamp: Long) = copy(dismissedTimestamp = dismissedTimestamp).also {
+        onDismiss()
+    }
+    companion object {
+        const val MESSAGE_ID = "confirmAction"
+    }
+}
 
 // TODO config or something
 const val MESSAGE_EXPIRY_DURATION = 5000L
@@ -119,7 +157,7 @@ class KeyboardActionHandler(
 ) {
     private val log = Logger.withTag("Nav/$windowId")
 
-    private val _messageBoard = MutableStateFlow<ImmutableList<AppMessage>>(persistentListOf())
+    private val _messageBoard = MutableStateFlow<ImmutableList<AbstractAppMessage>>(persistentListOf())
     val messageBoard = _messageBoard.asStateFlow()
 
     // Set once available via LocalCompositionProvider
@@ -306,26 +344,15 @@ class KeyboardActionHandler(
     }
 
     fun publishMessage(
-        message: String,
-        isError: Boolean = false,
-        uniqueId: String? = null,
-        canAutoDismiss: Boolean = true,
+        message: AbstractAppMessage,
     ) {
-        val now = System.currentTimeMillis()
-        val appMessage = AppMessage(
-            message = message,
-            isError = isError,
-            uniqueId = uniqueId,
-            canAutoDismiss = canAutoDismiss,
-            timestamp = now,
-        )
         _messageBoard.update {
-            val filtered = if (uniqueId == null) {
+            val filtered = if (message.uniqueId == null) {
                 it
             } else {
-                it.filter { it.uniqueId != uniqueId }
+                it.filter { it.uniqueId != message.uniqueId }
             }
-            (filtered + appMessage).toPersistentList()
+            (filtered + message).toPersistentList()
         }
     }
 
@@ -334,7 +361,7 @@ class KeyboardActionHandler(
         _messageBoard.update {
             it.map {
                 if (it.uniqueId == uniqueId) {
-                    it.copy(dismissedTimestamp = it.dismissedTimestamp ?: now)
+                    it.copyDismissed(dismissedTimestamp = it.dismissedTimestamp ?: now)
                 } else {
                     it
                 }
@@ -352,7 +379,7 @@ class KeyboardActionHandler(
                     if (it.dismissedTimestamp?.let { now > it + MESSAGE_EXPIRY_DURATION * 2 } == true) {
                         null
                     } else if (it.canAutoDismiss && now > it.timestamp + MESSAGE_EXPIRY_DURATION) {
-                        it.copy(dismissedTimestamp = now)
+                        it.copyDismissed(dismissedTimestamp = now)
                     } else {
                         it
                     }
@@ -513,11 +540,11 @@ class KeyboardActionHandler(
         val keyConfig = UiState.keybindingsConfig.value ?: return ActionResult.NoMatch
 
         val context = object : ActionContext {
-            override fun publishMessage(message: String, isError: Boolean, uniqueId: String?, canAutoDismiss: Boolean) =
-                this@KeyboardActionHandler.publishMessage(message, isError, uniqueId, canAutoDismiss)
+            override fun publishMessage(message: AbstractAppMessage) =
+                this@KeyboardActionHandler.publishMessage(message)
             override fun dismissMessage(uniqueId: String) =
                 this@KeyboardActionHandler.dismissMessage(uniqueId)
-            override fun copyToClipboard(content: String, description: String) =
+            override fun copyToClipboard(content: String, description: ComposableStringHolder) =
                 this@KeyboardActionHandler.copyToClipboard(this, content, description)
             override fun openLinkInExternalBrowser(uri: String): ActionResult =
                 this@KeyboardActionHandler.openLinkInExternalBrowser(uri)
@@ -655,7 +682,7 @@ class KeyboardActionHandler(
                                     it
                                 } else {
                                     wasEmpty = false
-                                    it.map { it.copy(dismissedTimestamp = now) }.toPersistentList()
+                                    it.map { it.copyDismissed(dismissedTimestamp = now) }.toPersistentList()
                                 }
                             }
                             if (wasEmpty) {
@@ -663,6 +690,13 @@ class KeyboardActionHandler(
                             } else {
                                 ActionResult.Inapplicable
                             }
+                        }
+                        Action.Global.ConfirmActionAppMessage -> {
+                            val message = messageBoard.value.find {
+                                it is ConfirmActionAppMessage && it.dismissedTimestamp == null
+                            } as? ConfirmActionAppMessage ?: return@execute ActionResult.Inapplicable
+                            message.action()
+                            ActionResult.Success()
                         }
                     }
                 }
@@ -794,7 +828,7 @@ class KeyboardActionHandler(
         return success != null
     }
 
-    fun copyToClipboard(context: ActionContext, content: String, description: String): ActionResult {
+    fun copyToClipboard(context: ActionContext, content: String, description: ComposableStringHolder): ActionResult {
         val localClipboard = clipboard ?: return ActionResult.Failure("No clipboard found")
         context.launchActionAsync("copyToClipboard", scope) {
             localClipboard.setClipEntry(
@@ -802,8 +836,10 @@ class KeyboardActionHandler(
             )
             // TODO how to do string resources here
             publishMessage(
-                "Copied $description to clipboard",
-                uniqueId = "clipboard",
+                AppMessage(
+                    StringResourceHolder(Res.string.command_copied_to_clipboard, description),
+                    uniqueId = "clipboard",
+                )
             )
             ActionResult.Success()
         }
@@ -1075,9 +1111,9 @@ fun <A : Action>Binding<A>.checkArguments(
 }
 
 interface ActionContext {
-    fun publishMessage(message: String, isError: Boolean = false, uniqueId: String? = null, canAutoDismiss: Boolean = true)
+    fun publishMessage(message: AbstractAppMessage)
     fun dismissMessage(uniqueId: String)
-    fun copyToClipboard(content: String, description: String): ActionResult
+    fun copyToClipboard(content: String, description: ComposableStringHolder): ActionResult
     fun openLinkInExternalBrowser(uri: String): ActionResult
     fun focusByRole(role: FocusRole): Boolean
     val currentDestinationName: String?
@@ -1088,15 +1124,35 @@ fun ActionContext.launchActionAsync(
     scope: CoroutineScope,
     context: CoroutineContext = EmptyCoroutineContext,
     appMessageId: String? = null,
+    notifyProcessing: Boolean = false,
     block: suspend () -> ActionResult,
 ): ActionResult {
     scope.launch(context) {
+        if (notifyProcessing) {
+            publishMessage(
+                AppMessage(
+                    message = Res.string.action_processing.toStringHolder(),
+                    uniqueId = appMessageId,
+                    canAutoDismiss = appMessageId == null,
+                )
+            )
+        }
         val result = block()
         if (result is ActionResult.Failure) {
             Logger.withTag("AsyncAction").e("Failed to execute $actionName: ${result.message}")
-            publishMessage(result.message, isError = true, uniqueId = appMessageId)
+            publishMessage(
+                AppMessage(result.message.toStringHolder(), isError = true, uniqueId = appMessageId)
+            )
         } else if ((result as? ActionResult.Success)?.notifySuccess == true) {
-            publishMessage("Success: $actionName", isError = true, uniqueId = appMessageId)
+            publishMessage(
+                AppMessage(
+                    StringResourceHolder(Res.string.action_processing_done),
+                    isError = true,
+                    uniqueId = appMessageId
+                )
+            )
+        } else if (notifyProcessing && appMessageId != null) {
+            dismissMessage(appMessageId)
         }
     }
     return ActionResult.Success(async = true)

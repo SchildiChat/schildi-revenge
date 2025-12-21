@@ -55,6 +55,7 @@ sealed interface Action {
         SetSetting(args = listOf(ActionArgumentPrimitive.SettingKey, ActionArgumentPrimitive.Text)),
         ToggleSetting(args = listOf(ActionArgumentPrimitive.SettingKey)),
         ClearAppMessages,
+        ConfirmActionAppMessage,
     }
     enum class Navigation(
         override val aliases: kotlin.collections.List<String> = emptyList(),
@@ -148,5 +149,6 @@ sealed interface Action {
         CopyMxId,
         CopyContentLink,
         OpenContentLinks,
+        Redact(aliases = listOf("rm", "del", "delete")),
     }
 }

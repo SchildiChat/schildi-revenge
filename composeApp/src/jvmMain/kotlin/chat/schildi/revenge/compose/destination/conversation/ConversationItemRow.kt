@@ -9,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.compose.destination.conversation.event.EventHighlight
 import chat.schildi.revenge.compose.destination.conversation.event.EventRow
 import chat.schildi.revenge.compose.destination.conversation.virtual.DayHeader
 import chat.schildi.revenge.compose.destination.conversation.virtual.NewMessagesLine
@@ -28,7 +29,7 @@ fun ConversationItemRow(
     roomMembersById: ImmutableMap<UserId, RoomMember>,
     next: MatrixTimelineItem?,
     previous: MatrixTimelineItem?,
-    highlight: Boolean,
+    highlight: EventHighlight,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier.fillMaxWidth()) {

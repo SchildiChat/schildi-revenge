@@ -1,11 +1,14 @@
 package chat.schildi.revenge.compose.destination.conversation.event
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
@@ -21,15 +24,28 @@ import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
 import kotlinx.collections.immutable.ImmutableMap
 
+enum class EventHighlight {
+    NONE,
+    JUMP_TARGET,
+    ACTION_TARGET,
+}
+
 @Composable
 fun EventRow(
     viewModel: ConversationViewModel,
     event: EventTimelineItem,
     isSameAsPreviousSender: Boolean,
     roomMembersById: ImmutableMap<UserId, RoomMember>,
-    highlight: Boolean,
+    highlight: EventHighlight,
     modifier: Modifier = Modifier
 ) {
+    val backgroundHighlightColor = animateColorAsState(
+        if (highlight == EventHighlight.ACTION_TARGET) {
+            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+        } else {
+            Color.Transparent
+        }
+    ).value
     Column(
         modifier
             .keyFocusable(
@@ -38,9 +54,10 @@ fun EventRow(
                     keyActions = eventRowKeyboardActionProvider(viewModel, event),
                 ),
             )
+            .background(backgroundHighlightColor, Dimens.Conversation.messageBubbleShape)
             .padding(horizontal = Dimens.windowPadding)
     ) {
-        if (highlight) {
+        if (highlight == EventHighlight.JUMP_TARGET) {
             // TODO revise design once there's a better idea
             ConversationDividerLine(MaterialTheme.colorScheme.error)
         }

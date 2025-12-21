@@ -15,12 +15,15 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.GlobalActionsScope
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
+import chat.schildi.revenge.actions.AppMessage
+import chat.schildi.revenge.actions.ConfirmActionAppMessage
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.actions.launchActionAsync
 import chat.schildi.revenge.actions.orActionInapplicable
 import chat.schildi.revenge.actions.toActionResult
+import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.UrlUtil
 import chat.schildi.revenge.compose.util.insertAtCursor
 import chat.schildi.revenge.compose.util.insertTextFieldValue
@@ -45,7 +48,9 @@ import io.element.android.libraries.matrix.api.timeline.item.event.LocationMessa
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
 import io.element.android.libraries.matrix.api.timeline.item.event.OtherMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.RedactedContent
 import io.element.android.libraries.matrix.api.timeline.item.event.TextLikeMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.getDisambiguatedDisplayName
 import io.element.android.libraries.matrix.api.timeline.item.event.toEventOrTransactionId
 import io.element.android.x.di.AppGraph
 import kotlinx.collections.immutable.persistentHashMapOf
@@ -70,7 +75,23 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.action_redact
+import shire.composeapp.generated.resources.action_redact_event_by_sender_prompt
+import shire.composeapp.generated.resources.action_redact_event_prompt
+import shire.composeapp.generated.resources.action_redact_message_by_sender_prompt
+import shire.composeapp.generated.resources.action_redact_message_prompt
+import shire.composeapp.generated.resources.command_copy_name_event_id
+import shire.composeapp.generated.resources.command_copy_name_event_source
+import shire.composeapp.generated.resources.command_copy_name_message_content
+import shire.composeapp.generated.resources.command_copy_name_mxid
+import shire.composeapp.generated.resources.command_copy_name_url
+import shire.composeapp.generated.resources.command_event_name_fully_read_marker
+import shire.composeapp.generated.resources.command_event_name_own_read_receipt
+import shire.composeapp.generated.resources.command_loading_event
+import shire.composeapp.generated.resources.command_loading_timeline_at
 
 private data class ComposerSettings(
     val autoHideComposer: Boolean,
@@ -83,7 +104,7 @@ private data class ComposerSettings(
 }
 
 sealed interface EventJumpTarget {
-    data class Event(val eventId: EventId, val hightlight: Boolean = true) : EventJumpTarget
+    data class Event(val eventId: EventId, val highlight: Boolean = true) : EventJumpTarget
     data class Index(val index: Int) : EventJumpTarget
 }
 
@@ -108,6 +129,16 @@ class ConversationViewModel(
     private val roomPair = clientFlow.map { client ->
         Pair(client?.getRoom(roomId), client?.getJoinedRoom(roomId))
     }.stateIn(viewModelScope, SharingStarted.Eagerly, Pair(null, null))
+
+    private val _highlightedActionEventId = MutableStateFlow<EventOrTransactionId?>(null)
+    val highlightedActionEventId = _highlightedActionEventId.asStateFlow()
+
+    // TODO?
+    private val powerLevels = roomPair.map { (_, room) ->
+        room?.powerLevels()
+            ?.onFailure { log.e("Failed to get room power levels", it) }
+            ?.getOrNull()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val composerSettings = RevengePrefs.combinedSettingFlow { lookup ->
         ComposerSettings.from(lookup)
@@ -392,7 +423,7 @@ class ConversationViewModel(
 
                 Action.Conversation.JumpToOwnReadReceipt -> jumpToMessage(
                     conversationAction.action.name,
-                    "own read receipt",
+                    StringResourceHolder(Res.string.command_event_name_own_read_receipt),
                     "jumpTo",
                 ) {
                     activeTimeline.value?.latestUserReceiptEventId(sessionId.value)?.let(::EventId)
@@ -400,7 +431,7 @@ class ConversationViewModel(
 
                 Action.Conversation.JumpToFullyRead -> jumpToMessage(
                     conversationAction.action.name,
-                    "fully read marker",
+                    StringResourceHolder(Res.string.command_event_name_fully_read_marker),
                     "jumpTo",
                 ) {
                     activeTimeline.value?.fullyReadEventId()?.let(::EventId)
@@ -456,7 +487,7 @@ class ConversationViewModel(
 
     private fun ActionContext.jumpToMessage(
         actionName: String,
-        eventName: String,
+        eventName: ComposableStringHolder,
         appMessageId: String,
         getEventId: suspend () -> EventId?,
     ): ActionResult = launchActionAsync(
@@ -464,13 +495,69 @@ class ConversationViewModel(
         viewModelScope,
         Dispatchers.IO
     ) {
-        publishMessage("Loading $eventName", uniqueId = appMessageId, canAutoDismiss = false)
+        publishMessage(
+            AppMessage(
+                StringResourceHolder(Res.string.command_loading_event, eventName),
+                uniqueId = appMessageId,
+                canAutoDismiss = false,
+            )
+        )
         getEventId()?.let { eventId ->
-            publishMessage("Loading timeline at $eventName", uniqueId = appMessageId, canAutoDismiss = false)
+            publishMessage(
+                AppMessage(
+                    StringResourceHolder(Res.string.command_loading_timeline_at, eventName),
+                    uniqueId = appMessageId,
+                    canAutoDismiss = false
+                )
+            )
             focusOnEvent(eventId).toActionResult().also {
                 dismissMessage(appMessageId)
             }
         } ?: ActionResult.Failure("Could not find $eventName")
+    }
+
+    private fun ActionContext.promptRedact(
+        eventOrTransactionId: EventOrTransactionId,
+        isOwn: Boolean,
+        senderName: String,
+        isMessage: Boolean,
+        redactReason: String? = null,
+    ): ActionResult {
+        val timeline = activeTimeline.value ?: return ActionResult.Failure("Room not ready")
+        val message = when {
+            isOwn -> if (isMessage) {
+                Res.string.action_redact_message_prompt.toStringHolder()
+            } else {
+                Res.string.action_redact_event_prompt.toStringHolder()
+            }
+            else -> if (isMessage) {
+                StringResourceHolder(Res.string.action_redact_message_by_sender_prompt, senderName.toStringHolder())
+            } else {
+                StringResourceHolder(Res.string.action_redact_event_by_sender_prompt, senderName.toStringHolder())
+            }
+        }
+        _highlightedActionEventId.value = eventOrTransactionId
+        publishMessage(
+            ConfirmActionAppMessage(
+                message,
+                confirmText = StringResourceHolder(Res.string.action_redact),
+                onDismiss = {
+                    _highlightedActionEventId.update { it.takeIf { it != eventOrTransactionId } }
+                }
+            ) {
+                launchActionAsync(
+                    "redact",
+                    GlobalActionsScope,
+                    notifyProcessing = true,
+                    appMessageId = ConfirmActionAppMessage.MESSAGE_ID,
+                ) {
+                    timeline.redactEvent(eventOrTransactionId, reason = redactReason).toActionResult().also {
+                        _highlightedActionEventId.update { it.takeIf { it != eventOrTransactionId } }
+                    }
+                }
+            }
+        )
+        return ActionResult.Success(async = true)
     }
 
     suspend fun focusOnEvent(eventId: EventId): Result<EventFocusResult> {
@@ -599,30 +686,30 @@ class ConversationViewModel(
 
                         Action.Event.CopyContent -> {
                             (event.content as? MessageContent)?.body?.let { content ->
-                                copyToClipboard(content, "message content")
+                                copyToClipboard(content, Res.string.command_copy_name_message_content.toStringHolder())
                             } ?: ActionResult.Inapplicable
                         }
 
                         Action.Event.CopyEventSource -> {
                             event.timelineItemDebugInfoProvider().originalJson?.toPrettyJson()?.let { eventSource ->
-                                copyToClipboard(eventSource, "event source")
+                                copyToClipboard(eventSource, Res.string.command_copy_name_event_source.toStringHolder())
                             } ?: ActionResult.Inapplicable
                         }
 
                         Action.Event.CopyEventId -> {
                             (eventId?.value ?: event.transactionId?.value)?.let {
-                                copyToClipboard(it, "event ID")
+                                copyToClipboard(it, Res.string.command_copy_name_event_id.toStringHolder())
                             } ?: ActionResult.Inapplicable
                         }
 
                         Action.Event.CopyMxId -> {
-                            copyToClipboard(event.sender.value, "MXID")
+                            copyToClipboard(event.sender.value, Res.string.command_copy_name_mxid.toStringHolder())
                         }
 
                         Action.Event.CopyContentLink -> {
                             (event.content as? MessageContent)?.body?.let { content ->
                                 UrlUtil.extractUrlsFromText(content).firstOrNull()?.let {
-                                    copyToClipboard(content, "URL")
+                                    copyToClipboard(content, Res.string.command_copy_name_url.toStringHolder())
                                 }
                             } ?: ActionResult.Inapplicable
                         }
@@ -642,6 +729,20 @@ class ConversationViewModel(
                                     }
                                     ActionResult.Success()
                                 }
+                            } ?: ActionResult.Inapplicable
+                        }
+
+                        Action.Event.Redact -> {
+                            if (event.content is RedactedContent) {
+                                return@execute ActionResult.Inapplicable
+                            }
+                            eventOrTransactionId?.let {
+                                promptRedact(
+                                    eventOrTransactionId = eventOrTransactionId,
+                                    isOwn = event.isOwn,
+                                    senderName = event.senderProfile.getDisambiguatedDisplayName(event.sender),
+                                    isMessage = event.content is MessageContent,
+                                )
                             } ?: ActionResult.Inapplicable
                         }
                     }
