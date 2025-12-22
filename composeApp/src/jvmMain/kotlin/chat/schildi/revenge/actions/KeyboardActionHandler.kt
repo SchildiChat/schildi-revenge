@@ -647,13 +647,13 @@ class KeyboardActionHandler(
                         }
                         Action.Global.SetSetting -> {
                             scope.launch {
-                                RevengePrefs.handleSetAction(globalAction.args)
+                                RevengePrefs.handleSetAction(this@execute, globalAction.args)
                             }
                             ActionResult.Success()
                         }
                         Action.Global.ToggleSetting -> {
                             scope.launch {
-                                RevengePrefs.handleToggleAction(globalAction.args)
+                                RevengePrefs.handleToggleAction(this@execute, globalAction.args)
                             }
                             ActionResult.Success()
                         }
@@ -1101,6 +1101,17 @@ interface ActionContext {
     fun openLinkInExternalBrowser(uri: String): ActionResult
     fun focusByRole(role: FocusRole): Boolean
     val currentDestinationName: String?
+}
+
+fun ActionContext?.publishError(log: Logger, messageId: String?, error: String) {
+    log.e(error)
+    this?.publishMessage(
+        AppMessage(
+            message = error.toStringHolder(),
+            uniqueId = messageId,
+            isError = true
+        )
+    )
 }
 
 fun ActionContext.launchActionAsync(
