@@ -1,5 +1,6 @@
 package chat.schildi.revenge.compose.destination.conversation.event.sender
 
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -32,11 +33,12 @@ fun SenderName(senderId: UserId, senderProfile: ProfileDetails, modifier: Modifi
         }
         else -> AnnotatedString(senderId.value)
     }
-    // TODO user coloring
-    Text(
-        text = renderedName,
-        color = MaterialTheme.scExposures.accentColor,
-        style = MaterialTheme.typography.labelLarge,
-        modifier = modifier,
-    )
+    // TODO user coloring?
+    SelectionContainer(modifier) {
+        Text(
+            text = renderedName,
+            color = MaterialTheme.scExposures.accentColor,
+            style = MaterialTheme.typography.labelLarge,
+        )
+    }
 }
