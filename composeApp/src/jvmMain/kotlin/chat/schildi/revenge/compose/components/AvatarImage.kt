@@ -60,6 +60,13 @@ fun AvatarImage(
     )
 }
 
+fun String.firstCodePoint(index: Int = 0): String? {
+    if (isEmpty()) return null
+    val cp = codePointAt(index)
+    val count = Character.charCount(cp)
+    return substring(index, index + count)
+}
+
 @Composable
 fun AvatarFallback(
     displayName: String,
@@ -81,14 +88,14 @@ fun AvatarFallback(
     Box(modifier.size(size).background(color, shape), contentAlignment = Alignment.Center) {
         val text = remember(displayName) {
             val cleanedName = displayName.removePrefix("@")
-            val firstChar = cleanedName.firstOrNull() ?: "?"
+            val firstChar = cleanedName.firstCodePoint() ?: "?"
             val firstNonAlphaNum = cleanedName.indexOfFirst { !it.isLetterOrDigit() }
             val secondChar = if (firstNonAlphaNum != -1)
                 cleanedName.substring(firstNonAlphaNum).firstOrNull { it.isLetterOrDigit() }
             else
                 null
             if (secondChar == null) {
-                firstChar.toString()
+                firstChar
             } else {
                 "$firstChar$secondChar"
             }
