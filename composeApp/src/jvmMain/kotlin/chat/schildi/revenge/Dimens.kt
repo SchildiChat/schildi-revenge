@@ -16,6 +16,7 @@ object Dimens {
     val horizontalItemPadding = 8.dp
     val horizontalItemPaddingBig = 16.dp
     val horizontalArrangement = Arrangement.spacedBy(horizontalItemPadding)
+    val horizontalArrangementSmall = Arrangement.spacedBy(4.dp)
     val verticalArrangement = Arrangement.spacedBy(listPadding)
 
     val avatarShape = RoundedCornerShape(12.dp)
@@ -51,6 +52,7 @@ object Dimens {
         val timestampPaddingWithOverlayBg = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
         val timestampHorizontalPaddingToText = 8.dp
         val timestampVerticalMarginToText = 4.dp
+        val timestampDecorationIcon = 16.dp
 
         val textMessageStyle
             @Composable get() = MaterialTheme.typography.bodyLarge

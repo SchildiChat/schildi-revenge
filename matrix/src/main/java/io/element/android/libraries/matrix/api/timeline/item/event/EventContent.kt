@@ -21,13 +21,17 @@ import kotlinx.collections.immutable.ImmutableMap
 @Immutable
 sealed interface EventContent
 
+sealed interface EventCanBeEdited { // SC
+    val isEdited: Boolean
+}
+
 data class MessageContent(
     val body: String,
     val inReplyTo: InReplyTo?,
-    val isEdited: Boolean,
+    override val isEdited: Boolean,
     val threadInfo: EventThreadInfo?,
     val type: MessageType
-) : EventContent
+) : EventContent, EventCanBeEdited
 
 data object RedactedContent : EventContent
 
@@ -48,8 +52,8 @@ data class PollContent(
     val answers: ImmutableList<PollAnswer>,
     val votes: ImmutableMap<String, ImmutableList<UserId>>,
     val endTime: ULong?,
-    val isEdited: Boolean,
-) : EventContent
+    override val isEdited: Boolean,
+) : EventContent, EventCanBeEdited
 
 data class UnableToDecryptContent(
     val data: Data

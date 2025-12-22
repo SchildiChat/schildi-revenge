@@ -53,6 +53,8 @@
     <string name="hint_sync_state_terminated">Terminated</string>
     <string name="hint_sync_state_offline">Terminated</string>
     <string name="hint_hidden">hidden</string>
+    <string name="hint_sending">Sending</string>
+    <string name="hint_send_error">Send error</string>
 
     <string name="reply_failed_to_load">Failed to load replied-to message</string>
 
@@ -63,6 +65,7 @@
     <string name="datetime_today">Today</string>
     <string name="datetime_yesterday">Yesterday</string>
 
+    <string name="message_edited_decoration">edited</string>
     <string name="message_placeholder_tombstone">Room tombstone</string>
     <string name="message_placeholder_invite">Room invite</string>
     <string name="message_placeholder_invite_by">Invite by %1$s</string>

@@ -6,11 +6,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.ErrorOutline
+import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextLayoutResult
@@ -19,17 +27,24 @@ import chat.schildi.revenge.DateTimeFormat
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.components.thenIf
 import chat.schildi.theme.scExposures
+import io.element.android.libraries.matrix.api.timeline.item.event.EventCanBeEdited
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.LocalEventSendState
+import org.jetbrains.compose.resources.stringResource
+import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.hint_sending
+import shire.composeapp.generated.resources.message_edited_decoration
 
 data class TimestampOverlayContent(
     val timestamp: String,
-    val isSending: Boolean, // TODO use me
-    val isSendError: Boolean, // TODO use me
+    val isEdited: Boolean,
+    val isSending: Boolean,
+    val isSendError: Boolean,
 )
 
 fun EventTimelineItem.timestampOverlayContent() = TimestampOverlayContent(
     timestamp = DateTimeFormat.formatTime(DateTimeFormat.timestampToDateTime(timestamp)),
+    isEdited = (content as? EventCanBeEdited)?.isEdited == true,
     isSending = localSendState is LocalEventSendState.Sending,
     isSendError = localSendState is LocalEventSendState.Failed,
 )
@@ -105,9 +120,7 @@ private fun TimestampContent(
 ) {
     if (content == null) return
     val overlayBgColor = MaterialTheme.scExposures.timestampOverlayBg
-    // TODO render pending send & send error decoration
-    Text(
-        content.timestamp,
+    Row(
         modifier.thenIf(withBackground) {
             background(
                 overlayBgColor,
@@ -117,10 +130,42 @@ private fun TimestampContent(
                 )
             ).padding(Dimens.Conversation.timestampPaddingWithOverlayBg)
         },
-        color = if (withBackground)
+        horizontalArrangement = Dimens.horizontalArrangementSmall,
+        verticalAlignment = Alignment.Bottom,
+    ) {
+        val textColor = if (withBackground)
             MaterialTheme.scExposures.timestampOverlayFgOnBg
         else
-            MaterialTheme.colorScheme.onSurfaceVariant,
-        style = Dimens.Conversation.messageTimestampStyle,
-    )
+            MaterialTheme.colorScheme.onSurfaceVariant
+        if (content.isEdited) {
+            Text(
+                stringResource(Res.string.message_edited_decoration),
+                color = textColor,
+                style = Dimens.Conversation.messageTimestampStyle,
+                modifier = Modifier.alignByBaseline(),
+            )
+        }
+        if (content.isSending) {
+            Icon(
+                Icons.Default.AccessTime,
+                stringResource(Res.string.hint_sending),
+                tint = textColor,
+                modifier = Modifier.size(Dimens.Conversation.timestampDecorationIcon)
+            )
+        }
+        if (content.isSendError) {
+            Icon(
+                Icons.Default.ErrorOutline,
+                stringResource(Res.string.hint_sending),
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(Dimens.Conversation.timestampDecorationIcon)
+            )
+        }
+        Text(
+            content.timestamp,
+            color = textColor,
+            style = Dimens.Conversation.messageTimestampStyle,
+            modifier = Modifier.alignByBaseline(),
+        )
+    }
 }
