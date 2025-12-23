@@ -24,6 +24,7 @@ fun ColumnScope.ReadReceiptsRow(
     roomMembersById: ImmutableMap<UserId, RoomMember>,
     modifier: Modifier = Modifier,
 ) {
+    if (receipts.isEmpty()) return
     FlowRow(
         modifier = modifier
             .padding(
