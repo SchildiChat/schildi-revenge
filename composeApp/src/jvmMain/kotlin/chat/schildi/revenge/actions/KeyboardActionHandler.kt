@@ -46,7 +46,10 @@ import chat.schildi.revenge.config.keybindings.KeyMapped
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.REAL_SPACE_ID_PREFIX
+import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
+import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.matrix.api.core.SessionId
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
@@ -604,12 +607,13 @@ class KeyboardActionHandler(
                 keyConfig.navigation.execute(context, key) { navigationAction ->
                     when (navigationAction.action) {
                         Action.Navigation.NavigateCurrent -> {
-                            val destination = navigationAction.args[0].toDestinationOrNull().orActionValidationError()
+                            val extraArgs = navigationAction.args.subList(1, navigationAction.args.size)
+                            val destination = navigationAction.args[0].toDestinationOrNull(extraArgs).orActionValidationError()
                             navigateCurrentDestination { destination }.orActionInapplicable()
                         }
                         Action.Navigation.NavigateInNewWindow -> {
-                            // We should have checked this already
-                            val destination = navigationAction.args[0].toDestinationOrNull().orActionValidationError()
+                            val extraArgs = navigationAction.args.subList(1, navigationAction.args.size)
+                            val destination = navigationAction.args[0].toDestinationOrNull(extraArgs).orActionValidationError()
                             UiState.openWindow(destination)
                             ActionResult.Success()
                         }
@@ -938,6 +942,7 @@ fun <A: Action>List<Binding<A>>.execute(
 fun <A : Action>Binding<A>.checkArgument(
     argDef: ActionArgument,
     argVal: String,
+    lookahead: List<String>,
     validSessionIds: List<String>?,
     validSettingKeys: List<String>,
 ): ActionResult.Malformed? {
@@ -945,7 +950,7 @@ fun <A : Action>Binding<A>.checkArgument(
     return when (argDef) {
         is ActionArgumentAnyOf -> {
             if (argDef.arguments.any {
-                checkArgument(it, argVal, validSessionIds, validSettingKeys) != null
+                checkArgument(it, argVal, lookahead, validSessionIds, validSettingKeys) != null
             }) {
                 null
             } else {
@@ -955,7 +960,7 @@ fun <A : Action>Binding<A>.checkArgument(
             }
         }
         is ActionArgumentOptional -> {
-            checkArgument(argDef.argument, argVal, validSessionIds, validSettingKeys)
+            checkArgument(argDef.argument, argVal, lookahead, validSessionIds, validSettingKeys)
         }
         ActionArgumentPrimitive.Text -> null
         ActionArgumentPrimitive.Boolean -> {
@@ -1040,9 +1045,9 @@ fun <A : Action>Binding<A>.checkArgument(
             }
         }
         ActionArgumentPrimitive.NavigatableDestinationName -> {
-            if (argVal.toDestinationOrNull() == null) {
+            if (argVal.toDestinationOrNull(lookahead) == null) {
                 ActionResult.Malformed(
-                    "Invalid parameter for $actionName, not a valid destination: $argVal"
+                    "Invalid parameter for $actionName, not a valid destination: $argVal with args [${lookahead.joinToString()}]"
                 )
             } else {
                 null
@@ -1086,8 +1091,9 @@ fun <A : Action>Binding<A>.checkArguments(
         )
     }
     // Optional arguments only supported to leave away at the end right now
-    action.args.zip(args).forEach { (argDef, argVal) ->
-        checkArgument(argDef, argVal, validSessionIds, validSettingKeys)?.let {
+    action.args.zip(args).forEachIndexed { index, (argDef, argVal) ->
+        val lookahead = args.subList(index + 1, args.size)
+        checkArgument(argDef, argVal, lookahead, validSessionIds, validSettingKeys)?.let {
             return it
         }
     }
@@ -1153,9 +1159,14 @@ fun ActionContext.launchActionAsync(
     return ActionResult.Success(async = true)
 }
 
-private fun String.toDestinationOrNull() = when (lowercase()) {
+private fun String.toDestinationOrNull(args: List<String>) = when (lowercase()) {
     "inbox" -> Destination.Inbox
     "accountmanagement",
     "accounts" -> Destination.AccountManagement
+    "chat",
+    "conversation",
+    "room" -> if (args.size == 2) tryOrNull {
+        Destination.Conversation(SessionId(args[0]), RoomId(args[1]))
+    } else null
     else -> null
 }

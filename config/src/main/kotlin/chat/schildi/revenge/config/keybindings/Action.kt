@@ -40,6 +40,12 @@ private val SpaceIdSelectable =
     )
 private val OptionalBoolean = ActionArgumentOptional(ActionArgumentPrimitive.Boolean)
 
+private val navigationArgs = listOf(
+    ActionArgumentPrimitive.NavigatableDestinationName,
+    ActionArgumentOptional(ActionArgumentPrimitive.SessionId),
+    ActionArgumentOptional(ActionArgumentPrimitive.RoomId)
+)
+
 sealed interface Action {
     val name: String
     val aliases: kotlin.collections.List<String>
@@ -58,8 +64,8 @@ sealed interface Action {
         override val aliases: kotlin.collections.List<String> = emptyList(),
         override val args: kotlin.collections.List<ActionArgument> = emptyList()
     ) : Action {
-        NavigateCurrent(aliases = listOf("navigate"), args = listOf(ActionArgumentPrimitive.NavigatableDestinationName)),
-        NavigateInNewWindow(args = listOf(ActionArgumentPrimitive.NavigatableDestinationName)),
+        NavigateCurrent(aliases = listOf("navigate"), args = navigationArgs),
+        NavigateInNewWindow(args = navigationArgs),
         SplitHorizontal(aliases = listOf("vsplit")),
         SplitVertical(aliases = listOf("split")),
         CloseWindow,
