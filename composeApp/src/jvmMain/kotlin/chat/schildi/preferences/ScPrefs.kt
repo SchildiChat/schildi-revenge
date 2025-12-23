@@ -16,6 +16,8 @@ import shire.composeapp.generated.resources.pref_max_width_settings_title
 import shire.composeapp.generated.resources.pref_render_scale
 import shire.composeapp.generated.resources.pref_theme_follow_system_summary
 import shire.composeapp.generated.resources.pref_theme_follow_system_title
+import shire.composeapp.generated.resources.pref_view_hidden_events_title
+import shire.composeapp.generated.resources.pref_view_redactions_title
 import shire.composeapp.generated.resources.pref_window_transparency_summary
 import shire.composeapp.generated.resources.pref_window_transparency_title
 import shire.composeapp.generated.resources.sc_client_generated_unread_counts_summary
@@ -31,6 +33,7 @@ import shire.composeapp.generated.resources.sc_pref_category_general_appearance
 import shire.composeapp.generated.resources.sc_pref_category_general_behaviour
 import shire.composeapp.generated.resources.sc_pref_category_general_summary
 import shire.composeapp.generated.resources.sc_pref_category_spaces
+import shire.composeapp.generated.resources.sc_pref_category_timeline
 import shire.composeapp.generated.resources.sc_pref_category_unread_counts
 import shire.composeapp.generated.resources.sc_pref_client_side_sort_by_unread_summary
 import shire.composeapp.generated.resources.sc_pref_client_side_sort_by_unread_title
@@ -101,7 +104,7 @@ object ScPrefs {
     val BACKGROUND_ALPHA_LIGHT = ScFloatPref("BACKGROUND_ALPHA_LIGHT", 1f, Res.string.pref_window_transparency_title, Res.string.pref_window_transparency_summary, minValue = 0f, maxValue = 1f)
     val BACKGROUND_ALPHA_DARK = ScFloatPref("BACKGROUND_ALPHA_DARK", 1f, Res.string.pref_window_transparency_title, Res.string.pref_window_transparency_summary, minValue = 0f, maxValue = 1f)
     val THEME_FOLLOW_SYSTEM = ScBoolPref("THEME_FOLLOW_SYSTEM", true, Res.string.pref_theme_follow_system_title, Res.string.pref_theme_follow_system_summary)
-    val THEME_DARK = ScBoolPref("THEME_DARK", false, Res.string.pref_dark_theme_title, dependencies = listOf(ScPrefNotDependency(THEME_FOLLOW_SYSTEM.toDependency())))
+    val THEME_DARK = ScBoolPref("THEME_DARK", false, Res.string.pref_dark_theme_title, dependencies = listOf(THEME_FOLLOW_SYSTEM.toDependency(expect = false)))
     /*
     val SC_THEME = ScBoolPref("SC_THEMES", true, Res.string.sc_pref_sc_themes_title, Res.string.sc_pref_sc_themes_summary, upstreamChoice = false)
     val EL_TYPOGRAPHY = ScBoolPref("EL_TYPOGRAPHY", false, Res.string.sc_pref_el_typography_title, Res.string.sc_pref_el_typography_summary, upstreamChoice = true)
@@ -158,8 +161,10 @@ object ScPrefs {
         ScPrefFulfilledForAnyDependency(listOf(PSEUDO_SPACE_NOTIFICATIONS.toDependency(), PSEUDO_SPACE_UNREAD.toDependency(), PSEUDO_SPACE_INVITES.toDependency()))
     ))
 
-    /*
     // Timeline
+    val VIEW_HIDDEN_EVENTS = ScBoolPref("VIEW_HIDDEN_EVENTS", false, Res.string.pref_view_hidden_events_title) // TODO
+    val VIEW_REDACTIONS = ScBoolPref("VIEW_REDACTIONS", false, Res.string.pref_view_redactions_title, /*dependencies = listOf(VIEW_HIDDEN_EVENTS.toDependency(expect = false)),*/ disabledValue = true)
+    /*
     val PINNED_MESSAGE_OVERLAY = ScBoolPref("PINNED_MESSAGE_OVERLAY", false, Res.string.sc_pref_pinned_message_overlay_title, Res.string.sc_pref_pinned_message_overlay_summary, authorsChoice = false, upstreamChoice = true)
     val PINNED_MESSAGE_TOOLBAR_ACTION = ScBoolPref("PINNED_MESSAGE_TOOLBAR_ACTION", true, Res.string.sc_pref_pinned_message_toolbar_title, Res.string.sc_pref_pinned_message_toolbar_summary, authorsChoice = true, upstreamChoice = false, dependencies = PINNED_MESSAGE_OVERLAY.asDependencies(expect = false), disabledValue = false)
     val HIDE_CALL_TOOLBAR_ACTION = ScBoolPref("HIDE_CALL_TOOLBAR_ACTION", false, Res.string.sc_pref_hide_call_toolbar_action_title, Res.string.sc_pref_hide_call_toolbar_action_summary, authorsChoice = true, upstreamChoice = false)
@@ -277,8 +282,10 @@ object ScPrefs {
                     PSEUDO_SPACE_HIDE_EMPTY_UNREAD,
                 )),
             ))
-        )), /*
+        )),
         ScPrefScreen(Res.string.sc_pref_category_timeline, null, listOf(
+            VIEW_REDACTIONS,
+            /*
             SC_TIMELINE_LAYOUT,
             RENDER_INLINE_IMAGES,
             FLOATING_DATE,
@@ -302,7 +309,8 @@ object ScPrefs {
                 PREFER_FULLSCREEN_REACTION_SHEET,
                 ALWAYS_SHOW_REACTION_SEARCH_BAR,
             )),
-        )),
+            */
+        )), /*
         ScPrefScreen(Res.string.sc_pref_category_notifications, null, listOf(
             NOTIFICATION_ONLY_ALERT_ONCE,
         )),
@@ -323,6 +331,7 @@ object ScPrefs {
         */
         ScPrefCategoryCollapsed(SC_DEVELOPER_OPTIONS_CATEGORY_KEY, Res.string.pref_category_developer_options, prefs = listOf(
             RENDER_AVATAR_STATES,
+            VIEW_HIDDEN_EVENTS,
             /*
             SC_DEV_QUICK_OPTIONS,
             READ_MARKER_DEBUG,

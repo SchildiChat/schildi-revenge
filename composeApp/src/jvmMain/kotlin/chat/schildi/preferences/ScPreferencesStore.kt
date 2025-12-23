@@ -137,13 +137,15 @@ class DefaultScPreferencesStore() : ScPreferencesStore {
     }
 
     override suspend fun prefetch() {
-        store.data.firstOrNull()?.let {
-            // TODO read all prefs and cache
-            //cacheSetting(pref, value)
+        store.data.firstOrNull()?.let { data ->
+            ScPrefs.rootPrefs.forEachPreference { pref ->
+                val key = pref.key ?: return@forEachPreference
+                cacheSetting(pref, data[key])
+            }
         }
     }
 
-    private fun <T>cacheSetting(scPref: ScPref<T>, value: Any?) {
+    private fun cacheSetting(scPref: ScPref<*>, value: Any?) {
         val v = scPref.ensureType(value)
         if (v == null) {
             settingsCache.remove(scPref.sKey)

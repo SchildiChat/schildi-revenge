@@ -157,6 +157,8 @@
     <string name="pref_theme_follow_system_title">Follow system theme</string>
     <string name="pref_theme_follow_system_summary">Choose dark or light theme based on system settings</string>
     <string name="pref_dark_theme_title">Dark theme</string>
+    <string name="pref_view_hidden_events_title">View hidden events</string>
+    <string name="pref_view_redactions_title">Show deleted messages</string>
 
     <string name="nameless_space_fallback_title">Nameless space</string>
 

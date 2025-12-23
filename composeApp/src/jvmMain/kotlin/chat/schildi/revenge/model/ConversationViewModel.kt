@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import chat.schildi.matrixsdk.ScTimelineFilterSettings
 import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPref
+import chat.schildi.preferences.ScPreferencesStore
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.safeLookup
 import chat.schildi.revenge.TitleProvider
@@ -108,11 +110,17 @@ sealed interface EventJumpTarget {
     data class Index(val index: Int) : EventJumpTarget
 }
 
+private fun buildScTimelineFilterSettings(lookup: (ScPref<*>) -> Any?) = ScTimelineFilterSettings(
+    showHiddenEvents = ScPrefs.VIEW_HIDDEN_EVENTS.safeLookup(lookup),
+    showRedactions = ScPrefs.VIEW_REDACTIONS.safeLookup(lookup),
+)
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConversationViewModel(
     private val sessionId: SessionId,
     private val roomId: RoomId,
     private val appGraph: AppGraph = UiState.appGraph,
+    private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
 ) : ViewModel(), TitleProvider, KeyboardActionProvider, ComposerViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
 
@@ -126,8 +134,18 @@ class ConversationViewModel(
             appGraph.sessionGraphFactory.create(it)
         }
     }
-    private val roomPair = clientFlow.map { client ->
-        Pair(client?.getRoom(roomId), client?.getJoinedRoom(roomId))
+
+    private val timelineFilterSettings = scPreferencesStore.combinedSettingFlow { lookup ->
+        buildScTimelineFilterSettings(lookup)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly,
+        buildScTimelineFilterSettings { scPreferencesStore.getCachedOrDefaultValue(it) }
+    )
+
+    private val roomPair = combine(
+        clientFlow,
+        timelineFilterSettings,
+    ) { client, settings ->
+        Pair(client?.getRoom(roomId), client?.getJoinedRoom(roomId, settings))
     }.stateIn(viewModelScope, SharingStarted.Eagerly, Pair(null, null))
 
     private val _highlightedActionEventId = MutableStateFlow<EventOrTransactionId?>(null)
@@ -140,10 +158,10 @@ class ConversationViewModel(
             ?.getOrNull()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val composerSettings = RevengePrefs.combinedSettingFlow { lookup ->
+    private val composerSettings = scPreferencesStore.combinedSettingFlow { lookup ->
         ComposerSettings.from(lookup)
     }.stateIn(viewModelScope, SharingStarted.Eagerly,
-        ComposerSettings.from { RevengePrefs.getCachedOrDefaultValue(it) }
+        ComposerSettings.from { scPreferencesStore.getCachedOrDefaultValue(it) }
     )
 
     private val roomGraphFlow = combine(sessionGraphFlow, roomPair) { sessionGraph, (baseRoom, joinedRoom) ->
