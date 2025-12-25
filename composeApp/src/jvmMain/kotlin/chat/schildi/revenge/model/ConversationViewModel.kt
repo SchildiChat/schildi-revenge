@@ -47,7 +47,6 @@ import io.element.android.libraries.matrix.api.media.AudioInfo
 import io.element.android.libraries.matrix.api.media.FileInfo
 import io.element.android.libraries.matrix.api.media.ImageInfo
 import io.element.android.libraries.matrix.api.media.VideoInfo
-import kotlin.time.Duration.Companion.milliseconds
 import io.element.android.libraries.matrix.api.room.roomMembers
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
@@ -134,7 +133,7 @@ class ConversationViewModel(
     private val roomId: RoomId,
     private val appGraph: AppGraph = UiState.appGraph,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
-) : ViewModel(), TitleProvider, KeyboardActionProvider, ComposerViewModel {
+) : ViewModel(), TitleProvider, KeyboardActionProvider<Action.Conversation>, ComposerViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
 
     private val clientFlow = UiState.selectClient(sessionId, viewModelScope)
@@ -454,170 +453,183 @@ class ConversationViewModel(
         }
     }
 
+    override fun getPossibleActions() = Action.Conversation.entries.toSet()
+    override fun ensureActionType(action: Action) = action as? Action.Conversation
+
     override fun handleNavigationModeEvent(context: ActionContext, key: KeyTrigger): ActionResult {
-        val keyConfig = UiState.keybindingsConfig.value ?: return ActionResult.NoMatch
-        return keyConfig.conversation.execute(context, key) { conversationAction ->
-            when (conversationAction.action) {
-                Action.Conversation.FocusComposer -> {
-                    !forceShowComposer.getAndUpdate { true }
-                    focusByRole(FocusRole.MESSAGE_COMPOSER)
-                    ActionResult.Success()
-                }
+        val keyConfig = context.keybindingConfig ?: return ActionResult.NoMatch
+        return keyConfig.conversation.execute(context, key, ::handleAction)
+    }
 
-                Action.Conversation.HideComposerIfEmpty -> {
-                    // Clear draft state (replies etc.) if empty
-                    var wasEmpty = false
-                    DraftRepo.update(draftKey) {
-                        val isEmpty = it?.isEmpty() != false
-                        wasEmpty = isEmpty
-                        if (isEmpty) {
-                            null
-                        } else {
-                            it
-                        }
-                    }
-                    if (wasEmpty) {
-                        forceShowComposer.getAndUpdate { false }.orActionInapplicable()
-                    } else {
-                        ActionResult.Inapplicable
-                    }
-                }
+    override fun handleAction(
+        context: ActionContext,
+        action: Action.Conversation,
+        args: List<String>
+    ): ActionResult = context.run {
+        when (action) {
+            Action.Conversation.FocusComposer -> {
+                !forceShowComposer.getAndUpdate { true }
+                focusByRole(FocusRole.MESSAGE_COMPOSER)
+                ActionResult.Success()
+            }
 
-                Action.Conversation.ClearComposer -> {
-                    // Discard all draft state
-                    var wasEmpty = false
-                    DraftRepo.update(draftKey) {
-                        wasEmpty = it?.isEmpty() != false
+            Action.Conversation.HideComposerIfEmpty -> {
+                // Clear draft state (replies etc.) if empty
+                var wasEmpty = false
+                DraftRepo.update(draftKey) {
+                    val isEmpty = it?.isEmpty() != false
+                    wasEmpty = isEmpty
+                    if (isEmpty) {
                         null
-                    }
-                    if (wasEmpty) {
-                        forceShowComposer.getAndUpdate { false }.orActionInapplicable()
                     } else {
-                        forceShowComposer.value = false
-                        ActionResult.Success()
+                        it
                     }
                 }
+                if (wasEmpty) {
+                    forceShowComposer.getAndUpdate { false }.orActionInapplicable()
+                } else {
+                    ActionResult.Inapplicable
+                }
+            }
 
-                Action.Conversation.ComposeMessage -> {
-                    forceShowComposer.value = true
-                    DraftRepo.update(draftKey) {
-                        it?.copy(type = DraftType.TEXT, editEventId = null, initialBody = "")
-                            ?: DraftValue(type = DraftType.TEXT)
-                    }
-                    focusByRole(FocusRole.MESSAGE_COMPOSER)
+            Action.Conversation.ClearComposer -> {
+                // Discard all draft state
+                var wasEmpty = false
+                DraftRepo.update(draftKey) {
+                    wasEmpty = it?.isEmpty() != false
+                    null
+                }
+                if (wasEmpty) {
+                    forceShowComposer.getAndUpdate { false }.orActionInapplicable()
+                } else {
+                    forceShowComposer.value = false
                     ActionResult.Success()
                 }
+            }
 
-                Action.Conversation.ComposeNotice -> {
-                    forceShowComposer.value = true
-                    DraftRepo.update(draftKey) {
-                        it?.copy(type = DraftType.NOTICE, editEventId = null, initialBody = "")
-                            ?: DraftValue(type = DraftType.NOTICE)
-                    }
-                    focusByRole(FocusRole.MESSAGE_COMPOSER)
-                    ActionResult.Success()
+            Action.Conversation.ComposeMessage -> {
+                forceShowComposer.value = true
+                DraftRepo.update(draftKey) {
+                    it?.copy(type = DraftType.TEXT, editEventId = null, initialBody = "")
+                        ?: DraftValue(type = DraftType.TEXT)
                 }
+                focusByRole(FocusRole.MESSAGE_COMPOSER)
+                ActionResult.Success()
+            }
 
-                Action.Conversation.ComposeEmote -> {
-                    forceShowComposer.value = true
-                    DraftRepo.update(draftKey) {
-                        it?.copy(type = DraftType.EMOTE, editEventId = null, initialBody = "")
-                            ?: DraftValue(type = DraftType.EMOTE)
-                    }
-                    focusByRole(FocusRole.MESSAGE_COMPOSER)
-                    ActionResult.Success()
+            Action.Conversation.ComposeNotice -> {
+                forceShowComposer.value = true
+                DraftRepo.update(draftKey) {
+                    it?.copy(type = DraftType.NOTICE, editEventId = null, initialBody = "")
+                        ?: DraftValue(type = DraftType.NOTICE)
                 }
+                focusByRole(FocusRole.MESSAGE_COMPOSER)
+                ActionResult.Success()
+            }
 
-                Action.Conversation.ComposerSend -> sendMessage(context)
-
-                Action.Conversation.ComposerInsertAtCursor -> {
-                    var hasDraft = false
-                    DraftRepo.update(draftKey) {
-                        hasDraft = it != null
-                        it?.copy(
-                            textFieldValue = it.textFieldValue.insertAtCursor(conversationAction.args[0])
-                        )
-                    }
-                    hasDraft.orActionInapplicable()
+            Action.Conversation.ComposeEmote -> {
+                forceShowComposer.value = true
+                DraftRepo.update(draftKey) {
+                    it?.copy(type = DraftType.EMOTE, editEventId = null, initialBody = "")
+                        ?: DraftValue(type = DraftType.EMOTE)
                 }
+                focusByRole(FocusRole.MESSAGE_COMPOSER)
+                ActionResult.Success()
+            }
 
-                Action.Conversation.ComposerPasteAttachment -> {
-                    val files = getFilesFromClipboard()
-                    if (files.isEmpty() || files.size > 1) {
-                        ActionResult.Inapplicable
-                    } else {
-                        launchActionAsync(
-                            "addAttachment",
-                            viewModelScope,
-                            Dispatchers.IO,
-                            "addAttachment",
-                        ) {
-                            loadAttachmentFileIntoComposer(files[0])
-                        }
+            Action.Conversation.ComposerSend -> sendMessage(context)
+
+            Action.Conversation.ComposerInsertAtCursor -> {
+                var hasDraft = false
+                DraftRepo.update(draftKey) {
+                    hasDraft = it != null
+                    it?.copy(
+                        textFieldValue = it.textFieldValue.insertAtCursor(args[0])
+                    )
+                }
+                hasDraft.orActionInapplicable()
+            }
+
+            Action.Conversation.ComposerPasteAttachment -> {
+                val files = getFilesFromClipboard()
+                if (files.isEmpty() || files.size > 1) {
+                    ActionResult.Inapplicable
+                } else {
+                    launchActionAsync(
+                        "addAttachment",
+                        viewModelScope,
+                        Dispatchers.IO,
+                        "addAttachment",
+                    ) {
+                        loadAttachmentFileIntoComposer(files[0])
                     }
                 }
+            }
 
-                Action.Conversation.ComposerAddAttachment -> launchAttachmentPicker(this)
+            Action.Conversation.ComposerAddAttachment -> launchAttachmentPicker(this)
 
-                Action.Conversation.JumpToOwnReadReceipt -> jumpToMessage(
-                    conversationAction.action.name,
-                    StringResourceHolder(Res.string.command_event_name_own_read_receipt),
-                    "jumpTo",
+            Action.Conversation.JumpToOwnReadReceipt -> jumpToMessage(
+                action.name,
+                StringResourceHolder(Res.string.command_event_name_own_read_receipt),
+                "jumpTo",
+            ) {
+                activeTimeline.value?.latestUserReceiptEventId(sessionId.value)?.let(::EventId)
+            }
+
+            Action.Conversation.JumpToFullyRead -> jumpToMessage(
+                action.name,
+                StringResourceHolder(Res.string.command_event_name_fully_read_marker),
+                "jumpTo",
+            ) {
+                activeTimeline.value?.fullyReadEventId()?.let(::EventId)
+            }
+
+            Action.Conversation.JumpToBottom -> {
+                timelineController.value?.focusOnLive() ?: run {
+                    log.e("Could not find timeline controller")
+                    return@run ActionResult.Failure("Timeline not ready")
+                }
+                _targetEvent.value = EventJumpTarget.Index(0)
+                ActionResult.Success(async = true)
+            }
+
+            Action.Conversation.MarkUnread -> {
+                val room = roomPair.value.first ?: return@run ActionResult.Failure("Room not ready")
+                launchActionAsync(
+                    "setUnreadFlag",
+                    GlobalActionsScope,
+                    Dispatchers.IO
                 ) {
-                    activeTimeline.value?.latestUserReceiptEventId(sessionId.value)?.let(::EventId)
+                    room.setUnreadFlag(true).toActionResult(async = true)
                 }
+                ActionResult.Success(async = true)
+            }
 
-                Action.Conversation.JumpToFullyRead -> jumpToMessage(
-                    conversationAction.action.name,
-                    StringResourceHolder(Res.string.command_event_name_fully_read_marker),
-                    "jumpTo",
+            Action.Conversation.MarkRead -> {
+                val timeline = activeTimeline.value ?: return@run ActionResult.Failure("Timeline not ready")
+                launchActionAsync(
+                    "markRead",
+                    GlobalActionsScope,
+                    Dispatchers.IO
                 ) {
-                    activeTimeline.value?.fullyReadEventId()?.let(::EventId)
+                    // TODO split into individual calls for proper error propagation
+                    timeline.markAsRead(ReceiptType.READ)
+                    timeline.markAsRead(ReceiptType.FULLY_READ)
+                    ActionResult.Success()
                 }
+            }
 
-                Action.Conversation.JumpToBottom -> {
-                    timelineController.value?.focusOnLive() ?: run {
-                        log.e("Could not find timeline controller")
-                        return@execute ActionResult.Failure("Timeline not ready")
-                    }
-                    _targetEvent.value = EventJumpTarget.Index(0)
-                    ActionResult.Success(async = true)
-                }
-
-                Action.Conversation.MarkUnread -> {
-                    val room = roomPair.value.first ?: run {
-                        log.e("Could not find room")
-                        return@execute ActionResult.Failure("Room not ready")
-                    }
-                    GlobalActionsScope.launch(Dispatchers.IO) {
-                        room.setUnreadFlag(true)
-                            .onFailure { log.e("Failed to set unread flag", it) }
-                    }
-                    ActionResult.Success(async = true)
-                }
-
-                Action.Conversation.MarkRead -> {
-                    val timeline = activeTimeline.value ?: run {
-                        log.e("Could not find timeline")
-                        return@execute ActionResult.Failure("Timeline not ready")
-                    }
-                    GlobalActionsScope.launch(Dispatchers.IO) {
-                        timeline.markAsRead(ReceiptType.READ)
-                        timeline.markAsRead(ReceiptType.FULLY_READ)
-                    }
-                    ActionResult.Success(async = true)
-                }
-
-                Action.Conversation.MarkReadPrivate -> {
-                    val timeline = activeTimeline.value ?: run {
-                        log.e("Could not find timeline")
-                        return@execute ActionResult.Failure("Timeline not ready")
-                    }
-                    GlobalActionsScope.launch(Dispatchers.IO) {
-                        timeline.markAsRead(ReceiptType.READ_PRIVATE)
-                        timeline.markAsRead(ReceiptType.FULLY_READ)
-                    }
-                    ActionResult.Success(async = true)
+            Action.Conversation.MarkReadPrivate -> {
+                val timeline = activeTimeline.value ?: return@run ActionResult.Failure("Timeline not ready")
+                launchActionAsync(
+                    "markReadPrivate",
+                    GlobalActionsScope,
+                    Dispatchers.IO
+                ) {
+                    // TODO split into individual calls for proper error propagation
+                    timeline.markAsRead(ReceiptType.READ_PRIVATE)
+                    timeline.markAsRead(ReceiptType.FULLY_READ)
+                    ActionResult.Success()
                 }
             }
         }
@@ -834,156 +846,165 @@ class ConversationViewModel(
         }
     }
 
-    fun getKeyboardActionProviderForEvent(event: EventTimelineItem): KeyboardActionProvider {
+    fun getKeyboardActionProviderForEvent(event: EventTimelineItem): KeyboardActionProvider<Action.Event> {
         val eventId = event.eventId
         val eventOrTransactionId = tryOrNull {
             EventOrTransactionId.from(event.eventId, event.transactionId)
         }
-        return object : KeyboardActionProvider {
+        return object : KeyboardActionProvider<Action.Event> {
+            override fun getPossibleActions() = Action.Event.entries.toSet()
+            override fun ensureActionType(action: Action) = action as? Action.Event
+
             override fun handleNavigationModeEvent(context: ActionContext, key: KeyTrigger): ActionResult {
-                val keyConfig = UiState.keybindingsConfig.value ?: return ActionResult.NoMatch
-                return keyConfig.event.execute(context, key) { binding ->
-                    when (binding.action) {
-                        Action.Event.MarkRead -> eventId?.let { markEventAsRead(eventId, ReceiptType.READ) } ?: ActionResult.Inapplicable
-                        Action.Event.MarkReadPrivate -> eventId?.let {
-                            markEventAsRead(
-                                eventId,
-                                ReceiptType.READ_PRIVATE
-                            )
-                        } ?: ActionResult.Inapplicable
+                val keyConfig = context.keybindingConfig ?: return ActionResult.NoMatch
+                return keyConfig.event.execute(context, key, ::handleAction)
+            }
 
-                        Action.Event.ComposeReply -> eventId?.let {
-                            forceShowComposer.value = true
-                            val inReplyTo = InReplyTo.Ready(
-                                eventId = eventId,
-                                content = event.content,
-                                senderId = event.sender,
-                                senderProfile = event.senderProfile,
-                            )
-                            DraftRepo.update(draftKey) {
-                                it?.copy(inReplyTo = inReplyTo)
-                                    ?: DraftValue(inReplyTo = inReplyTo)
+            override fun handleAction(
+                context: ActionContext,
+                action: Action.Event,
+                args: List<String>
+            ): ActionResult = context.run {
+                when (action) {
+                    Action.Event.MarkRead -> eventId?.let { markEventAsRead(eventId, ReceiptType.READ) } ?: ActionResult.Inapplicable
+                    Action.Event.MarkReadPrivate -> eventId?.let {
+                        markEventAsRead(
+                            eventId,
+                            ReceiptType.READ_PRIVATE
+                        )
+                    } ?: ActionResult.Inapplicable
+
+                    Action.Event.ComposeReply -> eventId?.let {
+                        forceShowComposer.value = true
+                        val inReplyTo = InReplyTo.Ready(
+                            eventId = eventId,
+                            content = event.content,
+                            senderId = event.sender,
+                            senderProfile = event.senderProfile,
+                        )
+                        DraftRepo.update(draftKey) {
+                            it?.copy(inReplyTo = inReplyTo)
+                                ?: DraftValue(inReplyTo = inReplyTo)
+                        }
+                        focusByRole(FocusRole.MESSAGE_COMPOSER)
+                        ActionResult.Success()
+                    } ?: ActionResult.Inapplicable
+
+                    Action.Event.ComposeEdit -> eventOrTransactionId?.let {
+                        val eventContent = event.content
+                        if (eventContent is MessageContent) {
+                            val draftValue = when (val messageType = eventContent.type) {
+                                is TextLikeMessageType -> DraftValue(
+                                    type = DraftType.EDIT,
+                                    textFieldValue = insertTextFieldValue(messageType.body),
+                                    editEventId = eventOrTransactionId,
+                                    initialBody = messageType.body,
+                                    // Not supported yet, TODO formatted edits?
+                                    //htmlBody = messageType.formatted?.body,
+                                    //intentionalMentions = // TODO?
+                                )
+
+                                is MessageTypeWithAttachment -> DraftValue(
+                                    type = DraftType.EDIT_CAPTION,
+                                    textFieldValue = insertTextFieldValue(messageType.caption ?: ""),
+                                    editEventId = eventOrTransactionId,
+                                    initialBody = messageType.caption ?: "",
+                                    // Not supported yet, TODO formatted edits?
+                                    //htmlBody = messageType.formattedCaption?.body,
+                                )
+
+                                is LocationMessageType,
+                                is OtherMessageType -> null
                             }
-                            focusByRole(FocusRole.MESSAGE_COMPOSER)
-                            ActionResult.Success()
-                        } ?: ActionResult.Inapplicable
-
-                        Action.Event.ComposeEdit -> eventOrTransactionId?.let {
-                            val eventContent = event.content
-                            if (eventContent is MessageContent) {
-                                val draftValue = when (val messageType = eventContent.type) {
-                                    is TextLikeMessageType -> DraftValue(
-                                        type = DraftType.EDIT,
-                                        textFieldValue = insertTextFieldValue(messageType.body),
-                                        editEventId = eventOrTransactionId,
-                                        initialBody = messageType.body,
-                                        // Not supported yet, TODO formatted edits?
-                                        //htmlBody = messageType.formatted?.body,
-                                        //intentionalMentions = // TODO?
-                                    )
-
-                                    is MessageTypeWithAttachment -> DraftValue(
-                                        type = DraftType.EDIT_CAPTION,
-                                        textFieldValue = insertTextFieldValue(messageType.caption ?: ""),
-                                        editEventId = eventOrTransactionId,
-                                        initialBody = messageType.caption ?: "",
-                                        // Not supported yet, TODO formatted edits?
-                                        //htmlBody = messageType.formattedCaption?.body,
-                                    )
-
-                                    is LocationMessageType,
-                                    is OtherMessageType -> null
-                                }
-                                if (draftValue == null) {
-                                    ActionResult.Inapplicable
-                                } else {
-                                    forceShowComposer.value = true
-                                    DraftRepo.update(draftKey, draftValue)
-                                    focusByRole(FocusRole.MESSAGE_COMPOSER)
-                                    ActionResult.Success()
-                                }
-                            } else {
+                            if (draftValue == null) {
                                 ActionResult.Inapplicable
+                            } else {
+                                forceShowComposer.value = true
+                                DraftRepo.update(draftKey, draftValue)
+                                focusByRole(FocusRole.MESSAGE_COMPOSER)
+                                ActionResult.Success()
+                            }
+                        } else {
+                            ActionResult.Inapplicable
+                        }
+                    } ?: ActionResult.Inapplicable
+
+                    Action.Event.ComposeReaction -> eventId?.let {
+                        forceShowComposer.value = true
+                        val inReplyTo = InReplyTo.Ready(
+                            eventId = eventId,
+                            content = event.content,
+                            senderId = event.sender,
+                            senderProfile = event.senderProfile,
+                        )
+                        DraftRepo.update(draftKey) {
+                            it?.copy(inReplyTo = inReplyTo, type = DraftType.REACTION)
+                                ?: DraftValue(inReplyTo = inReplyTo, type = DraftType.REACTION)
+                        }
+                        focusByRole(FocusRole.MESSAGE_COMPOSER)
+                        ActionResult.Success()
+                    } ?: ActionResult.Inapplicable
+
+                    Action.Event.CopyContent -> {
+                        (event.content as? MessageContent)?.body?.let { content ->
+                            copyToClipboard(content, Res.string.command_copy_name_message_content.toStringHolder())
+                        } ?: ActionResult.Inapplicable
+                    }
+
+                    Action.Event.CopyEventSource -> {
+                        event.timelineItemDebugInfoProvider().originalJson?.toPrettyJson()?.let { eventSource ->
+                            copyToClipboard(eventSource, Res.string.command_copy_name_event_source.toStringHolder())
+                        } ?: ActionResult.Inapplicable
+                    }
+
+                    Action.Event.CopyEventId -> {
+                        (eventId?.value ?: event.transactionId?.value)?.let {
+                            copyToClipboard(it, Res.string.command_copy_name_event_id.toStringHolder())
+                        } ?: ActionResult.Inapplicable
+                    }
+
+                    Action.Event.CopyMxId -> {
+                        copyToClipboard(event.sender.value, Res.string.command_copy_name_mxid.toStringHolder())
+                    }
+
+                    Action.Event.CopyContentLink -> {
+                        (event.content as? MessageContent)?.body?.let { content ->
+                            UrlUtil.extractUrlsFromText(content).firstOrNull()?.let {
+                                copyToClipboard(content, Res.string.command_copy_name_url.toStringHolder())
                             }
                         } ?: ActionResult.Inapplicable
+                    }
 
-                        Action.Event.ComposeReaction -> eventId?.let {
-                            forceShowComposer.value = true
-                            val inReplyTo = InReplyTo.Ready(
-                                eventId = eventId,
-                                content = event.content,
-                                senderId = event.sender,
-                                senderProfile = event.senderProfile,
-                            )
-                            DraftRepo.update(draftKey) {
-                                it?.copy(inReplyTo = inReplyTo, type = DraftType.REACTION)
-                                    ?: DraftValue(inReplyTo = inReplyTo, type = DraftType.REACTION)
-                            }
-                            focusByRole(FocusRole.MESSAGE_COMPOSER)
-                            ActionResult.Success()
-                        } ?: ActionResult.Inapplicable
-
-                        Action.Event.CopyContent -> {
-                            (event.content as? MessageContent)?.body?.let { content ->
-                                copyToClipboard(content, Res.string.command_copy_name_message_content.toStringHolder())
-                            } ?: ActionResult.Inapplicable
-                        }
-
-                        Action.Event.CopyEventSource -> {
-                            event.timelineItemDebugInfoProvider().originalJson?.toPrettyJson()?.let { eventSource ->
-                                copyToClipboard(eventSource, Res.string.command_copy_name_event_source.toStringHolder())
-                            } ?: ActionResult.Inapplicable
-                        }
-
-                        Action.Event.CopyEventId -> {
-                            (eventId?.value ?: event.transactionId?.value)?.let {
-                                copyToClipboard(it, Res.string.command_copy_name_event_id.toStringHolder())
-                            } ?: ActionResult.Inapplicable
-                        }
-
-                        Action.Event.CopyMxId -> {
-                            copyToClipboard(event.sender.value, Res.string.command_copy_name_mxid.toStringHolder())
-                        }
-
-                        Action.Event.CopyContentLink -> {
-                            (event.content as? MessageContent)?.body?.let { content ->
-                                UrlUtil.extractUrlsFromText(content).firstOrNull()?.let {
-                                    copyToClipboard(content, Res.string.command_copy_name_url.toStringHolder())
-                                }
-                            } ?: ActionResult.Inapplicable
-                        }
-
-                        Action.Event.OpenContentLinks -> {
-                            (event.content as? MessageContent)?.body?.let { content ->
-                                val links = UrlUtil.extractUrlsFromText(content)
-                                if (links.isEmpty()) {
-                                    ActionResult.Inapplicable
-                                } else {
-                                    links.forEach {
-                                        openLinkInExternalBrowser(it).let {
-                                            if (it is ActionResult.Failure) {
-                                                return@execute it
-                                            }
+                    Action.Event.OpenContentLinks -> {
+                        (event.content as? MessageContent)?.body?.let { content ->
+                            val links = UrlUtil.extractUrlsFromText(content)
+                            if (links.isEmpty()) {
+                                ActionResult.Inapplicable
+                            } else {
+                                links.forEach {
+                                    openLinkInExternalBrowser(it).let {
+                                        if (it is ActionResult.Failure) {
+                                            return@run it
                                         }
                                     }
-                                    ActionResult.Success()
                                 }
-                            } ?: ActionResult.Inapplicable
-                        }
-
-                        Action.Event.Redact -> {
-                            if (event.content is RedactedContent) {
-                                return@execute ActionResult.Inapplicable
+                                ActionResult.Success()
                             }
-                            eventOrTransactionId?.let {
-                                promptRedact(
-                                    eventOrTransactionId = eventOrTransactionId,
-                                    isOwn = event.isOwn,
-                                    senderName = event.senderProfile.getDisambiguatedDisplayName(event.sender),
-                                    isMessage = event.content is MessageContent,
-                                )
-                            } ?: ActionResult.Inapplicable
+                        } ?: ActionResult.Inapplicable
+                    }
+
+                    Action.Event.Redact -> {
+                        if (event.content is RedactedContent) {
+                            return@run ActionResult.Inapplicable
                         }
+                        eventOrTransactionId?.let {
+                            promptRedact(
+                                eventOrTransactionId = eventOrTransactionId,
+                                isOwn = event.isOwn,
+                                senderName = event.senderProfile.getDisambiguatedDisplayName(event.sender),
+                                isMessage = event.content is MessageContent,
+                            )
+                        } ?: ActionResult.Inapplicable
                     }
                 }
             }

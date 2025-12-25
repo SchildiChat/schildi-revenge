@@ -46,6 +46,10 @@ private val navigationArgs = listOf(
     ActionArgumentOptional(ActionArgumentPrimitive.RoomId)
 )
 
+fun Action.handlesCommand(command: String): Boolean {
+    return command == name || command == name.lowercase() || command in aliases
+}
+
 sealed interface Action {
     val name: String
     val aliases: kotlin.collections.List<String>
@@ -55,6 +59,7 @@ sealed interface Action {
         override val args: kotlin.collections.List<ActionArgument> = emptyList()
     ) : Action {
         Search,
+        Command,
         SetSetting(args = listOf(ActionArgumentPrimitive.SettingKey, ActionArgumentPrimitive.Text)),
         ToggleSetting(args = listOf(ActionArgumentPrimitive.SettingKey)),
         ClearAppMessages,
@@ -64,18 +69,18 @@ sealed interface Action {
         override val aliases: kotlin.collections.List<String> = emptyList(),
         override val args: kotlin.collections.List<ActionArgument> = emptyList()
     ) : Action {
-        NavigateCurrent(aliases = listOf("navigate"), args = navigationArgs),
-        NavigateInNewWindow(args = navigationArgs),
+        NavigateCurrent(aliases = listOf("navigate", "nav"), args = navigationArgs),
+        NavigateInNewWindow(aliases = listOf("open-new", "window"), args = navigationArgs),
         SplitHorizontal(aliases = listOf("vsplit")),
         SplitVertical(aliases = listOf("split")),
-        CloseWindow,
+        CloseWindow(aliases = listOf("close")),
     }
     enum class NavigationItem(
         override val aliases: kotlin.collections.List<String> = emptyList(),
         override val args: kotlin.collections.List<ActionArgument> = emptyList()
     ) : Action {
-        NavigateCurrent,
-        NavigateInNewWindow,
+        NavigateCurrent(aliases = listOf("follow", "open")),
+        NavigateInNewWindow(aliases = listOf("open-new")),
     }
     enum class Focus(
         override val aliases: kotlin.collections.List<String> = emptyList(),

@@ -23,7 +23,9 @@ import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Anim
 import chat.schildi.revenge.DestinationStateHolder
+import chat.schildi.revenge.actions.KeyboardActionMode
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
+import chat.schildi.revenge.compose.command.CommandBar
 import chat.schildi.revenge.compose.components.AppMessages
 import chat.schildi.revenge.compose.focus.windowFocusContainer
 import chat.schildi.revenge.compose.search.SearchBar
@@ -69,6 +71,17 @@ fun WindowContent(destinationHolder: DestinationStateHolder) {
                         shrinkVertically(tween(Anim.DURATION), shrinkTowards = Alignment.Bottom),
             ) {
                 SearchBar()
+            }
+
+            // Command bar
+            AnimatedVisibility(
+                visible = keyboardActionHandler.mode.collectAsState().value is KeyboardActionMode.Command,
+                enter = slideInVertically(tween(Anim.DURATION)) { it } +
+                        expandVertically(tween(Anim.DURATION), expandFrom = Alignment.Bottom),
+                exit = slideOutVertically(tween(Anim.DURATION)) { it } +
+                        shrinkVertically(tween(Anim.DURATION), shrinkTowards = Alignment.Bottom),
+            ) {
+                CommandBar()
             }
         }
     }

@@ -1,5 +1,6 @@
 package chat.schildi.revenge.compose.focus
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.PointerMatcher
@@ -23,6 +24,7 @@ import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.input.pointer.pointerInput
@@ -103,6 +105,7 @@ fun FocusRole.allowsFocusable() = when (this) {
     FocusRole.TEXT_FIELD_SINGLE_LINE,
     FocusRole.TEXT_FIELD_MULTI_LINE,
     FocusRole.MESSAGE_COMPOSER,
+    FocusRole.COMMAND_BAR,
     FocusRole.SEARCH_BAR -> false
 }
 
@@ -119,7 +122,7 @@ fun Modifier.keyFocusable(
     val id = remember { UUID.randomUUID() }
     val keyHandler = LocalKeyboardActionHandler.current
     val destinationState = LocalDestinationState.current
-    if (role == FocusRole.SEARCH_BAR) {
+    if (role.autoRequestFocus) {
         LaunchedEffect(Unit) {
             focusRequester.requestFocus()
         }
@@ -157,18 +160,20 @@ fun Modifier.keyFocusable(
 }
 
 @Composable
-private fun Modifier.focusableItemBackground(id: UUID, keyHandler: KeyboardActionHandler) = border(
-    1.dp,
-    MaterialTheme.colorScheme.onSurfaceVariant.copy(
-        alpha = animateFloatAsState(
-            if (id == keyHandler.currentKeyboardFocus.collectAsState().value) {
-                1f
-            } else {
-                0f
-            }
-        ).value
+private fun Modifier.focusableItemBackground(id: UUID, keyHandler: KeyboardActionHandler): Modifier {
+    val state = keyHandler.currentFocusState.collectAsState().value
+    val color = animateColorAsState(
+        when {
+            state.commandFocus == id -> MaterialTheme.colorScheme.error
+            state.keyboardFocus == id -> MaterialTheme.colorScheme.onSurfaceVariant
+            else -> Color.Transparent
+        }
+    ).value
+    return border(
+        1.dp,
+        color,
     )
-)
+}
 
 @Composable
 private fun Modifier.keyFocusableCommon(

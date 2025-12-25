@@ -23,6 +23,7 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.UriHandler
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.toIntSize
 import androidx.compose.ui.window.ApplicationScope
 import chat.schildi.preferences.RevengePrefs
@@ -48,6 +49,8 @@ import chat.schildi.revenge.config.keybindings.AllowedTextFieldBindingKeys
 import chat.schildi.revenge.config.keybindings.Binding
 import chat.schildi.revenge.config.keybindings.KeyMapped
 import chat.schildi.revenge.config.keybindings.KeyTrigger
+import chat.schildi.revenge.config.keybindings.KeybindingConfig
+import chat.schildi.revenge.config.keybindings.handlesCommand
 import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.REAL_SPACE_ID_PREFIX
 import chat.schildi.revenge.util.tryOrNull
@@ -70,7 +73,12 @@ import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_cancel
 import shire.composeapp.generated.resources.action_processing
 import shire.composeapp.generated.resources.action_processing_done
+import shire.composeapp.generated.resources.command_ambiguous
+import shire.composeapp.generated.resources.command_ambiguous_none_valid
 import shire.composeapp.generated.resources.command_copied_to_clipboard
+import shire.composeapp.generated.resources.command_not_applicable
+import shire.composeapp.generated.resources.command_not_found
+import shire.composeapp.generated.resources.common_internal_error
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.io.File
@@ -95,7 +103,7 @@ private data class FocusTarget(
     val actions: ActionProvider?,
 )
 
-enum class FocusRole(val consumesKeyWhitelist: List<Key>? = null) {
+enum class FocusRole(val consumesKeyWhitelist: List<Key>? = null, val autoRequestFocus: Boolean = false) {
     LIST_ITEM,
     AUX_ITEM,
     NESTED_AUX_ITEM,
@@ -105,7 +113,8 @@ enum class FocusRole(val consumesKeyWhitelist: List<Key>? = null) {
     TEXT_FIELD_SINGLE_LINE(consumesKeyWhitelist = AllowedSingleLineTextFieldBindingKeys),
     TEXT_FIELD_MULTI_LINE(consumesKeyWhitelist = AllowedTextFieldBindingKeys),
     MESSAGE_COMPOSER(consumesKeyWhitelist = AllowedComposerTextFieldBindingKeys),
-    SEARCH_BAR, // Does not need to consume plain keys, key handler has a special mode for that
+    SEARCH_BAR(autoRequestFocus = true), // Does not need to consume plain keys, key handler has a special mode for that
+    COMMAND_BAR(autoRequestFocus = true), // Does not need to consume plain keys, key handler has a special mode for that
 }
 
 sealed interface KeyboardActionMode {
@@ -115,6 +124,11 @@ sealed interface KeyboardActionMode {
         val searchProvider: SearchProvider,
         val navigating: Boolean,
         val searchFocusContainer: UUID?,
+    ) : KeyboardActionMode
+    data class Command(
+        val query: TextFieldValue,
+        // Fix the item we want to action on
+        val focused: UUID?,
     ) : KeyboardActionMode
 }
 
@@ -159,6 +173,12 @@ data class ConfirmActionAppMessage(
 
 // TODO config or something
 const val MESSAGE_EXPIRY_DURATION = 5000L
+private const val COMMAND_MESSAGE_ID = "cmd"
+
+data class FocusState(
+    val keyboardFocus: UUID? = null,
+    val commandFocus: UUID? = null,
+)
 
 class KeyboardActionHandler(
     private val scope: CoroutineScope,
@@ -177,8 +197,7 @@ class KeyboardActionHandler(
 
     var windowCoordinates: Rect? = null
     private var lastPointerPosition = Offset.Zero
-    private val _currentFocus = MutableStateFlow<UUID?>(null)
-    val currentFocus = _currentFocus.asStateFlow()
+    private val currentFocus = MutableStateFlow<UUID?>(null)
 
     private val _mode = MutableStateFlow<KeyboardActionMode>(KeyboardActionMode.Navigation)
     val mode = _mode.asStateFlow()
@@ -190,12 +209,16 @@ class KeyboardActionHandler(
         Boolean::or,
     ).stateIn(scope, SharingStarted.Eagerly, false)
 
-    val currentKeyboardFocus = combine(
+    val currentFocusState = combine(
         currentFocus,
-        keyboardPrimary
-    ) { focus, enabled ->
-        focus?.takeIf { enabled }
-    }.stateIn(scope, SharingStarted.Eagerly, null)
+        mode,
+        keyboardPrimary,
+    ) { focused, currentMode, keyboardEnabled ->
+        FocusState(
+            keyboardFocus = focused.takeIf { keyboardEnabled },
+            commandFocus = (currentMode as? KeyboardActionMode.Command)?.focused,
+        )
+    }.stateIn(scope, SharingStarted.Eagerly, FocusState())
 
     val needsKeyboardSearchBar = mode.map { m ->
         m is KeyboardActionMode.Search
@@ -306,6 +329,8 @@ class KeyboardActionHandler(
         return null
     }
 
+    private fun ActionContext.focused() = (this as? InternalActionContext)?.focused ?: currentFocused()
+
     fun executeAction(
         action: InteractionAction,
         destinationStateHolder: DestinationStateHolder? = null
@@ -339,8 +364,10 @@ class KeyboardActionHandler(
         )?.navigate(destination) != null
     }
 
-    private fun navigateCurrentDestination(buildDestination: (Destination) -> Destination?): Boolean {
-        val destinationStateHolder = currentFocused()?.destinationStateHolder
+    private fun navigateCurrentDestination(
+        destinationStateHolder: DestinationStateHolder? = currentFocused()?.destinationStateHolder,
+        buildDestination: (Destination) -> Destination?
+    ): Boolean {
         return destinationStateHolder?.state?.value.let { destinationState ->
             destinationState?.destination?.let { destination ->
                 buildDestination(destination)?.let {
@@ -422,6 +449,7 @@ class KeyboardActionHandler(
                         result is ActionResult.Actioned
                     }
                     is KeyboardActionMode.Search -> handleSearchEvent(trigger, focused, mode)
+                    is KeyboardActionMode.Command -> handleCommandEvent(trigger)
                 }
                 if (consumed) {
                     pendingKeyTriggersInAction[trigger] = Unit
@@ -479,6 +507,28 @@ class KeyboardActionHandler(
         }
     }
 
+    private fun handleCommandEvent(
+        key: KeyTrigger,
+    ): Boolean {
+        return when (key.rawKey) {
+            KeyMapped.Escape -> {
+                updateMode { KeyboardActionMode.Navigation }
+                true
+            }
+            KeyMapped.Enter -> {
+                onCommandEnter()
+                true
+            }
+            KeyMapped.Tab -> {
+                // TODO auto-completions
+                true
+            }
+            KeyMapped.DirectionUp -> false // TODO cycle search history; configurable binding?
+            KeyMapped.DirectionDown -> false // TODO cycle search history; configurable binding?
+            else -> false
+        }
+    }
+
     private fun focusSearchResults(parentId: UUID?) {
         focusClosestTo(Offset.Zero, allowPartial = true, role = FocusRole.LIST_ITEM, parentId = parentId)
     }
@@ -503,7 +553,7 @@ class KeyboardActionHandler(
         val parent = focused?.parent
         log.v { "Focus parent: $parent" }
         parent ?: return false
-        _currentFocus.value = parent.uuid
+        currentFocus.value = parent.uuid
         return true
     }
 
@@ -557,9 +607,17 @@ class KeyboardActionHandler(
         } ?: false
     }
 
-    fun getActionContext(destination: Destination?) = getActionContext(destination?.name)
+    fun getActionContext(destination: Destination?): ActionContext = getInternalActionContext(
+        currentFocused(),
+        UiState.keybindingsConfig.value,
+        destination?.name
+    )
 
-    private fun getActionContext(currentDestinationName: String?) = object : ActionContext {
+    private fun getInternalActionContext(
+        focused: FocusTarget?,
+        keybindingConfig: KeybindingConfig?,
+        currentDestinationName: String? = focused?.destinationStateHolder?.state?.value?.destination?.name,
+    ) = object : InternalActionContext {
         override fun publishMessage(message: AbstractAppMessage) =
             this@KeyboardActionHandler.publishMessage(message)
         override fun dismissMessage(uniqueId: String) =
@@ -573,148 +631,255 @@ class KeyboardActionHandler(
             this@KeyboardActionHandler.openLinkInExternalBrowser(uri)
         override fun focusByRole(role: FocusRole) =
             this@KeyboardActionHandler.focusByRole(role)
+        override val focused = focused
+        override val keybindingConfig = keybindingConfig
         override val currentDestinationName = currentDestinationName
     }
 
-    private fun handleNavigationEvent(key: KeyTrigger, focused: FocusTarget?): ActionResult {
-        val currentDestination = focused?.destinationStateHolder?.state?.value?.destination
-        val keyConfig = UiState.keybindingsConfig.value ?: return ActionResult.NoMatch
+    private fun navigationItemActionHandler(
+        focused: FocusTarget,
+        navigationActionable: InteractionAction.NavigationAction,
+    ) =
+        object : KeyboardActionProvider<Action.NavigationItem> {
+            override fun getPossibleActions() = Action.NavigationItem.entries.toSet()
+            override fun ensureActionType(action: Action) = action as? Action.NavigationItem
 
-        val context = getActionContext(currentDestination?.name)
+            override fun handleNavigationModeEvent(
+                context: ActionContext,
+                key: KeyTrigger
+            ): ActionResult {
+                val keyConfig = context.keybindingConfig ?: return ActionResult.NoMatch
+                return keyConfig.navigationItem.execute(context, key, ::handleAction)
+            }
 
-        return ActionResult.chain(
-            {
-                focused?.actions?.keyActions?.handleNavigationModeEvent(context, key) ?: ActionResult.NoMatch
-            },
-            {
-                (focused?.actions?.primaryAction as? InteractionAction.NavigationAction)?.let { navigationActionable ->
-                    keyConfig.navigationItem.execute(context, key) { navigationAction ->
-                        val destination = navigationActionable.buildDestination()
-                        when (navigationAction.action) {
-                            Action.NavigationItem.NavigateCurrent -> {
-                                val destinationStateHolder = focused.destinationStateHolder ?: return@execute ActionResult.Inapplicable
-                                updateMode { KeyboardActionMode.Navigation }
-                                navigateCurrentDestination(destination, destinationStateHolder).orActionInapplicable()
-                            }
-                            Action.NavigationItem.NavigateInNewWindow -> {
-                                UiState.openWindow(destination, navigationActionable.initialTitle)
-                                ActionResult.Success()
-                            }
-                        }
+            override fun handleAction(
+                context: ActionContext,
+                action: Action.NavigationItem,
+                args: List<String>
+            ): ActionResult {
+                val destination = navigationActionable.buildDestination()
+                return when (action) {
+                    Action.NavigationItem.NavigateCurrent -> {
+                        val destinationStateHolder = focused.destinationStateHolder ?: return ActionResult.Inapplicable
+                        updateMode { KeyboardActionMode.Navigation }
+                        navigateCurrentDestination(destination, destinationStateHolder).orActionInapplicable()
                     }
-                } ?: ActionResult.NoMatch
-            },
-            {
-                keyConfig.list.execute(context, key) { listAction ->
-                    when (listAction.action) {
-                        Action.List.ScrollToTop -> scrollListToTop(focused).orActionInapplicable()
-                        Action.List.ScrollToBottom -> scrollListToBottom(focused).orActionInapplicable()
-                        Action.List.ScrollToStart -> scrollListToStart(focused).orActionInapplicable()
-                        Action.List.ScrollToEnd -> scrollListToEnd(focused).orActionInapplicable()
-                    }
-                }
-            },
-            {
-                keyConfig.focus.execute(context, key) { focusAction ->
-                    when (focusAction.action) {
-                        Action.Focus.FocusUp -> moveFocus(FocusDirection.Up, focused)
-                        Action.Focus.FocusDown -> moveFocus(FocusDirection.Down, focused)
-                        Action.Focus.FocusLeft -> moveFocus(FocusDirection.Left, focused)
-                        Action.Focus.FocusRight -> moveFocus(FocusDirection.Right, focused)
-                        Action.Focus.FocusTop -> focusCurrentContainerRelative(focused) { it.topCenter } // TODO keep X offset rather than assuming center
-                        Action.Focus.FocusCenter -> focusCurrentContainerRelative(focused) { it.center } // TODO keep X offset rather than assuming center
-                        Action.Focus.FocusBottom -> focusCurrentContainerRelative(focused) { it.bottomCenter } // TODO keep X offset rather than assuming center
-                        Action.Focus.FocusParent -> focusParent(focused)
-                        Action.Focus.FocusEnterContainer -> focusEnterContainer(focused)
-                    }.orActionInapplicable()
-                }
-            },
-            {
-                keyConfig.navigation.execute(context, key) { navigationAction ->
-                    when (navigationAction.action) {
-                        Action.Navigation.NavigateCurrent -> {
-                            val extraArgs = navigationAction.args.subList(1, navigationAction.args.size)
-                            val destination = navigationAction.args[0].toDestinationOrNull(extraArgs).orActionValidationError()
-                            navigateCurrentDestination { destination }.orActionInapplicable()
-                        }
-                        Action.Navigation.NavigateInNewWindow -> {
-                            val extraArgs = navigationAction.args.subList(1, navigationAction.args.size)
-                            val destination = navigationAction.args[0].toDestinationOrNull(extraArgs).orActionValidationError()
-                            UiState.openWindow(destination)
-                            ActionResult.Success()
-                        }
-                        Action.Navigation.SplitHorizontal -> navigateCurrentDestination {
-                            Destination.SplitHorizontal(
-                                DestinationStateHolder.forInitialDestination(it),
-                                DestinationStateHolder.forInitialDestination(it),
-                            )
-                        }.orActionInapplicable()
-                        Action.Navigation.SplitVertical -> navigateCurrentDestination {
-                            Destination.SplitVertical(
-                                DestinationStateHolder.forInitialDestination(it),
-                                DestinationStateHolder.forInitialDestination(it),
-                            )
-                        }.orActionInapplicable()
-                        Action.Navigation.CloseWindow -> {
-                            UiState.closeWindow(windowId, applicationScope)
-                            ActionResult.Success()
-                        }
-                    }
-                }
-            },
-            {
-                keyConfig.global.execute(context, key) { globalAction ->
-                    when (globalAction.action) {
-                        Action.Global.Search -> {
-                            if (mode.value is KeyboardActionMode.Search) {
-                                // Search already active, just focus again
-                                focusByRole(FocusRole.SEARCH_BAR).orActionInapplicable()
-                            } else {
-                                handleSearchUpdate("", navigating = false) {
-                                    focusByRole(FocusRole.SEARCH_BAR)
-                                }.orActionInapplicable()
-                            }
-                        }
-                        Action.Global.SetSetting -> {
-                            scope.launch {
-                                RevengePrefs.handleSetAction(this@execute, globalAction.args)
-                            }
-                            ActionResult.Success()
-                        }
-                        Action.Global.ToggleSetting -> {
-                            scope.launch {
-                                RevengePrefs.handleToggleAction(this@execute, globalAction.args)
-                            }
-                            ActionResult.Success()
-                        }
-                        Action.Global.ClearAppMessages -> {
-                            var wasEmpty = true
-                            val now = System.currentTimeMillis()
-                            _messageBoard.update {
-                                if (it.isEmpty()) {
-                                    wasEmpty = true
-                                    it
-                                } else {
-                                    wasEmpty = false
-                                    it.map { it.copyDismissed(dismissedTimestamp = now) }.toPersistentList()
-                                }
-                            }
-                            if (wasEmpty) {
-                                ActionResult.Success()
-                            } else {
-                                ActionResult.Inapplicable
-                            }
-                        }
-                        Action.Global.ConfirmActionAppMessage -> {
-                            val message = messageBoard.value.find {
-                                it is ConfirmActionAppMessage && it.dismissedTimestamp == null
-                            } as? ConfirmActionAppMessage ?: return@execute ActionResult.Inapplicable
-                            message.action()
-                            ActionResult.Success()
-                        }
+                    Action.NavigationItem.NavigateInNewWindow -> {
+                        UiState.openWindow(destination, navigationActionable.initialTitle)
+                        ActionResult.Success()
                     }
                 }
             }
+        }
+
+    private val listActionHandler = object : KeyboardActionProvider<Action.List> {
+        override fun getPossibleActions() = Action.List.entries.toSet()
+        override fun ensureActionType(action: Action) = action as? Action.List
+
+        override fun handleNavigationModeEvent(
+            context: ActionContext,
+            key: KeyTrigger
+        ): ActionResult {
+            val keyConfig = context.keybindingConfig ?: return ActionResult.NoMatch
+            return keyConfig.list.execute(context, key, ::handleAction)
+        }
+
+        override fun handleAction(
+            context: ActionContext,
+            action: Action.List,
+            args: List<String>
+        ): ActionResult {
+            return when (action) {
+                Action.List.ScrollToTop -> scrollListToTop(context.focused()).orActionInapplicable()
+                Action.List.ScrollToBottom -> scrollListToBottom(context.focused()).orActionInapplicable()
+                Action.List.ScrollToStart -> scrollListToStart(context.focused()).orActionInapplicable()
+                Action.List.ScrollToEnd -> scrollListToEnd(context.focused()).orActionInapplicable()
+            }
+        }
+    }
+
+    private val focusActionHandler = object : KeyboardActionProvider<Action.Focus> {
+        override fun getPossibleActions() = Action.Focus.entries.toSet()
+        override fun ensureActionType(action: Action) = action as? Action.Focus
+
+        override fun handleNavigationModeEvent(
+            context: ActionContext,
+            key: KeyTrigger
+        ): ActionResult {
+            val keyConfig = context.keybindingConfig ?: return ActionResult.NoMatch
+            return keyConfig.focus.execute(context, key, ::handleAction)
+        }
+
+        override fun handleAction(
+            context: ActionContext,
+            action: Action.Focus,
+            args: List<String>
+        ): ActionResult {
+            return when (action) {
+                Action.Focus.FocusUp -> moveFocus(FocusDirection.Up, context.focused())
+                Action.Focus.FocusDown -> moveFocus(FocusDirection.Down, context.focused())
+                Action.Focus.FocusLeft -> moveFocus(FocusDirection.Left, context.focused())
+                Action.Focus.FocusRight -> moveFocus(FocusDirection.Right, context.focused())
+                Action.Focus.FocusTop -> focusCurrentContainerRelative(context.focused()) { it.topCenter } // TODO keep X offset rather than assuming center
+                Action.Focus.FocusCenter -> focusCurrentContainerRelative(context.focused()) { it.center } // TODO keep X offset rather than assuming center
+                Action.Focus.FocusBottom -> focusCurrentContainerRelative(context.focused()) { it.bottomCenter } // TODO keep X offset rather than assuming center
+                Action.Focus.FocusParent -> focusParent(context.focused())
+                Action.Focus.FocusEnterContainer -> focusEnterContainer(context.focused())
+            }.orActionInapplicable()
+        }
+    }
+
+    private val navigationActionHandler = object : KeyboardActionProvider<Action.Navigation> {
+        override fun getPossibleActions() = Action.Navigation.entries.toSet()
+        override fun ensureActionType(action: Action) = action as? Action.Navigation
+
+        override fun handleNavigationModeEvent(
+            context: ActionContext,
+            key: KeyTrigger
+        ): ActionResult {
+            val keyConfig = context.keybindingConfig ?: return ActionResult.NoMatch
+            return keyConfig.navigation.execute(context, key, ::handleAction)
+        }
+
+        override fun handleAction(
+            context: ActionContext,
+            action: Action.Navigation,
+            args: List<String>
+        ): ActionResult {
+            return when (action) {
+                Action.Navigation.NavigateCurrent -> {
+                    val extraArgs = args.subList(1, args.size)
+                    val destination = args[0].toDestinationOrNull(extraArgs).orActionValidationError()
+                    navigateCurrentDestination(context.focused()?.destinationStateHolder) { destination }.orActionInapplicable()
+                }
+                Action.Navigation.NavigateInNewWindow -> {
+                    val extraArgs = args.subList(1, args.size)
+                    val destination = args[0].toDestinationOrNull(extraArgs).orActionValidationError()
+                    UiState.openWindow(destination)
+                    ActionResult.Success()
+                }
+                Action.Navigation.SplitHorizontal -> navigateCurrentDestination(context.focused()?.destinationStateHolder) {
+                    Destination.SplitHorizontal(
+                        DestinationStateHolder.forInitialDestination(it),
+                        DestinationStateHolder.forInitialDestination(it),
+                    )
+                }.orActionInapplicable()
+                Action.Navigation.SplitVertical -> navigateCurrentDestination(context.focused()?.destinationStateHolder) {
+                    Destination.SplitVertical(
+                        DestinationStateHolder.forInitialDestination(it),
+                        DestinationStateHolder.forInitialDestination(it),
+                    )
+                }.orActionInapplicable()
+                Action.Navigation.CloseWindow -> {
+                    UiState.closeWindow(windowId, applicationScope)
+                    ActionResult.Success()
+                }
+            }
+        }
+    }
+
+    private val globalActionHandler = object : KeyboardActionProvider<Action.Global> {
+        override fun getPossibleActions() = Action.Global.entries.toSet()
+        override fun ensureActionType(action: Action) = action as? Action.Global
+
+        override fun handleNavigationModeEvent(
+            context: ActionContext,
+            key: KeyTrigger
+        ): ActionResult {
+            val keyConfig = context.keybindingConfig ?: return ActionResult.NoMatch
+            return keyConfig.global.execute(context, key, ::handleAction)
+        }
+
+        override fun handleAction(
+            context: ActionContext,
+            action: Action.Global,
+            args: List<String>
+        ): ActionResult {
+            return when (action) {
+                Action.Global.Search -> {
+                    if (mode.value is KeyboardActionMode.Search) {
+                        // Search already active, just focus again
+                        focusByRole(FocusRole.SEARCH_BAR).orActionInapplicable()
+                    } else {
+                        handleSearchUpdate("", navigating = false) {
+                            focusByRole(FocusRole.SEARCH_BAR)
+                        }.orActionInapplicable()
+                    }
+                }
+                Action.Global.Command -> {
+                    if (mode.value is KeyboardActionMode.Command) {
+                        // CMD already active, just focus again
+                        focusByRole(FocusRole.COMMAND_BAR).orActionInapplicable()
+                    } else {
+                        handleCommandInput(TextFieldValue("")) {
+                            focusByRole(FocusRole.COMMAND_BAR)
+                        }.orActionInapplicable()
+                    }
+                }
+                Action.Global.SetSetting -> {
+                    scope.launch {
+                        RevengePrefs.handleSetAction(context, args)
+                    }
+                    ActionResult.Success()
+                }
+                Action.Global.ToggleSetting -> {
+                    scope.launch {
+                        RevengePrefs.handleToggleAction(context, args)
+                    }
+                    ActionResult.Success()
+                }
+                Action.Global.ClearAppMessages -> {
+                    var wasEmpty = true
+                    val now = System.currentTimeMillis()
+                    _messageBoard.update {
+                        if (it.isEmpty()) {
+                            wasEmpty = true
+                            it
+                        } else {
+                            wasEmpty = false
+                            it.map { it.copyDismissed(dismissedTimestamp = now) }.toPersistentList()
+                        }
+                    }
+                    if (wasEmpty) {
+                        ActionResult.Success()
+                    } else {
+                        ActionResult.Inapplicable
+                    }
+                }
+                Action.Global.ConfirmActionAppMessage -> {
+                    val message = messageBoard.value.find {
+                        it is ConfirmActionAppMessage && it.dismissedTimestamp == null
+                    } as? ConfirmActionAppMessage ?: return ActionResult.Inapplicable
+                    message.action()
+                    ActionResult.Success()
+                }
+            }
+        }
+    }
+
+    private fun getCurrentKeyActionHandlers(focused: FocusTarget?): List<KeyboardActionProvider<*>> {
+        return listOfNotNull(
+            focused?.actions?.keyActions,
+            (focused?.actions?.primaryAction as? InteractionAction.NavigationAction)?.let {
+                navigationItemActionHandler(focused, it)
+            },
+            (focused?.actions?.listActions)?.let {
+                listActionHandler
+            },
+            focusActionHandler,
+            navigationActionHandler,
+            globalActionHandler,
+        )
+    }
+
+    private fun handleNavigationEvent(key: KeyTrigger, focused: FocusTarget?): ActionResult {
+        val keyConfig = UiState.keybindingsConfig.value ?: return ActionResult.NoMatch
+        val context = getInternalActionContext(focused, keyConfig)
+
+        return ActionResult.chain(
+            *getCurrentKeyActionHandlers(focused).map {{
+                it.handleNavigationModeEvent(context, key)
+            }}.toTypedArray()
         )
     }
 
@@ -727,12 +892,12 @@ class KeyboardActionHandler(
         //log.v { "Focus changed for $target to $state" }
         var lostFocusTarget: UUID? = null
         if (state.isFocused) {
-            _currentFocus.update {
+            currentFocus.update {
                 lostFocusTarget = it
                 target
             }
         } else if (!state.hasFocus) {
-            _currentFocus.update {
+            currentFocus.update {
                 if (it == target) {
                     lostFocusTarget = it
                     null
@@ -745,10 +910,18 @@ class KeyboardActionHandler(
     }
 
     private fun handleLostFocus(target: FocusTarget) {
-        if (target.role == FocusRole.SEARCH_BAR) {
-            updateMode { mode ->
-                (mode as? KeyboardActionMode.Search)?.copy(navigating = true) ?: mode
+        when (target.role) {
+            FocusRole.SEARCH_BAR -> {
+                updateMode { mode ->
+                    (mode as? KeyboardActionMode.Search)?.copy(navigating = true) ?: mode
+                }
             }
+            FocusRole.COMMAND_BAR -> {
+                updateMode { mode ->
+                    mode.takeIf { it !is KeyboardActionMode.Command } ?: KeyboardActionMode.Navigation
+                }
+            }
+            else -> {}
         }
     }
 
@@ -836,6 +1009,130 @@ class KeyboardActionHandler(
                     log.w { "Updates search but no search provider available" }
                     mode
                 }
+            }
+        }
+        success?.let(handleSuccess)
+        return success != null
+    }
+
+    fun updateCommandInput(query: TextFieldValue) = handleCommandInput(query) {}
+
+    fun onCommandEnter() {
+        val commandMode = (mode.value as? KeyboardActionMode.Command)
+        val command = commandMode?.query?.text?.takeIf(String::isNotBlank)
+        val commandParsed = command?.trim()?.split(Regex("\\s+"))
+        val mainCommand = commandParsed?.firstOrNull()
+        if (mainCommand == null) {
+            log.i("Ignoring empty command")
+        } else {
+            val focused = commandMode.focused?.let {
+                focusableTargets[it]
+            } ?: focusableTargets.values.find { it.role == FocusRole.DESTINATION_ROOT_CONTAINER }
+            val commandHandlers = getCurrentKeyActionHandlers(focused)
+            val possibleActions = commandHandlers.flatMap { handler ->
+                handler.getPossibleActions().mapNotNull {
+                    if (it.handlesCommand(mainCommand)) {
+                        it to handler
+                    } else {
+                        null
+                    }
+                }
+            }
+            val args = commandParsed.subList(1, commandParsed.size)
+            val possibleUniqueActions = possibleActions.map {
+                it.first
+            }.distinct()
+            val possibleUniqueActionsWithArgsChecked = possibleUniqueActions.map {
+                it to checkArguments(it, args)
+            }
+            val possibleUniqueActionsWithValidArgs = possibleUniqueActionsWithArgsChecked.mapNotNull { (action, error) ->
+                action.takeIf { error == null }
+            }
+            when (possibleUniqueActionsWithValidArgs.size) {
+                0 -> {
+                    val message = when (possibleUniqueActionsWithArgsChecked.size) {
+                        0 -> StringResourceHolder(Res.string.command_not_found, mainCommand.toStringHolder())
+                        1 -> possibleUniqueActionsWithArgsChecked.first().second!!.message.toStringHolder()
+                        else -> StringResourceHolder(Res.string.command_ambiguous_none_valid, mainCommand.toStringHolder())
+                    }
+                    publishMessage(
+                        AppMessage(
+                            message,
+                            isError = true,
+                            uniqueId = COMMAND_MESSAGE_ID,
+                        )
+                    )
+                }
+                1 -> {
+                    val action = possibleUniqueActionsWithValidArgs.first()
+                    val context = getInternalActionContext(focused, keybindingConfig = null)
+                    val result = try {
+                        ActionResult.chain(
+                            *possibleActions.filter { it.first == action }.map {{
+                                it.second.handleActionOrInapplicable(context, it.first, args)
+                            }}.toTypedArray()
+                        )
+                    } catch (e: ActionValidationException) {
+                        ActionResult.Failure(e.message ?: "Action validation failed")
+                    }
+                    when (result) {
+                        is ActionResult.Failure -> publishMessage(
+                            AppMessage(
+                                result.message.toStringHolder(),
+                                isError = true,
+                                uniqueId = COMMAND_MESSAGE_ID,
+                            )
+                        )
+                        is ActionResult.Success -> {}
+                        ActionResult.NoMatch,
+                        ActionResult.Inapplicable -> publishMessage(
+                            AppMessage(
+                                StringResourceHolder(Res.string.command_not_applicable, mainCommand.toStringHolder()),
+                                isError = true,
+                                uniqueId = COMMAND_MESSAGE_ID,
+                            )
+                        )
+                        is ActionResult.Malformed -> publishMessage(
+                            AppMessage(
+                                result.message.toStringHolder(),
+                                isError = true,
+                                uniqueId = COMMAND_MESSAGE_ID,
+                            )
+                        )
+                    }
+                }
+                else -> {
+                    log.e("Found ambiguous actions for $mainCommand: ${possibleUniqueActionsWithValidArgs.joinToString { it.name }}")
+                    publishMessage(
+                        AppMessage(
+                            StringResourceHolder(Res.string.command_ambiguous, mainCommand.toStringHolder()),
+                            isError = true,
+                            uniqueId = COMMAND_MESSAGE_ID,
+                        )
+                    )
+                }
+            }
+        }
+        _mode.update {
+            it.takeIf { it !is KeyboardActionMode.Command } ?: KeyboardActionMode.Navigation
+        }
+    }
+
+    private fun handleCommandInput(
+        query: TextFieldValue,
+        handleSuccess: (KeyboardActionMode.Command) -> Unit,
+    ): Boolean {
+        var success: KeyboardActionMode.Command? = null
+        updateMode { mode ->
+            if (mode is KeyboardActionMode.Command) {
+                mode.copy(query = query)
+            } else {
+                KeyboardActionMode.Command(
+                    query = query,
+                    focused = currentFocus.value,
+                )
+            }.also {
+                success = it
             }
         }
         success?.let(handleSuccess)
@@ -958,8 +1255,8 @@ fun <T>Result<T>.toActionResult(async: Boolean = false, notifySuccess: Boolean =
 fun <A: Action>List<Binding<A>>.execute(
     context: ActionContext,
     key: KeyTrigger,
-    block: ActionContext.(Binding<A>) -> ActionResult
-): ActionResult = context.run {
+    block: (ActionContext, action: A, args: List<String>) -> ActionResult
+): ActionResult {
     val actions = filter {
         it.trigger == key && (it.destinations.isEmpty() || it.destinations.contains(context.currentDestinationName))
     }
@@ -968,7 +1265,7 @@ fun <A: Action>List<Binding<A>>.execute(
         val actionResult = try {
             action.checkArguments()?.also {
                 Logger.e(it.message)
-            } ?: block(action).withChainSetting(action.chain)
+            } ?: block(context, action.action, action.args).withChainSetting(action.chain)
         } catch (e: IndexOutOfBoundsException) {
             Logger.e("Error executing action", e)
             ActionResult.Failure(e.message ?: "Exception occurred trying to execute action")
@@ -986,18 +1283,18 @@ fun <A: Action>List<Binding<A>>.execute(
     return if (hasChainableSuccess) ActionResult.Success(shouldExit = false) else ActionResult.NoMatch
 }
 
-fun <A : Action>Binding<A>.checkArgument(
+fun checkArgument(
+    actionName: String,
     argDef: ActionArgument,
     argVal: String,
     lookahead: List<String>,
     validSessionIds: List<String>?,
     validSettingKeys: List<String>,
 ): ActionResult.Malformed? {
-    val actionName = action.name
     return when (argDef) {
         is ActionArgumentAnyOf -> {
             if (argDef.arguments.any {
-                checkArgument(it, argVal, lookahead, validSessionIds, validSettingKeys) != null
+                checkArgument(actionName, it, argVal, lookahead, validSessionIds, validSettingKeys) != null
             }) {
                 null
             } else {
@@ -1007,7 +1304,7 @@ fun <A : Action>Binding<A>.checkArgument(
             }
         }
         is ActionArgumentOptional -> {
-            checkArgument(argDef.argument, argVal, lookahead, validSessionIds, validSettingKeys)
+            checkArgument(actionName, argDef.argument, argVal, lookahead, validSessionIds, validSettingKeys)
         }
         ActionArgumentPrimitive.Text -> null
         ActionArgumentPrimitive.Boolean -> {
@@ -1125,6 +1422,18 @@ fun <A : Action>Binding<A>.checkArgument(
 fun <A : Action>Binding<A>.checkArguments(
     validSessionIds: List<String>? = UiState.currentValidSessionIds.value,
     validSettingKeys: List<String> = ScPrefs.validSettingKeys,
+) = checkArguments(
+    action,
+    args,
+    validSessionIds,
+    validSettingKeys,
+)
+
+fun checkArguments(
+    action: Action,
+    args: List<String>,
+    validSessionIds: List<String>? = UiState.currentValidSessionIds.value,
+    validSettingKeys: List<String> = ScPrefs.validSettingKeys,
 ): ActionResult.Malformed? {
     val actionName = action.name
     val minArgSize = action.args.count { it !is ActionArgumentOptional }
@@ -1140,7 +1449,7 @@ fun <A : Action>Binding<A>.checkArguments(
     // Optional arguments only supported to leave away at the end right now
     action.args.zip(args).forEachIndexed { index, (argDef, argVal) ->
         val lookahead = args.subList(index + 1, args.size)
-        checkArgument(argDef, argVal, lookahead, validSessionIds, validSettingKeys)?.let {
+        checkArgument(action.name, argDef, argVal, lookahead, validSessionIds, validSettingKeys)?.let {
             return it
         }
     }
@@ -1156,6 +1465,11 @@ interface ActionContext {
     fun openLinkInExternalBrowser(uri: String): ActionResult
     fun focusByRole(role: FocusRole): Boolean
     val currentDestinationName: String?
+    val keybindingConfig: KeybindingConfig?
+}
+
+private interface InternalActionContext : ActionContext {
+    val focused: FocusTarget?
 }
 
 fun ActionContext?.publishError(log: Logger, messageId: String?, error: String) {

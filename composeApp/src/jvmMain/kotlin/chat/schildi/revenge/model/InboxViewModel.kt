@@ -95,7 +95,7 @@ class InboxViewModel(
     private val spaceListDataSource: SpaceListDataSource = RevengeSpaceListDataSource,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
     private val sessionIdComparatorFlow: Flow<Comparator<SessionId>> = UiState.sessionIdComparator,
-) : ViewModel(), SearchProvider, KeyboardActionProvider, TitleProvider {
+) : ViewModel(), SearchProvider, KeyboardActionProvider<Action.Inbox>, TitleProvider {
     private val log = Logger.withTag("Inbox")
 
     init {
@@ -302,68 +302,77 @@ class InboxViewModel(
         searchTerm.value = null
     }
 
+    override fun getPossibleActions(): Set<Action.Inbox> = Action.Inbox.entries.toSet()
+    override fun ensureActionType(action: Action) = action as? Action.Inbox
+
     override fun handleNavigationModeEvent(context: ActionContext, key: KeyTrigger): ActionResult {
-        val keyConfig = UiState.keybindingsConfig.value ?: return ActionResult.NoMatch
-        return keyConfig.inbox.execute(context, key) { inboxAction ->
-            when (inboxAction.action) {
-                Action.Inbox.SetAccountHidden -> {
-                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0])
-                        ?: return@execute ActionResult.Failure("Failed to find user session")
-                    val hidden = inboxAction.args.getOrNull(1)?.toBoolean() ?: true
-                    setAccountHidden(sessionId, hidden)
-                    ActionResult.Success()
-                }
+        val keyConfig = context.keybindingConfig ?: return ActionResult.NoMatch
+        return keyConfig.inbox.execute(context, key, ::handleAction)
+    }
 
-                Action.Inbox.SetAccountSelected -> {
-                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0])
-                        ?: return@execute ActionResult.Failure("Failed to find user session")
-                    val selected = inboxAction.args.getOrNull(1)?.toBoolean() ?: true
-                    setAccountSelected(sessionId, selected)
-                    ActionResult.Success()
-                }
+    override fun handleAction(
+        context: ActionContext,
+        action: Action.Inbox,
+        args: List<String>,
+    ): ActionResult = context.run {
+        when (action) {
+            Action.Inbox.SetAccountHidden -> {
+                val sessionId = findSessionIdForAccountAction(args[0])
+                    ?: return@run ActionResult.Failure("Failed to find user session")
+                val hidden = args.getOrNull(1)?.toBoolean() ?: true
+                setAccountHidden(sessionId, hidden)
+                ActionResult.Success()
+            }
 
-                Action.Inbox.SetAccountExclusivelySelected -> {
-                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0])
-                        ?: return@execute ActionResult.Failure("Failed to find user session")
-                    val selected = inboxAction.args.getOrNull(1)?.toBoolean() ?: true
-                    setAccountExclusivelySelected(sessionId, selected)
-                    ActionResult.Success()
-                }
+            Action.Inbox.SetAccountSelected -> {
+                val sessionId = findSessionIdForAccountAction(args[0])
+                    ?: return@run ActionResult.Failure("Failed to find user session")
+                val selected = args.getOrNull(1)?.toBoolean() ?: true
+                setAccountSelected(sessionId, selected)
+                ActionResult.Success()
+            }
 
-                Action.Inbox.ToggleAccountHidden -> {
-                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0])
-                        ?: return@execute ActionResult.Failure("Failed to find user session")
-                    toggleAccountHidden(sessionId)
-                    ActionResult.Success()
-                }
+            Action.Inbox.SetAccountExclusivelySelected -> {
+                val sessionId = findSessionIdForAccountAction(args[0])
+                    ?: return@run ActionResult.Failure("Failed to find user session")
+                val selected = args.getOrNull(1)?.toBoolean() ?: true
+                setAccountExclusivelySelected(sessionId, selected)
+                ActionResult.Success()
+            }
 
-                Action.Inbox.ToggleAccountSelected -> {
-                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0])
-                        ?: return@execute ActionResult.Failure("Failed to find user session")
-                    toggleAccountSelected(sessionId)
-                    ActionResult.Success()
-                }
+            Action.Inbox.ToggleAccountHidden -> {
+                val sessionId = findSessionIdForAccountAction(args[0])
+                    ?: return@run ActionResult.Failure("Failed to find user session")
+                toggleAccountHidden(sessionId)
+                ActionResult.Success()
+            }
 
-                Action.Inbox.ToggleAccountExclusivelySelected -> {
-                    val sessionId = findSessionIdForAccountAction(inboxAction.args[0])
-                        ?: return@execute ActionResult.Failure("Failed to find user session")
-                    toggleAccountExclusivelySelected(sessionId)
-                    ActionResult.Success()
-                }
+            Action.Inbox.ToggleAccountSelected -> {
+                val sessionId = findSessionIdForAccountAction(args[0])
+                    ?: return@run ActionResult.Failure("Failed to find user session")
+                toggleAccountSelected(sessionId)
+                ActionResult.Success()
+            }
 
-                Action.Inbox.NavigateSpaceRelative -> {
-                    val diff = inboxAction.args[0].toIntOrNull().orActionValidationError()
-                    navigateSpaceRelative(diff).orActionInapplicable()
-                }
+            Action.Inbox.ToggleAccountExclusivelySelected -> {
+                val sessionId = findSessionIdForAccountAction(args[0])
+                    ?: return@run ActionResult.Failure("Failed to find user session")
+                toggleAccountExclusivelySelected(sessionId)
+                ActionResult.Success()
+            }
 
-                Action.Inbox.SelectSpace -> {
-                    val spaceSelection = inboxAction.args[0]
-                    val asIndex = spaceSelection.toIntOrNull()
-                    if (asIndex != null) {
-                        navigateToSpaceIndex(asIndex).orActionInapplicable()
-                    } else {
-                        navigateToSpaceById(spaceSelection).orActionFailure("Space with ID $spaceSelection not found")
-                    }
+            Action.Inbox.NavigateSpaceRelative -> {
+                val diff = args[0].toIntOrNull().orActionValidationError()
+                navigateSpaceRelative(diff).orActionInapplicable()
+            }
+
+            Action.Inbox.SelectSpace -> {
+                val spaceSelection = args[0]
+                val asIndex = spaceSelection.toIntOrNull()
+                if (asIndex != null) {
+                    navigateToSpaceIndex(asIndex).orActionInapplicable()
+                } else {
+                    navigateToSpaceById(spaceSelection).orActionFailure("Space with ID $spaceSelection not found")
                 }
             }
         }
