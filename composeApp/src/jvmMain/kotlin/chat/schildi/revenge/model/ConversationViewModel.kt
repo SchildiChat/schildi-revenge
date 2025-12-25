@@ -814,13 +814,13 @@ class ConversationViewModel(
         return launchActionAsync("MarkEventAsRead", GlobalActionsScope, Dispatchers.IO) {
             var hasFailure = false
             timeline.invokeOnCurrentTimeline {
-                sendReadReceipt(eventId, receiptType)
+                forceSendReadReceipt(eventId, receiptType)
                     .onFailure {
                         log.e("Failed to send private read receipt", it)
                         hasFailure = true
                     }
                 // Always keep fully read in sync with read receipts for now
-                sendReadReceipt(eventId, ReceiptType.FULLY_READ)
+                forceSendReadReceipt(eventId, ReceiptType.FULLY_READ)
                     .onFailure {
                         log.e("Failed to send fully read marker", it)
                         hasFailure = true
