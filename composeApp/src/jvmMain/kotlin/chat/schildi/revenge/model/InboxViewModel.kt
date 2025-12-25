@@ -8,22 +8,24 @@ import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.safeLookup
 import chat.schildi.revenge.CombinedSessions
 import chat.schildi.revenge.Destination
+import chat.schildi.revenge.GlobalActionsScope
 import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
+import chat.schildi.revenge.actions.launchActionAsync
 import chat.schildi.revenge.actions.orActionFailure
 import chat.schildi.revenge.actions.orActionInapplicable
 import chat.schildi.revenge.actions.orActionValidationError
+import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.flatMerge
-import chat.schildi.revenge.flatMergeCombinedWith
 import chat.schildi.revenge.model.spaces.RevengeSpaceListDataSource
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
 import chat.schildi.revenge.model.spaces.SpaceListDataSource
@@ -528,4 +530,17 @@ class InboxViewModel(
     }
 
     override fun verifyDestination(destination: Destination) = destination is Destination.Inbox
+
+    fun joinRoom(context: ActionContext, sessionId: SessionId, roomId: RoomId): ActionResult {
+        val client = UiState.currentClientFor(sessionId) ?: return ActionResult.Failure("Client not ready for $sessionId")
+        return context.launchActionAsync(
+            "joinRoom",
+            GlobalActionsScope,
+            Dispatchers.IO,
+            "joinRoom",
+            notifyProcessing = true
+        ) {
+            client.joinRoom(roomId).toActionResult(async = true)
+        }
+    }
 }

@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Archive
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,7 +42,11 @@ import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.ScopedRoomSummary
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.EventTextFormat
+import chat.schildi.revenge.actions.InteractionAction
+import chat.schildi.revenge.actions.currentActionContext
+import chat.schildi.revenge.actions.defaultActionProvider
 import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.revenge.model.InboxViewModel
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
@@ -51,6 +56,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.getDisambigua
 import io.element.android.libraries.matrix.api.user.MatrixUser
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.action_join
 import shire.composeapp.generated.resources.message_placeholder_invite
 import shire.composeapp.generated.resources.message_placeholder_invite_by
 import shire.composeapp.generated.resources.message_placeholder_invite_by_disambiguated
@@ -59,6 +65,7 @@ import kotlin.math.max
 
 @Composable
 fun InboxRow(
+    viewModel: InboxViewModel,
     room: ScopedRoomSummary,
     hasDraft: Boolean,
     user: MatrixUser?,
@@ -71,10 +78,14 @@ fun InboxRow(
                 .heightIn(min = Dimens.Inbox.avatar + Dimens.listPadding * 2)
                 .keyFocusable(
                     FocusRole.LIST_ITEM,
-                    buildNavigationActionProvider(
-                        initialTitle = room.summary.info.name?.toStringHolder()
-                    ) {
-                        Destination.Conversation(room.sessionId, room.summary.roomId)
+                    actionProvider = if (room.summary.isInvite()) {
+                        defaultActionProvider()
+                    } else {
+                        buildNavigationActionProvider(
+                            initialTitle = room.summary.info.name?.toStringHolder()
+                        ) {
+                            Destination.Conversation(room.sessionId, room.summary.roomId)
+                        }
                     },
                 )
                 .padding(
@@ -111,7 +122,7 @@ fun InboxRow(
                     ScNameAndTimestampRow(room.summary, hasDraft)
                 }
                 Row(modifier = Modifier.fillMaxWidth()) {
-                    ScLastMessageAndIndicatorRow(room.summary)
+                    ScLastMessageAndIndicatorRow(viewModel, room)
                 }
             }
         }
@@ -170,7 +181,11 @@ private fun RowScope.ScNameAndTimestampRow(room: RoomSummary, hasDraft: Boolean)
 }
 
 @Composable
-private fun RowScope.ScLastMessageAndIndicatorRow(room: RoomSummary) {
+private fun RowScope.ScLastMessageAndIndicatorRow(
+    viewModel: InboxViewModel,
+    scopedRoom: ScopedRoomSummary,
+) {
+    val room = scopedRoom.summary
     // Last Message
     val messagePreview = if (room.isInvite()) {
         room.info.inviter?.let { inviter ->
@@ -229,6 +244,27 @@ private fun RowScope.ScLastMessageAndIndicatorRow(room: RoomSummary) {
         horizontalArrangement = Dimens.horizontalArrangement,
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        if (room.isInvite()) {
+            // TODO needs work for user feedback on click and allowing keyboard actions
+            val actionContext = currentActionContext()
+            Button(
+                modifier = Modifier.keyFocusable(
+                    actionProvider = defaultActionProvider(
+                        primaryAction = InteractionAction.Invoke {
+                            viewModel.joinRoom(actionContext, scopedRoom.sessionId, room.roomId)
+                            true
+                        },
+                    ),
+                    addMouseFocusable = false,
+                    addClickListener = false,
+                ),
+                onClick = {
+                    viewModel.joinRoom(actionContext, scopedRoom.sessionId, room.roomId)
+                },
+            ) {
+                Text(stringResource(Res.string.action_join))
+            }
+        }
         ScUnreadCounter(room)
     }
 }

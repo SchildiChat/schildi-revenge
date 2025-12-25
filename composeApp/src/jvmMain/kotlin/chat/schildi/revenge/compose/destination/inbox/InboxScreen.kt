@@ -140,6 +140,7 @@ fun InboxScreen(modifier: Modifier = Modifier) {
                                         room.summary.isOneToOne && (dmsByHeroes[room.summary.info.heroes]?.size ?: 0) > 1
                                 )
                         InboxRow(
+                            viewModel,
                             room,
                             hasDraft = room.key in drafts.value,
                             user = if (needsDisambiguation)

@@ -66,7 +66,7 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [ ] Render typing indicators
     - [x] Mechanism to select messages (for replies, edits, reactions...)
     - [x] Send replies
-    - [ ] Send reactions (just text input is enough for first run, OS may have emoji picker)
+    - [x] Send reactions (just text input is enough for first run, OS may have emoji picker)
     - [ ] Send mentions
     - [x] Send attachments
         - [x] Via file picker
@@ -74,7 +74,7 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
           windows](https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/841), sorry)
         - [x] Via copy&paste (if configured in key bindings)
     - [ ] Send typing indicators
-    - [ ] Delete messages
+    - [x] Delete messages
     - [x] Mark as read (via keyboard shortcut)
     - [ ] Mark as unread (via keyboard shortcut)
     - [ ] Kick/ban users

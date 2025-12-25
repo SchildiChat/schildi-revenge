@@ -125,6 +125,8 @@ object UiState {
         it[sessionId]
     }.stateIn(scope, SharingStarted.Eagerly, null)
 
+    fun currentClientFor(sessionId: SessionId) = matrixClients.value[sessionId]
+
     private fun clearSplashScreen(destination: Destination) {
         _windows.update { windows ->
             windows.mapNotNull { window ->
