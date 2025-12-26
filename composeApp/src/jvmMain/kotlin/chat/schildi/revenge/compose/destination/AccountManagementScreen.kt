@@ -151,6 +151,7 @@ private fun ExistingLogin(account: AccountManagementData, viewModel: AccountMana
                         value = recoveryKey,
                         onValueChange = { recoveryKey = it },
                         label = { Text(stringResource(Res.string.hint_recovery_key)) },
+                        maxLines = 1,
                         modifier = Modifier.weight(1f),
                     )
                     Button(
@@ -218,6 +219,7 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
             } else {
                 PasswordVisualTransformation()
             },
+            maxLines = 1,
             trailingIcon = {
                 IconButton(onClick = { passwordVisible.value = !passwordVisible.value }) {
                     Icon(
