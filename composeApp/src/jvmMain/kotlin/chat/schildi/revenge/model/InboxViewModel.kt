@@ -60,6 +60,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.inbox
+import shire.composeapp.generated.resources.inbox_search
 
 data class ScopedRoomSummary(
     val sessionId: SessionId,
@@ -535,8 +536,15 @@ class InboxViewModel(
         _spaceSelection.value = selection.toImmutableList()
     }
 
-    override val windowTitle: Flow<ComposableStringHolder?> = selectedSpace.map {
-        it?.name ?: StringResourceHolder(Res.string.inbox)
+    override val windowTitle: Flow<ComposableStringHolder?> = combine(
+        selectedSpace,
+        searchTerm
+    ) { space, query ->
+        if (query.isNullOrBlank()) {
+            space?.name ?: StringResourceHolder(Res.string.inbox)
+        } else {
+            StringResourceHolder(Res.string.inbox_search)
+        }
     }
 
     override fun verifyDestination(destination: Destination) = destination is Destination.Inbox

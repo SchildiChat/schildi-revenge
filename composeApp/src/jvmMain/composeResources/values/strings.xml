@@ -2,6 +2,7 @@
     <string name="app_title">SchildiChat Revenge</string>
     <string name="manage_accounts">Accounts</string>
     <string name="inbox">Inbox</string>
+    <string name="inbox_search">Inbox search</string>
 
     <string name="action_login">Login</string>
     <string name="action_verify">Verify</string>
