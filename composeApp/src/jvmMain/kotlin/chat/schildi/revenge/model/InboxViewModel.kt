@@ -243,7 +243,8 @@ class InboxViewModel(
         },
         merge = {
             it.associateBy { it.user.userId }.toPersistentHashMap()
-        }
+        },
+        onEmpty = { persistentHashMapOf() },
     )
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)

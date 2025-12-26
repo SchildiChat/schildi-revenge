@@ -7,6 +7,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 
 data class LoadedSession(
     val client: MatrixClient,
@@ -19,11 +20,16 @@ typealias CombinedSessions = StateFlow<List<LoadedSession>>
 inline fun <I, reified T, M>Flow<List<I>>.flatMerge(
     crossinline map: suspend (I) -> Flow<T>,
     crossinline onUpdatedInput: suspend (List<I>) -> Unit = ::inlinableNoOp,
+    crossinline onEmpty: () -> M,
     crossinline merge: suspend (Array<T>) -> M,
 ) = flatMapLatest {
     onUpdatedInput(it)
-    combine(it.map { graph -> map(graph) }) {
-        merge(it)
+    if (it.isEmpty()) {
+        flowOf(onEmpty())
+    } else {
+        combine(it.map { graph -> map(graph) }) {
+            merge(it)
+        }
     }
 }
 
@@ -31,12 +37,17 @@ inline fun <I, reified T, M>Flow<List<I>>.flatMerge(
 inline fun <I, reified T, M, S>Flow<List<I>>.flatMergeCombinedWith(
     crossinline map: suspend (I, S) -> Flow<T>,
     crossinline onUpdatedInput: suspend (List<I>, S) -> Unit = ::inlinableNoOp,
+    crossinline onEmpty: (S) -> M,
     crossinline merge: suspend (Array<T>, S) -> M,
     other: Flow<S>,
 ) = combine(other) { a, b -> Pair(a, b) }.flatMapLatest { (it, other) ->
     onUpdatedInput(it, other)
-    combine(it.map { graph -> map(graph, other) }) {
-        merge(it, other)
+    if (it.isEmpty()) {
+        flowOf(onEmpty(other))
+    } else {
+        combine(it.map { graph -> map(graph, other) }) {
+            merge(it, other)
+        }
     }
 }
 

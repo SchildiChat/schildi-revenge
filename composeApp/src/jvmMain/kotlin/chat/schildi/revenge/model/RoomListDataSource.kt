@@ -72,6 +72,7 @@ class RoomListDataSource(
                 comparator = settings.sortOrder.toComparator { it.summary },
             )
         },
+        onEmpty = { emptyList() },
         other = sdkSettings,
     ).flowOn(Dispatchers.IO)
 

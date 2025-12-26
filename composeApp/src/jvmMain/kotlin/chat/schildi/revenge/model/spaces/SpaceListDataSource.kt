@@ -115,6 +115,7 @@ class SpaceListDataSource(
             // No need to do sophisticated sorted merging at this time, before we built any hierarchy
             it.asIterable().flatten()
         },
+        onEmpty = { emptyList() },
     ).flowOn(Dispatchers.IO)
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -124,7 +125,8 @@ class SpaceListDataSource(
         },
         merge = {
             it.toList()
-        }
+        },
+        onEmpty = { emptyList() },
     )
 
     val allSpacesHierarchical = combine(

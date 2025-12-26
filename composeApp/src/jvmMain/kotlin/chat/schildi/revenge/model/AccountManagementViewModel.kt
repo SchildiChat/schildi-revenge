@@ -47,6 +47,7 @@ class AccountManagementViewModel(
         merge = {
             it.toPersistentList()
         },
+        onEmpty = { persistentListOf() },
     ).stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
