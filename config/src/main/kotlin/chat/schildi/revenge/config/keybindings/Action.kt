@@ -27,6 +27,7 @@ enum class ActionArgumentPrimitive : ActionArgument {
     RoomId,
     EventId,
     SettingKey,
+    SettingValue,
     NavigatableDestinationName,
     SpaceId,
     SpaceSelectionId,
@@ -43,6 +44,7 @@ private val SpaceIdSelectable =
         ActionArgumentPrimitive.SpaceIndex
     )
 private val OptionalBoolean = ActionArgumentOptional(ActionArgumentPrimitive.Boolean)
+private val OptionalSettingValue = ActionArgumentOptional(ActionArgumentPrimitive.SettingValue)
 
 private val navigationArgs = listOf(
     ActionArgumentPrimitive.NavigatableDestinationName,
@@ -66,8 +68,8 @@ sealed interface Action {
     ) : Action {
         Search,
         Command,
-        SetSetting(args = listOf(ActionArgumentPrimitive.SettingKey, ActionArgumentPrimitive.Text)),
-        ToggleSetting(args = listOf(ActionArgumentPrimitive.SettingKey)),
+        SetSetting(args = listOf(ActionArgumentPrimitive.SettingKey, OptionalSettingValue)),
+        ToggleSetting(args = listOf(ActionArgumentPrimitive.SettingKey, OptionalSettingValue, OptionalSettingValue)),
         ClearAppMessages,
         ConfirmActionAppMessage,
         Exit(aliases = listOf("quit"))

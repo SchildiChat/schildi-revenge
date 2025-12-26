@@ -28,6 +28,7 @@ sealed interface ScPref<T> : AbstractScPref {
 
     fun ensureType(value: Any?): T?
     fun parseType(value: String): T?
+    fun autoSuggestionValues(): List<String>
 }
 
 sealed interface ScPrefContainer : AbstractScPref {
@@ -66,6 +67,7 @@ data class ScPrefCategoryCollapsed(
         return value
     }
     override fun parseType(value: String): Boolean? = value.toBooleanStrictOrNull()
+    override fun autoSuggestionValues() = listOf("true", "false")
 }
 
 data class ScPrefCollection(
@@ -93,6 +95,7 @@ data class ScBoolPref(
         return value
     }
     override fun parseType(value: String): Boolean? = value.toBooleanStrictOrNull()
+    override fun autoSuggestionValues() = listOf("true", "false")
 }
 
 data class ScIntPref(
@@ -114,6 +117,7 @@ data class ScIntPref(
         return value?.coerceIn(minValue, maxValue)
     }
     override fun parseType(value: String): Int? = value.toIntOrNull()?.coerceIn(minValue, maxValue)
+    override fun autoSuggestionValues() = emptyList<String>()
 }
 
 data class ScFloatPref(
@@ -135,6 +139,7 @@ data class ScFloatPref(
         return value?.coerceIn(minValue, maxValue)
     }
     override fun parseType(value: String): Float? = value.toFloatOrNull()?.coerceIn(minValue, maxValue)
+    override fun autoSuggestionValues() = emptyList<String>()
 }
 
 sealed interface ScListPref<T>: ScPref<T> {
@@ -163,6 +168,7 @@ data class ScStringListPref(
         return value
     }
     override fun parseType(value: String): String? = value.takeIf { it in itemKeys }
+    override fun autoSuggestionValues() = itemKeys.toList()
 }
 
 data class ScColorPref(
@@ -182,6 +188,7 @@ data class ScColorPref(
         return value
     }
     override fun parseType(value: String): Int? = value.toIntOrNull()
+    override fun autoSuggestionValues() = emptyList<String>()
 
     companion object {
         // Fully transparent #000001 (less likely to be set by user then #000000)

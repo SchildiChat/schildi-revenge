@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.toIntSize
 import androidx.compose.ui.window.ApplicationScope
 import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPrefs
+import chat.schildi.preferences.findPreference
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.focus.FocusParent
@@ -84,6 +85,7 @@ import java.awt.datatransfer.DataFlavor
 import java.io.File
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.collections.orEmpty
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.sqrt
@@ -1337,6 +1339,7 @@ fun checkArgument(
     actionName: String,
     argDef: ActionArgument,
     argVal: String,
+    context: CommandArgContext,
     lookahead: List<String>,
     validSessionIds: List<String>?,
     validSettingKeys: List<String>,
@@ -1344,7 +1347,7 @@ fun checkArgument(
     return when (argDef) {
         is ActionArgumentAnyOf -> {
             if (argDef.arguments.any {
-                checkArgument(actionName, it, argVal, lookahead, validSessionIds, validSettingKeys) != null
+                checkArgument(actionName, it, argVal, context, lookahead, validSessionIds, validSettingKeys) != null
             }) {
                 null
             } else {
@@ -1354,9 +1357,30 @@ fun checkArgument(
             }
         }
         is ActionArgumentOptional -> {
-            checkArgument(actionName, argDef.argument, argVal, lookahead, validSessionIds, validSettingKeys)
+            checkArgument(actionName, argDef.argument, argVal, context, lookahead, validSessionIds, validSettingKeys)
         }
         ActionArgumentPrimitive.Text -> null
+        ActionArgumentPrimitive.SettingValue -> {
+            val settingKeys = context.findSettingKeys()
+            if (settingKeys.isEmpty()) {
+                // Ignore already broken SettingsKey
+                null
+            } else {
+                if (settingKeys.any { sKey ->
+                    val pref = ScPrefs.rootPrefs.findPreference { it.sKey == sKey }
+                        // Ignore already broken SettingsKey
+                        ?: return@any true
+                    // Check if this is a valid settings value
+                    pref.parseType(argVal) != null
+                }) {
+                    null
+                } else {
+                    ActionResult.Malformed(
+                        "Invalid parameter for $actionName, not a valid settings value for ${settingKeys.joinToString()}: $argVal"
+                    )
+                }
+            }
+        }
         ActionArgumentPrimitive.Boolean -> {
             if (argVal.toBooleanStrictOrNull() == null) {
                 ActionResult.Malformed(
@@ -1506,7 +1530,8 @@ fun checkArguments(
             if (checkIncompleteParameters) {
                 action.args.zip(args).forEachIndexed { index, (argDef, argVal) ->
                     val lookahead = args.subList(index + 1, args.size)
-                    checkArgument(action.name, argDef, argVal, lookahead, validSessionIds, validSettingKeys)?.let {
+                    val context = action.args.zip(args.subList(0, index))
+                    checkArgument(action.name, argDef, argVal, context, lookahead, validSessionIds, validSettingKeys)?.let {
                         return it
                     }
                 }
@@ -1519,7 +1544,8 @@ fun checkArguments(
     // Optional arguments only supported to leave away at the end right now
     action.args.zip(args).forEachIndexed { index, (argDef, argVal) ->
         val lookahead = args.subList(index + 1, args.size)
-        checkArgument(action.name, argDef, argVal, lookahead, validSessionIds, validSettingKeys)?.let {
+        val context = action.args.zip(args.subList(0, index))
+        checkArgument(action.name, argDef, argVal, context, lookahead, validSessionIds, validSettingKeys)?.let {
             return it
         }
     }

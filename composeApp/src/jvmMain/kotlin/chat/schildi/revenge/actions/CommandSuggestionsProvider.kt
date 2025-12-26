@@ -1,6 +1,8 @@
 package chat.schildi.revenge.actions
 
+import chat.schildi.preferences.ScPref
 import chat.schildi.preferences.ScPrefs
+import chat.schildi.preferences.findPreference
 import chat.schildi.preferences.forEachPreference
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.config.keybindings.ActionArgument
@@ -175,6 +177,17 @@ class CommandSuggestionsProvider(
         ActionArgumentPrimitive.SettingKey -> prefKeySuggestions
         ActionArgumentPrimitive.NavigatableDestinationName -> SUGGESTED_DESTINATION_STRINGS
         ActionArgumentPrimitive.Text,
+        ActionArgumentPrimitive.SettingValue -> {
+            val settingKeys = context.findSettingKeys()
+            if (settingKeys.isEmpty()) {
+                emptyList()
+            } else {
+                settingKeys.flatMap { sKey ->
+                    val pref = ScPrefs.rootPrefs.findPreference { it.sKey == sKey }
+                    pref?.autoSuggestionValues().orEmpty()
+                }
+            }
+        }
         ActionArgumentPrimitive.Integer,
         ActionArgumentPrimitive.SessionIndex,
         ActionArgumentPrimitive.EventId,
@@ -215,7 +228,10 @@ class CommandSuggestionsProvider(
     fun List<String>.filterValidSuggestionsFor(prefix: String) = filterValidSuggestionsFor(prefix) { it }
 }
 
-
 fun CommandArgContext.findSessionIds() = mapNotNull { (ctxArgDef, ctxArgVal) ->
     ctxArgVal.takeIf { ctxArgDef.canHold(ActionArgumentPrimitive.SessionId) }
+}
+
+fun CommandArgContext.findSettingKeys() = mapNotNull { (ctxArgDef, ctxArgVal) ->
+    ctxArgVal.takeIf { ctxArgDef.canHold(ActionArgumentPrimitive.SettingKey) }
 }

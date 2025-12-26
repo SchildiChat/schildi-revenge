@@ -10,7 +10,6 @@ import androidx.datastore.preferences.core.edit
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.actions.publishError
-import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.RevengeDatastoreStorage
@@ -155,7 +154,9 @@ class DefaultScPreferencesStore() : ScPreferencesStore {
     }
 
     override suspend fun handleSetAction(context: ActionContext?, args: List<String>): Boolean {
-        if (args.size != 2) {
+        if (args.size == 1) {
+            return restoreSettingDefault(context, args.first())
+        } else if (args.size != 2) {
             context.publishError(log, MESSAGE_ID, "Invalid parameter size for SetSetting action, expected 2 got ${args.size}")
             return false
         }
@@ -166,6 +167,15 @@ class DefaultScPreferencesStore() : ScPreferencesStore {
             return false
         }
         return handleSetActionTypesafe(context, pref, value)
+    }
+
+    suspend fun restoreSettingDefault(context: ActionContext?, sKey: String): Boolean {
+        val pref = ScPrefs.rootPrefs.findPreference { it.sKey == sKey }
+        if (pref == null) {
+            context.publishError(log, MESSAGE_ID, "Did not find preference for SetSetting action with key \"$sKey\"")
+            return false
+        }
+        return handleSetActionTypesafe(context, pref, pref.defaultValue.toString())
     }
 
     private suspend fun <T>handleSetActionTypesafe(context: ActionContext?, pref: ScPref<T>, value: String): Boolean {
@@ -186,23 +196,32 @@ class DefaultScPreferencesStore() : ScPreferencesStore {
     }
 
     override suspend fun handleToggleAction(context: ActionContext?, args: List<String>): Boolean {
-        if (args.size != 1) {
-            context.publishError(log, MESSAGE_ID, "Invalid parameter size for ToggleSetting action, expected 1 got ${args.size}")
+        if (args.isEmpty()) {
+            context.publishError(log, MESSAGE_ID, "Invalid parameter size for ToggleSetting action, expected at least one")
             return false
         }
-        val (sKey) = args
+        val sKey = args.first()
         val pref = ScPrefs.rootPrefs.findPreference { it.sKey == sKey }
         if (pref == null) {
             context.publishError(log, MESSAGE_ID, "Did not find preference for ToggleSetting action with key \"$sKey\"")
             return false
         }
-        if (pref !is ScBoolPref) {
-            context.publishError(log, MESSAGE_ID, "Tried action ToggleSetting for unsupported preference \"$sKey\"")
+        val toggleValues = args.subList(1, args.size).takeIf { it.isNotEmpty() } ?: when (pref) {
+            is ScBoolPref -> listOf("true", "false")
+            else -> {
+                context.publishError(log, MESSAGE_ID, "Tried action ToggleSetting for non-boolean preference \"$sKey\" without providing toggle values")
+                return false
+            }
+        }
+        val currentValue = getSetting(pref).toString()
+        val nextValueIndex = (toggleValues.indexOf(currentValue) + 1) % toggleValues.size
+        val toggledValueString = toggleValues[nextValueIndex]
+        val toggledValue = pref.parseType(toggledValueString) ?: run {
+            context.publishError(log, MESSAGE_ID, "Invalid value for \"$sKey\": $toggledValueString")
             return false
         }
-        val toggledValue = !getSetting(pref)
         log.d("Toggling setting \"$sKey\" to $toggledValue")
-        setSetting(pref, toggledValue)
+        setSettingTypesafe(pref, toggledValue)
         context?.publishMessage(
             AppMessage(
                 message = StringResourceHolder(Res.string.command_setting_set_to, pref.titleRes.toStringHolder(), toggledValue.toString().toStringHolder()),
