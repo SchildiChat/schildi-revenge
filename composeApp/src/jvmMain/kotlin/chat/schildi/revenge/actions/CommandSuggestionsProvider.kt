@@ -223,7 +223,7 @@ class CommandSuggestionsProvider(
     }
 
     fun <T>List<T>.filterValidSuggestionsFor(prefix: String, select: (T) -> String) = filter {
-        select(it).startsWith(prefix)
+        select(it).lowercase().startsWith(prefix.lowercase())
     }
     fun List<String>.filterValidSuggestionsFor(prefix: String) = filterValidSuggestionsFor(prefix) { it }
 }
