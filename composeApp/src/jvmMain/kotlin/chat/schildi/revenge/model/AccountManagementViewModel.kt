@@ -57,18 +57,20 @@ class AccountManagementViewModel(
     suspend fun setHomeserver(homeserver: String) =
         authService.setHomeserver(homeserver)
             .onSuccess { log.d { "Set homeserver to $homeserver" } }
-            .onFailure { log.w { "Failed to set homeserver to $homeserver" } }
+            .onFailure { log.w("Failed to set homeserver to $homeserver", it) }
 
     suspend fun login(username: String, password: String): Result<SessionId> =
         authService.login(username, password)
             .onSuccess { log.i { "Logged in to $username" } }
-            .onFailure { log.w { "Failed to log in to $username" } }
+            .onFailure { log.w("Failed to log in to $username", it) }
 
     suspend fun verify(session: SessionData, recoveryKey: String): Result<Unit> {
         return sessionCache.getOrRestore(SessionId(session.userId))
             .getOrElse { return Result.failure(it) }
             .encryptionService
             .recover(recoveryKey)
+            .onSuccess { log.i { "Verified ${session.userId}" } }
+            .onFailure { log.w("Failed to verify ${session.userId}", it) }
     }
 
     suspend fun logout(session: SessionData): Result<Unit> {
