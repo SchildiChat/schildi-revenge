@@ -19,9 +19,12 @@ data class ActionArgumentAnyOf(val arguments: List<ActionArgumentPrimitive>) : A
 
 enum class ActionArgumentPrimitive : ActionArgument {
     Text,
+    Reason,
     Boolean,
     Integer,
-    Mxid,
+    UserId,
+    UserIdInRoom,
+    UserIdNotInRoom,
     SessionId,
     SessionIndex,
     RoomId,
@@ -45,6 +48,7 @@ private val SpaceIdSelectable =
     )
 private val OptionalBoolean = ActionArgumentOptional(ActionArgumentPrimitive.Boolean)
 private val OptionalSettingValue = ActionArgumentOptional(ActionArgumentPrimitive.SettingValue)
+private val OptionalReason = ActionArgumentOptional(ActionArgumentPrimitive.Reason)
 
 private val navigationArgs = listOf(
     ActionArgumentPrimitive.NavigatableDestinationName,
@@ -153,6 +157,10 @@ sealed interface Action {
         MarkUnread,
         MarkRead,
         MarkReadPrivate,
+        KickUser(aliases = listOf("kick"), args = listOf(ActionArgumentPrimitive.UserIdInRoom, OptionalReason)),
+        InviteUser(aliases = listOf("invite"), args = listOf(ActionArgumentPrimitive.UserIdNotInRoom)),
+        BanUser(aliases = listOf("ban"), args = listOf(ActionArgumentPrimitive.UserIdInRoom, OptionalReason)),
+        UnbanUser(aliases = listOf("unban"), args = listOf(ActionArgumentPrimitive.UserIdNotInRoom, OptionalReason)),
     }
     enum class Event(
         override val aliases: kotlin.collections.List<String> = emptyList(),

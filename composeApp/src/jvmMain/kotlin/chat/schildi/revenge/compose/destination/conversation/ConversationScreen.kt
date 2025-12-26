@@ -47,6 +47,7 @@ import chat.schildi.revenge.actions.ListAction
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
+import chat.schildi.revenge.actions.LocalUserIdSuggestionsProvider
 import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.components.thenIf
@@ -171,6 +172,7 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
         FocusContainer(
             //LocalSearchProvider provides viewModel, // TODO CV search
             LocalKeyboardActionProvider provides viewModel.hierarchicalKeyboardActionProvider(),
+            LocalUserIdSuggestionsProvider provides viewModel,
             LocalListActionProvider provides listAction,
             role = FocusRole.DESTINATION_ROOT_CONTAINER,
         ) {

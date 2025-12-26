@@ -50,11 +50,11 @@ private val BOOLEAN_SUGGESTIONS = listOf("true", "false")
 
 typealias CommandArgContext = List<Pair<ActionArgument, String>>
 
-// TODO hook me into KeyboardActionHandler to get async suggestions or sth.
 class CommandSuggestionsProvider(
     queryFlow: Flow<KeyboardActionMode.Command?>,
     val commandParser: CommandParser,
     private val scope: CoroutineScope,
+    private val userIdSuggestionsProvider: UserIdSuggestionsProvider?,
     private val roomListDataSource: RoomListDataSource = RevengeRoomListDataSource,
 ) {
     private val log = Logger.withTag("CmdSuggestions")
@@ -97,6 +97,9 @@ class CommandSuggestionsProvider(
             }
         }
     }
+
+    private val userIdInRoomSuggestions = userIdSuggestionsProvider?.userIdInRoomSuggestions
+        ?.stateIn(scope, SharingStarted.Eagerly, null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val suggestionState = queryFlow.mapLatest { mode ->
@@ -193,7 +196,9 @@ class CommandSuggestionsProvider(
         is ActionArgumentPrimitive -> {
             when (arg) {
                 ActionArgumentPrimitive.Boolean -> BOOLEAN_SUGGESTIONS.toSuggestionsWithoutHint()
-                ActionArgumentPrimitive.Mxid -> emptyList() // TODO suggestion provider for rooms and global
+                ActionArgumentPrimitive.UserId,
+                ActionArgumentPrimitive.UserIdInRoom -> userIdInRoomSuggestions?.value ?: emptyList()
+                ActionArgumentPrimitive.UserIdNotInRoom -> emptyList() // TODO?
                 ActionArgumentPrimitive.SessionId -> accounts.value
                 ActionArgumentPrimitive.RoomId -> {
                     val sessionIds = context.findSessionIds()
@@ -212,7 +217,6 @@ class CommandSuggestionsProvider(
                 ActionArgumentPrimitive.SettingKey -> prefKeySuggestions
                 ActionArgumentPrimitive.NavigatableDestinationName ->
                     SUGGESTED_DESTINATION_STRINGS.toSuggestionsWithoutHint()
-                ActionArgumentPrimitive.Text,
                 ActionArgumentPrimitive.SettingValue -> {
                     val settingKeys = context.findSettingKeys()
                     if (settingKeys.isEmpty()) {
@@ -224,6 +228,8 @@ class CommandSuggestionsProvider(
                         }
                     }
                 }
+                ActionArgumentPrimitive.Text,
+                ActionArgumentPrimitive.Reason,
                 ActionArgumentPrimitive.Integer,
                 ActionArgumentPrimitive.SessionIndex,
                 ActionArgumentPrimitive.EventId,

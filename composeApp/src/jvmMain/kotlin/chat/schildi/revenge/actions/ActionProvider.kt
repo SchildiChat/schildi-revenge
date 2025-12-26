@@ -14,6 +14,7 @@ data class ActionProvider(
     val tertiaryAction: InteractionAction? = null,
     val listActions: ListAction? = null,
     val keyActions: KeyboardActionProvider<*>? = null,
+    val userIdSuggestionsProvider: UserIdSuggestionsProvider? = null,
 )
 
 @Composable
@@ -24,6 +25,7 @@ fun defaultActionProvider(
     tertiaryAction: InteractionAction? = null,
     listActions: ListAction? = LocalListActionProvider.current,
     keyActions: KeyboardActionProvider<*>? = LocalKeyboardActionProvider.current,
+    userIdSuggestionsProvider: UserIdSuggestionsProvider? = LocalUserIdSuggestionsProvider.current,
 ): ActionProvider {
     return ActionProvider(
         searchProvider = searchProvider,
@@ -32,6 +34,7 @@ fun defaultActionProvider(
         tertiaryAction = tertiaryAction,
         listActions = listActions,
         keyActions = keyActions,
+        userIdSuggestionsProvider = userIdSuggestionsProvider,
     )
 }
 
@@ -42,6 +45,7 @@ fun buildNavigationActionProvider(
     searchProvider: SearchProvider? = LocalSearchProvider.current,
     listActions: ListAction? = LocalListActionProvider.current,
     keyActions: KeyboardActionProvider<*>? = LocalKeyboardActionProvider.current,
+    userIdSuggestionsProvider: UserIdSuggestionsProvider? = LocalUserIdSuggestionsProvider.current,
     buildDestination: () -> Destination,
 ): ActionProvider {
     return ActionProvider(
@@ -56,5 +60,6 @@ fun buildNavigationActionProvider(
         ),
         listActions = listActions,
         keyActions = keyActions,
+        userIdSuggestionsProvider = userIdSuggestionsProvider,
     )
 }

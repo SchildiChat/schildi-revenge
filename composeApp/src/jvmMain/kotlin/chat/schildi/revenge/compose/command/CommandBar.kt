@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.actions.CurrentCommandValidity
 import chat.schildi.revenge.actions.FocusRole
+import chat.schildi.revenge.actions.KeyboardActionMode
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.theme.scExposures
@@ -27,7 +28,10 @@ import shire.composeapp.generated.resources.hint_command
 @Composable
 fun CommandBar(modifier: Modifier = Modifier) {
     val handler = LocalKeyboardActionHandler.current
-    val (state, suggestionsState) = handler.commandSuggestionsState.collectAsState().value ?: return
+    // Following state from handler directly rather than joined with suggestions state allows more immediate
+    // typing when suggestions are slow
+    val state = handler.mode.collectAsState().value as? KeyboardActionMode.Command ?: return
+    val suggestionsState = state.suggestionsProvider.suggestionState.collectAsState().value
     Column(modifier) {
         if (suggestionsState != null) {
             CommandSuggestions(

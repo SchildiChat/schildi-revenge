@@ -19,12 +19,15 @@ import chat.schildi.revenge.GlobalActionsScope
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.AppMessage
+import chat.schildi.revenge.actions.CommandSuggestion
 import chat.schildi.revenge.actions.ConfirmActionAppMessage
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.KeyboardActionProvider
+import chat.schildi.revenge.actions.UserIdSuggestionsProvider
 import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.actions.launchActionAsync
 import chat.schildi.revenge.actions.orActionInapplicable
+import chat.schildi.revenge.actions.orActionValidationError
 import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.UrlUtil
@@ -43,10 +46,12 @@ import io.element.android.features.messages.impl.timeline.TimelineController
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.media.AudioInfo
 import io.element.android.libraries.matrix.api.media.FileInfo
 import io.element.android.libraries.matrix.api.media.ImageInfo
 import io.element.android.libraries.matrix.api.media.VideoInfo
+import io.element.android.libraries.matrix.api.room.powerlevels.canKick
 import io.element.android.libraries.matrix.api.room.roomMembers
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
@@ -133,7 +138,7 @@ class ConversationViewModel(
     private val roomId: RoomId,
     private val appGraph: AppGraph = UiState.appGraph,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
-) : ViewModel(), TitleProvider, KeyboardActionProvider<Action.Conversation>, ComposerViewModel {
+) : ViewModel(), TitleProvider, UserIdSuggestionsProvider, KeyboardActionProvider<Action.Conversation>, ComposerViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
 
     private val clientFlow = UiState.selectClient(sessionId, viewModelScope)
@@ -221,6 +226,12 @@ class ConversationViewModel(
     val roomMembersById = roomMembers.map {
         it.associateBy { it.userId }.toPersistentHashMap()
     }.stateIn(viewModelScope, SharingStarted.Lazily, persistentHashMapOf())
+
+    override val userIdInRoomSuggestions: Flow<List<CommandSuggestion>> = roomMembers.map {
+        it.map {
+            CommandSuggestion(it.userId.value, it.displayName?.toStringHolder())
+        }
+    }
 
     private val draftKey = DraftKey(sessionId, roomId)
     override val composerState = DraftRepo.followDraft(draftKey).map {
@@ -638,6 +649,64 @@ class ConversationViewModel(
                     timeline.markAsRead(ReceiptType.READ_PRIVATE)
                     timeline.markAsRead(ReceiptType.FULLY_READ)
                     ActionResult.Success()
+                }
+            }
+
+            Action.Conversation.KickUser -> {
+                val room = roomPair.value.second ?: return@run ActionResult.Failure("Room not ready")
+                val userId = UserId(args.firstOrNull().orActionValidationError())
+                val reason = if (args.size > 1) {
+                    args.subList(1, args.size).joinToString().takeIf(String::isNotBlank)
+                } else {
+                    null
+                }
+                launchActionAsync(
+                    "kickUser",
+                    GlobalActionsScope,
+                    Dispatchers.IO
+                ) {
+                    room.kickUser(userId, reason).toActionResult(async = true)
+                }
+            }
+
+            Action.Conversation.InviteUser -> {
+                val room = roomPair.value.second ?: return@run ActionResult.Failure("Room not ready")
+                val userId = UserId(args.firstOrNull().orActionValidationError())
+                launchActionAsync(
+                    "inviteUser",
+                    GlobalActionsScope,
+                    Dispatchers.IO
+                ) {
+                    room.inviteUserById(userId).toActionResult(async = true)
+                }
+            }
+
+            Action.Conversation.BanUser -> {
+                val room = roomPair.value.second ?: return@run ActionResult.Failure("Room not ready")
+                val userId = UserId(args.firstOrNull().orActionValidationError())
+                launchActionAsync(
+                    "inviteUser",
+                    GlobalActionsScope,
+                    Dispatchers.IO
+                ) {
+                    room.banUser(userId).toActionResult(async = true)
+                }
+            }
+
+            Action.Conversation.UnbanUser -> {
+                val room = roomPair.value.second ?: return@run ActionResult.Failure("Room not ready")
+                val userId = UserId(args.firstOrNull().orActionValidationError())
+                val reason = if (args.size > 1) {
+                    args.subList(1, args.size).joinToString().takeIf(String::isNotBlank)
+                } else {
+                    null
+                }
+                launchActionAsync(
+                    "inviteUser",
+                    GlobalActionsScope,
+                    Dispatchers.IO
+                ) {
+                    room.unbanUser(userId, reason).toActionResult(async = true)
                 }
             }
         }

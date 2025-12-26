@@ -238,7 +238,7 @@ class KeyboardActionHandler(
         (mode as? KeyboardActionMode.Command)?.suggestionsProvider?.suggestionState?.map {
             Pair(mode, it)
         } ?: flowOf(null)
-    }.stateIn(scope, SharingStarted.Lazily, null)
+    }.stateIn(scope, SharingStarted.Eagerly, null)
 
     private val focusableTargets = ConcurrentHashMap<UUID, FocusTarget>()
 
@@ -555,8 +555,8 @@ class KeyboardActionHandler(
             }
             KeyMapped.Tab -> {
                 val (commandMode, suggestionsState) = commandSuggestionsState.value ?: run {
-                    log.e("Tried handling command mode key while not in command mode")
-                    return false
+                    log.e("Tried handling command mode key while not ready via suggestions state")
+                    return true
                 }
                 if (suggestionsState?.currentSuggestions.isNullOrEmpty()) {
                     return true
@@ -1204,18 +1204,16 @@ class KeyboardActionHandler(
             if (mode is KeyboardActionMode.Command) {
                 mode.copy(query = query)
             } else {
-                val focused = currentFocus.value
+                val focusTarget = currentFocus.value?.let { focusableTargets[it] }
+                    ?: focusableTargets.values.find { it.role == FocusRole.DESTINATION_ROOT_CONTAINER }
                 KeyboardActionMode.Command(
                     query = query,
-                    focused = focused,
+                    focused = focusTarget?.id,
                     suggestionsProvider = CommandSuggestionsProvider(
                         queryFlow = _mode.map { it as? KeyboardActionMode.Command },
                         scope = scope.childScope(Dispatchers.IO, "commandSuggestions"),
-                        commandParser = CommandParser(
-                            getCurrentKeyActionHandlers(
-                                focused?.let { focusableTargets[it] }
-                            ),
-                        ),
+                        commandParser = CommandParser(getCurrentKeyActionHandlers(focusTarget)),
+                        userIdSuggestionsProvider = focusTarget?.actions?.userIdSuggestionsProvider,
                     ),
                     selectedSuggestion = null,
                 )
@@ -1409,6 +1407,7 @@ fun checkArgument(
         is ActionArgumentOptional -> {
             checkArgument(actionName, argDef.argument, argVal, context, lookahead, validSessionIds, validSettingKeys)
         }
+        ActionArgumentPrimitive.Reason,
         ActionArgumentPrimitive.Text -> null
         ActionArgumentPrimitive.SettingValue -> {
             val settingKeys = context.findSettingKeys()
@@ -1464,7 +1463,9 @@ fun checkArgument(
             }
         }
         ActionArgumentPrimitive.SessionId,
-        ActionArgumentPrimitive.Mxid -> {
+        ActionArgumentPrimitive.UserIdInRoom,
+        ActionArgumentPrimitive.UserIdNotInRoom,
+        ActionArgumentPrimitive.UserId -> {
             if (validSessionIds != null && argDef == ActionArgumentPrimitive.SessionId) {
                 if (!validSessionIds.contains(argVal)) {
                     ActionResult.Malformed(
