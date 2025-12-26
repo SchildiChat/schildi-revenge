@@ -1,6 +1,5 @@
 package chat.schildi.revenge.actions
 
-import chat.schildi.preferences.ScPref
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.findPreference
 import chat.schildi.preferences.forEachPreference
@@ -155,77 +154,92 @@ class CommandSuggestionsProvider(
     private fun suggestPrimaryFor(
         arg: ActionArgument,
         context: CommandArgContext,
-        prefix: String,
-    ): List<String> = when(arg) {
-        ActionArgumentPrimitive.Boolean -> BOOLEAN_SUGGESTIONS
-        ActionArgumentPrimitive.Mxid -> emptyList() // TODO suggestion provider for rooms and global
-        ActionArgumentPrimitive.SessionId -> UiState.currentValidSessionIds.value ?: emptyList()
-        ActionArgumentPrimitive.RoomId -> {
-            val sessionIds = context.findSessionIds()
-            if (sessionIds.isEmpty()) {
-                scopedRoomSuggestions.value.map { it.second.value }.distinct()
-            } else {
-                scopedRoomSuggestions.value.mapNotNull {
-                    if (it.first.value in sessionIds) {
-                        it.second.value
+        query: String,
+    ): List<String> = when (arg) {
+        is ActionArgumentPrimitive -> {
+            when (arg) {
+                ActionArgumentPrimitive.Boolean -> BOOLEAN_SUGGESTIONS
+                ActionArgumentPrimitive.Mxid -> emptyList() // TODO suggestion provider for rooms and global
+                ActionArgumentPrimitive.SessionId -> UiState.currentValidSessionIds.value ?: emptyList()
+                ActionArgumentPrimitive.RoomId -> {
+                    val sessionIds = context.findSessionIds()
+                    if (sessionIds.isEmpty()) {
+                        scopedRoomSuggestions.value.map { it.second.value }.distinct()
                     } else {
-                        null
+                        scopedRoomSuggestions.value.mapNotNull {
+                            if (it.first.value in sessionIds) {
+                                it.second.value
+                            } else {
+                                null
+                            }
+                        }
                     }
                 }
-            }
-        }
-        ActionArgumentPrimitive.SettingKey -> prefKeySuggestions
-        ActionArgumentPrimitive.NavigatableDestinationName -> SUGGESTED_DESTINATION_STRINGS
-        ActionArgumentPrimitive.Text,
-        ActionArgumentPrimitive.SettingValue -> {
-            val settingKeys = context.findSettingKeys()
-            if (settingKeys.isEmpty()) {
-                emptyList()
-            } else {
-                settingKeys.flatMap { sKey ->
-                    val pref = ScPrefs.rootPrefs.findPreference { it.sKey == sKey }
-                    pref?.autoSuggestionValues().orEmpty()
+                ActionArgumentPrimitive.SettingKey -> prefKeySuggestions
+                ActionArgumentPrimitive.NavigatableDestinationName -> SUGGESTED_DESTINATION_STRINGS
+                ActionArgumentPrimitive.Text,
+                ActionArgumentPrimitive.SettingValue -> {
+                    val settingKeys = context.findSettingKeys()
+                    if (settingKeys.isEmpty()) {
+                        emptyList()
+                    } else {
+                        settingKeys.flatMap { sKey ->
+                            val pref = ScPrefs.rootPrefs.findPreference { it.sKey == sKey }
+                            pref?.autoSuggestionValues().orEmpty()
+                        }
+                    }
                 }
-            }
+                ActionArgumentPrimitive.Integer,
+                ActionArgumentPrimitive.SessionIndex,
+                ActionArgumentPrimitive.EventId,
+                ActionArgumentPrimitive.SpaceId,
+                ActionArgumentPrimitive.SpaceSelectionId,
+                ActionArgumentPrimitive.SpaceIndex -> emptyList()
+            }.filterValidSuggestionsFor(query, arg).distinct()
         }
-        ActionArgumentPrimitive.Integer,
-        ActionArgumentPrimitive.SessionIndex,
-        ActionArgumentPrimitive.EventId,
-        ActionArgumentPrimitive.SpaceId,
-        ActionArgumentPrimitive.SpaceSelectionId,
-        ActionArgumentPrimitive.SpaceIndex -> emptyList()
-        is ActionArgumentAnyOf -> arg.arguments.flatMap { suggestFor(it, context, prefix) }
-        is ActionArgumentOptional -> suggestFor(arg.argument, context, prefix)
-    }.filterValidSuggestionsFor(prefix).distinct()
+        is ActionArgumentAnyOf -> arg.arguments.flatMap { suggestPrimaryFor(it, context, query) }
+        is ActionArgumentOptional -> suggestPrimaryFor(arg.argument, context, query)
+    }
 
     // If we have less preferred but still valid suggestions
     private fun suggestSecondaryFor(
         arg: ActionArgument,
         context: CommandArgContext,
-        prefix: String,
-    ): List<String> = when(arg) {
-        ActionArgumentPrimitive.NavigatableDestinationName -> ALLOWED_DESTINATION_STRINGS
-        ActionArgumentPrimitive.RoomId -> {
-            val sessionIds = context.findSessionIds()
-            if (sessionIds.isEmpty()) {
-                // Already suggested everything as primary suggestion
-                emptyList()
-            } else {
-                // Now we didn't find the room ID for this session, but we can still search for the others
-                scopedRoomSuggestions.value.map { it.second.value }
-            }
+        query: String,
+    ): List<String> = when (arg) {
+        is ActionArgumentPrimitive -> {
+            when (arg) {
+                ActionArgumentPrimitive.NavigatableDestinationName -> ALLOWED_DESTINATION_STRINGS
+                ActionArgumentPrimitive.RoomId -> {
+                    val sessionIds = context.findSessionIds()
+                    if (sessionIds.isEmpty()) {
+                        // Already suggested everything as primary suggestion
+                        emptyList()
+                    } else {
+                        // Now we didn't find the room ID for this session, but we can still search for the others
+                        scopedRoomSuggestions.value.map { it.second.value }
+                    }
+                }
+                else -> emptyList()
+            }.filterValidSuggestionsFor(query, arg).distinct()
         }
-        else -> emptyList()
-    }.filterValidSuggestionsFor(prefix).distinct()
+        is ActionArgumentAnyOf -> arg.arguments.flatMap { suggestSecondaryFor(it, context, query) }
+        is ActionArgumentOptional -> suggestSecondaryFor(arg.argument, context, query)
+    }
 
     fun clear() {
         scope.cancel("Canceled on clear request")
     }
 
-    fun <T>List<T>.filterValidSuggestionsFor(prefix: String, select: (T) -> String) = filter {
-        select(it).lowercase().startsWith(prefix.lowercase())
+    fun <T>List<T>.filterValidSuggestionsFor(query: String, arg: ActionArgumentPrimitive? = null, select: (T) -> String) = filter {
+        // Sometimes we want to suggest even things that don't "start with"
+        when (arg) {
+            ActionArgumentPrimitive.SettingKey -> select(it).lowercase().contains(query)
+            else -> select(it).lowercase().startsWith(query.lowercase())
+        }
     }
-    fun List<String>.filterValidSuggestionsFor(prefix: String) = filterValidSuggestionsFor(prefix) { it }
+    fun List<String>.filterValidSuggestionsFor(query: String, arg: ActionArgumentPrimitive?) =
+        filterValidSuggestionsFor(query, arg) { it }
 }
 
 fun CommandArgContext.findSessionIds() = mapNotNull { (ctxArgDef, ctxArgVal) ->
