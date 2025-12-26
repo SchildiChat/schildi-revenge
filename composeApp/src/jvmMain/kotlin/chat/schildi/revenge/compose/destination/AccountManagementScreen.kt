@@ -68,20 +68,20 @@ fun AccountManagementScreen(modifier: Modifier = Modifier) {
     ) {
         LazyColumn(
             Modifier.widthIn(max = ScPrefs.MAX_WIDTH_SETTINGS.value().dp).padding(vertical = Dimens.windowPadding),
-            verticalArrangement = Dimens.verticalArrangement
+            verticalArrangement = Dimens.verticalArrangement,
         ) {
             if (accounts.isNotEmpty()) {
-                item {
+                item(key = "manage") {
                     SectionHeader(stringResource(Res.string.manage_accounts))
                 }
-                items(accounts) { account ->
+                items(accounts, key = { it.session.userId }) { account ->
                     ExistingLogin(account, viewModel)
                 }
             }
-            item {
+            item(key = "new_header") {
                 SectionHeader(stringResource(Res.string.title_login_account))
             }
-            item {
+            item(key = "new") {
                 NewLogin(viewModel)
             }
         }
