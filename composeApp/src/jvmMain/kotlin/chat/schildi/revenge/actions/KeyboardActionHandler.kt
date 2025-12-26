@@ -23,6 +23,7 @@ import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.UriHandler
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.toIntSize
 import androidx.compose.ui.window.ApplicationScope
@@ -51,16 +52,16 @@ import chat.schildi.revenge.config.keybindings.KeyMapped
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.config.keybindings.KeybindingConfig
 import chat.schildi.revenge.config.keybindings.handlesCommand
+import chat.schildi.revenge.config.keybindings.minArgsSize
 import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.REAL_SPACE_ID_PREFIX
-import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
-import io.element.android.libraries.matrix.api.core.RoomId
-import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.core.coroutine.childScope
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -78,7 +79,6 @@ import shire.composeapp.generated.resources.command_ambiguous_none_valid
 import shire.composeapp.generated.resources.command_copied_to_clipboard
 import shire.composeapp.generated.resources.command_not_applicable
 import shire.composeapp.generated.resources.command_not_found
-import shire.composeapp.generated.resources.common_internal_error
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.io.File
@@ -129,6 +129,7 @@ sealed interface KeyboardActionMode {
         val query: TextFieldValue,
         // Fix the item we want to action on
         val focused: UUID?,
+        val suggestionsProvider: CommandSuggestionsProvider,
     ) : KeyboardActionMode
 }
 
@@ -469,6 +470,11 @@ class KeyboardActionHandler(
             val oldSearchProvider = (old as? KeyboardActionMode.Search)?.searchProvider
             if (oldSearchProvider != null && oldSearchProvider != (new as? KeyboardActionMode.Search)?.searchProvider) {
                 oldSearchProvider.onSearchCleared()
+            }
+            val oldCommandSuggestionsProvider = (old as? KeyboardActionMode.Command)?.suggestionsProvider
+            val newCommandSuggestionsProvider = (new as? KeyboardActionMode.Command)?.suggestionsProvider
+            if (oldCommandSuggestionsProvider != newCommandSuggestionsProvider) {
+                oldCommandSuggestionsProvider?.clear()
             }
             new
         }
@@ -916,11 +922,13 @@ class KeyboardActionHandler(
                     (mode as? KeyboardActionMode.Search)?.copy(navigating = true) ?: mode
                 }
             }
+            /*
             FocusRole.COMMAND_BAR -> {
                 updateMode { mode ->
                     mode.takeIf { it !is KeyboardActionMode.Command } ?: KeyboardActionMode.Navigation
                 }
             }
+             */
             else -> {}
         }
     }
@@ -1017,104 +1025,118 @@ class KeyboardActionHandler(
 
     fun updateCommandInput(query: TextFieldValue) = handleCommandInput(query) {}
 
-    fun onCommandEnter() {
-        val commandMode = (mode.value as? KeyboardActionMode.Command)
-        val command = commandMode?.query?.text?.takeIf(String::isNotBlank)
-        val commandParsed = command?.trim()?.split(Regex("\\s+"))
-        val mainCommand = commandParsed?.firstOrNull()
-        if (mainCommand == null) {
-            log.i("Ignoring empty command")
+    fun selectCommandSuggestion(state: KeyboardActionMode.Command, suggestion: String) {
+        val (cmd, args) = state.suggestionsProvider.commandParser.parseCommandString(state.query.text)
+            ?: run {
+                log.e("Failed to run autocompletion for query ${state.query.text}")
+                return
+            }
+        val newQuery = if (args.isEmpty() && !state.query.text.endsWith(" ")) {
+            suggestion
         } else {
-            val focused = commandMode.focused?.let {
-                focusableTargets[it]
-            } ?: focusableTargets.values.find { it.role == FocusRole.DESTINATION_ROOT_CONTAINER }
-            val commandHandlers = getCurrentKeyActionHandlers(focused)
-            val possibleActions = commandHandlers.flatMap { handler ->
-                handler.getPossibleActions().mapNotNull {
-                    if (it.handlesCommand(mainCommand)) {
-                        it to handler
-                    } else {
-                        null
-                    }
-                }
+            val stableArgs = if (state.query.text.endsWith(" ") || args.isEmpty()) {
+                args
+            } else {
+                args.subList(0, args.size - 1)
             }
-            val args = commandParsed.subList(1, commandParsed.size)
-            val possibleUniqueActions = possibleActions.map {
-                it.first
-            }.distinct()
-            val possibleUniqueActionsWithArgsChecked = possibleUniqueActions.map {
-                it to checkArguments(it, args)
-            }
-            val possibleUniqueActionsWithValidArgs = possibleUniqueActionsWithArgsChecked.mapNotNull { (action, error) ->
-                action.takeIf { error == null }
-            }
-            when (possibleUniqueActionsWithValidArgs.size) {
-                0 -> {
-                    val message = when (possibleUniqueActionsWithArgsChecked.size) {
-                        0 -> StringResourceHolder(Res.string.command_not_found, mainCommand.toStringHolder())
-                        1 -> possibleUniqueActionsWithArgsChecked.first().second!!.message.toStringHolder()
-                        else -> StringResourceHolder(Res.string.command_ambiguous_none_valid, mainCommand.toStringHolder())
-                    }
-                    publishMessage(
-                        AppMessage(
-                            message,
-                            isError = true,
-                            uniqueId = COMMAND_MESSAGE_ID,
-                        )
-                    )
-                }
-                1 -> {
-                    val action = possibleUniqueActionsWithValidArgs.first()
-                    val context = getInternalActionContext(focused, keybindingConfig = null)
-                    val result = try {
-                        ActionResult.chain(
-                            *possibleActions.filter { it.first == action }.map {{
-                                it.second.handleActionOrInapplicable(context, it.first, args)
-                            }}.toTypedArray()
-                        )
-                    } catch (e: ActionValidationException) {
-                        ActionResult.Failure(e.message ?: "Action validation failed")
-                    }
-                    when (result) {
-                        is ActionResult.Failure -> publishMessage(
-                            AppMessage(
-                                result.message.toStringHolder(),
-                                isError = true,
-                                uniqueId = COMMAND_MESSAGE_ID,
-                            )
-                        )
-                        is ActionResult.Success -> {}
-                        ActionResult.NoMatch,
-                        ActionResult.Inapplicable -> publishMessage(
-                            AppMessage(
-                                StringResourceHolder(Res.string.command_not_applicable, mainCommand.toStringHolder()),
-                                isError = true,
-                                uniqueId = COMMAND_MESSAGE_ID,
-                            )
-                        )
-                        is ActionResult.Malformed -> publishMessage(
-                            AppMessage(
-                                result.message.toStringHolder(),
-                                isError = true,
-                                uniqueId = COMMAND_MESSAGE_ID,
-                            )
-                        )
-                    }
-                }
-                else -> {
-                    log.e("Found ambiguous actions for $mainCommand: ${possibleUniqueActionsWithValidArgs.joinToString { it.name }}")
-                    publishMessage(
-                        AppMessage(
-                            StringResourceHolder(Res.string.command_ambiguous, mainCommand.toStringHolder()),
-                            isError = true,
-                            uniqueId = COMMAND_MESSAGE_ID,
-                        )
-                    )
-                }
-            }
+            val newArgs = stableArgs + suggestion
+            "$cmd ${newArgs.joinToString(separator = " ", postfix = " ")}"
         }
-        _mode.update {
+        updateMode {
+            state.copy(query = TextFieldValue(newQuery, selection = TextRange(newQuery.length)))
+        }
+    }
+
+    fun onCommandEnter() {
+        val commandMode = (mode.value as? KeyboardActionMode.Command) ?: return
+        executeCommand(commandMode)
+        updateMode {
             it.takeIf { it !is KeyboardActionMode.Command } ?: KeyboardActionMode.Navigation
+        }
+    }
+
+    private fun executeCommand(commandMode: KeyboardActionMode.Command) {
+        val focused = commandMode.focused?.let {
+            focusableTargets[it]
+        } ?: focusableTargets.values.find { it.role == FocusRole.DESTINATION_ROOT_CONTAINER }
+        val commandParser = CommandParser(getCurrentKeyActionHandlers(focused))
+        val (mainCommand, args) = commandParser.parseCommandString(commandMode.query.text) ?: run {
+            log.i("Ignoring empty command")
+            return
+        }
+        val possibleActions = commandParser.getPossibleActions(mainCommand)
+        val possibleUniqueActions = possibleActions.map {
+            it.first
+        }.distinct()
+        val possibleUniqueActionsWithArgsChecked = possibleUniqueActions.map {
+            it to checkArguments(it, args)
+        }
+        val possibleUniqueActionsWithValidArgs = possibleUniqueActionsWithArgsChecked.mapNotNull { (action, error) ->
+            action.takeIf { error == null }
+        }
+        when (possibleUniqueActionsWithValidArgs.size) {
+            0 -> {
+                val message = when (possibleUniqueActionsWithArgsChecked.size) {
+                    0 -> StringResourceHolder(Res.string.command_not_found, mainCommand.toStringHolder())
+                    1 -> possibleUniqueActionsWithArgsChecked.first().second!!.message.toStringHolder()
+                    else -> StringResourceHolder(Res.string.command_ambiguous_none_valid, mainCommand.toStringHolder())
+                }
+                publishMessage(
+                    AppMessage(
+                        message,
+                        isError = true,
+                        uniqueId = COMMAND_MESSAGE_ID,
+                    )
+                )
+            }
+            1 -> {
+                val action = possibleUniqueActionsWithValidArgs.first()
+                val context = getInternalActionContext(focused, keybindingConfig = null)
+                val result = try {
+                    ActionResult.chain(
+                        *possibleActions.filter { it.first == action }.map {{
+                            it.second.handleActionOrInapplicable(context, it.first, args)
+                        }}.toTypedArray()
+                    )
+                } catch (e: ActionValidationException) {
+                    ActionResult.Failure(e.message ?: "Action validation failed")
+                }
+                when (result) {
+                    is ActionResult.Failure -> publishMessage(
+                        AppMessage(
+                            result.message.toStringHolder(),
+                            isError = true,
+                            uniqueId = COMMAND_MESSAGE_ID,
+                        )
+                    )
+                    is ActionResult.Success -> {}
+                    ActionResult.NoMatch,
+                    ActionResult.Inapplicable -> publishMessage(
+                        AppMessage(
+                            StringResourceHolder(Res.string.command_not_applicable, mainCommand.toStringHolder()),
+                            isError = true,
+                            uniqueId = COMMAND_MESSAGE_ID,
+                        )
+                    )
+                    is ActionResult.InvalidCommand -> publishMessage(
+                        AppMessage(
+                            result.message.toStringHolder(),
+                            isError = true,
+                            uniqueId = COMMAND_MESSAGE_ID,
+                        )
+                    )
+                }
+            }
+            else -> {
+                log.e("Found ambiguous actions for $mainCommand: ${possibleUniqueActionsWithValidArgs.joinToString { it.name }}")
+                publishMessage(
+                    AppMessage(
+                        StringResourceHolder(Res.string.command_ambiguous, mainCommand.toStringHolder()),
+                        isError = true,
+                        uniqueId = COMMAND_MESSAGE_ID,
+                    )
+                )
+            }
         }
     }
 
@@ -1127,9 +1149,19 @@ class KeyboardActionHandler(
             if (mode is KeyboardActionMode.Command) {
                 mode.copy(query = query)
             } else {
+                val focused = currentFocus.value
                 KeyboardActionMode.Command(
                     query = query,
-                    focused = currentFocus.value,
+                    focused = focused,
+                    suggestionsProvider = CommandSuggestionsProvider(
+                        queryFlow = _mode.map { it as? KeyboardActionMode.Command },
+                        scope = scope.childScope(Dispatchers.IO, "commandSuggestions"),
+                        commandParser = CommandParser(
+                            getCurrentKeyActionHandlers(
+                                focused?.let { focusableTargets[it] }
+                            ),
+                        ),
+                    ),
                 )
             }.also {
                 success = it
@@ -1200,6 +1232,9 @@ sealed interface ActionResult {
     fun withChainSetting(chain: Boolean): ActionResult = this
 
     sealed interface Actioned : ActionResult
+    sealed interface InvalidCommand : ActionResult {
+        val message: String
+    }
 
     data class Success(
         // True after launching a coroutine that may still fail, causing the action to be considered "failed" eventually later
@@ -1212,7 +1247,13 @@ sealed interface ActionResult {
     data class Failure(val message: String, override val shouldExit: Boolean = true) : ActionResult, Actioned {
         override fun withChainSetting(chain: Boolean) = copy(shouldExit = !chain)
     }
-    data class Malformed(val message: String, override val shouldExit: Boolean = true) : ActionResult {
+    data class Malformed(override val message: String, override val shouldExit: Boolean = true) : ActionResult, InvalidCommand {
+        override fun withChainSetting(chain: Boolean) = copy(shouldExit = !chain)
+    }
+    data class MissingParameters(override val message: String, override val shouldExit: Boolean = true) : ActionResult, InvalidCommand {
+        override fun withChainSetting(chain: Boolean) = copy(shouldExit = !chain)
+    }
+    data class TooManyParameters(override val message: String, override val shouldExit: Boolean = true) : ActionResult, InvalidCommand {
         override fun withChainSetting(chain: Boolean) = copy(shouldExit = !chain)
     }
     data object Inapplicable : ActionResult {
@@ -1290,7 +1331,7 @@ fun checkArgument(
     lookahead: List<String>,
     validSessionIds: List<String>?,
     validSettingKeys: List<String>,
-): ActionResult.Malformed? {
+): ActionResult.InvalidCommand? {
     return when (argDef) {
         is ActionArgumentAnyOf -> {
             if (argDef.arguments.any {
@@ -1390,9 +1431,15 @@ fun checkArgument(
         }
         ActionArgumentPrimitive.NavigatableDestinationName -> {
             if (argVal.toDestinationOrNull(lookahead) == null) {
-                ActionResult.Malformed(
-                    "Invalid parameter for $actionName, not a valid destination: $argVal with args [${lookahead.joinToString()}]"
-                )
+                if (argVal in ALLOWED_DESTINATION_STRINGS) {
+                    ActionResult.MissingParameters(
+                        "Invalid parameter for $actionName, not a valid destination: $argVal with args [${lookahead.joinToString()}]"
+                    )
+                } else {
+                    ActionResult.Malformed(
+                        "Invalid parameter for $actionName, not a valid destination: $argVal"
+                    )
+                }
             } else {
                 null
             }
@@ -1420,11 +1467,13 @@ fun checkArgument(
 }
 
 fun <A : Action>Binding<A>.checkArguments(
+    checkIncompleteParameters: Boolean = false,
     validSessionIds: List<String>? = UiState.currentValidSessionIds.value,
     validSettingKeys: List<String> = ScPrefs.validSettingKeys,
 ) = checkArguments(
     action,
     args,
+    checkIncompleteParameters,
     validSessionIds,
     validSettingKeys,
 )
@@ -1432,19 +1481,31 @@ fun <A : Action>Binding<A>.checkArguments(
 fun checkArguments(
     action: Action,
     args: List<String>,
+    checkIncompleteParameters: Boolean = false,
     validSessionIds: List<String>? = UiState.currentValidSessionIds.value,
     validSettingKeys: List<String> = ScPrefs.validSettingKeys,
-): ActionResult.Malformed? {
+): ActionResult.InvalidCommand? {
     val actionName = action.name
-    val minArgSize = action.args.count { it !is ActionArgumentOptional }
+    val minArgSize = action.minArgsSize()
     if (args.size !in minArgSize..action.args.size) {
-        return ActionResult.Malformed(
-            if (minArgSize != args.size) {
-                "Invalid parameter size for $actionName, expected $minArgSize-${action.args.size} got ${args.size}"
-            } else {
-                "Invalid parameter size for $actionName, expected ${action.args.size} got ${args.size}"
+        val message = if (minArgSize != args.size) {
+            "Invalid parameter size for $actionName, expected between $minArgSize and ${action.args.size}, got ${args.size}"
+        } else {
+            "Invalid parameter size for $actionName, expected ${action.args.size} got ${args.size}"
+        }
+        return if (args.size < minArgSize) {
+            if (checkIncompleteParameters) {
+                action.args.zip(args).forEachIndexed { index, (argDef, argVal) ->
+                    val lookahead = args.subList(index + 1, args.size)
+                    checkArgument(action.name, argDef, argVal, lookahead, validSessionIds, validSettingKeys)?.let {
+                        return it
+                    }
+                }
             }
-        )
+            ActionResult.MissingParameters(message)
+        } else {
+            ActionResult.TooManyParameters(message)
+        }
     }
     // Optional arguments only supported to leave away at the end right now
     action.args.zip(args).forEachIndexed { index, (argDef, argVal) ->
@@ -1522,17 +1583,6 @@ fun ActionContext.launchActionAsync(
     return ActionResult.Success(async = true)
 }
 
-private fun String.toDestinationOrNull(args: List<String>) = when (lowercase()) {
-    "inbox" -> Destination.Inbox
-    "accountmanagement",
-    "accounts" -> Destination.AccountManagement
-    "chat",
-    "conversation",
-    "room" -> if (args.size == 2) tryOrNull {
-        Destination.Conversation(SessionId(args[0]), RoomId(args[1]))
-    } else null
-    else -> null
-}
 
 @Composable
 fun currentActionContext(): ActionContext {

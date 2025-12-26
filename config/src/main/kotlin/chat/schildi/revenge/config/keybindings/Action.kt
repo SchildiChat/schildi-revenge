@@ -2,16 +2,19 @@ package chat.schildi.revenge.config.keybindings
 
 sealed interface ActionArgument {
     val name: String
+    fun canHold(primitive: ActionArgumentPrimitive): Boolean
 }
 
 data class ActionArgumentOptional(val argument: ActionArgument) : ActionArgument {
     override val name: String
         get() = "[$argument]"
+    override fun canHold(primitive: ActionArgumentPrimitive) = argument == primitive
 }
 data class ActionArgumentAnyOf(val arguments: List<ActionArgumentPrimitive>) : ActionArgument {
     constructor(vararg arguments: ActionArgumentPrimitive) : this(arguments.toList())
     override val name: String
         get() = "any of: ${arguments.joinToString { it.name }}"
+    override fun canHold(primitive: ActionArgumentPrimitive) = arguments.contains(primitive)
 }
 
 enum class ActionArgumentPrimitive : ActionArgument {
@@ -27,7 +30,8 @@ enum class ActionArgumentPrimitive : ActionArgument {
     NavigatableDestinationName,
     SpaceId,
     SpaceSelectionId,
-    SpaceIndex,
+    SpaceIndex;
+    override fun canHold(primitive: ActionArgumentPrimitive) = primitive == this
 }
 
 private val SessionIdOrIndex =
@@ -49,6 +53,8 @@ private val navigationArgs = listOf(
 fun Action.handlesCommand(command: String): Boolean {
     return command == name || command == name.lowercase() || command in aliases
 }
+
+fun Action.minArgsSize() = args.count { it !is ActionArgumentOptional }
 
 sealed interface Action {
     val name: String
