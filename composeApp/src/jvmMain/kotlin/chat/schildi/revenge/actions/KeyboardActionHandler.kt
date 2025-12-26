@@ -1211,9 +1211,14 @@ class KeyboardActionHandler(
     }
 
     fun openLinkInExternalBrowser(uri: String): ActionResult {
-        val localUriHandler = uriHandler ?: return ActionResult.Failure("No uri handler found")
-        localUriHandler.openUri(uri)
-        return ActionResult.Success()
+        return try {
+            val localUriHandler = uriHandler ?: return ActionResult.Failure("No uri handler found")
+            localUriHandler.openUri(uri)
+            ActionResult.Success()
+        } catch (e: Exception) {
+            log.w("Failed to open URL in external browser", e)
+            return ActionResult.Failure(e.message ?: e.toString())
+        }
     }
 }
 
