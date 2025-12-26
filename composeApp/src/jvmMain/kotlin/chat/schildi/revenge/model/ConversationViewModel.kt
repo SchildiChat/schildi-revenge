@@ -253,6 +253,14 @@ class ConversationViewModel(
             GlobalActionsScope,
             Dispatchers.IO
         ) {
+            // In case user hasn't read the timeline yet, avoid stuck unread bugs caused by bugs
+            // with implicit read receipts and local echos.
+            // Shouldn't really matter if it's a private or public RR since we're about to send a message anyway,
+            // but since this should only do anything at all if we didn't send a RR before, defaulting to private
+            // should be more meaningful in case later actions fail.
+            currentTimeline.markAsRead(ReceiptType.READ_PRIVATE)
+                .onFailure { log.e("Forwarding the RR on message send failed", it) }
+                .onSuccess { log.d("Advanced the RR on message send") }
             val result = when (draft.type) {
                 DraftType.TEXT -> {
                     if (draft.inReplyTo != null) {
