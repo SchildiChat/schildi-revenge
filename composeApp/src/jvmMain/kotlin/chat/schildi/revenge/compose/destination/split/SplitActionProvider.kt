@@ -32,7 +32,7 @@ class SplitKeyboardActionProvider(
         args: List<String>
     ): ActionResult {
         return when (action) {
-            Action.Split.Close -> {
+            Action.Split.Unsplit -> {
                 val currentDestination = destinationStateHolder?.state?.value?.destination
                 val newDestination = (currentDestination as? Destination.Split)?.let {
                     // Close the *current* destination -> navigate to the *other* destination

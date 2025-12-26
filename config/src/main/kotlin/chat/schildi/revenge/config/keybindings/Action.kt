@@ -115,7 +115,7 @@ sealed interface Action {
         override val aliases: kotlin.collections.List<String> = emptyList(),
         override val args: kotlin.collections.List<ActionArgument> = emptyList()
     ) : Action {
-        Close,
+        Unsplit,
     }
     enum class Inbox(
         override val aliases: kotlin.collections.List<String> = emptyList(),
