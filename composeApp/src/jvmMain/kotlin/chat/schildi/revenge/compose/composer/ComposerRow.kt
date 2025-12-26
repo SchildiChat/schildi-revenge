@@ -48,11 +48,12 @@ import shire.composeapp.generated.resources.hint_composer_video
 
 // TODO
 //  formatted messages: markdown toggle + rendered preview
-//  intentional mentions: requires auto-completion suggestions etc.
 @Composable
 fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
     val draftState = viewModel.composerState.collectAsState().value
+    val suggestionsState = viewModel.composerSuggestions.collectAsState().value
     Column(modifier) {
+        ComposerSuggestions(suggestionsState, viewModel::onConfirmSuggestion)
         if (draftState.inReplyTo != null) {
             Row(Modifier.padding(horizontal = Dimens.windowPadding), verticalAlignment = Alignment.CenterVertically) {
                 ReplyContent(draftState.inReplyTo, Modifier.weight(1f))

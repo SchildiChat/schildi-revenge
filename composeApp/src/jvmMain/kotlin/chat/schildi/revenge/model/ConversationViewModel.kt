@@ -1,6 +1,8 @@
 package chat.schildi.revenge.model
 
 import android.net.Uri
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
@@ -23,6 +25,7 @@ import chat.schildi.revenge.actions.CommandSuggestion
 import chat.schildi.revenge.actions.ConfirmActionAppMessage
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.KeyboardActionProvider
+import chat.schildi.revenge.actions.UserIdSuggestion
 import chat.schildi.revenge.actions.UserIdSuggestionsProvider
 import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.actions.launchActionAsync
@@ -51,7 +54,7 @@ import io.element.android.libraries.matrix.api.media.AudioInfo
 import io.element.android.libraries.matrix.api.media.FileInfo
 import io.element.android.libraries.matrix.api.media.ImageInfo
 import io.element.android.libraries.matrix.api.media.VideoInfo
-import io.element.android.libraries.matrix.api.room.powerlevels.canKick
+import io.element.android.libraries.matrix.api.room.IntentionalMention
 import io.element.android.libraries.matrix.api.room.roomMembers
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
@@ -77,6 +80,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
@@ -227,9 +231,9 @@ class ConversationViewModel(
         it.associateBy { it.userId }.toPersistentHashMap()
     }.stateIn(viewModelScope, SharingStarted.Lazily, persistentHashMapOf())
 
-    override val userIdInRoomSuggestions: Flow<List<CommandSuggestion>> = roomMembers.map {
+    override val userIdInRoomSuggestions: Flow<List<UserIdSuggestion>> = roomMembers.map {
         it.map {
-            CommandSuggestion(it.userId.value, it.displayName?.toStringHolder())
+            UserIdSuggestion(it.userId, it.displayName)
         }
     }
 
@@ -237,6 +241,15 @@ class ConversationViewModel(
     override val composerState = DraftRepo.followDraft(draftKey).map {
         it ?: DraftValue()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, DraftValue())
+
+    private val composerSuggestionsProvider = ComposerSuggestionsProvider(
+        queryFlow = composerState.map { it.textFieldValue },
+        userIdSuggestionsProvider = this,
+        canPingRoomFlow = flowOf(true), // TODO check room ping permission
+    )
+    override val composerSuggestions: StateFlow<ComposerSuggestionsState> =
+        composerSuggestionsProvider.suggestionsState
+            .stateIn(viewModelScope, SharingStarted.Eagerly, ComposerSuggestionsState())
 
     private val forceShowComposer = MutableStateFlow(false)
     val shouldShowComposer = combine(composerState, forceShowComposer) { state, force ->
@@ -269,9 +282,11 @@ class ConversationViewModel(
             // Shouldn't really matter if it's a private or public RR since we're about to send a message anyway,
             // but since this should only do anything at all if we didn't send a RR before, defaulting to private
             // should be more meaningful in case later actions fail.
+            /* TODO this is delaying my sends, better fix properly
             currentTimeline.markAsRead(ReceiptType.READ_PRIVATE)
                 .onFailure { log.e("Forwarding the RR on message send failed", it) }
                 .onSuccess { log.d("Advanced the RR on message send") }
+             */
             val result = when (draft.type) {
                 DraftType.TEXT -> {
                     if (draft.inReplyTo != null) {
@@ -337,7 +352,7 @@ class ConversationViewModel(
                 }
                 DraftType.ATTACHMENT -> {
                     val caption = draft.body.takeIf { it.isNotBlank() }
-                    val formattedCaption = null // TODO?
+                    val formattedCaption = draft.htmlBody
                     when (val attachment = draft.attachment) {
                         is Attachment.Audio -> {
                             currentTimeline.sendAudio(
@@ -421,6 +436,40 @@ class ConversationViewModel(
         ) {
             loadAttachmentFileIntoComposer(file)
         } is ActionResult.Success
+    }
+
+    override fun onConfirmSuggestion(suggestion: ComposerSuggestion): Boolean {
+        val draft = composerState.value
+        val completionEntity = draft.textFieldValue.getCurrentCompletionEntity() ?: run {
+            log.e { "Cannot confirm autosuggestion, mismatch with current composer state" }
+            return false
+        }
+        val intentionalMention = when (suggestion) {
+            is ComposerUserMentionSuggestion -> IntentionalMention.User(suggestion.userId)
+            is ComposerRoomMentionSuggestion -> IntentionalMention.Room
+        }
+        val oldText = draft.textFieldValue.text
+        val newText = buildString {
+            append(oldText.take(completionEntity.start))
+            append(suggestion.value)
+            append(" ")
+            append(oldText.substring(completionEntity.end))
+        }
+        val suggestionInsertEndIndex = completionEntity.start + suggestion.value.length
+        val newDraftMention = DraftMention(
+            start = completionEntity.start,
+            end = suggestionInsertEndIndex,
+            mention = intentionalMention,
+        )
+        val newDraft = draft.copy(
+            textFieldValue = TextFieldValue(
+                text = newText,
+                selection = TextRange(suggestionInsertEndIndex + 1),
+            ),
+            mentions = (draft.mentions + newDraftMention).toImmutableList(),
+        )
+        DraftRepo.update(draftKey, newDraft)
+        return true
     }
 
     val userProfile = clientFlow.flatMapLatest { it?.userProfile ?: flowOf(null) }
@@ -587,6 +636,15 @@ class ConversationViewModel(
 
             Action.Conversation.ComposerAddAttachment -> launchAttachmentPicker(this)
 
+            Action.Conversation.ComposerSuggestionFocusNext -> cycleComposerSuggestions(1)
+
+            Action.Conversation.ComposerSuggestionFocusPrevious -> cycleComposerSuggestions(-1)
+
+            Action.Conversation.ComposerSuggestionApplySelected -> {
+                val suggestion = composerSuggestions.value.selectedSuggestion ?: return@run ActionResult.Inapplicable
+                onConfirmSuggestion(suggestion).orActionInapplicable()
+            }
+
             Action.Conversation.JumpToOwnReadReceipt -> jumpToMessage(
                 action.name,
                 StringResourceHolder(Res.string.command_event_name_own_read_receipt),
@@ -710,6 +768,23 @@ class ConversationViewModel(
                 }
             }
         }
+    }
+
+    private fun cycleComposerSuggestions(direction: Int): ActionResult {
+        val state = composerSuggestions.value
+        if (state.suggestions.isEmpty()) {
+            return ActionResult.Inapplicable
+        }
+        val currentSuggestionIndex = if (state.selectedSuggestion == null) {
+            -1
+        } else {
+            state.suggestions.indexOf(state.selectedSuggestion)
+        }
+        // + 1 allows clearing selection again on cycle completed
+        val nextIndex = (currentSuggestionIndex + direction).mod(state.suggestions.size + 1)
+        val nextSuggestion = state.suggestions.getOrNull(nextIndex)
+        composerSuggestionsProvider.currentSelection.value = nextSuggestion
+        return ActionResult.Success()
     }
 
     override fun launchAttachmentPicker(context: ActionContext) = context.launchActionAsync(

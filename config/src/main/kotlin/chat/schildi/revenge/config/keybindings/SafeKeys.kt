@@ -16,6 +16,7 @@ val AllowedTextFieldBindingKeys = listOf(
     Key.F10,
     Key.F11,
     Key.F12,
+    Key.Tab,
 )
 
 val AllowedComposerTextFieldBindingKeys = listOf(

@@ -1,8 +1,11 @@
 global = [
     { key = "Slash", action = "Search" },
+    { key = "Semicolon", action = "Command" },
+    { key = "Semicolon", shift = true, action = "Command" },
     { key = "T", shift = true, action = "SetSetting", args = ["THEME_FOLLOW_SYSTEM", "false"], chain = true },
     { key = "T", shift = true, action = "ToggleSetting", args = ["THEME_DARK"] },
     { key = "T", ctrl = true, action = "SetSetting", args = ["THEME_FOLLOW_SYSTEM", "true"] },
+    { key = "S", ctrl = true, shift = true, action = "ToggleSetting", args = ["RENDER_SCALE", "1.8", "1.0"] },
     { key = "R", ctrl = true, action = "ToggleSetting", args = ["RENDER_SILENT_UNREAD"], destinations = ["Inbox"] },
     { key = "U", ctrl = true, action = "ToggleSetting", args = ["SORT_BY_UNREAD"], destinations = ["Inbox"] },
     { key = "L", ctrl = true, action = "ToggleSetting", args = ["BURY_LOW_PRIORITY"], destinations = ["Inbox"] },
@@ -48,11 +51,14 @@ conversation = [
     { key = "E", ctrl = true, shift = true, action = "ComposeEmote" },
     { key = "M", ctrl = true, shift = true, action = "MarkRead", chain = true },
     { key = "M", ctrl = true, action = "MarkRead" },
+    { key = "Enter", action = "ComposerSuggestionApplySelected" },
     { key = "Enter", action = "ComposerSend" },
     { key = "Enter", ctrl = true, action = "ComposerSend" },
     { key = "Enter", shift = true, action = "ComposerInsertAtCursor", args = ["\n"] },
     { key = "Escape", action = "HideComposerIfEmpty" },
     { key = "Escape", ctrl = true, action = "ClearComposer" },
+    { key = "Tab", action = "ComposerSuggestionFocusNext" },
+    { key = "Tab", shift = true, action = "ComposerSuggestionFocusPrevious" },
     { key = "T", ctrl = true, action = "ComposerInsertAtCursor", args = ["🤔"] },
     { key = "J", ctrl = true, action = "ComposerInsertAtCursor", args = ["😂"] },
     { key = "R", ctrl = true, action = "ComposerInsertAtCursor", args = ["🤣"] },
@@ -84,8 +90,6 @@ navigation = [
     { key = "I", shift = true, ctrl = true, action = "NavigateInNewWindow", args = ["inbox"] },
     { key = "A", shift = true, action = "NavigateCurrent", args = ["accounts"] },
     { key = "A", shift = true, ctrl = true, action = "NavigateInNewWindow", args = ["accounts"] },
-    { key = "S", shift = true, action = "SplitHorizontal" },
-    { key = "V", shift = true, action = "SplitVertical" },
     { key = "Q", shift = true, action = "CloseWindow" },
     { key = "Q", action = "CloseWindow", destinations = ["Conversation"] },
     { key = "M", ctrl = true, shift = true, action = "CloseWindow", destinations = ["Conversation"] },
@@ -116,5 +120,5 @@ list = [
     { key = "G", shift = true, action = "ScrollToBottom" },
 ]
 split = [
-    { key = "Q", ctrl = true, action = "Close" },
+    { key = "Q", ctrl = true, action = "Unsplit" },
 ]

@@ -14,6 +14,7 @@ coil = "3.3.0"
 kdroidfilterPlatformtools = "0.7.4"
 kdroidfilterComposeNativeTray = "1.0.4"
 ktoml = "0.7.1"
+ktor = "3.3.3"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -40,6 +41,8 @@ kdroidfilter_platformtools_core = { group = "io.github.kdroidfilter", name = "pl
 kdroidfilter_platformtools_darkmodedetector = { group = "io.github.kdroidfilter", name = "platformtools.darkmodedetector", version.ref = "kdroidfilterPlatformtools" }
 kdroidfilter_composenativetray = { group = "io.github.kdroidfilter", name = "composenativetray", version.ref = "kdroidfilterComposeNativeTray" }
 kodein-emojiKt = { group = "org.kodein.emoji", name = "emoji-kt", version = "2.3.0" }
+ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+jsoup = "org.jsoup:jsoup:1.21.2"
 
 [plugins]
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }

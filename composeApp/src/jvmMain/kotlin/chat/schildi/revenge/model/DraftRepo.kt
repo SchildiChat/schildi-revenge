@@ -1,6 +1,10 @@
 package chat.schildi.revenge.model
 
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
+import chat.schildi.theme.ScColors
+import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.media.AudioInfo
 import io.element.android.libraries.matrix.api.media.FileInfo
 import io.element.android.libraries.matrix.api.media.ImageInfo
@@ -12,6 +16,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -52,10 +57,19 @@ sealed interface Attachment {
     ) : VisualAttachment
 }
 
+data class DraftMention(
+    val start: Int,
+    val end: Int,
+    val mention: IntentionalMention,
+) {
+    val range: IntRange
+        get() = IntRange(start, end-1)
+}
+
 data class DraftValue(
     val type: DraftType = DraftType.TEXT,
     val textFieldValue: TextFieldValue = TextFieldValue(""),
-    val intentionalMentions: ImmutableList<IntentionalMention> = persistentListOf(),
+    val mentions: ImmutableList<DraftMention> = persistentListOf(),
     val inReplyTo: InReplyTo.Ready? = null,
     val editEventId: EventOrTransactionId? = null, // Only for DraftType.EDIT and DraftType.EDIT_CAPTION
     val isSendInProgress: Boolean = false,
@@ -65,7 +79,8 @@ data class DraftValue(
     val body: String
         get() = textFieldValue.text
     val htmlBody: String?
-        get() = null // TODO?
+        get() = ComposerHtmlGenerator.generateFormattedHtmlBody(body, mentions)
+    val intentionalMentions = mentions.map { it.mention }
 
     fun isEmpty() = attachment?.takeIf { type == DraftType.ATTACHMENT } == null &&
             (textFieldValue.text.isBlank() || textFieldValue.text == initialBody)
@@ -84,7 +99,7 @@ object DraftRepo {
 
     fun update(draftKey: DraftKey, draftValue: DraftValue) {
         drafts.update {
-            (it + (draftKey to draftValue)).toPersistentMap()
+            (it + (draftKey to maintainAnnotations(draftValue, it[draftKey]))).toPersistentMap()
         }
     }
 
@@ -94,8 +109,61 @@ object DraftRepo {
             if (value == null) {
                 it - draftKey
             } else {
-                it + (draftKey to value)
+                it + (draftKey to maintainAnnotations(value, it[draftKey]))
             }.toPersistentMap()
+        }
+    }
+
+    private fun maintainAnnotations(newValue: DraftValue, oldValue: DraftValue?): DraftValue {
+        val newText = newValue.textFieldValue.text
+        val mentionsToRemove = mutableSetOf<DraftMention>()
+        val mentionsToAdd = mutableListOf<DraftMention>()
+        oldValue?.mentions?.forEach { mention ->
+            if (!newValue.mentions.contains(mention)) {
+                // Was already dropped anyway
+                return@forEach
+            }
+            val mentionText = oldValue.textFieldValue.text.substring(mention.range)
+            val mentionTextCheck = if (mention.end <= newText.length)
+                newText.substring(mention.range)
+            else
+                null
+            if (mentionText == mentionTextCheck) {
+                // Still applicable
+                return@forEach
+            } else {
+                mentionsToRemove.add(mention)
+                // Check if text was just moved?
+                val newIndex = newText.indexOf(mentionText)
+                if (newIndex >= 0) {
+                    val newMention = mention.copy(start = newIndex, end = newIndex + mentionText.length)
+                    // Avoid duplicates
+                    if (newMention !in newValue.mentions) {
+                        mentionsToAdd.add(newMention)
+                    }
+                }
+            }
+        }
+        return if (mentionsToAdd.isEmpty() && mentionsToRemove.isEmpty() && newValue.mentions.isEmpty()) {
+            newValue
+        } else {
+            val mentions = (newValue.mentions - mentionsToRemove + mentionsToAdd).toImmutableList()
+            newValue.copy(
+                mentions = mentions,
+                textFieldValue = newValue.textFieldValue.copy(
+                    annotatedString = buildAnnotatedString {
+                        append(newText)
+                        mentions.forEach { mention ->
+                            addStyle(
+                                // TODO get color from theme
+                                SpanStyle(color = ScColors.colorAccentGreen),
+                                start = mention.start,
+                                end = mention.end,
+                            )
+                        }
+                    }
+                )
+            )
         }
     }
 

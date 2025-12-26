@@ -67,7 +67,7 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [x] Mechanism to select messages (for replies, edits, reactions...)
     - [x] Send replies
     - [x] Send reactions (just text input is enough for first run, OS may have emoji picker)
-    - [ ] Send mentions
+    - [x] Send mentions
     - [x] Send attachments
         - [x] Via file picker
         - [x] Via drag&drop ([broken from some wayland

@@ -200,7 +200,9 @@ class CommandSuggestionsProvider(
             when (arg) {
                 ActionArgumentPrimitive.Boolean -> BOOLEAN_SUGGESTIONS.toSuggestionsWithoutHint()
                 ActionArgumentPrimitive.UserId,
-                ActionArgumentPrimitive.UserIdInRoom -> userIdInRoomSuggestions?.value ?: emptyList()
+                ActionArgumentPrimitive.UserIdInRoom -> userIdInRoomSuggestions?.value?.map {
+                    it.toCommandSuggestion()
+                } ?: emptyList()
                 ActionArgumentPrimitive.UserIdNotInRoom -> emptyList() // TODO?
                 ActionArgumentPrimitive.SessionId -> accounts.value
                 ActionArgumentPrimitive.RoomId -> {
