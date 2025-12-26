@@ -17,7 +17,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.actions.CurrentCommandValidity
 import chat.schildi.revenge.actions.FocusRole
-import chat.schildi.revenge.actions.KeyboardActionMode
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.theme.scExposures
@@ -28,14 +27,14 @@ import shire.composeapp.generated.resources.hint_command
 @Composable
 fun CommandBar(modifier: Modifier = Modifier) {
     val handler = LocalKeyboardActionHandler.current
-    val state = handler.mode.collectAsState().value as? KeyboardActionMode.Command ?: return
-    val suggestionsState = state.suggestionsProvider.suggestionState.collectAsState().value
+    val (state, suggestionsState) = handler.commandSuggestionsState.collectAsState().value ?: return
     Column(modifier) {
         if (suggestionsState != null) {
             CommandSuggestions(
                 suggestionsState = suggestionsState,
+                currentSelection = state.selectedSuggestion,
                 onSuggestionClick = { suggestion ->
-                    handler.selectCommandSuggestion(state, suggestion)
+                    handler.applyCommandSuggestion(state, suggestion)
                 },
                 modifier = Modifier.heightIn(max = 200.dp)
             )

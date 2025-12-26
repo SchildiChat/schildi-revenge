@@ -52,7 +52,6 @@ import chat.schildi.revenge.config.keybindings.Binding
 import chat.schildi.revenge.config.keybindings.KeyMapped
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.config.keybindings.KeybindingConfig
-import chat.schildi.revenge.config.keybindings.handlesCommand
 import chat.schildi.revenge.config.keybindings.minArgsSize
 import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.REAL_SPACE_ID_PREFIX
@@ -63,10 +62,13 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -85,7 +87,6 @@ import java.awt.datatransfer.DataFlavor
 import java.io.File
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
-import kotlin.collections.orEmpty
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.sqrt
@@ -132,6 +133,7 @@ sealed interface KeyboardActionMode {
         // Fix the item we want to action on
         val focused: UUID?,
         val suggestionsProvider: CommandSuggestionsProvider,
+        val selectedSuggestion: String?,
     ) : KeyboardActionMode
 }
 
@@ -230,6 +232,13 @@ class KeyboardActionHandler(
     val searchQuery = mode.map {
         (it as? KeyboardActionMode.Search)?.query ?: ""
     }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val commandSuggestionsState = mode.flatMapLatest { mode ->
+        (mode as? KeyboardActionMode.Command)?.suggestionsProvider?.suggestionState?.map {
+            Pair(mode, it)
+        } ?: flowOf(null)
+    }.stateIn(scope, SharingStarted.Lazily, null)
 
     private val focusableTargets = ConcurrentHashMap<UUID, FocusTarget>()
 
@@ -452,7 +461,7 @@ class KeyboardActionHandler(
                         result is ActionResult.Actioned
                     }
                     is KeyboardActionMode.Search -> handleSearchEvent(trigger, focused, mode)
-                    is KeyboardActionMode.Command -> handleCommandEvent(trigger)
+                    is KeyboardActionMode.Command -> handleCommandEvent(trigger, focused)
                 }
                 if (consumed) {
                     pendingKeyTriggersInAction[trigger] = Unit
@@ -517,18 +526,55 @@ class KeyboardActionHandler(
 
     private fun handleCommandEvent(
         key: KeyTrigger,
+        focused: FocusTarget?,
     ): Boolean {
+        if (focused?.role != FocusRole.COMMAND_BAR) {
+            focusByRole(FocusRole.COMMAND_BAR)
+        }
         return when (key.rawKey) {
             KeyMapped.Escape -> {
                 updateMode { KeyboardActionMode.Navigation }
                 true
             }
             KeyMapped.Enter -> {
-                onCommandEnter()
+                // If we have a non-null suggestion selected, consume enter and clear that
+                var commandMode: KeyboardActionMode.Command? = null
+                updateMode {
+                    (it as? KeyboardActionMode.Command)?.let {
+                        commandMode = it
+                        it.copy(selectedSuggestion = null)
+                    } ?: it
+                }
+                val selectedSuggestion = commandMode?.selectedSuggestion
+                if (selectedSuggestion == null) {
+                    onCommandEnter()
+                } else {
+                    applyCommandSuggestion(commandMode, selectedSuggestion)
+                }
                 true
             }
             KeyMapped.Tab -> {
-                // TODO auto-completions
+                val (commandMode, suggestionsState) = commandSuggestionsState.value ?: run {
+                    log.e("Tried handling command mode key while not in command mode")
+                    return false
+                }
+                if (suggestionsState?.currentSuggestions.isNullOrEmpty()) {
+                    return true
+                }
+                val currentSuggestionIndex = if (commandMode.selectedSuggestion == null) {
+                    -1
+                } else {
+                    suggestionsState.currentSuggestions.indexOfFirst { it.value == commandMode.selectedSuggestion }
+                }
+                val nextIndex = if (key.ctrl || key.shift) {
+                    currentSuggestionIndex - 1
+                } else {
+                    currentSuggestionIndex + 1
+                }.mod(suggestionsState.currentSuggestions.size + 1) // + 1 allows clearing selection again
+                val nextSuggestion = suggestionsState.currentSuggestions.getOrNull(nextIndex)?.value
+                updateMode {
+                    commandMode.copy(selectedSuggestion = nextSuggestion)
+                }
                 true
             }
             KeyMapped.DirectionUp -> false // TODO cycle search history; configurable binding?
@@ -1031,14 +1077,14 @@ class KeyboardActionHandler(
 
     fun updateCommandInput(query: TextFieldValue) = handleCommandInput(query) {}
 
-    fun selectCommandSuggestion(state: KeyboardActionMode.Command, suggestion: String) {
+    fun applyCommandSuggestion(state: KeyboardActionMode.Command, suggestion: String) {
         val (cmd, args) = state.suggestionsProvider.commandParser.parseCommandString(state.query.text)
             ?: run {
                 log.e("Failed to run autocompletion for query ${state.query.text}")
                 return
             }
         val newQuery = if (args.isEmpty() && !state.query.text.endsWith(" ")) {
-            suggestion
+            "$suggestion "
         } else {
             val stableArgs = if (state.query.text.endsWith(" ") || args.isEmpty()) {
                 args
@@ -1049,7 +1095,10 @@ class KeyboardActionHandler(
             "$cmd ${newArgs.joinToString(separator = " ", postfix = " ")}"
         }
         updateMode {
-            state.copy(query = TextFieldValue(newQuery, selection = TextRange(newQuery.length)))
+            state.copy(
+                query = TextFieldValue(newQuery, selection = TextRange(newQuery.length)),
+                selectedSuggestion = null,
+            )
         }
     }
 
@@ -1168,6 +1217,7 @@ class KeyboardActionHandler(
                             ),
                         ),
                     ),
+                    selectedSuggestion = null,
                 )
             }.also {
                 success = it

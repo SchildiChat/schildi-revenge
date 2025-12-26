@@ -4,13 +4,17 @@ import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.findPreference
 import chat.schildi.preferences.forEachPreference
 import chat.schildi.revenge.UiState
+import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.ActionArgument
 import chat.schildi.revenge.config.keybindings.ActionArgumentAnyOf
 import chat.schildi.revenge.config.keybindings.ActionArgumentOptional
 import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
 import chat.schildi.revenge.config.keybindings.minArgsSize
+import chat.schildi.revenge.flatMergeCombinedWith
 import chat.schildi.revenge.model.RevengeRoomListDataSource
 import chat.schildi.revenge.model.RoomListDataSource
+import chat.schildi.revenge.model.account.AccountComparator
 import co.touchlab.kermit.Logger
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
@@ -31,10 +35,15 @@ enum class CurrentCommandValidity {
     VALID,
 }
 
+data class CommandSuggestion(
+    val value: String,
+    val hint: ComposableStringHolder?,
+)
+
 data class CommandSuggestionsState(
     val query: String,
     val validity: CurrentCommandValidity,
-    val currentSuggestions: ImmutableList<String>,
+    val currentSuggestions: ImmutableList<CommandSuggestion>,
 )
 
 private val BOOLEAN_SUGGESTIONS = listOf("true", "false")
@@ -53,8 +62,30 @@ class CommandSuggestionsProvider(
     private val allCommands = commandParser.getAllPossibleCommandsSorted()
     private val allCommandSuggestions = allCommands.map { it.first }
 
+    val accounts = UiState.combinedSessions.flatMergeCombinedWith(
+        map = { it, _ ->
+            it.client.userProfile
+        },
+        merge = { it, comparator ->
+            it.sortedWith(AccountComparator(comparator) { it.userId })
+                .map { CommandSuggestion(it.userId.value, it.displayName?.toStringHolder()) }
+        },
+        onEmpty = { emptyList() },
+        other = UiState.sessionIdComparator,
+    )
+        .flowOn(Dispatchers.IO)
+        .stateIn(scope, SharingStarted.Eagerly, emptyList())
+
     private val scopedRoomSuggestions = roomListDataSource.allRooms.map {
-        it.map { Pair(it.sessionId, it.summary.roomId) }.distinct()
+        it.map {
+            Pair(
+                it.sessionId,
+                CommandSuggestion(
+                    it.summary.roomId.value,
+                    it.summary.info.name?.toStringHolder()
+                )
+            )
+        }.distinct()
     }
         .flowOn(Dispatchers.IO)
         .stateIn(scope, SharingStarted.Eagerly, emptyList())
@@ -62,7 +93,7 @@ class CommandSuggestionsProvider(
     private val prefKeySuggestions = buildList {
         ScPrefs.rootPrefs.forEachPreference {
             if (it.key != null) {
-                add(it.sKey)
+                add(CommandSuggestion(it.sKey, it.titleRes.toStringHolder()))
             }
         }
     }
@@ -84,7 +115,7 @@ class CommandSuggestionsProvider(
             val currentSuggestions = allCommands.filterValidSuggestionsFor(cmd) { it.first }
                 // Don't suggest multiple aliases for a given action
                 .distinctBy { it.second }
-                .map { it.first }
+                .map { CommandSuggestion(it.first, it.second.description()) }
                 // Deduplicate multiple actions with same command alias in different contexts
                 .distinct()
             CommandSuggestionsState(
@@ -105,12 +136,15 @@ class CommandSuggestionsProvider(
                     val argumentsChecked = possibleActions.map { checkArguments(it.first, args) }
                     val validity = when {
                         argumentsChecked.any { it == null } -> CurrentCommandValidity.VALID
-                        argumentsChecked.any { it is ActionResult.MissingParameters } -> CurrentCommandValidity.INCOMPLETE
+                        argumentsChecked.any { it is ActionResult.MissingParameters } ->
+                            CurrentCommandValidity.INCOMPLETE
                         else -> {
                             // Check again with only arguments that are not being written right now, so if the command
                             // is only invalid because of missing arguments we don't mark it as invalid
                             val stableArgs = if (args.isEmpty()) args else args.subList(0, args.size - 1)
-                            if (possibleActions.any { checkArguments(it.first, stableArgs) is ActionResult.MissingParameters }) {
+                            if (possibleActions.any {
+                                checkArguments(it.first, stableArgs) is ActionResult.MissingParameters
+                            }) {
                                 CurrentCommandValidity.INCOMPLETE
                             } else {
                                 CurrentCommandValidity.INVALID
@@ -146,7 +180,7 @@ class CommandSuggestionsProvider(
         arg: ActionArgument,
         context: CommandArgContext,
         prefix: String,
-    ): List<String> {
+    ): List<CommandSuggestion> {
         return suggestPrimaryFor(arg, context, prefix).takeIf { it.isNotEmpty() }
             ?: suggestSecondaryFor(arg, context, prefix)
     }
@@ -155,20 +189,20 @@ class CommandSuggestionsProvider(
         arg: ActionArgument,
         context: CommandArgContext,
         query: String,
-    ): List<String> = when (arg) {
+    ): List<CommandSuggestion> = when (arg) {
         is ActionArgumentPrimitive -> {
             when (arg) {
-                ActionArgumentPrimitive.Boolean -> BOOLEAN_SUGGESTIONS
+                ActionArgumentPrimitive.Boolean -> BOOLEAN_SUGGESTIONS.toSuggestionsWithoutHint()
                 ActionArgumentPrimitive.Mxid -> emptyList() // TODO suggestion provider for rooms and global
-                ActionArgumentPrimitive.SessionId -> UiState.currentValidSessionIds.value ?: emptyList()
+                ActionArgumentPrimitive.SessionId -> accounts.value
                 ActionArgumentPrimitive.RoomId -> {
                     val sessionIds = context.findSessionIds()
                     if (sessionIds.isEmpty()) {
-                        scopedRoomSuggestions.value.map { it.second.value }.distinct()
+                        scopedRoomSuggestions.value.map { it.second }.distinct()
                     } else {
                         scopedRoomSuggestions.value.mapNotNull {
                             if (it.first.value in sessionIds) {
-                                it.second.value
+                                it.second
                             } else {
                                 null
                             }
@@ -176,7 +210,8 @@ class CommandSuggestionsProvider(
                     }
                 }
                 ActionArgumentPrimitive.SettingKey -> prefKeySuggestions
-                ActionArgumentPrimitive.NavigatableDestinationName -> SUGGESTED_DESTINATION_STRINGS
+                ActionArgumentPrimitive.NavigatableDestinationName ->
+                    SUGGESTED_DESTINATION_STRINGS.toSuggestionsWithoutHint()
                 ActionArgumentPrimitive.Text,
                 ActionArgumentPrimitive.SettingValue -> {
                     val settingKeys = context.findSettingKeys()
@@ -185,7 +220,7 @@ class CommandSuggestionsProvider(
                     } else {
                         settingKeys.flatMap { sKey ->
                             val pref = ScPrefs.rootPrefs.findPreference { it.sKey == sKey }
-                            pref?.autoSuggestionValues().orEmpty()
+                            pref?.autoSuggestionValues()?.toSuggestionsWithoutHint().orEmpty()
                         }
                     }
                 }
@@ -206,10 +241,11 @@ class CommandSuggestionsProvider(
         arg: ActionArgument,
         context: CommandArgContext,
         query: String,
-    ): List<String> = when (arg) {
+    ): List<CommandSuggestion> = when (arg) {
         is ActionArgumentPrimitive -> {
             when (arg) {
-                ActionArgumentPrimitive.NavigatableDestinationName -> ALLOWED_DESTINATION_STRINGS
+                ActionArgumentPrimitive.NavigatableDestinationName ->
+                    ALLOWED_DESTINATION_STRINGS.toSuggestionsWithoutHint()
                 ActionArgumentPrimitive.RoomId -> {
                     val sessionIds = context.findSessionIds()
                     if (sessionIds.isEmpty()) {
@@ -217,7 +253,7 @@ class CommandSuggestionsProvider(
                         emptyList()
                     } else {
                         // Now we didn't find the room ID for this session, but we can still search for the others
-                        scopedRoomSuggestions.value.map { it.second.value }
+                        scopedRoomSuggestions.value.map { it.second }
                     }
                 }
                 else -> emptyList()
@@ -231,15 +267,19 @@ class CommandSuggestionsProvider(
         scope.cancel("Canceled on clear request")
     }
 
-    fun <T>List<T>.filterValidSuggestionsFor(query: String, arg: ActionArgumentPrimitive? = null, select: (T) -> String) = filter {
+    fun <T>List<T>.filterValidSuggestionsFor(
+        query: String,
+        arg: ActionArgumentPrimitive? = null,
+        select: (T) -> String,
+    ) = filter {
         // Sometimes we want to suggest even things that don't "start with"
         when (arg) {
             ActionArgumentPrimitive.SettingKey -> select(it).lowercase().contains(query)
             else -> select(it).lowercase().startsWith(query.lowercase())
         }
     }
-    fun List<String>.filterValidSuggestionsFor(query: String, arg: ActionArgumentPrimitive?) =
-        filterValidSuggestionsFor(query, arg) { it }
+    fun List<CommandSuggestion>.filterValidSuggestionsFor(query: String, arg: ActionArgumentPrimitive?) =
+        filterValidSuggestionsFor(query, arg) { it.value }
 }
 
 fun CommandArgContext.findSessionIds() = mapNotNull { (ctxArgDef, ctxArgVal) ->
@@ -249,3 +289,5 @@ fun CommandArgContext.findSessionIds() = mapNotNull { (ctxArgDef, ctxArgVal) ->
 fun CommandArgContext.findSettingKeys() = mapNotNull { (ctxArgDef, ctxArgVal) ->
     ctxArgVal.takeIf { ctxArgDef.canHold(ActionArgumentPrimitive.SettingKey) }
 }
+
+fun List<String>.toSuggestionsWithoutHint() = map { CommandSuggestion(it, null) }

@@ -1,6 +1,7 @@
 package chat.schildi.revenge
 
 import androidx.compose.ui.window.ApplicationScope
+import chat.schildi.revenge.actions.CommandSuggestion
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.config.ConfigWatchers
 import chat.schildi.revenge.store.AppStateStore
