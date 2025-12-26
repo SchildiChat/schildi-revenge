@@ -70,6 +70,7 @@ sealed interface Action {
         ToggleSetting(args = listOf(ActionArgumentPrimitive.SettingKey)),
         ClearAppMessages,
         ConfirmActionAppMessage,
+        Exit(aliases = listOf("quit"))
     }
     enum class Navigation(
         override val aliases: kotlin.collections.List<String> = emptyList(),

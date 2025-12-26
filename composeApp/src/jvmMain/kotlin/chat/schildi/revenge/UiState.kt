@@ -172,8 +172,12 @@ object UiState {
         }
         if (closedLastWindow) {
             // TODO close to tray if we can
-            scope.exitApplication()
+            exit(scope)
         }
+    }
+
+    fun exit(scope: ApplicationScope) {
+        scope.exitApplication()
     }
 
     fun setMinimized(minimized: Boolean) {

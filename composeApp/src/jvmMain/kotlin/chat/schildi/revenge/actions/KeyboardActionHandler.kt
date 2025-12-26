@@ -859,6 +859,10 @@ class KeyboardActionHandler(
                     message.action()
                     ActionResult.Success()
                 }
+                Action.Global.Exit -> {
+                    UiState.exit(applicationScope)
+                    ActionResult.Success()
+                }
             }
         }
     }
