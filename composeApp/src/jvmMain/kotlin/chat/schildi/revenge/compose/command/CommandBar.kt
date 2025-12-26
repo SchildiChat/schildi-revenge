@@ -13,6 +13,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.actions.CurrentCommandValidity
 import chat.schildi.revenge.actions.FocusRole
@@ -39,12 +40,12 @@ fun CommandBar(modifier: Modifier = Modifier) {
                 modifier = Modifier.heightIn(max = 200.dp)
             )
         }
-        val validityIndicatorColor = animateColorAsState(
+        val containerColor = animateColorAsState(
             when (suggestionsState?.validity) {
-                CurrentCommandValidity.VALID -> MaterialTheme.scExposures.accentColor
-                CurrentCommandValidity.INVALID -> MaterialTheme.colorScheme.error
+                CurrentCommandValidity.VALID -> MaterialTheme.scExposures.accentColor.copy(alpha = 0.1f)
+                CurrentCommandValidity.INVALID -> MaterialTheme.colorScheme.error.copy(alpha = 0.3f)
                 CurrentCommandValidity.INCOMPLETE,
-                null -> MaterialTheme.colorScheme.onSurfaceVariant
+                null -> Color.Transparent
             }
         ).value
         TextField(
@@ -62,10 +63,8 @@ fun CommandBar(modifier: Modifier = Modifier) {
                 handler.onCommandEnter()
             },
             colors = TextFieldDefaults.colors().copy(
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-                focusedLabelColor = validityIndicatorColor,
-                unfocusedLabelColor = validityIndicatorColor,
+                focusedContainerColor = containerColor,
+                unfocusedContainerColor = containerColor,
             )
         )
     }
