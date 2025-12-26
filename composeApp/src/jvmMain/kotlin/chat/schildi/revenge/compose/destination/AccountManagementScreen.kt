@@ -36,6 +36,8 @@ import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
+import chat.schildi.revenge.actions.InteractionAction
+import chat.schildi.revenge.actions.defaultActionProvider
 import chat.schildi.revenge.compose.components.IconButtonWithConfirmation
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
@@ -154,15 +156,29 @@ private fun ExistingLogin(account: AccountManagementData, viewModel: AccountMana
                         maxLines = 1,
                         modifier = Modifier.weight(1f),
                     )
+                    // TODO move to VM
+                    fun verify() {
+                        if (isVerifying) return
+                        scope.launch {
+                            isVerifying = true
+                            viewModel.verify(account.session, recoveryKey.text)
+                            isVerifying = false
+                        }
+                    }
                     Button(
                         enabled = !isVerifying && recoveryKey.text.isNotBlank(),
-                        onClick = {
-                            scope.launch {
-                                isVerifying = true
-                                viewModel.verify(account.session, recoveryKey.text)
-                                isVerifying = false
-                            }
-                        },
+                        onClick = ::verify,
+                        modifier = Modifier
+                            .keyFocusable(
+                                role = FocusRole.NESTED_AUX_ITEM,
+                                actionProvider = defaultActionProvider(
+                                    primaryAction = InteractionAction.Invoke {
+                                        verify()
+                                        true
+                                    },
+                                ),
+                                addClickListener = false,
+                            ),
                     ) {
                         Text(stringResource(Res.string.action_verify))
                     }
@@ -237,39 +253,53 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
                 }
             }
         )
+        // TODO move to VM
+        fun login() {
+            if (inProgress.value) {
+                return
+            }
+            scope.launch {
+                inProgress.value = true
+                try {
+                    val server = homeserver.text.let {
+                        if (it.contains("://")) {
+                            it
+                        } else {
+                            "https://$it"
+                        }
+                    }
+                    val serverResult = viewModel.setHomeserver(server)
+                    if (serverResult.isFailure) {
+                        error.value = serverResult.exceptionOrNull()?.message ?: "Setting server failed without exception"
+                        return@launch
+                    }
+                    val result = viewModel.login(username.text, password.text)
+                    if (result.isSuccess) {
+                        password = TextFieldValue()
+                        username = TextFieldValue()
+                        homeserver = TextFieldValue()
+                    } else {
+                        error.value = result.exceptionOrNull()?.message ?: "Login failed without exception"
+                    }
+                } finally {
+                    inProgress.value = false
+                }
+            }
+        }
         Button(
             enabled = !inProgress.value &&
                     homeserver.text.isNotBlank() && username.text.isNotBlank() && password.text.isNotBlank(),
-            onClick = {
-                scope.launch {
-                    inProgress.value = true
-                    try {
-                        val server = homeserver.text.let {
-                            if (it.contains("://")) {
-                                it
-                            } else {
-                                "https://$it"
-                            }
-                        }
-                        val serverResult = viewModel.setHomeserver(server)
-                        if (serverResult.isFailure) {
-                            error.value = serverResult.exceptionOrNull()?.message ?: "Setting server failed without exception"
-                            return@launch
-                        }
-                        val result = viewModel.login(username.text, password.text)
-                        if (result.isSuccess) {
-                            password = TextFieldValue()
-                            username = TextFieldValue()
-                            homeserver = TextFieldValue()
-                        } else {
-                            error.value = result.exceptionOrNull()?.message ?: "Login failed without exception"
-                        }
-                    } finally {
-                        inProgress.value = false
-                    }
-                }
-            },
-            modifier = Modifier.keyFocusable(),
+            onClick = ::login,
+            modifier = Modifier
+                .keyFocusable(
+                    actionProvider = defaultActionProvider(
+                        primaryAction = InteractionAction.Invoke {
+                            login()
+                            true
+                        },
+                    ),
+                    addClickListener = false,
+                ),
         ) {
             Text(stringResource(Res.string.action_login))
         }
