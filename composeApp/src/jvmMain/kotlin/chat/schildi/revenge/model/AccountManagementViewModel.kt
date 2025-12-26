@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.flatMerge
+import chat.schildi.revenge.flatMergeCombinedWith
 import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.Inject
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -33,10 +34,12 @@ class AccountManagementViewModel(
 
     private val sessions = sessionStore.sessionsFlow()
 
-    val data = sessions.flatMerge(
-        map = { session ->
+    private val sessionIdComparator = UiState.sessionIdComparator
+
+    val data = sessions.flatMergeCombinedWith(
+        map = { session, _ ->
             val client = sessionCache.getOrRestore(SessionId(session.userId)).getOrNull()
-                ?: return@flatMerge flowOf(AccountManagementData(session, false))
+                ?: return@flatMergeCombinedWith flowOf(AccountManagementData(session, false))
             client.sessionVerificationService.needsSessionVerification.map {
                 AccountManagementData(
                     session = session,
@@ -44,10 +47,15 @@ class AccountManagementViewModel(
                 )
             }
         },
-        merge = {
-            it.toPersistentList()
+        merge = { accounts, comparator ->
+            accounts.sortedWith(
+                Comparator { a, b ->
+                    comparator.compare(SessionId(a.session.userId), SessionId(b.session.userId))
+                }
+            ).toPersistentList()
         },
         onEmpty = { persistentListOf() },
+        other = sessionIdComparator,
     ).stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
