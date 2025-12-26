@@ -26,8 +26,10 @@ import chat.schildi.revenge.compose.util.HardcodedStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.flatMerge
+import chat.schildi.revenge.flatMergeCombinedWith
 import chat.schildi.revenge.model.ScopedRoomKey
 import chat.schildi.revenge.model.ScopedRoomSummary
+import chat.schildi.revenge.model.account.AccountComparator
 import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.Inject
 import io.element.android.libraries.matrix.api.MatrixClient
@@ -119,14 +121,15 @@ class SpaceListDataSource(
     ).flowOn(Dispatchers.IO)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val accounts = combinedSessions.flatMerge(
-        map = {
-            it.client.userProfile
+    private val accounts = combinedSessions.flatMergeCombinedWith(
+        map = { session, _ ->
+            session.client.userProfile
         },
-        merge = {
-            it.toList()
+        merge = { accounts, comparator ->
+            accounts.sortedWith(AccountComparator(comparator) { it.userId })
         },
         onEmpty = { emptyList() },
+        other = sessionIdComparatorFlow,
     )
 
     val allSpacesHierarchical = combine(

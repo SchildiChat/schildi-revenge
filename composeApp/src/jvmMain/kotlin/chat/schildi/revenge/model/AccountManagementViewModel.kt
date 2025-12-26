@@ -3,8 +3,8 @@ package chat.schildi.revenge.model
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import chat.schildi.revenge.UiState
-import chat.schildi.revenge.flatMerge
 import chat.schildi.revenge.flatMergeCombinedWith
+import chat.schildi.revenge.model.account.AccountComparator
 import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.Inject
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -48,11 +48,11 @@ class AccountManagementViewModel(
             }
         },
         merge = { accounts, comparator ->
-            accounts.sortedWith(
-                Comparator { a, b ->
-                    comparator.compare(SessionId(a.session.userId), SessionId(b.session.userId))
-                }
-            ).toPersistentList()
+            accounts
+                .sortedWith(AccountComparator(comparator) {
+                    SessionId(it.session.userId)
+                })
+                .toPersistentList()
         },
         onEmpty = { persistentListOf() },
         other = sessionIdComparator,
