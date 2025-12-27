@@ -164,6 +164,7 @@ sealed interface Action {
         MarkUnread,
         MarkRead,
         MarkReadPrivate,
+        MarkFullyRead,
         KickUser(aliases = listOf("kick"), args = listOf(ActionArgumentPrimitive.UserIdInRoom, OptionalReason)),
         InviteUser(aliases = listOf("invite"), args = listOf(ActionArgumentPrimitive.UserIdNotInRoom)),
         BanUser(aliases = listOf("ban"), args = listOf(ActionArgumentPrimitive.UserIdInRoom, OptionalReason)),
@@ -175,6 +176,7 @@ sealed interface Action {
     ) : Action {
         MarkRead,
         MarkReadPrivate,
+        MarkFullyRead,
         ComposeEdit,
         ComposeReply,
         ComposeReaction,

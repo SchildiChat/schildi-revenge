@@ -50,7 +50,9 @@ conversation = [
     { key = "N", ctrl = true, action = "ComposeNotice" },
     { key = "E", ctrl = true, shift = true, action = "ComposeEmote" },
     { key = "M", ctrl = true, shift = true, action = "MarkRead", chain = true },
-    { key = "M", ctrl = true, action = "MarkRead" },
+    { key = "M", ctrl = true, shift = true, action = "MarkFullyRead", chain = true },
+    { key = "M", ctrl = true, action = "MarkRead", chain = true },
+    { key = "M", ctrl = true, action = "MarkFullyRead" },
     { key = "Enter", action = "ComposerSuggestionApplySelected" },
     { key = "Enter", action = "ComposerSend" },
     { key = "Enter", ctrl = true, action = "ComposerSend" },
@@ -71,7 +73,8 @@ conversation = [
     { key = "P", ctrl = true, action = "ComposerInsertAtCursor", args = ["😛"] },
 ]
 event = [
-    { key = "M", action = "MarkRead" },
+    { key = "M", action = "MarkRead", chain = true },
+    { key = "M", action = "MarkFullyRead", chain = true },
     { key = "R", action = "ComposeReply" },
     { key = "C", action = "ComposeReaction" },
     { key = "E", ctrl = true, action = "ComposeEdit" },
@@ -91,7 +94,7 @@ navigation = [
     { key = "A", shift = true, action = "NavigateCurrent", args = ["accounts"] },
     { key = "A", shift = true, ctrl = true, action = "NavigateInNewWindow", args = ["accounts"] },
     { key = "Q", shift = true, action = "CloseWindow" },
-    { key = "Q", action = "CloseWindow", destinations = ["Conversation"] },
+    { key = "Q", action = "CloseWindow", destinations = ["Conversation", "About"] },
     { key = "M", ctrl = true, shift = true, action = "CloseWindow", destinations = ["Conversation"] },
 ]
 navigationItem = [

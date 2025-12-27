@@ -21,7 +21,6 @@ import chat.schildi.revenge.GlobalActionsScope
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.AppMessage
-import chat.schildi.revenge.actions.CommandSuggestion
 import chat.schildi.revenge.actions.ConfirmActionAppMessage
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.KeyboardActionProvider
@@ -282,11 +281,10 @@ class ConversationViewModel(
             // Shouldn't really matter if it's a private or public RR since we're about to send a message anyway,
             // but since this should only do anything at all if we didn't send a RR before, defaulting to private
             // should be more meaningful in case later actions fail.
-            /* TODO this is delaying my sends, better fix properly
+            // TODO this can take a while, render something in composer to prevent it from being used
             currentTimeline.markAsRead(ReceiptType.READ_PRIVATE)
                 .onFailure { log.e("Forwarding the RR on message send failed", it) }
                 .onSuccess { log.d("Advanced the RR on message send") }
-             */
             val result = when (draft.type) {
                 DraftType.TEXT -> {
                     if (draft.inReplyTo != null) {
@@ -695,10 +693,7 @@ class ConversationViewModel(
                     GlobalActionsScope,
                     Dispatchers.IO
                 ) {
-                    // TODO split into individual calls for proper error propagation
-                    timeline.markAsRead(ReceiptType.READ)
-                    timeline.markAsRead(ReceiptType.FULLY_READ)
-                    ActionResult.Success()
+                    timeline.markAsRead(ReceiptType.READ).toActionResult(async = true)
                 }
             }
 
@@ -709,10 +704,18 @@ class ConversationViewModel(
                     GlobalActionsScope,
                     Dispatchers.IO
                 ) {
-                    // TODO split into individual calls for proper error propagation
-                    timeline.markAsRead(ReceiptType.READ_PRIVATE)
-                    timeline.markAsRead(ReceiptType.FULLY_READ)
-                    ActionResult.Success()
+                    timeline.markAsRead(ReceiptType.READ_PRIVATE).toActionResult(async = true)
+                }
+            }
+
+            Action.Conversation.MarkFullyRead -> {
+                val timeline = activeTimeline.value ?: return@run ActionResult.Failure("Timeline not ready")
+                launchActionAsync(
+                    "markFullyRead",
+                    GlobalActionsScope,
+                    Dispatchers.IO
+                ) {
+                    timeline.markAsRead(ReceiptType.FULLY_READ).toActionResult(async = true)
                 }
             }
 
@@ -982,25 +985,15 @@ class ConversationViewModel(
     private fun ActionContext.markEventAsRead(eventId: EventId, receiptType: ReceiptType): ActionResult {
         val timeline = timelineController.value ?: return ActionResult.Failure("Timeline not ready")
         return launchActionAsync("MarkEventAsRead", GlobalActionsScope, Dispatchers.IO) {
-            var hasFailure = false
+            var result: ActionResult? = null
             timeline.invokeOnCurrentTimeline {
-                forceSendReadReceipt(eventId, receiptType)
+                result = forceSendReadReceipt(eventId, receiptType)
                     .onFailure {
-                        log.e("Failed to send private read receipt", it)
-                        hasFailure = true
+                        log.e("Failed to send read receipt $receiptType", it)
                     }
-                // Always keep fully read in sync with read receipts for now
-                forceSendReadReceipt(eventId, ReceiptType.FULLY_READ)
-                    .onFailure {
-                        log.e("Failed to send fully read marker", it)
-                        hasFailure = true
-                    }
+                    .toActionResult(async = true)
             }
-            if (hasFailure) {
-                ActionResult.Failure("Failed to send read receipt or read marker")
-            } else {
-                ActionResult.Success()
-            }
+            result ?: ActionResult.Failure("Failed to send $receiptType")
         }
     }
 
@@ -1024,12 +1017,14 @@ class ConversationViewModel(
                 args: List<String>
             ): ActionResult = context.run {
                 when (action) {
-                    Action.Event.MarkRead -> eventId?.let { markEventAsRead(eventId, ReceiptType.READ) } ?: ActionResult.Inapplicable
+                    Action.Event.MarkRead -> eventId?.let {
+                        markEventAsRead(eventId, ReceiptType.READ)
+                    } ?: ActionResult.Inapplicable
                     Action.Event.MarkReadPrivate -> eventId?.let {
-                        markEventAsRead(
-                            eventId,
-                            ReceiptType.READ_PRIVATE
-                        )
+                        markEventAsRead(eventId, ReceiptType.READ_PRIVATE)
+                    } ?: ActionResult.Inapplicable
+                    Action.Event.MarkFullyRead -> eventId?.let {
+                        markEventAsRead(eventId, ReceiptType.FULLY_READ)
                     } ?: ActionResult.Inapplicable
 
                     Action.Event.ComposeReply -> eventId?.let {
