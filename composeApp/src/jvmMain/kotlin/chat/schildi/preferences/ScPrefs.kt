@@ -1,6 +1,7 @@
 package chat.schildi.preferences
 
 import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.pref_always_show_keyboard_focus
 import shire.composeapp.generated.resources.pref_auto_hide_composer_summary
 import shire.composeapp.generated.resources.pref_auto_hide_composer_title
 import shire.composeapp.generated.resources.pref_category_developer_options
@@ -77,7 +78,7 @@ object ScPrefs {
     val MAX_WIDTH_INBOX = ScIntPref("MAX_WIDTH_INBOX", 1024, Res.string.pref_max_width_inbox_title)
     val MAX_WIDTH_CONVERSATION = ScIntPref("MAX_WIDTH_CONVERSATION", 1600, Res.string.pref_max_width_conversation_title)
     val MAX_WIDTH_SETTINGS = ScIntPref("MAX_WIDTH_SETTINGS", 1024, Res.string.pref_max_width_settings_title)
-    val ALWAYS_SHOW_KEYBOARD_FOCUS = ScBoolPref("ALWAYS_SHOW_KEYBOARD_FOCUS", false, Res.string.pref_max_width_settings_title)
+    val ALWAYS_SHOW_KEYBOARD_FOCUS = ScBoolPref("ALWAYS_SHOW_KEYBOARD_FOCUS", false, Res.string.pref_always_show_keyboard_focus)
 
     object SpaceUnreadCountMode {
         const val MESSAGES = "MESSAGES"
