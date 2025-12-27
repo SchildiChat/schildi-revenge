@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
+import org.kodein.emoji.Emoji
+import org.kodein.emoji.list
 
 class ComposerSuggestionsProvider(
     queryFlow: Flow<TextFieldValue>,
@@ -20,26 +22,36 @@ class ComposerSuggestionsProvider(
         canPingRoomFlow,
     ) { query, userIds, canPingRoom ->
         val currentCompletionEntity = query.getCurrentCompletionEntity()?.text
-        if (currentCompletionEntity == null || !currentCompletionEntity.startsWith("@")) {
-            ComposerSuggestionsState()
-        } else {
-            val userSuggestions = userIds
-                .filter {
-                    it.userId.value.startsWith(currentCompletionEntity) ||
-                            // Allow @displayName as well
-                            it.displayName?.startsWith(currentCompletionEntity.substring(1)) == true
+        when {
+            currentCompletionEntity == null -> ComposerSuggestionsState()
+            currentCompletionEntity.startsWith("@") -> {
+                // Mentions
+                val userSuggestions = userIds
+                    .filter {
+                        it.userId.value.startsWith(currentCompletionEntity) ||
+                                // Allow @displayName as well
+                                it.displayName?.startsWith(currentCompletionEntity.substring(1)) == true
+                    }
+                    .map { ComposerUserMentionSuggestion(it.userId, it.displayName) }
+                val roomSuggestions = if (canPingRoom &&
+                    ComposerRoomMentionSuggestion.value.startsWith(currentCompletionEntity)
+                ) {
+                    listOf(ComposerRoomMentionSuggestion)
+                } else {
+                    emptyList()
                 }
-                .map { ComposerUserMentionSuggestion(it.userId, it.displayName) }
-            val roomSuggestions = if (canPingRoom &&
-                ComposerRoomMentionSuggestion.value.startsWith(currentCompletionEntity)
-            ) {
-                listOf(ComposerRoomMentionSuggestion)
-            } else {
-                emptyList()
+                ComposerSuggestionsState(
+                    suggestions = (userSuggestions + roomSuggestions).toImmutableList(),
+                )
             }
-            ComposerSuggestionsState(
-                suggestions = (userSuggestions + roomSuggestions).toImmutableList(),
-            )
+            currentCompletionEntity.startsWith(":") -> {
+                // Emojis
+                val shortcodePrefix = currentCompletionEntity.substring(1)
+                val suggestions = Emoji.list().filter { it.details.aliases.any { it.startsWith(shortcodePrefix) } }
+                    .map { ComposerEmojiSuggestion(it.details.string, it.details.description) }
+                ComposerSuggestionsState(suggestions.toImmutableList())
+            }
+            else -> ComposerSuggestionsState()
         }
     }.flowOn(Dispatchers.IO)
 
@@ -63,14 +75,17 @@ data class CompletionEntity(
 }
 
 fun TextFieldValue.getCurrentCompletionEntity(): CompletionEntity? {
-    val cursor = selection.end
+    // Did you know you can select text backwards?
+    val selectionEnd = kotlin.math.max(selection.start, selection.end)
+    val selectionStart = kotlin.math.min(selection.start, selection.end)
+    val cursor = selectionEnd
     if (cursor <= 0) return null
     val textBeforeCursor = text.substring(0, cursor)
     if (textBeforeCursor.isBlank()) {
         return null
     }
-    val startIndex = if (selection.start != cursor) {
-        selection.start
+    val startIndex = if (selectionStart != cursor) {
+        selectionStart
     } else {
         val lastWhitespace = textBeforeCursor.indexOfLast { it.isWhitespace() }
         lastWhitespace + 1

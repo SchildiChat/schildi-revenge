@@ -447,6 +447,7 @@ class ConversationViewModel(
         val intentionalMention = when (suggestion) {
             is ComposerUserMentionSuggestion -> IntentionalMention.User(suggestion.userId)
             is ComposerRoomMentionSuggestion -> IntentionalMention.Room
+            else -> null
         }
         val oldText = draft.textFieldValue.text
         val newText = buildString {
@@ -456,17 +457,22 @@ class ConversationViewModel(
             append(oldText.substring(completionEntity.end))
         }
         val suggestionInsertEndIndex = completionEntity.start + suggestion.value.length
-        val newDraftMention = DraftMention(
-            start = completionEntity.start,
-            end = suggestionInsertEndIndex,
-            mention = intentionalMention,
-        )
+        val newDraftMention = intentionalMention?.let {
+            DraftMention(
+                start = completionEntity.start,
+                end = suggestionInsertEndIndex,
+                mention = intentionalMention,
+            )
+        }
         val newDraft = draft.copy(
             textFieldValue = TextFieldValue(
                 text = newText,
                 selection = TextRange(suggestionInsertEndIndex + 1),
             ),
-            mentions = (draft.mentions + newDraftMention).toImmutableList(),
+            mentions = if (newDraftMention == null)
+                draft.mentions
+            else
+                (draft.mentions + newDraftMention).toImmutableList(),
         )
         DraftRepo.update(draftKey, newDraft)
         return true

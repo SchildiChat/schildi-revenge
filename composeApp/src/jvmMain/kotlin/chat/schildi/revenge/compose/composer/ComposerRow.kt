@@ -5,6 +5,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
@@ -20,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.currentActionContext
@@ -53,7 +55,11 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
     val draftState = viewModel.composerState.collectAsState().value
     val suggestionsState = viewModel.composerSuggestions.collectAsState().value
     Column(modifier) {
-        ComposerSuggestions(suggestionsState, viewModel::onConfirmSuggestion)
+        ComposerSuggestions(
+            suggestionsState,
+            viewModel::onConfirmSuggestion,
+            modifier = Modifier.heightIn(max = 200.dp),
+        )
         if (draftState.inReplyTo != null) {
             Row(Modifier.padding(horizontal = Dimens.windowPadding), verticalAlignment = Alignment.CenterVertically) {
                 ReplyContent(draftState.inReplyTo, Modifier.weight(1f))

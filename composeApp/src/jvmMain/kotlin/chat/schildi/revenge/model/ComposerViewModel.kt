@@ -28,6 +28,13 @@ data class ComposerUserMentionSuggestion(
         }
 }
 
+data class ComposerEmojiSuggestion(
+    override val value: String,
+    val description: String?
+) : ComposerSuggestion {
+    override val hint: ComposableStringHolder? = description?.toStringHolder()
+}
+
 data object ComposerRoomMentionSuggestion : ComposerSuggestion {
     override val value = "@room"
     override val hint: ComposableStringHolder? = null

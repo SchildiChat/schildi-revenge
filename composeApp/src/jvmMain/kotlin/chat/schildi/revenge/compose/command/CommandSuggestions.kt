@@ -69,8 +69,8 @@ fun <T>TextFieldSuggestions(
     modifier: Modifier = Modifier,
     entry: @Composable (T, Modifier) -> Unit,
 ) {
-    val state = rememberLazyListState()
-    LaunchedEffect(currentSelection) {
+    val state = androidx.compose.runtime.key(suggestions) { rememberLazyListState() }
+    LaunchedEffect(suggestions, currentSelection) {
         val index = suggestions.indexOf(currentSelection)
         if (index != -1) {
             state.scrollToItem(index)
