@@ -22,6 +22,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -42,11 +43,14 @@ import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.ScopedRoomSummary
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.EventTextFormat
+import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.actions.defaultActionProvider
+import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.model.InboxViewModel
+import chat.schildi.revenge.model.ScopedRoomKey
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
@@ -82,7 +86,8 @@ fun InboxRow(
                         defaultActionProvider()
                     } else {
                         buildNavigationActionProvider(
-                            initialTitle = room.summary.info.name?.toStringHolder()
+                            initialTitle = room.summary.info.name?.toStringHolder(),
+                            keyActions = inboxRowKeyboardActionProvider(viewModel, room.key),
                         ) {
                             Destination.Conversation(room.sessionId, room.summary.roomId)
                         }
@@ -346,3 +351,14 @@ private fun ScUnreadCounter(room: RoomSummary) {
 }
 
 fun RoomSummary.isInvite() = info.currentUserMembership == CurrentUserMembership.INVITED
+
+@Composable
+private fun inboxRowKeyboardActionProvider(
+    viewModel: InboxViewModel,
+    room: ScopedRoomKey,
+): HierarchicalKeyboardActionProvider {
+    val ownHandler = remember(viewModel, room) {
+        viewModel.getKeyboardActionProviderForRoom(room.sessionId, room.roomId)
+    }
+    return ownHandler.hierarchicalKeyboardActionProvider()
+}

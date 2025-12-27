@@ -161,7 +161,6 @@ sealed interface Action {
         JumpToOwnReadReceipt,
         JumpToFullyRead,
         JumpToBottom,
-        MarkUnread,
         MarkRead,
         MarkReadPrivate,
         MarkFullyRead,
@@ -169,6 +168,21 @@ sealed interface Action {
         InviteUser(aliases = listOf("invite"), args = listOf(ActionArgumentPrimitive.UserIdNotInRoom)),
         BanUser(aliases = listOf("ban"), args = listOf(ActionArgumentPrimitive.UserIdInRoom, OptionalReason)),
         UnbanUser(aliases = listOf("unban"), args = listOf(ActionArgumentPrimitive.UserIdNotInRoom, OptionalReason)),
+    }
+    enum class Room(
+        override val aliases: kotlin.collections.List<String> = emptyList(),
+        override val args: kotlin.collections.List<ActionArgument> = emptyList()
+    ) : Action {
+        MarkFavorite(aliases = listOf("favorite", "SetIsFavorite"), args = listOf(OptionalBoolean)),
+        MarkLowPriority(aliases = listOf("lowprio", "SetIsLowPriority"), args = listOf(OptionalBoolean)),
+        ToggleIsFavorite,
+        ToggleIsLowPriority,
+        MarkRoomUnread(aliases = listOf("SetUnread", "MarkUnread"), args = listOf(OptionalBoolean)),
+        ClearUnreadFlag,
+        MarkRoomRead, // Different than timeline-based MarkRead
+        MarkRoomReadPrivate, // Different than timeline-based MarkRead
+        MarkRoomFullyRead, // Different than timeline-based MarkRead
+        Leave(aliases = listOf("part")),
     }
     enum class Event(
         override val aliases: kotlin.collections.List<String> = emptyList(),

@@ -33,12 +33,16 @@ import chat.schildi.revenge.model.spaces.filterByVisible
 import chat.schildi.revenge.model.spaces.filterHierarchical
 import chat.schildi.revenge.model.spaces.findInHierarchy
 import chat.schildi.revenge.model.spaces.resolveSelection
+import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.room.BaseRoom
 import io.element.android.libraries.matrix.api.roomlist.RoomListService
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
 import io.element.android.libraries.matrix.api.sync.SyncState
+import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
+import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
 import io.element.android.libraries.matrix.api.user.MatrixUser
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentHashMapOf
@@ -559,6 +563,12 @@ class InboxViewModel(
             notifyProcessing = true
         ) {
             client.joinRoom(roomId).toActionResult(async = true)
+        }
+    }
+
+    fun getKeyboardActionProviderForRoom(sessionId: SessionId, roomId: RoomId): KeyboardActionProvider<Action.Room> {
+        return RoomActionProvider {
+            UiState.currentClientFor(sessionId)?.getRoom(roomId)
         }
     }
 }

@@ -171,7 +171,8 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
         val listAction = remember(listState) { ListAction(listState, isReverseList = true) }
         FocusContainer(
             //LocalSearchProvider provides viewModel, // TODO CV search
-            LocalKeyboardActionProvider provides viewModel.hierarchicalKeyboardActionProvider(),
+            LocalKeyboardActionProvider provides
+                    viewModel.actionProvider.hierarchicalKeyboardActionProvider(),
             LocalUserIdSuggestionsProvider provides viewModel,
             LocalListActionProvider provides listAction,
             role = FocusRole.DESTINATION_ROOT_CONTAINER,

@@ -12,6 +12,7 @@ data class KeybindingConfig(
     val list: List<Binding<Action.List>> = emptyList(),
     val split: List<Binding<Action.Split>> = emptyList(),
     val inbox: List<Binding<Action.Inbox>> = emptyList(),
+    val room: List<Binding<Action.Room>> = emptyList(),
     val conversation: List<Binding<Action.Conversation>> = emptyList(),
     val event: List<Binding<Action.Event>> = emptyList(),
 )

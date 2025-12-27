@@ -22,7 +22,9 @@ import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.actions.ConfirmActionAppMessage
+import chat.schildi.revenge.actions.FlatMergedKeyboardActionProvider
 import chat.schildi.revenge.actions.FocusRole
+import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.UserIdSuggestion
 import chat.schildi.revenge.actions.UserIdSuggestionsProvider
@@ -53,6 +55,7 @@ import io.element.android.libraries.matrix.api.media.AudioInfo
 import io.element.android.libraries.matrix.api.media.FileInfo
 import io.element.android.libraries.matrix.api.media.ImageInfo
 import io.element.android.libraries.matrix.api.media.VideoInfo
+import io.element.android.libraries.matrix.api.room.BaseRoom
 import io.element.android.libraries.matrix.api.room.IntentionalMention
 import io.element.android.libraries.matrix.api.room.roomMembers
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
@@ -141,7 +144,7 @@ class ConversationViewModel(
     private val roomId: RoomId,
     private val appGraph: AppGraph = UiState.appGraph,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
-) : ViewModel(), TitleProvider, UserIdSuggestionsProvider, KeyboardActionProvider<Action.Conversation>, ComposerViewModel {
+) : ViewModel(), TitleProvider, UserIdSuggestionsProvider/*, KeyboardActionProvider<Action.Conversation>*/, ComposerViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
 
     private val clientFlow = UiState.selectClient(sessionId, viewModelScope)
@@ -525,259 +528,259 @@ class ConversationViewModel(
         }
     }
 
-    override fun getPossibleActions() = Action.Conversation.entries.toSet()
-    override fun ensureActionType(action: Action) = action as? Action.Conversation
-
-    override fun handleNavigationModeEvent(context: ActionContext, key: KeyTrigger): ActionResult {
-        val keyConfig = context.keybindingConfig ?: return ActionResult.NoMatch
-        return keyConfig.conversation.execute(context, key, ::handleAction)
+    private val roomActionProvider = RoomActionProvider {
+        // roomPair may have stale information, request a new room to be sure
+        clientFlow.value?.getRoom(roomId)
     }
 
-    override fun handleAction(
-        context: ActionContext,
-        action: Action.Conversation,
-        args: List<String>
-    ): ActionResult = context.run {
-        when (action) {
-            Action.Conversation.FocusComposer -> {
-                !forceShowComposer.getAndUpdate { true }
-                focusByRole(FocusRole.MESSAGE_COMPOSER)
-                ActionResult.Success()
-            }
+    private val conversationActionProvider = object : KeyboardActionProvider<Action.Conversation> {
+        override fun getPossibleActions() = Action.Conversation.entries.toSet()
+        override fun ensureActionType(action: Action) = action as? Action.Conversation
 
-            Action.Conversation.HideComposerIfEmpty -> {
-                // Clear draft state (replies etc.) if empty
-                var wasEmpty = false
-                DraftRepo.update(draftKey) {
-                    val isEmpty = it?.isEmpty() != false
-                    wasEmpty = isEmpty
-                    if (isEmpty) {
-                        null
-                    } else {
-                        it
-                    }
-                }
-                if (wasEmpty) {
-                    forceShowComposer.getAndUpdate { false }.orActionInapplicable()
-                } else {
-                    ActionResult.Inapplicable
-                }
-            }
+        override fun handleNavigationModeEvent(context: ActionContext, key: KeyTrigger): ActionResult {
+            val keyConfig = context.keybindingConfig ?: return ActionResult.NoMatch
+            return keyConfig.conversation.execute(context, key, ::handleAction)
+        }
 
-            Action.Conversation.ClearComposer -> {
-                // Discard all draft state
-                var wasEmpty = false
-                DraftRepo.update(draftKey) {
-                    wasEmpty = it?.isEmpty() != false
-                    null
-                }
-                if (wasEmpty) {
-                    forceShowComposer.getAndUpdate { false }.orActionInapplicable()
-                } else {
-                    forceShowComposer.value = false
+        override fun handleAction(
+            context: ActionContext,
+            action: Action.Conversation,
+            args: List<String>
+        ): ActionResult = context.run {
+            when (action) {
+                Action.Conversation.FocusComposer -> {
+                    !forceShowComposer.getAndUpdate { true }
+                    focusByRole(FocusRole.MESSAGE_COMPOSER)
                     ActionResult.Success()
                 }
-            }
 
-            Action.Conversation.ComposeMessage -> {
-                forceShowComposer.value = true
-                DraftRepo.update(draftKey) {
-                    it?.copy(type = DraftType.TEXT, editEventId = null, initialBody = "")
-                        ?: DraftValue(type = DraftType.TEXT)
-                }
-                focusByRole(FocusRole.MESSAGE_COMPOSER)
-                ActionResult.Success()
-            }
-
-            Action.Conversation.ComposeNotice -> {
-                forceShowComposer.value = true
-                DraftRepo.update(draftKey) {
-                    it?.copy(type = DraftType.NOTICE, editEventId = null, initialBody = "")
-                        ?: DraftValue(type = DraftType.NOTICE)
-                }
-                focusByRole(FocusRole.MESSAGE_COMPOSER)
-                ActionResult.Success()
-            }
-
-            Action.Conversation.ComposeEmote -> {
-                forceShowComposer.value = true
-                DraftRepo.update(draftKey) {
-                    it?.copy(type = DraftType.EMOTE, editEventId = null, initialBody = "")
-                        ?: DraftValue(type = DraftType.EMOTE)
-                }
-                focusByRole(FocusRole.MESSAGE_COMPOSER)
-                ActionResult.Success()
-            }
-
-            Action.Conversation.ComposerSend -> sendMessage(context)
-
-            Action.Conversation.ComposerInsertAtCursor -> {
-                var hasDraft = false
-                DraftRepo.update(draftKey) {
-                    hasDraft = it != null
-                    it?.copy(
-                        textFieldValue = it.textFieldValue.insertAtCursor(args[0])
-                    )
-                }
-                hasDraft.orActionInapplicable()
-            }
-
-            Action.Conversation.ComposerPasteAttachment -> {
-                val files = getFilesFromClipboard()
-                if (files.isEmpty() || files.size > 1) {
-                    ActionResult.Inapplicable
-                } else {
-                    launchActionAsync(
-                        "addAttachment",
-                        viewModelScope,
-                        Dispatchers.IO,
-                        "addAttachment",
-                    ) {
-                        loadAttachmentFileIntoComposer(files[0])
+                Action.Conversation.HideComposerIfEmpty -> {
+                    // Clear draft state (replies etc.) if empty
+                    var wasEmpty = false
+                    DraftRepo.update(draftKey) {
+                        val isEmpty = it?.isEmpty() != false
+                        wasEmpty = isEmpty
+                        if (isEmpty) {
+                            null
+                        } else {
+                            it
+                        }
+                    }
+                    if (wasEmpty) {
+                        forceShowComposer.getAndUpdate { false }.orActionInapplicable()
+                    } else {
+                        ActionResult.Inapplicable
                     }
                 }
-            }
 
-            Action.Conversation.ComposerAddAttachment -> launchAttachmentPicker(this)
-
-            Action.Conversation.ComposerSuggestionFocusNext -> cycleComposerSuggestions(1)
-
-            Action.Conversation.ComposerSuggestionFocusPrevious -> cycleComposerSuggestions(-1)
-
-            Action.Conversation.ComposerSuggestionApplySelected -> {
-                val suggestion = composerSuggestions.value.selectedSuggestion ?: return@run ActionResult.Inapplicable
-                onConfirmSuggestion(suggestion).orActionInapplicable()
-            }
-
-            Action.Conversation.JumpToOwnReadReceipt -> jumpToMessage(
-                action.name,
-                StringResourceHolder(Res.string.command_event_name_own_read_receipt),
-                "jumpTo",
-            ) {
-                activeTimeline.value?.latestUserReceiptEventId(sessionId.value)?.let(::EventId)
-            }
-
-            Action.Conversation.JumpToFullyRead -> jumpToMessage(
-                action.name,
-                StringResourceHolder(Res.string.command_event_name_fully_read_marker),
-                "jumpTo",
-            ) {
-                activeTimeline.value?.fullyReadEventId()?.let(::EventId)
-            }
-
-            Action.Conversation.JumpToBottom -> {
-                timelineController.value?.focusOnLive() ?: run {
-                    log.e("Could not find timeline controller")
-                    return@run ActionResult.Failure("Timeline not ready")
+                Action.Conversation.ClearComposer -> {
+                    // Discard all draft state
+                    var wasEmpty = false
+                    DraftRepo.update(draftKey) {
+                        wasEmpty = it?.isEmpty() != false
+                        null
+                    }
+                    if (wasEmpty) {
+                        forceShowComposer.getAndUpdate { false }.orActionInapplicable()
+                    } else {
+                        forceShowComposer.value = false
+                        ActionResult.Success()
+                    }
                 }
-                _targetEvent.value = EventJumpTarget.Index(0)
-                ActionResult.Success(async = true)
-            }
 
-            Action.Conversation.MarkUnread -> {
-                val room = roomPair.value.first ?: return@run ActionResult.Failure("Room not ready")
-                launchActionAsync(
-                    "setUnreadFlag",
-                    GlobalActionsScope,
-                    Dispatchers.IO
+                Action.Conversation.ComposeMessage -> {
+                    forceShowComposer.value = true
+                    DraftRepo.update(draftKey) {
+                        it?.copy(type = DraftType.TEXT, editEventId = null, initialBody = "")
+                            ?: DraftValue(type = DraftType.TEXT)
+                    }
+                    focusByRole(FocusRole.MESSAGE_COMPOSER)
+                    ActionResult.Success()
+                }
+
+                Action.Conversation.ComposeNotice -> {
+                    forceShowComposer.value = true
+                    DraftRepo.update(draftKey) {
+                        it?.copy(type = DraftType.NOTICE, editEventId = null, initialBody = "")
+                            ?: DraftValue(type = DraftType.NOTICE)
+                    }
+                    focusByRole(FocusRole.MESSAGE_COMPOSER)
+                    ActionResult.Success()
+                }
+
+                Action.Conversation.ComposeEmote -> {
+                    forceShowComposer.value = true
+                    DraftRepo.update(draftKey) {
+                        it?.copy(type = DraftType.EMOTE, editEventId = null, initialBody = "")
+                            ?: DraftValue(type = DraftType.EMOTE)
+                    }
+                    focusByRole(FocusRole.MESSAGE_COMPOSER)
+                    ActionResult.Success()
+                }
+
+                Action.Conversation.ComposerSend -> sendMessage(context)
+
+                Action.Conversation.ComposerInsertAtCursor -> {
+                    var hasDraft = false
+                    DraftRepo.update(draftKey) {
+                        hasDraft = it != null
+                        it?.copy(
+                            textFieldValue = it.textFieldValue.insertAtCursor(args[0])
+                        )
+                    }
+                    hasDraft.orActionInapplicable()
+                }
+
+                Action.Conversation.ComposerPasteAttachment -> {
+                    val files = getFilesFromClipboard()
+                    if (files.isEmpty() || files.size > 1) {
+                        ActionResult.Inapplicable
+                    } else {
+                        launchActionAsync(
+                            "addAttachment",
+                            viewModelScope,
+                            Dispatchers.IO,
+                            "addAttachment",
+                        ) {
+                            loadAttachmentFileIntoComposer(files[0])
+                        }
+                    }
+                }
+
+                Action.Conversation.ComposerAddAttachment -> launchAttachmentPicker(this)
+
+                Action.Conversation.ComposerSuggestionFocusNext -> cycleComposerSuggestions(1)
+
+                Action.Conversation.ComposerSuggestionFocusPrevious -> cycleComposerSuggestions(-1)
+
+                Action.Conversation.ComposerSuggestionApplySelected -> {
+                    val suggestion =
+                        composerSuggestions.value.selectedSuggestion ?: return@run ActionResult.Inapplicable
+                    onConfirmSuggestion(suggestion).orActionInapplicable()
+                }
+
+                Action.Conversation.JumpToOwnReadReceipt -> jumpToMessage(
+                    action.name,
+                    StringResourceHolder(Res.string.command_event_name_own_read_receipt),
+                    "jumpTo",
                 ) {
-                    room.setUnreadFlag(true).toActionResult(async = true)
+                    activeTimeline.value?.latestUserReceiptEventId(sessionId.value)?.let(::EventId)
                 }
-                ActionResult.Success(async = true)
-            }
 
-            Action.Conversation.MarkRead -> {
-                val timeline = activeTimeline.value ?: return@run ActionResult.Failure("Timeline not ready")
-                launchActionAsync(
-                    "markRead",
-                    GlobalActionsScope,
-                    Dispatchers.IO
+                Action.Conversation.JumpToFullyRead -> jumpToMessage(
+                    action.name,
+                    StringResourceHolder(Res.string.command_event_name_fully_read_marker),
+                    "jumpTo",
                 ) {
-                    timeline.markAsRead(ReceiptType.READ).toActionResult(async = true)
+                    activeTimeline.value?.fullyReadEventId()?.let(::EventId)
                 }
-            }
 
-            Action.Conversation.MarkReadPrivate -> {
-                val timeline = activeTimeline.value ?: return@run ActionResult.Failure("Timeline not ready")
-                launchActionAsync(
-                    "markReadPrivate",
-                    GlobalActionsScope,
-                    Dispatchers.IO
-                ) {
-                    timeline.markAsRead(ReceiptType.READ_PRIVATE).toActionResult(async = true)
+                Action.Conversation.JumpToBottom -> {
+                    timelineController.value?.focusOnLive() ?: run {
+                        log.e("Could not find timeline controller")
+                        return@run ActionResult.Failure("Timeline not ready")
+                    }
+                    _targetEvent.value = EventJumpTarget.Index(0)
+                    ActionResult.Success(async = true)
                 }
-            }
 
-            Action.Conversation.MarkFullyRead -> {
-                val timeline = activeTimeline.value ?: return@run ActionResult.Failure("Timeline not ready")
-                launchActionAsync(
-                    "markFullyRead",
-                    GlobalActionsScope,
-                    Dispatchers.IO
-                ) {
-                    timeline.markAsRead(ReceiptType.FULLY_READ).toActionResult(async = true)
+                Action.Conversation.MarkRead -> {
+                    val timeline = activeTimeline.value ?: return@run ActionResult.Failure("Timeline not ready")
+                    launchActionAsync(
+                        "markRead",
+                        GlobalActionsScope,
+                        Dispatchers.IO
+                    ) {
+                        timeline.markAsRead(ReceiptType.READ).toActionResult(async = true)
+                    }
                 }
-            }
 
-            Action.Conversation.KickUser -> {
-                val room = roomPair.value.second ?: return@run ActionResult.Failure("Room not ready")
-                val userId = UserId(args.firstOrNull().orActionValidationError())
-                val reason = if (args.size > 1) {
-                    args.subList(1, args.size).joinToString().takeIf(String::isNotBlank)
-                } else {
-                    null
+                Action.Conversation.MarkReadPrivate -> {
+                    val timeline = activeTimeline.value ?: return@run ActionResult.Failure("Timeline not ready")
+                    launchActionAsync(
+                        "markReadPrivate",
+                        GlobalActionsScope,
+                        Dispatchers.IO
+                    ) {
+                        timeline.markAsRead(ReceiptType.READ_PRIVATE).toActionResult(async = true)
+                    }
                 }
-                launchActionAsync(
-                    "kickUser",
-                    GlobalActionsScope,
-                    Dispatchers.IO
-                ) {
-                    room.kickUser(userId, reason).toActionResult(async = true)
-                }
-            }
 
-            Action.Conversation.InviteUser -> {
-                val room = roomPair.value.second ?: return@run ActionResult.Failure("Room not ready")
-                val userId = UserId(args.firstOrNull().orActionValidationError())
-                launchActionAsync(
-                    "inviteUser",
-                    GlobalActionsScope,
-                    Dispatchers.IO
-                ) {
-                    room.inviteUserById(userId).toActionResult(async = true)
+                Action.Conversation.MarkFullyRead -> {
+                    val timeline = activeTimeline.value ?: return@run ActionResult.Failure("Timeline not ready")
+                    launchActionAsync(
+                        "markFullyRead",
+                        GlobalActionsScope,
+                        Dispatchers.IO
+                    ) {
+                        timeline.markAsRead(ReceiptType.FULLY_READ).toActionResult(async = true)
+                    }
                 }
-            }
 
-            Action.Conversation.BanUser -> {
-                val room = roomPair.value.second ?: return@run ActionResult.Failure("Room not ready")
-                val userId = UserId(args.firstOrNull().orActionValidationError())
-                launchActionAsync(
-                    "inviteUser",
-                    GlobalActionsScope,
-                    Dispatchers.IO
-                ) {
-                    room.banUser(userId).toActionResult(async = true)
+                Action.Conversation.KickUser -> {
+                    val room = roomPair.value.second ?: return@run ActionResult.Failure("Room not ready")
+                    val userId = UserId(args.firstOrNull().orActionValidationError())
+                    val reason = if (args.size > 1) {
+                        args.subList(1, args.size).joinToString().takeIf(String::isNotBlank)
+                    } else {
+                        null
+                    }
+                    launchActionAsync(
+                        "kickUser",
+                        GlobalActionsScope,
+                        Dispatchers.IO
+                    ) {
+                        room.kickUser(userId, reason).toActionResult(async = true)
+                    }
                 }
-            }
 
-            Action.Conversation.UnbanUser -> {
-                val room = roomPair.value.second ?: return@run ActionResult.Failure("Room not ready")
-                val userId = UserId(args.firstOrNull().orActionValidationError())
-                val reason = if (args.size > 1) {
-                    args.subList(1, args.size).joinToString().takeIf(String::isNotBlank)
-                } else {
-                    null
+                Action.Conversation.InviteUser -> {
+                    val room = roomPair.value.second ?: return@run ActionResult.Failure("Room not ready")
+                    val userId = UserId(args.firstOrNull().orActionValidationError())
+                    launchActionAsync(
+                        "inviteUser",
+                        GlobalActionsScope,
+                        Dispatchers.IO
+                    ) {
+                        room.inviteUserById(userId).toActionResult(async = true)
+                    }
                 }
-                launchActionAsync(
-                    "inviteUser",
-                    GlobalActionsScope,
-                    Dispatchers.IO
-                ) {
-                    room.unbanUser(userId, reason).toActionResult(async = true)
+
+                Action.Conversation.BanUser -> {
+                    val room = roomPair.value.second ?: return@run ActionResult.Failure("Room not ready")
+                    val userId = UserId(args.firstOrNull().orActionValidationError())
+                    launchActionAsync(
+                        "inviteUser",
+                        GlobalActionsScope,
+                        Dispatchers.IO
+                    ) {
+                        room.banUser(userId).toActionResult(async = true)
+                    }
+                }
+
+                Action.Conversation.UnbanUser -> {
+                    val room = roomPair.value.second ?: return@run ActionResult.Failure("Room not ready")
+                    val userId = UserId(args.firstOrNull().orActionValidationError())
+                    val reason = if (args.size > 1) {
+                        args.subList(1, args.size).joinToString().takeIf(String::isNotBlank)
+                    } else {
+                        null
+                    }
+                    launchActionAsync(
+                        "inviteUser",
+                        GlobalActionsScope,
+                        Dispatchers.IO
+                    ) {
+                        room.unbanUser(userId, reason).toActionResult(async = true)
+                    }
                 }
             }
         }
     }
+
+    val actionProvider = FlatMergedKeyboardActionProvider(
+        listOf(conversationActionProvider, roomActionProvider)
+    )
 
     private fun cycleComposerSuggestions(direction: Int): ActionResult {
         val state = composerSuggestions.value

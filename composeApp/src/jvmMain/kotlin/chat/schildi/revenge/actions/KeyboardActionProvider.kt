@@ -60,3 +60,25 @@ data class HierarchicalKeyboardActionProvider(
         )
     }
 }
+
+
+data class FlatMergedKeyboardActionProvider(
+    val instances: List<KeyboardActionProvider<*>>,
+) : KeyboardActionProvider<Action> {
+    override fun getPossibleActions() = instances.flatMap { it.getPossibleActions() }.toSet()
+    override fun ensureActionType(action: Action) = action
+    override fun handleNavigationModeEvent(
+        context: ActionContext,
+        key: KeyTrigger
+    ) = ActionResult.chain(*instances.map {{
+        it.handleNavigationModeEvent(context, key)
+    }}.toTypedArray())
+
+    override fun handleAction(
+        context: ActionContext,
+        action: Action,
+        args: List<String>
+    ) = ActionResult.chain(*instances.map {{
+        it.handleActionOrInapplicable(context, action, args)
+    }}.toTypedArray())
+}
