@@ -48,15 +48,30 @@ kotlin {
     }
 }
 
-
 compose.desktop {
     application {
         mainClass = "chat.schildi.revenge.MainKt"
 
+        // ProGuard is broken, today can we fix?
+        buildTypes {
+            release {
+                proguard {
+                    isEnabled.set(false)
+                }
+            }
+        }
+
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            targetFormats(
+                TargetFormat.Deb,
+                TargetFormat.AppImage,
+                TargetFormat.Rpm,
+                TargetFormat.Exe,
+                TargetFormat.Msi,
+                // TargetFormat.Dmg, // Needs Apple volunteers
+            )
             packageName = "chat.schildi.revenge"
-            packageVersion = "1.0.0"
+            packageVersion = "0.1.0"
         }
     }
 }

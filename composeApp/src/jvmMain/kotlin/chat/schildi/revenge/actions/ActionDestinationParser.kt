@@ -15,5 +15,6 @@ internal fun String.toDestinationOrNull(args: List<String>) = when (lowercase())
     "room" -> if (args.size == 2) tryOrNull {
         Destination.Conversation(SessionId(args[0]), RoomId(args[1]))
     } else null
+    "about" -> Destination.About
     else -> null
 }

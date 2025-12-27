@@ -159,6 +159,14 @@ the SDK changed. Usually the build process will pick up automatically whether to
 SDK compiles, run `cargo clean` in the `matrix-rust-sdk` directory. `./gradlew clean` *will not* clean a previous SDK
 build (which is intended).
 
+## Building release builds
+
+TODO
+
+```
+./gradlew packageReleaseAppImage
+```
+
 
 ## Upstream SDK merges
 

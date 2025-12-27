@@ -5,12 +5,13 @@ import chat.schildi.revenge.compose.util.StringResourceHolder
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.about
 import shire.composeapp.generated.resources.app_title
 import shire.composeapp.generated.resources.inbox
 import shire.composeapp.generated.resources.manage_accounts
 
 sealed interface Destination {
-    // For referring to destinations via key bindings config
+    // For referring to destinations via key bindings config, in order to restrict bindings to destinations
     val name: String
     val title: ComposableStringHolder?
 
@@ -39,6 +40,11 @@ sealed interface Destination {
     ) : WithSession {
         override val name = "Conversation"
         override val title = null
+    }
+
+    data object About : Destination {
+        override val name = "About"
+        override val title = StringResourceHolder(Res.string.about)
     }
 
     sealed interface Split : Destination {

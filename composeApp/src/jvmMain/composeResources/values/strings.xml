@@ -4,6 +4,12 @@
     <string name="inbox">Inbox</string>
     <string name="inbox_search">Inbox search</string>
 
+    <string name="about">About</string>
+    <string name="about_credits">Credits</string>
+    <string name="about_privacy_policy">Privacy Policy</string>
+    <string name="about_website">Website</string>
+    <string name="about_source_code">Source Code</string>
+
     <string name="action_login">Login</string>
     <string name="action_verify">Verify</string>
     <string name="action_send">Send</string>
@@ -71,6 +77,7 @@
     <string name="hint_hidden">hidden</string>
     <string name="hint_sending">Sending</string>
     <string name="hint_send_error">Send error</string>
+    <string name="hint_app_icon">App icon</string>
 
     <string name="reply_failed_to_load">Failed to load replied-to message</string>
 

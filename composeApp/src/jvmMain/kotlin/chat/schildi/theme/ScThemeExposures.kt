@@ -13,6 +13,7 @@ class ScThemeExposures(
     horizontalDividerThickness: Dp,
     accentColor: Color,
     colorOnAccent: Color,
+    linkColor: Color,
     bubbleBgIncoming: Color,
     bubbleBgOutgoing: Color,
     mentionBadgeColor: Color,
@@ -44,6 +45,8 @@ class ScThemeExposures(
     var accentColor by mutableStateOf(accentColor)
         private set
     var colorOnAccent by mutableStateOf(colorOnAccent)
+        private set
+    var linkColor by mutableStateOf(linkColor)
         private set
     var bubbleBgIncoming by mutableStateOf(bubbleBgIncoming)
         private set
@@ -97,6 +100,7 @@ class ScThemeExposures(
         horizontalDividerThickness: Dp = this.horizontalDividerThickness,
         accentColor: Color = this.accentColor,
         colorOnAccent: Color = this.colorOnAccent,
+        linkColor: Color = this.linkColor,
         bubbleBgIncoming: Color = this.bubbleBgIncoming,
         bubbleBgOutgoing: Color = this.bubbleBgOutgoing,
         mentionBadgeColor: Color = this.mentionBadgeColor,
@@ -125,6 +129,7 @@ class ScThemeExposures(
         horizontalDividerThickness = horizontalDividerThickness,
         accentColor = accentColor,
         colorOnAccent = colorOnAccent,
+        linkColor = linkColor,
         bubbleBgIncoming = bubbleBgIncoming,
         bubbleBgOutgoing = bubbleBgOutgoing,
         mentionBadgeColor = mentionBadgeColor,
@@ -155,6 +160,7 @@ class ScThemeExposures(
         horizontalDividerThickness = other.horizontalDividerThickness
         accentColor = other.accentColor
         colorOnAccent = other.colorOnAccent
+        linkColor = other.linkColor
         bubbleBgIncoming = other.bubbleBgIncoming
         bubbleBgOutgoing = other.bubbleBgOutgoing
         mentionBadgeColor = other.mentionBadgeColor

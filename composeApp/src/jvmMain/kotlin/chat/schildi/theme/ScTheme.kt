@@ -8,6 +8,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.TextStyle
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
@@ -83,4 +85,12 @@ fun Color.fakeAlpha(alpha: Float) = Color(
     1f - alpha * (1f - green),
     1f - alpha * (1f - blue),
     1f,
+)
+
+
+@Composable
+fun scLinkStyle() = TextLinkStyles(
+    style = SpanStyle(
+        color = MaterialTheme.scExposures.linkColor,
+    )
 )

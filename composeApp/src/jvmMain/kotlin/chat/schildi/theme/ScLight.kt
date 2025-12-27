@@ -60,6 +60,7 @@ internal val sclExposures = ScThemeExposures(
     horizontalDividerThickness = DividerDefaults.Thickness,
     accentColor = scl_accent,
     colorOnAccent = ScColors.colorWhite,
+    linkColor = ScColors.colorAccentBlue,
     bubbleBgIncoming = ScColors.colorWhite_ee,
     bubbleBgOutgoing = scl_accent.fakeAlpha(0.12f),
     mentionBadgeColor = Color(0xffd51928),
