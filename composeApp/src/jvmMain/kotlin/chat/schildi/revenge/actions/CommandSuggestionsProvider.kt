@@ -6,10 +6,15 @@ import chat.schildi.preferences.forEachPreference
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.revenge.config.keybindings.ALLOWED_DESTINATION_STRINGS
 import chat.schildi.revenge.config.keybindings.ActionArgument
 import chat.schildi.revenge.config.keybindings.ActionArgumentAnyOf
+import chat.schildi.revenge.config.keybindings.ActionArgumentContextBased
 import chat.schildi.revenge.config.keybindings.ActionArgumentOptional
 import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
+import chat.schildi.revenge.config.keybindings.CommandArgContext
+import chat.schildi.revenge.config.keybindings.SUGGESTED_DESTINATION_STRINGS
+import chat.schildi.revenge.config.keybindings.findAll
 import chat.schildi.revenge.config.keybindings.minArgsSize
 import chat.schildi.revenge.flatMergeCombinedWith
 import chat.schildi.revenge.model.RevengeRoomListDataSource
@@ -47,8 +52,6 @@ data class CommandSuggestionsState(
 )
 
 private val BOOLEAN_SUGGESTIONS = listOf("true", "false")
-
-typealias CommandArgContext = List<Pair<ActionArgument, String>>
 
 class CommandSuggestionsProvider(
     queryFlow: Flow<KeyboardActionMode.Command?>,
@@ -201,7 +204,7 @@ class CommandSuggestionsProvider(
                 ActionArgumentPrimitive.UserIdNotInRoom -> emptyList() // TODO?
                 ActionArgumentPrimitive.SessionId -> accounts.value
                 ActionArgumentPrimitive.RoomId -> {
-                    val sessionIds = context.findSessionIds()
+                    val sessionIds = context.findAll(ActionArgumentPrimitive.SessionId)
                     if (sessionIds.isEmpty()) {
                         scopedRoomSuggestions.value.map { it.second }.distinct()
                     } else {
@@ -218,7 +221,7 @@ class CommandSuggestionsProvider(
                 ActionArgumentPrimitive.NavigatableDestinationName ->
                     SUGGESTED_DESTINATION_STRINGS.toSuggestionsWithoutHint()
                 ActionArgumentPrimitive.SettingValue -> {
-                    val settingKeys = context.findSettingKeys()
+                    val settingKeys = context.findAll(ActionArgumentPrimitive.SettingKey)
                     if (settingKeys.isEmpty()) {
                         emptyList()
                     } else {
@@ -235,11 +238,13 @@ class CommandSuggestionsProvider(
                 ActionArgumentPrimitive.EventId,
                 ActionArgumentPrimitive.SpaceId,
                 ActionArgumentPrimitive.SpaceSelectionId,
-                ActionArgumentPrimitive.SpaceIndex -> emptyList()
+                ActionArgumentPrimitive.SpaceIndex,
+                ActionArgumentPrimitive.Empty -> emptyList()
             }.filterValidSuggestionsFor(query, arg).distinct()
         }
         is ActionArgumentAnyOf -> arg.arguments.flatMap { suggestPrimaryFor(it, context, query) }
         is ActionArgumentOptional -> suggestPrimaryFor(arg.argument, context, query)
+        is ActionArgumentContextBased -> suggestPrimaryFor(arg.getFor(context), context, query)
     }
 
     // If we have less preferred but still valid suggestions
@@ -253,7 +258,7 @@ class CommandSuggestionsProvider(
                 ActionArgumentPrimitive.NavigatableDestinationName ->
                     ALLOWED_DESTINATION_STRINGS.toSuggestionsWithoutHint()
                 ActionArgumentPrimitive.RoomId -> {
-                    val sessionIds = context.findSessionIds()
+                    val sessionIds = context.findAll(ActionArgumentPrimitive.SessionId)
                     if (sessionIds.isEmpty()) {
                         // Already suggested everything as primary suggestion
                         emptyList()
@@ -267,6 +272,7 @@ class CommandSuggestionsProvider(
         }
         is ActionArgumentAnyOf -> arg.arguments.flatMap { suggestSecondaryFor(it, context, query) }
         is ActionArgumentOptional -> suggestSecondaryFor(arg.argument, context, query)
+        is ActionArgumentContextBased -> suggestSecondaryFor(arg.getFor(context), context, query)
     }
 
     fun clear() {
@@ -286,14 +292,6 @@ class CommandSuggestionsProvider(
     }
     fun List<CommandSuggestion>.filterValidSuggestionsFor(query: String, arg: ActionArgumentPrimitive?) =
         filterValidSuggestionsFor(query, arg) { it.value }
-}
-
-fun CommandArgContext.findSessionIds() = mapNotNull { (ctxArgDef, ctxArgVal) ->
-    ctxArgVal.takeIf { ctxArgDef.canHold(ActionArgumentPrimitive.SessionId) }
-}
-
-fun CommandArgContext.findSettingKeys() = mapNotNull { (ctxArgDef, ctxArgVal) ->
-    ctxArgVal.takeIf { ctxArgDef.canHold(ActionArgumentPrimitive.SettingKey) }
 }
 
 fun List<String>.toSuggestionsWithoutHint() = map { CommandSuggestion(it, null) }

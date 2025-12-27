@@ -40,18 +40,22 @@ import chat.schildi.revenge.compose.focus.AbstractFocusRequester
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.revenge.config.keybindings.ALLOWED_DESTINATION_STRINGS
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.ActionArgument
 import chat.schildi.revenge.config.keybindings.ActionArgumentAnyOf
+import chat.schildi.revenge.config.keybindings.ActionArgumentContextBased
 import chat.schildi.revenge.config.keybindings.ActionArgumentOptional
 import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
 import chat.schildi.revenge.config.keybindings.AllowedComposerTextFieldBindingKeys
 import chat.schildi.revenge.config.keybindings.AllowedSingleLineTextFieldBindingKeys
 import chat.schildi.revenge.config.keybindings.AllowedTextFieldBindingKeys
 import chat.schildi.revenge.config.keybindings.Binding
+import chat.schildi.revenge.config.keybindings.CommandArgContext
 import chat.schildi.revenge.config.keybindings.KeyMapped
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.config.keybindings.KeybindingConfig
+import chat.schildi.revenge.config.keybindings.findAll
 import chat.schildi.revenge.config.keybindings.minArgsSize
 import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.REAL_SPACE_ID_PREFIX
@@ -1407,10 +1411,13 @@ fun checkArgument(
         is ActionArgumentOptional -> {
             checkArgument(actionName, argDef.argument, argVal, context, lookahead, validSessionIds, validSettingKeys)
         }
+        is ActionArgumentContextBased -> {
+            checkArgument(actionName, argDef.getFor(context), argVal, context, lookahead, validSessionIds, validSettingKeys)
+        }
         ActionArgumentPrimitive.Reason,
         ActionArgumentPrimitive.Text -> null
         ActionArgumentPrimitive.SettingValue -> {
-            val settingKeys = context.findSettingKeys()
+            val settingKeys = context.findAll(ActionArgumentPrimitive.SettingKey)
             if (settingKeys.isEmpty()) {
                 // Ignore already broken SettingsKey
                 null
@@ -1544,6 +1551,15 @@ fun checkArgument(
             } else {
                 ActionResult.Malformed(
                     "Invalid parameter for $actionName, expected non-negative integer got $argVal"
+                )
+            }
+        }
+        ActionArgumentPrimitive.Empty -> {
+            if (argVal.isBlank()) {
+                null
+            } else {
+                ActionResult.Malformed(
+                    "Unexpected parameter for $actionName: $argVal"
                 )
             }
         }

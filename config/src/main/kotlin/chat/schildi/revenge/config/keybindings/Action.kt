@@ -16,6 +16,9 @@ data class ActionArgumentAnyOf(val arguments: List<ActionArgumentPrimitive>) : A
         get() = "any of: ${arguments.joinToString { it.name }}"
     override fun canHold(primitive: ActionArgumentPrimitive) = arguments.contains(primitive)
 }
+sealed interface ActionArgumentContextBased : ActionArgument {
+    fun getFor(context: CommandArgContext): ActionArgument
+}
 
 enum class ActionArgumentPrimitive : ActionArgument {
     Text,
@@ -34,7 +37,8 @@ enum class ActionArgumentPrimitive : ActionArgument {
     NavigatableDestinationName,
     SpaceId,
     SpaceSelectionId,
-    SpaceIndex;
+    SpaceIndex,
+    Empty;
     override fun canHold(primitive: ActionArgumentPrimitive) = primitive == this
 }
 
@@ -52,8 +56,8 @@ private val OptionalReason = ActionArgumentOptional(ActionArgumentPrimitive.Reas
 
 private val navigationArgs = listOf(
     ActionArgumentPrimitive.NavigatableDestinationName,
-    ActionArgumentOptional(ActionArgumentPrimitive.SessionId),
-    ActionArgumentOptional(ActionArgumentPrimitive.RoomId)
+    ActionArgumentOptional(NavigationDestinationSessionId),
+    ActionArgumentOptional(NavigationDestinationRoomId)
 )
 
 fun Action.handlesCommand(command: String): Boolean {
