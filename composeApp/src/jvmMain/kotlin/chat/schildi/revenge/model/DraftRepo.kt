@@ -77,7 +77,7 @@ data class DraftValue(
     val attachment: Attachment? = null, // Mandatory for DraftType.ATTACHMENT, otherwise unused
 ) {
     val body: String
-        get() = textFieldValue.text
+        get() = textFieldValue.text.trim()
     val htmlBody: String?
         get() = ComposerHtmlGenerator.generateFormattedHtmlBody(body, mentions)
     val intentionalMentions = mentions.map { it.mention }
