@@ -40,6 +40,7 @@ import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.defaultActionProvider
 import chat.schildi.revenge.compose.components.ifNotNull
 import chat.schildi.revenge.compose.components.thenIf
+import chat.schildi.theme.scExposures
 import java.util.UUID
 
 @Composable
@@ -90,7 +91,7 @@ internal fun Modifier.keyFocusableContainer(
             if (role == FocusRole.DESTINATION_ROOT_CONTAINER) {
                 it
             } else {
-                it.focusableItemBackground(id, keyHandler)
+                it.focusableItemBackground(false, id, keyHandler)
             }
         }
 }
@@ -118,6 +119,7 @@ fun Modifier.keyFocusable(
     enableClicks: Boolean = true,
     addClickListener: Boolean = true,
     addMouseFocusable: Boolean = role.allowsFocusable() && actionProvider.primaryAction == null,
+    highlight: Boolean = false,
 ): Modifier {
     val id = remember { UUID.randomUUID() }
     val keyHandler = LocalKeyboardActionHandler.current
@@ -156,14 +158,19 @@ fun Modifier.keyFocusable(
             destinationState = destinationState,
             actionProvider = actionProvider,
             focusRequester = remember(focusRequester) { FocusRequesterWrapper(focusRequester) },
-        ).focusableItemBackground(id, keyHandler)
+        ).focusableItemBackground(highlight, id, keyHandler)
 }
 
 @Composable
-private fun Modifier.focusableItemBackground(id: UUID, keyHandler: KeyboardActionHandler): Modifier {
+private fun Modifier.focusableItemBackground(
+    customHighlight: Boolean,
+    id: UUID,
+    keyHandler: KeyboardActionHandler
+): Modifier {
     val state = keyHandler.currentFocusState.collectAsState().value
     val color = animateColorAsState(
         when {
+            customHighlight -> MaterialTheme.scExposures.accentColor
             state.commandFocus == id -> MaterialTheme.colorScheme.error
             state.keyboardFocus == id -> MaterialTheme.colorScheme.onSurfaceVariant
             else -> Color.Transparent

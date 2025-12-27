@@ -32,19 +32,11 @@ fun CommandSuggestions(
         suggestions = suggestionsState.currentSuggestions,
         key = { it },
         currentSelection = suggestionsState.currentSuggestions.find { it.value == currentSelection },
+        onSuggestionClick = { onSuggestionClick(it.value) },
         modifier = modifier,
-    ) { suggestion ->
-        Row(Modifier
-            .fillMaxWidth()
-            .keyFocusable(
-                actionProvider = defaultActionProvider(
-                    primaryAction = InteractionAction.Invoke {
-                        onSuggestionClick(suggestion.value)
-                        true
-                    }
-                )
-            )
-            .padding(horizontal = Dimens.windowPadding, vertical = Dimens.listPadding),
+    ) { suggestion, modifier ->
+        Row(
+            modifier = modifier,
             horizontalArrangement = Dimens.horizontalArrangement,
         ) {
             Text(
@@ -73,8 +65,9 @@ fun <T>TextFieldSuggestions(
     suggestions: ImmutableList<T>,
     key: ((T) -> Any)? = null,
     currentSelection: T?,
+    onSuggestionClick: (T) -> Unit,
     modifier: Modifier = Modifier,
-    entry: @Composable (T) -> Unit,
+    entry: @Composable (T, Modifier) -> Unit,
 ) {
     val state = rememberLazyListState()
     LaunchedEffect(currentSelection) {
@@ -87,8 +80,22 @@ fun <T>TextFieldSuggestions(
         modifier.background(MaterialTheme.colorScheme.surfaceContainerHigh),
         state = state,
     ) {
-        items(suggestions, key = key) {
-            entry(it)
+        items(suggestions, key = key) { suggestion ->
+            entry(
+                suggestion,
+                Modifier
+                    .fillMaxWidth()
+                    .keyFocusable(
+                        actionProvider = defaultActionProvider(
+                            primaryAction = InteractionAction.Invoke {
+                                onSuggestionClick(suggestion)
+                                true
+                            }
+                        ),
+                        highlight = currentSelection == suggestion,
+                    )
+                    .padding(horizontal = Dimens.windowPadding, vertical = Dimens.listPadding),
+            )
         }
     }
 }
