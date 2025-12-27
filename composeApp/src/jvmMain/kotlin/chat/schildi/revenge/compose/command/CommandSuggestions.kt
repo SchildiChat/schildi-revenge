@@ -77,7 +77,7 @@ fun <T>TextFieldSuggestions(
         }
     }
     LazyColumn(
-        modifier.background(MaterialTheme.colorScheme.surfaceContainerHigh),
+        modifier.background(MaterialTheme.colorScheme.surfaceVariant),
         state = state,
     ) {
         items(suggestions, key = key) { suggestion ->

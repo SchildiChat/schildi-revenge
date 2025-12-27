@@ -39,11 +39,12 @@ internal val scdMaterialColorScheme = darkColorScheme(
     onBackground = scd_fgPrimary,
     surface = scd_bgDarker,
     onSurface = scd_fgPrimary,
-    surfaceVariant = scd_bgFloating,
+    surfaceVariant = scd_bg,
     onSurfaceVariant = scd_fgSecondary,
     surfaceTint = scd_bgFloating,
     inverseSurface = scl_bgFloating,
     inverseOnSurface = scl_fgPrimary,
+    surfaceContainerHigh = scd_bgFloating,
 
     error = ScColors.colorAccentRed,
     onError = scd_fgPrimary,

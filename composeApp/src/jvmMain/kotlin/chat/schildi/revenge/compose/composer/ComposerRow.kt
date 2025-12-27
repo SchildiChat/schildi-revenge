@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
@@ -116,8 +117,8 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
                     .background(MaterialTheme.colorScheme.surface)
                     .keyFocusable(role = FocusRole.MESSAGE_COMPOSER),
                 colors = TextFieldDefaults.colors().copy(
-                    focusedContainerColor = MaterialTheme.colorScheme.surface,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
                 )
             )
             SendButton(

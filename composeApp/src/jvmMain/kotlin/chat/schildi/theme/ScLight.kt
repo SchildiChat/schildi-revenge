@@ -44,6 +44,7 @@ internal val sclMaterialColorScheme = lightColorScheme(
     surfaceTint = scl_bgFloating,
     inverseSurface = scd_bg,
     inverseOnSurface = scd_fgPrimary,
+    surfaceContainerHigh = scl_bgFloating,
 
     error = ScColors.colorAccentRed,
     onError = scl_fgPrimary,
