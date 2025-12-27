@@ -5,6 +5,7 @@ import chat.schildi.preferences.findPreference
 import chat.schildi.preferences.forEachPreference
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.revenge.compose.util.HardcodedStringHolder
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.ALLOWED_DESTINATION_STRINGS
 import chat.schildi.revenge.config.keybindings.ActionArgument
@@ -284,16 +285,22 @@ class CommandSuggestionsProvider(
     fun <T>List<T>.filterValidSuggestionsFor(
         query: String,
         arg: ActionArgumentPrimitive? = null,
+        selectHint: (T) -> String? = { null },
         select: (T) -> String,
-    ) = filter {
-        // Sometimes we want to suggest even things that don't "start with"
-        when (arg) {
-            ActionArgumentPrimitive.SettingKey -> select(it).lowercase().contains(query)
-            else -> select(it).lowercase().startsWith(query.lowercase())
+    ): List<T> {
+        val queryLower = query.lowercase()
+        return filter {
+            // Sometimes we want to suggest even things that don't "start with"
+            when (arg) {
+                ActionArgumentPrimitive.SettingKey -> select(it).lowercase().contains(queryLower)
+                ActionArgumentPrimitive.RoomId -> select(it).lowercase().startsWith(queryLower) ||
+                        selectHint(it)?.lowercase()?.contains(queryLower) == true
+                else -> select(it).lowercase().startsWith(queryLower)
+            }
         }
     }
     fun List<CommandSuggestion>.filterValidSuggestionsFor(query: String, arg: ActionArgumentPrimitive?) =
-        filterValidSuggestionsFor(query, arg) { it.value }
+        filterValidSuggestionsFor(query, arg, select = { it.value }, selectHint = { (it.hint as? HardcodedStringHolder)?.value })
 }
 
 fun List<String>.toSuggestionsWithoutHint() = map { CommandSuggestion(it, null) }
