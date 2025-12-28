@@ -207,7 +207,9 @@ class KeyboardActionHandler(
     var uriHandler: UriHandler? = null
 
     var windowCoordinates: Rect? = null
-    private var lastPointerPosition = Offset.Zero
+    private var _lastPointerPosition = Offset.Zero
+    val lastPointerPosition: Offset
+        get() = _lastPointerPosition
     private val currentFocus = MutableStateFlow<UUID?>(null)
 
     private val _mode = MutableStateFlow<KeyboardActionMode>(KeyboardActionMode.Navigation)
@@ -1069,8 +1071,8 @@ class KeyboardActionHandler(
     }
 
     fun handlePointer(position: Offset) {
-        if (lastPointerPosition != position) {
-            lastPointerPosition = position
+        if (_lastPointerPosition != position) {
+            _lastPointerPosition = position
             _keyboardPrimary.value = false
         }
         val focusable = focusableTargets.values.firstNotNullOfOrNull { target ->

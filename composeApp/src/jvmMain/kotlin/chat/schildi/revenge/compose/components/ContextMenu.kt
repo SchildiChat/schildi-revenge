@@ -10,18 +10,28 @@ import androidx.compose.material3.MenuItemColors
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.nativeKeyCode
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalDensity
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.util.StringResourceHolder
@@ -50,18 +60,44 @@ fun WithContextMenu(
 ) {
     val keyHandler = LocalKeyboardActionHandler.current
     val expanded = keyHandler.currentOpenContextMenu.collectAsState().value == focusId
-    Box(modifier) {
+    var anchorBounds by remember { mutableStateOf<Rect?>(null) }
+    var pointerPositionOnOpen by remember { mutableStateOf<Offset?>(null) }
+    val density = LocalDensity.current
+    Box(
+        modifier.onGloballyPositioned {
+            anchorBounds = it.boundsInWindow()
+        }
+    ) {
         content(
             if (entries.isEmpty())
                 null
             else
                 InteractionAction.ContextMenu(focusId, entries)
         )
+
+        LaunchedEffect(expanded) {
+            if (expanded) {
+                pointerPositionOnOpen = keyHandler.lastPointerPosition
+            }
+        }
+
+        val offset = remember(pointerPositionOnOpen, anchorBounds) {
+            val anchor = anchorBounds
+            val position = pointerPositionOnOpen
+            if (anchor == null || position == null) {
+                DpOffset(0.dp, 0.dp)
+            } else {
+                val localX = (position.x - anchor.left).coerceAtLeast(0f)
+                with(density) {
+                    DpOffset(localX.toDp(), 0.dp)
+                }
+            }
+        }
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { keyHandler.dismissContextMenu(focusId) },
             containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-            //offset = , // TODO?
+            offset = offset,
         ) {
             entries.forEach { entry ->
                 val primaryColor = if (entry.critical) {
