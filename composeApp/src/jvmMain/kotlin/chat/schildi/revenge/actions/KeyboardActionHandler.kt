@@ -36,6 +36,7 @@ import chat.schildi.revenge.compose.focus.FocusParent
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.LocalDestinationState
+import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
@@ -91,6 +92,7 @@ import java.awt.datatransfer.DataFlavor
 import java.io.File
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.collections.map
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.sqrt
@@ -217,6 +219,9 @@ class KeyboardActionHandler(
         RevengePrefs.settingFlow(ScPrefs.ALWAYS_SHOW_KEYBOARD_FOCUS),
         Boolean::or,
     ).stateIn(scope, SharingStarted.Eagerly, false)
+
+    private val _currentOpenContextMenu = MutableStateFlow<UUID?>(null)
+    val currentOpenContextMenu = _currentOpenContextMenu.asStateFlow()
 
     val currentFocusState = combine(
         currentFocus,
@@ -366,6 +371,7 @@ class KeyboardActionHandler(
                 }
             }
             is InteractionAction.Invoke -> action.invoke()
+            is InteractionAction.ContextMenu -> openContextMenu(action.focusId)
         }
     }
 
@@ -444,13 +450,22 @@ class KeyboardActionHandler(
     fun onPreviewKeyEvent(event: KeyEvent): Boolean {
         val trigger = event.toTrigger() ?: return false
         val focused = currentFocused()
+        val contextMenu = _currentOpenContextMenu.value?.let {
+            focusableTargets[it]?.actions?.findInteractionAction<InteractionAction.ContextMenu>()?.takeIf {
+                it.entries.isNotEmpty()
+            }
+        }
         // Disallow plain keybindings of keys handled by text fields
-        if (!event.isCtrlPressed && focused?.role?.consumesKeyWhitelist?.let { event.key in it } == false) {
+        if (!event.isCtrlPressed && contextMenu == null &&
+            focused?.role?.consumesKeyWhitelist?.let { event.key in it } == false
+        ) {
             return false
         }
         return when (event.type) {
             KeyDown -> {
-                val consumed = when (val mode = mode.value) {
+                val consumed = if (contextMenu != null) {
+                     handleContextMenuEvent(event, contextMenu)
+                } else when (val mode = mode.value) {
                     is KeyboardActionMode.Navigation -> {
                         val result = handleNavigationEvent(trigger, focused)
                         if (result is ActionResult.Failure) {
@@ -587,6 +602,21 @@ class KeyboardActionHandler(
         }
     }
 
+    private fun handleContextMenuEvent(event: KeyEvent, contextMenu: InteractionAction.ContextMenu): Boolean {
+        when (event.key) {
+            Key.Escape -> dismissContextMenu(contextMenu.focusId)
+            else -> {
+                val action = contextMenu.entries.find { it.keyboardShortcut == event.key }
+                if (action != null) {
+                    handleAction(contextMenu.focusId, action.action, action.actionArgs)
+                    dismissContextMenu(contextMenu.focusId)
+                }
+            }
+        }
+        // Consume everything while open
+        return true
+    }
+
     private fun focusSearchResults(parentId: UUID?) {
         focusClosestTo(Offset.Zero, allowPartial = true, role = FocusRole.LIST_ITEM, parentId = parentId)
     }
@@ -671,9 +701,27 @@ class KeyboardActionHandler(
         destination?.name
     )
 
+    fun handleAction(
+        focusItem: UUID,
+        action: Action,
+        args: List<String>,
+    ): ActionResult {
+        val focused = focusableTargets[focusItem] ?: run {
+            log.e("Invoked handleAction on unregistered focus item")
+            currentFocused()
+        }
+        val context = getInternalActionContext(focused)
+
+        return ActionResult.chain(
+            *getCurrentKeyActionHandlers(focused).map {{
+                it.handleActionOrInapplicable(context, action, args)
+            }}.toTypedArray()
+        )
+    }
+
     private fun getInternalActionContext(
         focused: FocusTarget?,
-        keybindingConfig: KeybindingConfig?,
+        keybindingConfig: KeybindingConfig? = UiState.keybindingsConfig.value,
         currentDestinationName: String? = focused?.destinationStateHolder?.state?.value?.destination?.name,
     ) = object : InternalActionContext {
         override fun publishMessage(message: AbstractAppMessage) =
@@ -783,6 +831,11 @@ class KeyboardActionHandler(
                 Action.Focus.FocusBottom -> focusCurrentContainerRelative(context.focused()) { it.bottomCenter } // TODO keep X offset rather than assuming center
                 Action.Focus.FocusParent -> focusParent(context.focused())
                 Action.Focus.FocusEnterContainer -> focusEnterContainer(context.focused())
+                Action.Focus.OpenContextMenu -> {
+                    context.focused()?.let {
+                        openContextMenu(it.id)
+                    } ?: false
+                }
             }.orActionInapplicable()
         }
     }
@@ -1112,6 +1165,29 @@ class KeyboardActionHandler(
         updateMode {
             it.takeIf { it !is KeyboardActionMode.Command } ?: KeyboardActionMode.Navigation
         }
+    }
+
+    fun dismissContextMenu(id: UUID): Boolean {
+        var dismissed = false
+        _currentOpenContextMenu.update {
+            it?.takeIf {
+                val wasOpen = it == id
+                dismissed = wasOpen
+                !wasOpen
+            }
+        }
+        return dismissed
+    }
+
+    fun openContextMenu(id: UUID): Boolean {
+        val focusTarget = focusableTargets[id]
+        if (focusTarget == null) {
+            log.e("Tried to open context menu on unregistered target $id")
+            return false
+        }
+        focusTarget.actions?.findInteractionAction<InteractionAction.ContextMenu>()?.takeIf { it.entries.isNotEmpty() } ?: return false
+        _currentOpenContextMenu.value = id
+        return true
     }
 
     private fun executeCommand(commandMode: KeyboardActionMode.Command) {

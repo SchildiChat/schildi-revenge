@@ -1,0 +1,134 @@
+package chat.schildi.revenge.compose.components
+
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MenuItemColors
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.nativeKeyCode
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.unit.dp
+import chat.schildi.revenge.actions.InteractionAction
+import chat.schildi.revenge.actions.LocalKeyboardActionHandler
+import chat.schildi.revenge.compose.util.StringResourceHolder
+import chat.schildi.revenge.config.keybindings.Action
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
+import java.awt.event.KeyEvent
+import java.util.UUID
+
+data class ContextMenuEntry(
+    val title: StringResourceHolder,
+    val icon: Painter,
+    val action: Action,
+    val actionArgs: ImmutableList<String> = persistentListOf(),
+    val toggleState: Boolean? = null,
+    val keyboardShortcut: Key? = null,
+    val critical: Boolean = false,
+)
+
+@Composable
+fun WithContextMenu(
+    focusId: UUID,
+    entries: ImmutableList<ContextMenuEntry>,
+    modifier: Modifier = Modifier,
+    content: @Composable (InteractionAction.ContextMenu?) -> Unit,
+) {
+    val keyHandler = LocalKeyboardActionHandler.current
+    val expanded = keyHandler.currentOpenContextMenu.collectAsState().value == focusId
+    Box(modifier) {
+        content(
+            if (entries.isEmpty())
+                null
+            else
+                InteractionAction.ContextMenu(focusId, entries)
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { keyHandler.dismissContextMenu(focusId) },
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            //offset = , // TODO?
+        ) {
+            entries.forEach { entry ->
+                val primaryColor = if (entry.critical) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.primary
+                }
+                DropdownMenuItem(
+                    colors = MenuItemColors(
+                        textColor = primaryColor,
+                        leadingIconColor = primaryColor,
+                        trailingIconColor = primaryColor,
+                        disabledTextColor = MaterialTheme.colorScheme.tertiary,
+                        disabledLeadingIconColor = MaterialTheme.colorScheme.tertiary,
+                        disabledTrailingIconColor = MaterialTheme.colorScheme.tertiary,
+                    ),
+                    leadingIcon = {
+                        Icon(
+                            entry.icon,
+                            null,
+                            Modifier.size(24.dp)
+                        )
+                    },
+                    trailingIcon = if (entry.toggleState == null) null else {{
+                        Switch(
+                            checked = entry.toggleState,
+                            onCheckedChange = {
+                                keyHandler.handleAction(focusId, entry.action, entry.actionArgs)
+                            }
+                        )
+                    }},
+                    text = {
+                        val title = entry.title.render()
+                        val text = remember(entry, title) {
+                            if (entry.keyboardShortcut == null) {
+                                AnnotatedString(title)
+                            } else {
+                                val keyText = KeyEvent.getKeyText(entry.keyboardShortcut.nativeKeyCode).lowercase()
+                                val keyIndex = title.lowercase().indexOf(keyText)
+                                buildAnnotatedString {
+                                    append(title)
+                                    if (keyIndex >= 0) {
+                                        addStyle(
+                                            SpanStyle(textDecoration = TextDecoration.Underline),
+                                            keyIndex,
+                                            keyIndex + 1,
+                                        )
+                                    } else {
+                                        append(" (")
+                                        withStyle(SpanStyle(textDecoration = TextDecoration.Underline)) {
+                                            append(keyText)
+                                        }
+                                        append(">")
+                                    }
+                                }
+                            }
+                        }
+                        Text(text)
+                    },
+                    onClick = {
+                        keyHandler.handleAction(focusId, entry.action, entry.actionArgs)
+                        if (entry.toggleState == null) {
+                            keyHandler.dismissContextMenu(focusId)
+                        }
+                    }
+                )
+            }
+        }
+    }
+}

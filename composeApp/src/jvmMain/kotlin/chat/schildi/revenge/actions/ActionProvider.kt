@@ -15,7 +15,16 @@ data class ActionProvider(
     val listActions: ListAction? = null,
     val keyActions: KeyboardActionProvider<*>? = null,
     val userIdSuggestionsProvider: UserIdSuggestionsProvider? = null,
-)
+) {
+    inline fun <reified T : InteractionAction>findInteractionAction(condition: (T) -> Boolean = { true }): T? {
+        return when {
+            (primaryAction as? T)?.let(condition) == true -> primaryAction
+            (secondaryAction as? T)?.let(condition) == true -> secondaryAction
+            (tertiaryAction as? T)?.let(condition) == true -> tertiaryAction
+            else -> null
+        }
+    }
+}
 
 @Composable
 fun defaultActionProvider(
@@ -46,6 +55,7 @@ fun buildNavigationActionProvider(
     listActions: ListAction? = LocalListActionProvider.current,
     keyActions: KeyboardActionProvider<*>? = LocalKeyboardActionProvider.current,
     userIdSuggestionsProvider: UserIdSuggestionsProvider? = LocalUserIdSuggestionsProvider.current,
+    secondaryAction: InteractionAction? = null,
     buildDestination: () -> Destination,
 ): ActionProvider {
     return ActionProvider(
@@ -54,6 +64,7 @@ fun buildNavigationActionProvider(
             initialTitle = initialTitle,
             buildDestination = buildDestination,
         ),
+        secondaryAction = secondaryAction,
         tertiaryAction = InteractionAction.OpenWindow(
             initialTitle = initialTitle,
             buildDestination = buildDestination,

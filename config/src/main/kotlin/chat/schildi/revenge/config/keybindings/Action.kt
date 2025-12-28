@@ -112,6 +112,7 @@ sealed interface Action {
         FocusBottom,
         FocusParent,
         FocusEnterContainer,
+        OpenContextMenu,
     }
     enum class List(
         override val aliases: kotlin.collections.List<String> = emptyList(),

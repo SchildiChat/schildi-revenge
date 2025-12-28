@@ -110,10 +110,14 @@ fun FocusRole.allowsFocusable() = when (this) {
     FocusRole.SEARCH_BAR -> false
 }
 
+@Composable
+fun rememberFocusId(): UUID = remember { UUID.randomUUID() }
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Modifier.keyFocusable(
     role: FocusRole = FocusRole.AUX_ITEM,
+    id: UUID = rememberFocusId(),
     actionProvider: ActionProvider = defaultActionProvider(),
     focusRequester: FocusRequester = remember { FocusRequester() },
     enableClicks: Boolean = true,
@@ -121,7 +125,6 @@ fun Modifier.keyFocusable(
     addMouseFocusable: Boolean = role.allowsFocusable() && actionProvider.primaryAction == null,
     highlight: Boolean = false,
 ): Modifier {
-    val id = remember { UUID.randomUUID() }
     val keyHandler = LocalKeyboardActionHandler.current
     val destinationState = LocalDestinationState.current
     if (role.autoRequestFocus) {
@@ -187,7 +190,7 @@ private fun Modifier.keyFocusableCommon(
     role: FocusRole,
     focusRequester: AbstractFocusRequester,
     keyHandler: KeyboardActionHandler = LocalKeyboardActionHandler.current,
-    id: UUID = remember { UUID.randomUUID() },
+    id: UUID = rememberFocusId(),
     destinationState: DestinationStateHolder? = LocalDestinationState.current,
     actionProvider: ActionProvider? = defaultActionProvider(),
     parent: FocusParent? = LocalFocusParent.current,

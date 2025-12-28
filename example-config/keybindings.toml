@@ -102,6 +102,7 @@ navigationItem = [
     { key = "Enter", shift = true, action = "NavigateCurrent" },
 ]
 focus = [
+    { key = "Enter", ctrl = true, action = "OpenContextMenu" },
     { key = "DirectionUp", action = "FocusUp" },
     { key = "DirectionDown", action = "FocusDown" },
     { key = "DirectionLeft", action = "FocusLeft" },

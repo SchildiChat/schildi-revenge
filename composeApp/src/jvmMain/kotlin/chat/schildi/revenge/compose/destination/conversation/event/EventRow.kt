@@ -14,10 +14,12 @@ import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.defaultActionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
+import chat.schildi.revenge.compose.components.WithContextMenu
 import chat.schildi.revenge.compose.destination.conversation.event.message.timestampOverlayContent
 import chat.schildi.revenge.compose.destination.conversation.event.reaction.ReactionsRow
 import chat.schildi.revenge.compose.destination.conversation.virtual.ConversationDividerLine
 import chat.schildi.revenge.compose.focus.keyFocusable
+import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.model.ConversationViewModel
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.RoomMember
@@ -46,38 +48,46 @@ fun EventRow(
             Color.Transparent
         }
     ).value
-    Column(
-        modifier
-            .keyFocusable(
-                FocusRole.LIST_ITEM,
-                actionProvider = defaultActionProvider(
-                    keyActions = eventRowKeyboardActionProvider(viewModel, event),
-                ),
+    val focusId = rememberFocusId()
+    WithContextMenu(
+        focusId,
+        event.contextMenu(),
+    ) { openContextMenu ->
+        Column(
+            modifier
+                .keyFocusable(
+                    FocusRole.LIST_ITEM,
+                    focusId,
+                    actionProvider = defaultActionProvider(
+                        keyActions = eventRowKeyboardActionProvider(viewModel, event),
+                        secondaryAction = openContextMenu,
+                    ),
+                )
+                .background(backgroundHighlightColor, Dimens.Conversation.messageBubbleShape)
+                .padding(horizontal = Dimens.windowPadding)
+        ) {
+            if (highlight == EventHighlight.JUMP_TARGET) {
+                // TODO revise design once there's a better idea
+                ConversationDividerLine(MaterialTheme.colorScheme.error)
+            }
+            EventContentLayout(
+                content = event.content,
+                senderId = event.sender,
+                senderProfile = event.senderProfile,
+                isOwn = event.isOwn,
+                timestamp = remember(event) { event.timestampOverlayContent() },
+                isSameAsPreviousSender = isSameAsPreviousSender,
+                inReplyTo = event.inReplyTo(),
             )
-            .background(backgroundHighlightColor, Dimens.Conversation.messageBubbleShape)
-            .padding(horizontal = Dimens.windowPadding)
-    ) {
-        if (highlight == EventHighlight.JUMP_TARGET) {
-            // TODO revise design once there's a better idea
-            ConversationDividerLine(MaterialTheme.colorScheme.error)
+            ReactionsRow(
+                reactions = event.reactions,
+                messageIsOwn = event.isOwn,
+            )
+            ReadReceiptsRow(
+                receipts = event.receipts,
+                roomMembersById = roomMembersById,
+            )
         }
-        EventContentLayout(
-            content = event.content,
-            senderId = event.sender,
-            senderProfile = event.senderProfile,
-            isOwn = event.isOwn,
-            timestamp = remember(event) { event.timestampOverlayContent() },
-            isSameAsPreviousSender = isSameAsPreviousSender,
-            inReplyTo = event.inReplyTo(),
-        )
-        ReactionsRow(
-            reactions = event.reactions,
-            messageIsOwn = event.isOwn,
-        )
-        ReadReceiptsRow(
-            receipts = event.receipts,
-            roomMembersById = roomMembersById,
-        )
     }
 }
 

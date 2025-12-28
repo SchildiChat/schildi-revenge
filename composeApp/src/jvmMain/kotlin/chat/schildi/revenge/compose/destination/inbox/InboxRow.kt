@@ -48,6 +48,8 @@ import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.actions.defaultActionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
+import chat.schildi.revenge.compose.components.WithContextMenu
+import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.model.InboxViewModel
 import chat.schildi.revenge.model.ScopedRoomKey
@@ -76,58 +78,66 @@ fun InboxRow(
     modifier: Modifier = Modifier,
 ) {
     ComposeSessionScope(room.sessionId) {
-        Row(
-            modifier = modifier
-                .fillMaxWidth()
-                .heightIn(min = Dimens.Inbox.avatar + Dimens.listPadding * 2)
-                .keyFocusable(
-                    FocusRole.LIST_ITEM,
-                    actionProvider = if (room.summary.isInvite()) {
-                        defaultActionProvider()
-                    } else {
-                        buildNavigationActionProvider(
-                            initialTitle = room.summary.info.name?.toStringHolder(),
-                            keyActions = inboxRowKeyboardActionProvider(viewModel, room.key),
-                        ) {
-                            Destination.Conversation(room.sessionId, room.summary.roomId)
-                        }
-                    },
-                )
-                .padding(
-                    horizontal = Dimens.windowPadding,
-                    vertical = Dimens.listPadding,
-                ),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box {
-                AvatarImage(
-                    source = room.summary.info.avatarUrl?.let { MediaSource(it) }
-                        ?: room.summary.info.heroes.takeIf { it.size == 1 }?.firstOrNull()?.avatarUrl?.let {
-                            MediaSource(it)
-                        },
-                    size = Dimens.Inbox.avatar,
-                    displayName = room.summary.info.name ?: "",
-                )
-                user?.avatarUrl?.let { userAvatar ->
-                    AvatarImage(
-                        source = MediaSource(userAvatar),
-                        size = Dimens.Inbox.accountAvatar,
-                        shape = Dimens.ownAccountAvatarShape,
-                        displayName = user.displayName ?: user.userId.value,
-                        modifier = Modifier.align(Alignment.BottomStart),
-                    )
-                }
-            }
-            Column(
-                modifier = Modifier
+        val focusId = rememberFocusId()
+        WithContextMenu(
+            focusId = focusId,
+            entries = room.contextMenu(),
+        ) { openContextMenu ->
+            Row(
+                modifier = modifier
                     .fillMaxWidth()
-                    .padding(start = Dimens.horizontalItemPadding)
+                    .heightIn(min = Dimens.Inbox.avatar + Dimens.listPadding * 2)
+                    .keyFocusable(
+                        FocusRole.LIST_ITEM,
+                        focusId,
+                        actionProvider = if (room.summary.isInvite()) {
+                            defaultActionProvider()
+                        } else {
+                            buildNavigationActionProvider(
+                                initialTitle = room.summary.info.name?.toStringHolder(),
+                                keyActions = inboxRowKeyboardActionProvider(viewModel, room.key),
+                                secondaryAction = openContextMenu,
+                            ) {
+                                Destination.Conversation(room.sessionId, room.summary.roomId)
+                            }
+                        },
+                    )
+                    .padding(
+                        horizontal = Dimens.windowPadding,
+                        vertical = Dimens.listPadding,
+                    ),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    ScNameAndTimestampRow(room.summary, hasDraft)
+                Box {
+                    AvatarImage(
+                        source = room.summary.info.avatarUrl?.let { MediaSource(it) }
+                            ?: room.summary.info.heroes.takeIf { it.size == 1 }?.firstOrNull()?.avatarUrl?.let {
+                                MediaSource(it)
+                            },
+                        size = Dimens.Inbox.avatar,
+                        displayName = room.summary.info.name ?: "",
+                    )
+                    user?.avatarUrl?.let { userAvatar ->
+                        AvatarImage(
+                            source = MediaSource(userAvatar),
+                            size = Dimens.Inbox.accountAvatar,
+                            shape = Dimens.ownAccountAvatarShape,
+                            displayName = user.displayName ?: user.userId.value,
+                            modifier = Modifier.align(Alignment.BottomStart),
+                        )
+                    }
                 }
-                Row(modifier = Modifier.fillMaxWidth()) {
-                    ScLastMessageAndIndicatorRow(viewModel, room)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = Dimens.horizontalItemPadding)
+                ) {
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        ScNameAndTimestampRow(room.summary, hasDraft)
+                    }
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        ScLastMessageAndIndicatorRow(viewModel, room)
+                    }
                 }
             }
         }
@@ -274,21 +284,39 @@ private fun RowScope.ScLastMessageAndIndicatorRow(
     }
 }
 
+data class RoomUnreadCounts(
+    val highlightCount: Long,
+    val notificationCount: Long,
+    val unreadCount: Long,
+    val markedUnread: Boolean,
+) {
+    fun hasUnread() = markedUnread || notificationCount > 0L || highlightCount > 0L || unreadCount > 0L
+    fun canMarkUnread() = !markedUnread && notificationCount == 0L && highlightCount == 0L
+}
+
+@Composable
+fun RoomSummary.unreadCounts(): RoomUnreadCounts {
+    val allowSilentUnreadCount = ScPrefs.RENDER_SILENT_UNREAD.value()
+    return if (ScPrefs.CLIENT_GENERATED_UNREAD_COUNTS.value()) {
+        RoomUnreadCounts(
+            highlightCount = info.numUnreadMentions,
+            notificationCount = info.numUnreadNotifications,
+            unreadCount = if (allowSilentUnreadCount) info.numUnreadMessages else 0,
+            markedUnread = info.isMarkedUnread,
+        )
+    } else {
+        RoomUnreadCounts(
+            highlightCount = info.highlightCount,
+            notificationCount = info.notificationCount,
+            unreadCount = if (allowSilentUnreadCount) info.unreadCount else 0,
+            markedUnread = info.isMarkedUnread,
+        )
+    }
+}
+
 @Composable
 private fun ScUnreadCounter(room: RoomSummary) {
-    val highlightCount: Long
-    val notificationCount: Long
-    val unreadCount: Long
-    val allowSilentUnreadCount = ScPrefs.RENDER_SILENT_UNREAD.value()
-    if (ScPrefs.CLIENT_GENERATED_UNREAD_COUNTS.value()) {
-        highlightCount = room.info.numUnreadMentions
-        notificationCount = room.info.numUnreadNotifications
-        unreadCount = if (allowSilentUnreadCount) room.info.numUnreadMessages else 0
-    } else {
-        highlightCount = room.info.highlightCount
-        notificationCount = room.info.notificationCount
-        unreadCount = if (allowSilentUnreadCount) room.info.unreadCount else 0
-    }
+    val (highlightCount, notificationCount, unreadCount, markedUnread) = room.unreadCounts()
     val count: String
     val badgeColor: Color
     var outlinedBadge = false
