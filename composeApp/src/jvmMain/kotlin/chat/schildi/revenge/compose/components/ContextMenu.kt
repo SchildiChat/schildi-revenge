@@ -160,7 +160,7 @@ fun WithContextMenu(
                                         withStyle(SpanStyle(textDecoration = TextDecoration.Underline)) {
                                             append(keyText)
                                         }
-                                        append(">")
+                                        append(")")
                                     }
                                 }
                             }
