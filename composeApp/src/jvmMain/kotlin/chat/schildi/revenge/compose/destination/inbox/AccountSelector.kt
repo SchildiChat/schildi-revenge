@@ -2,6 +2,7 @@ package chat.schildi.revenge.compose.destination.inbox
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,8 +19,11 @@ import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +33,7 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.defaultActionProvider
 import chat.schildi.revenge.compose.components.AvatarImage
+import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.InboxAccount
 import chat.schildi.revenge.model.InboxViewModel
@@ -65,6 +70,7 @@ fun AccountSelectorRow(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountButton(
     viewModel: InboxViewModel,
@@ -84,75 +90,79 @@ fun AccountButton(
         else
             MaterialTheme.colorScheme.surfaceDim
     ).value
-    Row(modifier
-        .keyFocusable(
-            actionProvider = defaultActionProvider(
-                primaryAction = InteractionAction.Invoke {
-                    viewModel.setAccountSelected(account.user.userId, !account.isSelected)
-                    true
-                },
-                secondaryAction = InteractionAction.Invoke {
-                    if (account.isSelected) {
-                        viewModel.setAccountSelected(account.user.userId, false)
-                    }
-                    viewModel.setAccountHidden(account.user.userId, !account.isHidden)
-                    true
-                },
+    WithTooltip(account.user.userId.value) {
+        Row(
+            modifier
+                .keyFocusable(
+                    actionProvider = defaultActionProvider(
+                        primaryAction = InteractionAction.Invoke {
+                            viewModel.setAccountSelected(account.user.userId, !account.isSelected)
+                            true
+                        },
+                        secondaryAction = InteractionAction.Invoke {
+                            if (account.isSelected) {
+                                viewModel.setAccountSelected(account.user.userId, false)
+                            }
+                            viewModel.setAccountHidden(account.user.userId, !account.isHidden)
+                            true
+                        },
+                    )
+                )
+                .background(backgroundColor, RoundedCornerShape(50))
+                .border(1.dp, outlineColor, RoundedCornerShape(50))
+                .padding(8.dp),
+            horizontalArrangement = Dimens.horizontalArrangement,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Only care about actual notifications here, not silent unreads
+            val renderedUnreadCounts = unreadCounts?.copy(
+                unreadChats = 0,
+                unreadMessages = 0,
             )
-        )
-        .background(backgroundColor, RoundedCornerShape(50))
-        .border(1.dp, outlineColor, RoundedCornerShape(50))
-        .padding(8.dp),
-        horizontalArrangement = Dimens.horizontalArrangement,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        // Only care about actual notifications here, not silent unreads
-        val renderedUnreadCounts = unreadCounts?.copy(
-            unreadChats = 0,
-            unreadMessages = 0,
-        )
-        SpaceUnreadCountBox(renderedUnreadCounts, 4.dp) {
-            AvatarImage(
-                source = account.user.avatarUrl?.let { MediaSource(it) },
-                size = 24.dp,
-                sessionId = account.user.userId,
-                shape = Dimens.ownAccountAvatarShape,
-                displayName = account.user.displayName ?: account.user.userId.value,
-                contentDescription = account.user.userId.value,
-            )
-        }
-        val icon = if (account.isHidden && !account.isSelected)
-            Icons.Default.VisibilityOff
-        else when (account.syncState) {
-            SyncState.Error -> Icons.Default.Error
-            SyncState.Idle -> Icons.Default.CheckCircleOutline
-            SyncState.Running -> Icons.Default.Sync
-            SyncState.Terminated -> Icons.Default.Stop
-            SyncState.Offline -> Icons.Default.CloudOff
-        }
-        AnimatedContent(icon) { icon ->
-            val hint = when (account.syncState) {
-                SyncState.Error -> stringResource(Res.string.hint_sync_state_error)
-                SyncState.Idle -> stringResource(Res.string.hint_sync_state_idle)
-                SyncState.Running -> stringResource(Res.string.hint_sync_state_running)
-                SyncState.Terminated -> stringResource(Res.string.hint_sync_state_terminated)
-                SyncState.Offline -> stringResource(Res.string.hint_sync_state_offline)
+            SpaceUnreadCountBox(renderedUnreadCounts, 4.dp) {
+                AvatarImage(
+                    source = account.user.avatarUrl?.let { MediaSource(it) },
+                    size = 24.dp,
+                    sessionId = account.user.userId,
+                    shape = Dimens.ownAccountAvatarShape,
+                    displayName = account.user.displayName ?: account.user.userId.value,
+                    contentDescription = account.user.userId.value,
+                )
             }
-            val renderAsError = when (account.syncState) {
-                SyncState.Terminated,
-                SyncState.Offline,
-                SyncState.Error -> true
-                else -> false
+            val icon = if (account.isHidden && !account.isSelected)
+                Icons.Default.VisibilityOff
+            else when (account.syncState) {
+                SyncState.Error -> Icons.Default.Error
+                SyncState.Idle -> Icons.Default.CheckCircleOutline
+                SyncState.Running -> Icons.Default.Sync
+                SyncState.Terminated -> Icons.Default.Stop
+                SyncState.Offline -> Icons.Default.CloudOff
             }
-            Icon(
-                icon,
-                hint,
-                Modifier.size(16.dp),
-                tint = if (renderAsError)
-                    MaterialTheme.colorScheme.error
-                else
-                    MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            AnimatedContent(icon) { icon ->
+                val hint = when (account.syncState) {
+                    SyncState.Error -> stringResource(Res.string.hint_sync_state_error)
+                    SyncState.Idle -> stringResource(Res.string.hint_sync_state_idle)
+                    SyncState.Running -> stringResource(Res.string.hint_sync_state_running)
+                    SyncState.Terminated -> stringResource(Res.string.hint_sync_state_terminated)
+                    SyncState.Offline -> stringResource(Res.string.hint_sync_state_offline)
+                }
+                val renderAsError = when (account.syncState) {
+                    SyncState.Terminated,
+                    SyncState.Offline,
+                    SyncState.Error -> true
+
+                    else -> false
+                }
+                Icon(
+                    icon,
+                    hint,
+                    Modifier.size(16.dp),
+                    tint = if (renderAsError)
+                        MaterialTheme.colorScheme.error
+                    else
+                        MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }

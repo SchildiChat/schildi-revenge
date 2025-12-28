@@ -49,6 +49,7 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.ScrollableTabRow
 import chat.schildi.revenge.compose.components.TabRowDefaults.tabIndicatorOffset
+import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.revenge.model.spaces.SpaceListDataSource
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
 import chat.schildi.theme.scExposures
@@ -279,20 +280,22 @@ private fun AbstractSpaceTab(
     icon: @Composable () -> Unit,
 ) {
     if (compact) {
-        Box(
-            Modifier
-                .clickable(onClick = onClick)
-                .padding(vertical = 8.dp, horizontal = 16.dp)
-        ) {
-            icon()
-            /*
-            if (expandable) {
-                ExpandableIndicator(
-                    selected && !collapsed,
-                    Modifier.align(Alignment.CenterEnd).offset(14.dp, 0.dp)
-                )
+        WithTooltip(text) {
+            Box(
+                Modifier
+                    .clickable(onClick = onClick)
+                    .padding(vertical = 8.dp, horizontal = 16.dp)
+            ) {
+                icon()
+                /*
+                if (expandable) {
+                    ExpandableIndicator(
+                        selected && !collapsed,
+                        Modifier.align(Alignment.CenterEnd).offset(14.dp, 0.dp)
+                    )
+                }
+                 */
             }
-             */
         }
     } else {
         Tab(
