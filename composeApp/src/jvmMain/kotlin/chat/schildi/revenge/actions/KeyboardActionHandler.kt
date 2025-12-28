@@ -35,9 +35,7 @@ import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.focus.FocusParent
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.Destination
-import chat.schildi.revenge.GlobalActionsScope
 import chat.schildi.revenge.LocalDestinationState
-import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
@@ -518,31 +516,27 @@ class KeyboardActionHandler(
         focused: FocusTarget?,
         mode: KeyboardActionMode.Search,
     ): Boolean {
+        // When navigating, prioritize other events over search events
+        if (mode.navigating) {
+            (handleNavigationEvent(key, focused) as? ActionResult.Actioned)?.let {
+                return true
+            }
+        }
         return when (key.rawKey) {
             KeyMapped.Escape -> {
                 updateMode { KeyboardActionMode.Navigation }
                 true
             }
             KeyMapped.Enter -> {
-                if (mode.navigating) {
-                    handleNavigationEvent(key, focused) is ActionResult.Actioned
-                } else {
-                    updateMode { mode.copy(navigating = true) }
-                    windowCoordinates?.let {
-                        focusClosestTo(it.topCenter, allowPartial = true, role = FocusRole.LIST_ITEM)
-                    }
-                    true
+                updateMode { mode.copy(navigating = true) }
+                windowCoordinates?.let {
+                    focusClosestTo(it.topCenter, allowPartial = true, role = FocusRole.LIST_ITEM)
                 }
+                true
             }
             KeyMapped.DirectionUp -> false // TODO cycle search history; configurable binding?
             KeyMapped.DirectionDown -> false // TODO cycle search history; configurable binding?
-            else -> {
-                if (mode.navigating) {
-                    handleNavigationEvent(key, focused) is ActionResult.Actioned
-                } else {
-                    false
-                }
-            }
+            else -> false
         }
     }
 
@@ -940,6 +934,52 @@ class KeyboardActionHandler(
         }
     }
 
+    private val appMessageHandler = object : KeyboardActionProvider<Action.AppMessage> {
+        override fun getPossibleActions() = Action.AppMessage.entries.toSet()
+        override fun ensureActionType(action: Action) = action as? Action.AppMessage
+        override fun handleNavigationModeEvent(
+            context: ActionContext,
+            key: KeyTrigger
+        ): ActionResult {
+            val keyConfig = context.keybindingConfig ?: return ActionResult.NoMatch
+            return keyConfig.appMessage.execute(context, key, ::handleAction)
+        }
+
+        override fun handleAction(
+            context: ActionContext,
+            action: Action.AppMessage,
+            args: List<String>
+        ): ActionResult {
+            return when (action) {
+                Action.AppMessage.ClearAppMessages -> {
+                    var wasEmpty = true
+                    val now = System.currentTimeMillis()
+                    _messageBoard.update {
+                        if (it.none { it.dismissedTimestamp == null}) {
+                            wasEmpty = true
+                            it
+                        } else {
+                            wasEmpty = false
+                            it.map { it.copyDismissed(dismissedTimestamp = now) }.toPersistentList()
+                        }
+                    }
+                    if (wasEmpty) {
+                        ActionResult.Inapplicable
+                    } else {
+                        ActionResult.Success()
+                    }
+                }
+                Action.AppMessage.ConfirmActionAppMessage -> {
+                    val message = messageBoard.value.find {
+                        it is ConfirmActionAppMessage && it.dismissedTimestamp == null
+                    } as? ConfirmActionAppMessage ?: return ActionResult.Inapplicable
+                    message.action()
+                    ActionResult.Success()
+                }
+            }
+        }
+    }
+
     private val globalActionHandler = object : KeyboardActionProvider<Action.Global> {
         override fun getPossibleActions() = Action.Global.entries.toSet()
         override fun ensureActionType(action: Action) = action as? Action.Global
@@ -990,31 +1030,6 @@ class KeyboardActionHandler(
                     }
                     ActionResult.Success()
                 }
-                Action.Global.ClearAppMessages -> {
-                    var wasEmpty = true
-                    val now = System.currentTimeMillis()
-                    _messageBoard.update {
-                        if (it.isEmpty()) {
-                            wasEmpty = true
-                            it
-                        } else {
-                            wasEmpty = false
-                            it.map { it.copyDismissed(dismissedTimestamp = now) }.toPersistentList()
-                        }
-                    }
-                    if (wasEmpty) {
-                        ActionResult.Success()
-                    } else {
-                        ActionResult.Inapplicable
-                    }
-                }
-                Action.Global.ConfirmActionAppMessage -> {
-                    val message = messageBoard.value.find {
-                        it is ConfirmActionAppMessage && it.dismissedTimestamp == null
-                    } as? ConfirmActionAppMessage ?: return ActionResult.Inapplicable
-                    message.action()
-                    ActionResult.Success()
-                }
                 Action.Global.Exit -> {
                     UiState.exit(applicationScope)
                     ActionResult.Success()
@@ -1025,6 +1040,7 @@ class KeyboardActionHandler(
 
     private fun getCurrentKeyActionHandlers(focused: FocusTarget?): List<KeyboardActionProvider<*>> {
         return listOfNotNull(
+            appMessageHandler,
             focused?.actions?.keyActions,
             (focused?.actions?.primaryAction as? InteractionAction.NavigationAction)?.let {
                 navigationItemActionHandler(focused, it)

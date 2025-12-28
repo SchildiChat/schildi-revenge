@@ -12,6 +12,8 @@ global = [
     { key = "F", ctrl = true, action = "ToggleSetting", args = ["PIN_FAVORITES"], destinations = ["Inbox"] },
     { key = "H", ctrl = true, action = "ToggleSetting", args = ["VIEW_HIDDEN_EVENTS"], destinations = ["Conversation"] },
     { key = "D", ctrl = true, action = "ToggleSetting", args = ["VIEW_REDACTIONS"], destinations = ["Conversation"] },
+]
+appMessage = [
     { key = "Escape", action = "ClearAppMessages" },
     { key = "Enter", action = "ConfirmActionAppMessage" },
 ]

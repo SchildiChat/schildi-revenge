@@ -728,7 +728,9 @@ class ConversationViewModel(
                     launchActionAsync(
                         "kickUser",
                         GlobalActionsScope,
-                        Dispatchers.IO
+                        Dispatchers.IO,
+                        notifyProcessing = true,
+                        appMessageId = "kickUser",
                     ) {
                         room.kickUser(userId, reason).toActionResult(async = true)
                     }
@@ -740,7 +742,9 @@ class ConversationViewModel(
                     launchActionAsync(
                         "inviteUser",
                         GlobalActionsScope,
-                        Dispatchers.IO
+                        Dispatchers.IO,
+                        notifyProcessing = true,
+                        appMessageId = "inviteUser",
                     ) {
                         room.inviteUserById(userId).toActionResult(async = true)
                     }
@@ -750,9 +754,11 @@ class ConversationViewModel(
                     val room = roomPair.value.second ?: return@run ActionResult.Failure("Room not ready")
                     val userId = UserId(args.firstOrNull().orActionValidationError())
                     launchActionAsync(
-                        "inviteUser",
+                        "banUser",
                         GlobalActionsScope,
-                        Dispatchers.IO
+                        Dispatchers.IO,
+                        notifyProcessing = true,
+                        appMessageId = "banUser",
                     ) {
                         room.banUser(userId).toActionResult(async = true)
                     }
@@ -767,9 +773,11 @@ class ConversationViewModel(
                         null
                     }
                     launchActionAsync(
-                        "inviteUser",
+                        "unbanUser",
                         GlobalActionsScope,
-                        Dispatchers.IO
+                        Dispatchers.IO,
+                        notifyProcessing = true,
+                        appMessageId = "unbanUser",
                     ) {
                         room.unbanUser(userId, reason).toActionResult(async = true)
                     }

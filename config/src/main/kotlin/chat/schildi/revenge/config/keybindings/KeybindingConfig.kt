@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 data class KeybindingConfig(
     // TODO sensible defaults?
     val global: List<Binding<Action.Global>> = emptyList(),
+    val appMessage: List<Binding<Action.AppMessage>> = emptyList(),
     val navigation: List<Binding<Action.Navigation>> = emptyList(),
     val navigationItem: List<Binding<Action.NavigationItem>> = emptyList(),
     val focus: List<Binding<Action.Focus>> = emptyList(),
