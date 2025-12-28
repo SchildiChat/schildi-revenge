@@ -61,7 +61,12 @@ fun InboxScreen(modifier: Modifier = Modifier) {
         spaceSelection,
         ScPrefs.PSEUDO_SPACE_HIDE_EMPTY_UNREAD.value(),
     )
-    val selectedSpace = spaces?.resolveSelection(spaceSelection)
+    val selectedSpace = if (searchQuery.isBlank()) {
+        spaces?.resolveSelection(spaceSelection)
+    } else {
+        // Search ignores spaces
+        null
+    }
 
     val listState = key(searchQuery, selectedSpace?.selectionId, accountsSorted) {
         rememberLazyListState()
