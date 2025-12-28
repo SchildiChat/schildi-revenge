@@ -1,7 +1,6 @@
 package chat.schildi.revenge.compose.focus
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.PointerMatcher
 import androidx.compose.foundation.border
@@ -18,9 +17,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.FocusState
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
@@ -73,19 +70,7 @@ internal fun Modifier.keyFocusableContainer(
     role: FocusRole = FocusRole.CONTAINER,
 ): Modifier {
     val keyHandler = LocalKeyboardActionHandler.current
-    val focusRequester = remember(keyHandler) {
-        object : AbstractFocusRequester {
-            override fun requestFocus(focusDirection: FocusDirection): Boolean {
-                keyHandler.onFocusChanged(id, object : FocusState {
-                    override val isFocused = true
-                    override val hasFocus = false
-                    override val isCaptured = false
-
-                })
-                return true
-            }
-        }
-    }
+    val focusRequester = remember(keyHandler, id) { FakeFocusRequester(keyHandler, id) }
     return this.keyFocusableCommon(role = role, id = id, parent = parent, focusRequester = focusRequester)
         .let {
             if (role == FocusRole.DESTINATION_ROOT_CONTAINER) {

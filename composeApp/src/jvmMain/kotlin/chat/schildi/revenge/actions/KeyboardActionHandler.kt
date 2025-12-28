@@ -37,6 +37,7 @@ import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
+import chat.schildi.revenge.compose.focus.FakeFocusRequester
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.toStringHolder
@@ -1091,6 +1092,12 @@ class KeyboardActionHandler(
                     it
                 }
             }
+        }
+        val newFocus = focusableTargets[target]
+        if (newFocus?.focusRequester is FakeFocusRequester) {
+            // Need to clear focus in case we have anything that only "fakes" our keyboard focus,
+            // so e.g. textfields don't keep consuming keypresses while we still handle to navigation events
+            focusManager?.clearFocus()
         }
         lostFocusTarget?.let { focusableTargets[it] }?.let(::handleLostFocus)
     }
