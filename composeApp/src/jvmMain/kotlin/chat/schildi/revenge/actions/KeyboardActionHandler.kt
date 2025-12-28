@@ -28,8 +28,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.toIntSize
 import androidx.compose.ui.window.ApplicationScope
 import chat.schildi.preferences.RevengePrefs
+import chat.schildi.preferences.ScPref
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.findPreference
+import chat.schildi.preferences.safeLookup
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.focus.FocusParent
@@ -191,6 +193,18 @@ data class FocusState(
     val commandFocus: UUID? = null,
 )
 
+private data class KeyboardActionHandlerSettings(
+    val alwaysShowKeyboardFocus: Boolean,
+    val focusFollowsMouse: Boolean,
+) {
+    companion object {
+        fun from(lookup: (ScPref<*>) -> Any?) = KeyboardActionHandlerSettings(
+            alwaysShowKeyboardFocus = ScPrefs.ALWAYS_SHOW_KEYBOARD_FOCUS.safeLookup(lookup),
+            focusFollowsMouse = ScPrefs.FOCUS_FOLLOWS_MOUSE.safeLookup(lookup),
+        )
+    }
+}
+
 class KeyboardActionHandler(
     private val scope: CoroutineScope,
     private val windowId: Int,
@@ -221,6 +235,14 @@ class KeyboardActionHandler(
         RevengePrefs.settingFlow(ScPrefs.ALWAYS_SHOW_KEYBOARD_FOCUS),
         Boolean::or,
     ).stateIn(scope, SharingStarted.Eagerly, false)
+
+    private val handlerSettings = RevengePrefs.combinedSettingFlow { lookup ->
+        KeyboardActionHandlerSettings.from(lookup)
+    }.stateIn(scope, SharingStarted.Eagerly,
+        KeyboardActionHandlerSettings.from {
+            RevengePrefs.getCachedOrDefaultValue(it)
+        }
+    )
 
     private val _currentOpenContextMenu = MutableStateFlow<UUID?>(null)
     val currentOpenContextMenu = _currentOpenContextMenu.asStateFlow()
@@ -1151,17 +1173,19 @@ class KeyboardActionHandler(
             _lastPointerPosition = position
             _keyboardPrimary.value = false
         }
-        val focusable = focusableTargets.values.firstNotNullOfOrNull { target ->
-            target.takeIf {
-                it.isFullyVisible &&
-                        it.role != FocusRole.CONTAINER &&
-                        it.role != FocusRole.DESTINATION_ROOT_CONTAINER &&
-                        it.role != FocusRole.NESTED_AUX_ITEM &&
-                        it.coordinates.contains(position)
+        if (handlerSettings.value.focusFollowsMouse) {
+            val focusable = focusableTargets.values.firstNotNullOfOrNull { target ->
+                target.takeIf {
+                    it.isFullyVisible &&
+                            it.role != FocusRole.CONTAINER &&
+                            it.role != FocusRole.DESTINATION_ROOT_CONTAINER &&
+                            it.role != FocusRole.NESTED_AUX_ITEM &&
+                            it.coordinates.contains(position)
+                }
             }
+            // TODO flow + debounce + separate coroutine to avoid messing with composition
+            focusable?.focusRequester?.requestFocus()
         }
-        // TODO flow + debounce + separate coroutine to avoid messing with composition
-        focusable?.focusRequester?.requestFocus()
     }
 
     fun onSearchType(query: String) = handleSearchUpdate(query, navigating = false) {

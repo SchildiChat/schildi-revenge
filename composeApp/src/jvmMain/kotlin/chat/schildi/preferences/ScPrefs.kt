@@ -6,10 +6,13 @@ import shire.composeapp.generated.resources.pref_auto_hide_composer_summary
 import shire.composeapp.generated.resources.pref_auto_hide_composer_title
 import shire.composeapp.generated.resources.pref_category_developer_options
 import shire.composeapp.generated.resources.pref_category_dimensions
+import shire.composeapp.generated.resources.pref_category_keyboard_control
 import shire.composeapp.generated.resources.pref_category_theme_dark
 import shire.composeapp.generated.resources.pref_category_theme_light
 import shire.composeapp.generated.resources.pref_dark_theme_title
 import shire.composeapp.generated.resources.pref_debug_avatar_render_states_title
+import shire.composeapp.generated.resources.pref_focus_follows_mouse_summary
+import shire.composeapp.generated.resources.pref_focus_follows_mouse_title
 import shire.composeapp.generated.resources.pref_font_scale
 import shire.composeapp.generated.resources.pref_max_width_conversation_title
 import shire.composeapp.generated.resources.pref_max_width_inbox_title
@@ -78,7 +81,10 @@ object ScPrefs {
     val MAX_WIDTH_INBOX = ScIntPref("MAX_WIDTH_INBOX", 1024, Res.string.pref_max_width_inbox_title)
     val MAX_WIDTH_CONVERSATION = ScIntPref("MAX_WIDTH_CONVERSATION", 1600, Res.string.pref_max_width_conversation_title)
     val MAX_WIDTH_SETTINGS = ScIntPref("MAX_WIDTH_SETTINGS", 1024, Res.string.pref_max_width_settings_title)
+
+    // Keyboard navigation
     val ALWAYS_SHOW_KEYBOARD_FOCUS = ScBoolPref("ALWAYS_SHOW_KEYBOARD_FOCUS", false, Res.string.pref_always_show_keyboard_focus)
+    val FOCUS_FOLLOWS_MOUSE = ScBoolPref("FOCUS_FOLLOWS_MOUSE", false, Res.string.pref_focus_follows_mouse_title, Res.string.pref_focus_follows_mouse_summary)
 
     object SpaceUnreadCountMode {
         const val MESSAGES = "MESSAGES"
@@ -222,7 +228,6 @@ object ScPrefs {
 
     val rootPrefs = ScPrefScreen(Res.string.sc_pref_tweaks_title, null, listOf<AbstractScPref>(
         ScPrefScreen(Res.string.sc_pref_category_general, Res.string.sc_pref_category_general_summary, listOf(
-            ALWAYS_SHOW_KEYBOARD_FOCUS,
             ScPrefCategory(Res.string.sc_pref_category_general_appearance, null, listOf(
                 THEME_FOLLOW_SYSTEM,
                 THEME_DARK,
@@ -236,6 +241,10 @@ object ScPrefs {
                 /*
                 ))
                  */
+            )),
+            ScPrefCategory(Res.string.pref_category_keyboard_control, null, listOf(
+                FOCUS_FOLLOWS_MOUSE,
+                ALWAYS_SHOW_KEYBOARD_FOCUS,
             )),
             /*
             ScPrefCategory(Res.string.sc_pref_category_general_behaviour, null, listOf(

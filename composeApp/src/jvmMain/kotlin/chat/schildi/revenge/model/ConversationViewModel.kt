@@ -24,7 +24,6 @@ import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.actions.ConfirmActionAppMessage
 import chat.schildi.revenge.actions.FlatMergedKeyboardActionProvider
 import chat.schildi.revenge.actions.FocusRole
-import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.UserIdSuggestion
 import chat.schildi.revenge.actions.UserIdSuggestionsProvider
@@ -55,7 +54,6 @@ import io.element.android.libraries.matrix.api.media.AudioInfo
 import io.element.android.libraries.matrix.api.media.FileInfo
 import io.element.android.libraries.matrix.api.media.ImageInfo
 import io.element.android.libraries.matrix.api.media.VideoInfo
-import io.element.android.libraries.matrix.api.room.BaseRoom
 import io.element.android.libraries.matrix.api.room.IntentionalMention
 import io.element.android.libraries.matrix.api.room.roomMembers
 import io.element.android.libraries.matrix.api.timeline.ReceiptType

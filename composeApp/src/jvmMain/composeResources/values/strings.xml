@@ -181,6 +181,7 @@
     <string name="profile_update_set_name_and_avatar">%1$s changed their avatar and set their name</string>
 
     <string name="pref_category_dimensions">Dimensions</string>
+    <string name="pref_category_keyboard_control">Keyboard control</string>
     <string name="pref_category_developer_options">Developer options</string>
     <string name="pref_render_scale">Render scale</string>
     <string name="pref_font_scale">Font scale</string>
@@ -188,6 +189,8 @@
     <string name="pref_max_width_conversation_title">Conversation max width</string>
     <string name="pref_max_width_settings_title">Settings max width</string>
     <string name="pref_always_show_keyboard_focus">Always highlight keyboard focus</string>
+    <string name="pref_focus_follows_mouse_title">Focus follows mouse</string>
+    <string name="pref_focus_follows_mouse_summary">Update keyboard focus immediately when moving the mouse</string>
     <string name="pref_auto_hide_composer_title">Auto-hide composer</string>
     <string name="pref_auto_hide_composer_summary">Hide composer on send</string>
     <string name="pref_window_transparency_title">Window alpha</string>
