@@ -1,6 +1,5 @@
 package chat.schildi.revenge.compose.destination.conversation.event.message
 
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -81,16 +80,14 @@ fun TextLikeMessageContent(
          remember(text) {
             text.toString().containsOnlyEmojis()
         }
-    SelectionContainer {
-        Text(
-            text,
-            color = MaterialTheme.colorScheme.primary,
-            style = if (isEmojiOnly)
-                Dimens.Conversation.emojiOnlyMessageStyle
-            else
-                Dimens.Conversation.textMessageStyle,
-            modifier = modifier,
-            onTextLayout = onTextLayout,
-        )
-    }
+    Text(
+        text,
+        color = MaterialTheme.colorScheme.primary,
+        style = if (isEmojiOnly)
+            Dimens.Conversation.emojiOnlyMessageStyle
+        else
+            Dimens.Conversation.textMessageStyle,
+        modifier = modifier,
+        onTextLayout = onTextLayout,
+    )
 }
