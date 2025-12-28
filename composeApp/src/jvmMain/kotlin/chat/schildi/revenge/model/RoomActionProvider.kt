@@ -7,11 +7,17 @@ import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.actions.launchActionAsync
 import chat.schildi.revenge.actions.toActionResult
+import chat.schildi.revenge.compose.util.StringResourceHolder
+import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import io.element.android.libraries.matrix.api.room.BaseRoom
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import kotlinx.coroutines.Dispatchers
+import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.action_leave
+import shire.composeapp.generated.resources.action_leave_room_prompt
+import shire.composeapp.generated.resources.action_leave_unnamed_room_prompt
 
 class RoomActionProvider(
     val getRoom: suspend () -> BaseRoom?,
@@ -81,8 +87,16 @@ class RoomActionProvider(
             Action.Room.MarkRoomFullyRead -> {
                 room.markAsRead(ReceiptType.FULLY_READ).toActionResult(async = true)
             }
-            Action.Room.Leave -> {
-                room.leave().toActionResult(async = true)
+            Action.Room.Leave -> context.withCriticalActionConfirmationSuspend(
+                prompt = room.info().name?.let {
+                    StringResourceHolder(Res.string.action_leave_room_prompt, it.toStringHolder())
+                } ?: Res.string.action_leave_unnamed_room_prompt.toStringHolder(),
+                confirmText = Res.string.action_leave.toStringHolder(),
+                scope = GlobalActionsScope,
+                coroutineContext = Dispatchers.IO,
+                actionName = action.name,
+            ) {
+               room.leave().toActionResult(async = true)
             }
         }
     }

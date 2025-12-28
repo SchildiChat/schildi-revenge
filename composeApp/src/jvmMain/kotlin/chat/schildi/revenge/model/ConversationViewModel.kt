@@ -931,7 +931,7 @@ class ConversationViewModel(
         } ?: ActionResult.Failure("Could not find $eventName")
     }
 
-    private fun ActionContext.promptRedact(
+    private fun ActionContext.redactWithConfirmation(
         eventOrTransactionId: EventOrTransactionId,
         isOwn: Boolean,
         senderName: String,
@@ -952,27 +952,24 @@ class ConversationViewModel(
             }
         }
         _highlightedActionEventId.value = eventOrTransactionId
-        publishMessage(
-            ConfirmActionAppMessage(
-                message,
-                confirmText = StringResourceHolder(Res.string.action_redact),
-                onDismiss = {
+        return withCriticalActionConfirmation(
+            prompt = message,
+            confirmText = StringResourceHolder(Res.string.action_redact),
+            onDismiss = {
+                _highlightedActionEventId.update { it.takeIf { it != eventOrTransactionId } }
+            }
+        ) {
+            launchActionAsync(
+                "redact",
+                GlobalActionsScope,
+                notifyProcessing = true,
+                appMessageId = ConfirmActionAppMessage.MESSAGE_ID,
+            ) {
+                timeline.redactEvent(eventOrTransactionId, reason = redactReason).toActionResult().also {
                     _highlightedActionEventId.update { it.takeIf { it != eventOrTransactionId } }
                 }
-            ) {
-                launchActionAsync(
-                    "redact",
-                    GlobalActionsScope,
-                    notifyProcessing = true,
-                    appMessageId = ConfirmActionAppMessage.MESSAGE_ID,
-                ) {
-                    timeline.redactEvent(eventOrTransactionId, reason = redactReason).toActionResult().also {
-                        _highlightedActionEventId.update { it.takeIf { it != eventOrTransactionId } }
-                    }
-                }
             }
-        )
-        return ActionResult.Success(async = true)
+        }
     }
 
     suspend fun focusOnEvent(eventId: EventId): Result<EventFocusResult> {
@@ -1154,7 +1151,7 @@ class ConversationViewModel(
                             return@run ActionResult.Inapplicable
                         }
                         eventOrTransactionId?.let {
-                            promptRedact(
+                            redactWithConfirmation(
                                 eventOrTransactionId = eventOrTransactionId,
                                 isOwn = event.isOwn,
                                 senderName = event.senderProfile.getDisambiguatedDisplayName(event.sender),

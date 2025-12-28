@@ -22,6 +22,11 @@
     <string name="action_redact_message_by_sender_prompt">Delete message by %1$s?</string>
     <string name="action_redact_event_prompt">Delete message?</string>
     <string name="action_redact_event_by_sender_prompt">Delete message by %1$s?</string>
+    <string name="action_leave_room_prompt">Leave room %1$s?</string>
+    <string name="action_leave_unnamed_room_prompt">Leave room?</string>
+    <string name="action_kick_user_prompt">Kick %1$s?</string>
+    <string name="action_ban_user_prompt">Ban %1$s?</string>
+
     <string name="action_redact">Delete</string>
     <string name="action_processing">Processing</string>
     <string name="action_processing_done">Done</string>

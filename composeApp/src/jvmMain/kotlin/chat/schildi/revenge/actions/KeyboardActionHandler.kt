@@ -35,6 +35,7 @@ import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.focus.FocusParent
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.Destination
+import chat.schildi.revenge.GlobalActionsScope
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
@@ -699,10 +700,14 @@ class KeyboardActionHandler(
         } ?: false
     }
 
-    fun getActionContext(destination: Destination?): ActionContext = getInternalActionContext(
-        currentFocused(),
-        UiState.keybindingsConfig.value,
-        destination?.name
+    fun getActionContext(
+        destination: Destination?,
+        criticalActionRequiresConfirmation: Boolean = true,
+    ): ActionContext = getInternalActionContext(
+        focused = currentFocused(),
+        criticalActionRequiresConfirmation = criticalActionRequiresConfirmation,
+        keybindingConfig = UiState.keybindingsConfig.value,
+        currentDestinationName = destination?.name,
     )
 
     fun handleAction(
@@ -714,7 +719,7 @@ class KeyboardActionHandler(
             log.e("Invoked handleAction on unregistered focus item")
             currentFocused()
         }
-        val context = getInternalActionContext(focused)
+        val context = getInternalActionContext(focused, criticalActionRequiresConfirmation = true)
 
         return ActionResult.chain(
             *getCurrentKeyActionHandlers(focused).map {{
@@ -725,6 +730,7 @@ class KeyboardActionHandler(
 
     private fun getInternalActionContext(
         focused: FocusTarget?,
+        criticalActionRequiresConfirmation: Boolean,
         keybindingConfig: KeybindingConfig? = UiState.keybindingsConfig.value,
         currentDestinationName: String? = focused?.destinationStateHolder?.state?.value?.destination?.name,
     ) = object : InternalActionContext {
@@ -741,7 +747,48 @@ class KeyboardActionHandler(
             this@KeyboardActionHandler.openLinkInExternalBrowser(uri)
         override fun focusByRole(role: FocusRole) =
             this@KeyboardActionHandler.focusByRole(role)
+        override fun withCriticalActionConfirmation(
+            prompt: ComposableStringHolder,
+            confirmText: ComposableStringHolder,
+            onDismiss: () -> Unit,
+            action: () -> ActionResult,
+        ) = this@KeyboardActionHandler.withCriticalActionConfirmation(
+            context = this,
+            prompt = prompt,
+            confirmText = confirmText,
+            onDismiss = onDismiss,
+            action = action,
+        )
+        override suspend fun withCriticalActionConfirmationSuspend(
+            scope: CoroutineScope,
+            actionName: String,
+            prompt: ComposableStringHolder,
+            confirmText: ComposableStringHolder,
+            onDismiss: () -> Unit,
+            coroutineContext: CoroutineContext,
+            action: suspend () -> ActionResult
+        ): ActionResult {
+            return if (criticalActionRequiresConfirmation) {
+                withCriticalActionConfirmation(
+                    prompt = prompt,
+                    confirmText = confirmText,
+                    onDismiss = onDismiss,
+                ) {
+                    launchActionAsync(
+                        actionName = actionName,
+                        scope = scope,
+                        context = coroutineContext,
+                        appMessageId = ConfirmActionAppMessage.MESSAGE_ID,
+                    ) {
+                        action()
+                    }
+                }
+            } else {
+                action()
+            }
+        }
         override val focused = focused
+        override val criticalActionRequiresConfirmation = criticalActionRequiresConfirmation
         override val keybindingConfig = keybindingConfig
         override val currentDestinationName = currentDestinationName
     }
@@ -993,7 +1040,11 @@ class KeyboardActionHandler(
 
     private fun handleNavigationEvent(key: KeyTrigger, focused: FocusTarget?): ActionResult {
         val keyConfig = UiState.keybindingsConfig.value ?: return ActionResult.NoMatch
-        val context = getInternalActionContext(focused, keyConfig)
+        val context = getInternalActionContext(
+            focused,
+            criticalActionRequiresConfirmation = true,
+            keybindingConfig = keyConfig,
+        )
 
         return ActionResult.chain(
             *getCurrentKeyActionHandlers(focused).map {{
@@ -1230,7 +1281,11 @@ class KeyboardActionHandler(
             }
             1 -> {
                 val action = possibleUniqueActionsWithValidArgs.first()
-                val context = getInternalActionContext(focused, keybindingConfig = null)
+                val context = getInternalActionContext(
+                    focused,
+                    keybindingConfig = null,
+                    criticalActionRequiresConfirmation = false,
+                )
                 val result = try {
                     ActionResult.chain(
                         *possibleActions.filter { it.first == action }.map {{
@@ -1307,6 +1362,30 @@ class KeyboardActionHandler(
         }
         success?.let(handleSuccess)
         return success != null
+    }
+
+    private fun withCriticalActionConfirmation(
+        context: InternalActionContext,
+        prompt: ComposableStringHolder,
+        confirmText: ComposableStringHolder,
+        onDismiss: () -> Unit,
+        action: () -> ActionResult
+    ): ActionResult {
+        return if (context.criticalActionRequiresConfirmation) {
+            publishMessage(
+                ConfirmActionAppMessage(
+                    prompt,
+                    confirmText = confirmText,
+                    onDismiss = onDismiss,
+                ) {
+                    dismissMessage(ConfirmActionAppMessage.MESSAGE_ID)
+                    action()
+                }
+            )
+            ActionResult.Success(async = true, notifySuccess = false)
+        } else {
+            action()
+        }
     }
 
     fun copyToClipboard(context: ActionContext, content: String, description: ComposableStringHolder): ActionResult {
@@ -1707,12 +1786,28 @@ interface ActionContext {
     fun getFilesFromClipboard(): List<File>
     fun openLinkInExternalBrowser(uri: String): ActionResult
     fun focusByRole(role: FocusRole): Boolean
+    fun withCriticalActionConfirmation(
+        prompt: ComposableStringHolder,
+        confirmText: ComposableStringHolder,
+        onDismiss: () -> Unit = {},
+        action: () -> ActionResult,
+    ): ActionResult
+    suspend fun withCriticalActionConfirmationSuspend(
+        scope: CoroutineScope,
+        actionName: String,
+        prompt: ComposableStringHolder,
+        confirmText: ComposableStringHolder,
+        onDismiss: () -> Unit = {},
+        coroutineContext: CoroutineContext = EmptyCoroutineContext,
+        action: suspend () -> ActionResult,
+    ): ActionResult
     val currentDestinationName: String?
     val keybindingConfig: KeybindingConfig?
 }
 
 private interface InternalActionContext : ActionContext {
     val focused: FocusTarget?
+    val criticalActionRequiresConfirmation: Boolean
 }
 
 fun ActionContext?.publishError(log: Logger, messageId: String?, error: String) {

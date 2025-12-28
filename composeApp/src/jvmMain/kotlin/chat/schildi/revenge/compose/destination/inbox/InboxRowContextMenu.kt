@@ -79,6 +79,7 @@ fun ScopedRoomSummary.contextMenu(): ImmutableList<ContextMenuEntry> {
                 rememberVectorPainter(Icons.Default.MeetingRoom),
                 Action.Room.Leave,
                 critical = true,
+                keyboardShortcut = Key.V,
             ),
         ).toPersistentList()
     }
