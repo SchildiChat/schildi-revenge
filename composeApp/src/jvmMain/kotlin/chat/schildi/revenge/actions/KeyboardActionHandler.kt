@@ -609,9 +609,11 @@ class KeyboardActionHandler(
             Key.Escape -> dismissContextMenu(contextMenu.focusId)
             else -> {
                 val action = contextMenu.entries.find { it.keyboardShortcut == event.key }
-                if (action != null) {
+                if (action != null && action.enabled) {
                     handleAction(contextMenu.focusId, action.action, action.actionArgs)
-                    dismissContextMenu(contextMenu.focusId)
+                    if (action.autoCloseMenu) {
+                        dismissContextMenu(contextMenu.focusId)
+                    }
                 }
             }
         }

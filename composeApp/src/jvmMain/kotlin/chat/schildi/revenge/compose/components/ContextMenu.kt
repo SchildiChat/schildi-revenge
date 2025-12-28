@@ -43,12 +43,14 @@ import java.util.UUID
 
 data class ContextMenuEntry(
     val title: StringResourceHolder,
-    val icon: Painter,
+    val icon: Painter?,
     val action: Action,
     val actionArgs: ImmutableList<String> = persistentListOf(),
     val toggleState: Boolean? = null,
     val keyboardShortcut: Key? = null,
     val critical: Boolean = false,
+    val enabled: Boolean = true,
+    val autoCloseMenu: Boolean = toggleState == null,
 )
 
 @Composable
@@ -106,6 +108,7 @@ fun WithContextMenu(
                     MaterialTheme.colorScheme.primary
                 }
                 DropdownMenuItem(
+                    enabled = entry.enabled,
                     colors = MenuItemColors(
                         textColor = primaryColor,
                         leadingIconColor = primaryColor,
@@ -114,18 +117,25 @@ fun WithContextMenu(
                         disabledLeadingIconColor = MaterialTheme.colorScheme.tertiary,
                         disabledTrailingIconColor = MaterialTheme.colorScheme.tertiary,
                     ),
-                    leadingIcon = {
+                    leadingIcon = entry.icon?.let {{
                         Icon(
                             entry.icon,
                             null,
                             Modifier.size(24.dp)
                         )
-                    },
+                    }},
                     trailingIcon = if (entry.toggleState == null) null else {{
                         Switch(
+                            enabled = entry.enabled,
                             checked = entry.toggleState,
                             onCheckedChange = {
+                                if (!entry.enabled) {
+                                    return@Switch
+                                }
                                 keyHandler.handleAction(focusId, entry.action, entry.actionArgs)
+                                if (entry.autoCloseMenu) {
+                                    keyHandler.dismissContextMenu(focusId)
+                                }
                             }
                         )
                     }},
@@ -158,8 +168,11 @@ fun WithContextMenu(
                         Text(text)
                     },
                     onClick = {
+                        if (!entry.enabled) {
+                            return@DropdownMenuItem
+                        }
                         keyHandler.handleAction(focusId, entry.action, entry.actionArgs)
-                        if (entry.toggleState == null) {
+                        if (entry.autoCloseMenu) {
                             keyHandler.dismissContextMenu(focusId)
                         }
                     }
