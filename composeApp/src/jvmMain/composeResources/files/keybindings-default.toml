@@ -1,0 +1,49 @@
+global = [
+    { key = "K", ctrl = true, action = "Search" },
+    { key = "Slash", action = "Search", destinations = ["Inbox"] },
+    { key = "Semicolon", action = "Command" },
+    { key = "Semicolon", shift = true, action = "Command" },
+    { key = "Slash", action = "Command", destinations = ["Conversation"] },
+]
+appMessage = [
+    { key = "Escape", action = "ClearAppMessages" },
+    { key = "Enter", action = "ConfirmActionAppMessage" },
+]
+inbox = []
+conversation = [
+    { key = "V", ctrl = true, action = "ComposerPasteAttachment" },
+    { key = "Enter", action = "ComposerSuggestionApplySelected" },
+    { key = "Enter", action = "ComposerSend" },
+    { key = "Enter", ctrl = true, action = "ComposerSend" },
+    { key = "Enter", shift = true, action = "ComposerInsertAtCursor", args = ["\n"] },
+    { key = "Tab", action = "ComposerSuggestionFocusNext" },
+    { key = "Tab", shift = true, action = "ComposerSuggestionFocusPrevious" },
+]
+event = []
+navigation = [
+    { key = "I", ctrl = true, action = "NavigateCurrent", args = ["inbox"] },
+    { key = "I", ctrl = true, shift = true, action = "NavigateInNewWindow", args = ["inbox"] },
+    { key = "A", ctrl = true, action = "NavigateCurrent", args = ["accounts"] },
+    { key = "A", ctrl = true, shift = true, action = "NavigateInNewWindow", args = ["accounts"] },
+    { key = "Q", ctrl = true, action = "CloseWindow" },
+]
+navigationItem = [
+    { key = "Enter", action = "NavigateCurrent" },
+    { key = "Enter", shift = true, action = "NavigateInNewWindow" },
+]
+focus = [
+    { key = "Enter", ctrl = true, action = "OpenContextMenu" },
+    { key = "DirectionUp", action = "FocusUp" },
+    { key = "DirectionDown", action = "FocusDown" },
+    { key = "DirectionLeft", action = "FocusLeft" },
+    { key = "DirectionRight", action = "FocusRight" },
+    { key = "Escape", shift = true, action = "FocusParent" },
+    { key = "Enter", action = "FocusEnterContainer" },
+    { key = "MoveHome", action = "FocusTop" },
+    { key = "MoveEnd", action = "FocusBottom" },
+]
+list = [
+    { key = "MoveHome", action = "ScrollToStart" },
+    { key = "MoveEnd", shift = true, action = "ScrollToBottom" },
+]
+split = []

@@ -76,7 +76,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -276,6 +278,12 @@ class KeyboardActionHandler(
     private val focusableTargets = ConcurrentHashMap<UUID, FocusTarget>()
 
     private val pendingKeyTriggersInAction = ConcurrentHashMap<KeyTrigger, Unit>()
+
+    init {
+        UiState.globalMessageBoard.onEach {
+            publishMessage(it)
+        }.launchIn(scope)
+    }
 
     private fun distanceToRect(rect: Rect, p: Offset): Float {
         val nearestX = p.x.coerceIn(rect.left, rect.right)

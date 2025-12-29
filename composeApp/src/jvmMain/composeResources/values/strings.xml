@@ -208,4 +208,7 @@
 
     <string name="sc_pseudo_space_accounts_title">Accounts</string>
     <string name="sc_pseudo_space_accounts_summary">One pseudo-space for each logged-in account</string>
+
+    <string name="toast_key_config_reload_success">Key bindings reloaded</string>
+    <string name="toast_key_config_reload_error">Failed parsing key bindings config: %1$s</string>
 </resources>

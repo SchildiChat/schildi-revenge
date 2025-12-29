@@ -1,8 +1,11 @@
 package chat.schildi.revenge
 
 import androidx.compose.ui.window.ApplicationScope
-import chat.schildi.revenge.actions.CommandSuggestion
+import chat.schildi.revenge.actions.AbstractAppMessage
+import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.revenge.compose.util.StringResourceHolder
+import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.ConfigWatchers
 import chat.schildi.revenge.store.AppStateStore
 import co.touchlab.kermit.Logger
@@ -18,8 +21,10 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
@@ -27,11 +32,16 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.toast_key_config_reload_error
+import shire.composeapp.generated.resources.toast_key_config_reload_success
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.concurrent.atomics.fetchAndIncrement
 
 val GlobalActionsScope = CoroutineScope(Dispatchers.IO)
+
+private const val MESSAGE_ID_KEY_CONFIG = "keyConfig"
 
 @OptIn(ExperimentalAtomicApi::class)
 object UiState {
@@ -51,7 +61,36 @@ object UiState {
     private val _minimizedToTray = MutableStateFlow(false)
     val minimizedToTray = _minimizedToTray.asStateFlow()
 
-    private val keybindingsConfigWatcher = ConfigWatchers.keybindings(scope)
+    private val _globalMessageBoard = MutableSharedFlow<AbstractAppMessage>(3)
+    val globalMessageBoard = _globalMessageBoard.asSharedFlow()
+
+    private val keybindingsConfigWatcher = ConfigWatchers.keybindings(
+        scope,
+        readDefaultFallback = {
+            Res.readBytes("files/keybindings-default.toml").decodeToString()
+        },
+        onReloadSuccess = {
+            _globalMessageBoard.tryEmit(
+                AppMessage(
+                    message = Res.string.toast_key_config_reload_success.toStringHolder(),
+                    uniqueId = MESSAGE_ID_KEY_CONFIG,
+                )
+            )
+        },
+        onError = { error ->
+            _globalMessageBoard.tryEmit(
+                AppMessage(
+                    message = StringResourceHolder(
+                        Res.string.toast_key_config_reload_error,
+                        (error?.message ?: "Unknown").toStringHolder()
+                    ),
+                    uniqueId = MESSAGE_ID_KEY_CONFIG,
+                    isError = true,
+                    canAutoDismiss = false,
+                )
+            )
+        },
+    )
     val keybindingsConfig = keybindingsConfigWatcher.config
 
     val matrixClients = appGraph.sessionStore.sessionsFlow().map {

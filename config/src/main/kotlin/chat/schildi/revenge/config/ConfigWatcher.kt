@@ -35,7 +35,10 @@ class JsonConfigWatcher<T : Any>(
     private val default: T,
     private val createIfMissing: Boolean = false,
 ) : ConfigWatcher<T>(
-    tag, scope, file, debounce,
+    tag = tag,
+    scope = scope,
+    file = file,
+    debounce = debounce,
 ) {
     private val log = Logger.withTag(tag)
     private val json = Json {
@@ -87,13 +90,22 @@ class JsonConfigWatcher<T : Any>(
 
 class TomlConfigWatcher<T : Any>(
     tag: String,
-    scope: CoroutineScope,
+    private val scope: CoroutineScope,
     file: File,
+    private val readDefaultFallback: (suspend () -> String?)?,
     private val serializer: KSerializer<T>,
     debounce: Duration = 150.milliseconds,
+    onReloadSuccess: () -> Unit,
+    private val onError: (Throwable?) -> Unit,
 ) : ConfigWatcher<T>(
-    tag, scope, file, debounce
+    tag = tag,
+    scope = scope,
+    file = file,
+    debounce = debounce,
+    onReloadSuccess = onReloadSuccess,
+    onError = onError,
 ) {
+    private val log = Logger.withTag(tag)
     private val toml = Toml(
         inputConfig = TomlInputConfig(
             ignoreUnknownNames = true,
@@ -110,6 +122,25 @@ class TomlConfigWatcher<T : Any>(
     init {
         launch()
     }
+
+    override fun reloadNow(): Boolean {
+        val success = super.reloadNow()
+        if (!success && readDefaultFallback != null && config.value == null) {
+            log.i { "Failed to load file, loading default" }
+            scope.launch(Dispatchers.IO) {
+                try {
+                    val fallback = readDefaultFallback()
+                    if (fallback != null) {
+                        _config.value = decodeFromString(fallback)
+                    }
+                } catch (t: Throwable) {
+                    log.e("Failed to parse default config", t)
+                    onError(t)
+                }
+            }
+        }
+        return success
+    }
 }
 
 abstract class ConfigWatcher<T : Any>(
@@ -117,11 +148,14 @@ abstract class ConfigWatcher<T : Any>(
     scope: CoroutineScope,
     private val file: File,
     private val debounce: Duration = 150.milliseconds,
+    private val onReloadSuccess: () -> Unit = {},
+    private val onError: (Throwable?) -> Unit = {},
 ) {
     private val log = Logger.withTag(tag)
 
-    private val _config = MutableStateFlow<T?>(null)
+    protected val _config = MutableStateFlow<T?>(null)
     val config = _config.asStateFlow()
+    private var isInitialLoad = true
 
     // Watcher job
     private val watchJob = scope.launch(Dispatchers.IO, CoroutineStart.LAZY) {
@@ -195,16 +229,21 @@ abstract class ConfigWatcher<T : Any>(
                 val parsed = decodeFromString(text)
                 log.d("Config loaded from ${file.path}")
                 _config.value = parsed
+                if (!isInitialLoad) {
+                    onReloadSuccess()
+                }
                 true
             } else {
                 log.d("Config file ${file.path} does not exist")
                 false
             }
         } catch (t: Throwable) {
-            // TODO surface errors to UI somehow, needs error rendering framework
             // Keep the last good value
             log.e("Failed to parse config", t)
+            onError(t)
             false
+        } finally {
+            isInitialLoad = false
         }
     }
 }

@@ -6,12 +6,20 @@ import kotlinx.serialization.KSerializer
 import java.io.File
 
 object ConfigWatchers {
-    // TODO add special sanity check for conflicting key binding definitions
-    fun keybindings(scope: CoroutineScope) = TomlConfigWatcher(
+    // TODO add special sanity check for conflicting key binding definitions?
+    fun keybindings(
+        scope: CoroutineScope,
+        readDefaultFallback: suspend () -> String,
+        onReloadSuccess: () -> Unit,
+        onError: (Throwable?) -> Unit,
+    ) = TomlConfigWatcher(
         tag = "KeybindingConfig",
         scope = scope,
         file = File(ScAppDirs.getUserConfigDir(), "keybindings.toml"),
+        readDefaultFallback = readDefaultFallback,
         serializer = KeybindingConfig.serializer(),
+        onReloadSuccess = onReloadSuccess,
+        onError = onError,
     )
 
     fun <T : Any>jsonConfigWatcher(
