@@ -1,17 +1,21 @@
 package chat.schildi.revenge.compose.components
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
@@ -20,14 +24,13 @@ import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.media.imageLoader
-import chat.schildi.revenge.compose.media.onAsyncImageError
 import chat.schildi.theme.ScColors
+import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
+import coil3.compose.SubcomposeAsyncImageContent
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.ui.media.MediaRequestData
-
-private const val AVATAR_THUMBNAIL_SIZE = 512L
 
 @Composable
 fun AvatarImage(
@@ -44,20 +47,39 @@ fun AvatarImage(
         return
     }
     SubcomposeAsyncImage(
-        model = MediaRequestData(source, MediaRequestData.Kind.Content),
-        filterQuality = FilterQuality.High,
-        contentDescription = contentDescription,
-        imageLoader = imageLoader(sessionId),
-        onError = ::onAsyncImageError,
         modifier = modifier.size(size).clip(shape),
+        imageLoader = imageLoader(sessionId),
+        model = MediaRequestData(source, MediaRequestData.Kind.Content),
         contentScale = ContentScale.Crop,
-        loading = {
-            AvatarFallback(displayName, shape, size, isLoading = true)
-        },
-        error = {
-            AvatarFallback(displayName, shape, size, isError = true)
-        },
-    )
+        alignment = Alignment.Center,
+        contentDescription = contentDescription,
+    ) {
+        AnimatedContent(
+            painter.state.collectAsState().value,
+            transitionSpec = {
+                fadeIn(
+                    animationSpec = Dimens.tweenSmooth()
+                ) togetherWith fadeOut(
+                    animationSpec = Dimens.tweenSmooth()
+                )
+            },
+        ) { state ->
+            when (state) {
+                is AsyncImagePainter.State.Success -> SubcomposeAsyncImageContent()
+                AsyncImagePainter.State.Empty -> {
+                    AvatarFallback(displayName, shape, size)
+                }
+
+                is AsyncImagePainter.State.Error -> {
+                    AvatarFallback(displayName, shape, size, isError = true)
+                }
+
+                is AsyncImagePainter.State.Loading -> {
+                    AvatarFallback(displayName, shape, size, isLoading = true)
+                }
+            }
+        }
+    }
 }
 
 fun String.firstCodePoint(index: Int = 0): String? {

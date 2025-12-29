@@ -30,8 +30,10 @@ object Dimens {
         val smallIcon = 16.dp
     }
 
-    val animationDurationMs = 50
-    fun <T>tween(): TweenSpec<T> = tween(animationDurationMs)
+    val animationDurationQuickMs = 50
+    fun <T>tween(): TweenSpec<T> = tween(animationDurationQuickMs)
+    val animationDurationSlowMs = 300
+    fun <T>tweenSmooth(): TweenSpec<T> = tween(animationDurationSlowMs)
 
     object Conversation {
         val avatar = 48.dp
