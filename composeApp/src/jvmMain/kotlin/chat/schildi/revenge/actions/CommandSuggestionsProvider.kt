@@ -6,6 +6,7 @@ import chat.schildi.preferences.forEachPreference
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.HardcodedStringHolder
+import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.ALLOWED_DESTINATION_STRINGS
 import chat.schildi.revenge.config.keybindings.ActionArgument
@@ -34,6 +35,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
+import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.command_suggestion_title_and_hint
 
 enum class CurrentCommandValidity {
     INCOMPLETE,
@@ -97,7 +100,17 @@ class CommandSuggestionsProvider(
     private val prefKeySuggestions = buildList {
         ScPrefs.rootPrefs.forEachPreference {
             if (it.key != null) {
-                add(CommandSuggestion(it.sKey, it.titleRes.toStringHolder()))
+                val summaryRes = it.summaryRes
+                val hint = if (summaryRes != null) {
+                    StringResourceHolder(
+                        Res.string.command_suggestion_title_and_hint,
+                        it.titleRes.toStringHolder(),
+                        summaryRes.toStringHolder(),
+                    )
+                } else {
+                    it.titleRes.toStringHolder()
+                }
+                add(CommandSuggestion(it.sKey, hint))
             }
         }
     }
