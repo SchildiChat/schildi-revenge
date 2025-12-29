@@ -86,7 +86,7 @@ data class DraftValue(
             (textFieldValue.text.isBlank() || textFieldValue.text == initialBody)
     fun canSend() = !isSendInProgress && !isEmpty()
     /** Whether an attachment can be added to the current composer state without dropping state. */
-    fun canAddAttachment() = editEventId == null && !isSendInProgress && type == DraftType.TEXT
+    fun canAddAttachment() = editEventId == null && type == DraftType.TEXT
 }
 
 // TODO may add some persistent storage to this one to survive restarts & crashes

@@ -86,11 +86,18 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
             ) {
                 IconButton(
                     onClick = { viewModel.launchAttachmentPicker(actionContext) },
+                    enabled = !draftState.isSendInProgress,
                 ) {
+                    val color = animateColorAsState(
+                        if (draftState.isSendInProgress)
+                            MaterialTheme.colorScheme.tertiary
+                        else
+                            MaterialTheme.colorScheme.primary,
+                    ).value
                     Icon(
                         Icons.Default.Add,
                         stringResource(Res.string.action_add_attachment),
-                        tint = MaterialTheme.colorScheme.onSurface,
+                        tint = color,
                     )
                 }
             }
