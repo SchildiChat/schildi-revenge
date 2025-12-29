@@ -1207,6 +1207,10 @@ class KeyboardActionHandler(
         }
     }
 
+    fun clearSearch() {
+        updateMode { KeyboardActionMode.Navigation }
+    }
+
     private fun handleSearchUpdate(
         query: String?,
         navigating: Boolean,

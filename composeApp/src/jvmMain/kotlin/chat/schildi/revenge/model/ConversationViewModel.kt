@@ -252,8 +252,12 @@ class ConversationViewModel(
             .stateIn(viewModelScope, SharingStarted.Eagerly, ComposerSuggestionsState())
 
     private val forceShowComposer = MutableStateFlow(false)
-    val shouldShowComposer = combine(composerState, forceShowComposer) { state, force ->
-        force || !state.isEmpty()
+    val shouldShowComposer = combine(
+        composerState,
+        forceShowComposer,
+        scPreferencesStore.settingFlow(ScPrefs.MINIMAL_MODE),
+    ) { state, force, minimalMode ->
+        force || !minimalMode || !state.isEmpty()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, forceShowComposer.value)
 
     override fun onComposerUpdate(value: DraftValue) {
@@ -478,6 +482,8 @@ class ConversationViewModel(
     }
 
     val userProfile = clientFlow.flatMapLatest { it?.userProfile ?: flowOf(null) }
+
+    val roomTitle = roomPair.map { (it, _) -> it?.info()?.name }
 
     override val windowTitle: Flow<ComposableStringHolder?> = combine(
         roomPair,

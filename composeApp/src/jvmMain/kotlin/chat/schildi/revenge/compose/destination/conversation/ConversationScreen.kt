@@ -197,6 +197,7 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
                     target = fileDragTarget,
                 ),
             ) {
+                ConversationTopNavigation(viewModel.roomTitle.collectAsState(null).value ?: "")
                 // Double reverse helps with stick-to-bottom while paging backwards or receiving messages
                 LazyColumn(
                     Modifier.fillMaxWidth().weight(1f),

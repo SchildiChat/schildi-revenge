@@ -1,8 +1,10 @@
 package chat.schildi.revenge.compose.destination
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
@@ -10,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -34,11 +37,16 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
+import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.defaultActionProvider
 import chat.schildi.revenge.compose.components.IconButtonWithConfirmation
+import chat.schildi.revenge.compose.components.TopNavigation
+import chat.schildi.revenge.compose.components.TopNavigationIcon
+import chat.schildi.revenge.compose.components.TopNavigationTitle
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.AccountManagementData
@@ -46,9 +54,11 @@ import chat.schildi.revenge.model.AccountManagementViewModel
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.about
 import shire.composeapp.generated.resources.action_hide
 import shire.composeapp.generated.resources.action_login
 import shire.composeapp.generated.resources.action_logout
+import shire.composeapp.generated.resources.action_open_inbox
 import shire.composeapp.generated.resources.action_show
 import shire.composeapp.generated.resources.action_verify
 import shire.composeapp.generated.resources.hint_homeserver
@@ -58,8 +68,6 @@ import shire.composeapp.generated.resources.hint_username
 import shire.composeapp.generated.resources.manage_accounts
 import shire.composeapp.generated.resources.title_login_account
 
-// TODO revise keyboard control
-
 @Composable
 fun AccountManagementScreen(modifier: Modifier = Modifier) {
     val viewModel: AccountManagementViewModel = viewModel()
@@ -68,23 +76,40 @@ fun AccountManagementScreen(modifier: Modifier = Modifier) {
         modifier = modifier,
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
     ) {
-        LazyColumn(
-            Modifier.widthIn(max = ScPrefs.MAX_WIDTH_SETTINGS.value().dp).padding(vertical = Dimens.windowPadding),
-            verticalArrangement = Dimens.verticalArrangement,
-        ) {
-            if (accounts.isNotEmpty()) {
-                item(key = "manage") {
-                    SectionHeader(stringResource(Res.string.manage_accounts))
-                }
-                items(accounts, key = { it.session.userId }) { account ->
-                    ExistingLogin(account, viewModel)
+        Column {
+            val destinationState = LocalDestinationState.current
+            if (destinationState != null) {
+                TopNavigation {
+                    TopNavigationTitle(stringResource(Res.string.manage_accounts))
+                    TopNavigationIcon(
+                        Icons.Default.Inbox,
+                        stringResource(Res.string.action_open_inbox)
+                    ) {
+                        destinationState.navigate(Destination.Inbox)
+                    }
                 }
             }
-            item(key = "new_header") {
-                SectionHeader(stringResource(Res.string.title_login_account))
-            }
-            item(key = "new") {
-                NewLogin(viewModel)
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                LazyColumn(
+                    Modifier.widthIn(max = ScPrefs.MAX_WIDTH_SETTINGS.value().dp)
+                        .padding(vertical = Dimens.windowPadding),
+                    verticalArrangement = Dimens.verticalArrangement,
+                ) {
+                    if (accounts.isNotEmpty()) {
+                        item(key = "manage") {
+                            SectionHeader(stringResource(Res.string.manage_accounts))
+                        }
+                        items(accounts, key = { it.session.userId }) { account ->
+                            ExistingLogin(account, viewModel)
+                        }
+                    }
+                    item(key = "new_header") {
+                        SectionHeader(stringResource(Res.string.title_login_account))
+                    }
+                    item(key = "new") {
+                        NewLogin(viewModel)
+                    }
+                }
             }
         }
     }

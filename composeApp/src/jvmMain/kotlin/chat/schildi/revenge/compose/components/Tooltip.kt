@@ -8,10 +8,11 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun WithTooltip(text: String, content: @Composable () -> Unit) {
+fun WithTooltip(text: String, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     TooltipBox(
         tooltip = {
             PlainTooltip {
@@ -22,6 +23,7 @@ fun WithTooltip(text: String, content: @Composable () -> Unit) {
         },
         state = rememberTooltipState(),
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        modifier = modifier,
         content = content,
     )
 }

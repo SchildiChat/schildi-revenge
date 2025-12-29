@@ -6,12 +6,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,7 +28,9 @@ import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
+import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
@@ -33,6 +38,9 @@ import chat.schildi.revenge.actions.ListAction
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.defaultActionProvider
+import chat.schildi.revenge.compose.components.TopNavigation
+import chat.schildi.revenge.compose.components.TopNavigationIcon
+import chat.schildi.revenge.compose.components.TopNavigationTitle
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.util.ComposableStringHolder
@@ -41,10 +49,12 @@ import chat.schildi.theme.scLinkStyle
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.about
 import shire.composeapp.generated.resources.about_credits
 import shire.composeapp.generated.resources.about_privacy_policy
 import shire.composeapp.generated.resources.about_source_code
 import shire.composeapp.generated.resources.about_website
+import shire.composeapp.generated.resources.action_open_inbox
 import shire.composeapp.generated.resources.app_title
 import shire.composeapp.generated.resources.hint_app_icon
 import shire.composeapp.generated.resources.ic_launcher
@@ -123,25 +133,56 @@ fun AboutScreen(modifier: Modifier = Modifier) {
         modifier = modifier,
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
     ) {
-        LazyColumn(
-            modifier = Modifier.padding(horizontal = Dimens.windowPadding),
-            verticalArrangement = Dimens.verticalArrangement,
-            state = listState,
-        ) {
-            item(key = "header") {
-                AboutHeader()
+        Column {
+            val destinationState = LocalDestinationState.current
+            if (destinationState != null) {
+                TopNavigation {
+                    TopNavigationTitle(stringResource(Res.string.about))
+                    TopNavigationIcon(
+                        Icons.Default.Inbox,
+                        stringResource(Res.string.action_open_inbox)
+                    ) {
+                        destinationState.navigate(Destination.Inbox)
+                    }
+                }
             }
-            item(key = "links") {
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(
-                        Dimens.horizontalItemPadding,
-                        Alignment.CenterHorizontally
-                    ),
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                LazyColumn(
+                    modifier = Modifier.padding(horizontal = Dimens.windowPadding),
                     verticalArrangement = Dimens.verticalArrangement,
+                    state = listState,
                 ) {
-                    AppLinks.forEach { item ->
-                        AppLinkItem(
+                    item(key = "header") {
+                        AboutHeader()
+                    }
+                    item(key = "links") {
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(
+                                Dimens.horizontalItemPadding,
+                                Alignment.CenterHorizontally
+                            ),
+                            verticalArrangement = Dimens.verticalArrangement,
+                        ) {
+                            AppLinks.forEach { item ->
+                                AppLinkItem(
+                                    item,
+                                    Modifier.keyFocusable(
+                                        actionProvider = defaultActionProvider(
+                                            primaryAction = InteractionAction.Invoke {
+                                                keyHandler.openLinkInExternalBrowser(item.url) is ActionResult.Success
+                                            }
+                                        )
+                                    )
+                                )
+                            }
+                        }
+                    }
+                    item(key = "section_credits") {
+                        AboutSectionHeader(stringResource(Res.string.about_credits))
+                    }
+                    items(ThirdPartyAcknowledgements, key = { it.name }) { item ->
+                        AcknowledgementItem(
                             item,
                             Modifier.keyFocusable(
                                 actionProvider = defaultActionProvider(
@@ -153,21 +194,6 @@ fun AboutScreen(modifier: Modifier = Modifier) {
                         )
                     }
                 }
-            }
-            item(key = "section_credits") {
-                AboutSectionHeader(stringResource(Res.string.about_credits))
-            }
-            items(ThirdPartyAcknowledgements, key = { it.name }) { item ->
-                AcknowledgementItem(
-                    item,
-                    Modifier.keyFocusable(
-                        actionProvider = defaultActionProvider(
-                            primaryAction = InteractionAction.Invoke {
-                                keyHandler.openLinkInExternalBrowser(item.url) is ActionResult.Success
-                            }
-                        )
-                    )
-                )
             }
         }
     }

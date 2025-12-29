@@ -17,6 +17,8 @@ import shire.composeapp.generated.resources.pref_font_scale
 import shire.composeapp.generated.resources.pref_max_width_conversation_title
 import shire.composeapp.generated.resources.pref_max_width_inbox_title
 import shire.composeapp.generated.resources.pref_max_width_settings_title
+import shire.composeapp.generated.resources.pref_minimal_mode_summary
+import shire.composeapp.generated.resources.pref_minimal_mode_title
 import shire.composeapp.generated.resources.pref_render_scale
 import shire.composeapp.generated.resources.pref_theme_follow_system_summary
 import shire.composeapp.generated.resources.pref_theme_follow_system_title
@@ -83,6 +85,7 @@ object ScPrefs {
     val MAX_WIDTH_SETTINGS = ScIntPref("MAX_WIDTH_SETTINGS", 1024, Res.string.pref_max_width_settings_title)
 
     // Keyboard navigation
+    val MINIMAL_MODE = ScBoolPref("MINIMAL_MODE", false, Res.string.pref_minimal_mode_title, Res.string.pref_minimal_mode_summary)
     val ALWAYS_SHOW_KEYBOARD_FOCUS = ScBoolPref("ALWAYS_SHOW_KEYBOARD_FOCUS", false, Res.string.pref_always_show_keyboard_focus)
     val FOCUS_FOLLOWS_MOUSE = ScBoolPref("FOCUS_FOLLOWS_MOUSE", false, Res.string.pref_focus_follows_mouse_title, Res.string.pref_focus_follows_mouse_summary)
 
@@ -194,7 +197,7 @@ object ScPrefs {
      */
 
     // Composer
-    val AUTO_HIDE_COMPOSER = ScBoolPref("AUTO_HIDE_COMPOSER", false, Res.string.pref_auto_hide_composer_title, Res.string.pref_auto_hide_composer_summary)
+    val AUTO_HIDE_COMPOSER = ScBoolPref("AUTO_HIDE_COMPOSER", false, Res.string.pref_auto_hide_composer_title, Res.string.pref_auto_hide_composer_summary, dependencies = MINIMAL_MODE.asDependencies())
 
     /*
     // Advanced theming options - Light theme
@@ -243,6 +246,8 @@ object ScPrefs {
                  */
             )),
             ScPrefCategory(Res.string.pref_category_keyboard_control, null, listOf(
+                MINIMAL_MODE,
+                AUTO_HIDE_COMPOSER,
                 FOCUS_FOLLOWS_MOUSE,
                 ALWAYS_SHOW_KEYBOARD_FOCUS,
             )),
