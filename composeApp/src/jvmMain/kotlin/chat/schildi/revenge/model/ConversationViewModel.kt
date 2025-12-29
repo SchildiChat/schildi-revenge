@@ -265,17 +265,23 @@ class ConversationViewModel(
     }
 
     override fun sendMessage(context: ActionContext): ActionResult {
-        val draft = composerState.value
-        if (draft.isEmpty()) {
-            log.w("Refuse to send blank message")
-            return ActionResult.Inapplicable
-        }
         val currentTimeline = activeTimeline.value
         if (currentTimeline == null) {
             log.e("Cannot send message on null timeline")
             return ActionResult.Failure("No timeline available for chat")
         }
-        DraftRepo.update(draftKey, draft.copy(isSendInProgress = true))
+        var currentDraft: DraftValue? = null
+        DraftRepo.update(draftKey) {
+            if (it == null || it.isEmpty() || it.isSendInProgress) {
+                log.w("Refuse to send blank message")
+                it
+            } else {
+                it.copy(isSendInProgress = true).also {
+                    currentDraft = it
+                }
+            }
+        }
+        val draft = currentDraft ?: return ActionResult.Inapplicable
         context.launchActionAsync(
             "sendMessage",
             GlobalActionsScope,
@@ -286,7 +292,7 @@ class ConversationViewModel(
             // Shouldn't really matter if it's a private or public RR since we're about to send a message anyway,
             // but since this should only do anything at all if we didn't send a RR before, defaulting to private
             // should be more meaningful in case later actions fail.
-            // TODO this can take a while, render something in composer to prevent it from being used
+            // TODO this can take a while, can we check if this is really necessary?
             currentTimeline.markAsRead(ReceiptType.READ_PRIVATE)
                 .onFailure { log.e("Forwarding the RR on message send failed", it) }
                 .onSuccess { log.d("Advanced the RR on message send") }
@@ -405,7 +411,11 @@ class ConversationViewModel(
                 ActionResult.Success()
             } else {
                 log.w("Failed to send message in $roomId", result.exceptionOrNull())
-                DraftRepo.update(draftKey, draft.copy(isSendInProgress = false))
+                DraftRepo.update(
+                    draftKey,
+                    draft.copy(isSendInProgress = false),
+                    allowWhileSendInProgress = true
+                )
                 ActionResult.Failure("Failed to send message")
             }
         }

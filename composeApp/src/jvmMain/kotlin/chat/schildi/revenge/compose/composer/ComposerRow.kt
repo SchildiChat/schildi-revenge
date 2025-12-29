@@ -1,17 +1,22 @@
 package chat.schildi.revenge.compose.composer
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.minimumInteractiveComponentSize
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -94,6 +99,7 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
                 onValueChange = {
                     viewModel.onComposerUpdate(draftState.copy(textFieldValue = it))
                 },
+                enabled = !draftState.isSendInProgress,
                 label = {
                     val hint = when (draftState.type) {
                         DraftType.TEXT -> stringResource(Res.string.hint_composer_text)
@@ -119,12 +125,24 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
                 colors = TextFieldDefaults.colors().copy(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
                 )
             )
-            SendButton(
-                enabled = draftState.canSend(),
-                onClick = { viewModel.sendMessage(actionContext) }
-            )
+            AnimatedContent(draftState.isSendInProgress) { isSendInProgress ->
+                if (isSendInProgress) {
+                    Box(Modifier.minimumInteractiveComponentSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(32.dp),
+                            color = MaterialTheme.scExposures.accentColor,
+                        )
+                    }
+                } else {
+                    SendButton(
+                        enabled = draftState.canSend(),
+                        onClick = { viewModel.sendMessage(actionContext) }
+                    )
+                }
+            }
         }
     }
 }

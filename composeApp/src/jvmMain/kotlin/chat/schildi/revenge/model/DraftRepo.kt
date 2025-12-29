@@ -97,15 +97,23 @@ object DraftRepo {
         it.filter { (k, v) -> !v.isEmpty() }.keys
     }
 
-    fun update(draftKey: DraftKey, draftValue: DraftValue) {
+    fun update(draftKey: DraftKey, draftValue: DraftValue, allowWhileSendInProgress: Boolean = false) {
         drafts.update {
-            (it + (draftKey to maintainAnnotations(draftValue, it[draftKey]))).toPersistentMap()
+            val oldValue = it[draftKey]
+            if (oldValue?.isSendInProgress == true && !allowWhileSendInProgress) {
+                return@update it
+            }
+            (it + (draftKey to maintainAnnotations(draftValue, oldValue))).toPersistentMap()
         }
     }
 
-    fun update(draftKey: DraftKey, transform: (DraftValue?) -> DraftValue?) {
+    fun update(draftKey: DraftKey, allowWhileSendInProgress: Boolean = false, transform: (DraftValue?) -> DraftValue?) {
         drafts.update {
-            val value = transform(it[draftKey])
+            val oldValue = it[draftKey]
+            if (oldValue?.isSendInProgress == true && !allowWhileSendInProgress) {
+                return@update it
+            }
+            val value = transform(oldValue)
             if (value == null) {
                 it - draftKey
             } else {
