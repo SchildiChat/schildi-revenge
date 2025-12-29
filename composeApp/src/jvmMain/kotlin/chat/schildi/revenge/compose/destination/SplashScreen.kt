@@ -12,6 +12,11 @@ fun SplashScreen(modifier: Modifier = Modifier) {
         modifier = modifier,
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
     ) {
-        CircularProgressIndicator()
+        SplashScreenContent()
     }
+}
+
+@Composable
+fun SplashScreenContent(modifier: Modifier = Modifier) {
+    CircularProgressIndicator(modifier)
 }

@@ -238,8 +238,7 @@ class ConversationViewModel(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val timelineItems = activeTimeline.flatMapLatest {
-        it ?: return@flatMapLatest flowOf(persistentListOf())
-        it.timelineItems.map { it.toPersistentList() }
+        it?.timelineItems?.map { it.toPersistentList() } ?: flowOf(null)
     }
 
     val forwardPaginationStatus = activeTimeline.flatMapLatest { it?.forwardPaginationStatus ?: flowOf(null) }

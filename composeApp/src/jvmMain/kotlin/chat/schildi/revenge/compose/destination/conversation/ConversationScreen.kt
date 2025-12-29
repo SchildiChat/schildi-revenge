@@ -52,6 +52,8 @@ import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.components.thenIf
 import chat.schildi.revenge.compose.composer.ComposerRow
+import chat.schildi.revenge.compose.destination.SplashScreen
+import chat.schildi.revenge.compose.destination.SplashScreenContent
 import chat.schildi.revenge.compose.destination.conversation.event.EventHighlight
 import chat.schildi.revenge.compose.destination.conversation.event.message.LocalUrlPreviewStateProvider
 import chat.schildi.revenge.compose.focus.FocusContainer
@@ -74,9 +76,14 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
             key = "${LocalDestinationState.current?.id}/${destination.sessionId}/${destination.roomId}",
             factory = ConversationViewModel.factory(destination.sessionId, destination.roomId)
         )
-        val timelineItems = viewModel.timelineItems.collectAsState(persistentListOf()).value
+        val timelineItems = viewModel.timelineItems.collectAsState(null).value
         val forwardPaginationStatus = viewModel.forwardPaginationStatus.collectAsState(null).value
         val backwardPaginationStatus = viewModel.backwardPaginationStatus.collectAsState(null).value
+
+        if (timelineItems == null) {
+            SplashScreenContent()
+            return@BoxWithConstraints
+        }
 
         val actionContext = currentActionContext()
         var isDragging by remember { mutableStateOf(false) }
