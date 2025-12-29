@@ -53,6 +53,7 @@ import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.components.thenIf
 import chat.schildi.revenge.compose.composer.ComposerRow
 import chat.schildi.revenge.compose.destination.conversation.event.EventHighlight
+import chat.schildi.revenge.compose.destination.conversation.event.message.LocalUrlPreviewStateProvider
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.model.EventJumpTarget
 import chat.schildi.revenge.publishTitle
@@ -173,6 +174,7 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
             //LocalSearchProvider provides viewModel, // TODO CV search
             LocalKeyboardActionProvider provides
                     viewModel.actionProvider.hierarchicalKeyboardActionProvider(),
+            LocalUrlPreviewStateProvider provides viewModel.urlPreviewStateProvider.collectAsState().value,
             LocalUserIdSuggestionsProvider provides viewModel,
             LocalListActionProvider provides listAction,
             role = FocusRole.DESTINATION_ROOT_CONTAINER,

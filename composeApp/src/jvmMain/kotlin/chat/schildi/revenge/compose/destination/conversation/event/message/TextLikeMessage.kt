@@ -9,7 +9,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
+import chat.schildi.matrixsdk.urlpreview.UrlPreviewInfo
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.util.containsOnlyEmojis
 import io.element.android.libraries.matrix.api.timeline.item.event.EmoteMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
@@ -33,12 +35,13 @@ fun TextLikeMessage(
     }
     // TODO
     TextLikeMessage(
-        // TODO message formatting, links, url previews, ...
+        // TODO message formatting, links, ...
         text = AnnotatedString(message.body),
         isOwn = isOwn,
         timestamp = timestamp,
         inReplyTo = inReplyTo,
         modifier = modifier.alpha(alpha),
+        urlPreview = resolveUrlPreview(message.body),
         allowBigEmojiOnly = allowBigEmojiOnly,
         outlined = message is EmoteMessageType,
     )
@@ -51,6 +54,7 @@ fun TextLikeMessage(
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
     modifier: Modifier = Modifier,
+    urlPreview: UrlPreviewInfo? = null,
     allowBigEmojiOnly: Boolean = true,
     outlined: Boolean = false,
 ) {
@@ -63,6 +67,12 @@ fun TextLikeMessage(
         contentTextLayoutResult = textLayoutResult.value,
     ) {
         inReplyTo?.let { ReplyContent(it) }
+        urlPreview?.let {
+            val keyHandler = LocalKeyboardActionHandler.current
+            UrlPreviewView(urlPreview.preview) {
+                keyHandler.openLinkInExternalBrowser(urlPreview.url)
+            }
+        }
         TextLikeMessageContent(text, allowBigEmojiOnly) {
             textLayoutResult.value = it
         }

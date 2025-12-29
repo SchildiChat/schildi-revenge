@@ -62,7 +62,7 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [ ] Render media
     - [x] Render reactions
     - [x] Render joins/leaves
-    - [ ] Render link previews
+    - [x] Render link previews
     - [ ] Render typing indicators
     - [x] Mechanism to select messages (for replies, edits, reactions...)
     - [x] Send replies

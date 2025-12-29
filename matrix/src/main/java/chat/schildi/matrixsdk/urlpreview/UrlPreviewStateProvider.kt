@@ -54,10 +54,10 @@ class UrlPreviewStateHolder(
 }
 
 class UrlPreviewStateProvider(
+    private val scope: CoroutineScope,
     private val urlPreviewProvider: UrlPreviewProvider,
 ) {
     private val stateHolders = ConcurrentHashMap<String, UrlPreviewStateHolder>()
-    private val scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 
     init {
         Timber.tag("UrlPreviewState").d("Init ${System.identityHashCode(this)}")

@@ -8,6 +8,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.matrixsdk.ScTimelineFilterSettings
+import chat.schildi.matrixsdk.urlpreview.UrlPreviewProvider
+import chat.schildi.matrixsdk.urlpreview.UrlPreviewStateProvider
 import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPref
 import chat.schildi.preferences.ScPreferencesStore
@@ -46,6 +48,7 @@ import chat.schildi.revenge.util.MediaInfoUtil
 import co.touchlab.kermit.Logger
 import io.element.android.features.messages.impl.timeline.EventFocusResult
 import io.element.android.features.messages.impl.timeline.TimelineController
+import io.element.android.libraries.core.coroutine.childScope
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -114,6 +117,7 @@ import shire.composeapp.generated.resources.command_event_name_own_read_receipt
 import shire.composeapp.generated.resources.command_loading_event
 import shire.composeapp.generated.resources.command_loading_timeline_at
 import java.io.File
+import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.path.toPath
 
 private data class ComposerSettings(
@@ -192,6 +196,27 @@ class ConversationViewModel(
         sessionGraph.roomGraphFactory.create(joinedRoom, baseRoom)
     }
 
+    private val currentUrlPreviewStateProvider = AtomicReference<UrlPreviewStateProvider?>(null)
+    val urlPreviewStateProvider = combine(
+        clientFlow,
+        scPreferencesStore.combinedSettingFlow { lookup ->
+            Pair(
+                ScPrefs.URL_PREVIEWS.safeLookup(lookup),
+                ScPrefs.URL_PREVIEWS_IN_E2EE_ROOMS.safeLookup(lookup),
+            )
+        },
+        roomPair,
+    ) { client, (enable, enableInE2ee), (room, _) ->
+        client?.takeIf { enable && (enableInE2ee || (room?.info()?.isEncrypted == false)) }?.let {
+            UrlPreviewStateProvider(
+                urlPreviewProvider = UrlPreviewProvider(client),
+                scope = viewModelScope.childScope(Dispatchers.IO, "urlPreviews"),
+            )
+        }.also {
+            currentUrlPreviewStateProvider.getAndSet(it)?.clear()
+        }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
     private val timelineController = flow {
         var controller: TimelineController? = null
         roomPair.collect {
@@ -205,6 +230,7 @@ class ConversationViewModel(
     override fun onCleared() {
         super.onCleared()
         timelineController.value?.close()
+        currentUrlPreviewStateProvider.getAndSet(null)?.clear()
     }
 
     val activeTimeline = timelineController.flatMapLatest {

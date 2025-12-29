@@ -74,6 +74,12 @@ import shire.composeapp.generated.resources.sc_space_swipe_summary
 import shire.composeapp.generated.resources.sc_space_swipe_title
 import shire.composeapp.generated.resources.sc_space_unread_counts_mode_title
 import shire.composeapp.generated.resources.sc_space_unread_counts_names
+import shire.composeapp.generated.resources.sc_url_previews_in_e2ee_rooms_summary
+import shire.composeapp.generated.resources.sc_url_previews_in_e2ee_rooms_title
+import shire.composeapp.generated.resources.sc_url_previews_require_explicit_links_summary
+import shire.composeapp.generated.resources.sc_url_previews_require_explicit_links_title
+import shire.composeapp.generated.resources.sc_url_previews_summary
+import shire.composeapp.generated.resources.sc_url_previews_title
 
 object ScPrefs {
 
@@ -188,9 +194,11 @@ object ScPrefs {
     val ALWAYS_SHOW_REACTION_SEARCH_BAR = ScBoolPref("ALWAYS_SHOW_REACTION_SEARCH_BAR", false, Res.string.sc_pref_always_show_reaction_search_bar_title, Res.string.sc_pref_always_show_reaction_search_bar_summary, authorsChoice = false, upstreamChoice = true)
     val JUMP_TO_UNREAD = ScBoolPref("JUMP_TO_UNREAD", false, Res.string.sc_pref_jump_to_unread_title, Res.string.sc_pref_jump_to_unread_option_summary, authorsChoice = true, upstreamChoice = false)
     val RENDER_INLINE_IMAGES = ScBoolPref("RENDER_INLINE_IMAGES", true, Res.string.sc_pref_render_inline_images_title, Res.string.sc_pref_render_inline_images_summary, authorsChoice = true, upstreamChoice = false)
-    val URL_PREVIEWS = ScBoolPref("URL_PREVIEWS", false, Res.string.sc_url_previews_title, Res.string.sc_url_previews_summary, authorsChoice = true, upstreamChoice = false)
-    val URL_PREVIEWS_IN_E2EE_ROOMS = ScBoolPref("URL_PREVIEWS_IN_E2EE_ROOMS", false, Res.string.sc_url_previews_in_e2ee_rooms_title, Res.string.sc_url_previews_in_e2ee_rooms_summary, authorsChoice = true, upstreamChoice = false, dependencies = URL_PREVIEWS.asDependencies(), disabledValue = false)
-    val URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS = ScBoolPref("URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS", true, Res.string.sc_url_previews_require_explicit_links_title, Res.string.sc_url_previews_require_explicit_links_summary, authorsChoice = true, dependencies = URL_PREVIEWS.asDependencies(), disabledValue = null)
+    */
+    val URL_PREVIEWS = ScBoolPref("URL_PREVIEWS", false, Res.string.sc_url_previews_title, Res.string.sc_url_previews_summary)
+    val URL_PREVIEWS_IN_E2EE_ROOMS = ScBoolPref("URL_PREVIEWS_IN_E2EE_ROOMS", false, Res.string.sc_url_previews_in_e2ee_rooms_title, Res.string.sc_url_previews_in_e2ee_rooms_summary, dependencies = URL_PREVIEWS.asDependencies(), disabledValue = false)
+    val URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS = ScBoolPref("URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS", true, Res.string.sc_url_previews_require_explicit_links_title, Res.string.sc_url_previews_require_explicit_links_summary, dependencies = URL_PREVIEWS.asDependencies(), disabledValue = null)
+    /*
     val REPLY_PREVIEW_LINE_COUNT = ScIntPref("REPLY_PREVIEW_LINE_COUNT", 4, Res.string.sc_reply_preview_line_count_title, Res.string.sc_reply_preview_line_count_summary, minValue = 1, authorsChoice = 4, upstreamChoice = 2)
     val FULLY_EXPAND_MESSAGE_MENU = ScBoolPref("FULLY_EXPAND_MESSAGE_MENU", false, Res.string.sc_pref_fully_expand_message_menu_title, Res.string.sc_pref_fully_expand_message_menu_summary, authorsChoice = true, upstreamChoice = false)
     val MESSAGE_CONTEXT_MENU_TEXT_SELECTABLE = ScBoolPref("MESSAGE_CONTEXT_MENU_TEXT_SELECTABLE", true, Res.string.sc_pref_message_context_menu_text_selectable_title, Res.string.sc_pref_message_context_menu_text_selectable_summary, authorsChoice = true, upstreamChoice = false)
@@ -306,11 +314,13 @@ object ScPrefs {
             FLOATING_DATE,
             HIDE_CALL_TOOLBAR_ACTION,
             REPLY_PREVIEW_LINE_COUNT,
+            */
             ScPrefCategory(Res.string.sc_url_previews_title, null, listOf(
                 URL_PREVIEWS,
                 URL_PREVIEWS_IN_E2EE_ROOMS,
                 URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS,
             )),
+            /*
             ScPrefCategory(Res.string.sc_pref_category_pinned_messages, null, listOf(
                 PINNED_MESSAGE_OVERLAY,
                 PINNED_MESSAGE_TOOLBAR_ACTION,
