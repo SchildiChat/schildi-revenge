@@ -8,6 +8,13 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class PersistentAppState(
     val sortedAccounts: List<String> = emptyList(),
+    val lastInboxState: PersistentInboxState? = null,
+)
+
+@Serializable
+data class PersistentInboxState(
+    val spaceSelection: List<String> = emptyList(),
+    val hiddenAccounts: List<String> = emptyList(),
 )
 
 data class AppStateStore(
@@ -33,5 +40,15 @@ data class AppStateStore(
                 compareValues(leftOrder ?: Integer.MAX_VALUE, rightOrder ?: Integer.MAX_VALUE)
             }
         }
+    }
+
+    fun persistInboxState(state: PersistentInboxState) = update {
+        it.copy(lastInboxState = state)
+    }
+
+    fun ensureAllSessionIdsTracked(sessionIds: List<String>) = update { meta ->
+        meta.copy(
+            sortedAccounts = meta.sortedAccounts + sessionIds.filter { it !in meta.sortedAccounts }
+        )
     }
 }

@@ -23,6 +23,7 @@ import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
+import chat.schildi.revenge.compose.util.throttleLatest
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.flatMerge
@@ -33,16 +34,14 @@ import chat.schildi.revenge.model.spaces.filterByVisible
 import chat.schildi.revenge.model.spaces.filterHierarchical
 import chat.schildi.revenge.model.spaces.findInHierarchy
 import chat.schildi.revenge.model.spaces.resolveSelection
-import chat.schildi.revenge.util.tryOrNull
+import chat.schildi.revenge.store.AppStateStore
+import chat.schildi.revenge.store.PersistentInboxState
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
-import io.element.android.libraries.matrix.api.room.BaseRoom
 import io.element.android.libraries.matrix.api.roomlist.RoomListService
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
 import io.element.android.libraries.matrix.api.sync.SyncState
-import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
-import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
 import io.element.android.libraries.matrix.api.user.MatrixUser
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentHashMapOf
@@ -57,14 +56,20 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.inbox
 import shire.composeapp.generated.resources.inbox_search
+import kotlin.collections.map
 
 data class ScopedRoomSummary(
     val sessionId: SessionId,
@@ -100,12 +105,9 @@ class InboxViewModel(
     private val spaceListDataSource: SpaceListDataSource = RevengeSpaceListDataSource,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
     private val sessionIdComparatorFlow: Flow<Comparator<SessionId>> = UiState.sessionIdComparator,
+    private val appStateStore: AppStateStore = UiState.appStateStore,
 ) : ViewModel(), SearchProvider, KeyboardActionProvider<Action.Inbox>, TitleProvider {
     private val log = Logger.withTag("Inbox")
-
-    init {
-        log.d { "Init" }
-    }
 
     private val searchTerm = MutableStateFlow<String?>(null)
 
@@ -285,6 +287,56 @@ class InboxViewModel(
     }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Lazily, persistentHashMapOf())
+
+
+    init {
+        log.d { "Init" }
+        // Restore inbox state
+        viewModelScope.launch {
+            val lastInboxState = appStateStore.config.filterNotNull().first().lastInboxState
+            log.d { "Restoring last inbox state: ${lastInboxState != null}" }
+            if (lastInboxState != null) {
+                if (lastInboxState.hiddenAccounts.isNotEmpty()) {
+                    hiddenAccounts.update {
+                        if (it.isEmpty()) {
+                            lastInboxState.hiddenAccounts.map { SessionId(it) }.toSet()
+                        } else {
+                            log.w { "Race condition restoring hidden accounts from last inbox state" }
+                            it
+                        }
+                    }
+                }
+                if (lastInboxState.spaceSelection.isNotEmpty()) {
+                    _spaceSelection.update {
+                        if (it.isEmpty()) {
+                            lastInboxState.spaceSelection.toPersistentList()
+                        } else {
+                            log.w { "Race condition restoring space selection from last inbox state" }
+                            it
+                        }
+                    }
+                }
+            }
+        }
+        // Persist inbox state
+        combine(
+            spaceSelection,
+            hiddenAccounts
+        ) { spaceSelection, hiddenAccounts ->
+            PersistentInboxState(
+                spaceSelection = spaceSelection,
+                hiddenAccounts = hiddenAccounts.map { it.value },
+            )
+        }
+            .distinctUntilChanged()
+            .throttleLatest(1000)
+            .onEach {
+                appStateStore.persistInboxState(it)
+            }
+            .flowOn(Dispatchers.IO)
+            .launchIn(viewModelScope)
+    }
+
 
     fun onVisibleRoomsChanged(visibleRooms: List<ScopedRoomSummary>) {
         val roomsBySession = visibleRooms.groupBy { it.sessionId }

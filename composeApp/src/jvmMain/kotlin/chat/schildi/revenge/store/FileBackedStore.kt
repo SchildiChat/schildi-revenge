@@ -35,15 +35,15 @@ abstract class FileBackedStore<T : Any>(
         }.launchIn(scope)
     }
 
-    fun update(block: (T) -> T) {
+    protected fun update(block: (T) -> T) {
         var updated: T? = null
         _config.update { previous ->
             block(previous ?: default).also {
-                updated = it
+                updated = it.takeIf { it != previous }
             }
         }
-        scope.launch {
-            if (updated != null) {
+        if (updated != null) {
+            scope.launch {
                 configWatcher.persist(updated)
             }
         }

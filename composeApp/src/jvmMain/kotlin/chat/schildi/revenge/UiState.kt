@@ -135,7 +135,7 @@ object UiState {
     val currentValidSessionIds = combinedSessions.map { it.map { it.client.sessionId.value } }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
-    private val appStateStore = AppStateStore(scope)
+    val appStateStore = AppStateStore(scope)
     val sessionIdComparator = appStateStore.sessionIdComparator
 
     init {
@@ -152,11 +152,7 @@ object UiState {
             sessionIds ?: return@combine
             if (sessionIds.any { it !in currentAccountMeta.sortedAccounts }) {
                 // Fill in missing accounts, so we get a deterministic order and user has it easier to modify manually
-                appStateStore.update { meta ->
-                    meta.copy(
-                        sortedAccounts = meta.sortedAccounts + sessionIds.filter { it !in meta.sortedAccounts }
-                    )
-                }
+                appStateStore.ensureAllSessionIdsTracked(sessionIds)
             }
         }.launchIn(scope)
     }

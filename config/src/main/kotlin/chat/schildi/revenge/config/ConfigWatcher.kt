@@ -52,7 +52,9 @@ class JsonConfigWatcher<T : Any>(
 
     override fun decodeFromString(text: String): T =
         json.decodeFromString(serializer, text)
+
     suspend fun persist(value: T) {
+        _config.value = value
         withContext(Dispatchers.IO) {
             try {
                 // Ensure directory exists
