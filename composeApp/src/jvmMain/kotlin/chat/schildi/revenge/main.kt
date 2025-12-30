@@ -48,20 +48,20 @@ fun main() {
             val windows = UiState.windows.collectAsState().value
             val scope = rememberCoroutineScope()
             windows.forEach { windowState ->
-                val destinationState = windowState.destinationHolder.state.collectAsState().value
-                val appTitle = stringResource(Res.string.app_title)
-                val title = destinationState.titleOverride?.render()
-                    ?: destinationState.destination.title?.render()
-                    ?: appTitle
-                val composeWindowState = rememberWindowState()
-                // Changing transparency later will cause a crash, so require restarts and blocking read for that
-                val hasTransparency = remember {
-                    runBlocking {
-                        RevengePrefs.getSetting(ScPrefs.BACKGROUND_ALPHA_LIGHT) < 1f ||
-                                RevengePrefs.getSetting(ScPrefs.BACKGROUND_ALPHA_DARK) < 1f
-                    }
-                }
                 key(windowState.windowId) {
+                    val destinationState = windowState.destinationHolder.state.collectAsState().value
+                    val appTitle = stringResource(Res.string.app_title)
+                    val title = destinationState.titleOverride?.render()
+                        ?: destinationState.destination.title?.render()
+                        ?: appTitle
+                    val composeWindowState = rememberWindowState()
+                    // Changing transparency later will cause a crash, so require restarts and blocking read for that
+                    val hasTransparency = remember {
+                        runBlocking {
+                            RevengePrefs.getSetting(ScPrefs.BACKGROUND_ALPHA_LIGHT) < 1f ||
+                                    RevengePrefs.getSetting(ScPrefs.BACKGROUND_ALPHA_DARK) < 1f
+                        }
+                    }
                     val keyHandler = remember {
                         KeyboardActionHandler(scope, windowState.windowId, this)
                     }
