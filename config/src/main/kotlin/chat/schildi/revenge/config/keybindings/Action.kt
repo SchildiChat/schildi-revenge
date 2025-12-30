@@ -183,6 +183,7 @@ sealed interface Action {
         InviteUser(aliases = listOf("invite"), args = listOf(ActionArgumentPrimitive.UserIdNotInRoom)),
         BanUser(aliases = listOf("ban"), args = listOf(ActionArgumentPrimitive.UserIdInRoom, OptionalReason)),
         UnbanUser(aliases = listOf("unban"), args = listOf(ActionArgumentPrimitive.UserIdNotInRoom, OptionalReason)),
+        CopyFullRoomState(aliases = listOf("roomState")),
     }
     enum class Room(
         override val aliases: kotlin.collections.List<String> = emptyList(),

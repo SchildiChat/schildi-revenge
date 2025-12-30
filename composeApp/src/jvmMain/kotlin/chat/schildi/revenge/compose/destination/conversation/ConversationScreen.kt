@@ -184,7 +184,7 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
                     viewModel.actionProvider.hierarchicalKeyboardActionProvider(),
             LocalUrlPreviewStateProvider provides viewModel.urlPreviewStateProvider.collectAsState().value,
             LocalUserIdSuggestionsProvider provides viewModel,
-            LocalRoomContextSuggestionsProvider provides viewModel,
+            LocalRoomContextSuggestionsProvider provides viewModel.roomContextSuggestionsProvider,
             LocalListActionProvider provides listAction,
             role = FocusRole.DESTINATION_ROOT_CONTAINER,
         ) {

@@ -188,6 +188,7 @@ interface BaseRoom : Closeable {
     suspend fun sendRaw(eventType: String, content: String): Result<Unit>
     suspend fun sendRawState(eventType: String, stateKey: String, content: String): Result<Unit>
     suspend fun getRawState(eventType: String, stateKey: String): Result<String?>
+    suspend fun fetchFullRoomState(): Result<List<String>>
     // SC end
 
     /**

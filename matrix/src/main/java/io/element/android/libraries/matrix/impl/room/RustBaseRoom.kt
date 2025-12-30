@@ -316,6 +316,11 @@ class RustBaseRoom(
             innerRoom.getStateEventRaw(eventType, stateKey)
         }
     }
+    override suspend fun fetchFullRoomState(): Result<List<String>> = withContext(roomDispatcher) {
+        runCatchingExceptions {
+            innerRoom.fetchFullRoomState()
+        }
+    }
     // SC end
 
     override suspend fun saveComposerDraft(composerDraft: ComposerDraft, threadRoot: ThreadId?): Result<Unit> = withContext(roomDispatcher) {

@@ -123,6 +123,8 @@ class CommandSuggestionsProvider(
     private val userIdInRoomSuggestions = userIdSuggestionsProvider?.userIdInRoomSuggestions
         ?.stateIn(scope, SharingStarted.Eagerly, null)
 
+    private val roomStateEventSuggestions = roomContextSuggestionsProvider?.stateEventSuggestions
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val suggestionState = queryFlow.mapLatest { mode ->
         mode ?: return@mapLatest null
@@ -155,6 +157,16 @@ class CommandSuggestionsProvider(
             )
         } else {
             val possibleActions = commandParser.getPossibleActions(cmd)
+            // Fetching state events is only done on demand, since it involves network (was easier to hook up in
+            // the Rust SDK then reading from storage, but TODO maybe we can access the Rust SDK state store without
+            // network in the future
+            if (roomContextSuggestionsProvider != null && possibleActions.any { (it, _) ->
+                it.args.any {
+                    it == ActionArgumentPrimitive.StateEventType || it == ActionArgumentPrimitive.NonEmptyStateKey
+                }
+            }) {
+                roomContextSuggestionsProvider.prefetchState(scope)
+            }
             val (currentValidity, argSuggestions) = when {
                 possibleActions.isEmpty() -> Pair(CurrentCommandValidity.INVALID, emptyList())
                 else -> {
@@ -262,13 +274,10 @@ class CommandSuggestionsProvider(
                 ActionArgumentPrimitive.SpaceIndex,
                 ActionArgumentPrimitive.Empty -> emptyList()
                 ActionArgumentPrimitive.EventType -> EVENT_TYPE_SUGGESTIONS.toSuggestionsWithoutHint()
-                ActionArgumentPrimitive.StateEventType -> emptyList() // TODO suggest from current room
+                ActionArgumentPrimitive.StateEventType -> roomStateEventSuggestions?.value?.toStateEventTypeSuggestions().orEmpty()
                 ActionArgumentPrimitive.NonEmptyStateKey -> {
-                    // TODO state keys from current room for given StateEventType context would be better,
-                    //  than just saying "your current session ID may be a good state key"
-                    roomContextSuggestionsProvider?.sessionId?.let {
-                        listOf(CommandSuggestion(it.value))
-                    } ?:emptyList()
+                    val eventTypes = context.findAll(ActionArgumentPrimitive.StateEventType)
+                    roomStateEventSuggestions?.value?.toStateEventKeySuggestions(eventTypes).orEmpty()
                 }
             }.filterValidSuggestionsFor(query, arg).distinct()
         }
@@ -331,3 +340,8 @@ class CommandSuggestionsProvider(
 }
 
 fun List<String>.toSuggestionsWithoutHint() = map { CommandSuggestion(it, null) }
+
+fun List<StateEventCompletionSnapshot>.toStateEventTypeSuggestions() =
+    map { it.eventType }.distinct().toSuggestionsWithoutHint()
+fun List<StateEventCompletionSnapshot>.toStateEventKeySuggestions(eventTypes: List<String>) =
+    filter { it.eventType in eventTypes && it.stateKey.isNotEmpty() }.map { it.stateKey }.distinct().toSuggestionsWithoutHint()

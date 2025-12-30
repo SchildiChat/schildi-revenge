@@ -59,6 +59,7 @@
     <string name="command_event_name_fully_read_marker">fully read marker</string>
     <string name="command_copy_name_message_content">message content</string>
     <string name="command_copy_name_event_source">event source</string>
+    <string name="command_copy_name_full_room_state">room state</string>
     <string name="command_copy_name_event_id">event ID</string>
     <string name="command_copy_name_mxid">MXID</string>
     <string name="command_copy_name_url">URL</string>

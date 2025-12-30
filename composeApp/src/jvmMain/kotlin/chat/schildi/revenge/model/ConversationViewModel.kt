@@ -1,7 +1,6 @@
 package chat.schildi.revenge.model
 
 import android.net.Uri
-import androidx.compose.material.TextField
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
@@ -36,6 +35,7 @@ import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.actions.launchActionAsync
 import chat.schildi.revenge.actions.orActionInapplicable
 import chat.schildi.revenge.actions.orActionValidationError
+import chat.schildi.revenge.actions.parseRoomStateSnapshot
 import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.UrlUtil
@@ -113,6 +113,7 @@ import shire.composeapp.generated.resources.action_redact_message_by_sender_prom
 import shire.composeapp.generated.resources.action_redact_message_prompt
 import shire.composeapp.generated.resources.command_copy_name_event_id
 import shire.composeapp.generated.resources.command_copy_name_event_source
+import shire.composeapp.generated.resources.command_copy_name_full_room_state
 import shire.composeapp.generated.resources.command_copy_name_message_content
 import shire.composeapp.generated.resources.command_copy_name_mxid
 import shire.composeapp.generated.resources.command_copy_name_url
@@ -148,11 +149,11 @@ private fun buildScTimelineFilterSettings(lookup: (ScPref<*>) -> Any?) = ScTimel
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConversationViewModel(
-    override val sessionId: SessionId,
+    private val sessionId: SessionId,
     private val roomId: RoomId,
     private val appGraph: AppGraph = UiState.appGraph,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
-) : ViewModel(), TitleProvider, UserIdSuggestionsProvider, RoomContextSuggestionsProvider, ComposerViewModel {
+) : ViewModel(), TitleProvider, UserIdSuggestionsProvider, ComposerViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
 
     private val clientFlow = UiState.selectClient(sessionId, viewModelScope)
@@ -222,6 +223,11 @@ class ConversationViewModel(
             currentUrlPreviewStateProvider.getAndSet(it)?.clear()
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val roomContextSuggestionsProvider = RoomContextSuggestionsProvider(
+        sessionId = sessionId,
+        peekRoom = { roomPair.value.first },
+    )
 
     private val timelineController = flow {
         var controller: TimelineController? = null
@@ -483,7 +489,11 @@ class ConversationViewModel(
                             eventType = eventType,
                             stateKey = draft.stateKey ?: "",
                             content = draft.body,
-                        )
+                        ).also {
+                            if (it.isSuccess) {
+                                roomContextSuggestionsProvider.invalidateCachedState()
+                            }
+                        }
                     }
                 }
             }
@@ -956,6 +966,41 @@ class ConversationViewModel(
                         appMessageId = "unbanUser",
                     ) {
                         room.unbanUser(userId, reason).toActionResult(async = true)
+                    }
+                }
+
+                Action.Conversation.CopyFullRoomState -> {
+                    val room = roomPair.value.first ?: return@run ActionResult.Failure("Room not ready")
+                    publishMessage(
+                        AppMessage(
+                            Res.string.command_fetching_state.toStringHolder(),
+                            uniqueId = "copyFullRemoteState"
+                        )
+                    )
+                    launchActionAsync(
+                        "copyFullRoomState",
+                        GlobalActionsScope,
+                        Dispatchers.IO,
+                        notifyProcessing = true,
+                        appMessageId = "copyFullRemoteState",
+                    ) {
+                        val result = room.fetchFullRoomState()
+                        dismissMessage("copyFullRemoteState")
+                        if (result.isSuccess) {
+                            val joined = result.getOrNull()?.parseRoomStateSnapshot(log)?.joinToString(",\n\n") {
+                                if (it.stateKey.isEmpty()) {
+                                    "# ${it.eventType}\n${it.content}"
+                                } else {
+                                    "# ${it.eventType} / ${it.stateKey}\n${it.content}"
+                                }
+                            } ?: "{}"
+                            context.copyToClipboard(
+                                joined,
+                                Res.string.command_copy_name_full_room_state.toStringHolder()
+                            )
+                        } else {
+                            result.toActionResult(async = true)
+                        }
                     }
                 }
             }
