@@ -128,7 +128,7 @@ private fun SpaceUnreadCounts.add(
     )
 }
 
-private fun SpaceUnreadCounts.add(
+fun SpaceUnreadCounts.add(
     other: SpaceUnreadCounts?,
 ): SpaceUnreadCounts = if (other == null) {
     this

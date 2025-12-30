@@ -57,14 +57,12 @@ class RoomListDataSource(
         },
         onUpdatedInput = { it, settings ->
             it.forEach {
-                log.v("Init for ${it.client.sessionId}")
                 it.client.roomListService.allRooms.updateSettings(settings)
                 it.client.roomListService.allRooms.updateFilter(RoomListFilter.All(emptyList()))
                 it.client.roomListService.allRooms.loadMore()
             }
         },
         merge = { it, settings ->
-            log.v("Merging room lists [${it.joinToString { it.size.toString() }}]")
             mergeLists(
                 // In theory the SDK should have already sorted them for us... but it's somewhat bad at it sometimes?
                 *it.map { it.sortedWith(settings.sortOrder.toComparator { it.summary }) }.toTypedArray(),

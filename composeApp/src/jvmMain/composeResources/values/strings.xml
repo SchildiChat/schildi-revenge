@@ -46,6 +46,7 @@
     <string name="action_navigate_in_new_window">Open in new window</string>
     <string name="action_context_account_select">Select</string>
     <string name="action_context_account_hide">Hide</string>
+    <string name="action_mute">Mute</string>
     <string name="action_clear_search">Clear search</string>
     <string name="action_open_inbox">Go to inbox</string>
 

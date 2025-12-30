@@ -1,6 +1,7 @@
 package chat.schildi.revenge
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -11,6 +12,8 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.window.ApplicationScope
+import chat.schildi.revenge.model.GlobalUnreadCountsSource
+import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
 import chat.schildi.theme.ScColors
 import com.kdroid.composetray.tray.api.Tray
 import org.jetbrains.compose.resources.imageResource
@@ -27,6 +30,21 @@ fun ApplicationScope.TrayIcon(
     isMinimized: Boolean,
     setMinimized: (Boolean) -> Unit,
 ) {
+    val unreadCounts = GlobalUnreadCountsSource.globalUnreadCounts
+        .collectAsState(SpaceAggregationDataSource.SpaceUnreadCounts()).value
+    TrayIcon(
+        isMinimized = isMinimized,
+        setMinimized = setMinimized,
+        unreadCounts = unreadCounts,
+    )
+}
+
+@Composable
+fun ApplicationScope.TrayIcon(
+    isMinimized: Boolean,
+    setMinimized: (Boolean) -> Unit,
+    unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts,
+) {
     val titleShow = stringResource(Res.string.tray_show)
     val titleMinimize = stringResource(Res.string.tray_minimize)
     val titleExit = stringResource(Res.string.tray_exit)
@@ -36,11 +54,10 @@ fun ApplicationScope.TrayIcon(
     // TODO icon needs some work
     val icon = imageResource(Res.drawable.ic_launcher)
     Tray(
-        icon = remember {
+        icon = remember(unreadCounts.notifiedChats) {
             IconWithBadgePainter(
                 icon,
-                // TODO actual unread count
-                0,
+                unreadCounts.notifiedChats,
                 badgeColor,
             )
         },
@@ -66,7 +83,7 @@ fun ApplicationScope.TrayIcon(
 
 class IconWithBadgePainter(
     val icon: ImageBitmap,
-    val unreadCount: Int,
+    val unreadCount: Long,
     val badgeColor: Color,
 ) : Painter() {
     override val intrinsicSize = Size.Unspecified //IntSize(icon.width, icon.height).toSize()

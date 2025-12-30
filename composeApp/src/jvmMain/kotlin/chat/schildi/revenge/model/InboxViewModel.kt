@@ -36,6 +36,7 @@ import chat.schildi.revenge.model.spaces.findInHierarchy
 import chat.schildi.revenge.model.spaces.resolveSelection
 import chat.schildi.revenge.store.AppStateStore
 import chat.schildi.revenge.store.PersistentInboxState
+import chat.schildi.revenge.util.combine
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -90,6 +91,7 @@ data class InboxAccount(
     val isHidden: Boolean,
     val isSelected: Boolean,
     val isCurrentlyVisible: Boolean,
+    val isMuted: Boolean,
 )
 
 private data class InboxSettings(
@@ -235,9 +237,11 @@ class InboxViewModel(
                 it.client.syncService.syncState,
                 hiddenAccounts,
                 selectedAccounts,
-            ) { user, roomListState, syncState, hiddenAccounts, selectedAccounts ->
+                UiState.mutedAccounts,
+            ) { user, roomListState, syncState, hiddenAccounts, selectedAccounts, mutedAccounts ->
                 val isHidden = user.userId in hiddenAccounts
                 val isSelected = user.userId in selectedAccounts
+                val isMuted = user.userId in mutedAccounts
                 InboxAccount(
                     user = user,
                     roomListState = roomListState,
@@ -245,6 +249,7 @@ class InboxViewModel(
                     isHidden = isHidden,
                     isSelected = isSelected,
                     isCurrentlyVisible = if (selectedAccounts.isEmpty()) !isHidden else isSelected,
+                    isMuted = isMuted,
                 )
             }
         },
@@ -398,6 +403,14 @@ class InboxViewModel(
                 ActionResult.Success()
             }
 
+            Action.Inbox.SetAccountMuted -> {
+                val sessionId = findSessionIdForAccountAction(args[0])
+                    ?: return@run ActionResult.Failure("Failed to find user session")
+                val selected = args.getOrNull(1)?.toBoolean() ?: true
+                setAccountMuted(sessionId, selected)
+                ActionResult.Success()
+            }
+
             Action.Inbox.ToggleAccountHidden -> {
                 val sessionId = findSessionIdForAccountAction(args[0])
                     ?: return@run ActionResult.Failure("Failed to find user session")
@@ -416,6 +429,13 @@ class InboxViewModel(
                 val sessionId = findSessionIdForAccountAction(args[0])
                     ?: return@run ActionResult.Failure("Failed to find user session")
                 toggleAccountExclusivelySelected(sessionId)
+                ActionResult.Success()
+            }
+
+            Action.Inbox.ToggleAccountMuted -> {
+                val sessionId = findSessionIdForAccountAction(args[0])
+                    ?: return@run ActionResult.Failure("Failed to find user session")
+                toggleAccountMuted(sessionId)
                 ActionResult.Success()
             }
 
@@ -558,6 +578,16 @@ class InboxViewModel(
         }
     }
 
+    fun setAccountMuted(sessionId: SessionId, muted: Boolean) {
+        UiState.mutedAccounts.update {
+            if (muted) {
+                it + sessionId
+            } else {
+                it - sessionId
+            }
+        }
+    }
+
     fun toggleAccountHidden(sessionId: SessionId) {
         hiddenAccounts.update {
             if (sessionId in it) {
@@ -584,6 +614,16 @@ class InboxViewModel(
                 setOf()
             } else {
                 setOf(sessionId)
+            }
+        }
+    }
+
+    fun toggleAccountMuted(sessionId: SessionId) {
+        UiState.mutedAccounts.update {
+            if (sessionId in it) {
+                it - sessionId
+            } else {
+                it + sessionId
             }
         }
     }

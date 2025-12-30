@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Visibility
@@ -29,6 +30,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.unit.dp
+import chat.schildi.preferences.ScPrefs
+import chat.schildi.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.defaultActionProvider
@@ -54,11 +57,13 @@ import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_context_account_hide
 import shire.composeapp.generated.resources.action_context_account_select
+import shire.composeapp.generated.resources.action_mute
 import shire.composeapp.generated.resources.hint_sync_state_error
 import shire.composeapp.generated.resources.hint_sync_state_idle
 import shire.composeapp.generated.resources.hint_sync_state_offline
 import shire.composeapp.generated.resources.hint_sync_state_running
 import shire.composeapp.generated.resources.hint_sync_state_terminated
+import kotlin.math.max
 
 @Composable
 fun AccountSelectorRow(
@@ -122,6 +127,15 @@ fun AccountButton(
                     enabled = !account.isSelected,
                     autoCloseMenu = false,
                 ),
+                ContextMenuEntry(
+                    Res.string.action_mute.toStringHolder(),
+                    rememberVectorPainter(Icons.Default.NotificationsOff),
+                    Action.Inbox.SetAccountMuted,
+                    persistentListOf(account.user.userId.value, (!account.isMuted).toString()),
+                    toggleState = account.isMuted,
+                    keyboardShortcut = Key.M,
+                    autoCloseMenu = false,
+                ),
             ),
         ) { openContextMenu ->
             Row(
@@ -142,11 +156,27 @@ fun AccountButton(
                 horizontalArrangement = Dimens.horizontalArrangement,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                // Only care about actual notifications here, not silent unreads
-                val renderedUnreadCounts = unreadCounts?.copy(
-                    unreadChats = 0,
-                    unreadMessages = 0,
-                )
+                // Only care about actual notifications here, not silent unread.
+                // If the account is muted, render notifications as "silent" unread.
+                val renderedUnreadCounts = unreadCounts?.let {
+                    if (!account.isMuted) {
+                        it.copy(
+                            unreadChats = 0,
+                            unreadMessages = 0,
+                        )
+                    } else if (ScPrefs.RENDER_SILENT_UNREAD.value()) {
+                        it.copy(
+                            mentionedChats = 0,
+                            mentionedMessages = 0,
+                            notifiedChats = 0,
+                            notifiedMessages = 0,
+                            unreadChats = max(it.notifiedChats, it.mentionedChats),
+                            unreadMessages = max(it.notifiedMessages, it.mentionedMessages),
+                        )
+                    } else {
+                        null
+                    }
+                }
                 SpaceUnreadCountBox(renderedUnreadCounts, 4.dp) {
                     AvatarImage(
                         source = account.user.avatarUrl?.let { MediaSource(it) },

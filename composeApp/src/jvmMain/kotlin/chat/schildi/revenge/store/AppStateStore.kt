@@ -9,6 +9,7 @@ import kotlinx.serialization.Serializable
 data class PersistentAppState(
     val sortedAccounts: List<String> = emptyList(),
     val lastInboxState: PersistentInboxState? = null,
+    val mutedAccounts: List<String> = emptyList(),
 )
 
 @Serializable
@@ -44,6 +45,10 @@ data class AppStateStore(
 
     fun persistInboxState(state: PersistentInboxState) = update {
         it.copy(lastInboxState = state)
+    }
+
+    fun persistMutedAccounts(mutedAccounts: List<String>) = update {
+        it.copy(mutedAccounts = mutedAccounts)
     }
 
     fun ensureAllSessionIdsTracked(sessionIds: List<String>) = update { meta ->

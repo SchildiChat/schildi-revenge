@@ -107,13 +107,11 @@ class SpaceListDataSource(
         },
         onUpdatedInput = { it ->
             it.forEach {
-                log.v("Init for ${it.client.sessionId}")
                 it.client.roomListService.allRooms.updateFilter(RoomListFilter.All(emptyList()))
                 it.client.roomListService.allRooms.loadMore()
             }
         },
         merge = { it ->
-            log.v("Merging room lists [${it.joinToString { it.size.toString() }}]")
             // No need to do sophisticated sorted merging at this time, before we built any hierarchy
             it.asIterable().flatten()
         },

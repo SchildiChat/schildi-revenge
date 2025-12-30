@@ -141,9 +141,11 @@ sealed interface Action {
         SetAccountHidden(args = listOf(SessionIdOrIndex, OptionalBoolean)),
         SetAccountSelected(args = listOf(SessionIdOrIndex, OptionalBoolean)),
         SetAccountExclusivelySelected(args = listOf(SessionIdOrIndex, OptionalBoolean)),
+        SetAccountMuted(args = listOf(SessionIdOrIndex, OptionalBoolean)),
         ToggleAccountHidden(args = listOf(SessionIdOrIndex)),
         ToggleAccountSelected(args = listOf(SessionIdOrIndex)),
         ToggleAccountExclusivelySelected(args = listOf(SessionIdOrIndex)),
+        ToggleAccountMuted(args = listOf(SessionIdOrIndex)),
         NavigateSpaceRelative(args = listOf(ActionArgumentPrimitive.Integer)),
         SelectSpace(args = listOf(SpaceIdSelectable)),
     }
