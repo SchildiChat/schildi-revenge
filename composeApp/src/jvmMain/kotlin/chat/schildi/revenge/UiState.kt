@@ -1,6 +1,8 @@
 package chat.schildi.revenge
 
 import androidx.compose.ui.window.ApplicationScope
+import chat.schildi.preferences.RevengePrefs
+import chat.schildi.preferences.ScPrefs
 import chat.schildi.revenge.actions.AbstractAppMessage
 import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.compose.util.ComposableStringHolder
@@ -68,6 +70,14 @@ object UiState {
 
     private val _globalMessageBoard = MutableSharedFlow<AbstractAppMessage>(3)
     val globalMessageBoard = _globalMessageBoard.asSharedFlow()
+
+    private val closeToTray = RevengePrefs
+        .settingFlow(ScPrefs.CLOSE_TO_TRAY)
+        .stateIn(
+            scope,
+            SharingStarted.Eagerly,
+            RevengePrefs.getCachedOrDefaultValue(ScPrefs.CLOSE_TO_TRAY),
+        )
 
     private val keybindingsConfigWatcher = ConfigWatchers.keybindings(
         scope,
@@ -236,8 +246,11 @@ object UiState {
             }
         }
         if (closedLastWindow) {
-            // TODO close to tray if we can
-            exit(scope)
+            if (closeToTray.value) {
+                setMinimized(true)
+            } else {
+                exit(scope)
+            }
         }
     }
 
@@ -247,5 +260,15 @@ object UiState {
 
     fun setMinimized(minimized: Boolean) {
         _minimizedToTray.value = minimized
+        if (!minimized) {
+            // Ensure at least one window is open
+            _windows.update {
+                if (it.isEmpty()) {
+                    persistentListOf(createWindow(Destination.Inbox))
+                } else {
+                    it
+                }
+            }
+        }
     }
 }

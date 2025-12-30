@@ -96,10 +96,10 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [ ] Set favorite / low priority
 - [ ] Account management screen polish
 - [ ] Notifications
-    - [ ] Allow muting individual accounts
+    - [x] Allow muting individual accounts
 - [ ] App icon
 - [ ] Tray icon with unread count
-    - [ ] Optional minimize to tray: last window close request doesn't discard window but just sets minimized
+    - [x] Optional minimize to tray: last window close request doesn't discard window but just sets minimized
 - [ ] Mouse-user-friendly mode
   - [ ] All screens accessible via mouse
   - [ ] All features accessible via mouse (e.g. search)

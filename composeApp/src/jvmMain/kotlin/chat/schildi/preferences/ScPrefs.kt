@@ -9,6 +9,8 @@ import shire.composeapp.generated.resources.pref_category_dimensions
 import shire.composeapp.generated.resources.pref_category_keyboard_control
 import shire.composeapp.generated.resources.pref_category_theme_dark
 import shire.composeapp.generated.resources.pref_category_theme_light
+import shire.composeapp.generated.resources.pref_close_to_tray_summary
+import shire.composeapp.generated.resources.pref_close_to_tray_title
 import shire.composeapp.generated.resources.pref_dark_theme_title
 import shire.composeapp.generated.resources.pref_debug_avatar_render_states_title
 import shire.composeapp.generated.resources.pref_focus_follows_mouse_summary
@@ -89,6 +91,9 @@ object ScPrefs {
     val MAX_WIDTH_INBOX = ScIntPref("MAX_WIDTH_INBOX", 1024, Res.string.pref_max_width_inbox_title)
     val MAX_WIDTH_CONVERSATION = ScIntPref("MAX_WIDTH_CONVERSATION", 1600, Res.string.pref_max_width_conversation_title)
     val MAX_WIDTH_SETTINGS = ScIntPref("MAX_WIDTH_SETTINGS", 1024, Res.string.pref_max_width_settings_title)
+
+    // Tray icon
+    val CLOSE_TO_TRAY = ScBoolPref("CLOSE_TO_TRAY", false, Res.string.pref_close_to_tray_title, Res.string.pref_close_to_tray_summary)
 
     // Keyboard navigation
     val MINIMAL_MODE = ScBoolPref("MINIMAL_MODE", false, Res.string.pref_minimal_mode_title, Res.string.pref_minimal_mode_summary)
@@ -239,6 +244,7 @@ object ScPrefs {
 
     val rootPrefs = ScPrefScreen(Res.string.sc_pref_tweaks_title, null, listOf<AbstractScPref>(
         ScPrefScreen(Res.string.sc_pref_category_general, Res.string.sc_pref_category_general_summary, listOf(
+            CLOSE_TO_TRAY,
             ScPrefCategory(Res.string.sc_pref_category_general_appearance, null, listOf(
                 THEME_FOLLOW_SYSTEM,
                 THEME_DARK,
