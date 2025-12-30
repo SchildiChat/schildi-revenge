@@ -32,6 +32,7 @@ import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.app_title
 import shire.composeapp.generated.resources.ic_launcher
 import kotlin.system.exitProcess
+import chat.schildi.revenge.ipc.SingleInstance
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
@@ -41,6 +42,8 @@ fun main() {
         Logger.e("Schildi encountered a fatal error in ${t.name}", e)
         exitProcess(1)
     }
+    // Ensure single instance and set up IPC to restore window on subsequent launches
+    SingleInstance.ensureSingleInstanceOrExit()
     application(exitProcessOnExit = false) {
         val minimized = UiState.minimizedToTray.collectAsState().value
         TrayIcon(isMinimized = minimized, setMinimized = UiState::setMinimized)

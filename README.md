@@ -44,7 +44,7 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [x] Datastore for user prefs
     - [x] Datastore for other app state
     - [ ] UI
-- [ ] Lock to avoid running multiple instances in parallel, but instead bring to foreground?
+- [x] Lock to avoid running multiple instances in parallel, but instead bring to foreground?
 - [ ] Inbox
     - [x] List all chats
     - [x] Make it look nice
