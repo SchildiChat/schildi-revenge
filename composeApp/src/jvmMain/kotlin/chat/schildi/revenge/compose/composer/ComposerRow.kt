@@ -24,6 +24,7 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -77,6 +78,13 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
         if (draftState.attachment != null) {
             ComposerAttachment(draftState.attachment, viewModel::clearAttachment)
         }
+        val bodyValidationError = remember(draftState.body) { draftState.bodyValidationError() }
+        if (bodyValidationError != null) {
+            Text(
+                bodyValidationError,
+                color = MaterialTheme.colorScheme.error,
+            )
+        }
         Row(
             verticalAlignment = Alignment.Bottom,
         ) {
@@ -122,6 +130,18 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
                             is Attachment.Video -> stringResource(Res.string.hint_composer_video)
                             null -> stringResource(Res.string.hint_composer_caption)
                         }
+                        DraftType.CUSTOM_EVENT -> draftState.customEventType ?: ""
+                        DraftType.CUSTOM_STATE_EVENT -> {
+                            if (draftState.stateKey == null) {
+                                draftState.customEventType ?: ""
+                            } else {
+                                buildString {
+                                    append(draftState.customEventType ?: "")
+                                    append(" ")
+                                    append(draftState.stateKey)
+                                }
+                            }
+                        }
                     }
                     Text(hint)
                 },
@@ -145,7 +165,7 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
                     }
                 } else {
                     SendButton(
-                        enabled = draftState.canSend(),
+                        enabled = draftState.canSend() || bodyValidationError == null,
                         onClick = { viewModel.sendMessage(actionContext) }
                     )
                 }

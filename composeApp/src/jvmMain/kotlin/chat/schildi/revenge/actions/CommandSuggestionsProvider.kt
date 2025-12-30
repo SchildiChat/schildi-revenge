@@ -46,7 +46,7 @@ enum class CurrentCommandValidity {
 
 data class CommandSuggestion(
     val value: String,
-    val hint: ComposableStringHolder?,
+    val hint: ComposableStringHolder? = null,
 )
 
 data class CommandSuggestionsState(
@@ -56,12 +56,17 @@ data class CommandSuggestionsState(
 )
 
 private val BOOLEAN_SUGGESTIONS = listOf("true", "false")
+private val EVENT_TYPE_SUGGESTIONS = listOf(
+    "m.room.message",
+    "m.sticker",
+)
 
 class CommandSuggestionsProvider(
     queryFlow: Flow<KeyboardActionMode.Command?>,
     val commandParser: CommandParser,
     private val scope: CoroutineScope,
     private val userIdSuggestionsProvider: UserIdSuggestionsProvider?,
+    private val roomContextSuggestionsProvider: RoomContextSuggestionsProvider?,
     private val roomListDataSource: RoomListDataSource = RevengeRoomListDataSource,
 ) {
     private val log = Logger.withTag("CmdSuggestions")
@@ -256,6 +261,15 @@ class CommandSuggestionsProvider(
                 ActionArgumentPrimitive.SpaceSelectionId,
                 ActionArgumentPrimitive.SpaceIndex,
                 ActionArgumentPrimitive.Empty -> emptyList()
+                ActionArgumentPrimitive.EventType -> EVENT_TYPE_SUGGESTIONS.toSuggestionsWithoutHint()
+                ActionArgumentPrimitive.StateEventType -> emptyList() // TODO suggest from current room
+                ActionArgumentPrimitive.NonEmptyStateKey -> {
+                    // TODO state keys from current room for given StateEventType context would be better,
+                    //  than just saying "your current session ID may be a good state key"
+                    roomContextSuggestionsProvider?.sessionId?.let {
+                        listOf(CommandSuggestion(it.value))
+                    } ?:emptyList()
+                }
             }.filterValidSuggestionsFor(query, arg).distinct()
         }
         is ActionArgumentAnyOf -> arg.arguments.flatMap { suggestPrimaryFor(it, context, query) }

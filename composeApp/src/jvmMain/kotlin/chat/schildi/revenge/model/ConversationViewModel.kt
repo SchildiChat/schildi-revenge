@@ -1,6 +1,7 @@
 package chat.schildi.revenge.model
 
 import android.net.Uri
+import androidx.compose.material.TextField
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
@@ -20,6 +21,7 @@ import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.GlobalActionsScope
+import chat.schildi.revenge.PrettyJson
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.AppMessage
@@ -27,6 +29,7 @@ import chat.schildi.revenge.actions.ConfirmActionAppMessage
 import chat.schildi.revenge.actions.FlatMergedKeyboardActionProvider
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.KeyboardActionProvider
+import chat.schildi.revenge.actions.RoomContextSuggestionsProvider
 import chat.schildi.revenge.actions.UserIdSuggestion
 import chat.schildi.revenge.actions.UserIdSuggestionsProvider
 import chat.schildi.revenge.actions.execute
@@ -99,6 +102,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.jsonObject
 import java.awt.FileDialog
 import java.awt.Frame
 import shire.composeapp.generated.resources.Res
@@ -114,9 +118,11 @@ import shire.composeapp.generated.resources.command_copy_name_mxid
 import shire.composeapp.generated.resources.command_copy_name_url
 import shire.composeapp.generated.resources.command_event_name_fully_read_marker
 import shire.composeapp.generated.resources.command_event_name_own_read_receipt
+import shire.composeapp.generated.resources.command_fetching_state
 import shire.composeapp.generated.resources.command_loading_event
 import shire.composeapp.generated.resources.command_loading_timeline_at
 import java.io.File
+import java.lang.IllegalArgumentException
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.path.toPath
 
@@ -142,11 +148,11 @@ private fun buildScTimelineFilterSettings(lookup: (ScPref<*>) -> Any?) = ScTimel
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConversationViewModel(
-    private val sessionId: SessionId,
+    override val sessionId: SessionId,
     private val roomId: RoomId,
     private val appGraph: AppGraph = UiState.appGraph,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
-) : ViewModel(), TitleProvider, UserIdSuggestionsProvider/*, KeyboardActionProvider<Action.Conversation>*/, ComposerViewModel {
+) : ViewModel(), TitleProvider, UserIdSuggestionsProvider, RoomContextSuggestionsProvider, ComposerViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
 
     private val clientFlow = UiState.selectClient(sessionId, viewModelScope)
@@ -301,8 +307,14 @@ class ConversationViewModel(
                 log.w("Refuse to send blank message")
                 it
             } else {
-                it.copy(isSendInProgress = true).also {
-                    currentDraft = it
+                val validationError = it.bodyValidationError()
+                if (validationError != null) {
+                    log.e("Refuse to send message with validation error: $validationError")
+                    it
+                } else {
+                    it.copy(isSendInProgress = true).also {
+                        currentDraft = it
+                    }
                 }
             }
         }
@@ -321,112 +333,157 @@ class ConversationViewModel(
             currentTimeline.markAsRead(ReceiptType.READ_PRIVATE)
                 .onFailure { log.e("Forwarding the RR on message send failed", it) }
                 .onSuccess { log.d("Advanced the RR on message send") }
-            val result = when (draft.type) {
-                DraftType.TEXT -> {
-                    if (draft.inReplyTo != null) {
-                        currentTimeline.replyMessage(
-                            repliedToEventId = draft.inReplyTo.eventId,
+            val result = run result@{
+                when (draft.type) {
+                    DraftType.TEXT -> {
+                        if (draft.inReplyTo != null) {
+                            currentTimeline.replyMessage(
+                                repliedToEventId = draft.inReplyTo.eventId,
+                                body = draft.body,
+                                htmlBody = draft.htmlBody,
+                                intentionalMentions = draft.intentionalMentions,
+                            )
+                        } else {
+                            currentTimeline.sendMessage(
+                                body = draft.body,
+                                htmlBody = draft.htmlBody,
+                                intentionalMentions = draft.intentionalMentions,
+                            )
+                        }
+                    }
+
+                    DraftType.NOTICE -> {
+                        currentTimeline.sendNotice(
+                            body = draft.body,
+                            htmlBody = draft.htmlBody,
+                            intentionalMentions = draft.intentionalMentions,
+                            inReplyToEventId = draft.inReplyTo?.eventId,
+                        )
+                    }
+
+                    DraftType.EMOTE -> {
+                        currentTimeline.sendEmote(
+                            body = draft.body,
+                            htmlBody = draft.htmlBody,
+                            intentionalMentions = draft.intentionalMentions,
+                            inReplyToEventId = draft.inReplyTo?.eventId,
+                        )
+                    }
+
+                    DraftType.EDIT -> {
+                        val editEventId = draft.editEventId ?: run {
+                            return@result Result.failure(
+                                IllegalArgumentException("Tried to edit message without eventId")
+                            )
+                        }
+                        currentTimeline.editMessage(
+                            eventOrTransactionId = editEventId,
                             body = draft.body,
                             htmlBody = draft.htmlBody,
                             intentionalMentions = draft.intentionalMentions,
                         )
-                    } else {
-                        currentTimeline.sendMessage(
-                            body = draft.body,
-                            htmlBody = draft.htmlBody,
-                            intentionalMentions = draft.intentionalMentions,
+                    }
+
+                    DraftType.EDIT_CAPTION -> {
+                        val editEventId = draft.editEventId ?: run {
+                            return@result Result.failure(
+                                IllegalArgumentException("Tried to edit caption without eventId")
+                            )
+                        }
+                        currentTimeline.editCaption(
+                            eventOrTransactionId = editEventId,
+                            caption = draft.body,
+                            formattedCaption = draft.htmlBody,
                         )
                     }
-                }
-                DraftType.NOTICE -> {
-                    currentTimeline.sendNotice(
-                        body = draft.body,
-                        htmlBody = draft.htmlBody,
-                        intentionalMentions = draft.intentionalMentions,
-                        inReplyToEventId = draft.inReplyTo?.eventId,
-                    )
-                }
-                DraftType.EMOTE -> {
-                    currentTimeline.sendEmote(
-                        body = draft.body,
-                        htmlBody = draft.htmlBody,
-                        intentionalMentions = draft.intentionalMentions,
-                        inReplyToEventId = draft.inReplyTo?.eventId,
-                    )
-                }
-                DraftType.EDIT -> {
-                    val editEventId = draft.editEventId ?: run {
-                        return@launchActionAsync ActionResult.Failure("Tried to edit message without eventId")
+
+                    DraftType.REACTION -> {
+                        val relatesToEventId = draft.inReplyTo?.eventId ?: run {
+                            return@result Result.failure(
+                                IllegalArgumentException("Tried to react without message eventId")
+                            )
+                        }
+                        currentTimeline.toggleReaction(
+                            emoji = draft.body,
+                            eventOrTransactionId = relatesToEventId.toEventOrTransactionId(),
+                        )
                     }
-                    currentTimeline.editMessage(
-                        eventOrTransactionId = editEventId,
-                        body = draft.body,
-                        htmlBody = draft.htmlBody,
-                        intentionalMentions = draft.intentionalMentions,
-                    )
-                }
-                DraftType.EDIT_CAPTION -> {
-                    val editEventId = draft.editEventId ?: run {
-                        return@launchActionAsync ActionResult.Failure("Tried to edit caption without eventId")
+
+                    DraftType.ATTACHMENT -> {
+                        val caption = draft.body.takeIf { it.isNotBlank() }
+                        val formattedCaption = draft.htmlBody
+                        when (val attachment = draft.attachment) {
+                            is Attachment.Audio -> {
+                                currentTimeline.sendAudio(
+                                    file = attachment.file,
+                                    audioInfo = attachment.audioInfo,
+                                    caption = caption,
+                                    formattedCaption = formattedCaption,
+                                    inReplyToEventId = draft.inReplyTo?.eventId,
+                                )
+                            }
+
+                            is Attachment.Generic -> {
+                                currentTimeline.sendFile(
+                                    file = attachment.file,
+                                    fileInfo = attachment.fileInfo,
+                                    caption = caption,
+                                    formattedCaption = formattedCaption,
+                                    inReplyToEventId = draft.inReplyTo?.eventId,
+                                )
+                            }
+
+                            is Attachment.Image -> {
+                                currentTimeline.sendImage(
+                                    file = attachment.file,
+                                    thumbnailFile = attachment.thumbnailFile,
+                                    imageInfo = attachment.imageInfo,
+                                    caption = caption,
+                                    formattedCaption = formattedCaption,
+                                    inReplyToEventId = draft.inReplyTo?.eventId,
+                                )
+                            }
+
+                            is Attachment.Video -> {
+                                currentTimeline.sendVideo(
+                                    file = attachment.file,
+                                    thumbnailFile = attachment.thumbnailFile,
+                                    videoInfo = attachment.videoInfo,
+                                    caption = caption,
+                                    formattedCaption = formattedCaption,
+                                    inReplyToEventId = draft.inReplyTo?.eventId,
+                                )
+                            }
+
+                            null -> Result.failure(IllegalStateException("No attachment attached"))
+                        }
                     }
-                    currentTimeline.editCaption(
-                        eventOrTransactionId = editEventId,
-                        caption = draft.body,
-                        formattedCaption = draft.htmlBody,
-                    )
-                }
-                DraftType.REACTION -> {
-                    val relatesToEventId = draft.inReplyTo?.eventId ?: run {
-                        return@launchActionAsync ActionResult.Failure("Tried to react without message eventId")
+
+                    DraftType.CUSTOM_EVENT -> {
+                        val room = roomPair.value.second ?: return@result Result.failure(
+                            IllegalStateException("Room not ready")
+                        )
+                        val eventType = draft.customEventType ?: return@result Result.failure(
+                            IllegalStateException("Tried to send custom event without type")
+                        )
+                        room.sendRaw(
+                            eventType = eventType,
+                            content = draft.body,
+                        )
                     }
-                    currentTimeline.toggleReaction(
-                        emoji = draft.body,
-                        eventOrTransactionId = relatesToEventId.toEventOrTransactionId(),
-                    )
-                }
-                DraftType.ATTACHMENT -> {
-                    val caption = draft.body.takeIf { it.isNotBlank() }
-                    val formattedCaption = draft.htmlBody
-                    when (val attachment = draft.attachment) {
-                        is Attachment.Audio -> {
-                            currentTimeline.sendAudio(
-                                file = attachment.file,
-                                audioInfo = attachment.audioInfo,
-                                caption = caption,
-                                formattedCaption = formattedCaption,
-                                inReplyToEventId = draft.inReplyTo?.eventId,
-                            )
-                        }
-                        is Attachment.Generic -> {
-                            currentTimeline.sendFile(
-                                file = attachment.file,
-                                fileInfo = attachment.fileInfo,
-                                caption = caption,
-                                formattedCaption = formattedCaption,
-                                inReplyToEventId = draft.inReplyTo?.eventId,
-                            )
-                        }
-                        is Attachment.Image -> {
-                            currentTimeline.sendImage(
-                                file = attachment.file,
-                                thumbnailFile = attachment.thumbnailFile,
-                                imageInfo = attachment.imageInfo,
-                                caption = caption,
-                                formattedCaption = formattedCaption,
-                                inReplyToEventId = draft.inReplyTo?.eventId,
-                            )
-                        }
-                        is Attachment.Video -> {
-                            currentTimeline.sendVideo(
-                                file = attachment.file,
-                                thumbnailFile = attachment.thumbnailFile,
-                                videoInfo = attachment.videoInfo,
-                                caption = caption,
-                                formattedCaption = formattedCaption,
-                                inReplyToEventId = draft.inReplyTo?.eventId,
-                            )
-                        }
-                        null -> Result.failure(IllegalStateException("No attachment attached"))
+
+                    DraftType.CUSTOM_STATE_EVENT -> {
+                        val room = roomPair.value.second ?: return@result Result.failure(
+                            IllegalStateException("Room not ready")
+                        )
+                        val eventType = draft.customEventType ?: return@result Result.failure(
+                            IllegalStateException("Tried to send custom event without type")
+                        )
+                        room.sendRawState(
+                            eventType = eventType,
+                            stateKey = draft.stateKey ?: "",
+                            content = draft.body,
+                        )
                     }
                 }
             }
@@ -632,7 +689,7 @@ class ConversationViewModel(
                 Action.Conversation.ComposeMessage -> {
                     forceShowComposer.value = true
                     DraftRepo.update(draftKey) {
-                        it?.copy(type = DraftType.TEXT, editEventId = null, initialBody = "")
+                        it?.copy(type = DraftType.TEXT, editEventId = null, initialBody = "", attachment = null)
                             ?: DraftValue(type = DraftType.TEXT)
                     }
                     focusByRole(FocusRole.MESSAGE_COMPOSER)
@@ -642,7 +699,7 @@ class ConversationViewModel(
                 Action.Conversation.ComposeNotice -> {
                     forceShowComposer.value = true
                     DraftRepo.update(draftKey) {
-                        it?.copy(type = DraftType.NOTICE, editEventId = null, initialBody = "")
+                        it?.copy(type = DraftType.NOTICE, editEventId = null, initialBody = "", attachment = null)
                             ?: DraftValue(type = DraftType.NOTICE)
                     }
                     focusByRole(FocusRole.MESSAGE_COMPOSER)
@@ -652,11 +709,89 @@ class ConversationViewModel(
                 Action.Conversation.ComposeEmote -> {
                     forceShowComposer.value = true
                     DraftRepo.update(draftKey) {
-                        it?.copy(type = DraftType.EMOTE, editEventId = null, initialBody = "")
+                        it?.copy(type = DraftType.EMOTE, editEventId = null, initialBody = "", attachment = null)
                             ?: DraftValue(type = DraftType.EMOTE)
                     }
                     focusByRole(FocusRole.MESSAGE_COMPOSER)
                     ActionResult.Success()
+                }
+
+                Action.Conversation.ComposeCustomEvent -> {
+                    val eventType = args.firstOrNull().orActionValidationError()
+                    forceShowComposer.value = true
+                    DraftRepo.update(draftKey) {
+                        it?.copy(
+                            textFieldValue = it.textFieldValue.takeIf { it.text.isNotEmpty() }
+                                ?: TextFieldValue("{\n\n}", TextRange(2)),
+                            type = DraftType.CUSTOM_EVENT,
+                            customEventType = eventType,
+                            editEventId = null,
+                            initialBody = "",
+                            attachment = null
+                        ) ?: DraftValue(
+                            textFieldValue = TextFieldValue("{\n\n}", TextRange(2)),
+                            type = DraftType.CUSTOM_EVENT,
+                            customEventType = eventType,
+                        )
+                    }
+                    focusByRole(FocusRole.MESSAGE_COMPOSER)
+                    ActionResult.Success()
+                }
+
+                Action.Conversation.ComposeCustomStateEvent -> {
+                    val eventType = args.firstOrNull().orActionValidationError()
+                    val stateKey = args.getOrNull(1)
+                    val room = roomPair.value.second ?: return@run ActionResult.Failure("Room not ready")
+                    publishMessage(
+                        AppMessage(
+                            message = Res.string.command_fetching_state.toStringHolder(),
+                            uniqueId = "fetchState",
+                            canAutoDismiss = false
+                        )
+                    )
+                    launchActionAsync(
+                        "composeCustomStateEvent",
+                        viewModelScope,
+                        Dispatchers.IO,
+                        "fetchState",
+                    ) {
+                        val initialStateRaw = room.getRawState(eventType, stateKey ?: "")
+                            .onFailure { log.w("Failed to fetch state", it) }
+                            .getOrNull()
+                        val initialState = initialStateRaw?.let {
+                            try {
+                                val state = PrettyJson.parseToJsonElement(initialStateRaw)
+                                PrettyJson.encodeToString(state.jsonObject["content"])
+                            } catch (e: Exception) {
+                                log.e("Failed to parse state", e)
+                                null
+                            }
+                        }
+                        val initialText = initialState?.let {
+                            TextFieldValue(it, TextRange(it.length))
+                        } ?: TextFieldValue("{\n\n}", TextRange(2))
+                        dismissMessage("fetchState")
+                        forceShowComposer.value = true
+                        DraftRepo.update(draftKey) {
+                            it?.copy(
+                                textFieldValue = initialText,
+                                type = DraftType.CUSTOM_STATE_EVENT,
+                                customEventType = eventType,
+                                stateKey = stateKey,
+                                editEventId = null,
+                                initialBody = if (initialState == null) "" else initialText.text,
+                                attachment = null
+                            ) ?: DraftValue(
+                                textFieldValue = initialText,
+                                initialBody = if (initialState == null) "" else initialText.text,
+                                type = DraftType.CUSTOM_STATE_EVENT,
+                                customEventType = eventType,
+                                stateKey = stateKey,
+                            )
+                        }
+                        focusByRole(FocusRole.MESSAGE_COMPOSER)
+                        ActionResult.Success()
+                    }
                 }
 
                 Action.Conversation.ComposerSend -> sendMessage(context)

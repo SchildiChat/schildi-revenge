@@ -82,9 +82,10 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
         - [ ] View room state
         - [ ] View account state
         - [ ] View room account state
-        - [ ] Send room state
+        - [x] Send custom events
+        - [x] Send room state
         - [ ] Send account state
-        - [ ] Send custom events
+        - [ ] Send room account state
     - [ ] User trust shields
 - [ ] Room member list
 - [ ] Commands

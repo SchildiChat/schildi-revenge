@@ -47,6 +47,7 @@ import chat.schildi.revenge.actions.ListAction
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
+import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
 import chat.schildi.revenge.actions.LocalUserIdSuggestionsProvider
 import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
@@ -183,6 +184,7 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
                     viewModel.actionProvider.hierarchicalKeyboardActionProvider(),
             LocalUrlPreviewStateProvider provides viewModel.urlPreviewStateProvider.collectAsState().value,
             LocalUserIdSuggestionsProvider provides viewModel,
+            LocalRoomContextSuggestionsProvider provides viewModel,
             LocalListActionProvider provides listAction,
             role = FocusRole.DESTINATION_ROOT_CONTAINER,
         ) {

@@ -1412,6 +1412,7 @@ class KeyboardActionHandler(
                         scope = scope.childScope(Dispatchers.IO, "commandSuggestions"),
                         commandParser = CommandParser(getCurrentKeyActionHandlers(focusTarget)),
                         userIdSuggestionsProvider = focusTarget?.actions?.userIdSuggestionsProvider,
+                        roomContextSuggestionsProvider = focusTarget?.actions?.roomContextSuggestionsProvider,
                     ),
                     selectedSuggestion = null,
                 )
@@ -1633,6 +1634,9 @@ fun checkArgument(
             checkArgument(actionName, argDef.getFor(context), argVal, context, lookahead, validSessionIds, validSettingKeys)
         }
         ActionArgumentPrimitive.Reason,
+        ActionArgumentPrimitive.EventType,
+        ActionArgumentPrimitive.StateEventType,
+        ActionArgumentPrimitive.NonEmptyStateKey,
         ActionArgumentPrimitive.Text -> null
         ActionArgumentPrimitive.SettingValue -> {
             val settingKeys = context.findAll(ActionArgumentPrimitive.SettingKey)

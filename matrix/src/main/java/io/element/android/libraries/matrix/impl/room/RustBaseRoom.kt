@@ -301,6 +301,21 @@ class RustBaseRoom(
             innerRoom.forceSendSingleReceipt(receiptType.toRustReceiptType(), eventId.value)
         }
     }
+    override suspend fun sendRaw(eventType: String, content: String) = withContext(roomDispatcher) {
+        runCatchingExceptions {
+            innerRoom.sendRaw(eventType, content)
+        }
+    }
+    override suspend fun sendRawState(eventType: String, stateKey: String, content: String) = withContext(roomDispatcher) {
+        runCatchingExceptions {
+            innerRoom.sendStateEventRaw(eventType, stateKey, content)
+        }
+    }
+    override suspend fun getRawState(eventType: String, stateKey: String) = withContext(roomDispatcher) {
+        runCatchingExceptions {
+            innerRoom.getStateEventRaw(eventType, stateKey)
+        }
+    }
     // SC end
 
     override suspend fun saveComposerDraft(composerDraft: ComposerDraft, threadRoot: ThreadId?): Result<Unit> = withContext(roomDispatcher) {

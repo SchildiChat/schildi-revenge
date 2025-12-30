@@ -15,6 +15,7 @@ data class ActionProvider(
     val listActions: ListAction? = null,
     val keyActions: KeyboardActionProvider<*>? = null,
     val userIdSuggestionsProvider: UserIdSuggestionsProvider? = null,
+    val roomContextSuggestionsProvider: RoomContextSuggestionsProvider? = null,
 ) {
     inline fun <reified T : InteractionAction>findInteractionAction(condition: (T) -> Boolean = { true }): T? {
         return when {
@@ -35,6 +36,7 @@ fun defaultActionProvider(
     listActions: ListAction? = LocalListActionProvider.current,
     keyActions: KeyboardActionProvider<*>? = LocalKeyboardActionProvider.current,
     userIdSuggestionsProvider: UserIdSuggestionsProvider? = LocalUserIdSuggestionsProvider.current,
+    roomContextSuggestionsProvider: RoomContextSuggestionsProvider? = LocalRoomContextSuggestionsProvider.current,
 ): ActionProvider {
     return ActionProvider(
         searchProvider = searchProvider,
@@ -44,6 +46,7 @@ fun defaultActionProvider(
         listActions = listActions,
         keyActions = keyActions,
         userIdSuggestionsProvider = userIdSuggestionsProvider,
+        roomContextSuggestionsProvider = roomContextSuggestionsProvider,
     )
 }
 
@@ -55,6 +58,7 @@ fun buildNavigationActionProvider(
     listActions: ListAction? = LocalListActionProvider.current,
     keyActions: KeyboardActionProvider<*>? = LocalKeyboardActionProvider.current,
     userIdSuggestionsProvider: UserIdSuggestionsProvider? = LocalUserIdSuggestionsProvider.current,
+    roomContextSuggestionsProvider: RoomContextSuggestionsProvider? = LocalRoomContextSuggestionsProvider.current,
     secondaryAction: InteractionAction? = null,
     buildDestination: () -> Destination,
 ): ActionProvider {
@@ -72,5 +76,6 @@ fun buildNavigationActionProvider(
         listActions = listActions,
         keyActions = keyActions,
         userIdSuggestionsProvider = userIdSuggestionsProvider,
+        roomContextSuggestionsProvider = roomContextSuggestionsProvider,
     )
 }

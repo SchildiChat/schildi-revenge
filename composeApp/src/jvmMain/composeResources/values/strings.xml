@@ -69,6 +69,7 @@
     <string name="command_ambiguous">Command "%1$s" is ambiguous in this context</string>
     <string name="command_ambiguous_none_valid">Command "%1$s" matches no available command with the provided parameters in this context</string>
     <string name="command_suggestion_title_and_hint">%1$s: %2$s</string>
+    <string name="command_fetching_state">Fetching state</string>
 
     <string name="common_internal_error">Internal error</string>
 

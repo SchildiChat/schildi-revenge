@@ -38,6 +38,9 @@ enum class ActionArgumentPrimitive : ActionArgument {
     SpaceId,
     SpaceSelectionId,
     SpaceIndex,
+    EventType,
+    StateEventType,
+    NonEmptyStateKey,
     Empty;
     override fun canHold(primitive: ActionArgumentPrimitive) = primitive == this
 }
@@ -53,6 +56,7 @@ private val SpaceIdSelectable =
 private val OptionalBoolean = ActionArgumentOptional(ActionArgumentPrimitive.Boolean)
 private val OptionalSettingValue = ActionArgumentOptional(ActionArgumentPrimitive.SettingValue)
 private val OptionalReason = ActionArgumentOptional(ActionArgumentPrimitive.Reason)
+private val StateKey = ActionArgumentOptional(ActionArgumentPrimitive.NonEmptyStateKey)
 
 private val navigationArgs = listOf(
     ActionArgumentPrimitive.NavigatableDestinationName,
@@ -61,7 +65,8 @@ private val navigationArgs = listOf(
 )
 
 fun Action.handlesCommand(command: String): Boolean {
-    return command == name || command == name.lowercase() || command in aliases
+    val lowerCommand = command.lowercase()
+    return lowerCommand == name.lowercase() || lowerCommand in aliases.map { it.lowercase() }
 }
 
 fun Action.minArgsSize() = args.count { it !is ActionArgumentOptional }
@@ -159,6 +164,8 @@ sealed interface Action {
         ComposeMessage,
         ComposeNotice,
         ComposeEmote,
+        ComposeCustomEvent(args = listOf(ActionArgumentPrimitive.EventType), aliases = listOf("sendEvent")),
+        ComposeCustomStateEvent(args = listOf(ActionArgumentPrimitive.StateEventType, StateKey), aliases = listOf("sendState")),
         ComposerSend,
         ComposerInsertAtCursor(args = listOf(ActionArgumentPrimitive.Text)),
         ComposerPasteAttachment,

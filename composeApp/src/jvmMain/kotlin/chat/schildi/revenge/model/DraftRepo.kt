@@ -21,6 +21,8 @@ import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.Json
 import java.io.File
 
 typealias DraftKey = ScopedRoomKey
@@ -33,6 +35,8 @@ enum class DraftType {
     EDIT_CAPTION,
     REACTION,
     ATTACHMENT,
+    CUSTOM_EVENT,
+    CUSTOM_STATE_EVENT,
 }
 
 sealed interface Attachment {
@@ -77,6 +81,8 @@ data class DraftValue(
     val isSendInProgress: Boolean = false,
     val initialBody: String = "", // For edits the original message content, else empty
     val attachment: Attachment? = null, // Mandatory for DraftType.ATTACHMENT, otherwise unused
+    val customEventType: String? = null, // Only for DraftType.CUSTOM_EVENT and DraftType.CUSTOM_STATE_EVENT
+    val stateKey: String? = null, // Only for DraftType.CUSTOM_STATE_EVENT
 ) {
     val body: String
         get() = textFieldValue.text.trim()
@@ -89,6 +95,19 @@ data class DraftValue(
     fun canSend() = !isSendInProgress && !isEmpty()
     /** Whether an attachment can be added to the current composer state without dropping state. */
     fun canAddAttachment() = editEventId == null && type == DraftType.TEXT
+
+    fun bodyValidationError() = when (type) {
+        DraftType.CUSTOM_STATE_EVENT,
+        DraftType.CUSTOM_EVENT -> {
+            try {
+                Json.parseToJsonElement(body)
+                null
+            } catch (e: SerializationException) {
+                e.message
+            }
+        }
+        else -> null
+    }
 }
 
 // TODO may add some persistent storage to this one to survive restarts & crashes
