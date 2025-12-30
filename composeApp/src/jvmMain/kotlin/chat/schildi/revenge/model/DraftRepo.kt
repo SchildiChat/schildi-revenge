@@ -1,10 +1,10 @@
 package chat.schildi.revenge.model
 
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import chat.schildi.theme.ScColors
-import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.media.AudioInfo
 import io.element.android.libraries.matrix.api.media.FileInfo
 import io.element.android.libraries.matrix.api.media.ImageInfo
@@ -64,6 +64,8 @@ data class DraftMention(
 ) {
     val range: IntRange
         get() = IntRange(start, end-1)
+    val textRange: TextRange
+        get() = TextRange(start, end)
 }
 
 data class DraftValue(

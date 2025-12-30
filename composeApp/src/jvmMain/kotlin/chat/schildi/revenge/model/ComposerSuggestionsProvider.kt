@@ -12,7 +12,7 @@ import org.kodein.emoji.Emoji
 import org.kodein.emoji.list
 
 class ComposerSuggestionsProvider(
-    queryFlow: Flow<TextFieldValue>,
+    queryFlow: Flow<DraftValue>,
     userIdSuggestionsProvider: UserIdSuggestionsProvider,
     canPingRoomFlow: Flow<Boolean>,
 ) {
@@ -21,7 +21,12 @@ class ComposerSuggestionsProvider(
         userIdSuggestionsProvider.userIdInRoomSuggestions,
         canPingRoomFlow,
     ) { query, userIds, canPingRoom ->
-        val currentCompletionEntity = query.getCurrentCompletionEntity()?.text
+        val currentCompletionEntity = query.textFieldValue.getCurrentCompletionEntity()?.text
+        // Don't suggest completions if we're in a mention already
+        val cursorRange = query.textFieldValue.selection
+        if (query.mentions.any { it.end == cursorRange.start || it.textRange.intersects(cursorRange) }) {
+            return@combine ComposerSuggestionsState()
+        }
         when {
             currentCompletionEntity == null -> ComposerSuggestionsState()
             currentCompletionEntity.startsWith("@") -> {
@@ -75,17 +80,14 @@ data class CompletionEntity(
 }
 
 fun TextFieldValue.getCurrentCompletionEntity(): CompletionEntity? {
-    // Did you know you can select text backwards?
-    val selectionEnd = kotlin.math.max(selection.start, selection.end)
-    val selectionStart = kotlin.math.min(selection.start, selection.end)
-    val cursor = selectionEnd
+    val cursor = selection.max
     if (cursor <= 0) return null
     val textBeforeCursor = text.substring(0, cursor)
     if (textBeforeCursor.isBlank()) {
         return null
     }
-    val startIndex = if (selectionStart != cursor) {
-        selectionStart
+    val startIndex = if (selection.min != cursor) {
+        selection.min
     } else {
         val lastWhitespace = textBeforeCursor.indexOfLast { it.isWhitespace() }
         lastWhitespace + 1

@@ -9,6 +9,7 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.command.TextFieldSuggestions
 import chat.schildi.revenge.model.ComposerSuggestion
 import chat.schildi.revenge.model.ComposerSuggestionsState
+import chat.schildi.theme.scExposures
 
 @Composable
 fun ComposerSuggestions(
@@ -29,7 +30,11 @@ fun ComposerSuggestions(
         ) {
             Text(
                 suggestion.value,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = if (suggestionsState.selectedSuggestion == suggestion) {
+                    MaterialTheme.scExposures.accentColor
+                } else {
+                    MaterialTheme.colorScheme.onSurface
+                },
                 modifier = Modifier.weight(0.5f, fill = false),
             )
             suggestion.hint?.let { hint ->

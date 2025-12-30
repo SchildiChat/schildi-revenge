@@ -12,12 +12,14 @@ import kotlinx.coroutines.flow.StateFlow
 sealed interface ComposerSuggestion {
     val value: String
     val hint: ComposableStringHolder?
+    val shouldAppendSpace: Boolean
 }
 
 data class ComposerUserMentionSuggestion(
     val userId: UserId,
     val displayName: String?,
 ) : ComposerSuggestion {
+    override val shouldAppendSpace = true
     override val value: String
         get() = displayName ?: userId.value
     override val hint: ComposableStringHolder?
@@ -32,10 +34,12 @@ data class ComposerEmojiSuggestion(
     override val value: String,
     val description: String?
 ) : ComposerSuggestion {
+    override val shouldAppendSpace = false
     override val hint: ComposableStringHolder? = description?.toStringHolder()
 }
 
 data object ComposerRoomMentionSuggestion : ComposerSuggestion {
+    override val shouldAppendSpace = true
     override val value = "@room"
     override val hint: ComposableStringHolder? = null
 }

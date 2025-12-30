@@ -268,7 +268,7 @@ class ConversationViewModel(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, DraftValue())
 
     private val composerSuggestionsProvider = ComposerSuggestionsProvider(
-        queryFlow = composerState.map { it.textFieldValue },
+        queryFlow = composerState,
         userIdSuggestionsProvider = this,
         canPingRoomFlow = flowOf(true), // TODO check room ping permission
     )
@@ -491,7 +491,9 @@ class ConversationViewModel(
         val newText = buildString {
             append(oldText.take(completionEntity.start))
             append(suggestion.value)
-            append(" ")
+            if (suggestion.shouldAppendSpace) {
+                append(" ")
+            }
             append(oldText.substring(completionEntity.end))
         }
         val suggestionInsertEndIndex = completionEntity.start + suggestion.value.length
