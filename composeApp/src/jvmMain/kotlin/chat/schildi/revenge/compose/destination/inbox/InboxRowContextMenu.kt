@@ -20,6 +20,7 @@ import kotlinx.collections.immutable.toPersistentList
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_context_favorite_toggle
 import shire.composeapp.generated.resources.action_context_low_priority_toggle
+import shire.composeapp.generated.resources.action_join
 import shire.composeapp.generated.resources.action_leave
 import shire.composeapp.generated.resources.action_mark_as_read
 import shire.composeapp.generated.resources.action_mark_as_unread
@@ -28,9 +29,16 @@ import shire.composeapp.generated.resources.action_navigate_in_new_window
 
 @Composable
 fun ScopedRoomSummary.contextMenu(): ImmutableList<ContextMenuEntry> {
-    // TODO invite-specific context menu too
     return if (summary.isInvite()) {
-        persistentListOf()
+        // TODO reject invite, reject and ignore
+        persistentListOf(
+            ContextMenuEntry(
+                Res.string.action_join.toStringHolder(),
+                rememberVectorPainter(Icons.Default.MeetingRoom),
+                Action.Room.Join,
+                keyboardShortcut = Key.J,
+            )
+        )
     } else {
         val unreadCounts = summary.unreadCounts()
         listOfNotNull(

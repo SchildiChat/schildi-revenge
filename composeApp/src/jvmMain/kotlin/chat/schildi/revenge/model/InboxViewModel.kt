@@ -658,8 +658,12 @@ class InboxViewModel(
         }
     }
 
-    fun getKeyboardActionProviderForRoom(sessionId: SessionId, roomId: RoomId): KeyboardActionProvider<Action.Room> {
-        return RoomActionProvider {
+    fun getKeyboardActionProviderForRoom(
+        sessionId: SessionId,
+        roomId: RoomId,
+        isInvite: Boolean
+    ): KeyboardActionProvider<Action.Room> {
+        return RoomActionProvider(isInvite = isInvite) {
             UiState.currentClientFor(sessionId)?.getRoom(roomId)
         }
     }

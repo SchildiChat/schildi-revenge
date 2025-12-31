@@ -19,10 +19,17 @@ import shire.composeapp.generated.resources.action_leave
 import shire.composeapp.generated.resources.action_leave_room_prompt
 import shire.composeapp.generated.resources.action_leave_unnamed_room_prompt
 
+private val RoomInviteActions = setOf(Action.Room.Join)
+
 class RoomActionProvider(
+    val isInvite: Boolean,
     val getRoom: suspend () -> BaseRoom?,
 ) : KeyboardActionProvider<Action.Room> {
-    override fun getPossibleActions() = Action.Room.entries.toSet()
+    override fun getPossibleActions() = if (isInvite)
+        RoomInviteActions
+    else
+        Action.Room.entries.toSet() - RoomInviteActions
+
     override fun ensureActionType(action: Action) = action as? Action.Room
 
     override fun handleNavigationModeEvent(
@@ -86,6 +93,9 @@ class RoomActionProvider(
             }
             Action.Room.MarkRoomFullyRead -> {
                 room.markAsRead(ReceiptType.FULLY_READ).toActionResult(async = true)
+            }
+            Action.Room.Join -> {
+                room.join().toActionResult(async = true)
             }
             Action.Room.Leave -> context.withCriticalActionConfirmationSuspend(
                 prompt = room.info().name?.let {

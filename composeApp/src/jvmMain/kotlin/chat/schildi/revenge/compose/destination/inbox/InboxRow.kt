@@ -91,11 +91,14 @@ fun InboxRow(
                         FocusRole.LIST_ITEM,
                         focusId,
                         actionProvider = if (room.summary.isInvite()) {
-                            defaultActionProvider()
+                            defaultActionProvider(
+                                keyActions = inboxRowKeyboardActionProvider(viewModel, room.key, isInvite = true),
+                                secondaryAction = openContextMenu,
+                            )
                         } else {
                             buildNavigationActionProvider(
                                 initialTitle = room.summary.info.name?.toStringHolder(),
-                                keyActions = inboxRowKeyboardActionProvider(viewModel, room.key),
+                                keyActions = inboxRowKeyboardActionProvider(viewModel, room.key, isInvite = false),
                                 secondaryAction = openContextMenu,
                             ) {
                                 Destination.Conversation(room.sessionId, room.summary.roomId)
@@ -384,9 +387,10 @@ fun RoomSummary.isInvite() = info.currentUserMembership == CurrentUserMembership
 private fun inboxRowKeyboardActionProvider(
     viewModel: InboxViewModel,
     room: ScopedRoomKey,
+    isInvite: Boolean,
 ): HierarchicalKeyboardActionProvider {
-    val ownHandler = remember(viewModel, room) {
-        viewModel.getKeyboardActionProviderForRoom(room.sessionId, room.roomId)
+    val ownHandler = remember(viewModel, room, isInvite) {
+        viewModel.getKeyboardActionProviderForRoom(room.sessionId, room.roomId, isInvite)
     }
     return ownHandler.hierarchicalKeyboardActionProvider()
 }

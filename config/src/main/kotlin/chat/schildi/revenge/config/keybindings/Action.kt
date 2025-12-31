@@ -198,6 +198,7 @@ sealed interface Action {
         MarkRoomRead, // Different than timeline-based MarkRead
         MarkRoomReadPrivate, // Different than timeline-based MarkRead
         MarkRoomFullyRead, // Different than timeline-based MarkRead
+        Join,
         Leave(aliases = listOf("part")),
     }
     enum class Event(
