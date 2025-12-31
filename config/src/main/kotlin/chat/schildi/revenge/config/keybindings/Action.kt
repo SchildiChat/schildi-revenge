@@ -200,6 +200,7 @@ sealed interface Action {
         MarkRoomFullyRead, // Different than timeline-based MarkRead
         Join,
         Leave(aliases = listOf("part")),
+        CopyRoomId,
     }
     enum class Event(
         override val aliases: kotlin.collections.List<String> = emptyList(),

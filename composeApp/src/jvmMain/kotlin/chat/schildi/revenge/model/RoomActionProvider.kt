@@ -18,6 +18,7 @@ import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_leave
 import shire.composeapp.generated.resources.action_leave_room_prompt
 import shire.composeapp.generated.resources.action_leave_unnamed_room_prompt
+import shire.composeapp.generated.resources.command_copy_name_event_id
 
 private val RoomInviteActions = setOf(Action.Room.Join)
 
@@ -107,6 +108,12 @@ class RoomActionProvider(
                 actionName = action.name,
             ) {
                room.leave().toActionResult(async = true)
+            }
+            Action.Room.CopyRoomId -> {
+                context.copyToClipboard(
+                    room.roomId.value,
+                    Res.string.command_copy_name_event_id.toStringHolder()
+                )
             }
         }
     }
