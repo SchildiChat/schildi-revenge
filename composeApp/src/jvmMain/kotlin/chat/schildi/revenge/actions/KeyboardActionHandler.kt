@@ -965,6 +965,10 @@ class KeyboardActionHandler(
         }
     }
 
+    fun closeWindow() {
+        UiState.closeWindow(windowId, applicationScope)
+    }
+
     private val appMessageHandler = object : KeyboardActionProvider<Action.AppMessage> {
         override fun getPossibleActions() = Action.AppMessage.entries.toSet()
         override fun ensureActionType(action: Action) = action as? Action.AppMessage

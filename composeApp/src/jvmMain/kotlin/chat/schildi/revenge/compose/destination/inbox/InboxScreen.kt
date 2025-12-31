@@ -81,7 +81,7 @@ fun InboxScreen(modifier: Modifier = Modifier) {
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
     ) {
         Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-            InboxTopNavigation()
+            InboxTopNavigation(viewModel.windowTitle.collectAsState(null).value?.render())
             val rooms = viewModel.rooms.collectAsState().value
             val roomsByRoomId = viewModel.roomsByRoomId.collectAsState().value
             val dmsByHeroes = viewModel.dmsByHeroes.collectAsState().value

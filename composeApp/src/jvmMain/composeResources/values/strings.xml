@@ -49,6 +49,8 @@
     <string name="action_mute">Mute</string>
     <string name="action_clear_search">Clear search</string>
     <string name="action_open_inbox">Go to inbox</string>
+    <string name="action_close_window">Close window</string>
+    <string name="action_jump_to_unread">Jump to unread</string>
 
     <string name="command_success">Success: %1$s</string>
     <string name="command_loading_event">Loading %1$s</string>

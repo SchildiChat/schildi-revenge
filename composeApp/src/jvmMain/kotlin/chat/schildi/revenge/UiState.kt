@@ -79,6 +79,16 @@ object UiState {
             RevengePrefs.getCachedOrDefaultValue(ScPrefs.CLOSE_TO_TRAY),
         )
 
+    val hasInboxOpen = windows.flatMerge(
+        map = {
+            it.destinationHolder.state
+        },
+        merge = {
+            it.any { it.destination is Destination.Inbox }
+        },
+        onEmpty = { false },
+    ).stateIn(scope, SharingStarted.Eagerly, false)
+
     private val keybindingsConfigWatcher = ConfigWatchers.keybindings(
         scope,
         readDefaultFallback = {

@@ -13,8 +13,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,7 +26,6 @@ import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
-import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.ActionResult
@@ -39,7 +36,7 @@ import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.defaultActionProvider
 import chat.schildi.revenge.compose.components.TopNavigation
-import chat.schildi.revenge.compose.components.TopNavigationIcon
+import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInboxIcon
 import chat.schildi.revenge.compose.components.TopNavigationTitle
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
@@ -54,7 +51,6 @@ import shire.composeapp.generated.resources.about_credits
 import shire.composeapp.generated.resources.about_privacy_policy
 import shire.composeapp.generated.resources.about_source_code
 import shire.composeapp.generated.resources.about_website
-import shire.composeapp.generated.resources.action_open_inbox
 import shire.composeapp.generated.resources.app_title
 import shire.composeapp.generated.resources.hint_app_icon
 import shire.composeapp.generated.resources.ic_launcher
@@ -138,12 +134,7 @@ fun AboutScreen(modifier: Modifier = Modifier) {
             if (destinationState != null) {
                 TopNavigation {
                     TopNavigationTitle(stringResource(Res.string.about))
-                    TopNavigationIcon(
-                        Icons.Default.Inbox,
-                        stringResource(Res.string.action_open_inbox)
-                    ) {
-                        destinationState.navigate(Destination.Inbox)
-                    }
+                    TopNavigationCloseOrNavigateToInboxIcon()
                 }
             }
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

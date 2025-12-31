@@ -12,7 +12,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
-import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
@@ -37,7 +36,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
-import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.FocusRole
@@ -45,7 +43,7 @@ import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.defaultActionProvider
 import chat.schildi.revenge.compose.components.IconButtonWithConfirmation
 import chat.schildi.revenge.compose.components.TopNavigation
-import chat.schildi.revenge.compose.components.TopNavigationIcon
+import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInboxIcon
 import chat.schildi.revenge.compose.components.TopNavigationTitle
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
@@ -54,11 +52,9 @@ import chat.schildi.revenge.model.AccountManagementViewModel
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.about
 import shire.composeapp.generated.resources.action_hide
 import shire.composeapp.generated.resources.action_login
 import shire.composeapp.generated.resources.action_logout
-import shire.composeapp.generated.resources.action_open_inbox
 import shire.composeapp.generated.resources.action_show
 import shire.composeapp.generated.resources.action_verify
 import shire.composeapp.generated.resources.hint_homeserver
@@ -81,12 +77,7 @@ fun AccountManagementScreen(modifier: Modifier = Modifier) {
             if (destinationState != null) {
                 TopNavigation {
                     TopNavigationTitle(stringResource(Res.string.manage_accounts))
-                    TopNavigationIcon(
-                        Icons.Default.Inbox,
-                        stringResource(Res.string.action_open_inbox)
-                    ) {
-                        destinationState.navigate(Destination.Inbox)
-                    }
+                    TopNavigationCloseOrNavigateToInboxIcon()
                 }
             }
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
