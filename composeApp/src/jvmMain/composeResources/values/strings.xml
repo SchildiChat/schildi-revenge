@@ -51,6 +51,7 @@
     <string name="action_open_inbox">Go to inbox</string>
     <string name="action_close_window">Close window</string>
     <string name="action_jump_to_unread">Jump to unread</string>
+    <string name="action_jump_to_replied_to_message">Jump to replied-to message</string>
 
     <string name="command_success">Success: %1$s</string>
     <string name="command_loading_event">Loading %1$s</string>
@@ -59,6 +60,7 @@
     <string name="command_copied_to_clipboard">Copied %1$s to clipboard</string>
     <string name="command_event_name_own_read_receipt">own read receipt</string>
     <string name="command_event_name_fully_read_marker">fully read marker</string>
+    <string name="command_event_name_reply">reply</string>
     <string name="command_copy_name_message_content">message content</string>
     <string name="command_copy_name_event_source">event source</string>
     <string name="command_copy_name_full_room_state">room state</string>

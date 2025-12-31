@@ -120,6 +120,7 @@ import shire.composeapp.generated.resources.command_copy_name_mxid
 import shire.composeapp.generated.resources.command_copy_name_url
 import shire.composeapp.generated.resources.command_event_name_fully_read_marker
 import shire.composeapp.generated.resources.command_event_name_own_read_receipt
+import shire.composeapp.generated.resources.command_event_name_reply
 import shire.composeapp.generated.resources.command_fetching_state
 import shire.composeapp.generated.resources.command_loading_event
 import shire.composeapp.generated.resources.command_loading_timeline_at
@@ -872,7 +873,6 @@ class ConversationViewModel(
                 Action.Conversation.JumpToOwnReadReceipt -> jumpToMessage(
                     action.name,
                     StringResourceHolder(Res.string.command_event_name_own_read_receipt),
-                    "jumpTo",
                 ) {
                     activeTimeline.value?.latestUserReceiptEventId(sessionId.value)?.let(::EventId)
                 }
@@ -880,7 +880,6 @@ class ConversationViewModel(
                 Action.Conversation.JumpToFullyRead -> jumpToMessage(
                     action.name,
                     StringResourceHolder(Res.string.command_event_name_fully_read_marker),
-                    "jumpTo",
                 ) {
                     activeTimeline.value?.fullyReadEventId()?.let(::EventId)
                 }
@@ -1158,7 +1157,7 @@ class ConversationViewModel(
     private fun ActionContext.jumpToMessage(
         actionName: String,
         eventName: ComposableStringHolder,
-        appMessageId: String,
+        appMessageId: String = "jumpTo",
         getEventId: suspend () -> EventId?,
     ): ActionResult = launchActionAsync(
         actionName,
@@ -1272,7 +1271,30 @@ class ConversationViewModel(
             EventOrTransactionId.from(event.eventId, event.transactionId)
         }
         return object : KeyboardActionProvider<Action.Event> {
-            override fun getPossibleActions() = Action.Event.entries.toSet()
+            override fun getPossibleActions() = Action.Event.entries.toSet().let {
+                val content = event.content
+                if (content !is MessageContent) {
+                    it - setOfNotNull(
+                        Action.Event.JumpToRepliedTo,
+                        Action.Event.CopyContent,
+                        Action.Event.CopyContentLink,
+                        Action.Event.OpenContentLinks,
+                        Action.Event.JumpToRepliedTo,
+                    )
+                } else if (content.inReplyTo == null) {
+                    it - Action.Event.JumpToRepliedTo
+                } else {
+                    it
+                }
+            }.let {
+                if (!event.isOwn) {
+                    it - setOf(
+                        Action.Event.ComposeEdit,
+                    )
+                } else {
+                    it
+                }
+            }
             override fun ensureActionType(action: Action) = action as? Action.Event
 
             override fun handleNavigationModeEvent(context: ActionContext, key: KeyTrigger): ActionResult {
@@ -1427,6 +1449,17 @@ class ConversationViewModel(
                                 isMessage = event.content is MessageContent,
                             )
                         } ?: ActionResult.Inapplicable
+                    }
+
+                    Action.Event.JumpToRepliedTo -> {
+                        val inReplyTo = (event.content as? MessageContent)?.inReplyTo
+                            ?: return@run ActionResult.Inapplicable
+                        jumpToMessage(
+                            action.name,
+                            Res.string.command_event_name_reply.toStringHolder(),
+                        ) {
+                            inReplyTo.eventId
+                        }
                     }
                 }
             }

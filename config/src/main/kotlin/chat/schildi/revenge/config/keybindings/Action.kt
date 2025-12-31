@@ -218,5 +218,6 @@ sealed interface Action {
         CopyContentLink,
         OpenContentLinks,
         Redact(aliases = listOf("rm", "del", "delete")),
+        JumpToRepliedTo,
     }
 }

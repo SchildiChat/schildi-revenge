@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.AddReaction
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.key.Key
@@ -20,6 +21,7 @@ import kotlinx.collections.immutable.toPersistentList
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_copy_body
 import shire.composeapp.generated.resources.action_edit
+import shire.composeapp.generated.resources.action_jump_to_replied_to_message
 import shire.composeapp.generated.resources.action_react
 import shire.composeapp.generated.resources.action_redact
 import shire.composeapp.generated.resources.action_reply
@@ -31,6 +33,12 @@ fun EventTimelineItem.contextMenu(): ImmutableList<ContextMenuEntry> {
     val canSendReactions = true // TODO from permissions
     val canRedact = isOwn // TODO from power levels
     return listOfNotNull(
+        ContextMenuEntry(
+            Res.string.action_jump_to_replied_to_message.toStringHolder(),
+            rememberVectorPainter(Icons.Default.Navigation),
+            Action.Event.JumpToRepliedTo,
+            keyboardShortcut = Key.J,
+        ).takeIf { messageContent.inReplyTo != null },
         ContextMenuEntry(
             Res.string.action_reply.toStringHolder(),
             rememberVectorPainter(Icons.AutoMirrored.Default.Reply),
