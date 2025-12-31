@@ -1,5 +1,6 @@
 package chat.schildi.revenge
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
@@ -8,13 +9,16 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.window.ApplicationScope
 import chat.schildi.revenge.model.GlobalUnreadCountsSource
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
-import chat.schildi.theme.ScColors
+import chat.schildi.theme.scExposures
 import com.kdroid.composetray.tray.api.Tray
 import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.stringResource
@@ -50,11 +54,11 @@ fun ApplicationScope.TrayIcon(
     val titleExit = stringResource(Res.string.tray_exit)
     // Hardcoding something that works both dark and light,
     // rather than using themed values, is probably better for tray icon badges
-    val badgeColor = ScColors.colorAccentRed
+    val badgeColor = MaterialTheme.scExposures.mentionBadgeColor
     // TODO icon needs some work
     val icon = imageResource(Res.drawable.ic_launcher)
     Tray(
-        icon = remember(unreadCounts.notifiedChats) {
+        icon = remember(unreadCounts.notifiedChats, badgeColor) {
             IconWithBadgePainter(
                 icon,
                 unreadCounts.notifiedChats,
@@ -98,10 +102,39 @@ class IconWithBadgePainter(
         )
         if (unreadCount > 0) {
             // Draw badge circle
-            val radius = size.minDimension * 0.18f
-            val center = Offset(size.width - radius, size.height - radius)
-            drawCircle(badgeColor, radius, center)
-            // TODO drawing text is not straightforward on multiplatform apparently, do I even need it?
+            val radius = size.minDimension * 0.3f
+            val badgeCenter = Offset(size.width - radius, size.height - radius)
+            drawCircle(badgeColor, radius, badgeCenter)
+
+            // Draw unread count text inside the badge (JVM/Skia)
+            // Keep it compact and readable; cap at 999+
+            val text = when {
+                unreadCount > 999 -> "999+"
+                else -> unreadCount.toString()
+            }
+
+            drawIntoCanvas { canvas ->
+                // Use Skia directly for text drawing
+                val skiaCanvas = canvas.nativeCanvas
+                val paint = org.jetbrains.skia.Paint().apply {
+                    isAntiAlias = true
+                    color = Color.White.toArgb()
+                }
+
+                // Font size proportional to badge radius
+                val fontSize = radius * 1.75f
+                // Use default system typeface
+                val font = org.jetbrains.skia.Font(null, fontSize)
+
+                // Measure text to center horizontally using TextLine for reliable width
+                val line = org.jetbrains.skia.TextLine.make(text, font)
+                val textWidth: Float = line.width
+                // Center vertically around badge center using ascent/descent
+                val baselineY = badgeCenter.y + (fontSize / 3f) // TODO it should be 2f but that looks off, how portable is it right now?
+                val startX = badgeCenter.x - (textWidth / 2f)
+
+                skiaCanvas.drawTextLine(line, startX, baselineY, paint)
+            }
         }
     }
 }
