@@ -77,7 +77,7 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
             key = "${LocalDestinationState.current?.id}/${destination.sessionId}/${destination.roomId}",
             factory = ConversationViewModel.factory(destination.sessionId, destination.roomId)
         )
-        val timelineItems = viewModel.timelineItems.collectAsState(null).value
+        val timelineItems = viewModel.timelineItems.collectAsState().value
         val forwardPaginationStatus = viewModel.forwardPaginationStatus.collectAsState(null).value
         val backwardPaginationStatus = viewModel.backwardPaginationStatus.collectAsState(null).value
 
@@ -112,7 +112,7 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
             }
         }
 
-        var initialListOffset by remember { mutableStateOf(Pair(0, 0)) }
+        var initialListOffset by remember { mutableStateOf(Triple(0, 0, -1)) }
         var scrolledToEvent by remember { mutableStateOf<EventJumpTarget?>(null) }
         val targetEvent = viewModel.targetEvent.collectAsState().value
         LaunchedEffect(targetEvent, timelineItems) {
@@ -141,8 +141,8 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
             if (index == null) {
                 Logger.withTag("ConversationScreen").w("Cannot find target event $targetEvent in ${timelineItems.size} items")
             } else {
-                val offset = density.run { contentHeight.roundToPx() } * 2 / 3
-                initialListOffset = Pair(index, -offset)
+                val offset = density.run { contentHeight.roundToPx() } / 2
+                initialListOffset = Triple(index, -offset, targetEvent.renavigationCount)
                 scrolledToEvent = targetEvent
             }
         }

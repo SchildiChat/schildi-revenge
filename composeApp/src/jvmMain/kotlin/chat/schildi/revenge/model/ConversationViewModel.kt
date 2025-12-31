@@ -62,6 +62,7 @@ import io.element.android.libraries.matrix.api.media.ImageInfo
 import io.element.android.libraries.matrix.api.media.VideoInfo
 import io.element.android.libraries.matrix.api.room.IntentionalMention
 import io.element.android.libraries.matrix.api.room.roomMembers
+import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
@@ -126,6 +127,7 @@ import java.io.File
 import java.lang.IllegalArgumentException
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.path.toPath
+import kotlin.math.max
 
 private data class ComposerSettings(
     val autoHideComposer: Boolean,
@@ -138,8 +140,30 @@ private data class ComposerSettings(
 }
 
 sealed interface EventJumpTarget {
-    data class Event(val eventId: EventId, val highlight: Boolean = true) : EventJumpTarget
-    data class Index(val index: Int) : EventJumpTarget
+    val renavigationCount: Int
+    data class Event(
+        val eventId: EventId,
+        val highlight: Boolean = true,
+        override val renavigationCount: Int = 0,
+    ) : EventJumpTarget {
+        override fun withRenavigationCount(count: Int) = if (renavigationCount == count) this else copy(renavigationCount = count)
+    }
+    data class Index(
+        val index: Int,
+        override val renavigationCount: Int = 0,
+    ) : EventJumpTarget {
+        override fun withRenavigationCount(count: Int) = if (renavigationCount == count) this else copy(renavigationCount = count)
+    }
+    fun withRenavigationCount(count: Int): EventJumpTarget
+    fun navigateFrom(old: EventJumpTarget?): EventJumpTarget {
+        return if (old == null) {
+            this
+        } else if (old.withRenavigationCount(0) == this.withRenavigationCount(0)) {
+            withRenavigationCount(max(renavigationCount, old.renavigationCount) + 1)
+        } else {
+            this
+        }
+    }
 }
 
 private fun buildScTimelineFilterSettings(lookup: (ScPref<*>) -> Any?) = ScTimelineFilterSettings(
@@ -251,7 +275,7 @@ class ConversationViewModel(
 
     val timelineItems = activeTimeline.flatMapLatest {
         it?.timelineItems?.map { it.toPersistentList() } ?: flowOf(null)
-    }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val forwardPaginationStatus = activeTimeline.flatMapLatest { it?.forwardPaginationStatus ?: flowOf(null) }
     val backwardPaginationStatus = activeTimeline.flatMapLatest { it?.backwardPaginationStatus ?: flowOf(null) }
@@ -866,7 +890,9 @@ class ConversationViewModel(
                         log.e("Could not find timeline controller")
                         return@run ActionResult.Failure("Timeline not ready")
                     }
-                    _targetEvent.value = EventJumpTarget.Index(0)
+                    _targetEvent.update {
+                        EventJumpTarget.Index(0).navigateFrom(it)
+                    }
                     ActionResult.Success(async = true)
                 }
 
@@ -1206,9 +1232,23 @@ class ConversationViewModel(
             log.e("No timeline controller to execute action")
             return Result.failure(RuntimeException("No TimelineController available"))
         }
+        val timelineItems = timelineItems.value
+        if (timelineItems != null) {
+            if (timelineItems.any { item -> (item as? MatrixTimelineItem.Event)?.eventId == eventId }) {
+                log.d { "Skip rebuilding timeline, focus item is already in current timeline" }
+                _targetEvent.update {
+                    EventJumpTarget.Event(eventId).navigateFrom(it)
+                }
+                return Result.success(EventFocusResult.FocusedOnLive) // TODO the other variant would be threaded??
+            }
+        }
         return controller.focusOnEvent(eventId, null)
             .onFailure { log.e("Failed to focus on event $eventId", it) }
-            .onSuccess { _targetEvent.emit(EventJumpTarget.Event(eventId)) }
+            .onSuccess {
+                _targetEvent.update {
+                    EventJumpTarget.Event(eventId).navigateFrom(it)
+                }
+            }
     }
 
     private fun ActionContext.markEventAsRead(eventId: EventId, receiptType: ReceiptType): ActionResult {
