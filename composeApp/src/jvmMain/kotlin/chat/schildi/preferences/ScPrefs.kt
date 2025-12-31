@@ -1,6 +1,7 @@
 package chat.schildi.preferences
 
 import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.hint_settings
 import shire.composeapp.generated.resources.pref_always_show_keyboard_focus
 import shire.composeapp.generated.resources.pref_auto_hide_composer_summary
 import shire.composeapp.generated.resources.pref_auto_hide_composer_title
@@ -56,7 +57,6 @@ import shire.composeapp.generated.resources.sc_pref_render_silent_unread_title
 import shire.composeapp.generated.resources.sc_pref_screen_advanced_theming_summary
 import shire.composeapp.generated.resources.sc_pref_sort_with_silent_unread_summary
 import shire.composeapp.generated.resources.sc_pref_sort_with_silent_unread_title
-import shire.composeapp.generated.resources.sc_pref_tweaks_title
 import shire.composeapp.generated.resources.sc_pseudo_space_accounts_summary
 import shire.composeapp.generated.resources.sc_pseudo_space_accounts_title
 import shire.composeapp.generated.resources.sc_pseudo_space_dms
@@ -72,8 +72,6 @@ import shire.composeapp.generated.resources.sc_pseudo_spaces_summary
 import shire.composeapp.generated.resources.sc_pseudo_spaces_title
 import shire.composeapp.generated.resources.sc_space_all_rooms_summary
 import shire.composeapp.generated.resources.sc_space_all_rooms_title
-import shire.composeapp.generated.resources.sc_space_swipe_summary
-import shire.composeapp.generated.resources.sc_space_swipe_title
 import shire.composeapp.generated.resources.sc_space_unread_counts_mode_title
 import shire.composeapp.generated.resources.sc_space_unread_counts_names
 import shire.composeapp.generated.resources.sc_url_previews_in_e2ee_rooms_summary
@@ -156,7 +154,7 @@ object ScPrefs {
         )
     )
     val DUAL_MENTION_UNREAD_COUNTS = ScBoolPref("DUAL_MENTION_UNREAD_COUNTS", false, Res.string.sc_pref_dual_mention_unread_counts_title, Res.string.sc_pref_dual_mention_unread_counts_summary)
-    val HIDE_INVITES = ScBoolPref("HIDE_INVITES", false, Res.string.sc_pref_hide_invites_title, Res.string.sc_pref_hide_invites_summary)
+    //val HIDE_INVITES = ScBoolPref("HIDE_INVITES", false, Res.string.sc_pref_hide_invites_title, Res.string.sc_pref_hide_invites_summary)
 
     // Spaces
     val COMPACT_ROOT_SPACES = ScBoolPref("COMPACT_ROOT_SPACES", false, Res.string.sc_compact_root_spaces_title, Res.string.sc_compact_root_spaces_summary)
@@ -176,7 +174,7 @@ object ScPrefs {
     val PSEUDO_SPACE_SPACELESS = ScBoolPref("PSEUDO_SPACE_SPACELESS", false, Res.string.sc_pseudo_space_spaceless, null)
     val PSEUDO_SPACE_NOTIFICATIONS = ScBoolPref("PSEUDO_SPACE_NOTIFICATIONS", true, Res.string.sc_pseudo_space_notifications, null)
     val PSEUDO_SPACE_UNREAD = ScBoolPref("PSEUDO_SPACE_UNREAD", false, Res.string.sc_pseudo_space_unread, null)
-    val PSEUDO_SPACE_INVITES = ScBoolPref("PSEUDO_SPACE_INVITES", true, Res.string.sc_pseudo_space_invites, null, dependencies = listOf(HIDE_INVITES.toDependency().not()))
+    val PSEUDO_SPACE_INVITES = ScBoolPref("PSEUDO_SPACE_INVITES", true, Res.string.sc_pseudo_space_invites, null)
     val PSEUDO_SPACE_ACCOUNTS = ScBoolPref("PSEUDO_SPACE_ACCOUNTS", false, Res.string.sc_pseudo_space_accounts_title, Res.string.sc_pseudo_space_accounts_summary)
     val PSEUDO_SPACE_HIDE_EMPTY_UNREAD = ScBoolPref("PSEUDO_SPACE_HIDE_EMPTY_UNREAD", true, Res.string.sc_pseudo_space_hide_empty_unread, null, dependencies = listOf(
         ScPrefFulfilledForAnyDependency(listOf(PSEUDO_SPACE_NOTIFICATIONS.toDependency(), PSEUDO_SPACE_UNREAD.toDependency(), PSEUDO_SPACE_INVITES.toDependency()))
@@ -242,7 +240,7 @@ object ScPrefs {
         )
     )
 
-    val rootPrefs = ScPrefScreen(Res.string.sc_pref_tweaks_title, null, listOf<AbstractScPref>(
+    val rootPrefs = ScPrefScreen(Res.string.hint_settings, null, listOf<AbstractScPref>(
         ScPrefScreen(Res.string.sc_pref_category_general, Res.string.sc_pref_category_general_summary, listOf(
             CLOSE_TO_TRAY,
             ScPrefCategory(Res.string.sc_pref_category_general_appearance, null, listOf(
@@ -272,7 +270,6 @@ object ScPrefs {
             */
         )),
         ScPrefScreen(Res.string.sc_pref_category_chat_overview, null, listOf(
-            HIDE_INVITES,
             ScPrefCategory(Res.string.sc_pref_category_chat_sorting, null, listOf(
                 SORT_BY_UNREAD,
                 SORT_WITH_SILENT_UNREAD,
@@ -360,7 +357,7 @@ object ScPrefs {
             SC_PUSH_INFO,
         )),
         */
-        ScPrefCategoryCollapsed(SC_DEVELOPER_OPTIONS_CATEGORY_KEY, Res.string.pref_category_developer_options, prefs = listOf(
+        ScPrefScreen(Res.string.pref_category_developer_options, null, prefs = listOf(
             RENDER_AVATAR_STATES,
             VIEW_HIDDEN_EVENTS,
             /*

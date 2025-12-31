@@ -12,9 +12,9 @@
     <!-- SchildiChat settings -->
     <string name="sc_pref_tweaks_title">Turtle tweaks</string>
     <string name="sc_pref_sc_themes_title">SC theme</string>
-    <string name="sc_pref_sc_themes_summary">Disable to follow Element\'s theme.</string>
+    <string name="sc_pref_sc_themes_summary">Disable to follow Element's theme.</string>
     <string name="sc_pref_sc_layout_title">SC layout</string>
-    <string name="sc_pref_sc_layout_summary">Disable to follow Element\'s layout.</string>
+    <string name="sc_pref_sc_layout_summary">Disable to follow Element's layout.</string>
     <string name="sc_pref_sc_overview_layout_title">SC overview layout</string>
     <string name="sc_pref_sc_timeline_layout_title">SC conversation layout</string>
     <string name="sc_pref_sc_floating_date_title">Floating date</string>
@@ -22,7 +22,7 @@
     <string name="sc_pref_pl_display_name_title">Name colors by power level</string>
     <string name="sc_pref_pl_display_name_summary_warning">Does not work reliably when member list was not fully fetched yet</string>
     <string name="sc_pref_el_typography_title">Element typography</string>
-    <string name="sc_pref_el_typography_summary">Use Element\'s font settings with larger message text</string>
+    <string name="sc_pref_el_typography_summary">Use Element's font settings with larger message text</string>
     <string name="sc_pref_fast_transitions_title">Fast transitions</string>
     <string name="sc_pref_fast_transitions_summary">Speed up window animation</string>
     <string name="sc_pref_compact_app_bar_title">Compact app bar</string>
@@ -90,7 +90,7 @@
     <string name="sc_space_empty_summary">Navigate to another space to find your chats</string>
     <string name="sc_pref_dual_mention_unread_counts_title">Combined mention/unread count</string>
     <string name="sc_pref_dual_mention_unread_counts_title_short">Dual mention count</string>
-    <string name="sc_pref_dual_mention_unread_counts_summary">When a highlighted chat\'s mention count differs from unread count, show both</string>
+    <string name="sc_pref_dual_mention_unread_counts_summary">When a highlighted chat's mention count differs from unread count, show both</string>
     <string name="sc_pref_pinned_message_overlay_title">Pinned message overlay</string>
     <string name="sc_pref_pinned_message_overlay_title_short">Pinned overlay</string>
     <string name="sc_pref_pinned_message_overlay_summary">Preview pinned messages on top of the conversation view</string>
@@ -120,7 +120,7 @@
     <string name="sc_pref_danger_zone_summary">Do not report bugs after enabling this.</string>
     <string name="sc_pref_restore_defaults">Restore defaults</string>
     <string name="sc_pref_restore_element">Apply Element taste</string>
-    <string name="sc_pref_restore_authors_choice">Author\'s choice</string>
+    <string name="sc_pref_restore_authors_choice">Author's choice</string>
 
     <string name="sc_pref_category_general">General</string>
     <string name="sc_pref_category_general_summary">App appearance and behavior</string>
@@ -164,7 +164,7 @@
     <string name="sc_recent_reaction">Frequently used</string>
 
     <string name="sc_upstream_feature_flag_room_list_filters">Room list filters</string>
-    <string name="sc_upstream_feature_flag_room_list_filters_summary">Element\'s way to filter chats</string>
+    <string name="sc_upstream_feature_flag_room_list_filters_summary">Element's way to filter chats</string>
 
     <string name="event_placeholder_location">Location</string>
 
@@ -174,7 +174,7 @@
     <string name="sc_action_assign_room_to_spaces">Spaces for %1$s</string>
     <string name="sc_space_is_sub_space_of">In %1$s</string>
     <string name="sc_space_list_loading">Spaces loading…</string>
-    <string name="sc_space_list_empty">You don\'t have any spaces!</string>
+    <string name="sc_space_list_empty">You don't have any spaces!</string>
     <string name="sc_space_list_permissions_missing_for_following">Spaces managed by others</string>
 
     <string name="sc_pref_render_inline_images_title">Inline images</string>
@@ -187,7 +187,7 @@
     <string name="sc_url_previews_in_e2ee_rooms_summary">Leak partial message content to your homeserver by also allowing link previews in encrypted rooms</string>
     <string name="sc_url_previews_require_explicit_links_title">Require explicit links for previews</string>
     <string name="sc_url_previews_require_explicit_links_title_short">Require explicit links</string>
-    <string name="sc_url_previews_require_explicit_links_summary">Only query previews for links explicitly starting with \"https://\"</string>
+    <string name="sc_url_previews_require_explicit_links_summary">Only query previews for links explicitly starting with "https://"</string>
     <string name="sc_reply_preview_line_count_title">Reply preview line count</string>
     <string name="sc_reply_preview_line_count_summary">Maximum number of lines to preview replied-to messages</string>
     <string name="sc_pref_fully_expand_message_menu_title">Fully expand message menu</string>

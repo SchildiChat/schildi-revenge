@@ -130,12 +130,9 @@ fun AboutScreen(modifier: Modifier = Modifier) {
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
     ) {
         Column {
-            val destinationState = LocalDestinationState.current
-            if (destinationState != null) {
-                TopNavigation {
-                    TopNavigationTitle(stringResource(Res.string.about))
-                    TopNavigationCloseOrNavigateToInboxIcon()
-                }
+            TopNavigation {
+                TopNavigationTitle(stringResource(Res.string.about))
+                TopNavigationCloseOrNavigateToInboxIcon()
             }
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 LazyColumn(

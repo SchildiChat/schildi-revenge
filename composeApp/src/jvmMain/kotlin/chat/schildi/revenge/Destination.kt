@@ -7,6 +7,7 @@ import io.element.android.libraries.matrix.api.core.SessionId
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.about
 import shire.composeapp.generated.resources.app_title
+import shire.composeapp.generated.resources.hint_settings
 import shire.composeapp.generated.resources.inbox
 import shire.composeapp.generated.resources.manage_accounts
 
@@ -40,6 +41,11 @@ sealed interface Destination {
     ) : WithSession {
         override val name = "Conversation"
         override val title = null
+    }
+
+    data object Settings : Destination {
+        override val name = "Settings"
+        override val title = StringResourceHolder(Res.string.hint_settings)
     }
 
     data object About : Destination {

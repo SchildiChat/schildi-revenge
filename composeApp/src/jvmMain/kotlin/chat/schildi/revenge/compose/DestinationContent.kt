@@ -15,6 +15,7 @@ import chat.schildi.revenge.compose.destination.split.SplitHorizontal
 import chat.schildi.revenge.compose.destination.split.SplitVertical
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.compose.destination.AboutScreen
+import chat.schildi.revenge.compose.destination.settings.SettingsScreen
 
 @Composable
 fun DestinationContent(destinationHolder: DestinationStateHolder, modifier: Modifier = Modifier) {
@@ -31,6 +32,7 @@ fun DestinationContent(destinationHolder: DestinationStateHolder, modifier: Modi
                 is Destination.SplitHorizontal -> SplitHorizontal(destination, modifier)
                 is Destination.SplitVertical -> SplitVertical(destination, modifier)
                 is Destination.About -> AboutScreen(modifier)
+                is Destination.Settings -> SettingsScreen(modifier)
             }
         }
     }

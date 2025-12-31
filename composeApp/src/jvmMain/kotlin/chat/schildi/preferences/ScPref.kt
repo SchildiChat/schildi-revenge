@@ -49,6 +49,7 @@ data class ScPrefCategory(
     override val dependencies: List<ScPrefDependency> = emptyList(),
 ) : ScPrefContainer
 
+/*
 data class ScPrefCategoryCollapsed(
     override val sKey: String,
     override val titleRes: StringResource,
@@ -69,6 +70,7 @@ data class ScPrefCategoryCollapsed(
     override fun parseType(value: String): Boolean? = value.toBooleanStrictOrNull()
     override fun autoSuggestionValues() = listOf("true", "false")
 }
+ */
 
 data class ScPrefCollection(
     override val titleRes: StringResource,
@@ -171,6 +173,7 @@ data class ScStringListPref(
     override fun autoSuggestionValues() = itemKeys.toList()
 }
 
+/*
 data class ScColorPref(
     override val sKey: String,
     override val titleRes: StringResource,
@@ -212,3 +215,4 @@ data class ScDisclaimerPref(
     override val summaryRes = null
     override val dependencies = emptyList<ScPrefDependency>()
 }
+*/

@@ -248,8 +248,10 @@ fun List<AbstractScPref>.collectScPrefs(predicate: (ScPref<*>) -> Boolean = { tr
             }
         }
         is ScPref<*> -> listOf(pref).filter(predicate)
+        /*
         is ScDisclaimerPref,
         is ScActionablePref -> emptyList()
+         */
     }
 }
 
@@ -265,8 +267,10 @@ val LocalScPreferencesStore = NotExactlyACompositionLocal<ScPreferencesStore>(Re
 @Composable
 fun <T>ScPref<T>.value(): T = LocalScPreferencesStore.current.settingState(this).value
 
+/*
 @Composable
 fun ScColorPref.userColor(): Color? = LocalScPreferencesStore.current.settingState(this).value.let { ScColorPref.valueToColor(it) }
+*/
 
 @Composable
 fun <T>ScPref<T>.state(): State<T> = LocalScPreferencesStore.current.settingState(this)
@@ -305,4 +309,34 @@ fun ScPrefContainer.findPreference(condition: (ScPref<*>) -> Boolean): ScPref<*>
         }
     }
     return null
+}
+
+fun ScPrefScreen.filteredBy(predicate: (AbstractScPref) -> Boolean): ScPrefContainer {
+    return copy(
+        prefs = prefs.filteredBy(predicate),
+    )
+}
+
+fun ScPrefCategory.filteredBy(predicate: (AbstractScPref) -> Boolean): ScPrefContainer {
+    return copy(
+        prefs = prefs.filteredBy(predicate),
+    )
+}
+
+fun ScPrefCollection.filteredBy(predicate: (AbstractScPref) -> Boolean): ScPrefContainer {
+    return copy(
+        prefs = prefs.filteredBy(predicate),
+    )
+}
+
+fun List<AbstractScPref>.filteredBy(predicate: (AbstractScPref) -> Boolean): List<AbstractScPref> {
+    // First map, then filter, so we can filter out pref categories based on their filtered contents
+    return map {
+        when (it) {
+            is ScPref<*> -> it
+            is ScPrefCategory -> it.filteredBy(predicate)
+            is ScPrefCollection -> it.filteredBy(predicate)
+            is ScPrefScreen -> it.filteredBy(predicate)
+        }
+    }.filter(predicate)
 }

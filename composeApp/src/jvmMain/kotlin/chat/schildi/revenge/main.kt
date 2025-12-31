@@ -45,6 +45,9 @@ fun main() {
     // Ensure single instance and set up IPC to restore window on subsequent launches
     SingleInstance.ensureSingleInstanceOrExit()
     application(exitProcessOnExit = false) {
+        LaunchedEffect(Unit) {
+            RevengePrefs.prefetch()
+        }
         key(UiState.forceRecreationCounter.collectAsState().value) {
             val minimized = UiState.minimizedToTray.collectAsState().value
             TrayIcon(isMinimized = minimized, setMinimized = UiState::setMinimized)

@@ -5,6 +5,7 @@ val SUGGESTED_DESTINATION_STRINGS = listOf(
     "accounts",
     "room",
     "about",
+    "settings",
 )
 
 // See also ActionDestinationParser for mappings
@@ -16,6 +17,7 @@ val ALLOWED_DESTINATION_STRINGS = listOf(
     "conversation",
     "room",
     "about",
+    "settings",
 )
 
 fun String.destinationRequiresSessionId() = this in listOf("chat", "conversation", "room")
