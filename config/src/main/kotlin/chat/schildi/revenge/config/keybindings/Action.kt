@@ -83,7 +83,8 @@ sealed interface Action {
         Command,
         SetSetting(args = listOf(ActionArgumentPrimitive.SettingKey, OptionalSettingValue)),
         ToggleSetting(args = listOf(ActionArgumentPrimitive.SettingKey, OptionalSettingValue, OptionalSettingValue)),
-        Exit(aliases = listOf("quit"))
+        Exit(aliases = listOf("quit")),
+        RecreateUi,
     }
     enum class AppMessage(
         override val aliases: kotlin.collections.List<String> = emptyList(),

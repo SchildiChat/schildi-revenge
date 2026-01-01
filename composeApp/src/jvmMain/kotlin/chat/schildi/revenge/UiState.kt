@@ -68,6 +68,9 @@ object UiState {
     private val _minimizedToTray = MutableStateFlow(false)
     val minimizedToTray = _minimizedToTray.asStateFlow()
 
+    private val _forceRecreationCounter = MutableStateFlow(0)
+    val forceRecreationCounter = _forceRecreationCounter.asStateFlow()
+
     private val _globalMessageBoard = MutableSharedFlow<AbstractAppMessage>(3)
     val globalMessageBoard = _globalMessageBoard.asSharedFlow()
 
@@ -266,6 +269,10 @@ object UiState {
 
     fun exit(scope: ApplicationScope) {
         scope.exitApplication()
+    }
+
+    fun recreateUi() {
+        _forceRecreationCounter.update { it + 1 }
     }
 
     fun setMinimized(minimized: Boolean) {

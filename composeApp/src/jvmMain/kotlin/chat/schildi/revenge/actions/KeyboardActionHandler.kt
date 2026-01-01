@@ -1069,6 +1069,10 @@ class KeyboardActionHandler(
                     UiState.exit(applicationScope)
                     ActionResult.Success()
                 }
+                Action.Global.RecreateUi -> {
+                    UiState.recreateUi()
+                    ActionResult.Success()
+                }
             }
         }
     }
