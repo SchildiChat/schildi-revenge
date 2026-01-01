@@ -330,7 +330,7 @@ class InboxViewModel(
         ) { spaceSelection, hiddenAccounts ->
             PersistentInboxState(
                 spaceSelection = spaceSelection,
-                hiddenAccounts = hiddenAccounts.map { it.value },
+                hiddenAccounts = hiddenAccounts.map { it.value }.sorted(),
             )
         }
             .distinctUntilChanged()

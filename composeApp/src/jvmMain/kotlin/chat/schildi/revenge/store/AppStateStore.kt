@@ -48,7 +48,7 @@ data class AppStateStore(
     }
 
     fun persistMutedAccounts(mutedAccounts: List<String>) = update {
-        it.copy(mutedAccounts = mutedAccounts)
+        it.copy(mutedAccounts = mutedAccounts.sorted())
     }
 
     fun ensureAllSessionIdsTracked(sessionIds: List<String>) = update { meta ->
