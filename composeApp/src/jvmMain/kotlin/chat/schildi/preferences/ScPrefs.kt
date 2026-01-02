@@ -1,5 +1,7 @@
 package chat.schildi.preferences
 
+import chat.schildi.revenge.compose.util.toStringHolder
+import kotlinx.collections.immutable.persistentListOf
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.hint_settings
 import shire.composeapp.generated.resources.pref_always_show_keyboard_focus
@@ -72,8 +74,10 @@ import shire.composeapp.generated.resources.sc_pseudo_spaces_summary
 import shire.composeapp.generated.resources.sc_pseudo_spaces_title
 import shire.composeapp.generated.resources.sc_space_all_rooms_summary
 import shire.composeapp.generated.resources.sc_space_all_rooms_title
+import shire.composeapp.generated.resources.sc_space_unread_counts_mode_chats
+import shire.composeapp.generated.resources.sc_space_unread_counts_mode_hide
+import shire.composeapp.generated.resources.sc_space_unread_counts_mode_messages
 import shire.composeapp.generated.resources.sc_space_unread_counts_mode_title
-import shire.composeapp.generated.resources.sc_space_unread_counts_names
 import shire.composeapp.generated.resources.sc_url_previews_in_e2ee_rooms_summary
 import shire.composeapp.generated.resources.sc_url_previews_in_e2ee_rooms_title
 import shire.composeapp.generated.resources.sc_url_previews_require_explicit_links_summary
@@ -161,10 +165,13 @@ object ScPrefs {
     val SPACE_UNREAD_COUNTS = ScStringListPref(
         "SPACE_UNREAD_COUNTS",
         SpaceUnreadCountMode.MESSAGES,
-        arrayOf(SpaceUnreadCountMode.MESSAGES, SpaceUnreadCountMode.CHATS, SpaceUnreadCountMode.HIDE),
-        Res.array.sc_space_unread_counts_names,
-        null,
+        persistentListOf(
+            ScListPrefEntry(SpaceUnreadCountMode.MESSAGES, Res.string.sc_space_unread_counts_mode_messages.toStringHolder()),
+            ScListPrefEntry(SpaceUnreadCountMode.CHATS, Res.string.sc_space_unread_counts_mode_chats.toStringHolder()),
+            ScListPrefEntry(SpaceUnreadCountMode.HIDE, Res.string.sc_space_unread_counts_mode_hide.toStringHolder()),
+        ),
         Res.string.sc_space_unread_counts_mode_title,
+        null,
     )
     val PSEUDO_SPACE_ALL_ROOMS = ScBoolPref("PSEUDO_SPACE_ALL_CHATS", true, Res.string.sc_space_all_rooms_title, Res.string.sc_space_all_rooms_summary)
     val PSEUDO_SPACE_FAVORITES = ScBoolPref("PSEUDO_SPACE_FAVORITES", true, Res.string.sc_pseudo_space_favorites, null)

@@ -16,6 +16,7 @@ import chat.schildi.preferences.LocalScPreferencesStore
 import chat.schildi.preferences.ScBoolPref
 import chat.schildi.preferences.ScFloatPref
 import chat.schildi.preferences.ScIntPref
+import chat.schildi.preferences.ScListPref
 import chat.schildi.preferences.ScPref
 import chat.schildi.preferences.ScPrefCategory
 import chat.schildi.preferences.ScPrefCollection
@@ -24,11 +25,17 @@ import chat.schildi.preferences.ScPrefScreen
 import chat.schildi.preferences.ScStringListPref
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
+import chat.schildi.revenge.compose.components.ContextMenuEntry
+import chat.schildi.revenge.compose.components.WithContextMenu
+import chat.schildi.revenge.compose.components.keyboardShortcutFromIndex
 import chat.schildi.revenge.compose.focus.keyFocusable
+import chat.schildi.revenge.compose.focus.rememberFocusId
+import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.theme.scExposures
 import co.touchlab.kermit.Logger
+import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringArrayResource
 import org.jetbrains.compose.resources.stringResource
 
 fun LazyListScope.renderPref(
@@ -148,18 +155,34 @@ fun ScIntPref.Rendered() = RenderedWithTextField()
 fun ScFloatPref.Rendered() = RenderedWithTextField()
 
 @Composable
-fun ScStringListPref.Rendered() {
-    // TODO allow selecting values via dropdown
-    ScPrefLayout(
-        valueToString = {
-            val index = itemKeys.indexOf(it)
-            if (index >= 0) {
-                stringArrayResource(itemNames)[index]
-            } else {
-                Logger.withTag("ScStringListPref.Rendered").e("Failed to look up item name for value $it")
-                it
-            }
+fun <T> ScListPref<T>.Rendered() {
+    val focusId = rememberFocusId()
+    WithContextMenu(
+        focusId = focusId,
+        entries = remember(items) {
+            items.mapIndexed { index, item ->
+                ContextMenuEntry(
+                    title = item.name,
+                    action = Action.Global.SetSetting,
+                    actionArgs = persistentListOf(sKey, item.value.toString()),
+                    keyboardShortcut = index.keyboardShortcutFromIndex(),
+                )
+            }.toPersistentList()
         },
-        selectionAsSummary = true,
-    )
+    ) { openContextMenu ->
+        ScPrefLayout(
+            focusId = focusId,
+            valueToString = { value ->
+                val item = items.find { it.value == value }
+                if (item == null) {
+                    Logger.withTag("ScListPref.Rendered").e("Failed to look up item name for value $value")
+                    value.toString()
+                } else {
+                    item.name.render()
+                }
+            },
+            selectionAsSummary = true,
+            clickAction = { openContextMenu },
+        )
+    }
 }

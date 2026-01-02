@@ -6,7 +6,9 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import chat.schildi.revenge.compose.util.ComposableStringHolder
 import co.touchlab.kermit.Logger
+import kotlinx.collections.immutable.ImmutableList
 import org.jetbrains.compose.resources.StringArrayResource
 import org.jetbrains.compose.resources.StringResource
 
@@ -144,18 +146,20 @@ data class ScFloatPref(
     override fun autoSuggestionValues() = emptyList<String>()
 }
 
+data class ScListPrefEntry<T>(
+    val value: T,
+    val name: ComposableStringHolder,
+    val summary: ComposableStringHolder? = null,
+)
+
 sealed interface ScListPref<T>: ScPref<T> {
-    val itemKeys: Array<T>
-    val itemNames: StringArrayResource
-    val itemSummaries: StringArrayResource?
+    val items: ImmutableList<ScListPrefEntry<T>>
 }
 
 data class ScStringListPref(
     override val sKey: String,
     override val defaultValue: String,
-    override val itemKeys: Array<String>,
-    override val itemNames: StringArrayResource,
-    override val itemSummaries: StringArrayResource?,
+    override val items: ImmutableList<ScListPrefEntry<String>>,
     override val titleRes: StringResource,
     override val summaryRes: StringResource? = null,
     override val disabledValue: String = defaultValue,
@@ -169,8 +173,8 @@ data class ScStringListPref(
         }
         return value
     }
-    override fun parseType(value: String): String? = value.takeIf { it in itemKeys }
-    override fun autoSuggestionValues() = itemKeys.toList()
+    override fun parseType(value: String): String? = value.takeIf { items.any { it.value == value } }
+    override fun autoSuggestionValues() = items.map { it.value }
 }
 
 /*

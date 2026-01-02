@@ -34,7 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalDensity
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
-import chat.schildi.revenge.compose.util.StringResourceHolder
+import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.config.keybindings.Action
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -42,8 +42,8 @@ import java.awt.event.KeyEvent
 import java.util.UUID
 
 data class ContextMenuEntry(
-    val title: StringResourceHolder,
-    val icon: Painter?,
+    val title: ComposableStringHolder,
+    val icon: Painter? = null,
     val action: Action,
     val actionArgs: ImmutableList<String> = persistentListOf(),
     val toggleState: Boolean? = null,
@@ -180,4 +180,18 @@ fun WithContextMenu(
             }
         }
     }
+}
+
+fun Int.keyboardShortcutFromIndex() = when (this) {
+    0 -> Key.One
+    1 -> Key.Two
+    2 -> Key.Three
+    3 -> Key.Four
+    4 -> Key.Five
+    5 -> Key.Six
+    6 -> Key.Seven
+    7 -> Key.Eight
+    8 -> Key.Nine
+    9 -> Key.Zero
+    else -> null
 }

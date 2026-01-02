@@ -24,13 +24,16 @@ import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.defaultActionProvider
 import chat.schildi.revenge.compose.focus.keyFocusable
+import chat.schildi.revenge.compose.focus.rememberFocusId
 import org.jetbrains.compose.resources.stringResource
+import java.util.UUID
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun <T> ScPref<T>.ScPrefLayout(
     modifier: Modifier = Modifier,
     clickAction: ((T) -> InteractionAction?) = { null },
+    focusId: UUID = rememberFocusId(),
     selectionAsSummary: Boolean = false,
     valueToString: @Composable (T) -> String = { it.toString() },
     trailing: @Composable ((value: T, enabled: Boolean) -> Unit)? = null,
@@ -42,6 +45,7 @@ fun <T> ScPref<T>.ScPrefLayout(
     ListItem(
         modifier = modifier.keyFocusable(
             role = FocusRole.LIST_ITEM,
+            id = focusId,
             actionProvider = defaultActionProvider(
                 primaryAction = if (enabled) clickAction(currentValue) else null,
             ),
