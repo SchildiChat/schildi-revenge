@@ -8,7 +8,7 @@ import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.components.TopNavigation
 import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInboxIcon
 import chat.schildi.revenge.compose.components.TopNavigationIcon
-import chat.schildi.revenge.compose.components.TopNavigationTitle
+import chat.schildi.revenge.compose.components.TopNavigationSearchOrTitle
 import chat.schildi.revenge.compose.focus.LocalFocusParent
 import chat.schildi.revenge.config.keybindings.Action
 import org.jetbrains.compose.resources.stringResource
@@ -23,7 +23,7 @@ fun ConversationTopNavigation(
     val keyHandler = LocalKeyboardActionHandler.current
     val focusParent = LocalFocusParent.current
     TopNavigation {
-        TopNavigationTitle(title)
+        TopNavigationSearchOrTitle(title)
         if (focusParent != null) {
             TopNavigationIcon(
                 Icons.Default.Update,

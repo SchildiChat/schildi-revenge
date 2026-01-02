@@ -58,6 +58,7 @@ import chat.schildi.revenge.compose.destination.SplashScreenContent
 import chat.schildi.revenge.compose.destination.conversation.event.EventHighlight
 import chat.schildi.revenge.compose.destination.conversation.event.message.LocalUrlPreviewStateProvider
 import chat.schildi.revenge.compose.focus.FocusContainer
+import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.model.EventJumpTarget
 import chat.schildi.revenge.publishTitle
 import co.touchlab.kermit.Logger
@@ -179,7 +180,7 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
 
         val listAction = remember(listState) { ListAction(listState, isReverseList = true) }
         FocusContainer(
-            //LocalSearchProvider provides viewModel, // TODO CV search
+            LocalSearchProvider provides viewModel,
             LocalKeyboardActionProvider provides
                     viewModel.actionProvider.hierarchicalKeyboardActionProvider(),
             LocalUrlPreviewStateProvider provides viewModel.urlPreviewStateProvider.collectAsState().value,

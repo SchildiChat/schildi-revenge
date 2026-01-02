@@ -37,6 +37,7 @@ import chat.schildi.revenge.actions.orActionInapplicable
 import chat.schildi.revenge.actions.orActionValidationError
 import chat.schildi.revenge.actions.parseRoomStateSnapshot
 import chat.schildi.revenge.actions.toActionResult
+import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.UrlUtil
 import chat.schildi.revenge.compose.util.insertAtCursor
@@ -55,6 +56,7 @@ import io.element.android.libraries.core.coroutine.childScope
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.core.UniqueId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.media.AudioInfo
 import io.element.android.libraries.matrix.api.media.FileInfo
@@ -76,6 +78,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.RedactedConte
 import io.element.android.libraries.matrix.api.timeline.item.event.TextLikeMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisambiguatedDisplayName
 import io.element.android.libraries.matrix.api.timeline.item.event.toEventOrTransactionId
+import io.element.android.libraries.matrix.api.timeline.item.virtual.VirtualTimelineItem
 import io.element.android.x.di.AppGraph
 import kotlinx.collections.immutable.persistentHashMapOf
 import kotlinx.collections.immutable.persistentListOf
@@ -178,8 +181,10 @@ class ConversationViewModel(
     private val roomId: RoomId,
     private val appGraph: AppGraph = UiState.appGraph,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
-) : ViewModel(), TitleProvider, UserIdSuggestionsProvider, ComposerViewModel {
+) : ViewModel(), TitleProvider, SearchProvider, UserIdSuggestionsProvider, ComposerViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
+
+    private val searchQuery = MutableStateFlow<String?>(null)
 
     private val clientFlow = UiState.selectClient(sessionId, viewModelScope)
 
@@ -274,8 +279,48 @@ class ConversationViewModel(
         it?.activeTimelineFlow() ?: flowOf(null)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val timelineItems = activeTimeline.flatMapLatest {
-        it?.timelineItems?.map { it.toPersistentList() } ?: flowOf(null)
+    private val rawTimelineItems = activeTimeline.flatMapLatest {
+        it?.timelineItems ?: flowOf(null)
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val timelineItems = combine(
+        rawTimelineItems,
+        searchQuery
+    ) { items, query ->
+        if (query.isNullOrBlank() || items == null) {
+            items
+        } else {
+            val lowerQuery = query.lowercase()
+            items.flatMap {
+                when (it) {
+                    is MatrixTimelineItem.Event -> {
+                        if ((it.event.content as? MessageContent)?.body?.lowercase()?.contains(lowerQuery) == true) {
+                            listOf(
+                                MatrixTimelineItem.Virtual(
+                                    UniqueId("search_date_${it.eventId}"),
+                                    VirtualTimelineItem.DayDivider(it.event.timestamp),
+                                ),
+                                it,
+                            )
+                        } else {
+                            emptyList()
+                        }
+                    }
+                    is MatrixTimelineItem.Virtual -> {
+                        // Only show room beginning and paging indicator virtual items during search
+                        when (it.virtual) {
+                            is VirtualTimelineItem.LoadingIndicator,
+                            VirtualTimelineItem.RoomBeginning,
+                            VirtualTimelineItem.LastForwardIndicator -> listOf(it)
+                            is VirtualTimelineItem.DayDivider,
+                            VirtualTimelineItem.ReadMarker,
+                            VirtualTimelineItem.TypingNotification -> emptyList()
+                        }
+                    }
+                    is MatrixTimelineItem.Other -> emptyList()
+                }
+            }
+        }?.toPersistentList()
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val forwardPaginationStatus = activeTimeline.flatMapLatest { it?.forwardPaginationStatus ?: flowOf(null) }
@@ -1464,6 +1509,18 @@ class ConversationViewModel(
                 }
             }
         }
+    }
+
+    override fun onSearchType(query: String) {
+        searchQuery.value = query
+    }
+
+    override fun onSearchEnter(query: String) {
+        searchQuery.value = query
+    }
+
+    override fun onSearchCleared() {
+        searchQuery.value = null
     }
 
     companion object {
