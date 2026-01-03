@@ -80,6 +80,7 @@ val generateFfiBindings = tasks.register<Exec>("generateFfiBindings") {
         "cargo", "run",
         "-p", "uniffi-bindgen",
         "--", "generate",
+        "--no-format",
         "--library",
         "--language", "kotlin",
         "--out-dir", "target/generated-bindings",
