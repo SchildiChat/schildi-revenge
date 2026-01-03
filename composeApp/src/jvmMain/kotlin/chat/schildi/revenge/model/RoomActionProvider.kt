@@ -115,6 +115,9 @@ class RoomActionProvider(
                     Res.string.command_copy_name_event_id.toStringHolder()
                 )
             }
+            Action.Room.ClearEventCache -> {
+                room.clearEventCacheStorage().toActionResult()
+            }
         }
     }
 }

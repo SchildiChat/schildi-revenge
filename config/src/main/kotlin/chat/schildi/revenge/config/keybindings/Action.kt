@@ -204,6 +204,7 @@ sealed interface Action {
         Join,
         Leave(aliases = listOf("part")),
         CopyRoomId,
+        ClearEventCache(aliases = listOf("ClearRoomCache")),
     }
     enum class Event(
         override val aliases: kotlin.collections.List<String> = emptyList(),
