@@ -765,9 +765,8 @@ class KeyboardActionHandler(
             this@KeyboardActionHandler.dismissMessage(uniqueId)
         override fun copyToClipboard(content: String, description: ComposableStringHolder) =
             this@KeyboardActionHandler.copyToClipboard(this, content, description)
-        override fun readFromClipboard(handle: suspend (ClipEntry) -> ActionResult) =
-            this@KeyboardActionHandler.readFromClipboard(this, handle)
         override fun getFilesFromClipboard() = this@KeyboardActionHandler.getFilesFromClipboard()
+        override fun getStringFromClipboard() = this@KeyboardActionHandler.getStringFromClipboard()
         override fun openLinkInExternalBrowser(uri: String): ActionResult =
             this@KeyboardActionHandler.openLinkInExternalBrowser(uri)
         override fun focusByRole(role: FocusRole) =
@@ -1474,12 +1473,14 @@ class KeyboardActionHandler(
         return ActionResult.Success()
     }
 
-    fun readFromClipboard(context: ActionContext, handle: suspend (ClipEntry) -> ActionResult): ActionResult {
-        val localClipboard = clipboard ?: return ActionResult.Failure("No clipboard found")
-        return context.launchActionAsync("readFromClipboard", scope) {
-            localClipboard.getClipEntry()?.let {
-                handle(it)
-            } ?: ActionResult.Inapplicable
+    fun getStringFromClipboard(): String? {
+        val systemClipboard = Toolkit.getDefaultToolkit().systemClipboard
+        val contents = systemClipboard.getContents(null) ?: return null
+
+        return if (contents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+            contents.getTransferData(DataFlavor.stringFlavor) as? String
+        } else {
+            null
         }
     }
 
@@ -1853,8 +1854,8 @@ interface ActionContext {
     fun publishMessage(message: AbstractAppMessage)
     fun dismissMessage(uniqueId: String)
     fun copyToClipboard(content: String, description: ComposableStringHolder): ActionResult
-    fun readFromClipboard(handle: suspend (ClipEntry) -> ActionResult): ActionResult
     fun getFilesFromClipboard(): List<File>
+    fun getStringFromClipboard(): String?
     fun openLinkInExternalBrowser(uri: String): ActionResult
     fun focusByRole(role: FocusRole): Boolean
     fun withCriticalActionConfirmation(

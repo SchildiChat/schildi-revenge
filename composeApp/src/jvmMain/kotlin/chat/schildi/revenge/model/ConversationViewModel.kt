@@ -887,6 +887,22 @@ class ConversationViewModel(
                     hasDraft.orActionInapplicable()
                 }
 
+                Action.Conversation.ComposerPasteText -> {
+                    val content = getStringFromClipboard()
+                    if (content.isNullOrBlank()) {
+                        ActionResult.Inapplicable
+                    } else {
+                        DraftRepo.update(draftKey) {
+                            it?.copy(
+                                textFieldValue = it.textFieldValue.insertAtCursor(content)
+                            ) ?: DraftValue(
+                                textFieldValue = TextFieldValue(content, TextRange(content.length))
+                            )
+                        }
+                        ActionResult.Success()
+                    }
+                }
+
                 Action.Conversation.ComposerPasteAttachment -> {
                     val files = getFilesFromClipboard()
                     if (files.isEmpty() || files.size > 1) {

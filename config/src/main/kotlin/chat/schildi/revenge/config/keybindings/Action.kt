@@ -169,6 +169,7 @@ sealed interface Action {
         ComposeCustomStateEvent(args = listOf(ActionArgumentPrimitive.StateEventType, StateKey), aliases = listOf("sendState")),
         ComposerSend,
         ComposerInsertAtCursor(args = listOf(ActionArgumentPrimitive.Text)),
+        ComposerPasteText,
         ComposerPasteAttachment,
         ComposerAddAttachment,
         ComposerSuggestionFocusNext,

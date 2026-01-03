@@ -12,6 +12,9 @@ global = [
     { key = "F", ctrl = true, action = "ToggleSetting", args = ["PIN_FAVORITES"], destinations = ["Inbox"] },
     { key = "H", ctrl = true, action = "ToggleSetting", args = ["VIEW_HIDDEN_EVENTS"], destinations = ["Conversation"] },
     { key = "D", ctrl = true, action = "ToggleSetting", args = ["VIEW_REDACTIONS"], destinations = ["Conversation"] },
+    { key = "K", ctrl = true, action = "ToggleSetting", args = ["MINIMAL_MODE"] },
+    { key = "X", ctrl = true, shift = true, action = "Exit" },
+    { key = "R", ctrl = true, shift = true, action = "RecreateUi" },
 ]
 appMessage = [
     { key = "Escape", action = "ClearAppMessages" },
@@ -41,11 +44,15 @@ inbox = [
     { key = "Zero", action = "SelectSpace", args = ["0"] },
     { key = "Equals", shift = true, action = "SelectSpace", args = ["p:notif"] },
 ]
+room = [
+    { key = "M", ctrl = true, action = "MarkRoomRead", destinations = ["Inbox"] },
+]
 conversation = [
     { key = "G", shift = true, action = "JumpToBottom", chain = true },
-    { key = "U", action = "JumpToOwnReadReceipt" },
-    { key = "U", shift = true, action = "JumpToFullyRead" },
+    { key = "U", action = "JumpToFullyRead" },
+    { key = "U", shift = true, action = "JumpToOwnReadReceipt" },
     { key = "I", action = "FocusComposer" },
+    { key = "P", action = "ComposerPasteText" },
     { key = "I", ctrl = true, action = "ComposeMessage" },
     { key = "V", ctrl = true, action = "ComposerPasteAttachment" },
     { key = "A", ctrl = true, shift = true, action = "ComposerAddAttachment" },
@@ -53,6 +60,8 @@ conversation = [
     { key = "E", ctrl = true, shift = true, action = "ComposeEmote" },
     { key = "M", ctrl = true, shift = true, action = "MarkRead", chain = true },
     { key = "M", ctrl = true, shift = true, action = "MarkFullyRead", chain = true },
+    { key = "F", alt = true, action = "MarkRead", chain = true },
+    { key = "F", alt = true, action = "MarkFullyRead", chain = true },
     { key = "M", ctrl = true, action = "MarkRead", chain = true },
     { key = "M", ctrl = true, action = "MarkFullyRead" },
     { key = "Enter", action = "ComposerSuggestionApplySelected" },
@@ -95,9 +104,9 @@ navigation = [
     { key = "I", shift = true, ctrl = true, action = "NavigateInNewWindow", args = ["inbox"] },
     { key = "A", shift = true, action = "NavigateCurrent", args = ["accounts"] },
     { key = "A", shift = true, ctrl = true, action = "NavigateInNewWindow", args = ["accounts"] },
-    { key = "Q", shift = true, action = "CloseWindow" },
-    { key = "Q", action = "CloseWindow", destinations = ["Conversation", "About"] },
+    { key = "X", action = "CloseWindow", destinations = ["Conversation", "About"] },
     { key = "M", ctrl = true, shift = true, action = "CloseWindow", destinations = ["Conversation"] },
+    { key = "F", alt = true, action = "CloseWindow", destinations = ["Conversation"] },
 ]
 navigationItem = [
     { key = "Enter", action = "NavigateInNewWindow" },
@@ -109,8 +118,6 @@ focus = [
     { key = "DirectionDown", action = "FocusDown" },
     { key = "DirectionLeft", action = "FocusLeft" },
     { key = "DirectionRight", action = "FocusRight" },
-    { key = "K", action = "FocusUp" },
-    { key = "J", action = "FocusDown" },
     { key = "E", action = "FocusUp" },
     { key = "N", action = "FocusDown" },
     { key = "H", shift = true, action = "FocusTop" },
