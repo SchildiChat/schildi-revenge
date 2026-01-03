@@ -2,11 +2,15 @@ package chat.schildi.revenge.model
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import chat.schildi.preferences.AbstractScPref
+import chat.schildi.preferences.ScPref
 import chat.schildi.preferences.ScPrefContainer
+import chat.schildi.preferences.ScPrefFilter
 import chat.schildi.preferences.ScPrefScreen
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.filteredBy
 import chat.schildi.preferences.forEachPreference
+import chat.schildi.preferences.forEachPreferenceOrContainer
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.compose.components.ComposableStringLookupRequest
@@ -30,7 +34,7 @@ class SettingsViewModel(
 
     val stringLookupRequest = ComposableStringLookupRequest(
         buildList {
-            rootPrefs.forEachPreference {
+            rootPrefs.forEachPreferenceOrContainer {
                 add(it.titleRes)
                 it.summaryRes?.let(::add)
             }
@@ -45,15 +49,18 @@ class SettingsViewModel(
             rootPrefs
         } else {
             val lowerQuery = query.lowercase()
-            rootPrefs.filteredBy { pref ->
+            fun prefLookupMatches(pref: AbstractScPref): Boolean {
                 val title = lookup[pref.titleRes]?.lowercase() ?: ""
                 val summary = lookup[pref.summaryRes]?.lowercase() ?: ""
-                if (title.contains(lowerQuery) || summary.contains(lowerQuery)) {
-                    true
-                } else {
-                    !((pref as? ScPrefContainer)?.prefs.isNullOrEmpty())
-                }
+                return title.contains(lowerQuery) || summary.contains(lowerQuery)
             }
+            val filter = ScPrefFilter(
+                // Include SC prefs that match
+                predicate = ::prefLookupMatches,
+                // Include pref categories in full that match
+                prePredicate = ::prefLookupMatches,
+            )
+            rootPrefs.filteredBy(filter)
         }
     }.flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Lazily, rootPrefs)

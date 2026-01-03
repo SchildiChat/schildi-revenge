@@ -35,6 +35,7 @@ sealed interface ScPref<T> : AbstractScPref {
 
 sealed interface ScPrefContainer : AbstractScPref {
     val prefs: List<AbstractScPref>
+    fun copyWithPrefs(prefs: List<AbstractScPref>): ScPrefContainer
 }
 
 data class ScPrefScreen(
@@ -42,14 +43,18 @@ data class ScPrefScreen(
     override val summaryRes: StringResource?,
     override val prefs: List<AbstractScPref>,
     override val dependencies: List<ScPrefDependency> = emptyList(),
-) : ScPrefContainer
+) : ScPrefContainer {
+    override fun copyWithPrefs(prefs: List<AbstractScPref>) = copy(prefs = prefs)
+}
 
 data class ScPrefCategory(
     override val titleRes: StringResource,
     override val summaryRes: StringResource?,
     override val prefs: List<AbstractScPref>,
     override val dependencies: List<ScPrefDependency> = emptyList(),
-) : ScPrefContainer
+) : ScPrefContainer {
+    override fun copyWithPrefs(prefs: List<AbstractScPref>) = copy(prefs = prefs)
+}
 
 /*
 data class ScPrefCategoryCollapsed(
@@ -80,6 +85,7 @@ data class ScPrefCollection(
     override val dependencies: List<ScPrefDependency> = emptyList(),
 ) : ScPrefContainer {
     override val summaryRes: StringResource? = null
+    override fun copyWithPrefs(prefs: List<AbstractScPref>) = copy(prefs = prefs)
 }
 
 data class ScBoolPref(

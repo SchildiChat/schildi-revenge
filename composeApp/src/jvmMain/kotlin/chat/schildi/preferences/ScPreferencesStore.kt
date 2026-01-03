@@ -286,6 +286,15 @@ fun ScPrefContainer.forEachPreference(block: (ScPref<*>) -> Unit) {
     }
 }
 
+fun ScPrefContainer.forEachPreferenceOrContainer(block: (AbstractScPref) -> Unit) {
+    prefs.forEach {
+        block(it)
+        if (it is ScPrefContainer) {
+            it.forEachPreferenceOrContainer(block)
+        }
+    }
+}
+
 suspend fun ScPrefContainer.forEachPreferenceSuspend(block: suspend (ScPref<*>) -> Unit) {
     prefs.forEach {
         if (it is ScPrefContainer) {
@@ -311,32 +320,35 @@ fun ScPrefContainer.findPreference(condition: (ScPref<*>) -> Boolean): ScPref<*>
     return null
 }
 
-fun ScPrefScreen.filteredBy(predicate: (AbstractScPref) -> Boolean): ScPrefContainer {
-    return copy(
-        prefs = prefs.filteredBy(predicate),
+data class ScPrefFilter(
+    // Condition for normal preferences to have fulfilled.
+    val predicate: (ScPref<*>) -> Boolean = { true },
+    // Condition for containers before evaluating children. If true, all children will be included no matter what their
+    // individual filter results would be.
+    val prePredicate: (ScPrefContainer) -> Boolean = { false },
+    // Condition for containers to evaluate after having their children filtered, if we still want to have
+    // the container included anyway. Usually we can just drop empty containers.
+    val postPredicate: (ScPrefContainer) -> Boolean = { it.prefs.isNotEmpty() },
+)
+
+fun ScPrefContainer.filteredBy(filter: ScPrefFilter): ScPrefContainer {
+    return copyWithPrefs(
+        prefs = prefs.filteredBy(filter),
     )
 }
 
-fun ScPrefCategory.filteredBy(predicate: (AbstractScPref) -> Boolean): ScPrefContainer {
-    return copy(
-        prefs = prefs.filteredBy(predicate),
-    )
-}
-
-fun ScPrefCollection.filteredBy(predicate: (AbstractScPref) -> Boolean): ScPrefContainer {
-    return copy(
-        prefs = prefs.filteredBy(predicate),
-    )
-}
-
-fun List<AbstractScPref>.filteredBy(predicate: (AbstractScPref) -> Boolean): List<AbstractScPref> {
+fun List<AbstractScPref>.filteredBy(filter: ScPrefFilter): List<AbstractScPref> {
     // First map, then filter, so we can filter out pref categories based on their filtered contents
-    return map {
+    return mapNotNull {
         when (it) {
-            is ScPref<*> -> it
-            is ScPrefCategory -> it.filteredBy(predicate)
-            is ScPrefCollection -> it.filteredBy(predicate)
-            is ScPrefScreen -> it.filteredBy(predicate)
+            is ScPref<*> -> it.takeIf { filter.predicate(it) }
+            is ScPrefContainer -> {
+                if (filter.prePredicate(it)) {
+                    it
+                } else {
+                    it.copyWithPrefs(it.prefs.filteredBy(filter)).takeIf { filter.postPredicate(it) }
+                }
+            }
         }
-    }.filter(predicate)
+    }
 }
