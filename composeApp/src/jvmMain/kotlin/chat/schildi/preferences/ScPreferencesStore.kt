@@ -8,7 +8,9 @@ import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import chat.schildi.revenge.actions.ActionContext
+import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.AppMessage
+import chat.schildi.revenge.actions.orActionValidationError
 import chat.schildi.revenge.actions.publishError
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.toStringHolder
@@ -27,7 +29,7 @@ import kotlin.collections.set
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 
-private const val MESSAGE_ID = "setSetting"
+const val SETTINGS_MESSAGE_ID = "setSetting"
 
 interface ScPreferencesStore {
     suspend fun <T>setSetting(scPref: ScPref<T>, value: T)
@@ -38,8 +40,9 @@ interface ScPreferencesStore {
     fun <T>getCachedOrDefaultValue(scPref: ScPref<T>): T
     suspend fun reset()
     suspend fun prefetch()
-    suspend fun handleSetAction(context: ActionContext?, args: List<String>): Boolean
-    suspend fun handleToggleAction(context: ActionContext?, args: List<String>): Boolean
+    suspend fun handleSetAction(context: ActionContext?, args: List<String>): ActionResult
+    suspend fun handleToggleAction(context: ActionContext?, args: List<String>): ActionResult
+    suspend fun handleResetAction(context: ActionContext?, args: List<String>): ActionResult
 
     fun <T> combinedSettingFlow(transform: ((ScPref<*>) -> Any?) -> T): Flow<T> = combinedSettingValueAndEnabledFlow { getPref, _ ->
         transform(getPref)
@@ -72,6 +75,14 @@ class DefaultScPreferencesStore() : ScPreferencesStore {
             prefs[key] = value
         }
         cacheSetting(scPref, value)
+    }
+
+    private suspend fun <T>clearSetting(scPref: ScPref<T>) {
+        val key = scPref.key ?: return
+        store.edit { prefs ->
+            prefs.minusAssign(key)
+        }
+        cacheSetting(scPref, null)
     }
 
     override suspend fun <T>setSettingTypesafe(scPref: ScPref<T>, value: Any?) {
@@ -153,82 +164,87 @@ class DefaultScPreferencesStore() : ScPreferencesStore {
         }
     }
 
-    override suspend fun handleSetAction(context: ActionContext?, args: List<String>): Boolean {
-        if (args.size == 1) {
-            return restoreSettingDefault(context, args.first())
-        } else if (args.size != 2) {
-            context.publishError(log, MESSAGE_ID, "Invalid parameter size for SetSetting action, expected 2 got ${args.size}")
-            return false
-        }
-        val (sKey, value) = args
+    override suspend fun handleSetAction(context: ActionContext?, args: List<String>): ActionResult {
+        val sKey = args.firstOrNull().orActionValidationError()
         val pref = ScPrefs.rootPrefs.findPreference { it.sKey == sKey }
         if (pref == null) {
-            context.publishError(log, MESSAGE_ID, "Did not find preference for SetSetting action with key \"$sKey\"")
-            return false
+            return ActionResult.Failure("Did not find preference for SetSetting action with key \"$sKey\"")
         }
-        return handleSetActionTypesafe(context, pref, value)
+        val value = args.getOrNull(1)
+        return if (value == null) {
+            if (pref is ScBoolPref) {
+                handleSetActionTypesafe(context, pref, "true")
+            } else {
+                handleSetActionTypesafe(context, pref, pref.defaultValue.toString())
+            }
+        } else {
+            handleSetActionTypesafe(context, pref, value)
+        }
     }
 
-    suspend fun restoreSettingDefault(context: ActionContext?, sKey: String): Boolean {
+    override suspend fun handleResetAction(context: ActionContext?, args: List<String>): ActionResult {
+        return restoreSettingDefault(context, args.first())
+    }
+
+    suspend fun restoreSettingDefault(context: ActionContext?, sKey: String): ActionResult {
         val pref = ScPrefs.rootPrefs.findPreference { it.sKey == sKey }
         if (pref == null) {
-            context.publishError(log, MESSAGE_ID, "Did not find preference for SetSetting action with key \"$sKey\"")
-            return false
+            return ActionResult.Failure("Did not find preference for SetSetting action with key \"$sKey\"")
         }
-        return handleSetActionTypesafe(context, pref, pref.defaultValue.toString())
+        clearSetting(pref)
+        context?.publishMessage(
+            AppMessage(
+                message = StringResourceHolder(Res.string.command_setting_set_to, pref.titleRes.toStringHolder(), pref.defaultValue.toString().toStringHolder()),
+                uniqueId = SETTINGS_MESSAGE_ID,
+            )
+        )
+        return ActionResult.Success()
     }
 
-    private suspend fun <T>handleSetActionTypesafe(context: ActionContext?, pref: ScPref<T>, value: String): Boolean {
+    private suspend fun <T>handleSetActionTypesafe(context: ActionContext?, pref: ScPref<T>, value: String): ActionResult {
         val valueToSet = pref.parseType(value)
-        if (valueToSet == null) {
-            context.publishError(log, MESSAGE_ID, "Invalid value for SetSetting action with key \"${pref.sKey}\", value \"$value\"")
-            return false
-        }
+            ?: return ActionResult.Failure("Invalid value for SetSetting action with key \"${pref.sKey}\", value \"$value\"")
         log.d("Setting setting \"${pref.sKey}\" to $value")
         setSetting(pref, valueToSet)
         context?.publishMessage(
             AppMessage(
                 message = StringResourceHolder(Res.string.command_setting_set_to, pref.titleRes.toStringHolder(), valueToSet.toString().toStringHolder()),
-                uniqueId = MESSAGE_ID,
+                uniqueId = SETTINGS_MESSAGE_ID,
             )
         )
-        return true
+        return ActionResult.Success()
     }
 
-    override suspend fun handleToggleAction(context: ActionContext?, args: List<String>): Boolean {
+    override suspend fun handleToggleAction(context: ActionContext?, args: List<String>): ActionResult {
         if (args.isEmpty()) {
-            context.publishError(log, MESSAGE_ID, "Invalid parameter size for ToggleSetting action, expected at least one")
-            return false
+            return ActionResult.Failure("Invalid parameter size for ToggleSetting action, expected at least one")
         }
         val sKey = args.first()
         val pref = ScPrefs.rootPrefs.findPreference { it.sKey == sKey }
         if (pref == null) {
-            context.publishError(log, MESSAGE_ID, "Did not find preference for ToggleSetting action with key \"$sKey\"")
-            return false
+            return ActionResult.Failure("Did not find preference for ToggleSetting action with key \"$sKey\"")
         }
         val toggleValues = args.subList(1, args.size).takeIf { it.isNotEmpty() } ?: when (pref) {
             is ScBoolPref -> listOf("true", "false")
             else -> {
-                context.publishError(log, MESSAGE_ID, "Tried action ToggleSetting for non-boolean preference \"$sKey\" without providing toggle values")
-                return false
+                return ActionResult.Failure("Tried action ToggleSetting for non-boolean preference \"$sKey\" without providing toggle values")
             }
         }
         val currentValue = getSetting(pref).toString()
         val nextValueIndex = (toggleValues.indexOf(currentValue) + 1) % toggleValues.size
         val toggledValueString = toggleValues[nextValueIndex]
         val toggledValue = pref.parseType(toggledValueString) ?: run {
-            context.publishError(log, MESSAGE_ID, "Invalid value for \"$sKey\": $toggledValueString")
-            return false
+            return ActionResult.Failure("Invalid value for \"$sKey\": $toggledValueString")
         }
         log.d("Toggling setting \"$sKey\" to $toggledValue")
         setSettingTypesafe(pref, toggledValue)
         context?.publishMessage(
             AppMessage(
                 message = StringResourceHolder(Res.string.command_setting_set_to, pref.titleRes.toStringHolder(), toggledValue.toString().toStringHolder()),
-                uniqueId = MESSAGE_ID,
+                uniqueId = SETTINGS_MESSAGE_ID,
             )
         )
-        return true
+        return ActionResult.Success()
     }
 }
 

@@ -28,6 +28,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.toIntSize
 import androidx.compose.ui.window.ApplicationScope
 import chat.schildi.preferences.RevengePrefs
+import chat.schildi.preferences.SETTINGS_MESSAGE_ID
 import chat.schildi.preferences.ScPref
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.findPreference
@@ -1053,16 +1054,31 @@ class KeyboardActionHandler(
                     }
                 }
                 Action.Global.SetSetting -> {
-                    scope.launch {
+                    context.launchActionAsync(
+                        "setSetting",
+                        scope,
+                        appMessageId = SETTINGS_MESSAGE_ID,
+                    ) {
                         RevengePrefs.handleSetAction(context, args)
                     }
-                    ActionResult.Success()
+                }
+                Action.Global.ResetSetting -> {
+                    context.launchActionAsync(
+                        "resetSetting",
+                        scope,
+                        appMessageId = SETTINGS_MESSAGE_ID,
+                    ) {
+                        RevengePrefs.handleResetAction(context, args)
+                    }
                 }
                 Action.Global.ToggleSetting -> {
-                    scope.launch {
+                    context.launchActionAsync(
+                        "toggleSetting",
+                        scope,
+                        appMessageId = SETTINGS_MESSAGE_ID,
+                    ) {
                         RevengePrefs.handleToggleAction(context, args)
                     }
-                    ActionResult.Success()
                 }
                 Action.Global.Exit -> {
                     UiState.exit(applicationScope)

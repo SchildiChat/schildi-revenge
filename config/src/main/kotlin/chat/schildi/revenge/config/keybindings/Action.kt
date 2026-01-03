@@ -81,8 +81,9 @@ sealed interface Action {
     ) : Action {
         Search,
         Command,
-        SetSetting(args = listOf(ActionArgumentPrimitive.SettingKey, OptionalSettingValue)),
-        ToggleSetting(args = listOf(ActionArgumentPrimitive.SettingKey, OptionalSettingValue, OptionalSettingValue)),
+        SetSetting(args = listOf(ActionArgumentPrimitive.SettingKey, OptionalSettingValue), aliases = listOf("set")),
+        ResetSetting(args = listOf(ActionArgumentPrimitive.SettingKey), aliases = listOf("reset")),
+        ToggleSetting(args = listOf(ActionArgumentPrimitive.SettingKey, OptionalSettingValue, OptionalSettingValue), aliases = listOf("toggle")),
         Exit(aliases = listOf("quit")),
         RecreateUi,
     }
