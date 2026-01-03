@@ -8,19 +8,27 @@ import chat.schildi.revenge.model.account.AccountComparator
 import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.Inject
 import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.encryption.BackupState
+import io.element.android.libraries.matrix.api.encryption.RecoveryState
+import io.element.android.libraries.matrix.api.verification.SessionVerifiedStatus
 import io.element.android.libraries.sessionstorage.api.SessionData
 import io.element.android.x.di.AppGraph
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 data class AccountManagementData(
     val session: SessionData,
-    val needsVerification: Boolean,
-)
+    val sessionVerifiedStatus: SessionVerifiedStatus? = null,
+    val backupState: BackupState? = null,
+    val recoveryState: RecoveryState? = null,
+) {
+    val needsVerification: Boolean
+        get() = sessionVerifiedStatus == SessionVerifiedStatus.NotVerified
+}
 
 @Inject
 class AccountManagementViewModel(
@@ -39,11 +47,17 @@ class AccountManagementViewModel(
     val data = sessions.flatMergeCombinedWith(
         map = { session, _ ->
             val client = sessionCache.getOrRestore(SessionId(session.userId)).getOrNull()
-                ?: return@flatMergeCombinedWith flowOf(AccountManagementData(session, false))
-            client.sessionVerificationService.needsSessionVerification.map {
+                ?: return@flatMergeCombinedWith flowOf(AccountManagementData(session))
+            combine(
+                client.sessionVerificationService.sessionVerifiedStatus,
+                client.encryptionService.backupStateStateFlow,
+                client.encryptionService.recoveryStateStateFlow,
+            ) { sessionVerifiedStatus, backupState, recoveryState ->
                 AccountManagementData(
                     session = session,
-                    needsVerification = it,
+                    sessionVerifiedStatus = sessionVerifiedStatus,
+                    backupState = backupState,
+                    recoveryState = recoveryState,
                 )
             }
         },

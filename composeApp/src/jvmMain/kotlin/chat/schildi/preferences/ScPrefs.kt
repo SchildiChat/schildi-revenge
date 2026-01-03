@@ -25,6 +25,8 @@ import shire.composeapp.generated.resources.pref_max_width_settings_title
 import shire.composeapp.generated.resources.pref_minimal_mode_summary
 import shire.composeapp.generated.resources.pref_minimal_mode_title
 import shire.composeapp.generated.resources.pref_render_scale
+import shire.composeapp.generated.resources.pref_show_dev_infos_summary
+import shire.composeapp.generated.resources.pref_show_dev_infos_title
 import shire.composeapp.generated.resources.pref_theme_follow_system_summary
 import shire.composeapp.generated.resources.pref_theme_follow_system_title
 import shire.composeapp.generated.resources.pref_view_hidden_events_title
@@ -111,6 +113,7 @@ object ScPrefs {
     // Developer options
     private const val SC_DEVELOPER_OPTIONS_CATEGORY_KEY = "SC_DEVELOPER_OPTIONS_CATEGORY"
     val RENDER_AVATAR_STATES = ScBoolPref("RENDER_AVATAR_STATES", false, Res.string.pref_debug_avatar_render_states_title)
+    val SHOW_DEV_INFOS = ScBoolPref("SHOW_DEV_INFOS", false, Res.string.pref_show_dev_infos_title, Res.string.pref_show_dev_infos_summary)
     /*
     private val SC_DANGER_ZONE = ScBoolPref("SC_DANGER_ZONE", false, Res.string.sc_pref_danger_zone, Res.string.sc_pref_danger_zone_summary, authorsChoice = true)
     val SC_PUSH_INFO = ScActionablePref("SC_PUSH_INFO", Res.string.sc_push_info_title, Res.string.sc_push_info_summary)
@@ -367,6 +370,7 @@ object ScPrefs {
         ScPrefScreen(Res.string.pref_category_developer_options, null, prefs = listOf(
             RENDER_AVATAR_STATES,
             VIEW_HIDDEN_EVENTS,
+            SHOW_DEV_INFOS,
             /*
             SC_DEV_QUICK_OPTIONS,
             READ_MARKER_DEBUG,

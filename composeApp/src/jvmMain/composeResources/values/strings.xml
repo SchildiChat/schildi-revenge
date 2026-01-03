@@ -223,6 +223,8 @@
     <string name="pref_minimal_mode_summary">Hides navigation elements and the message composer while not in use. Only useful if you have setup custom keybindings and/or know command mode well enough to get around.</string>
     <string name="pref_close_to_tray_title">Close to tray</string>
     <string name="pref_close_to_tray_summary">Closing the last window keeps the application running and possible to re-open from the tray icon</string>
+    <string name="pref_show_dev_infos_title">Show dev infos</string>
+    <string name="pref_show_dev_infos_summary">Render additional debugging infos with unfinished UI in various places</string>
 
     <string name="nameless_space_fallback_title">Nameless space</string>
 

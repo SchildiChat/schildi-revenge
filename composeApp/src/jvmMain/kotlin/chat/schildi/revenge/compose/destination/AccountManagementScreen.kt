@@ -200,6 +200,11 @@ private fun ExistingLogin(account: AccountManagementData, viewModel: AccountMana
                     }
                 }
             }
+            if (ScPrefs.SHOW_DEV_INFOS.value()) {
+                Text("Verification state: ${account.sessionVerifiedStatus}")
+                Text("Backup state: ${account.backupState}")
+                Text("Recovery state: ${account.recoveryState}")
+            }
         }
     }
 }
