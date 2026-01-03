@@ -10,8 +10,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.actions.ActionContext
+import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
+import chat.schildi.revenge.actions.InteractionAction
+import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.actions.defaultActionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.components.WithContextMenu
@@ -24,6 +28,8 @@ import chat.schildi.revenge.model.ConversationViewModel
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
+import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
+import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
 import kotlinx.collections.immutable.ImmutableMap
 
 enum class EventHighlight {
@@ -60,6 +66,7 @@ fun EventRow(
                     focusId,
                     actionProvider = defaultActionProvider(
                         keyActions = eventRowKeyboardActionProvider(viewModel, event),
+                        primaryAction = eventClickAction(viewModel, currentActionContext(), event),
                         secondaryAction = openContextMenu,
                     ),
                 )
@@ -100,4 +107,22 @@ private fun eventRowKeyboardActionProvider(
         viewModel.getKeyboardActionProviderForEvent(event)
     }
     return ownHandler.hierarchicalKeyboardActionProvider()
+}
+
+private fun eventClickAction(
+    viewModel: ConversationViewModel,
+    context: ActionContext,
+    event: EventTimelineItem,
+): InteractionAction? {
+    return when (val content = event.content) {
+        is MessageContent -> {
+            when (content.type) {
+                is MessageTypeWithAttachment -> InteractionAction.Invoke {
+                    viewModel.downloadFileAndOpen(context, event) is ActionResult.Success
+                }
+                else -> null
+            }
+        }
+        else -> null
+    }
 }

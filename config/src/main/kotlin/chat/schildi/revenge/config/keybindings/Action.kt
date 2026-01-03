@@ -223,5 +223,7 @@ sealed interface Action {
         OpenContentLinks,
         Redact(aliases = listOf("rm", "del", "delete")),
         JumpToRepliedTo,
+        DownloadFile,
+        DownloadFileAndOpen,
     }
 }

@@ -1921,7 +1921,6 @@ fun ActionContext.launchActionAsync(
             publishMessage(
                 AppMessage(
                     StringResourceHolder(Res.string.action_processing_done),
-                    isError = true,
                     uniqueId = appMessageId
                 )
             )

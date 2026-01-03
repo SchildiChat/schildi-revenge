@@ -61,14 +61,19 @@ import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.media.AudioInfo
 import io.element.android.libraries.matrix.api.media.FileInfo
 import io.element.android.libraries.matrix.api.media.ImageInfo
+import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.media.VideoInfo
+import io.element.android.libraries.matrix.api.media.toFile
 import io.element.android.libraries.matrix.api.room.IntentionalMention
 import io.element.android.libraries.matrix.api.room.roomMembers
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
+import io.element.android.libraries.matrix.api.timeline.item.event.AudioMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
+import io.element.android.libraries.matrix.api.timeline.item.event.FileMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.ImageMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 import io.element.android.libraries.matrix.api.timeline.item.event.LocationMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
@@ -76,9 +81,11 @@ import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWi
 import io.element.android.libraries.matrix.api.timeline.item.event.OtherMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.ProfileChangeContent
 import io.element.android.libraries.matrix.api.timeline.item.event.RedactedContent
-import io.element.android.libraries.matrix.api.timeline.item.event.RoomMembershipContent
 import io.element.android.libraries.matrix.api.timeline.item.event.StickerContent
+import io.element.android.libraries.matrix.api.timeline.item.event.StickerMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.TextLikeMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.VideoMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.VoiceMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisambiguatedDisplayName
 import io.element.android.libraries.matrix.api.timeline.item.event.toEventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.virtual.VirtualTimelineItem
@@ -131,8 +138,11 @@ import shire.composeapp.generated.resources.command_event_name_reply
 import shire.composeapp.generated.resources.command_fetching_state
 import shire.composeapp.generated.resources.command_loading_event
 import shire.composeapp.generated.resources.command_loading_timeline_at
+import shire.composeapp.generated.resources.toast_attachment_download_path_success
+import java.awt.Desktop
 import java.io.File
 import java.lang.IllegalArgumentException
+import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.path.toPath
 import kotlin.math.max
@@ -1477,16 +1487,7 @@ class ConversationViewModel(
                     }
 
                     Action.Event.CopyMxc -> {
-                        val url = when (val content = event.content) {
-                            is StickerContent -> content.source.url
-                            is MessageContent -> {
-                                (content.type as? MessageTypeWithAttachment)?.source?.url
-                            }
-                            is ProfileChangeContent -> {
-                                content.avatarUrl
-                            }
-                            else -> null
-                        }
+                        val url = event.mediaSource()?.url
                         if (url == null) {
                             ActionResult.Inapplicable
                         } else {
@@ -1544,8 +1545,107 @@ class ConversationViewModel(
                             inReplyTo.eventId
                         }
                     }
+
+                    Action.Event.DownloadFile -> downloadFileAndOpenExplorer(context, event)
+
+                    Action.Event.DownloadFileAndOpen -> downloadFileAndOpen(context, event)
                 }
             }
+        }
+    }
+
+    fun downloadFileAndOpenExplorer(
+        context: ActionContext,
+        event: EventTimelineItem,
+    ) = context.downloadFile(event) { file ->
+        try {
+            // View in file explorer
+            val desktop = Desktop.getDesktop()
+            desktop.open(file.parentFile)
+        } catch (t: Throwable) {
+            log.e("Failed to open file explorer", t)
+        }
+        ActionResult.Success()
+    }
+
+    fun downloadFileAndOpen(
+        context: ActionContext,
+        event: EventTimelineItem,
+    ) = context.downloadFile(event) { file ->
+        try {
+            val desktop = Desktop.getDesktop()
+            desktop.open(file)
+            ActionResult.Success()
+        } catch (t: Throwable) {
+            log.e("Failed to open file", t)
+            ActionResult.Failure(t.message ?: "Failed to open file")
+        }
+    }
+
+    private fun ActionContext.downloadFile(
+        event: EventTimelineItem,
+        onSuccess: (File) -> ActionResult,
+    ): ActionResult {
+        val mediaSource = event.mediaSource() ?: return ActionResult.Inapplicable
+        val client = clientFlow.value ?: return ActionResult.Failure("Client not ready")
+        val mediaLoader = client.matrixMediaLoader
+        val appMessageId = "downloadFile_${mediaSource.url}"
+        val filename = event.mediaFilename()
+        val outFile = PersistentAttachmentDownload.getPersistentAttachmentFile(
+            sessionId = sessionId,
+            roomId = roomId,
+            timestamp = event.timestamp,
+            mxcUrl = mediaSource.url,
+            filename = filename,
+        )
+        if (outFile.exists() && outFile.length() > 0) {
+            return onSuccess(outFile)
+        }
+        return launchActionAsync(
+            "downloadFile",
+            viewModelScope,
+            Dispatchers.IO,
+            appMessageId,
+        ) {
+            val result = mediaLoader.downloadMediaFile(
+                source = mediaSource,
+                mimeType = event.mediaMimetype(),
+                filename = filename,
+            )
+            val file = result.getOrNull()
+            if (file != null) {
+                val fileToOpen = try {
+                    /* TODO why does this not work
+                    val persistSuccess = file.persist(outFile.path)
+                    if (persistSuccess) {
+                        outFile
+                    } else {
+                        log.e("Failed to persist attachment file to ${outFile.path}, using temp one")
+                        file.toFile()
+                    }
+                     */
+                    Files.copy(file.toFile().toPath(), outFile.toPath())
+                    outFile
+                } catch (t: Throwable) {
+                    log.e("Failed to persist attachment file, using temp one", t)
+                    file.toFile()
+                }
+                publishMessage(
+                    AppMessage(
+                        StringResourceHolder(
+                            Res.string.toast_attachment_download_path_success,
+                            file.path().toStringHolder()
+                        ),
+                        uniqueId = appMessageId,
+                    )
+                )
+                onSuccess(fileToOpen).also {
+                    if (it !is ActionResult.Success) {
+                        return@launchActionAsync it
+                    }
+                }
+            }
+            result.toActionResult(async = true, notifySuccess = false)
         }
     }
 
@@ -1571,4 +1671,35 @@ class ConversationViewModel(
             }
         }
     }
+}
+
+private fun EventTimelineItem.mediaSource() = when (val content = content) {
+    is StickerContent -> content.source
+    is MessageContent -> {
+        (content.type as? MessageTypeWithAttachment)?.source
+    }
+    is ProfileChangeContent -> {
+        content.avatarUrl?.let { MediaSource(it) }
+    }
+    else -> null
+}
+
+private fun EventTimelineItem.mediaMimetype() = when (val content = content) {
+    is MessageContent -> {
+        when (val type = content.type) {
+            !is MessageTypeWithAttachment -> null
+            is AudioMessageType -> type.info?.mimetype
+            is FileMessageType -> type.info?.mimetype
+            is ImageMessageType -> type.info?.mimetype
+            is StickerMessageType -> type.info?.mimetype
+            is VideoMessageType -> type.info?.mimetype
+            is VoiceMessageType -> type.info?.mimetype
+        }
+    }
+    else -> null
+}
+
+private fun EventTimelineItem.mediaFilename() = when (val content = content) {
+    is MessageContent -> (content.type as? MessageTypeWithAttachment)?.filename
+    else -> null
 }

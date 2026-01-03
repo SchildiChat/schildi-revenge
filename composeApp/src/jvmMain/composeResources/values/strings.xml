@@ -52,6 +52,8 @@
     <string name="action_close_window">Close window</string>
     <string name="action_jump_to_unread">Jump to unread</string>
     <string name="action_jump_to_replied_to_message">Jump to replied-to message</string>
+    <string name="action_download">Download</string>
+    <string name="action_download_and_open">Open</string>
 
     <string name="command_success">Success: %1$s</string>
     <string name="command_loading_event">Loading %1$s</string>
@@ -227,4 +229,5 @@
 
     <string name="toast_key_config_reload_success">Key bindings reloaded</string>
     <string name="toast_key_config_reload_error">Failed parsing key bindings config: %1$s</string>
+    <string name="toast_attachment_download_path_success">Attachment downloaded to %1$s</string>
 </resources>
