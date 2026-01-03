@@ -80,13 +80,13 @@ fun ScPrefCategoryHeader(
     title: String,
     isFirst: Boolean = false,
     color: Color = MaterialTheme.colorScheme.primary,
-    style: TextStyle = MaterialTheme.typography.bodyLarge,
+    style: TextStyle = MaterialTheme.typography.bodySmall,
 ) {
     Column(Modifier.fillMaxWidth()) {
         if (isFirst) {
-            Spacer(Modifier.height(Dimens.windowPadding))
+            Spacer(Modifier.height(Dimens.listPadding))
         } else {
-            HorizontalDivider(modifier = Modifier.padding(top = Dimens.listPaddingBig))
+            HorizontalDivider(modifier = Modifier.padding(top = Dimens.listPadding))
         }
         Text(
             text = title,
@@ -94,7 +94,7 @@ fun ScPrefCategoryHeader(
             color = color,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = Dimens.windowPadding, vertical = Dimens.listPaddingBig),
+                .padding(horizontal = Dimens.windowPadding, vertical = Dimens.listPadding),
         )
     }
 }
