@@ -8,12 +8,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import chat.schildi.preferences.ScPrefs
+import chat.schildi.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.destination.conversation.event.EventHighlight
 import chat.schildi.revenge.compose.destination.conversation.event.EventRow
 import chat.schildi.revenge.compose.destination.conversation.virtual.DayHeader
 import chat.schildi.revenge.compose.destination.conversation.virtual.NewMessagesLine
 import chat.schildi.revenge.compose.destination.conversation.virtual.PagingIndicator
+import chat.schildi.revenge.compose.destination.conversation.virtual.RoomBeginning
 import chat.schildi.revenge.model.ConversationViewModel
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.RoomMember
@@ -43,7 +46,7 @@ fun ConversationItemRow(
                     is VirtualTimelineItem.DayDivider -> DayHeader(virtualItem)
                     is VirtualTimelineItem.LoadingIndicator -> PagingIndicator()
                     VirtualTimelineItem.ReadMarker -> NewMessagesLine()
-                    VirtualTimelineItem.RoomBeginning -> Text("BEGINNING")
+                    VirtualTimelineItem.RoomBeginning -> RoomBeginning()
                     // Not sure if we're supposed to render something for that one
                     VirtualTimelineItem.LastForwardIndicator -> {}
                     VirtualTimelineItem.TypingNotification -> {
@@ -74,7 +77,9 @@ fun ConversationItemRow(
 
             MatrixTimelineItem.Other -> {
                 // TODO what is this?
-                Text("OTHER???")
+                if (ScPrefs.VIEW_HIDDEN_EVENTS.value()) {
+                    Text("OTHER???")
+                }
             }
         }
         if (next == null) {

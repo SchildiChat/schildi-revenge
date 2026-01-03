@@ -10,16 +10,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
-import chat.schildi.revenge.compose.destination.conversation.event.message.ImageMessage
+import chat.schildi.revenge.compose.destination.conversation.event.message.FileMessageContent
+import chat.schildi.revenge.compose.destination.conversation.event.message.FileMessageRenderType
 import chat.schildi.revenge.compose.destination.conversation.event.message.ImageMessageContent
-import chat.schildi.revenge.compose.destination.conversation.event.message.LocalMessageRenderContext
-import chat.schildi.revenge.compose.destination.conversation.event.message.MessageRenderContext
 import chat.schildi.revenge.model.Attachment
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
@@ -31,17 +29,15 @@ fun ComposerAttachment(
     onRemoveClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // TODO
     Row(
         modifier
+            .padding(horizontal = Dimens.windowPadding, vertical = 8.dp)
             .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(12.dp))
             .padding(Dimens.Conversation.messageBubbleInnerPadding),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column {
             when (attachment) {
-                is Attachment.Audio -> {} // TODO
-                is Attachment.Generic -> {} // TODO
                 is Attachment.Image -> {
                     ImageMessageContent(
                         model = attachment.file,
@@ -51,15 +47,25 @@ fun ComposerAttachment(
                         maxHeight = Dimens.Conversation.imageRepliedToMaxHeight,
                     )
                 }
-
-                is Attachment.Video -> {} // TODO
+                is Attachment.Video -> {
+                    FileMessageContent(
+                        type = FileMessageRenderType.VIDEO,
+                        filename = attachment.file.name,
+                    )
+                }
+                is Attachment.Audio -> {
+                    FileMessageContent(
+                        type = FileMessageRenderType.AUDIO,
+                        filename = attachment.file.name,
+                    )
+                }
+                is Attachment.Generic -> {
+                    FileMessageContent(
+                        type = FileMessageRenderType.FILE,
+                        filename = attachment.file.name,
+                    )
+                }
             }
-            Text(
-                attachment.file.absolutePath,
-                color = MaterialTheme.colorScheme.onSurface,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.weight(1f, fill = false),
-            )
         }
         IconButton(onClick = onRemoveClick) {
             Icon(

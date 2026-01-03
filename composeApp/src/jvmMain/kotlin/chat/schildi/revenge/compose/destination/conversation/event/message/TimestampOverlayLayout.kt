@@ -11,6 +11,7 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -20,6 +21,7 @@ fun TimestampOverlayLayout(
     allowTimestampOverlay: Boolean,
     horizontalPadding: Dp,
     verticalPadding: Dp,
+    nonTextWidth: Dp = 0.dp,
     content: @Composable () -> Unit,
     overlay: @Composable () -> Unit,
     modifier: Modifier = Modifier,
@@ -43,7 +45,7 @@ fun TimestampOverlayLayout(
         else -> {
             TimestampOverlayLayout(
                 textLayoutResult = contentTextLayoutResult,
-                horizontalPadding = horizontalPadding,
+                horizontalPadding = horizontalPadding + nonTextWidth,
                 verticalPadding = verticalPadding,
                 content = content,
                 overlay = overlay,

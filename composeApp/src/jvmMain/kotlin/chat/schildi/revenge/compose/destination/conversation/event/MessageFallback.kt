@@ -18,6 +18,7 @@ fun MessageFallback(
     inReplyTo: InReplyTo?,
     modifier: Modifier = Modifier
 ) {
+    // TODO make clearer that this is a fallback and not actual message content?
     val formatted = buildAnnotatedString {
         withStyle(SpanStyle(fontStyle = FontStyle.Italic)) {
             append(text)

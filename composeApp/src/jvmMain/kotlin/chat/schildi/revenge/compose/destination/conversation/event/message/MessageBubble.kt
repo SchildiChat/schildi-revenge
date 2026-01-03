@@ -2,6 +2,7 @@ package chat.schildi.revenge.compose.destination.conversation.event.message
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -21,6 +22,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.DateTimeFormat
 import chat.schildi.revenge.Dimens
@@ -59,11 +61,13 @@ fun MessageBubble(
     padding: PaddingValues = PaddingValues(Dimens.Conversation.messageBubbleInnerPadding),
     outlined: Boolean = false,
     transparent: Boolean = false,
+    verticalArrangement: Arrangement.Vertical = Arrangement.Top,
+    nonTextWidth: Dp = 0.dp,
     content: @Composable ColumnScope.() -> Unit
 ) {
     // Bypass double message bubble when nested in a reply
     if (LocalMessageRenderContext.current == MessageRenderContext.IN_REPLY_TO) {
-        Column(modifier.padding(padding), content = content)
+        Column(modifier.padding(padding), verticalArrangement = verticalArrangement, content = content)
     } else {
         val color = if (transparent)
             Color.Transparent
@@ -94,8 +98,9 @@ fun MessageBubble(
                 allowTimestampOverlay = allowTimestampOverlay,
                 horizontalPadding = Dimens.Conversation.timestampHorizontalPaddingToText,
                 verticalPadding = Dimens.Conversation.timestampVerticalMarginToText,
+                nonTextWidth = nonTextWidth,
                 content = {
-                    Column(content = content)
+                    Column(verticalArrangement = verticalArrangement, content = content)
                 },
                 overlay = {
                     TimestampContent(

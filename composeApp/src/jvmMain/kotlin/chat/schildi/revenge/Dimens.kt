@@ -82,5 +82,7 @@ object Dimens {
         val receiptPaddingVertical = 4.dp
 
         val newMessagesLineHeight = 2.dp
+
+        val fileIconSize = 36.dp
     }
 }

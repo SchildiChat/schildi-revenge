@@ -2,6 +2,7 @@ package chat.schildi.revenge.compose.destination.conversation.event
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import chat.schildi.revenge.compose.destination.conversation.event.message.FileMessage
 import chat.schildi.revenge.compose.destination.conversation.event.message.MessageLayout
 import chat.schildi.revenge.compose.destination.conversation.event.message.ImageMessage
 import chat.schildi.revenge.compose.destination.conversation.event.message.TextLikeMessage
@@ -36,10 +37,12 @@ import io.element.android.libraries.matrix.api.timeline.item.event.UnknownConten
 import io.element.android.libraries.matrix.api.timeline.item.event.VideoMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.VoiceMessageType
 import org.jetbrains.compose.resources.stringResource
+import org.matrix.rustcomponents.sdk.FileMessageContent
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.message_placeholder_message_failed_to_parse
 import shire.composeapp.generated.resources.message_placeholder_message_redacted
 import shire.composeapp.generated.resources.message_placeholder_unable_to_decrypt
+import shire.composeapp.generated.resources.message_placeholder_unknown
 
 @Composable
 fun EventContentLayout(
@@ -95,24 +98,27 @@ fun EventContentLayout(
                         MessageFallback("LOCATION", isOwn, timestamp, inReplyTo)
                     }
                     is AudioMessageType -> {
-                        // TODO
-                        MessageFallback("AUDIO", isOwn, timestamp, inReplyTo)
+                        // TODO audio-message specific rendering
+                        FileMessage(contentType, isOwn, timestamp, inReplyTo)
                     }
                     is FileMessageType -> {
-                        // TODO
-                        MessageFallback("FILE", isOwn, timestamp, inReplyTo)
+                        FileMessage(contentType, isOwn, timestamp, inReplyTo)
                     }
                     is VideoMessageType -> {
-                        // TODO
-                        MessageFallback("VIDEO", isOwn, timestamp, inReplyTo)
+                        // TODO video-message specific rendering
+                        FileMessage(contentType, isOwn, timestamp, inReplyTo)
                     }
                     is VoiceMessageType -> {
-                        // TODO
-                        MessageFallback("VOICE", isOwn, timestamp, inReplyTo)
+                        // TODO voice-message specific rendering
+                        FileMessage(contentType, isOwn, timestamp, inReplyTo)
                     }
                     is OtherMessageType -> {
-                        // TODO
-                        MessageFallback("OTHER_MESSAGE", isOwn, timestamp, inReplyTo)
+                        MessageFallback(
+                            stringResource(Res.string.message_placeholder_unknown),
+                            isOwn,
+                            timestamp,
+                            inReplyTo
+                        )
                     }
                 }
             }
@@ -134,6 +140,7 @@ fun EventContentLayout(
         is ProfileChangeContent -> ProfileChangeRow(content, senderId, senderProfile, timestamp, modifier)
         is StateContent -> StateEventRow(content, senderId, senderProfile, timestamp, modifier)
         is FailedToParseStateContent -> StateEventFallbackRow(content.eventType, senderId, senderProfile, timestamp, modifier)
+        UnknownContent -> EventMessageFallback(stringResource(Res.string.message_placeholder_unknown))
 
         // TODO
         CallNotifyContent -> EventMessageFallback("CALL")
@@ -155,6 +162,5 @@ fun EventContentLayout(
             }
             EventMessageFallback(message)
         }
-        UnknownContent -> EventMessageFallback("UNKNOWN")
     }
 }
