@@ -74,7 +74,10 @@ import io.element.android.libraries.matrix.api.timeline.item.event.LocationMessa
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
 import io.element.android.libraries.matrix.api.timeline.item.event.OtherMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.ProfileChangeContent
 import io.element.android.libraries.matrix.api.timeline.item.event.RedactedContent
+import io.element.android.libraries.matrix.api.timeline.item.event.RoomMembershipContent
+import io.element.android.libraries.matrix.api.timeline.item.event.StickerContent
 import io.element.android.libraries.matrix.api.timeline.item.event.TextLikeMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisambiguatedDisplayName
 import io.element.android.libraries.matrix.api.timeline.item.event.toEventOrTransactionId
@@ -119,6 +122,7 @@ import shire.composeapp.generated.resources.command_copy_name_event_id
 import shire.composeapp.generated.resources.command_copy_name_event_source
 import shire.composeapp.generated.resources.command_copy_name_full_room_state
 import shire.composeapp.generated.resources.command_copy_name_message_content
+import shire.composeapp.generated.resources.command_copy_name_mxc
 import shire.composeapp.generated.resources.command_copy_name_mxid
 import shire.composeapp.generated.resources.command_copy_name_url
 import shire.composeapp.generated.resources.command_event_name_fully_read_marker
@@ -1470,6 +1474,24 @@ class ConversationViewModel(
 
                     Action.Event.CopyMxId -> {
                         copyToClipboard(event.sender.value, Res.string.command_copy_name_mxid.toStringHolder())
+                    }
+
+                    Action.Event.CopyMxc -> {
+                        val url = when (val content = event.content) {
+                            is StickerContent -> content.source.url
+                            is MessageContent -> {
+                                (content.type as? MessageTypeWithAttachment)?.source?.url
+                            }
+                            is ProfileChangeContent -> {
+                                content.avatarUrl
+                            }
+                            else -> null
+                        }
+                        if (url == null) {
+                            ActionResult.Inapplicable
+                        } else {
+                            copyToClipboard(url, Res.string.command_copy_name_mxc.toStringHolder())
+                        }
                     }
 
                     Action.Event.CopyContentLink -> {

@@ -67,6 +67,7 @@
     <string name="command_copy_name_event_id">event ID</string>
     <string name="command_copy_name_room_id">room ID</string>
     <string name="command_copy_name_mxid">MXID</string>
+    <string name="command_copy_name_mxc">MXC</string>
     <string name="command_copy_name_url">URL</string>
     <string name="command_insufficient_room_permissions">Insufficient room permissions</string>
     <string name="command_setting_set_to">%1$s set to %2$s</string>

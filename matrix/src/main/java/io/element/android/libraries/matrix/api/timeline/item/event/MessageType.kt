@@ -26,12 +26,12 @@ sealed interface TextLikeMessageType : MessageType { // SC
 }
 @Immutable
 sealed interface ImageLikeMessageType : MessageTypeWithAttachment { // SC
-    val source: MediaSource
     val info: ImageInfo?
 }
 
 @Immutable
 sealed interface MessageTypeWithAttachment : MessageType {
+    val source: MediaSource // SC
     val filename: String
     val caption: String?
     val formattedCaption: FormattedBody?
@@ -72,7 +72,7 @@ data class AudioMessageType(
     override val filename: String,
     override val caption: String?,
     override val formattedCaption: FormattedBody?,
-    val source: MediaSource,
+    override val source: MediaSource,
     val info: AudioInfo?,
 ) : MessageTypeWithAttachment
 
@@ -80,7 +80,7 @@ data class VoiceMessageType(
     override val filename: String,
     override val caption: String?,
     override val formattedCaption: FormattedBody?,
-    val source: MediaSource,
+    override val source: MediaSource,
     val info: AudioInfo?,
     val details: AudioDetails?,
 ) : MessageTypeWithAttachment
@@ -89,7 +89,7 @@ data class VideoMessageType(
     override val filename: String,
     override val caption: String?,
     override val formattedCaption: FormattedBody?,
-    val source: MediaSource,
+    override val source: MediaSource,
     val info: VideoInfo?
 ) : MessageTypeWithAttachment
 
@@ -97,7 +97,7 @@ data class FileMessageType(
     override val filename: String,
     override val caption: String?,
     override val formattedCaption: FormattedBody?,
-    val source: MediaSource,
+    override val source: MediaSource,
     val info: FileInfo?
 ) : MessageTypeWithAttachment
 

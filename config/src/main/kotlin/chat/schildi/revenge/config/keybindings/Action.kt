@@ -218,6 +218,7 @@ sealed interface Action {
         CopyEventSource,
         CopyEventId,
         CopyMxId,
+        CopyMxc,
         CopyContentLink,
         OpenContentLinks,
         Redact(aliases = listOf("rm", "del", "delete")),
