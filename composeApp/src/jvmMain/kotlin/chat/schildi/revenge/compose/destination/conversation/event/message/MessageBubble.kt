@@ -35,6 +35,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.EventCanBeEdi
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.LocalEventSendState
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageShield
+import io.element.android.libraries.matrix.api.timeline.item.event.RedactedContent
 import io.element.android.libraries.matrix.api.timeline.item.event.isCritical
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
@@ -61,7 +62,9 @@ fun EventTimelineItem.timestampOverlayContent(settings: TimestampSettings) = Tim
     isEdited = (content as? EventCanBeEdited)?.isEdited == true,
     isSending = localSendState is LocalEventSendState.Sending,
     isSendError = localSendState is LocalEventSendState.Failed,
-    messageShield = messageShieldProvider(strict = false).takeIf {
+    messageShield = messageShieldProvider(strict = false)?.takeIf {
+        content !is RedactedContent || it !is MessageShield.SentInClear
+    }?.takeIf {
         settings.renderAuthenticityNotGuaranteed || (
                 it !is MessageShield.AuthenticityNotGuaranteed &&
                         it !is MessageShield.MismatchedSender
