@@ -38,7 +38,7 @@ object Dimens {
     fun <T>tweenSmooth(): TweenSpec<T> = tween(animationDurationSlowMs)
 
     val suggestionsTextStyle
-        @Composable get() = MaterialTheme.typography.bodyMedium
+        @Composable get() = MaterialTheme.typography.bodyLarge
     val emojiSuggestionsTextStyle
         @Composable get() = suggestionsTextStyle.merge(fontFamily = rememberEmojiFontFamily())
 
