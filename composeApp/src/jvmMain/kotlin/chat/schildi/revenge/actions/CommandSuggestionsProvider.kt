@@ -267,6 +267,7 @@ class CommandSuggestionsProvider(
                 ActionArgumentPrimitive.Text,
                 ActionArgumentPrimitive.Reason,
                 ActionArgumentPrimitive.Integer,
+                ActionArgumentPrimitive.Index,
                 ActionArgumentPrimitive.SessionIndex,
                 ActionArgumentPrimitive.EventId,
                 ActionArgumentPrimitive.SpaceId,

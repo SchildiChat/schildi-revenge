@@ -1702,6 +1702,16 @@ fun checkArgument(
                 null
             }
         }
+        ActionArgumentPrimitive.Index -> {
+            val parsed = argVal.toIntOrNull()
+            if (parsed == null || parsed < 0) {
+                ActionResult.Malformed(
+                    "Invalid parameter for $actionName, expected non-negative int got $argVal"
+                )
+            } else {
+                null
+            }
+        }
         ActionArgumentPrimitive.SessionIndex -> {
             val asIndex = argVal.toIntOrNull()
             if (asIndex != null) {

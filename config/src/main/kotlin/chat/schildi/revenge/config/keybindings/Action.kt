@@ -25,6 +25,7 @@ enum class ActionArgumentPrimitive : ActionArgument {
     Reason,
     Boolean,
     Integer,
+    Index,
     UserId,
     UserIdInRoom,
     UserIdNotInRoom,
@@ -227,5 +228,6 @@ sealed interface Action {
         JumpToRepliedTo,
         DownloadFile,
         DownloadFileAndOpen,
+        ToggleReaction(args = listOf(ActionArgumentPrimitive.Index)),
     }
 }
