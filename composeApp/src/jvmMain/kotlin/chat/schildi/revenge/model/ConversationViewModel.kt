@@ -707,7 +707,8 @@ class ConversationViewModel(
     }.filterNotNull()
 
     init {
-        roomPair.onEach { (_, joinedRoom) ->
+        roomPair.onEach { (baseRoom, joinedRoom) ->
+            baseRoom?.subscribeToSync()
             joinedRoom?.updateMembers()
         }
             .flowOn(Dispatchers.IO)
