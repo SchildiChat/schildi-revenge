@@ -53,11 +53,15 @@ import co.touchlab.kermit.Logger
 import io.element.android.features.messages.impl.timeline.EventFocusResult
 import io.element.android.features.messages.impl.timeline.TimelineController
 import io.element.android.libraries.core.coroutine.childScope
+import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UniqueId
 import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.encryption.identity.IdentityState
+import io.element.android.libraries.matrix.api.encryption.identity.IdentityStateChange
+import io.element.android.libraries.matrix.api.encryption.identity.isAViolation
 import io.element.android.libraries.matrix.api.media.AudioInfo
 import io.element.android.libraries.matrix.api.media.FileInfo
 import io.element.android.libraries.matrix.api.media.ImageInfo
@@ -225,7 +229,15 @@ class ConversationViewModel(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, Pair(null, null))
 
     val typingUsers = roomPair.flatMapLatest { (_, joined) ->
-        joined?.roomTypingMembersFlow ?: flowOf(null)
+        joined?.roomTypingMembersFlow?.map { it.toPersistentList() } ?: flowOf(null)
+    }
+
+    private val identityStateChanges = roomPair.flatMapLatest { (_, joined) ->
+        joined?.identityStateChangesFlow ?: flowOf(null)
+    }
+
+    val identityStateViolations = identityStateChanges.map {
+        it?.filter { it.identityState.isAViolation() }?.toPersistentList()
     }
 
     private val _highlightedActionEventId = MutableStateFlow<EventOrTransactionId?>(null)
@@ -1713,6 +1725,28 @@ class ConversationViewModel(
 
     override fun onSearchCleared() {
         searchQuery.value = null
+    }
+
+    fun acknowledgeIdentityStateChange(context: ActionContext, change: IdentityStateChange) {
+        val action: (suspend (MatrixClient) -> Result<Unit>) = when (change.identityState) {
+            IdentityState.Verified,
+            IdentityState.Pinned -> null
+            IdentityState.PinViolation -> {{
+                it.encryptionService.withdrawVerification(change.userId)
+            }}
+            IdentityState.VerificationViolation -> {{
+                it.encryptionService.pinUserIdentity(change.userId)
+            }}
+        } ?: return
+        context.launchActionAsync(
+            "acknowledgeIdentityChange",
+            GlobalActionsScope,
+            Dispatchers.IO,
+            "acknowledgeIdentityChange",
+        ) {
+            val client = clientFlow.value ?: return@launchActionAsync ActionResult.Failure("Client not ready")
+            action(client).toActionResult(async = true)
+        }
     }
 
     companion object {

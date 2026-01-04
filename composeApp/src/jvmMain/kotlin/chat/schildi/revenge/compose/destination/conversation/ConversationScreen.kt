@@ -51,9 +51,7 @@ import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
 import chat.schildi.revenge.actions.LocalUserIdSuggestionsProvider
 import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
-import chat.schildi.revenge.compose.components.thenIf
 import chat.schildi.revenge.compose.composer.ComposerRow
-import chat.schildi.revenge.compose.destination.SplashScreen
 import chat.schildi.revenge.compose.destination.SplashScreenContent
 import chat.schildi.revenge.compose.destination.conversation.event.EventHighlight
 import chat.schildi.revenge.compose.destination.conversation.event.message.LocalUrlPreviewStateProvider
@@ -254,6 +252,12 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
                         )
                     }
                 }
+                val identityStateViolations = viewModel.identityStateViolations.collectAsState(null).value ?: persistentListOf()
+                IdentityStateChangesRow(
+                    identityStateViolations,
+                    roomMembersById.value,
+                    acknowledge = { viewModel.acknowledgeIdentityStateChange(actionContext, it) },
+                )
                 val shouldShowComposer = viewModel.shouldShowComposer.collectAsState().value
                 LaunchedEffect(shouldShowComposer) {
                     if (shouldShowComposer) {

@@ -62,6 +62,16 @@ object Dimens {
         val timestampHorizontalPaddingToText = 8.dp
         val timestampVerticalMarginToText = 4.dp
         val timestampDecorationIcon = 16.dp
+        val bottomListItemPadding = PaddingValues(
+            start = windowPadding,
+            end = windowPadding,
+            top = listPadding,
+        )
+        val bottomStickyItemPadding = PaddingValues(
+            start = windowPadding,
+            end = windowPadding,
+            bottom = windowPadding,
+        )
 
         val textMessageStyle
             @Composable get() = MaterialTheme.typography.bodyLarge

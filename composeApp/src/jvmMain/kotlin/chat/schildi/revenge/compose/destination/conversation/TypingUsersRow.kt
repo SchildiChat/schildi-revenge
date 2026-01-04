@@ -1,7 +1,6 @@
 package chat.schildi.revenge.compose.destination.conversation
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -16,6 +15,7 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.RoomMember
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import org.jetbrains.compose.resources.pluralStringResource
 import shire.composeapp.generated.resources.Res
@@ -23,7 +23,7 @@ import shire.composeapp.generated.resources.named_users_typing
 
 @Composable
 fun TypingUsersRow(
-    typingUsers: List<UserId>,
+    typingUsers: ImmutableList<UserId>,
     roomMembersById: ImmutableMap<UserId, RoomMember>,
     modifier: Modifier = Modifier,
 ) {
@@ -52,11 +52,7 @@ fun TypingUsersRow(
         )
         Text(
             text,
-            Modifier.fillMaxWidth().padding(
-                start = Dimens.windowPadding,
-                end = Dimens.windowPadding,
-                top = Dimens.listPadding,
-            ),
+            Modifier.fillMaxWidth().padding(Dimens.Conversation.bottomListItemPadding),
             color = MaterialTheme.scExposures.accentColor,
             style = MaterialTheme.typography.bodyMedium,
         )

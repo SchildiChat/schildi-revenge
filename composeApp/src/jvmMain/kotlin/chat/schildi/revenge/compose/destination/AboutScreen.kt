@@ -41,6 +41,7 @@ import chat.schildi.revenge.compose.components.TopNavigationTitle
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.revenge.compose.util.appendUrlText
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.theme.scLinkStyle
 import org.jetbrains.compose.resources.painterResource
@@ -237,21 +238,6 @@ private fun AboutSectionHeader(text: String, modifier: Modifier = Modifier) {
             text,
             style = MaterialTheme.typography.headlineLarge,
         )
-    }
-}
-
-private fun AnnotatedString.Builder.appendUrlText(url: String?, text: String, linkStyle: TextLinkStyles) {
-    if (url == null) {
-        append(text)
-    } else {
-        withLink(
-            LinkAnnotation.Url(
-                url = url,
-                styles = linkStyle,
-            )
-        ) {
-            append(text)
-        }
     }
 }
 

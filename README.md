@@ -93,7 +93,9 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
         - [x] Send room state
         - [ ] Send account state
         - [ ] Send room account state
-    - [ ] User trust shields
+    - [ ] User trust
+        - [ ] Message authenticity shields
+        - [x] Identity resets
 - [ ] Room member list
 - [ ] Commands
     - [ ] Create room

@@ -54,6 +54,7 @@
     <string name="action_jump_to_replied_to_message">Jump to replied-to message</string>
     <string name="action_download">Download</string>
     <string name="action_download_and_open">Open</string>
+    <string name="action_acknowledge">Acknowledge</string>
 
     <string name="command_success">Success: %1$s</string>
     <string name="command_loading_event">Loading %1$s</string>
@@ -81,6 +82,7 @@
     <string name="command_fetching_state">Fetching state</string>
 
     <string name="common_internal_error">Internal error</string>
+    <string name="common_learn_more">Learn more</string>
 
     <string name="title_login_account">Login account</string>
     <string name="hint_username">Username</string>
@@ -239,4 +241,9 @@
         <item quantity="one">%1$s is typing</item>
         <item quantity="other">Typing: %1$s</item>
     </plurals>
+
+    <string name="named_user_verification_verified_summary">%1$s is verified with us.</string>
+    <string name="named_user_verification_pinned_summary">%1$s's verification identity has been acknowledged.</string>
+    <string name="named_user_verification_pin_violation_summary">%1$s's verification identity has changed.</string>
+    <string name="named_user_verification_violation_summary">%1$s's verification identity has changed and is no longer verified.</string>
 </resources>

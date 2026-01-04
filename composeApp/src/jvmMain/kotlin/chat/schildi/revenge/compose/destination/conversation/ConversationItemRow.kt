@@ -25,6 +25,7 @@ import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.virtual.VirtualTimelineItem
 import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.persistentListOf
 
 @Composable
 fun ConversationItemRow(
@@ -42,7 +43,6 @@ fun ConversationItemRow(
         }
         when (item) {
             is MatrixTimelineItem.Virtual -> {
-                // TODO
                 when (val virtualItem = item.virtual) {
                     is VirtualTimelineItem.DayDivider -> DayHeader(virtualItem)
                     is VirtualTimelineItem.LoadingIndicator -> PagingIndicator()
@@ -51,7 +51,7 @@ fun ConversationItemRow(
                     // Not sure if we're supposed to render something for that one
                     VirtualTimelineItem.LastForwardIndicator -> {}
                     VirtualTimelineItem.TypingNotification -> TypingUsersRow(
-                        viewModel.typingUsers.collectAsState(null).value.orEmpty(),
+                        viewModel.typingUsers.collectAsState(null).value ?: persistentListOf(),
                         roomMembersById,
                     )
                 }
