@@ -671,7 +671,7 @@ class ConversationViewModel(
 
     val userProfile = clientFlow.flatMapLatest { it?.userProfile ?: flowOf(null) }
 
-    val roomTitle = roomPair.map { (it, _) -> it?.info()?.name }
+    val roomInfo = roomPair.map { (it, _) -> it?.info() }
 
     override val windowTitle: Flow<ComposableStringHolder?> = combine(
         roomPair,
