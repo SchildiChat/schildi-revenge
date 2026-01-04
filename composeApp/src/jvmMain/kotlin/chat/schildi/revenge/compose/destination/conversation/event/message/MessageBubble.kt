@@ -63,12 +63,12 @@ fun EventTimelineItem.timestampOverlayContent(settings: TimestampSettings) = Tim
     isSending = localSendState is LocalEventSendState.Sending,
     isSendError = localSendState is LocalEventSendState.Failed,
     messageShield = messageShieldProvider(strict = false)?.takeIf {
-        content !is RedactedContent || it !is MessageShield.SentInClear
-    }?.takeIf {
-        settings.renderAuthenticityNotGuaranteed || (
-                it !is MessageShield.AuthenticityNotGuaranteed &&
-                        it !is MessageShield.MismatchedSender
-        )
+        when (it) {
+            is MessageShield.AuthenticityNotGuaranteed -> settings.renderAuthenticityNotGuaranteed
+            is MessageShield.MismatchedSender -> settings.renderSenderMismatch
+            is MessageShield.SentInClear -> content !is RedactedContent
+            else -> true
+        }
     },
 )
 

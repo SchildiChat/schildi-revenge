@@ -157,6 +157,7 @@ import kotlin.math.max
 
 data class TimestampSettings(
     val renderAuthenticityNotGuaranteed: Boolean = true,
+    val renderSenderMismatch: Boolean = true,
 )
 
 private data class ComposerSettings(
@@ -423,11 +424,14 @@ class ConversationViewModel(
     }.flowOn(Dispatchers.IO)
 
     val timestampSettings = combine(
+        scPreferencesStore.settingFlow(ScPrefs.HIDE_AUTHENTICITY_NOT_GUARANTEED),
         scPreferencesStore.settingFlow(ScPrefs.HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS),
         bridgeInfo,
-    ) { hideAuthenticityForBridgedChats, bridgeInfo ->
+    ) { hideAuthenticityNotGuaranteed, hideAuthenticityForBridgedChats, bridgeInfo ->
+        val hideForBridgeChat = hideAuthenticityForBridgedChats && !bridgeInfo.isNullOrEmpty()
         TimestampSettings(
-            renderAuthenticityNotGuaranteed = !hideAuthenticityForBridgedChats || bridgeInfo.isNullOrEmpty(),
+            renderAuthenticityNotGuaranteed = !hideAuthenticityNotGuaranteed && !hideForBridgeChat,
+            renderSenderMismatch = !hideForBridgeChat,
         )
     }.stateIn(viewModelScope, SharingStarted.Lazily, TimestampSettings())
 

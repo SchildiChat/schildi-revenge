@@ -19,6 +19,8 @@ import shire.composeapp.generated.resources.pref_debug_avatar_render_states_titl
 import shire.composeapp.generated.resources.pref_focus_follows_mouse_summary
 import shire.composeapp.generated.resources.pref_focus_follows_mouse_title
 import shire.composeapp.generated.resources.pref_font_scale
+import shire.composeapp.generated.resources.pref_hide_message_authenticity_not_guaranteed_summary
+import shire.composeapp.generated.resources.pref_hide_message_authenticity_not_guaranteed_title
 import shire.composeapp.generated.resources.pref_hide_message_authenticity_warnings_in_bridged_chats_summary
 import shire.composeapp.generated.resources.pref_hide_message_authenticity_warnings_in_bridged_chats_title
 import shire.composeapp.generated.resources.pref_max_width_conversation_title
@@ -193,7 +195,8 @@ object ScPrefs {
     ))
 
     // Timeline
-    val HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS = ScBoolPref("HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS", true, Res.string.pref_hide_message_authenticity_warnings_in_bridged_chats_title, Res.string.pref_hide_message_authenticity_warnings_in_bridged_chats_summary)
+    val HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS = ScBoolPref("HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS", false, Res.string.pref_hide_message_authenticity_warnings_in_bridged_chats_title, Res.string.pref_hide_message_authenticity_warnings_in_bridged_chats_summary)
+    val HIDE_AUTHENTICITY_NOT_GUARANTEED = ScBoolPref("HIDE_AUTHENTICITY_NOT_GUARANTEED", false, Res.string.pref_hide_message_authenticity_not_guaranteed_title, Res.string.pref_hide_message_authenticity_not_guaranteed_summary)
     val VIEW_HIDDEN_EVENTS = ScBoolPref("VIEW_HIDDEN_EVENTS", false, Res.string.pref_view_hidden_events_title) // TODO
     val VIEW_REDACTIONS = ScBoolPref("VIEW_REDACTIONS", false, Res.string.pref_view_redactions_title, /*dependencies = listOf(VIEW_HIDDEN_EVENTS.toDependency(expect = false)),*/ disabledValue = true)
     /*
@@ -324,6 +327,7 @@ object ScPrefs {
         )),
         ScPrefScreen(Res.string.sc_pref_category_timeline, null, listOf(
             VIEW_REDACTIONS,
+            HIDE_AUTHENTICITY_NOT_GUARANTEED,
             HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS,
             /*
             SC_TIMELINE_LAYOUT,

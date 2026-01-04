@@ -227,8 +227,10 @@
     <string name="pref_close_to_tray_summary">Closing the last window keeps the application running and possible to re-open from the tray icon</string>
     <string name="pref_show_dev_infos_title">Show dev infos</string>
     <string name="pref_show_dev_infos_summary">Render additional debugging infos with unfinished UI in various places</string>
+    <string name="pref_hide_message_authenticity_not_guaranteed_title">Hide "message authenticity not guaranteed" warnings</string>
+    <string name="pref_hide_message_authenticity_not_guaranteed_summary">Do not show the warning icon next to the timestamp if the message authenticity cannot be guaranteed</string>
     <string name="pref_hide_message_authenticity_warnings_in_bridged_chats_title">Hide message authenticity warnings in bridged chats</string>
-    <string name="pref_hide_message_authenticity_warnings_in_bridged_chats_summary">Do not show the warning icon next to the timestamp for messages in bridged chats if the message authenticity cannot be guaranteed</string>
+    <string name="pref_hide_message_authenticity_warnings_in_bridged_chats_summary">Do not show the warning icon next to the timestamp for messages in bridged chats if the message authenticity cannot be guaranteed or a sender mismatch is detected</string>
 
     <string name="nameless_space_fallback_title">Nameless space</string>
 
