@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import chat.schildi.preferences.ScPrefs
@@ -49,9 +50,10 @@ fun ConversationItemRow(
                     VirtualTimelineItem.RoomBeginning -> RoomBeginning()
                     // Not sure if we're supposed to render something for that one
                     VirtualTimelineItem.LastForwardIndicator -> {}
-                    VirtualTimelineItem.TypingNotification -> {
-                        // TODO?
-                    }
+                    VirtualTimelineItem.TypingNotification -> TypingUsersRow(
+                        viewModel.typingUsers.collectAsState(null).value.orEmpty(),
+                        roomMembersById,
+                    )
                 }
             }
 

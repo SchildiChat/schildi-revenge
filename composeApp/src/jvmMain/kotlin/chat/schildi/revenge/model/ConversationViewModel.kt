@@ -224,6 +224,10 @@ class ConversationViewModel(
         Pair(client?.getRoom(roomId), client?.getJoinedRoom(roomId, settings))
     }.stateIn(viewModelScope, SharingStarted.Eagerly, Pair(null, null))
 
+    val typingUsers = roomPair.flatMapLatest { (_, joined) ->
+        joined?.roomTypingMembersFlow ?: flowOf(null)
+    }
+
     private val _highlightedActionEventId = MutableStateFlow<EventOrTransactionId?>(null)
     val highlightedActionEventId = _highlightedActionEventId.asStateFlow()
 

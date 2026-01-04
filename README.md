@@ -39,11 +39,11 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [x] Login via password
     - [x] Enter recovery code
     - [x] Logout / delete account
-- [ ] ScPrefs
+- [x] ScPrefs
     - [x] Via toml
     - [x] Datastore for user prefs
     - [x] Datastore for other app state
-    - [ ] UI
+    - [x] UI
 - [x] Lock to avoid running multiple instances in parallel, but instead bring to foreground?
 - [ ] Inbox
     - [x] List all chats
@@ -54,16 +54,23 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [x] Filter by account
     - [x] Search
     - [ ] Handle invites
+        - [x] Join
+        - [ ] Reject
+        - [ ] Reject & Ignore
 - [ ] Conversation view
     - [x] Render plain text and notices
     - [ ] Render formatted text and notices
     - [x] Send text messages
     - [x] Render read receipts
     - [ ] Render media
+        - [x] Images
+        - [ ] Videos
+        - [ ] Audio
+        - [x] Files
     - [x] Render reactions
     - [x] Render joins/leaves
     - [x] Render link previews
-    - [ ] Render typing indicators
+    - [x] Render typing indicators
     - [x] Mechanism to select messages (for replies, edits, reactions...)
     - [x] Send replies
     - [x] Send reactions (just text input is enough for first run, can use `:` shortcodes)
@@ -75,11 +82,11 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
         - [x] Via copy&paste (if configured in key bindings)
     - [ ] Send typing indicators
     - [x] Delete messages
-    - [x] Mark as read (via keyboard shortcut)
-    - [ ] Mark as unread (via keyboard shortcut)
-    - [ ] Kick/ban users
+    - [x] Mark as read (via command)
+    - [x] Mark as unread (via command)
+    - [x] Kick/ban users (via command)
     - [ ] Devtools
-        - [ ] View room state
+        - [x] Copy room state to clipboard
         - [ ] View account state
         - [ ] View room account state
         - [x] Send custom events
