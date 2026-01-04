@@ -13,21 +13,30 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.actions.FocusRole
+import chat.schildi.revenge.actions.InteractionAction
+import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.compose.components.LocalSessionId
+import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.media.imageLoader
+import chat.schildi.revenge.model.ConversationViewModel
 import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.SubcomposeAsyncImageContent
 import io.element.android.libraries.matrix.api.media.MediaSource
+import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.event.EventReaction
 import io.element.android.libraries.matrix.ui.media.MediaRequestData
 
 @Composable
 fun ReactionsBubble(
+    viewModel: ConversationViewModel,
+    eventOrTransactionId: EventOrTransactionId,
     reaction: EventReaction,
     modifier: Modifier = Modifier
 ) {
@@ -45,6 +54,15 @@ fun ReactionsBubble(
                 it.background(MaterialTheme.colorScheme.surfaceContainerHigh, Dimens.Conversation.reactionShape)
             }
         }
+            .clip(Dimens.Conversation.reactionShape)
+            .keyFocusable(
+                role = FocusRole.NESTED_AUX_ITEM,
+                actionProvider = actionProvider(
+                    primaryAction = InteractionAction.Invoke {
+                        viewModel.toggleReaction(eventOrTransactionId, reaction.key)
+                    },
+                ),
+            )
             .padding(
                 horizontal = Dimens.Conversation.reactionInnerPaddingHorizontal,
                 vertical = Dimens.Conversation.reactionInnerPaddingVertical,

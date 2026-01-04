@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.CommandSuggestionsState
 import chat.schildi.revenge.actions.InteractionAction
-import chat.schildi.revenge.actions.defaultActionProvider
+import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.theme.scExposures
 import kotlinx.collections.immutable.ImmutableList
@@ -86,7 +86,7 @@ fun <T>TextFieldSuggestions(
                 Modifier
                     .fillMaxWidth()
                     .keyFocusable(
-                        actionProvider = defaultActionProvider(
+                        actionProvider = actionProvider(
                             primaryAction = InteractionAction.Invoke {
                                 onSuggestionClick(suggestion)
                                 true

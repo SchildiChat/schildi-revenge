@@ -40,7 +40,7 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
-import chat.schildi.revenge.actions.defaultActionProvider
+import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.compose.components.IconButtonWithConfirmation
 import chat.schildi.revenge.compose.components.TopNavigation
 import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInboxIcon
@@ -187,7 +187,7 @@ private fun ExistingLogin(account: AccountManagementData, viewModel: AccountMana
                         modifier = Modifier
                             .keyFocusable(
                                 role = FocusRole.NESTED_AUX_ITEM,
-                                actionProvider = defaultActionProvider(
+                                actionProvider = actionProvider(
                                     primaryAction = InteractionAction.Invoke {
                                         verify()
                                         true
@@ -313,7 +313,7 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
             onClick = ::login,
             modifier = Modifier
                 .keyFocusable(
-                    actionProvider = defaultActionProvider(
+                    actionProvider = actionProvider(
                         primaryAction = InteractionAction.Invoke {
                             login()
                             true

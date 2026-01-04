@@ -34,7 +34,7 @@ import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.ListAction
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalListActionProvider
-import chat.schildi.revenge.actions.defaultActionProvider
+import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.compose.components.TopNavigation
 import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInboxIcon
 import chat.schildi.revenge.compose.components.TopNavigationTitle
@@ -156,7 +156,7 @@ fun AboutScreen(modifier: Modifier = Modifier) {
                                 AppLinkItem(
                                     item,
                                     Modifier.keyFocusable(
-                                        actionProvider = defaultActionProvider(
+                                        actionProvider = actionProvider(
                                             primaryAction = InteractionAction.Invoke {
                                                 keyHandler.openLinkInExternalBrowser(item.url) is ActionResult.Success
                                             }
@@ -173,7 +173,7 @@ fun AboutScreen(modifier: Modifier = Modifier) {
                         AcknowledgementItem(
                             item,
                             Modifier.keyFocusable(
-                                actionProvider = defaultActionProvider(
+                                actionProvider = actionProvider(
                                     primaryAction = InteractionAction.Invoke {
                                         keyHandler.openLinkInExternalBrowser(item.url) is ActionResult.Success
                                     }

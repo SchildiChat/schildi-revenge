@@ -25,7 +25,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
-import chat.schildi.revenge.actions.defaultActionProvider
+import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.compose.focus.keyFocusable
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
@@ -93,7 +93,7 @@ fun ButtonWithConfirmation(
             Modifier
                 .keyFocusable(
                     role = focusRole,
-                    actionProvider = defaultActionProvider(
+                    actionProvider = actionProvider(
                         primaryAction = InteractionAction.Invoke {
                             confirmationVisible = !confirmationVisible
                             true
@@ -116,7 +116,7 @@ fun ButtonWithConfirmation(
                 Button(
                     modifier = Modifier.keyFocusable(
                         focusRequester = confirmButtonFocusRequester,
-                        actionProvider = defaultActionProvider(
+                        actionProvider = actionProvider(
                             primaryAction = InteractionAction.Invoke {
                                 onConfirm()
                                 true
@@ -131,7 +131,7 @@ fun ButtonWithConfirmation(
                 }
                 Button(
                     modifier = Modifier.keyFocusable(
-                        actionProvider = defaultActionProvider(
+                        actionProvider = actionProvider(
                             primaryAction = InteractionAction.Invoke {
                                 confirmationVisible = false
                                 true

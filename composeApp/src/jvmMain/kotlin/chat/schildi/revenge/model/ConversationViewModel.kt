@@ -1571,6 +1571,14 @@ class ConversationViewModel(
         }
     }
 
+    fun toggleReaction(eventOrTransactionId: EventOrTransactionId, emoji: String): Boolean {
+        val timeline = activeTimeline.value ?: return false
+        viewModelScope.launch(Dispatchers.IO) {
+            timeline.toggleReaction(emoji, eventOrTransactionId)
+        }
+        return true
+    }
+
     fun downloadFileAndOpenExplorer(
         context: ActionContext,
         event: EventTimelineItem,

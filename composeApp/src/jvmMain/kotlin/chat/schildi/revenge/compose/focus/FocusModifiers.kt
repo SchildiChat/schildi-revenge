@@ -34,7 +34,7 @@ import chat.schildi.revenge.actions.ActionProvider
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.KeyboardActionHandler
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
-import chat.schildi.revenge.actions.defaultActionProvider
+import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.compose.components.ifNotNull
 import chat.schildi.revenge.compose.components.thenIf
 import chat.schildi.theme.scExposures
@@ -103,7 +103,7 @@ fun rememberFocusId(): UUID = remember { UUID.randomUUID() }
 fun Modifier.keyFocusable(
     role: FocusRole = FocusRole.AUX_ITEM,
     id: UUID = rememberFocusId(),
-    actionProvider: ActionProvider = defaultActionProvider(),
+    actionProvider: ActionProvider = actionProvider(),
     focusRequester: FocusRequester = remember { FocusRequester() },
     enableClicks: Boolean = true,
     addClickListener: Boolean = true,
@@ -177,7 +177,7 @@ private fun Modifier.keyFocusableCommon(
     keyHandler: KeyboardActionHandler = LocalKeyboardActionHandler.current,
     id: UUID = rememberFocusId(),
     destinationState: DestinationStateHolder? = LocalDestinationState.current,
-    actionProvider: ActionProvider? = defaultActionProvider(),
+    actionProvider: ActionProvider? = actionProvider(),
     parent: FocusParent? = LocalFocusParent.current,
 ): Modifier {
     var cached by remember { mutableStateOf<LayoutCoordinates?>(null) }

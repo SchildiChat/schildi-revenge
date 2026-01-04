@@ -24,7 +24,7 @@ import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.actions.ConfirmActionAppMessage
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
-import chat.schildi.revenge.actions.defaultActionProvider
+import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.compose.focus.keyFocusable
 import kotlinx.collections.immutable.ImmutableList
 
@@ -56,7 +56,7 @@ fun AppMessages(messages: ImmutableList<AbstractAppMessage>, modifier: Modifier 
                         Button(
                             onClick = message.action,
                             modifier = Modifier.keyFocusable(
-                                actionProvider = defaultActionProvider(
+                                actionProvider = actionProvider(
                                     primaryAction = InteractionAction.Invoke {
                                         message.action()
                                         true
@@ -71,7 +71,7 @@ fun AppMessages(messages: ImmutableList<AbstractAppMessage>, modifier: Modifier 
                                 keyHandler.dismissMessage(message.uniqueId)
                             },
                             modifier = Modifier.keyFocusable(
-                                actionProvider = defaultActionProvider(
+                                actionProvider = actionProvider(
                                     primaryAction = InteractionAction.Invoke {
                                         keyHandler.dismissMessage(message.uniqueId)
                                         true

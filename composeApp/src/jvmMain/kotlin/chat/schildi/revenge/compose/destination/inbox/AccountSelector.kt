@@ -34,7 +34,7 @@ import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.InteractionAction
-import chat.schildi.revenge.actions.defaultActionProvider
+import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.revenge.compose.components.WithContextMenu
@@ -142,7 +142,7 @@ fun AccountButton(
                 modifier
                     .keyFocusable(
                         id = focusId,
-                        actionProvider = defaultActionProvider(
+                        actionProvider = actionProvider(
                             primaryAction = InteractionAction.Invoke {
                                 viewModel.setAccountExclusivelySelected(account.user.userId, !account.isSelected)
                                 true

@@ -46,7 +46,7 @@ import chat.schildi.revenge.EventTextFormat
 import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.currentActionContext
-import chat.schildi.revenge.actions.defaultActionProvider
+import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.components.WithContextMenu
 import chat.schildi.revenge.compose.focus.rememberFocusId
@@ -91,7 +91,7 @@ fun InboxRow(
                         FocusRole.LIST_ITEM,
                         focusId,
                         actionProvider = if (room.summary.isInvite()) {
-                            defaultActionProvider(
+                            actionProvider(
                                 keyActions = inboxRowKeyboardActionProvider(viewModel, room.key, isInvite = true),
                                 secondaryAction = openContextMenu,
                             )
@@ -267,7 +267,7 @@ private fun RowScope.ScLastMessageAndIndicatorRow(
             val actionContext = currentActionContext()
             Button(
                 modifier = Modifier.keyFocusable(
-                    actionProvider = defaultActionProvider(
+                    actionProvider = actionProvider(
                         primaryAction = InteractionAction.Invoke {
                             viewModel.joinRoom(actionContext, scopedRoom.sessionId, room.roomId)
                             true

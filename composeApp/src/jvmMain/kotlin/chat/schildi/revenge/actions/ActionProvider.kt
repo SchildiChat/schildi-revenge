@@ -28,7 +28,7 @@ data class ActionProvider(
 }
 
 @Composable
-fun defaultActionProvider(
+fun actionProvider(
     searchProvider: SearchProvider? = LocalSearchProvider.current,
     primaryAction: InteractionAction? = null,
     secondaryAction: InteractionAction? = null,

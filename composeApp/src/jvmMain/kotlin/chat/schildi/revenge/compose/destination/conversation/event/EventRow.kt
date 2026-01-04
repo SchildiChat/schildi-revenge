@@ -16,7 +16,7 @@ import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.currentActionContext
-import chat.schildi.revenge.actions.defaultActionProvider
+import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.components.WithContextMenu
 import chat.schildi.revenge.compose.destination.conversation.event.message.timestampOverlayContent
@@ -27,6 +27,7 @@ import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.model.ConversationViewModel
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.RoomMember
+import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
@@ -64,7 +65,7 @@ fun EventRow(
                 .keyFocusable(
                     FocusRole.LIST_ITEM,
                     focusId,
-                    actionProvider = defaultActionProvider(
+                    actionProvider = actionProvider(
                         keyActions = eventRowKeyboardActionProvider(viewModel, event),
                         primaryAction = eventClickAction(viewModel, currentActionContext(), event),
                         secondaryAction = openContextMenu,
@@ -87,6 +88,8 @@ fun EventRow(
                 inReplyTo = event.inReplyTo(),
             )
             ReactionsRow(
+                viewModel = viewModel,
+                eventOrTransactionId = EventOrTransactionId.from(event.eventId, event.transactionId),
                 reactions = event.reactions,
                 messageIsOwn = event.isOwn,
             )

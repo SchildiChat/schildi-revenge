@@ -22,7 +22,7 @@ import chat.schildi.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
-import chat.schildi.revenge.actions.defaultActionProvider
+import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import org.jetbrains.compose.resources.stringResource
@@ -46,7 +46,7 @@ fun <T> ScPref<T>.ScPrefLayout(
         modifier = modifier.keyFocusable(
             role = FocusRole.LIST_ITEM,
             id = focusId,
-            actionProvider = defaultActionProvider(
+            actionProvider = actionProvider(
                 primaryAction = if (enabled) clickAction(currentValue) else null,
             ),
             enableClicks = enabled,
