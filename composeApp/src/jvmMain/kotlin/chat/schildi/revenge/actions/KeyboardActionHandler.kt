@@ -38,6 +38,7 @@ import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.focus.FocusParent
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.Destination
+import chat.schildi.revenge.GlobalActionsScope
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
 import chat.schildi.revenge.compose.focus.FakeFocusRequester
@@ -65,6 +66,7 @@ import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.REAL_SPACE_ID_PREFIX
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.core.coroutine.childScope
+import io.element.android.libraries.matrix.api.core.SessionId
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
@@ -92,6 +94,7 @@ import shire.composeapp.generated.resources.command_ambiguous_none_valid
 import shire.composeapp.generated.resources.command_copied_to_clipboard
 import shire.composeapp.generated.resources.command_not_applicable
 import shire.composeapp.generated.resources.command_not_found
+import shire.composeapp.generated.resources.toast_restart_required
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.io.File
@@ -1087,6 +1090,27 @@ class KeyboardActionHandler(
                 Action.Global.RecreateUi -> {
                     UiState.recreateUi()
                     ActionResult.Success()
+                }
+                Action.Global.ClearSessionCache -> {
+                    val sessionId = SessionId(args.firstOrNull().orActionValidationError())
+                    val client = UiState.currentClientFor(sessionId) ?: return ActionResult.Failure("Client not ready")
+                    val appMessageId = "clearCache/$sessionId"
+                    context.launchActionAsync(
+                        "clearCache",
+                        GlobalActionsScope,
+                        Dispatchers.IO,
+                        appMessageId,
+                        notifyProcessing = true,
+                    ) {
+                        client.clearCache()
+                        publishMessage(
+                            AppMessage(
+                                Res.string.toast_restart_required.toStringHolder(),
+                                uniqueId = appMessageId,
+                            )
+                        )
+                        ActionResult.Success(async = true, notifySuccess = false)
+                    }
                 }
             }
         }

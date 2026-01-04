@@ -236,6 +236,7 @@
     <string name="toast_key_config_reload_success">Key bindings reloaded</string>
     <string name="toast_key_config_reload_error">Failed parsing key bindings config: %1$s</string>
     <string name="toast_attachment_download_path_success">Attachment downloaded to %1$s</string>
+    <string name="toast_restart_required">Restart required</string>
 
     <plurals name="named_users_typing">
         <item quantity="one">%1$s is typing</item>

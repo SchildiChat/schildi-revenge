@@ -87,6 +87,7 @@ sealed interface Action {
         ToggleSetting(args = listOf(ActionArgumentPrimitive.SettingKey, OptionalSettingValue, OptionalSettingValue), aliases = listOf("toggle")),
         Exit(aliases = listOf("quit")),
         RecreateUi,
+        ClearSessionCache(args = listOf(ActionArgumentPrimitive.SessionId)),
     }
     enum class AppMessage(
         override val aliases: kotlin.collections.List<String> = emptyList(),
