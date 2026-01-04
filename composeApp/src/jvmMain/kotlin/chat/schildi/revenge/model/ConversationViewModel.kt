@@ -1559,7 +1559,23 @@ class ConversationViewModel(
 
                     Action.Event.DownloadFileAndOpen -> downloadFileAndOpen(context, event)
 
-                    Action.Event.ToggleReaction -> {
+                    Action.Event.ToggleReactionKey -> {
+                        val reaction = args.firstOrNull().orActionValidationError()
+                        eventOrTransactionId ?: return@run ActionResult.Inapplicable
+                        val timeline = activeTimeline.value ?: return@run ActionResult.Failure("Timeline not ready")
+                        launchActionAsync(
+                            "toggleReaction",
+                            viewModelScope,
+                            Dispatchers.IO,
+                            "toggleReaction",
+                            notifyProcessing = true,
+                        ) {
+                            timeline.toggleReaction(reaction, eventOrTransactionId)
+                            ActionResult.Success()
+                        }
+                    }
+
+                    Action.Event.ToggleReactionIndex -> {
                         val index = args.firstOrNull()?.toIntOrNull().orActionValidationError()
                         val reactionToToggle = event.reactions.getOrNull(index) ?: return@run ActionResult.Inapplicable
                         eventOrTransactionId ?: return@run ActionResult.Inapplicable

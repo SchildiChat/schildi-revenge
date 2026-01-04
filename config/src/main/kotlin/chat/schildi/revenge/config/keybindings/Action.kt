@@ -228,6 +228,7 @@ sealed interface Action {
         JumpToRepliedTo,
         DownloadFile,
         DownloadFileAndOpen,
-        ToggleReaction(args = listOf(ActionArgumentPrimitive.Index)),
+        ToggleReactionKey(args = listOf(ActionArgumentPrimitive.Text), aliases = listOf("react")),
+        ToggleReactionIndex(args = listOf(ActionArgumentPrimitive.Index)),
     }
 }
