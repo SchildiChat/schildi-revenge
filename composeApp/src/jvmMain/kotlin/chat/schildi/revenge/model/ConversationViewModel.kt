@@ -1457,8 +1457,17 @@ class ConversationViewModel(
                             senderProfile = event.senderProfile,
                         )
                         DraftRepo.update(draftKey) {
-                            it?.copy(inReplyTo = inReplyTo, type = DraftType.REACTION)
-                                ?: DraftValue(inReplyTo = inReplyTo, type = DraftType.REACTION)
+                            it?.copy(
+                                inReplyTo = inReplyTo,
+                                type = DraftType.REACTION,
+                                attachment = null,
+                                editEventId = null,
+                            ) ?: DraftValue(
+                                textFieldValue = TextFieldValue(":", TextRange(1)),
+                                initialBody = ":",
+                                inReplyTo = inReplyTo,
+                                type = DraftType.REACTION,
+                            )
                         }
                         focusByRole(FocusRole.MESSAGE_COMPOSER)
                         ActionResult.Success()
