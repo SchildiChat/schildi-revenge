@@ -157,7 +157,7 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
 
         publishTitle(viewModel)
 
-        LaunchedEffect(listState, backwardPaginationStatus) {
+        LaunchedEffect(listState, backwardPaginationStatus, timelineItems) {
             snapshotFlow {
                 listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
             }
@@ -167,7 +167,7 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
                     }
                 }
         }
-        LaunchedEffect(listState, forwardPaginationStatus) {
+        LaunchedEffect(listState, forwardPaginationStatus, timelineItems) {
             snapshotFlow {
                 listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index
             }
