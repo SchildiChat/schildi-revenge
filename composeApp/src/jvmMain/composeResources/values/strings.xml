@@ -246,4 +246,13 @@
     <string name="named_user_verification_pinned_summary">%1$s's verification identity has been acknowledged.</string>
     <string name="named_user_verification_pin_violation_summary">%1$s's verification identity has changed.</string>
     <string name="named_user_verification_violation_summary">%1$s's verification identity has changed and is no longer verified.</string>
+
+    <string name="message_shield_authenticity_not_guaranteed">Authenticity not guaranteed</string>
+    <string name="message_shield_mismatched_sender">Mismatched sender</string>
+    <string name="message_shield_sent_in_clear">Sent in clear</string>
+    <string name="message_shield_unknown_device">Unknown device</string>
+    <string name="message_shield_unsigned_device">Unsigned device</string>
+    <string name="message_shield_unverified_identity">Unverified identity</string>
+    <string name="message_shield_verification_violation">Unverified identity</string>
+
 </resources>

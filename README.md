@@ -93,9 +93,10 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
         - [x] Send room state
         - [ ] Send account state
         - [ ] Send room account state
-    - [ ] User trust
-        - [ ] Message authenticity shields
+    - [x] User trust MVP
+        - [x] Message authenticity shields
         - [x] Identity resets
+    - [ ] Failed message send retries: EventTimelineHandler.sendHandleProvider()
 - [ ] Room member list
 - [ ] Commands
     - [ ] Create room
