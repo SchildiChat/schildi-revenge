@@ -80,6 +80,7 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
         val timelineItems = viewModel.timelineItems.collectAsState().value
         val forwardPaginationStatus = viewModel.forwardPaginationStatus.collectAsState(null).value
         val backwardPaginationStatus = viewModel.backwardPaginationStatus.collectAsState(null).value
+        val timestampSettings = viewModel.timestampSettings.collectAsState().value
 
         if (timelineItems == null) {
             SplashScreenContent()
@@ -249,6 +250,7 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
                             previous = previous,
                             roomMembersById = roomMembersById.value,
                             highlight = highlight,
+                            timestampSettings = timestampSettings,
                         )
                     }
                 }

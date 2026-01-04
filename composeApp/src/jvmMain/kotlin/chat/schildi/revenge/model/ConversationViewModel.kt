@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import chat.schildi.matrixsdk.BridgeEventContent
 import chat.schildi.matrixsdk.ScTimelineFilterSettings
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewProvider
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewStateProvider
@@ -49,6 +50,7 @@ import chat.schildi.revenge.toPrettyJson
 import chat.schildi.revenge.util.MimeUtil
 import chat.schildi.revenge.util.tryOrNull
 import chat.schildi.revenge.util.MediaInfoUtil
+import chat.schildi.revenge.util.ScJson
 import co.touchlab.kermit.Logger
 import io.element.android.features.messages.impl.timeline.EventFocusResult
 import io.element.android.features.messages.impl.timeline.TimelineController
@@ -120,6 +122,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
 import java.awt.FileDialog
 import java.awt.Frame
@@ -150,6 +154,10 @@ import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.path.toPath
 import kotlin.math.max
+
+data class TimestampSettings(
+    val renderAuthenticityNotGuaranteed: Boolean = true,
+)
 
 private data class ComposerSettings(
     val autoHideComposer: Boolean,
@@ -396,6 +404,32 @@ class ConversationViewModel(
     ) { state, force, minimalMode ->
         force || !minimalMode || !state.isEmpty()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, forceShowComposer.value)
+
+    private val bridgeInfo = roomPair.map { (_, room) ->
+        room?.getRawState("m.bridge")
+            ?.onFailure { log.e("Failed to fetch m.bridge event", it) }
+            ?.getOrNull()
+            ?.mapNotNull {
+                try {
+                    val event = ScJson.parseToJsonElement(it)
+                    event.jsonObject["content"]?.jsonObject?.let { content ->
+                        ScJson.decodeFromJsonElement<BridgeEventContent>(content)
+                    }
+                } catch (e: Throwable) {
+                    log.e("Failed to parse m.bridge state", e)
+                    null
+                }
+            }
+    }.flowOn(Dispatchers.IO)
+
+    val timestampSettings = combine(
+        scPreferencesStore.settingFlow(ScPrefs.HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS),
+        bridgeInfo,
+    ) { hideAuthenticityForBridgedChats, bridgeInfo ->
+        TimestampSettings(
+            renderAuthenticityNotGuaranteed = !hideAuthenticityForBridgedChats || bridgeInfo.isNullOrEmpty(),
+        )
+    }.stateIn(viewModelScope, SharingStarted.Lazily, TimestampSettings())
 
     override fun onComposerUpdate(value: DraftValue) {
         DraftRepo.update(draftKey, value)

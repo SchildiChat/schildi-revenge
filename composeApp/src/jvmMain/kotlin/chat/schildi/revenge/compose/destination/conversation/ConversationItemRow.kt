@@ -19,6 +19,7 @@ import chat.schildi.revenge.compose.destination.conversation.virtual.NewMessages
 import chat.schildi.revenge.compose.destination.conversation.virtual.PagingIndicator
 import chat.schildi.revenge.compose.destination.conversation.virtual.RoomBeginning
 import chat.schildi.revenge.model.ConversationViewModel
+import chat.schildi.revenge.model.TimestampSettings
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
@@ -35,6 +36,7 @@ fun ConversationItemRow(
     next: MatrixTimelineItem?,
     previous: MatrixTimelineItem?,
     highlight: EventHighlight,
+    timestampSettings: TimestampSettings,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier.fillMaxWidth()) {
@@ -74,6 +76,7 @@ fun ConversationItemRow(
                     isSameAsPreviousSender = isSameAsPreviousSender,
                     roomMembersById = roomMembersById,
                     highlight = highlight,
+                    timestampSettings = timestampSettings,
                 )
             }
 

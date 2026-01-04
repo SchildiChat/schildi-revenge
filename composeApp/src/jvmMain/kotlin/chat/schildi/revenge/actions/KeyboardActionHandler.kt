@@ -1106,7 +1106,8 @@ class KeyboardActionHandler(
                         publishMessage(
                             AppMessage(
                                 Res.string.toast_restart_required.toStringHolder(),
-                                uniqueId = appMessageId,
+                                uniqueId = "restartRequired",
+                                canAutoDismiss = false,
                             )
                         )
                         ActionResult.Success(async = true, notifySuccess = false)

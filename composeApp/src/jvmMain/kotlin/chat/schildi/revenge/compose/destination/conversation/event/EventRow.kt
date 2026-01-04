@@ -25,6 +25,7 @@ import chat.schildi.revenge.compose.destination.conversation.virtual.Conversatio
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.model.ConversationViewModel
+import chat.schildi.revenge.model.TimestampSettings
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
@@ -46,6 +47,7 @@ fun EventRow(
     isSameAsPreviousSender: Boolean,
     roomMembersById: ImmutableMap<UserId, RoomMember>,
     highlight: EventHighlight,
+    timestampSettings: TimestampSettings,
     modifier: Modifier = Modifier
 ) {
     val backgroundHighlightColor = animateColorAsState(
@@ -83,7 +85,9 @@ fun EventRow(
                 senderId = event.sender,
                 senderProfile = event.senderProfile,
                 isOwn = event.isOwn,
-                timestamp = remember(event) { event.timestampOverlayContent() },
+                timestamp = remember(event, timestampSettings) {
+                    event.timestampOverlayContent(timestampSettings)
+                },
                 isSameAsPreviousSender = isSameAsPreviousSender,
                 inReplyTo = event.inReplyTo(),
             )

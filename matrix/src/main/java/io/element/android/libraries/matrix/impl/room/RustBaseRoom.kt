@@ -316,6 +316,11 @@ class RustBaseRoom(
             innerRoom.getStateEventRaw(eventType, stateKey)
         }
     }
+    override suspend fun getRawState(eventType: String) = withContext(roomDispatcher) {
+        runCatchingExceptions {
+            innerRoom.getStateEventsRaw(eventType)
+        }
+    }
     override suspend fun fetchFullRoomState(): Result<List<String>> = withContext(roomDispatcher) {
         runCatchingExceptions {
             innerRoom.fetchFullRoomState()

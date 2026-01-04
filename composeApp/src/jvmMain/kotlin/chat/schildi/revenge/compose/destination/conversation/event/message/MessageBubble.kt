@@ -29,6 +29,7 @@ import chat.schildi.revenge.DateTimeFormat
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.revenge.compose.components.thenIf
+import chat.schildi.revenge.model.TimestampSettings
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.timeline.item.event.EventCanBeEdited
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
@@ -55,12 +56,17 @@ data class TimestampOverlayContent(
     val messageShield: MessageShield?,
 )
 
-fun EventTimelineItem.timestampOverlayContent() = TimestampOverlayContent(
+fun EventTimelineItem.timestampOverlayContent(settings: TimestampSettings) = TimestampOverlayContent(
     timestamp = DateTimeFormat.formatTime(DateTimeFormat.timestampToDateTime(timestamp)),
     isEdited = (content as? EventCanBeEdited)?.isEdited == true,
     isSending = localSendState is LocalEventSendState.Sending,
     isSendError = localSendState is LocalEventSendState.Failed,
-    messageShield = messageShieldProvider(strict = false),
+    messageShield = messageShieldProvider(strict = false).takeIf {
+        settings.renderAuthenticityNotGuaranteed || (
+                it !is MessageShield.AuthenticityNotGuaranteed &&
+                        it !is MessageShield.MismatchedSender
+        )
+    },
 )
 
 @Composable
