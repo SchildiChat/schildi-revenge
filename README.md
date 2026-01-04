@@ -1,35 +1,29 @@
 # SchildiChat Revenge
 
-A desktop Matrix client that seeks revenge for all the pain suffered from maintaining an Element Web fork, built from scratch using the Rust SDK and Jetpack Compose Multiplatform.
+A desktop Matrix client written in kotlin / Compose Multiplatform based on the Matrix Rust SDK.
 
-## Goals
+## Main goals
 
-- Fully controllable via keyboard, ideally vim-inspired key-bindings where it makes sense
-- Prioritize yaml config (and account state?) over settings UI
-- Multi-account without account switching
-    - I.e. allows a merged inbox
-    - But also allow filtering by account
+- Fully controllable via keyboard, including command mode and highly configurable key-bindings
+- Native multi-account from the start, not as an afterthought
+    - Allows a merged inbox
+    - But also allow filtering by account if desired
 - Hierarchical spaces
-- Fast
+    - Including mutli-account space merging if it's the same space with a shared parent spaces
+- Faster than the old web-based client
 - Multi-window
     - For individual chats
     - To have multiple inbox views open to allow viewing separate filters at once
 - Design in the tradition of SchildiChat clients
-- Easy to maintain, with as least effort as possible to make me happy
-- Embrace command mode
 - Long-term: Good enough for non-power-users to use mouse-only / intuitively
-
-## Non-goals
-
-- Features I don't use or need
-    - I may still accept PR's though
-- Being a fully-featured Matrix client for users who rely on UI to get things done
-    - At least at the current stage, maybe later
 
 
 ## Implementation process
 
 ### MVP
+
+This is a rough collection of features that I consider important for core use, to help with the initial bringup.
+This list is not sufficient to consider the client feature-complete in any way.
 
 - [x] Schildi theme
 - [x] Initial config hooked in
@@ -96,36 +90,45 @@ A desktop Matrix client that seeks revenge for all the pain suffered from mainta
     - [x] User trust MVP
         - [x] Message authenticity shields
         - [x] Identity resets
-    - [ ] Failed message send retries: EventTimelineHandler.sendHandleProvider()
+    - [ ] Failed message send retries: `EventTimelineHandler.sendHandleProvider()`
 - [ ] Room member list
 - [ ] Commands
     - [ ] Create room
     - [ ] Start DM
-    - [ ] Invite user
+    - [x] Invite user
+    - [x] Kick/ban user
     - [ ] Set room notification settings
-    - [ ] Copy room ID, room link
-    - [ ] Set favorite / low priority
+    - [x] Copy room ID, room link
+    - [x] Set favorite / low priority
 - [ ] Account management screen polish
 - [ ] Notifications
     - [x] Allow muting individual accounts
 - [ ] App icon
 - [ ] Tray icon with unread count
     - [x] Optional minimize to tray: last window close request doesn't discard window but just sets minimized
-- [ ] Mouse-user-friendly mode
-  - [ ] All screens accessible via mouse
-  - [ ] All features accessible via mouse (e.g. search)
+- [x] Mouse-user-friendly mode
+  - [x] All screens accessible via mouse
+  - [x] Important features accessible via mouse (e.g. search)
 - [ ] Add release flavor that builds release variant of Rust SDK
 - [ ] Release builds ready to install on various OSes
 
-### Possible advanced features
+### More features for "later"
 
 - [ ] Mark as read automatically while you scroll
-- [ ] View event source (can already copy event source via custom action though)
 - [ ] Verify other devices via emoji
 - [ ] MAS + rotating token support (need to re-persist session data)
 - [ ] MAS: support generating QR for quick sign in of mobile devices
-- [ ] Threads??? (optional thread view, will want to show threaded messages in the main timeline by default as well)
+- [ ] Threads (optional thread view, will want to show threaded messages in the main timeline by default as well)
 - [ ] Expose command line message interface to e.g. "open list for account X with filters Y"
+- [ ] More UI for "advanced" features
+    - [ ] Account settings
+        - [ ] Own user profile settings
+        - [ ] Change user password
+        - [ ] Reset user identity
+        - [ ] Session management to rename or log out other devices
+    - [ ] Room settings
+    - [ ] Create new rooms
+    - [ ] ...
 - [ ] Custom theming
 
 
