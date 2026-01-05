@@ -12,7 +12,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import chat.schildi.revenge.Dimens
-import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.RoomMember
 import kotlinx.collections.immutable.ImmutableList
@@ -53,7 +52,7 @@ fun TypingUsersRow(
         Text(
             text,
             Modifier.fillMaxWidth().padding(Dimens.Conversation.bottomListItemPadding),
-            color = MaterialTheme.scExposures.accentColor,
+            color = MaterialTheme.colorScheme.secondary,
             style = MaterialTheme.typography.bodyMedium,
         )
     }
