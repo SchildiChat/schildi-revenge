@@ -50,6 +50,28 @@ object DateTimeFormat {
         }
     }
 
+    fun formatDatetime(
+        dateTime: LocalDateTime,
+        strings: DateTimeStrings,
+        now: LocalDateTime = LocalDateTime.now(),
+    ): String = buildString {
+        append(formatDate(dateTime, strings, now))
+        append(" ")
+        append(formatTime(dateTime))
+    }
+
+    fun formatTimeOrDateTime(
+        dateTime: LocalDateTime,
+        strings: DateTimeStrings,
+        now: LocalDateTime = LocalDateTime.now(),
+    ): String {
+        return if (now.year == dateTime.year && now.dayOfYear == dateTime.dayOfYear) {
+            formatTime(dateTime)
+        } else {
+            formatDatetime(dateTime, strings, now)
+        }
+    }
+
     @Composable
     fun dateTimeStrings() = DateTimeStrings(
         today = stringResource(Res.string.datetime_today),
@@ -69,6 +91,14 @@ object DateTimeFormat {
         val strings = dateTimeStrings()
         return remember(timestamp) {
             formatDateOrTime(timestampToDateTime(timestamp), strings)
+        }
+    }
+
+    @Composable
+    fun formatTimeOrDateTime(timestamp: Long): String {
+        val strings = dateTimeStrings()
+        return remember(timestamp) {
+            formatTimeOrDateTime(timestampToDateTime(timestamp), strings)
         }
     }
 }

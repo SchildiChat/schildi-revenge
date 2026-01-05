@@ -488,7 +488,7 @@ class KeyboardActionHandler(
         val focused = currentFocused()
         val contextMenu = _currentOpenContextMenu.value?.let {
             focusableTargets[it]?.actions?.findInteractionAction<InteractionAction.ContextMenu>()?.takeIf {
-                it.entries.isNotEmpty()
+                it.entries == null || it.entries.isNotEmpty()
             }
         }
         // Disallow plain keybindings of keys handled by text fields
@@ -638,7 +638,7 @@ class KeyboardActionHandler(
         when (event.key) {
             Key.Escape -> dismissContextMenu(contextMenu.focusId)
             else -> {
-                val action = contextMenu.entries.find { it.keyboardShortcut == event.key }
+                val action = contextMenu.entries?.find { it.keyboardShortcut == event.key }
                 if (action != null && action.enabled) {
                     handleAction(contextMenu.focusId, action.action, action.actionArgs)
                     if (action.autoCloseMenu) {
@@ -1347,7 +1347,9 @@ class KeyboardActionHandler(
             log.e("Tried to open context menu on unregistered target $id")
             return false
         }
-        focusTarget.actions?.findInteractionAction<InteractionAction.ContextMenu>()?.takeIf { it.entries.isNotEmpty() } ?: return false
+        focusTarget.actions?.findInteractionAction<InteractionAction.ContextMenu>()?.takeIf {
+            it.entries == null || it.entries.isNotEmpty()
+        } ?: return false
         _currentOpenContextMenu.value = id
         return true
     }

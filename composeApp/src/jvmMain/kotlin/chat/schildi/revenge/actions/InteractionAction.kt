@@ -29,7 +29,7 @@ sealed interface InteractionAction {
 
     data class ContextMenu(
         val focusId: UUID,
-        val entries: ImmutableList<ContextMenuEntry>
+        val entries: ImmutableList<ContextMenuEntry>? // null for custom data types and rendering in the popup
     ) : InteractionAction
 
 }

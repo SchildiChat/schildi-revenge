@@ -1,6 +1,7 @@
 package chat.schildi.revenge.compose.components
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -56,51 +57,71 @@ data class ContextMenuEntry(
 @Composable
 fun WithContextMenu(
     focusId: UUID,
-    entries: ImmutableList<ContextMenuEntry>,
+    popupContent: @Composable ColumnScope.() -> Unit,
     modifier: Modifier = Modifier,
-    content: @Composable (InteractionAction.ContextMenu?) -> Unit,
+    content: @Composable () -> Unit,
 ) {
     val keyHandler = LocalKeyboardActionHandler.current
     val expanded = keyHandler.currentOpenContextMenu.collectAsState().value == focusId
     var anchorBounds by remember { mutableStateOf<Rect?>(null) }
     var pointerPositionOnOpen by remember { mutableStateOf<Offset?>(null) }
     val density = LocalDensity.current
+
+    LaunchedEffect(expanded) {
+        if (expanded) {
+            pointerPositionOnOpen = keyHandler.lastPointerPosition
+        }
+    }
+
+    val offset = remember(pointerPositionOnOpen, anchorBounds) {
+        val anchor = anchorBounds
+        val position = pointerPositionOnOpen
+        if (anchor == null || position == null) {
+            DpOffset(0.dp, 0.dp)
+        } else {
+            val localX = (position.x - anchor.left).coerceAtLeast(0f)
+            with(density) {
+                DpOffset(localX.toDp(), 0.dp)
+            }
+        }
+    }
+
     Box(
         modifier.onGloballyPositioned {
             anchorBounds = it.boundsInWindow()
         }
     ) {
-        content(
-            if (entries.isEmpty())
-                null
-            else
-                InteractionAction.ContextMenu(focusId, entries)
-        )
-
-        LaunchedEffect(expanded) {
-            if (expanded) {
-                pointerPositionOnOpen = keyHandler.lastPointerPosition
-            }
-        }
-
-        val offset = remember(pointerPositionOnOpen, anchorBounds) {
-            val anchor = anchorBounds
-            val position = pointerPositionOnOpen
-            if (anchor == null || position == null) {
-                DpOffset(0.dp, 0.dp)
-            } else {
-                val localX = (position.x - anchor.left).coerceAtLeast(0f)
-                with(density) {
-                    DpOffset(localX.toDp(), 0.dp)
-                }
-            }
-        }
         DropdownMenu(
             expanded = expanded,
             onDismissRequest = { keyHandler.dismissContextMenu(focusId) },
             containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
             offset = offset,
-        ) {
+            content = popupContent,
+        )
+        content()
+    }
+}
+
+@Composable
+fun WithContextMenu(
+    focusId: UUID,
+    entries: ImmutableList<ContextMenuEntry>,
+    modifier: Modifier = Modifier,
+    content: @Composable (InteractionAction.ContextMenu?) -> Unit,
+) {
+    val keyHandler = LocalKeyboardActionHandler.current
+    WithContextMenu(
+        focusId = focusId,
+        modifier = modifier,
+        content = {
+            content(
+                if (entries.isEmpty())
+                    null
+                else
+                    InteractionAction.ContextMenu(focusId, entries)
+            )
+        },
+        popupContent = {
             entries.forEach { entry ->
                 val primaryColor = if (entry.critical) {
                     MaterialTheme.colorScheme.error
@@ -179,7 +200,7 @@ fun WithContextMenu(
                 )
             }
         }
-    }
+    )
 }
 
 fun Int.keyboardShortcutFromIndex() = when (this) {

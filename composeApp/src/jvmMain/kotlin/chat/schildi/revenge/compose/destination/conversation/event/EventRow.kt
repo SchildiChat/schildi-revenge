@@ -95,6 +95,7 @@ fun EventRow(
                 viewModel = viewModel,
                 eventOrTransactionId = EventOrTransactionId.from(event.eventId, event.transactionId),
                 reactions = event.reactions,
+                roomMembersById = roomMembersById,
                 messageIsOwn = event.isOwn,
             )
             ReadReceiptsRow(

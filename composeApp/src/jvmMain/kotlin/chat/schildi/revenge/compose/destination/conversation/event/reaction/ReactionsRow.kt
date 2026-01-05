@@ -10,15 +10,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.model.ConversationViewModel
+import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.event.EventReaction
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableMap
 
 @Composable
 fun ColumnScope.ReactionsRow(
     viewModel: ConversationViewModel,
     eventOrTransactionId: EventOrTransactionId,
     reactions: ImmutableList<EventReaction>,
+    roomMembersById: ImmutableMap<UserId, RoomMember>,
     messageIsOwn: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -45,7 +49,7 @@ fun ColumnScope.ReactionsRow(
         ),
     ) {
         reactions.forEach { reaction ->
-            ReactionsBubble(viewModel, eventOrTransactionId, reaction)
+            ReactionsBubble(viewModel, eventOrTransactionId, reaction, roomMembersById)
         }
     }
 }
