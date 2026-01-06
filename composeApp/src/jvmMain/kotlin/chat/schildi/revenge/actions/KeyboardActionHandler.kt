@@ -129,7 +129,7 @@ enum class FocusRole(val consumesKeyWhitelist: List<Key>? = null, val autoReques
     CONTAINER_ITEM, // Can both like AUX_ITEM and CONTAINER
     TEXT_FIELD_SINGLE_LINE(consumesKeyWhitelist = AllowedSingleLineTextFieldBindingKeys),
     TEXT_FIELD_MULTI_LINE(consumesKeyWhitelist = AllowedTextFieldBindingKeys),
-    MESSAGE_COMPOSER(consumesKeyWhitelist = AllowedComposerTextFieldBindingKeys),
+    MESSAGE_COMPOSER(autoRequestFocus = true, consumesKeyWhitelist = AllowedComposerTextFieldBindingKeys),
     SEARCH_BAR(autoRequestFocus = true), // Does not need to consume plain keys, key handler has a special mode for that
     COMMAND_BAR(autoRequestFocus = true), // Does not need to consume plain keys, key handler has a special mode for that
 }
@@ -250,6 +250,8 @@ class KeyboardActionHandler(
         }
     )
 
+    private var pauseFocusFollowsMouse = false
+
     private val _currentOpenContextMenu = MutableStateFlow<UUID?>(null)
     val currentOpenContextMenu = _currentOpenContextMenu.asStateFlow()
 
@@ -363,6 +365,7 @@ class KeyboardActionHandler(
             scope.launch {
                 focusRequester.requestFocus()
             }
+            pauseFocusFollowsMouse = role.autoRequestFocus
             true
         } else {
             false
@@ -1155,16 +1158,16 @@ class KeyboardActionHandler(
 
     fun onFocusChanged(target: UUID, state: FocusState) {
         //log.v { "Focus changed for $target to $state" }
-        var lostFocusTarget: UUID? = null
+        var lostFocusTargetId: UUID? = null
         if (state.isFocused) {
             currentFocus.update {
-                lostFocusTarget = it
+                lostFocusTargetId = it
                 target
             }
         } else if (!state.hasFocus) {
             currentFocus.update {
                 if (it == target) {
-                    lostFocusTarget = it
+                    lostFocusTargetId = it
                     null
                 } else {
                     it
@@ -1177,7 +1180,11 @@ class KeyboardActionHandler(
             // so e.g. textfields don't keep consuming keypresses while we still handle to navigation events
             focusManager?.clearFocus()
         }
-        lostFocusTarget?.let { focusableTargets[it] }?.let(::handleLostFocus)
+        val lostFocusTarget = lostFocusTargetId?.let { focusableTargets[it] }
+        if (lostFocusTarget?.role?.autoRequestFocus == true && newFocus?.role?.autoRequestFocus == false) {
+            pauseFocusFollowsMouse = false
+        }
+        lostFocusTarget?.let(::handleLostFocus)
     }
 
     private fun handleLostFocus(target: FocusTarget) {
@@ -1229,7 +1236,7 @@ class KeyboardActionHandler(
             _lastPointerPosition = position
             _keyboardPrimary.value = false
         }
-        if (handlerSettings.value.focusFollowsMouse) {
+        if (handlerSettings.value.focusFollowsMouse && !pauseFocusFollowsMouse) {
             val focusable = focusableTargets.values.firstNotNullOfOrNull { target ->
                 target.takeIf {
                     it.isFullyVisible &&
