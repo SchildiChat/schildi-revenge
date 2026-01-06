@@ -158,6 +158,7 @@ import kotlin.math.max
 data class TimestampSettings(
     val renderAuthenticityNotGuaranteed: Boolean = true,
     val renderSenderMismatch: Boolean = true,
+    val renderUnsignedDevice: Boolean = true,
 )
 
 private data class ComposerSettings(
@@ -432,6 +433,7 @@ class ConversationViewModel(
         TimestampSettings(
             renderAuthenticityNotGuaranteed = !hideAuthenticityNotGuaranteed && !hideForBridgeChat,
             renderSenderMismatch = !hideForBridgeChat,
+            renderUnsignedDevice = !hideForBridgeChat,
         )
     }.stateIn(viewModelScope, SharingStarted.Lazily, TimestampSettings())
 

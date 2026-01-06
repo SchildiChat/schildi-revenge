@@ -66,6 +66,7 @@ fun EventTimelineItem.timestampOverlayContent(settings: TimestampSettings) = Tim
         when (it) {
             is MessageShield.AuthenticityNotGuaranteed -> settings.renderAuthenticityNotGuaranteed
             is MessageShield.MismatchedSender -> settings.renderSenderMismatch
+            is MessageShield.UnsignedDevice -> settings.renderUnsignedDevice
             is MessageShield.SentInClear -> content !is RedactedContent
             else -> true
         }
