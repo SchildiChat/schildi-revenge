@@ -19,6 +19,8 @@ import shire.composeapp.generated.resources.pref_debug_avatar_render_states_titl
 import shire.composeapp.generated.resources.pref_focus_follows_mouse_summary
 import shire.composeapp.generated.resources.pref_focus_follows_mouse_title
 import shire.composeapp.generated.resources.pref_font_scale
+import shire.composeapp.generated.resources.pref_framed_rop_spinner_summary
+import shire.composeapp.generated.resources.pref_framed_rop_spinner_title
 import shire.composeapp.generated.resources.pref_hide_message_authenticity_not_guaranteed_summary
 import shire.composeapp.generated.resources.pref_hide_message_authenticity_not_guaranteed_title
 import shire.composeapp.generated.resources.pref_hide_message_authenticity_warnings_in_bridged_chats_summary
@@ -118,6 +120,7 @@ object ScPrefs {
     private const val SC_DEVELOPER_OPTIONS_CATEGORY_KEY = "SC_DEVELOPER_OPTIONS_CATEGORY"
     val RENDER_AVATAR_STATES = ScBoolPref("RENDER_AVATAR_STATES", false, Res.string.pref_debug_avatar_render_states_title)
     val SHOW_DEV_INFOS = ScBoolPref("SHOW_DEV_INFOS", false, Res.string.pref_show_dev_infos_title, Res.string.pref_show_dev_infos_summary)
+    val FRAME_DROP_SPINNER = ScBoolPref("FRAME_DROP_SPINNER", false, Res.string.pref_framed_rop_spinner_title, Res.string.pref_framed_rop_spinner_summary)
     /*
     private val SC_DANGER_ZONE = ScBoolPref("SC_DANGER_ZONE", false, Res.string.sc_pref_danger_zone, Res.string.sc_pref_danger_zone_summary, authorsChoice = true)
     val SC_PUSH_INFO = ScActionablePref("SC_PUSH_INFO", Res.string.sc_push_info_title, Res.string.sc_push_info_summary)
@@ -379,6 +382,7 @@ object ScPrefs {
             RENDER_AVATAR_STATES,
             VIEW_HIDDEN_EVENTS,
             SHOW_DEV_INFOS,
+            FRAME_DROP_SPINNER,
             /*
             SC_DEV_QUICK_OPTIONS,
             READ_MARKER_DEBUG,

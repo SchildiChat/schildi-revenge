@@ -231,6 +231,8 @@
     <string name="pref_hide_message_authenticity_not_guaranteed_summary">Do not show the warning icon next to the timestamp if the message authenticity cannot be guaranteed</string>
     <string name="pref_hide_message_authenticity_warnings_in_bridged_chats_title">Hide message authenticity warnings in bridged chats</string>
     <string name="pref_hide_message_authenticity_warnings_in_bridged_chats_summary">Do not show the warning icon next to the timestamp for messages in bridged chats if the message authenticity cannot be guaranteed or a sender mismatch is detected</string>
+    <string name="pref_framed_rop_spinner_title">Frame-drop spinner</string>
+    <string name="pref_framed_rop_spinner_summary">Overlay a spinner on screen to quickly spot dropped frames and frozen screens</string>
 
     <string name="nameless_space_fallback_title">Nameless space</string>
 
