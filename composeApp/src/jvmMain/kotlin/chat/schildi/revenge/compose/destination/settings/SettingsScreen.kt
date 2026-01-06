@@ -43,7 +43,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     publishTitle(viewModel)
     val prefScreen = viewModel.prefScreen.collectAsState().value
     val listState = rememberLazyListState()
-    val listAction = remember(listState) { ListAction(listState, isReverseList = true) }
+    val listAction = remember(listState) { ListAction(listState) }
     FocusContainer(
         LocalSearchProvider provides viewModel,
         LocalListActionProvider provides listAction,
