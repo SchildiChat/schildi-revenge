@@ -84,4 +84,8 @@ internal val scdExposures = ScThemeExposures(
     composerBlockBg = scd_bgFloating,
     composerBlockFg = scd_fgPrimary,
     spaceBarBg = scd_bg,
+    searchHint = ScColors.colorAccentBlueLight,
+    commandHint = ScColors.colorAccentOrange,
+    reactHint = ScColors.colorAccentGreen,
+    customEventHint = ScColors.colorAccentLime,
 )

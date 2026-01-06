@@ -56,7 +56,12 @@ fun CommandBar(modifier: Modifier = Modifier) {
             onValueChange = {
                 handler.updateCommandInput(it)
             },
-            label = { Text(stringResource(Res.string.hint_command)) },
+            label = {
+                Text(
+                    stringResource(Res.string.hint_command),
+                    color = MaterialTheme.scExposures.commandHint,
+                )
+            },
             modifier = Modifier
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.surface)

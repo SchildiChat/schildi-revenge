@@ -143,7 +143,20 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
                             }
                         }
                     }
-                    Text(hint)
+                    val hintColor = animateColorAsState(
+                        when (draftState.type) {
+                            DraftType.TEXT,
+                            DraftType.EDIT,
+                            DraftType.EDIT_CAPTION,
+                            DraftType.ATTACHMENT -> Color.Unspecified
+                            DraftType.REACTION -> MaterialTheme.scExposures.reactHint
+                            DraftType.NOTICE,
+                            DraftType.EMOTE,
+                            DraftType.CUSTOM_EVENT,
+                            DraftType.CUSTOM_STATE_EVENT -> MaterialTheme.scExposures.customEventHint
+                        }
+                    ).value
+                    Text(hint, color = hintColor)
                 },
                 modifier = Modifier
                     .weight(1f)

@@ -84,4 +84,8 @@ internal val sclExposures = ScThemeExposures(
     composerBlockBg = null,
     composerBlockFg = null,
     spaceBarBg = ScColors.colorWhite_ee,
+    searchHint = ScColors.colorAccentBlueLight,
+    commandHint = ScColors.colorAccentOrange,
+    reactHint = ScColors.colorAccentGreen,
+    customEventHint = ScColors.colorAccentBlueDark,
 )

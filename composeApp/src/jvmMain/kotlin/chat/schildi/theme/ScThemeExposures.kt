@@ -37,6 +37,10 @@ class ScThemeExposures(
     composerBlockBg: Color?,
     composerBlockFg: Color?,
     spaceBarBg: Color?,
+    searchHint: Color,
+    commandHint: Color,
+    reactHint: Color,
+    customEventHint: Color,
 ) {
     var isDarkTheme by mutableStateOf(isDarkTheme)
         private set
@@ -94,6 +98,14 @@ class ScThemeExposures(
         private set
     var spaceBarBg by mutableStateOf(spaceBarBg)
         private set
+    var searchHint by mutableStateOf(searchHint)
+        private set
+    var commandHint by mutableStateOf(commandHint)
+        private set
+    var reactHint by mutableStateOf(reactHint)
+        private set
+    var customEventHint by mutableStateOf(customEventHint)
+        private set
 
     fun copy(
         isDarkTheme: Boolean = this.isDarkTheme,
@@ -124,6 +136,10 @@ class ScThemeExposures(
         composerBlockBg: Color? = this.composerBlockBg,
         composerBlockFg: Color? = this.composerBlockFg,
         spaceBarBg: Color? = this.spaceBarBg,
+        searchHint: Color = this.searchHint,
+        commandHint: Color = this.commandHint,
+        reactHint: Color = this.reactHint,
+        customEventHint: Color = this.customEventHint,
     ) = ScThemeExposures(
         isDarkTheme = isDarkTheme,
         horizontalDividerThickness = horizontalDividerThickness,
@@ -153,6 +169,10 @@ class ScThemeExposures(
         composerBlockBg = composerBlockBg,
         composerBlockFg = composerBlockFg,
         spaceBarBg = spaceBarBg,
+        commandHint = commandHint,
+        searchHint = searchHint,
+        reactHint = reactHint,
+        customEventHint = customEventHint,
     )
 
     fun updateColorsFrom(other: ScThemeExposures) {
@@ -184,5 +204,9 @@ class ScThemeExposures(
         composerBlockBg = other.composerBlockBg
         composerBlockFg = other.composerBlockFg
         spaceBarBg = other.spaceBarBg
+        searchHint = other.searchHint
+        commandHint = other.commandHint
+        reactHint = other.reactHint
+        customEventHint = other.customEventHint
     }
 }

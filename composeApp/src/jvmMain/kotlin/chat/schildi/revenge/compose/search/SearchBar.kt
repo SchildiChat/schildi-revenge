@@ -12,24 +12,34 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.components.TopNavigationIcon
 import chat.schildi.revenge.compose.focus.keyFocusable
+import chat.schildi.theme.scExposures
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_clear_search
 import shire.composeapp.generated.resources.hint_search
 
 @Composable
-fun SearchBar(modifier: Modifier = Modifier, showClearButton: Boolean = false) {
+fun SearchBar(
+    modifier: Modifier = Modifier,
+    showClearButton: Boolean = false
+) {
     val handler = LocalKeyboardActionHandler.current
     TextField(
         value = handler.searchQuery.collectAsState("").value,
         onValueChange = {
             handler.onSearchType(it)
         },
-        label = { Text(stringResource(Res.string.hint_search)) },
+        label = {
+            Text(
+                stringResource(Res.string.hint_search),
+                color = if (showClearButton) Color.Unspecified else MaterialTheme.scExposures.searchHint,
+            )
+        },
         modifier = modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
