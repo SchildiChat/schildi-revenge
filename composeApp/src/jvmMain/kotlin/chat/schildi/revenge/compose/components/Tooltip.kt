@@ -12,17 +12,33 @@ import androidx.compose.ui.Modifier
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
-fun WithTooltip(text: String, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+fun WithTooltip(
+    text: @Composable () -> String,
+    modifier: Modifier = Modifier,
+    isPersistent: Boolean = false,
+    content: @Composable () -> Unit
+) {
     TooltipBox(
         tooltip = {
             PlainTooltip {
-                Text(
-                    text,
-                )
+                Text(text())
             }
         },
-        state = rememberTooltipState(),
+        state = rememberTooltipState(isPersistent = isPersistent),
         positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        modifier = modifier,
+        content = content,
+    )
+}
+
+@Composable
+fun WithTooltip(
+    text: String,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    WithTooltip(
+        text = { text },
         modifier = modifier,
         content = content,
     )

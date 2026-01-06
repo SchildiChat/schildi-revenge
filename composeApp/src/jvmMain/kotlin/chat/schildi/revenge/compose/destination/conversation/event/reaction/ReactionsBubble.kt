@@ -24,8 +24,7 @@ import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.compose.components.LocalSessionId
 import chat.schildi.revenge.compose.components.UserTimestampItem
-import chat.schildi.revenge.compose.components.UserTimestampList
-import chat.schildi.revenge.compose.components.WithContextMenu
+import chat.schildi.revenge.compose.components.WithUserTimestampListPopup
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.compose.media.imageLoader
@@ -42,6 +41,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransa
 import io.element.android.libraries.matrix.api.timeline.item.event.EventReaction
 import io.element.android.libraries.matrix.ui.media.MediaRequestData
 import kotlinx.collections.immutable.ImmutableMap
+import kotlinx.collections.immutable.toImmutableList
 
 @Composable
 fun ReactionsBubble(
@@ -52,29 +52,25 @@ fun ReactionsBubble(
     modifier: Modifier = Modifier
 ) {
     val focusId = rememberFocusId()
-    WithContextMenu(
-        focusId = focusId,
-        popupContent = {
-            val userTimestamps = remember(reaction, roomMembersById) {
-                reaction.senders.map { sender ->
-                    val member = roomMembersById[sender.senderId]
-                    UserTimestampItem(
-                        userId = sender.senderId,
-                        displayName = member?.displayName,
-                        avatarUrl = member?.avatarUrl,
-                        timestamp = sender.timestamp,
-                        extra = reaction.key,
-                    )
-                }
-            }
-            UserTimestampList(
-                userTimestamps,
-                leadingItemContent = {
-                    ReactionContent(reaction.key, MaterialTheme.typography.headlineSmall)
-                }
+    val userTimestamps = remember(reaction, roomMembersById) {
+        reaction.senders.map { sender ->
+            val member = roomMembersById[sender.senderId]
+            UserTimestampItem(
+                userId = sender.senderId,
+                displayName = member?.displayName,
+                avatarUrl = member?.avatarUrl,
+                timestamp = sender.timestamp,
+                extra = reaction.key,
             )
-        },
+        }.toImmutableList()
+    }
+    WithUserTimestampListPopup(
+        focusId = focusId,
+        users = userTimestamps,
         modifier = modifier,
+        leadingItemContent = {
+            ReactionContent(reaction.key, MaterialTheme.typography.headlineSmall)
+        }
     ) {
         val includesSelf = reaction.senders.any { it.senderId == LocalSessionId.current }
         Row(

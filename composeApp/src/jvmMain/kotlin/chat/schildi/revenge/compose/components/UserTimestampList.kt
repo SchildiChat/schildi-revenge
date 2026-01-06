@@ -15,6 +15,8 @@ import chat.schildi.revenge.DateTimeFormat
 import chat.schildi.revenge.Dimens
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.media.MediaSource
+import kotlinx.collections.immutable.ImmutableList
+import java.util.UUID
 
 data class UserTimestampItem<T>(
     val userId: UserId,
@@ -24,9 +26,43 @@ data class UserTimestampItem<T>(
     val extra: T? = null,
 )
 
+private fun <T>List<UserTimestampItem<T>>.tooltipTextFunction(): @Composable () -> String = {
+    remember(this) {
+        joinToString { it.displayName ?: it.userId.value }
+    }
+}
+
+@Composable
+fun <T>WithUserTimestampListPopup(
+    focusId: UUID,
+    users: ImmutableList<UserTimestampItem<T>>,
+    modifier: Modifier = Modifier,
+    leadingItemContent: @Composable (T) -> Unit = {},
+    trailingItemContent: @Composable (T) -> Unit = {},
+    content: @Composable () -> Unit,
+) {
+    WithTooltip(
+        users.tooltipTextFunction(),
+        modifier,
+        isPersistent = true,
+    ) {
+        WithContextMenu(
+            focusId = focusId,
+            popupContent = {
+                UserTimestampList(
+                    users = users,
+                    leadingItemContent = leadingItemContent,
+                    trailingItemContent = trailingItemContent,
+                )
+            },
+            content = content,
+        )
+    }
+}
+
 @Composable
 fun <T>UserTimestampList(
-    users: List<UserTimestampItem<T>>,
+    users: ImmutableList<UserTimestampItem<T>>,
     leadingItemContent: @Composable (T) -> Unit = {},
     trailingItemContent: @Composable (T) -> Unit = {},
     modifier: Modifier = Modifier,
