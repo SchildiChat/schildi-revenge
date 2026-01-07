@@ -77,10 +77,7 @@ fun main() {
                             onCloseRequest = {
                                 UiState.closeWindow(windowState.windowId, this)
                             },
-                            title = if (title != appTitle)
-                                "$title - $appTitle"
-                            else
-                                title,
+                            title = title,
                             // TODO update icon
                             icon = painterResource(Res.drawable.ic_launcher),
                             onPreviewKeyEvent = keyHandler::onPreviewKeyEvent,

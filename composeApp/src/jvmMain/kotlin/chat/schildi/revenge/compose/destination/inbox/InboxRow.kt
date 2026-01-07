@@ -50,7 +50,7 @@ import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.components.WithContextMenu
 import chat.schildi.revenge.compose.focus.rememberFocusId
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.revenge.model.ConversationViewModel
 import chat.schildi.revenge.model.InboxViewModel
 import chat.schildi.revenge.model.ScopedRoomKey
 import chat.schildi.theme.scExposures
@@ -75,6 +75,7 @@ fun InboxRow(
     room: ScopedRoomSummary,
     hasDraft: Boolean,
     user: MatrixUser?,
+    needsAccountDisambiguation: Boolean,
     modifier: Modifier = Modifier,
 ) {
     ComposeSessionScope(room.sessionId) {
@@ -97,7 +98,13 @@ fun InboxRow(
                             )
                         } else {
                             buildNavigationActionProvider(
-                                initialTitle = room.summary.info.name?.toStringHolder(),
+                                initialTitle = {
+                                    ConversationViewModel.windowTitle(
+                                        room.summary.info,
+                                        user?.displayName,
+                                        room.sessionId
+                                    )
+                                },
                                 keyActions = inboxRowKeyboardActionProvider(viewModel, room.key, isInvite = false),
                                 secondaryAction = openContextMenu,
                             ) {
@@ -120,7 +127,7 @@ fun InboxRow(
                         size = Dimens.Inbox.avatar,
                         displayName = room.summary.info.name ?: "",
                     )
-                    user?.avatarUrl?.let { userAvatar ->
+                    user?.avatarUrl?.takeIf { needsAccountDisambiguation}?.let { userAvatar ->
                         AvatarImage(
                             source = MediaSource(userAvatar),
                             size = Dimens.Inbox.accountAvatar,

@@ -71,6 +71,7 @@ import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.media.VideoInfo
 import io.element.android.libraries.matrix.api.media.toFile
 import io.element.android.libraries.matrix.api.room.IntentionalMention
+import io.element.android.libraries.matrix.api.room.RoomInfo
 import io.element.android.libraries.matrix.api.room.roomMembers
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
@@ -732,18 +733,12 @@ class ConversationViewModel(
     override val windowTitle: Flow<ComposableStringHolder?> = combine(
         roomPair,
         userProfile,
-    ) { (baseRoom, joinedRoom), user ->
-        baseRoom?.info()?.name?.let {
-            buildString {
-                append(it)
-                append(" - ")
-                if (user?.displayName != null) {
-                    append(user.displayName)
-                } else {
-                    append(sessionId.value)
-                }
-            }.toStringHolder()
-        }
+    ) { (baseRoom, _), user ->
+        windowTitle(
+            roomInfo = baseRoom?.info(),
+            userName = user?.displayName,
+            sessionId = sessionId,
+        )
     }.filterNotNull()
 
     init {
@@ -1797,6 +1792,20 @@ class ConversationViewModel(
         ) = viewModelFactory {
             initializer {
                 ConversationViewModel(sessionId, roomId)
+            }
+        }
+
+        fun windowTitle(roomInfo: RoomInfo?, userName: String?, sessionId: SessionId): ComposableStringHolder? {
+            return roomInfo?.name?.let {
+                buildString {
+                    append(it)
+                    append(" - ")
+                    if (userName != null) {
+                        append(userName)
+                    } else {
+                        append(sessionId.value)
+                    }
+                }.toStringHolder()
             }
         }
     }

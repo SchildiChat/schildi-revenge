@@ -53,7 +53,7 @@ fun actionProvider(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun buildNavigationActionProvider(
-    initialTitle: ComposableStringHolder? = null,
+    initialTitle: () -> ComposableStringHolder? = { null },
     searchProvider: SearchProvider? = LocalSearchProvider.current,
     listActions: ListAction? = LocalListActionProvider.current,
     keyActions: KeyboardActionProvider<*>? = LocalKeyboardActionProvider.current,

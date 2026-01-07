@@ -148,10 +148,8 @@ fun InboxScreen(modifier: Modifier = Modifier) {
                             viewModel,
                             room,
                             hasDraft = room.key in drafts.value,
-                            user = if (needsDisambiguation)
-                                accounts?.get(room.sessionId)?.user
-                            else
-                                null
+                            user = remember(accounts) { accounts?.get(room.sessionId)?.user },
+                            needsAccountDisambiguation = needsDisambiguation,
                         )
                     }
                 }

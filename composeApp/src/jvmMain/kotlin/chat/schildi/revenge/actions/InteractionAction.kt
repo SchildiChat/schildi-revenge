@@ -9,17 +9,17 @@ import java.util.UUID
 sealed interface InteractionAction {
 
     sealed interface NavigationAction : InteractionAction {
-        val initialTitle: ComposableStringHolder?
+        val initialTitle: () -> ComposableStringHolder?
         val buildDestination: () -> Destination
     }
 
     data class NavigateCurrent(
-        override val initialTitle: ComposableStringHolder? = null,
+        override val initialTitle: () -> ComposableStringHolder? = { null },
         override val buildDestination: () -> Destination,
     ) : NavigationAction
 
     data class OpenWindow(
-        override val initialTitle: ComposableStringHolder? = null,
+        override val initialTitle: () -> ComposableStringHolder? = { null },
         override val buildDestination: () -> Destination,
     ) : NavigationAction
 

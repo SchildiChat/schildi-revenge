@@ -397,7 +397,7 @@ class KeyboardActionHandler(
                 val destination = action.buildDestination()
                 when (action) {
                     is InteractionAction.OpenWindow -> {
-                        UiState.openWindow(destination, action.initialTitle)
+                        UiState.openWindow(destination, action.initialTitle())
                         true
                     }
                     is InteractionAction.NavigateCurrent -> {
@@ -850,7 +850,7 @@ class KeyboardActionHandler(
                         navigateCurrentDestination(destination, destinationStateHolder).orActionInapplicable()
                     }
                     Action.NavigationItem.NavigateInNewWindow -> {
-                        UiState.openWindow(destination, navigationActionable.initialTitle)
+                        UiState.openWindow(destination, navigationActionable.initialTitle())
                         ActionResult.Success()
                     }
                 }
