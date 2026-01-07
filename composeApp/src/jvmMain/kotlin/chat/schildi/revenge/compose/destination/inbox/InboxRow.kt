@@ -102,6 +102,7 @@ fun InboxRow(
                                     ConversationViewModel.windowTitle(
                                         room.summary.info,
                                         user?.displayName,
+                                        null,
                                         room.sessionId
                                     )
                                 },

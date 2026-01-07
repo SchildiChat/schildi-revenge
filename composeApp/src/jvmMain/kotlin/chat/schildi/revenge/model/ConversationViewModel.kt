@@ -733,10 +733,12 @@ class ConversationViewModel(
     override val windowTitle: Flow<ComposableStringHolder?> = combine(
         roomPair,
         userProfile,
-    ) { (baseRoom, _), user ->
+        roomMembersById,
+    ) { (baseRoom, _), user, roomMembers ->
         windowTitle(
             roomInfo = baseRoom?.info(),
-            userName = user?.displayName,
+            accountUserDisplayName = user?.displayName,
+            roomUserDisplayName = roomMembers[sessionId]?.displayName,
             sessionId = sessionId,
         )
     }.filterNotNull()
@@ -1795,13 +1797,24 @@ class ConversationViewModel(
             }
         }
 
-        fun windowTitle(roomInfo: RoomInfo?, userName: String?, sessionId: SessionId): ComposableStringHolder? {
+        fun windowTitle(
+            roomInfo: RoomInfo?,
+            accountUserDisplayName: String?,
+            roomUserDisplayName: String?,
+            sessionId: SessionId
+        ): ComposableStringHolder? {
             return roomInfo?.name?.let {
                 buildString {
                     append(it)
                     append(" - ")
+                    val userName = accountUserDisplayName ?: roomUserDisplayName
                     if (userName != null) {
                         append(userName)
+                        if (roomUserDisplayName != null && roomUserDisplayName != userName) {
+                            append(" (")
+                            append(roomUserDisplayName)
+                            append(")")
+                        }
                     } else {
                         append(sessionId.value)
                     }
