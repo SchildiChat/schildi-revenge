@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewInfo
@@ -57,6 +58,7 @@ fun TextLikeMessage(
     urlPreview: UrlPreviewInfo? = null,
     allowBigEmojiOnly: Boolean = true,
     outlined: Boolean = false,
+    textColor: Color = MaterialTheme.colorScheme.primary,
 ) {
     val textLayoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
     MessageBubble(
@@ -73,7 +75,7 @@ fun TextLikeMessage(
                 keyHandler.openLinkInExternalBrowser(urlPreview.url)
             }
         }
-        TextLikeMessageContent(text, allowBigEmojiOnly) {
+        TextLikeMessageContent(text, allowBigEmojiOnly, textColor = textColor) {
             textLayoutResult.value = it
         }
     }
@@ -84,6 +86,7 @@ fun TextLikeMessageContent(
     text: AnnotatedString,
     allowBigEmojiOnly: Boolean,
     modifier: Modifier = Modifier,
+    textColor: Color = MaterialTheme.colorScheme.primary,
     onTextLayout: (TextLayoutResult) -> Unit,
 ) {
     val isEmojiOnly = allowBigEmojiOnly && LocalMessageRenderContext.current == MessageRenderContext.NORMAL &&
@@ -92,7 +95,7 @@ fun TextLikeMessageContent(
         }
     Text(
         text,
-        color = MaterialTheme.colorScheme.primary,
+        color = textColor,
         style = if (isEmojiOnly)
             Dimens.Conversation.emojiOnlyMessageStyle
         else

@@ -1,5 +1,6 @@
 package chat.schildi.revenge.compose.destination.conversation.event;
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable;
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
@@ -24,5 +25,5 @@ fun MessageFallback(
             append(text)
         }
     }
-    TextLikeMessage(formatted, isOwn, timestamp, inReplyTo, modifier)
+    TextLikeMessage(formatted, isOwn, timestamp, inReplyTo, modifier, textColor = MaterialTheme.colorScheme.secondary)
 }
