@@ -1,5 +1,6 @@
 package chat.schildi.revenge.actions
 
+import chat.schildi.revenge.config.keybindings.ActionArgument
 import chat.schildi.revenge.config.keybindings.handlesCommand
 
 class CommandParser(
@@ -32,6 +33,15 @@ class CommandParser(
             } else {
                 null
             }
+        }
+    }
+
+    fun normalizeArgs(args: List<String>, argDefinition: List<ActionArgument>): List<String> {
+        // Merge too many arguments we found into a single string to use as last argument, if allowed by this command.
+        return if (args.size > argDefinition.size && argDefinition.lastOrNull()?.consumesTrailingArgsWithSpace == true) {
+            args.take(argDefinition.size - 1) + args.subList(argDefinition.size - 1, args.size).joinToString(" ")
+        } else {
+            args
         }
     }
 }

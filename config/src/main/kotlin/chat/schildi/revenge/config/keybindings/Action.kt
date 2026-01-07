@@ -2,25 +2,28 @@ package chat.schildi.revenge.config.keybindings
 
 sealed interface ActionArgument {
     val name: String
+    val consumesTrailingArgsWithSpace: Boolean
     fun canHold(primitive: ActionArgumentPrimitive): Boolean
 }
 
 data class ActionArgumentOptional(val argument: ActionArgument) : ActionArgument {
     override val name: String
         get() = "[$argument]"
+    override val consumesTrailingArgsWithSpace = argument.consumesTrailingArgsWithSpace
     override fun canHold(primitive: ActionArgumentPrimitive) = argument == primitive
 }
 data class ActionArgumentAnyOf(val arguments: List<ActionArgumentPrimitive>) : ActionArgument {
     constructor(vararg arguments: ActionArgumentPrimitive) : this(arguments.toList())
     override val name: String
         get() = "any of: ${arguments.joinToString { it.name }}"
+    override val consumesTrailingArgsWithSpace = arguments.any { it.consumesTrailingArgsWithSpace }
     override fun canHold(primitive: ActionArgumentPrimitive) = arguments.contains(primitive)
 }
 sealed interface ActionArgumentContextBased : ActionArgument {
     fun getFor(context: CommandArgContext): ActionArgument
 }
 
-enum class ActionArgumentPrimitive : ActionArgument {
+enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: Boolean = false) : ActionArgument {
     Text,
     Reason,
     Boolean,
@@ -42,6 +45,7 @@ enum class ActionArgumentPrimitive : ActionArgument {
     EventType,
     StateEventType,
     NonEmptyStateKey,
+    UserName(consumesTrailingArgsWithSpace = true),
     Empty;
     override fun canHold(primitive: ActionArgumentPrimitive) = primitive == this
 }
@@ -71,6 +75,7 @@ fun Action.handlesCommand(command: String): Boolean {
 }
 
 fun Action.minArgsSize() = args.count { it !is ActionArgumentOptional }
+fun Action.maxArgsSize() = if (args.lastOrNull()?.consumesTrailingArgsWithSpace == true) Int.MAX_VALUE else args.size
 
 sealed interface Action {
     val name: String
@@ -207,6 +212,7 @@ sealed interface Action {
         Leave(aliases = listOf("part")),
         CopyRoomId,
         ClearEventCache(aliases = listOf("ClearRoomCache")),
+        SetRoomUserDisplayName(aliases = listOf("myroomnick"), args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.UserName))),
     }
     enum class Event(
         override val aliases: kotlin.collections.List<String> = emptyList(),

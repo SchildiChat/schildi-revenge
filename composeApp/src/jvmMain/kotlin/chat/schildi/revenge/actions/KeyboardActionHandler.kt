@@ -61,6 +61,7 @@ import chat.schildi.revenge.config.keybindings.KeyMapped
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.config.keybindings.KeybindingConfig
 import chat.schildi.revenge.config.keybindings.findAll
+import chat.schildi.revenge.config.keybindings.maxArgsSize
 import chat.schildi.revenge.config.keybindings.minArgsSize
 import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.REAL_SPACE_ID_PREFIX
@@ -1390,6 +1391,7 @@ class KeyboardActionHandler(
             }
             1 -> {
                 val action = possibleUniqueActionsWithValidArgs.first()
+                val normalizedArgs = commandParser.normalizeArgs(args, action.args)
                 val context = getInternalActionContext(
                     focused,
                     keybindingConfig = null,
@@ -1398,7 +1400,7 @@ class KeyboardActionHandler(
                 val result = try {
                     ActionResult.chain(
                         *possibleActions.filter { it.first == action }.map {{
-                            it.second.handleActionOrInapplicable(context, it.first, args)
+                            it.second.handleActionOrInapplicable(context, it.first, normalizedArgs)
                         }}.toTypedArray()
                     )
                 } catch (e: ActionValidationException) {
@@ -1689,6 +1691,7 @@ fun checkArgument(
         ActionArgumentPrimitive.EventType,
         ActionArgumentPrimitive.StateEventType,
         ActionArgumentPrimitive.NonEmptyStateKey,
+        ActionArgumentPrimitive.UserName,
         ActionArgumentPrimitive.Text -> null
         ActionArgumentPrimitive.SettingValue -> {
             val settingKeys = context.findAll(ActionArgumentPrimitive.SettingKey)
@@ -1871,7 +1874,8 @@ fun checkArguments(
 ): ActionResult.InvalidCommand? {
     val actionName = action.name
     val minArgSize = action.minArgsSize()
-    if (args.size !in minArgSize..action.args.size) {
+    val maxArgSize = action.maxArgsSize()
+    if (args.size !in minArgSize..maxArgSize) {
         val message = if (minArgSize != args.size) {
             "Invalid parameter size for $actionName, expected between $minArgSize and ${action.args.size}, got ${args.size}"
         } else {

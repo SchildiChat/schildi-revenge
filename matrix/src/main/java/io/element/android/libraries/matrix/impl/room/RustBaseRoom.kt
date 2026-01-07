@@ -326,6 +326,12 @@ class RustBaseRoom(
             innerRoom.fetchFullRoomState()
         }
     }
+
+    override suspend fun setRoomUserDisplayName(displayName: String?): Result<Unit> = withContext(roomDispatcher) {
+        runCatchingExceptions {
+            innerRoom.setUserDisplayname(displayName)
+        }
+    }
     // SC end
 
     override suspend fun saveComposerDraft(composerDraft: ComposerDraft, threadRoot: ThreadId?): Result<Unit> = withContext(roomDispatcher) {

@@ -25,6 +25,7 @@ fun String.destinationRequiresRoomId() = this in listOf("chat", "conversation", 
 
 data object NavigationDestinationSessionId : ActionArgumentContextBased {
     override val name: String = javaClass.simpleName
+    override val consumesTrailingArgsWithSpace = false
     override fun canHold(primitive: ActionArgumentPrimitive) = primitive == ActionArgumentPrimitive.SessionId
     override fun getFor(context: CommandArgContext): ActionArgument {
         val destinations = context.findAll(ActionArgumentPrimitive.NavigatableDestinationName)
@@ -39,6 +40,7 @@ data object NavigationDestinationSessionId : ActionArgumentContextBased {
 
 data object NavigationDestinationRoomId : ActionArgumentContextBased {
     override val name: String = javaClass.simpleName
+    override val consumesTrailingArgsWithSpace = false
     override fun canHold(primitive: ActionArgumentPrimitive) = primitive == ActionArgumentPrimitive.RoomId
     override fun getFor(context: CommandArgContext): ActionArgument {
         val destinations = context.findAll(ActionArgumentPrimitive.NavigatableDestinationName)

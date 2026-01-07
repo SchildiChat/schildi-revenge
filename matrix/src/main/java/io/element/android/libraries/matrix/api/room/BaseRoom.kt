@@ -190,6 +190,7 @@ interface BaseRoom : Closeable {
     suspend fun getRawState(eventType: String, stateKey: String): Result<String?>
     suspend fun getRawState(eventType: String): Result<List<String>>
     suspend fun fetchFullRoomState(): Result<List<String>>
+    suspend fun setRoomUserDisplayName(displayName: String?): Result<Unit>
     // SC end
 
     /**

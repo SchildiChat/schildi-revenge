@@ -273,6 +273,7 @@ class CommandSuggestionsProvider(
                 ActionArgumentPrimitive.SpaceId,
                 ActionArgumentPrimitive.SpaceSelectionId,
                 ActionArgumentPrimitive.SpaceIndex,
+                ActionArgumentPrimitive.UserName,
                 ActionArgumentPrimitive.Empty -> emptyList()
                 ActionArgumentPrimitive.EventType -> EVENT_TYPE_SUGGESTIONS.toSuggestionsWithoutHint()
                 ActionArgumentPrimitive.StateEventType -> roomStateEventSuggestions?.value?.toStateEventTypeSuggestions().orEmpty()
