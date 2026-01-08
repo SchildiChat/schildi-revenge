@@ -74,10 +74,14 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
@@ -105,6 +109,11 @@ import kotlin.collections.map
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.sqrt
+
+// When focusing certain elements by role, we want to disable following mouse focus for a second to avoid
+// any animations messing with the focus request
+private const val MOUSE_FOCUS_PAUSE_DURATION = 1000L
+private const val MOUSE_FOCUS_DEBOUNCE = 50L
 
 val LocalKeyboardActionHandler = compositionLocalOf<KeyboardActionHandler> {
     throw IllegalArgumentException("No keyboard action handler provided")
@@ -212,6 +221,7 @@ private data class KeyboardActionHandlerSettings(
     }
 }
 
+@OptIn(FlowPreview::class)
 class KeyboardActionHandler(
     private val scope: CoroutineScope,
     private val windowId: Int,
@@ -251,7 +261,11 @@ class KeyboardActionHandler(
         }
     )
 
-    private var pauseFocusFollowsMouse = false
+    private var pauseFocusFollowsMouseUntil: Long? = null
+    private val mouseFocusRequests = MutableSharedFlow<FocusTarget>(
+        replay = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
 
     private val _currentOpenContextMenu = MutableStateFlow<UUID?>(null)
     val currentOpenContextMenu = _currentOpenContextMenu.asStateFlow()
@@ -289,6 +303,10 @@ class KeyboardActionHandler(
     init {
         UiState.globalMessageBoard.onEach {
             publishMessage(it)
+        }.launchIn(scope)
+
+        mouseFocusRequests.distinctUntilChanged().onEach {
+            it.focusRequester.requestFocus()
         }.launchIn(scope)
     }
 
@@ -366,7 +384,9 @@ class KeyboardActionHandler(
             scope.launch {
                 focusRequester.requestFocus()
             }
-            pauseFocusFollowsMouse = role.autoRequestFocus
+            if (role.autoRequestFocus) {
+                pauseFocusFollowsMouseUntil = System.currentTimeMillis() + MOUSE_FOCUS_PAUSE_DURATION
+            }
             true
         } else {
             false
@@ -1183,7 +1203,7 @@ class KeyboardActionHandler(
         }
         val lostFocusTarget = lostFocusTargetId?.let { focusableTargets[it] }
         if (lostFocusTarget?.role?.autoRequestFocus == true && newFocus?.role?.autoRequestFocus == false) {
-            pauseFocusFollowsMouse = false
+            pauseFocusFollowsMouseUntil = null
         }
         lostFocusTarget?.let(::handleLostFocus)
     }
@@ -1233,22 +1253,36 @@ class KeyboardActionHandler(
     }
 
     fun handlePointer(position: Offset) {
+        // Remember pointer position
         if (_lastPointerPosition != position) {
             _lastPointerPosition = position
             _keyboardPrimary.value = false
         }
-        if (handlerSettings.value.focusFollowsMouse && !pauseFocusFollowsMouse) {
-            val focusable = focusableTargets.values.firstNotNullOfOrNull { target ->
-                target.takeIf {
-                    it.isFullyVisible &&
-                            it.role != FocusRole.CONTAINER &&
-                            it.role != FocusRole.DESTINATION_ROOT_CONTAINER &&
-                            it.role != FocusRole.NESTED_AUX_ITEM &&
-                            it.coordinates.contains(position)
-                }
+
+        // Check if we should focus any elements below the pointer
+        if (!handlerSettings.value.focusFollowsMouse) {
+            return
+        }
+        pauseFocusFollowsMouseUntil?.let {
+            if (it < System.currentTimeMillis()) {
+                pauseFocusFollowsMouseUntil = null
+            } else {
+                return
             }
-            // TODO flow + debounce + separate coroutine to avoid messing with composition
-            focusable?.focusRequester?.requestFocus()
+        }
+
+        // Find element to focus and request focus
+        val focusable = focusableTargets.values.firstNotNullOfOrNull { target ->
+            target.takeIf {
+                it.isFullyVisible &&
+                        it.role != FocusRole.CONTAINER &&
+                        it.role != FocusRole.DESTINATION_ROOT_CONTAINER &&
+                        it.role != FocusRole.NESTED_AUX_ITEM &&
+                        it.coordinates.contains(position)
+            }
+        }
+        focusable?.let {
+            mouseFocusRequests.tryEmit(it)
         }
     }
 
