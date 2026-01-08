@@ -34,4 +34,7 @@ data class KeyTrigger(
     val shift: Boolean,
     val alt: Boolean,
     val ctrl: Boolean,
-)
+) {
+    val anyModifier: Boolean
+        get() = shift || alt || ctrl
+}
