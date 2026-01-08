@@ -19,11 +19,13 @@ import io.element.android.x.di.AppGraph
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentHashMapOf
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentHashMap
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -273,6 +275,31 @@ object UiState {
 
     fun recreateUi() {
         _forceRecreationCounter.update { it + 1 }
+    }
+
+    fun recreateWindow(windowId: Int) {
+        // Do with a slight delay - while immediately within one update() call would work too to recreate it,
+        // I want to run this command to get broken window transparency to work, in which case doing both at the
+        // same time doesn't work, as for some reason only new windows after already having one open are allowed
+        // to get transparency in some scenarios? May be a window manager bug
+        scope.launch {
+            val newWindowId = windowCounter.fetchAndIncrement()
+            var found =  false
+            _windows.update {
+                val window = it.find { it.windowId == windowId }
+                if (window == null) {
+                    found = true
+                    it
+                } else {
+                    found = true
+                    (it + window.copy(windowId = newWindowId)).toImmutableList()
+                }
+            }
+            if (found) {
+                delay(50)
+                _windows.update { it.filter { it.windowId != windowId }.toImmutableList() }
+            }
+        }
     }
 
     fun setMinimized(minimized: Boolean) {

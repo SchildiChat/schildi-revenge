@@ -1115,6 +1115,10 @@ class KeyboardActionHandler(
                     UiState.recreateUi()
                     ActionResult.Success()
                 }
+                Action.Global.RecreateWindow -> {
+                    UiState.recreateWindow(windowId)
+                    ActionResult.Success()
+                }
                 Action.Global.ClearSessionCache -> {
                     val sessionId = SessionId(args.firstOrNull().orActionValidationError())
                     val client = UiState.currentClientFor(sessionId) ?: return ActionResult.Failure("Client not ready")
