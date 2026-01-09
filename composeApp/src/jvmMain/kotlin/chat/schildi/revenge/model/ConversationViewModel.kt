@@ -136,6 +136,7 @@ import shire.composeapp.generated.resources.action_redact_message_by_sender_prom
 import shire.composeapp.generated.resources.action_redact_message_prompt
 import shire.composeapp.generated.resources.command_copy_name_event_id
 import shire.composeapp.generated.resources.command_copy_name_event_source
+import shire.composeapp.generated.resources.command_copy_name_formatted_message_content
 import shire.composeapp.generated.resources.command_copy_name_full_room_state
 import shire.composeapp.generated.resources.command_copy_name_message_content
 import shire.composeapp.generated.resources.command_copy_name_mxc
@@ -1406,6 +1407,7 @@ class ConversationViewModel(
                     it - setOfNotNull(
                         Action.Event.JumpToRepliedTo,
                         Action.Event.CopyContent,
+                        Action.Event.CopyFormattedBody,
                         Action.Event.CopyContentLink,
                         Action.Event.OpenContentLinks,
                         Action.Event.JumpToRepliedTo,
@@ -1530,6 +1532,17 @@ class ConversationViewModel(
                     Action.Event.CopyContent -> {
                         (event.content as? MessageContent)?.body?.let { content ->
                             copyToClipboard(content, Res.string.command_copy_name_message_content.toStringHolder())
+                        } ?: ActionResult.Inapplicable
+                    }
+
+                    Action.Event.CopyFormattedBody -> {
+                        val formattedBody = when (val type = (event.content as? MessageContent)?.type) {
+                            is TextLikeMessageType -> type.formatted
+                            is MessageTypeWithAttachment -> type.formattedCaption
+                            else -> null
+                        }
+                        formattedBody?.let {
+                            copyToClipboard(it.body, Res.string.command_copy_name_formatted_message_content.toStringHolder())
                         } ?: ActionResult.Inapplicable
                     }
 

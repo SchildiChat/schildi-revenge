@@ -226,6 +226,7 @@ sealed interface Action {
         ComposeReply,
         ComposeReaction,
         CopyContent,
+        CopyFormattedBody,
         CopyEventSource,
         CopyEventId,
         CopyMxId,
