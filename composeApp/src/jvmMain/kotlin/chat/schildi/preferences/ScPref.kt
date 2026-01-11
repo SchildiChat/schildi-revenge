@@ -25,6 +25,7 @@ sealed interface ScPref<T> : AbstractScPref {
     val defaultValue: T
     // Value when the preference is disabled via dependencies. If null, return the actual value anyway. Subclasses should default this to defaultValue.
     val disabledValue: T?
+    val requiresWindowRecreation: Boolean
 
     val key: Preferences.Key<T>?
 
@@ -95,6 +96,7 @@ data class ScBoolPref(
     override val summaryRes: StringResource? = null,
     override val disabledValue: Boolean? = defaultValue,
     override val dependencies: List<ScPrefDependency> = emptyList(),
+    override val requiresWindowRecreation: Boolean = false,
 ): ScPref<Boolean> {
     override val key = booleanPreferencesKey(sKey)
     override fun ensureType(value: Any?): Boolean? {
@@ -115,6 +117,7 @@ data class ScIntPref(
     override val summaryRes: StringResource? = null,
     override val disabledValue: Int? = defaultValue,
     override val dependencies: List<ScPrefDependency> = emptyList(),
+    override val requiresWindowRecreation: Boolean = false,
     val minValue: Int = Int.MIN_VALUE,
     val maxValue: Int = Int.MAX_VALUE,
 ): ScPref<Int> {
@@ -137,6 +140,7 @@ data class ScFloatPref(
     override val summaryRes: StringResource? = null,
     override val disabledValue: Float? = defaultValue,
     override val dependencies: List<ScPrefDependency> = emptyList(),
+    override val requiresWindowRecreation: Boolean = false,
     val minValue: Float = Float.MIN_VALUE,
     val maxValue: Float = Float.MAX_VALUE,
 ): ScPref<Float> {
@@ -170,6 +174,7 @@ data class ScStringListPref(
     override val summaryRes: StringResource? = null,
     override val disabledValue: String = defaultValue,
     override val dependencies: List<ScPrefDependency> = emptyList(),
+    override val requiresWindowRecreation: Boolean = false,
 ): ScListPref<String> {
     override val key = stringPreferencesKey(sKey)
     override fun ensureType(value: Any?): String? {

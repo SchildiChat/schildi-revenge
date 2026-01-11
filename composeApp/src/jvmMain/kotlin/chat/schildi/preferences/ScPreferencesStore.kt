@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.AppMessage
@@ -75,6 +76,9 @@ class DefaultScPreferencesStore() : ScPreferencesStore {
             prefs[key] = value
         }
         cacheSetting(scPref, value)
+        if (scPref.requiresWindowRecreation) {
+            UiState.recreateUi()
+        }
     }
 
     private suspend fun <T>clearSetting(scPref: ScPref<T>) {

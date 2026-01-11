@@ -25,6 +25,8 @@ import shire.composeapp.generated.resources.pref_hide_message_authenticity_not_g
 import shire.composeapp.generated.resources.pref_hide_message_authenticity_not_guaranteed_title
 import shire.composeapp.generated.resources.pref_hide_message_authenticity_warnings_in_bridged_chats_summary
 import shire.composeapp.generated.resources.pref_hide_message_authenticity_warnings_in_bridged_chats_title
+import shire.composeapp.generated.resources.pref_hide_window_decoration_summary
+import shire.composeapp.generated.resources.pref_hide_window_decoration_title
 import shire.composeapp.generated.resources.pref_max_width_conversation_title
 import shire.composeapp.generated.resources.pref_max_width_inbox_title
 import shire.composeapp.generated.resources.pref_max_width_settings_title
@@ -134,8 +136,9 @@ object ScPrefs {
     */
 
     // Appearance
-    val BACKGROUND_ALPHA_LIGHT = ScFloatPref("BACKGROUND_ALPHA_LIGHT", 1f, Res.string.pref_window_transparency_title, Res.string.pref_window_transparency_summary, minValue = 0f, maxValue = 1f)
-    val BACKGROUND_ALPHA_DARK = ScFloatPref("BACKGROUND_ALPHA_DARK", 1f, Res.string.pref_window_transparency_title, Res.string.pref_window_transparency_summary, minValue = 0f, maxValue = 1f)
+    val HIDE_WINDOW_DECORATION = ScBoolPref("HIDE_WINDOW_DECORATION", false, Res.string.pref_hide_window_decoration_title, Res.string.pref_hide_window_decoration_summary, requiresWindowRecreation = true)
+    val BACKGROUND_ALPHA_LIGHT = ScFloatPref("BACKGROUND_ALPHA_LIGHT", 1f, Res.string.pref_window_transparency_title, Res.string.pref_window_transparency_summary, minValue = 0f, maxValue = 1f, dependencies = HIDE_WINDOW_DECORATION.asDependencies())
+    val BACKGROUND_ALPHA_DARK = ScFloatPref("BACKGROUND_ALPHA_DARK", 1f, Res.string.pref_window_transparency_title, Res.string.pref_window_transparency_summary, minValue = 0f, maxValue = 1f, dependencies = HIDE_WINDOW_DECORATION.asDependencies())
     val THEME_FOLLOW_SYSTEM = ScBoolPref("THEME_FOLLOW_SYSTEM", true, Res.string.pref_theme_follow_system_title, Res.string.pref_theme_follow_system_summary)
     val THEME_DARK = ScBoolPref("THEME_DARK", false, Res.string.pref_dark_theme_title, dependencies = listOf(THEME_FOLLOW_SYSTEM.toDependency(expect = false)))
     /*
@@ -242,6 +245,7 @@ object ScPrefs {
     val scTweaksAdvancedTheming = ScPrefCollection(
         Res.string.sc_pref_screen_advanced_theming_summary,
         listOf(
+            HIDE_WINDOW_DECORATION,
             ScPrefCategory(Res.string.pref_category_theme_light, null, listOf(
                 BACKGROUND_ALPHA_LIGHT,
                 /*

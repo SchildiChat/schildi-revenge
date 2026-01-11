@@ -62,11 +62,9 @@ fun main() {
                             ?: destinationState.destination.title?.render()
                             ?: appTitle
                         val composeWindowState = rememberWindowState()
-                        // Changing transparency later will cause a crash, so require restarts and blocking read for that
-                        val hasTransparency = remember {
+                        val hideDecoration = remember {
                             runBlocking {
-                                RevengePrefs.getSetting(ScPrefs.BACKGROUND_ALPHA_LIGHT) < 1f ||
-                                        RevengePrefs.getSetting(ScPrefs.BACKGROUND_ALPHA_DARK) < 1f
+                                RevengePrefs.getSetting(ScPrefs.HIDE_WINDOW_DECORATION)
                             }
                         }
                         val keyHandler = remember {
@@ -82,8 +80,11 @@ fun main() {
                             icon = painterResource(Res.drawable.ic_launcher),
                             onPreviewKeyEvent = keyHandler::onPreviewKeyEvent,
                             onKeyEvent = keyHandler::onKeyEvent,
-                            transparent = hasTransparency,
-                            decoration = WindowDecoration.Undecorated(),
+                            transparent = hideDecoration,
+                            decoration = if (hideDecoration)
+                                WindowDecoration.Undecorated()
+                            else
+                                WindowDecoration.SystemDefault,
                         ) {
                             // LocalFocusManager and LocalClipboard are not set outside the Window composable
                             val focusManager = LocalFocusManager.current

@@ -218,6 +218,8 @@
     <string name="pref_focus_follows_mouse_summary">Update keyboard focus immediately when moving the mouse</string>
     <string name="pref_auto_hide_composer_title">Auto-hide composer</string>
     <string name="pref_auto_hide_composer_summary">Hide composer on send</string>
+    <string name="pref_hide_window_decoration_title">Hide window decoration</string>
+    <string name="pref_hide_window_decoration_summary">Render windows without decoration. Only recommended if you have a window manager with good keyboard controls, and you want to enable window transparency settings.</string>
     <string name="pref_window_transparency_title">Window alpha</string>
     <string name="pref_window_transparency_summary">Control the window transparency. Results may vary depending on your operating systems / window manager.</string>
     <string name="pref_category_theme_light">Light theme</string>
