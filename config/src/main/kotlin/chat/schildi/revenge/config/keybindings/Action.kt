@@ -111,6 +111,7 @@ sealed interface Action {
         SplitHorizontal(aliases = listOf("vsplit")),
         SplitVertical(aliases = listOf("split")),
         CloseWindow(aliases = listOf("close")),
+        CloseWindowUnlessLast,
     }
     enum class NavigationItem(
         override val aliases: kotlin.collections.List<String> = emptyList(),

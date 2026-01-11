@@ -995,6 +995,14 @@ class KeyboardActionHandler(
                     UiState.closeWindow(windowId, applicationScope)
                     ActionResult.Success()
                 }
+                Action.Navigation.CloseWindowUnlessLast -> {
+                    if (UiState.windows.value.size > 1) {
+                        UiState.closeWindow(windowId, applicationScope)
+                        ActionResult.Success()
+                    } else {
+                        ActionResult.Inapplicable
+                    }
+                }
             }
         }
     }
