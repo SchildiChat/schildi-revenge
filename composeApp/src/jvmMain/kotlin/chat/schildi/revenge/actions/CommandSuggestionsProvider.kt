@@ -328,12 +328,12 @@ class CommandSuggestionsProvider(
     ): List<T> {
         val queryLower = query.lowercase()
         return filter {
-            // Sometimes we want to suggest even things that don't "start with"
+            // Sometimes startsWith(), sometimes contains() makes more sense
             when (arg) {
                 ActionArgumentPrimitive.SettingKey -> select(it).lowercase().contains(queryLower)
                 ActionArgumentPrimitive.RoomId -> select(it).lowercase().startsWith(queryLower) ||
                         selectHint(it)?.lowercase()?.contains(queryLower) == true
-                else -> select(it).lowercase().startsWith(queryLower)
+                else -> select(it).lowercase().contains(queryLower)
             }
         }
     }

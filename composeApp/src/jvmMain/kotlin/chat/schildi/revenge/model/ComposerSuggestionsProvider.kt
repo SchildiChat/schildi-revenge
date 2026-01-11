@@ -52,7 +52,7 @@ class ComposerSuggestionsProvider(
             currentCompletionEntity.startsWith(":") -> {
                 // Emojis
                 val shortcodePrefix = currentCompletionEntity.substring(1)
-                val suggestions = Emoji.list().filter { it.details.aliases.any { it.startsWith(shortcodePrefix) } }
+                val suggestions = Emoji.list().filter { it.details.aliases.any { it.contains(shortcodePrefix) } }
                     .map { ComposerEmojiSuggestion(it.details.string, it.details.description) }
                 ComposerSuggestionsState(suggestions.toImmutableList())
             }
