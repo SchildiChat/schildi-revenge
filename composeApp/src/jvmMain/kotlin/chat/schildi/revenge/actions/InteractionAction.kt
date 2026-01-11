@@ -27,6 +27,14 @@ sealed interface InteractionAction {
         val invoke: () -> Boolean,
     ) : InteractionAction
 
+    data class CopyToClipboard(
+        val text: String,
+    ) : InteractionAction
+
+    data class OpenInBrowser(
+        val url: String,
+    ) : InteractionAction
+
     data class ContextMenu(
         val focusId: UUID,
         val entries: ImmutableList<ContextMenuEntry>? // null for custom data types and rendering in the popup

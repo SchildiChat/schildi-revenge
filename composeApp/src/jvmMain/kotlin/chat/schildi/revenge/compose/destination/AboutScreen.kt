@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -20,14 +21,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
+import chat.schildi.revenge.BuildInfo
 import chat.schildi.revenge.Dimens
-import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
@@ -48,13 +45,22 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.about
+import shire.composeapp.generated.resources.about_build_date
+import shire.composeapp.generated.resources.about_build_info
 import shire.composeapp.generated.resources.about_credits
 import shire.composeapp.generated.resources.about_privacy_policy
+import shire.composeapp.generated.resources.about_release_variant
+import shire.composeapp.generated.resources.about_revision
+import shire.composeapp.generated.resources.about_rust_release_variant
+import shire.composeapp.generated.resources.about_rust_revision
 import shire.composeapp.generated.resources.about_source_code
 import shire.composeapp.generated.resources.about_website
 import shire.composeapp.generated.resources.app_title
 import shire.composeapp.generated.resources.hint_app_icon
 import shire.composeapp.generated.resources.ic_launcher
+
+private const val REVENGE_SOURCE_URL = "https://github.com/SchildiChat/schildi-revenge"
+private const val REVENGE_SDK_SOURCE_URL = "https://github.com/SchildiChat/matrix-rust-sdk"
 
 private data class ThirdPartyAcknowledgement(
     val name: String,
@@ -127,7 +133,7 @@ private val AppLinks = listOf(
     ),
     AppLink(
         name = Res.string.about_source_code.toStringHolder(),
-        url = "https://github.com/SchildiChat/schildi-revenge",
+        url = REVENGE_SOURCE_URL,
     ),
 )
 
@@ -192,6 +198,24 @@ fun AboutScreen(modifier: Modifier = Modifier) {
                                 )
                             )
                         )
+                    }
+                    item(key = "build_info") {
+                        AboutSectionHeader(stringResource(Res.string.about_build_info))
+                    }
+                    buildInfoItem("release_variant") {
+                        stringResource(Res.string.about_release_variant, BuildInfo.BUILD_TYPE)
+                    }
+                    buildInfoItem("rust_release_variant") {
+                        stringResource(Res.string.about_rust_release_variant, BuildInfo.RUST_PROFILE)
+                    }
+                    buildInfoItem("revision", action = InteractionAction.OpenInBrowser("$REVENGE_SOURCE_URL/commits/${BuildInfo.SOURCE_REVISION}")) {
+                        stringResource(Res.string.about_revision, BuildInfo.SOURCE_REVISION.take(12))
+                    }
+                    buildInfoItem("rust_revision", action = InteractionAction.OpenInBrowser("$REVENGE_SDK_SOURCE_URL/commits/${BuildInfo.SDK_REVISION}")) {
+                        stringResource(Res.string.about_rust_revision, BuildInfo.SDK_REVISION.take(12))
+                    }
+                    buildInfoItem("build_timestamp") {
+                        stringResource(Res.string.about_build_date, BuildInfo.BUILD_TIMESTAMP)
                     }
                 }
             }
@@ -293,6 +317,31 @@ private fun AppLinkItem(item: AppLink, modifier: Modifier = Modifier) {
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(16.dp)
             )
+        }
+    }
+}
+
+private fun LazyListScope.buildInfoItem(
+    key: String,
+    modifier: Modifier = Modifier,
+    action: InteractionAction? = null,
+    text: @Composable () -> String,
+) {
+    item(key = key) {
+        val text = text()
+        Box(modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            val copyAction = InteractionAction.CopyToClipboard(text)
+            SelectionContainer {
+                Text(
+                    text,
+                    Modifier.keyFocusable(
+                        actionProvider = actionProvider(
+                            primaryAction = action ?: copyAction,
+                            secondaryAction = copyAction,
+                        )
+                    ),
+                )
+            }
         }
     }
 }

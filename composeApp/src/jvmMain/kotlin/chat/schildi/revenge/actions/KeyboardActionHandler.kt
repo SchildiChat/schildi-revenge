@@ -431,6 +431,13 @@ class KeyboardActionHandler(
                 }
             }
             is InteractionAction.Invoke -> action.invoke()
+            is InteractionAction.CopyToClipboard -> {
+                val context = getActionContext(destinationStateHolder?.state?.value?.destination)
+                copyToClipboard(context, action.text, action.text.toStringHolder()) is ActionResult.Success
+            }
+            is InteractionAction.OpenInBrowser -> {
+                openLinkInExternalBrowser(action.url) is ActionResult.Success
+            }
             is InteractionAction.ContextMenu -> openContextMenu(action.focusId)
         }
     }

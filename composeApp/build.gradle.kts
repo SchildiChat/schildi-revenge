@@ -1,4 +1,13 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
+import java.io.ByteArrayOutputStream
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -7,6 +16,7 @@ plugins {
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.metro)
     alias(libs.plugins.kotlinxSerialization)
+    id("GitOperations")
 }
 kotlin {
     jvm()
@@ -47,6 +57,113 @@ kotlin {
             implementation(libs.kotlinx.coroutines.swing)
         }
     }
+}
+
+// --- Build variant info (debug/release) and codegen for BuildInfo ---
+// Evaluate at configuration time to avoid capturing gradle.startParameter in configuration cache
+val isReleaseBuild: Boolean = run {
+    val explicitProfile = (project.findProperty("rustProfile") as String?)?.lowercase()
+    val explicitReleaseFlag = (project.findProperty("releaseBuild") as String?)?.toBoolean()
+    when {
+        explicitProfile == "release" -> true
+        explicitProfile == "debug" -> false
+        explicitReleaseFlag == true -> true
+        else -> {
+            // Heuristic: packaging/distribution or release task names imply release
+            gradle.startParameter.taskNames.any {
+                val n = it.lowercase()
+                n.contains("release") || n.contains("package") || n.contains("distribut")
+            }
+        }
+    }
+}
+
+val buildType: String = if (isReleaseBuild) "release" else "debug"
+val rustProfile: String = if (isReleaseBuild) "release" else "debug"
+
+val generatedSrcDir = layout.buildDirectory.dir("generated/src/jvmMain/kotlin").get().asFile
+
+abstract class GenerateBuildInfoTask : DefaultTask() {
+    @get:Input
+    abstract val debugMode: Property<Boolean>
+
+    @get:Input
+    abstract val buildTypeValue: Property<String>
+
+    @get:Input
+    abstract val rustProfileValue: Property<String>
+
+    @get:Input
+    abstract val packageName: Property<String>
+
+    @get:Input
+    abstract val buildTimestamp: Property<String>
+
+    @get:Input
+    abstract val sourceRevision: Property<String>
+
+    @get:Input
+    abstract val sdkRevision: Property<String>
+
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
+
+    @TaskAction
+    fun generate() {
+        val outFile = outputFile.get().asFile
+        outFile.parentFile.mkdirs()
+        outFile.writeText(
+            """
+            |package ${packageName.get()}
+            |
+            |object BuildInfo {
+            |    const val DEBUG: Boolean = ${debugMode.get()}
+            |    const val BUILD_TYPE: String = "${buildTypeValue.get()}"
+            |    const val RUST_PROFILE: String = "${rustProfileValue.get()}"
+            |    const val BUILD_TIMESTAMP: String = "${buildTimestamp.get()}"
+            |    const val SOURCE_REVISION: String = "${sourceRevision.get()}"
+            |    const val SDK_REVISION: String = "${sdkRevision.get()}"
+            |}
+            |""".trimMargin()
+        )
+    }
+}
+
+val generateBuildInfo = tasks.register<GenerateBuildInfoTask>("generateBuildInfo") {
+    description = "Generate BuildInfo.kt with build type and rust profile"
+    group = "build"
+    val pkg = "chat.schildi.revenge"
+    val outDir = File(generatedSrcDir, pkg.replace('.', '/'))
+    val outFile = File(outDir, "BuildInfo.kt")
+
+    debugMode.set(!isReleaseBuild)
+    buildTypeValue.set(buildType)
+    rustProfileValue.set(rustProfile)
+    packageName.set(pkg)
+
+    buildTimestamp.set(LocalDateTime.now()
+        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+
+    val gitExt = project.extensions.getByName("git")
+    @Suppress("UNCHECKED_CAST")
+    val revisionProvider = (gitExt::class.java.getMethod("getFullRevision", String::class.java).invoke(gitExt, null) as Provider<String>)
+    sourceRevision.set(revisionProvider)
+
+    @Suppress("UNCHECKED_CAST")
+    val sdkRevisionProvider = (gitExt::class.java.getMethod("getFullRevision", String::class.java).invoke(gitExt, "matrix-rust-sdk") as Provider<String>)
+    sdkRevision.set(sdkRevisionProvider)
+
+    outputFile.set(outFile)
+}
+
+// Add generated sources to jvmMain
+kotlin.sourceSets.named("jvmMain") {
+    kotlin.srcDir(generatedSrcDir)
+}
+
+// Ensure codegen runs before compiling JVM sources
+tasks.named("compileKotlinJvm").configure {
+    dependsOn(generateBuildInfo)
 }
 
 compose.desktop {

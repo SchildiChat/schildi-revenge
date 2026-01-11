@@ -8,7 +8,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * This tries to:
  * - Resolve the OS-specific library filename (libmatrix_sdk_ffi.so/.dylib or matrix_sdk_ffi.dll)
- * - Find it under ../matrix-rust-sdk/target/debug relative to the project (development flow)
+ * - Find it under ../matrix-rust-sdk/target/{debug|release} relative to the project
  * - Add that directory to jna.library.path so JNA can locate it
  * - Eagerly System.load(<absolute path>) if the file exists to avoid lazy-loading errors
  * TODO revise for release builds and possible packaging; and clean up AI stuff
@@ -31,12 +31,14 @@ object SdkLoader {
                 }
             }
 
+            val rustFlavor = BuildInfo.RUST_PROFILE
+
             // Try to resolve path relative to the repo root when running from sources.
-            // matrix module dir is .../schildi-revenge/matrix; we want ../matrix-rust-sdk/target/debug/<lib>
+            // matrix module dir is .../schildi-revenge/matrix; we want ../matrix-rust-sdk/target/{debug|release}/<lib>
             val candidateDirs = buildList<File> {
                 // 1) Working directory (useful when running from repo root)
-                add(File("matrix-rust-sdk/target/debug"))
-                add(File("./matrix-rust-sdk/target/debug").absoluteFile)
+                add(File("matrix-rust-sdk/target/$rustFlavor"))
+                add(File("./matrix-rust-sdk/target/$rustFlavor").absoluteFile)
                 // 2) Relative to this class location: .../build/classes/... -> go up to project root heuristically
                 val codeSource = SdkLoader::class.java.protectionDomain?.codeSource?.location
                 val fromClasses = codeSource?.toURI()?.let { File(it).absoluteFile }
@@ -44,7 +46,7 @@ object SdkLoader {
                     var f: File? = fromClasses
                     repeat(5) { // walk up a few levels to reach repo root in typical layouts
                         f = f?.parentFile
-                        val dir = f?.resolve("matrix-rust-sdk/target/debug")
+                        val dir = f?.resolve("matrix-rust-sdk/target/$rustFlavor")
                         if (dir != null) add(dir)
                     }
                 }

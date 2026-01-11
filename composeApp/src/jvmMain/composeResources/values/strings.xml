@@ -9,6 +9,12 @@
     <string name="about_privacy_policy">Privacy Policy</string>
     <string name="about_website">Website</string>
     <string name="about_source_code">Source Code</string>
+    <string name="about_build_info">Build info</string>
+    <string name="about_build_date">Build date: %1$s</string>
+    <string name="about_revision">Source revision: %1$s</string>
+    <string name="about_rust_revision">SDK revision: %1$s</string>
+    <string name="about_release_variant">Variant: %1$s</string>
+    <string name="about_rust_release_variant">SDK variant: %1$s</string>
 
     <string name="action_login">Login</string>
     <string name="action_verify">Verify</string>
