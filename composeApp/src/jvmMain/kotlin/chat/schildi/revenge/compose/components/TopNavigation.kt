@@ -130,6 +130,7 @@ fun RowScope.TopNavigationSearchOrTitle(title: String, modifier: Modifier = Modi
     AnimatedContent(
         searchBarVisible,
         modifier.weight(1f),
+        transitionSpec = { fadeIn(Dimens.tween()) togetherWith fadeOut(Dimens.tween()) }
     ) { searchBarVisible ->
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (searchBarVisible) {
