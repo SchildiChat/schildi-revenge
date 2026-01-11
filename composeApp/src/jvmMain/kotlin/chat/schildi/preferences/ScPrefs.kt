@@ -27,6 +27,10 @@ import shire.composeapp.generated.resources.pref_hide_message_authenticity_warni
 import shire.composeapp.generated.resources.pref_hide_message_authenticity_warnings_in_bridged_chats_title
 import shire.composeapp.generated.resources.pref_hide_window_decoration_summary
 import shire.composeapp.generated.resources.pref_hide_window_decoration_title
+import shire.composeapp.generated.resources.pref_initial_window_height_summary
+import shire.composeapp.generated.resources.pref_initial_window_height_title
+import shire.composeapp.generated.resources.pref_initial_window_width_summary
+import shire.composeapp.generated.resources.pref_initial_window_width_title
 import shire.composeapp.generated.resources.pref_max_width_conversation_title
 import shire.composeapp.generated.resources.pref_max_width_inbox_title
 import shire.composeapp.generated.resources.pref_max_width_settings_title
@@ -136,6 +140,8 @@ object ScPrefs {
     */
 
     // Appearance
+    val INITIAL_WINDOW_WIDTH = ScIntPref("INITIAL_WINDOW_WIDTH", 900, Res.string.pref_initial_window_width_title, Res.string.pref_initial_window_width_summary, minValue = 600, maxValue = 3840)
+    val INITIAL_WINDOW_HEIGHT = ScIntPref("INITIAL_WINDOW_HEIGHT", 1200, Res.string.pref_initial_window_height_title, Res.string.pref_initial_window_height_summary, minValue = 600, maxValue = 2160)
     val HIDE_WINDOW_DECORATION = ScBoolPref("HIDE_WINDOW_DECORATION", false, Res.string.pref_hide_window_decoration_title, Res.string.pref_hide_window_decoration_summary, requiresWindowRecreation = true)
     val BACKGROUND_ALPHA_LIGHT = ScFloatPref("BACKGROUND_ALPHA_LIGHT", 1f, Res.string.pref_window_transparency_title, Res.string.pref_window_transparency_summary, minValue = 0f, maxValue = 1f, dependencies = HIDE_WINDOW_DECORATION.asDependencies())
     val BACKGROUND_ALPHA_DARK = ScFloatPref("BACKGROUND_ALPHA_DARK", 1f, Res.string.pref_window_transparency_title, Res.string.pref_window_transparency_summary, minValue = 0f, maxValue = 1f, dependencies = HIDE_WINDOW_DECORATION.asDependencies())
@@ -245,6 +251,8 @@ object ScPrefs {
     val scTweaksAdvancedTheming = ScPrefCollection(
         Res.string.sc_pref_screen_advanced_theming_summary,
         listOf(
+            INITIAL_WINDOW_WIDTH,
+            INITIAL_WINDOW_HEIGHT,
             HIDE_WINDOW_DECORATION,
             ScPrefCategory(Res.string.pref_category_theme_light, null, listOf(
                 BACKGROUND_ALPHA_LIGHT,

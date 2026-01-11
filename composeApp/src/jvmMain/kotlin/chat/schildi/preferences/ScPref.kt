@@ -1,6 +1,5 @@
 package chat.schildi.preferences
 
-import androidx.compose.ui.graphics.Color
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
@@ -9,7 +8,6 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import co.touchlab.kermit.Logger
 import kotlinx.collections.immutable.ImmutableList
-import org.jetbrains.compose.resources.StringArrayResource
 import org.jetbrains.compose.resources.StringResource
 
 sealed interface AbstractScPref {
@@ -147,7 +145,7 @@ data class ScFloatPref(
     override val key = floatPreferencesKey(sKey)
     override fun ensureType(value: Any?): Float? {
         if (value !is Float?) {
-            Logger.withTag("ScIntPref").e("Parse float failed of $sKey for ${value?.javaClass?.simpleName}")
+            Logger.withTag("ScFloatPref").e("Parse float failed of $sKey for ${value?.javaClass?.simpleName}")
             return null
         }
         return value?.coerceIn(minValue, maxValue)

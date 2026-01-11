@@ -13,6 +13,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowDecoration
 import androidx.compose.ui.window.application
@@ -61,7 +63,14 @@ fun main() {
                         val title = destinationState.titleOverride?.render()
                             ?: destinationState.destination.title?.render()
                             ?: appTitle
-                        val composeWindowState = rememberWindowState()
+                        val initialWidth = ScPrefs.INITIAL_WINDOW_WIDTH.value()
+                        val initialHeight = ScPrefs.INITIAL_WINDOW_HEIGHT.value()
+                        val composeWindowState = rememberWindowState(
+                            size = DpSize(
+                                initialWidth.dp,
+                                initialHeight.dp,
+                            )
+                        )
                         val hideDecoration = remember {
                             runBlocking {
                                 RevengePrefs.getSetting(ScPrefs.HIDE_WINDOW_DECORATION)
