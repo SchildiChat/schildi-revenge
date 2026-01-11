@@ -118,6 +118,8 @@ data class ScIntPref(
     override val requiresWindowRecreation: Boolean = false,
     val minValue: Int = Int.MIN_VALUE,
     val maxValue: Int = Int.MAX_VALUE,
+    val stepSize: Int = 1,
+    val allowLiveSliderChange: Boolean = true,
 ): ScPref<Int> {
     override val key = intPreferencesKey(sKey)
     override fun ensureType(value: Any?): Int? {
@@ -141,6 +143,9 @@ data class ScFloatPref(
     override val requiresWindowRecreation: Boolean = false,
     val minValue: Float = Float.MIN_VALUE,
     val maxValue: Float = Float.MAX_VALUE,
+    val stepSize: Float = 0.1f,
+    val stringFormat: String = "%.1f",
+    val allowLiveSliderChange: Boolean = true,
 ): ScPref<Float> {
     override val key = floatPreferencesKey(sKey)
     override fun ensureType(value: Any?): Float? {

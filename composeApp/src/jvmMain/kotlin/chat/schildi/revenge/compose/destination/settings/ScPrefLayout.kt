@@ -36,6 +36,7 @@ fun <T> ScPref<T>.ScPrefLayout(
     focusId: UUID = rememberFocusId(),
     selectionAsSummary: Boolean = false,
     valueToString: @Composable (T) -> String = { it.toString() },
+    secondaryContent: @Composable ((value: T, enabled: Boolean) -> Unit)? = null,
     trailing: @Composable ((value: T, enabled: Boolean) -> Unit)? = null,
 ) {
     val currentValue = value()
@@ -67,8 +68,11 @@ fun <T> ScPref<T>.ScPrefLayout(
                 else
                     MaterialTheme.colorScheme.tertiary
             ).value
-            Text(it, color = color)
-        }},
+            Column(verticalArrangement = Dimens.verticalArrangement) {
+                Text(it, color = color)
+                secondaryContent?.invoke(currentValue, enabled)
+            }
+        }} ?: secondaryContent?.let {{ it.invoke(currentValue, enabled) }},
         trailing = trailing?.let {{
             it.invoke(currentValue, enabled)
         }},

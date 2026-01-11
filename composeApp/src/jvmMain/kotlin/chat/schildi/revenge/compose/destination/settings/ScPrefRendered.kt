@@ -1,16 +1,25 @@
 package chat.schildi.revenge.compose.destination.settings
 
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import chat.schildi.preferences.AbstractScPref
 import chat.schildi.preferences.LocalScPreferencesStore
 import chat.schildi.preferences.ScBoolPref
@@ -23,6 +32,7 @@ import chat.schildi.preferences.ScPrefCollection
 import chat.schildi.preferences.ScPrefContainer
 import chat.schildi.preferences.ScPrefScreen
 import chat.schildi.preferences.ScStringListPref
+import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.compose.components.ContextMenuEntry
@@ -37,6 +47,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import kotlin.math.roundToInt
 
 fun LazyListScope.renderPref(
     pref: AbstractScPref,
@@ -149,10 +160,72 @@ fun <T> ScPref<T>.RenderedWithTextField() {
 }
 
 @Composable
-fun ScIntPref.Rendered() = RenderedWithTextField()
+fun ScIntPref.Rendered() {
+    val persist = persistSettingValue()
+    ScPrefLayout(
+        secondaryContent = { persistedValue, enabled ->
+            Row(
+                horizontalArrangement = Dimens.horizontalArrangementSmall,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                var value by remember(persistedValue) { mutableIntStateOf(persistedValue) }
+                Text(
+                    value.toString(),
+                    modifier = Modifier.widthIn(min = 64.dp),
+                )
+                Slider(
+                    value = value.toFloat(),
+                    onValueChange = {
+                        if (allowLiveSliderChange) {
+                            persist(it.roundToInt())
+                        } else {
+                            value = it.roundToInt()
+                        }
+                    },
+                    onValueChangeFinished = { persist(value) }.takeIf { !allowLiveSliderChange },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = enabled,
+                    valueRange = minValue.toFloat()..maxValue.toFloat(),
+                    steps = (maxValue - minValue) / stepSize - 1,
+                )
+            }
+        },
+    )
+}
 
 @Composable
-fun ScFloatPref.Rendered() = RenderedWithTextField()
+fun ScFloatPref.Rendered() {
+    val persist = persistSettingValue()
+    ScPrefLayout(
+        secondaryContent = { persistedValue, enabled ->
+            Row(
+                horizontalArrangement = Dimens.horizontalArrangementSmall,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                var value by remember(persistedValue) { mutableFloatStateOf(persistedValue) }
+                Text(
+                    String.format(stringFormat, value),
+                    modifier = Modifier.widthIn(min = 64.dp),
+                )
+                Slider(
+                    value = value,
+                    onValueChange = {
+                        if (allowLiveSliderChange) {
+                            persist(it)
+                        } else {
+                            value = it
+                        }
+                    },
+                    onValueChangeFinished = { persist(value) }.takeIf { !allowLiveSliderChange },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = enabled,
+                    valueRange = minValue..maxValue,
+                    steps = ((maxValue - minValue) / stepSize).roundToInt() - 1,
+                )
+            }
+        },
+    )
+}
 
 @Composable
 fun <T> ScListPref<T>.Rendered() {
