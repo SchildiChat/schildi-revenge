@@ -8,10 +8,10 @@ import java.util.concurrent.atomic.AtomicBoolean
  *
  * This tries to:
  * - Resolve the OS-specific library filename (libmatrix_sdk_ffi.so/.dylib or matrix_sdk_ffi.dll)
- * - Find it under ../matrix-rust-sdk/target/{debug|release} relative to the project
+ * - For packaged releases: look in the app's installation directory
+ * - For development: find it under ../matrix-rust-sdk/target/{debug|release} relative to the project
  * - Add that directory to jna.library.path so JNA can locate it
  * - Eagerly System.load(<absolute path>) if the file exists to avoid lazy-loading errors
- * TODO revise for release builds and possible packaging; and clean up AI stuff
  */
 object SdkLoader {
     private val loaded = AtomicBoolean(false)
@@ -33,16 +33,30 @@ object SdkLoader {
 
             val rustFlavor = BuildInfo.RUST_PROFILE
 
-            // Try to resolve path relative to the repo root when running from sources.
-            // matrix module dir is .../schildi-revenge/matrix; we want ../matrix-rust-sdk/target/{debug|release}/<lib>
+            // Try to resolve library path, checking packaged locations first, then development paths
             val candidateDirs = buildList<File> {
-                // 1) Working directory (useful when running from repo root)
-                add(File("matrix-rust-sdk/target/$rustFlavor"))
-                add(File("./matrix-rust-sdk/target/$rustFlavor").absoluteFile)
-                // 2) Relative to this class location: .../build/classes/... -> go up to project root heuristically
                 val codeSource = SdkLoader::class.java.protectionDomain?.codeSource?.location
                 val fromClasses = codeSource?.toURI()?.let { File(it).absoluteFile }
+                
                 if (fromClasses != null) {
+                    // 1) Check for packaged app structure (jpackage/AppImage)
+                    // The library should be in the app directory next to app/
+                    // Structure: <app-dir>/lib/ or <app-dir>/app/ (jar) + <app-dir>/<libname>
+                    var appDir: File? = fromClasses
+                    // Navigate up from the jar/class location to find app root
+                    repeat(10) {
+                        appDir = appDir?.parentFile
+                        if (appDir != null) {
+                            // Try app root directory itself
+                            add(appDir)
+                            // Try lib subdirectory
+                            add(File(appDir, "lib"))
+                            // Try app subdirectory (common jpackage structure)
+                            add(File(appDir, "app"))
+                        }
+                    }
+                    
+                    // 2) Relative to this class location: .../build/classes/... -> go up to project root heuristically
                     var f: File? = fromClasses
                     repeat(5) { // walk up a few levels to reach repo root in typical layouts
                         f = f?.parentFile
@@ -50,6 +64,10 @@ object SdkLoader {
                         if (dir != null) add(dir)
                     }
                 }
+                
+                // 3) Working directory (useful when running from repo root during development)
+                add(File("matrix-rust-sdk/target/$rustFlavor"))
+                add(File("./matrix-rust-sdk/target/$rustFlavor").absoluteFile)
             }
 
             for (dir in candidateDirs) {

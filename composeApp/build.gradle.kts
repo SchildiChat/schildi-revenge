@@ -5,7 +5,6 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import java.io.ByteArrayOutputStream
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
@@ -192,4 +191,39 @@ compose.desktop {
             packageVersion = "0.1.0"
         }
     }
+}
+
+// Copy native library to distribution lib directory
+val rustSdkDir = layout.projectDirectory.dir("../matrix-rust-sdk").asFile
+val ffiLibName: String = run {
+    val os = org.gradle.internal.os.OperatingSystem.current()
+    when {
+        os.isWindows -> "matrix_sdk_ffi.dll"
+        os.isMacOsX -> "libmatrix_sdk_ffi.dylib"
+        else -> "libmatrix_sdk_ffi.so"
+    }
+}
+
+val copyNativeLib = tasks.register<Copy>("copyNativeLibToDistribution") {
+    description = "Copy native matrix-sdk-ffi library to distribution lib directory"
+    group = "distribution"
+
+    val ffiLib = rustSdkDir.resolve("target/${rustProfile}/${ffiLibName}")
+    from(ffiLib)
+
+    // Copy to the lib directory of the app distribution
+    into(layout.buildDirectory.dir("compose/binaries/main/app/chat.schildi.revenge/lib"))
+
+    dependsOn(":matrix:buildSdk")
+}
+
+// Run after packaging tasks to copy library to distribution
+tasks.matching {
+    it.name == "createDistributable" ||
+    it.name == "packageDistributionForCurrentOS" ||
+    it.name == "packageAppImage" ||
+    it.name == "packageDeb" ||
+    it.name == "packageRpm"
+}.configureEach {
+    finalizedBy(copyNativeLib)
 }
