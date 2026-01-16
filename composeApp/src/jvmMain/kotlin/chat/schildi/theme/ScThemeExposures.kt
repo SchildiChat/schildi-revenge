@@ -28,9 +28,10 @@ class ScThemeExposures(
     timestampOverlayFgOnBg: Color,
     unreadIndicatorLine: Color?,
     unreadIndicatorThickness: Dp,
-    mentionFg: Color?,
-    mentionBg: Color?,
-    mentionBgOther: Color?,
+    mentionFg: Color,
+    mentionBg: Color,
+    mentionFgHighlight: Color,
+    mentionBgHighlight: Color,
     greenFg: Color?,
     greenBg: Color?,
     messageHighlightBg: Color?,
@@ -84,7 +85,9 @@ class ScThemeExposures(
         private set
     var mentionBg by mutableStateOf(mentionBg)
         private set
-    var mentionBgOther by mutableStateOf(mentionBgOther)
+    var mentionFgHighlight by mutableStateOf(mentionFgHighlight)
+        private set
+    var mentionBgHighlight by mutableStateOf(mentionBgHighlight)
         private set
     var greenFg by mutableStateOf(greenFg)
         private set
@@ -127,9 +130,10 @@ class ScThemeExposures(
         timestampOverlayFgOnBg: Color = this.timestampOverlayFgOnBg,
         unreadIndicatorLine: Color? = this.unreadIndicatorLine,
         unreadIndicatorThickness: Dp = this.unreadIndicatorThickness,
-        mentionFg: Color? = this.mentionFg,
-        mentionBg: Color? = this.mentionBg,
-        mentionBgOther: Color? = this.mentionBgOther,
+        mentionFg: Color = this.mentionFg,
+        mentionBg: Color = this.mentionBg,
+        mentionFgHighlight: Color = this.mentionFgHighlight,
+        mentionBgHighlight: Color = this.mentionBgHighlight,
         greenFg: Color? = this.greenFg,
         greenBg: Color? = this.greenBg,
         messageHighlightBg: Color? = this.messageHighlightBg,
@@ -162,7 +166,8 @@ class ScThemeExposures(
         unreadIndicatorThickness = unreadIndicatorThickness,
         mentionFg = mentionFg,
         mentionBg = mentionBg,
-        mentionBgOther = mentionBgOther,
+        mentionFgHighlight = mentionFgHighlight,
+        mentionBgHighlight = mentionBgHighlight,
         greenFg = greenFg,
         greenBg = greenBg,
         messageHighlightBg = messageHighlightBg,
@@ -197,7 +202,8 @@ class ScThemeExposures(
         unreadIndicatorThickness = other.unreadIndicatorThickness
         mentionFg = other.mentionFg
         mentionBg = other.mentionBg
-        mentionBgOther = other.mentionBgOther
+        mentionFgHighlight = other.mentionFgHighlight
+        mentionBgHighlight = other.mentionBgHighlight
         greenFg = other.greenFg
         greenBg = other.greenBg
         messageHighlightBg = other.messageHighlightBg

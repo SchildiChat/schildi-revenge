@@ -16,6 +16,7 @@ kdroidfilterPlatformtools = "0.7.4"
 kdroidfilterComposeNativeTray = "1.0.4"
 ktoml = "0.7.1"
 ktor = "3.3.3"
+beeperMessageFormat = "d70f21d55f24f0474a157ede0fcca938087717df"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -44,6 +45,8 @@ kdroidfilter_platformtools_darkmodedetector = { group = "io.github.kdroidfilter"
 kdroidfilter_composenativetray = { group = "io.github.kdroidfilter", name = "composenativetray", version.ref = "kdroidfilterComposeNativeTray" }
 kodein-emojiKt = { group = "org.kodein.emoji", name = "emoji-kt", version = "2.3.0" }
 ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
+#beeper-messageformat = { module = "com.beeper.android.messageformat:messageformat-jvm", version = "1.0" }
+beeper-messageformat = { module = "com.github.beeper.matrix-messageformat-compose:messageformat-jvm", version.ref = "beeperMessageFormat" }
 jsoup = "org.jsoup:jsoup:1.21.2"
 
 [plugins]

@@ -50,7 +50,7 @@ import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.components.WithContextMenu
 import chat.schildi.revenge.compose.focus.rememberFocusId
-import chat.schildi.revenge.model.ConversationViewModel
+import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.model.InboxViewModel
 import chat.schildi.revenge.model.ScopedRoomKey
 import chat.schildi.theme.scExposures

@@ -9,7 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
-import chat.schildi.revenge.model.ConversationViewModel
+import chat.schildi.revenge.model.conversation.ConversationViewModel
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId

@@ -73,6 +73,8 @@ object Dimens {
             bottom = windowPadding,
         )
 
+        const val mentionBgRadius = 8f
+
         val textMessageStyle
             @Composable get() = MaterialTheme.typography.bodyLarge
         val emojiOnlyMessageStyle

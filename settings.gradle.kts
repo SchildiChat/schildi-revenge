@@ -34,6 +34,19 @@ dependencyResolutionManagement {
                 includeGroupAndSubgroups("chat.schildi")
             }
         }
+
+        maven {
+            url = URI("https://www.jitpack.io")
+            content {
+                includeGroupAndSubgroups("com.github")
+            }
+        }
+
+        mavenLocal {
+            mavenContent {
+                includeGroupAndSubgroups("com.beeper.android.messageformat")
+            }
+        }
     }
 }
 

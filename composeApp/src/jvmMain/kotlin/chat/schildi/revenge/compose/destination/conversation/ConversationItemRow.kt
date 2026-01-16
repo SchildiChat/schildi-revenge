@@ -18,8 +18,9 @@ import chat.schildi.revenge.compose.destination.conversation.virtual.DayHeader
 import chat.schildi.revenge.compose.destination.conversation.virtual.NewMessagesLine
 import chat.schildi.revenge.compose.destination.conversation.virtual.PagingIndicator
 import chat.schildi.revenge.compose.destination.conversation.virtual.RoomBeginning
-import chat.schildi.revenge.model.ConversationViewModel
-import chat.schildi.revenge.model.TimestampSettings
+import chat.schildi.revenge.model.conversation.ConversationViewModel
+import chat.schildi.revenge.model.conversation.ScTimelineItem
+import chat.schildi.revenge.model.conversation.TimestampSettings
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
@@ -31,10 +32,10 @@ import kotlinx.collections.immutable.persistentListOf
 @Composable
 fun ConversationItemRow(
     viewModel: ConversationViewModel,
-    item: MatrixTimelineItem,
+    item: ScTimelineItem,
     roomMembersById: ImmutableMap<UserId, RoomMember>,
-    next: MatrixTimelineItem?,
-    previous: MatrixTimelineItem?,
+    next: ScTimelineItem?,
+    previous: ScTimelineItem?,
     highlight: EventHighlight,
     timestampSettings: TimestampSettings,
     modifier: Modifier = Modifier,
@@ -43,9 +44,9 @@ fun ConversationItemRow(
         if (previous == null) {
             Spacer(Modifier.height(Dimens.windowPadding))
         }
-        when (item) {
+        when (item.item) {
             is MatrixTimelineItem.Virtual -> {
-                when (val virtualItem = item.virtual) {
+                when (val virtualItem = item.item.virtual) {
                     is VirtualTimelineItem.DayDivider -> DayHeader(virtualItem)
                     is VirtualTimelineItem.LoadingIndicator -> PagingIndicator()
                     VirtualTimelineItem.ReadMarker -> NewMessagesLine()
@@ -60,19 +61,20 @@ fun ConversationItemRow(
             }
 
             is MatrixTimelineItem.Event -> {
-                val previousEvent = (previous as? MatrixTimelineItem.Event)?.event
+                val previousEvent = (previous?.item as? MatrixTimelineItem.Event)?.event
                 val previousSender = previousEvent?.sender
-                val isSameAsPreviousSender = previousSender == item.event.sender &&
+                val isSameAsPreviousSender = previousSender == item.item.event.sender &&
                         previousEvent.content is MessageContent
                 val padding = when (previousSender) {
                     null -> 0.dp
-                    item.event.sender -> Dimens.Conversation.messageSameSenderPadding
+                    item.item.event.sender -> Dimens.Conversation.messageSameSenderPadding
                     else -> Dimens.Conversation.messageOtherSenderPadding
                 }
                 Spacer(Modifier.height(padding))
                 EventRow(
                     viewModel,
-                    item.event,
+                    item.item.event,
+                    item.messageMetadata,
                     isSameAsPreviousSender = isSameAsPreviousSender,
                     roomMembersById = roomMembersById,
                     highlight = highlight,

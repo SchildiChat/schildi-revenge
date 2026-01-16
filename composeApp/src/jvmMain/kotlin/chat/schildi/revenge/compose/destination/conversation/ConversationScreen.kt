@@ -39,7 +39,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Anim
-import chat.schildi.revenge.model.ConversationViewModel
+import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.FocusRole
@@ -54,10 +54,14 @@ import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.composer.ComposerRow
 import chat.schildi.revenge.compose.destination.SplashScreenContent
 import chat.schildi.revenge.compose.destination.conversation.event.EventHighlight
+import chat.schildi.revenge.compose.destination.conversation.event.message.LocalMatrixBodyDrawStyle
+import chat.schildi.revenge.compose.destination.conversation.event.message.LocalMatrixBodyFormatter
 import chat.schildi.revenge.compose.destination.conversation.event.message.LocalUrlPreviewStateProvider
+import chat.schildi.revenge.compose.destination.conversation.event.message.matrixBodyDrawStyle
+import chat.schildi.revenge.compose.destination.conversation.event.message.matrixBodyFormatter
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
-import chat.schildi.revenge.model.EventJumpTarget
+import chat.schildi.revenge.model.conversation.EventJumpTarget
 import chat.schildi.revenge.publishTitle
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.media.MediaSource
@@ -126,7 +130,7 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
             }
             val index = when(targetEvent) {
                 is EventJumpTarget.Event -> timelineItems.indexOfFirst { item ->
-                    (item as? MatrixTimelineItem.Event)?.eventId == targetEvent.eventId
+                    (item.item as? MatrixTimelineItem.Event)?.eventId == targetEvent.eventId
                 }.let {
                     if (it >= 0) {
                         // Reverse list not applied here yet
@@ -187,6 +191,8 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
             LocalUserIdSuggestionsProvider provides viewModel,
             LocalRoomContextSuggestionsProvider provides viewModel.roomContextSuggestionsProvider,
             LocalListActionProvider provides listAction,
+            LocalMatrixBodyFormatter provides matrixBodyFormatter(),
+            LocalMatrixBodyDrawStyle provides matrixBodyDrawStyle(),
             role = FocusRole.DESTINATION_ROOT_CONTAINER,
         ) {
             val roomMembersById = viewModel.roomMembersById.collectAsState()
@@ -224,10 +230,10 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
                     itemsIndexed(
                         renderedItems,
                         key = { index, item ->
-                            when (item) {
-                                is MatrixTimelineItem.Event -> item.eventId ?: item.transactionId ?: index
+                            when (item.item) {
+                                is MatrixTimelineItem.Event -> item.item.eventId ?: item.item.transactionId ?: index
                                 MatrixTimelineItem.Other -> index
-                                is MatrixTimelineItem.Virtual -> item.uniqueId
+                                is MatrixTimelineItem.Virtual -> item.item.uniqueId
                             }
                         },
                     ) { index, item ->
@@ -235,12 +241,12 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
                         val next = renderedItems.getOrNull(index - 1)
                         val previous = renderedItems.getOrNull(index + 1)
                         val highlight = when {
-                            item !is MatrixTimelineItem.Event -> EventHighlight.NONE
+                            item.item !is MatrixTimelineItem.Event -> EventHighlight.NONE
                             highlightedActionEventId is EventOrTransactionId.Event &&
-                                    item.eventId == highlightedActionEventId.eventId -> EventHighlight.ACTION_TARGET
+                                    item.item.eventId == highlightedActionEventId.eventId -> EventHighlight.ACTION_TARGET
                             highlightedActionEventId is EventOrTransactionId.Transaction &&
-                                    item.transactionId == highlightedActionEventId.id -> EventHighlight.ACTION_TARGET
-                            highlightedJumpTargetEventId != null && item.eventId == highlightedJumpTargetEventId -> EventHighlight.JUMP_TARGET
+                                    item.item.transactionId == highlightedActionEventId.id -> EventHighlight.ACTION_TARGET
+                            highlightedJumpTargetEventId != null && item.item.eventId == highlightedJumpTargetEventId -> EventHighlight.JUMP_TARGET
                             else -> EventHighlight.NONE
                         }
                         ConversationItemRow(

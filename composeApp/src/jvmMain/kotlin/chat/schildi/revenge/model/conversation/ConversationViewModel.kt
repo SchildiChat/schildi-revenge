@@ -1,6 +1,7 @@
-package chat.schildi.revenge.model
+package chat.schildi.revenge.model.conversation
 
 import android.net.Uri
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
@@ -40,12 +41,26 @@ import chat.schildi.revenge.actions.parseRoomStateSnapshot
 import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.compose.util.StringResourceHolder
-import chat.schildi.revenge.compose.util.UrlUtil
 import chat.schildi.revenge.compose.util.insertAtCursor
 import chat.schildi.revenge.compose.util.insertTextFieldValue
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
+import chat.schildi.revenge.model.Attachment
+import chat.schildi.revenge.model.ComposerRoomMentionSuggestion
+import chat.schildi.revenge.model.ComposerSuggestion
+import chat.schildi.revenge.model.ComposerSuggestionsProvider
+import chat.schildi.revenge.model.ComposerSuggestionsState
+import chat.schildi.revenge.model.ComposerUserMentionSuggestion
+import chat.schildi.revenge.model.ComposerViewModel
+import chat.schildi.revenge.model.DraftMention
+import chat.schildi.revenge.model.DraftRepo
+import chat.schildi.revenge.model.DraftType
+import chat.schildi.revenge.model.DraftValue
+import chat.schildi.revenge.model.PersistentAttachmentDownload
+import chat.schildi.revenge.model.RoomActionProvider
+import chat.schildi.revenge.model.ScopedRoomKey
+import chat.schildi.revenge.model.getCurrentCompletionEntity
 import chat.schildi.revenge.toPrettyJson
 import chat.schildi.revenge.util.MimeUtil
 import chat.schildi.revenge.util.tryOrNull
@@ -123,7 +138,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
 import java.awt.FileDialog
@@ -229,7 +243,8 @@ class ConversationViewModel(
 
     private val timelineFilterSettings = scPreferencesStore.combinedSettingFlow { lookup ->
         buildScTimelineFilterSettings(lookup)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly,
+    }.stateIn(
+        viewModelScope, SharingStarted.Eagerly,
         buildScTimelineFilterSettings { scPreferencesStore.getCachedOrDefaultValue(it) }
     )
 
@@ -264,7 +279,8 @@ class ConversationViewModel(
 
     private val composerSettings = scPreferencesStore.combinedSettingFlow { lookup ->
         ComposerSettings.from(lookup)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly,
+    }.stateIn(
+        viewModelScope, SharingStarted.Eagerly,
         ComposerSettings.from { scPreferencesStore.getCachedOrDefaultValue(it) }
     )
 
@@ -348,22 +364,28 @@ class ConversationViewModel(
                             emptyList()
                         }
                     }
+
                     is MatrixTimelineItem.Virtual -> {
                         // Only show room beginning and paging indicator virtual items during search
                         when (it.virtual) {
                             is VirtualTimelineItem.LoadingIndicator,
                             VirtualTimelineItem.RoomBeginning,
                             VirtualTimelineItem.LastForwardIndicator -> listOf(it)
+
                             is VirtualTimelineItem.DayDivider,
                             VirtualTimelineItem.ReadMarker,
                             VirtualTimelineItem.TypingNotification -> emptyList()
                         }
                     }
+
                     is MatrixTimelineItem.Other -> emptyList()
                 }
             }
+        }?.map {
+            it.toScTimelineItem(MessageFormatDefaults.parser, MessageFormatDefaults.parseStyle)
         }?.toPersistentList()
-    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+    }.flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val forwardPaginationStatus = activeTimeline.flatMapLatest { it?.forwardPaginationStatus ?: flowOf(null) }
     val backwardPaginationStatus = activeTimeline.flatMapLatest { it?.backwardPaginationStatus ?: flowOf(null) }
@@ -386,7 +408,7 @@ class ConversationViewModel(
         }
     }
 
-    private val draftKey = DraftKey(sessionId, roomId)
+    private val draftKey = ScopedRoomKey(sessionId, roomId)
     override val composerState = DraftRepo.followDraft(draftKey).map {
         it ?: DraftValue()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, DraftValue())
@@ -1395,7 +1417,10 @@ class ConversationViewModel(
         }
     }
 
-    fun getKeyboardActionProviderForEvent(event: EventTimelineItem): KeyboardActionProvider<Action.Event> {
+    fun getKeyboardActionProviderForEvent(
+        event: EventTimelineItem,
+        messageMetadata: MessageMetadata?,
+    ): KeyboardActionProvider<Action.Event> {
         val eventId = event.eventId
         val eventOrTransactionId = tryOrNull {
             EventOrTransactionId.from(event.eventId, event.transactionId)
@@ -1481,7 +1506,9 @@ class ConversationViewModel(
 
                                 is MessageTypeWithAttachment -> DraftValue(
                                     type = DraftType.EDIT_CAPTION,
-                                    textFieldValue = insertTextFieldValue(messageType.caption ?: ""),
+                                    textFieldValue = insertTextFieldValue(
+                                        messageType.caption ?: ""
+                                    ),
                                     editEventId = eventOrTransactionId,
                                     initialBody = messageType.caption ?: "",
                                     // Not supported yet, TODO formatted edits?
@@ -1572,16 +1599,18 @@ class ConversationViewModel(
                     }
 
                     Action.Event.CopyContentLink -> {
-                        (event.content as? MessageContent)?.body?.let { content ->
-                            UrlUtil.extractUrlsFromText(content).firstOrNull()?.let {
-                                copyToClipboard(content, Res.string.command_copy_name_url.toStringHolder())
+                        messageMetadata?.preFormattedContent?.text?.let { content ->
+                            content.getLinkAnnotations(0, content.length).firstNotNullOfOrNull {
+                                it.item as? LinkAnnotation.Url
+                            }?.url?.let { url ->
+                                copyToClipboard(url, Res.string.command_copy_name_url.toStringHolder())
                             }
                         } ?: ActionResult.Inapplicable
                     }
 
                     Action.Event.OpenContentLinks -> {
-                        (event.content as? MessageContent)?.body?.let { content ->
-                            val links = UrlUtil.extractUrlsFromText(content)
+                        messageMetadata?.preFormattedContent?.let { content ->
+                            val links = content.extractUrls()
                             if (links.isEmpty()) {
                                 ActionResult.Inapplicable
                             } else {

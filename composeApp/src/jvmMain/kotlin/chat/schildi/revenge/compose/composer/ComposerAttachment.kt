@@ -51,18 +51,21 @@ fun ComposerAttachment(
                     FileMessageContent(
                         type = FileMessageRenderType.VIDEO,
                         filename = attachment.file.name,
+                        messageMetadata = null,
                     )
                 }
                 is Attachment.Audio -> {
                     FileMessageContent(
                         type = FileMessageRenderType.AUDIO,
                         filename = attachment.file.name,
+                        messageMetadata = null,
                     )
                 }
                 is Attachment.Generic -> {
                     FileMessageContent(
                         type = FileMessageRenderType.FILE,
                         filename = attachment.file.name,
+                        messageMetadata = null,
                     )
                 }
             }

@@ -29,7 +29,7 @@ import chat.schildi.revenge.DateTimeFormat
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.revenge.compose.components.thenIf
-import chat.schildi.revenge.model.TimestampSettings
+import chat.schildi.revenge.model.conversation.TimestampSettings
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.timeline.item.event.EventCanBeEdited
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem

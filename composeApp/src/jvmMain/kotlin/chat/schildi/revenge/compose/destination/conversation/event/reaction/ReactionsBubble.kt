@@ -29,7 +29,7 @@ import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.revenge.compose.util.containsOnlyEmojis
-import chat.schildi.revenge.model.ConversationViewModel
+import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.theme.rememberEmojiFontFamily
 import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage

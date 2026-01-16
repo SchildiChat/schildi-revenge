@@ -24,8 +24,9 @@ import chat.schildi.revenge.compose.destination.conversation.event.reaction.Reac
 import chat.schildi.revenge.compose.destination.conversation.virtual.ConversationDividerLine
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.focus.rememberFocusId
-import chat.schildi.revenge.model.ConversationViewModel
-import chat.schildi.revenge.model.TimestampSettings
+import chat.schildi.revenge.model.conversation.ConversationViewModel
+import chat.schildi.revenge.model.conversation.MessageMetadata
+import chat.schildi.revenge.model.conversation.TimestampSettings
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
@@ -44,6 +45,7 @@ enum class EventHighlight {
 fun EventRow(
     viewModel: ConversationViewModel,
     event: EventTimelineItem,
+    messageMetadata: MessageMetadata?,
     isSameAsPreviousSender: Boolean,
     roomMembersById: ImmutableMap<UserId, RoomMember>,
     highlight: EventHighlight,
@@ -68,7 +70,7 @@ fun EventRow(
                     FocusRole.LIST_ITEM,
                     focusId,
                     actionProvider = actionProvider(
-                        keyActions = eventRowKeyboardActionProvider(viewModel, event),
+                        keyActions = eventRowKeyboardActionProvider(viewModel, event, messageMetadata),
                         primaryAction = eventClickAction(viewModel, currentActionContext(), event),
                         secondaryAction = openContextMenu,
                     ),
@@ -82,6 +84,7 @@ fun EventRow(
             }
             EventContentLayout(
                 content = event.content,
+                messageMetadata = messageMetadata,
                 senderId = event.sender,
                 senderProfile = event.senderProfile,
                 isOwn = event.isOwn,
@@ -109,10 +112,11 @@ fun EventRow(
 @Composable
 private fun eventRowKeyboardActionProvider(
     viewModel: ConversationViewModel,
-    event: EventTimelineItem
+    event: EventTimelineItem,
+    messageMetadata: MessageMetadata?,
 ): HierarchicalKeyboardActionProvider {
     val ownHandler = remember(viewModel, event) {
-        viewModel.getKeyboardActionProviderForEvent(event)
+        viewModel.getKeyboardActionProviderForEvent(event, messageMetadata)
     }
     return ownHandler.hierarchicalKeyboardActionProvider()
 }

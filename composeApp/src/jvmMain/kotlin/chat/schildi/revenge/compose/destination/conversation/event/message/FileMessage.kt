@@ -26,6 +26,8 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.model.conversation.MessageMetadata
+import com.beeper.android.messageformat.MatrixBodyParseResult
 import io.element.android.libraries.matrix.api.timeline.item.event.AudioMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.FileMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.ImageMessageType
@@ -47,6 +49,7 @@ enum class FileMessageRenderType(val icon: ImageVector) {
 @Composable
 fun FileMessage(
     file: MessageTypeWithAttachment,
+    messageMetadata: MessageMetadata?,
     isOwn: Boolean,
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
@@ -61,6 +64,7 @@ fun FileMessage(
             is VideoMessageType -> FileMessageRenderType.VIDEO
             is VoiceMessageType -> FileMessageRenderType.VOICE
         },
+        messageMetadata = messageMetadata,
         filename = file.filename,
         caption = file.caption,
         isOwn = isOwn,
@@ -73,6 +77,7 @@ fun FileMessage(
 @Composable
 fun FileMessage(
     type: FileMessageRenderType,
+    messageMetadata: MessageMetadata?,
     filename: String,
     caption: String?,
     isOwn: Boolean,
@@ -95,6 +100,7 @@ fun FileMessage(
         }
         FileMessageContent(
             type = type,
+            messageMetadata = messageMetadata,
             filename = filename,
             // TODO formatted caption
             caption = caption?.let { AnnotatedString(it) },
@@ -107,6 +113,7 @@ fun FileMessage(
 @Composable
 fun ColumnScope.FileMessageContent(
     type: FileMessageRenderType,
+    messageMetadata: MessageMetadata?,
     filename: String,
     caption: AnnotatedString? = null,
     onCaptionTextLayout: (TextLayoutResult?) -> Unit = {},
@@ -121,14 +128,14 @@ fun ColumnScope.FileMessageContent(
                 .padding(Dimens.Conversation.messageBubbleInnerPadding)
         )
         TextLikeMessageContent(
-            AnnotatedString(filename),
+            MatrixBodyParseResult(filename),
             allowBigEmojiOnly = false,
             onTextLayout = if (caption == null) onCaptionTextLayout else {{}},
         )
     }
     if (caption != null) {
         TextLikeMessageContent(
-            caption,
+            messageMetadata?.preFormattedContent ?: MatrixBodyParseResult(caption),
             allowBigEmojiOnly = false,
             modifier = Modifier.padding(top = Dimens.Conversation.captionPadding),
             onTextLayout = onCaptionTextLayout,

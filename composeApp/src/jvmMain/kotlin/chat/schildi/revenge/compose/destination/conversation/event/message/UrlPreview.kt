@@ -39,10 +39,11 @@ import chat.schildi.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.components.thenIf
 import chat.schildi.revenge.compose.media.imageLoader
-import chat.schildi.revenge.compose.util.UrlUtil
+import chat.schildi.revenge.model.conversation.extractUrls
 import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.SubcomposeAsyncImageContent
+import com.beeper.android.messageformat.MatrixBodyParseResult
 import io.element.android.libraries.core.data.tryOrNull
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.BaseRoom
@@ -113,7 +114,7 @@ private fun String.isAllowedUrlPrefix(): Boolean {
 }
 
 @Composable
-fun resolveUrlPreview(body: String): UrlPreviewInfo? {
+fun resolveUrlPreview(body: MatrixBodyParseResult): UrlPreviewInfo? {
     if (LocalMessageRenderContext.current == MessageRenderContext.IN_REPLY_TO) {
         return null
     }
@@ -123,37 +124,7 @@ fun resolveUrlPreview(body: String): UrlPreviewInfo? {
     // Whether to only linkify links that explicitly contain "https://" at the beginning.
     val requireExplicitHttps = ScPrefs.URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS.value()
     LaunchedEffect(body, requireExplicitHttps) {
-        /* TODO from formatted body links
-        val formattedBody = content.formattedBody as? Spanned
-        if (formattedBody == null) {
-            previewStateHolder = null
-            return@LaunchedEffect
-        }
-        val urlSpans = formattedBody.getSpans<URLSpan>()
-        if (urlSpans.isEmpty()) {
-            previewStateHolder = null
-            return@LaunchedEffect
-        }
-        val urls = formattedBody.getSpans<URLSpan>().mapNotNull { urlSpan ->
-            val urlSpanStart = formattedBody.getSpanStart(urlSpan).takeIf { it != -1 } ?: return@mapNotNull null
-            val urlSpanEnd = formattedBody.getSpanEnd(urlSpan).takeIf { it != -1 } ?: return@mapNotNull null
-            if (formattedBody.getSpans<CustomMentionSpan>(urlSpanStart, urlSpanEnd).isNotEmpty() ||
-                formattedBody.getSpans<MentionSpan>(urlSpanStart, urlSpanEnd).isNotEmpty()) {
-                // Don't mind links in mentions
-                return@mapNotNull null
-            }
-            if (!formattedBody.substring(0, urlSpanStart).isAllowedUrlPrefix()) {
-                return@mapNotNull null
-            }
-            Pair(urlSpan, urlSpanStart)
-        }.sortedBy {
-            // Sort by link start position
-            it.second
-        }.mapNotNull { (urlSpan, _) ->
-            urlSpan.url.toPreviewableUrl(requireExplicitHttps)
-        }
-         */
-        val urls = UrlUtil.extractUrlsFromText(body)
+        val urls = body.extractUrls()
         urls.firstOrNull()?.let { url ->
             previewStateHolder = urlPreviewStateProvider.getStateHolder(url)
         } ?: run {

@@ -9,6 +9,7 @@ import chat.schildi.revenge.compose.destination.conversation.event.message.TextL
 import chat.schildi.revenge.compose.destination.conversation.event.message.TimestampOverlayContent
 import chat.schildi.revenge.compose.destination.conversation.event.sender.SenderAvatar
 import chat.schildi.revenge.compose.destination.conversation.event.sender.SenderName
+import chat.schildi.revenge.model.conversation.MessageMetadata
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.timeline.item.event.AudioMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.CallNotifyContent
@@ -47,6 +48,7 @@ import shire.composeapp.generated.resources.message_placeholder_unknown
 @Composable
 fun EventContentLayout(
     content: EventContent,
+    messageMetadata: MessageMetadata?,
     senderId: UserId,
     senderProfile: ProfileDetails,
     isOwn: Boolean,
@@ -88,10 +90,10 @@ fun EventContentLayout(
             EventMessageLayout {
                 when (val contentType = content.type) {
                     is TextLikeMessageType -> {
-                        TextLikeMessage(contentType, isOwn, timestamp, inReplyTo)
+                        TextLikeMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo)
                     }
                     is ImageLikeMessageType -> {
-                        ImageMessage(contentType, isOwn, timestamp, inReplyTo)
+                        ImageMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo)
                     }
                     is LocationMessageType -> {
                         // TODO
@@ -99,18 +101,18 @@ fun EventContentLayout(
                     }
                     is AudioMessageType -> {
                         // TODO audio-message specific rendering
-                        FileMessage(contentType, isOwn, timestamp, inReplyTo)
+                        FileMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo)
                     }
                     is FileMessageType -> {
-                        FileMessage(contentType, isOwn, timestamp, inReplyTo)
+                        FileMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo)
                     }
                     is VideoMessageType -> {
                         // TODO video-message specific rendering
-                        FileMessage(contentType, isOwn, timestamp, inReplyTo)
+                        FileMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo)
                     }
                     is VoiceMessageType -> {
                         // TODO voice-message specific rendering
-                        FileMessage(contentType, isOwn, timestamp, inReplyTo)
+                        FileMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo)
                     }
                     is OtherMessageType -> {
                         MessageFallback(
@@ -128,6 +130,7 @@ fun EventContentLayout(
             val caption = content.body?.takeIf { content.filename.isNotEmpty() && content.filename != it }
             ImageMessage(
                 source = content.source,
+                messageMetadata = messageMetadata,
                 caption = caption,
                 isOwn = isOwn,
                 timestamp = timestamp,

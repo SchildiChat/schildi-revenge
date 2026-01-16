@@ -9,6 +9,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.withStyle
 import chat.schildi.revenge.compose.destination.conversation.event.message.TextLikeMessage
 import chat.schildi.revenge.compose.destination.conversation.event.message.TimestampOverlayContent
+import com.beeper.android.messageformat.MatrixBodyParseResult
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 
 @Composable
@@ -25,5 +26,12 @@ fun MessageFallback(
             append(text)
         }
     }
-    TextLikeMessage(formatted, isOwn, timestamp, inReplyTo, modifier, textColor = MaterialTheme.colorScheme.secondary)
+    TextLikeMessage(
+        MatrixBodyParseResult(formatted),
+        isOwn,
+        timestamp,
+        inReplyTo,
+        modifier,
+        textColor = MaterialTheme.colorScheme.secondary,
+    )
 }

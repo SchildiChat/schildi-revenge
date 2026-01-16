@@ -21,7 +21,9 @@ import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.revenge.compose.media.onAsyncImageError
+import chat.schildi.revenge.model.conversation.MessageMetadata
 import coil3.compose.AsyncImage
+import com.beeper.android.messageformat.MatrixBodyParseResult
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.timeline.item.event.ImageLikeMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
@@ -31,6 +33,7 @@ import io.element.android.libraries.matrix.ui.media.MediaRequestData
 @Composable
 fun ImageMessage(
     image: ImageLikeMessageType,
+    messageMetadata: MessageMetadata?,
     isOwn: Boolean,
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
@@ -38,6 +41,7 @@ fun ImageMessage(
 ) {
     ImageMessage(
         source = image.source,
+        messageMetadata = messageMetadata,
         caption = image.caption,
         isOwn = isOwn,
         timestamp = timestamp,
@@ -50,6 +54,7 @@ fun ImageMessage(
 @Composable
 fun ImageMessage(
     source: MediaSource,
+    messageMetadata: MessageMetadata?,
     caption: String?,
     isOwn: Boolean,
     timestamp: TimestampOverlayContent?,
@@ -92,8 +97,7 @@ fun ImageMessage(
                 MessageRenderContext.NORMAL -> Dimens.Conversation.imageMaxHeight
                 MessageRenderContext.IN_REPLY_TO -> Dimens.Conversation.imageRepliedToMaxHeight
             },
-            // TODO formatted caption
-            caption = caption?.let { AnnotatedString(it) },
+            caption = caption?.let { messageMetadata?.preFormattedContent ?: MatrixBodyParseResult(it) },
             shape = shape,
         ) {
             captionLayoutResult.value = it
@@ -108,7 +112,7 @@ fun ColumnScope.ImageMessageContent(
     minHeight: Dp,
     maxWidth: Dp,
     maxHeight: Dp,
-    caption: AnnotatedString? = null,
+    caption: MatrixBodyParseResult? = null,
     shape: Shape = Dimens.Conversation.messageBubbleShape,
     onCaptionTextLayout: (TextLayoutResult?) -> Unit = {},
 ) {

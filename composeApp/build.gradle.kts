@@ -44,6 +44,7 @@ kotlin {
             implementation(libs.kodein.emojiKt)
             implementation(libs.ktor.core)
             implementation(libs.jsoup)
+            implementation(libs.beeper.messageformat)
 
             implementation(projects.matrix)
             implementation(projects.config)
