@@ -478,7 +478,8 @@ class KeyboardActionHandler(
             } else {
                 it.filter { it.uniqueId != message.uniqueId }
             }
-            (filtered + message).toPersistentList()
+            // That distinctBy looks unnecessary, but I got a unique lazy layout key constraint before somehow
+            (filtered + message).distinctBy { it.uniqueId ?: it.timestamp }.toPersistentList()
         }
     }
 

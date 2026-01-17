@@ -31,7 +31,7 @@ import kotlinx.collections.immutable.ImmutableList
 @Composable
 fun AppMessages(messages: ImmutableList<AbstractAppMessage>, modifier: Modifier = Modifier) {
     LazyColumn(modifier.fillMaxWidth()) {
-        items(messages, key = { it.uniqueId ?: it }) { message ->
+        items(messages, key = { it.uniqueId ?: it.timestamp }) { message ->
             AnimatedVisibility(
                 visible = message.dismissedTimestamp == null,
                 enter = slideInVertically(tween(Anim.DURATION)) { it } +
