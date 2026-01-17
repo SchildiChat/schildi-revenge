@@ -40,9 +40,12 @@ import chat.schildi.revenge.ipc.SingleInstance
 fun main() {
     SdkLoader.ensureLoaded()
     // Avoid ugly JVM crash dialog. May want to replace with our own branded crash screen later.
-    Thread.setDefaultUncaughtExceptionHandler { t, e ->
-        Logger.e("Schildi encountered a fatal error in ${t.name}", e)
-        exitProcess(1)
+    // On Windows keep it, since I don't know how to get crash logs otherwise, and it's less ugly there anyway.
+    if (!System.getProperty("os.name").lowercase().contains("win")) {
+        Thread.setDefaultUncaughtExceptionHandler { t, e ->
+            Logger.e("Schildi encountered a fatal error in ${t.name}", e)
+            exitProcess(1)
+        }
     }
     // Ensure single instance and set up IPC to restore window on subsequent launches
     SingleInstance.ensureSingleInstanceOrExit()
