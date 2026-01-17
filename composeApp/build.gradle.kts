@@ -245,7 +245,9 @@ tasks.matching {
     it.name == "packageDistributionForCurrentOS" ||
     it.name == "packageAppImage" ||
     it.name == "packageDeb" ||
-    it.name == "packageRpm"
+    it.name == "packageRpm" ||
+    it.name == "packageMsi" ||
+    it.name == "packageExe"
 }.configureEach {
     finalizedBy(copyNativeLib)
 }
