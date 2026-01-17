@@ -637,32 +637,44 @@ class KeyboardActionHandler(
                 true
             }
             KeyMapped.Tab -> {
-                val (commandMode, suggestionsState) = commandSuggestionsState.value ?: run {
-                    log.e("Tried handling command mode key while not ready via suggestions state")
-                    return true
-                }
-                if (suggestionsState?.currentSuggestions.isNullOrEmpty()) {
-                    return true
-                }
-                val currentSuggestionIndex = if (commandMode.selectedSuggestion == null) {
+                val direction = if (key.ctrl || key.shift) {
                     -1
                 } else {
-                    suggestionsState.currentSuggestions.indexOfFirst { it.value == commandMode.selectedSuggestion }
+                    1
                 }
-                val nextIndex = if (key.ctrl || key.shift) {
-                    currentSuggestionIndex - 1
-                } else {
-                    currentSuggestionIndex + 1
-                }.mod(suggestionsState.currentSuggestions.size + 1) // + 1 allows clearing selection again
-                val nextSuggestion = suggestionsState.currentSuggestions.getOrNull(nextIndex)?.value
-                updateMode {
-                    commandMode.copy(selectedSuggestion = nextSuggestion)
-                }
+                cycleCommandSuggestions(direction)
                 true
             }
-            KeyMapped.DirectionUp -> false // TODO cycle search history; configurable binding?
-            KeyMapped.DirectionDown -> false // TODO cycle search history; configurable binding?
+            KeyMapped.DirectionUp -> {
+                cycleCommandSuggestions(-1)
+                true
+            }
+            KeyMapped.DirectionDown -> {
+                cycleCommandSuggestions(1)
+                true
+            }
             else -> false
+        }
+    }
+
+    private fun cycleCommandSuggestions(direction: Int) {
+        val (commandMode, suggestionsState) = commandSuggestionsState.value ?: run {
+            log.e("Tried handling command mode key while not ready via suggestions state")
+            return
+        }
+        if (suggestionsState?.currentSuggestions.isNullOrEmpty()) {
+            return
+        }
+        val currentSuggestionIndex = if (commandMode.selectedSuggestion == null) {
+            -1
+        } else {
+            suggestionsState.currentSuggestions.indexOfFirst { it.value == commandMode.selectedSuggestion }
+        }
+        val nextIndex = (currentSuggestionIndex + direction)
+            .mod(suggestionsState.currentSuggestions.size + 1) // + 1 allows clearing selection again
+        val nextSuggestion = suggestionsState.currentSuggestions.getOrNull(nextIndex)?.value
+        updateMode {
+            commandMode.copy(selectedSuggestion = nextSuggestion)
         }
     }
 
