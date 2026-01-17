@@ -35,3 +35,6 @@ dpi=192
 base_folder="$mydir/../composeApp/src/jvmMain/composeResources/drawable"
 file="$mydir/ic_launcher_foreground.svg"
 export_files_custom "ic_launcher.png"
+
+# Windows .ico
+magick convert "$base_folder-hdpi/ic_launcher.png" "$mydir/ic_launcher.ico"

@@ -188,8 +188,29 @@ compose.desktop {
                 TargetFormat.Msi,
                 // TargetFormat.Dmg, // Needs Apple volunteers
             )
-            packageName = "chat.schildi.revenge"
+            packageName = "SchildiChatRevenge"
             packageVersion = "0.1.0"
+            vendor = "SchildiChat"
+            description = "SchildiChat Revenge"
+
+            windows {
+                menu = true
+                shortcut = true
+                upgradeUuid = "7eeda045-d26f-475c-878f-497427b502e3"
+
+                // Windows requires .ico
+                iconFile.set(project.file("../graphics/ic_launcher.ico"))
+            }
+
+            linux {
+                shortcut = true
+                appCategory = "Network;Chat"
+
+                iconFile.set(project.file("src/jvmMain/composeResources/drawable-xxxhdpi/ic_launcher.png"))
+
+                debMaintainer = "SpiritCroc <shire@spiritcroc.de>"
+                rpmLicenseType = "AGPL-3.0-only"
+            }
         }
     }
 }
@@ -213,7 +234,7 @@ val copyNativeLib = tasks.register<Copy>("copyNativeLibToDistribution") {
     from(ffiLib)
 
     // Copy to the lib directory of the app distribution
-    into(layout.buildDirectory.dir("compose/binaries/main/app/chat.schildi.revenge/lib"))
+    into(layout.buildDirectory.dir("compose/binaries/main/app/SchildiChatRevenge/lib"))
 
     dependsOn(":matrix:buildSdk")
 }
