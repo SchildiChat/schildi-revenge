@@ -26,7 +26,7 @@ To customize them, copy either
 (the default config if not customized) or
 [the more opinionated example config](https://github.com/SchildiChat/schildi-revenge/blob/main/example-config/keybindings.toml)
 to `~/.config/SchildiChatRevenge/keybindings.toml` (on typical Linux systems)
-or `AppData/SchildiChatRevenge/keybindings.toml` (on Windows).
+or `AppData/Local/SchildiChatRevenge/keybindings.toml` (on Windows).
 
 Once the config exists, SchildiChat will reload its settings automatically whenever you edit the file even while
 SchildiChat is running, to make it easier trying out different settings without having to restart.
