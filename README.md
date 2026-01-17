@@ -18,6 +18,52 @@ A desktop Matrix client written in kotlin / Compose Multiplatform based on the M
 - Long-term: Good enough for non-power-users to use mouse-only / intuitively
 
 
+## Customizable keybindings
+
+Schildi Revenge has highly customizable keyboard actions (that I still need to properly document at some point).  
+To customize them, copy either
+[`keybindings-default.toml`](https://github.com/SchildiChat/schildi-revenge/blob/main/composeApp/src/jvmMain/composeResources/files/keybindings-default.toml)
+(the default config if not customized) or
+[the more opinionated example config](https://github.com/SchildiChat/schildi-revenge/blob/main/example-config/keybindings.toml)
+to `~/.config/SchildiChatRevenge/keybindings.toml` (on typical Linux systems)
+or `AppData/SchildiChatRevenge/keybindings.toml` (on Windows).
+
+Once the config exists, SchildiChat will reload its settings automatically whenever you edit the file even while
+SchildiChat is running, to make it easier trying out different settings without having to restart.
+
+The config is structured in multiple sections that are applicable in different contexts in the app.
+The sections include:
+
+- `global`: Applicable everywhere.
+- `appMessage`: Actions related to app prompts at the bottom of the screen, like error messages or confirmation prompts.
+- `inbox`: Your room list.
+- `room`: Anything related to a room, e.g. while in the conversation screen viewing the message timeline, but also
+  applicable in inbox when focusing a certain roonm.
+- `conversation`: While viewing a room's message timeline.
+- `event`: Actions specific to messages and other timeline content, when focused in the conversation screen.
+- `navigation`: Similar to `global` actions but specific to navigating the app.
+- `navigationItem`: Related to UI elements which can navigate you to other parts of the app on interaction, such as room
+  list entries in your inbox.
+- `focus`: Similar to `global` but specific to moving the keyboard-based focus to other items.
+- `list`: Applicable if your current focus is within a list of some kind (like a room list, or a list of messages in
+  your timeline).
+- `split`: Actions related to an experimental split screen mode.
+
+Until I properly document all available actions, you can find them defined
+[here](https://github.com/SchildiChat/schildi-revenge/blob/main/config/src/main/kotlin/chat/schildi/revenge/config/keybindings/Action.kt).
+Note that as long as you have a keybinding for `Command` in the `global` section, you can also type in any of these
+action into the command mode to play around with them before defining key bindings for them.
+
+Each key binding needs to hold at least a `key` and an `action` value.
+Additional arguments may be optional or mandatory depending on the selected action, and include:
+- `shift`, `ctrl`, `alt`: set to `true` if you want to require certain modifier keys for your keybinding.
+- `args`: An array of arguments to pass to the `action`.
+- `destinations`: An array of destinations that you want to restrict this key binding to. Useful e.g. if you want to be
+  able to toggle certain settings but only on a specific screen. Possible values include e.g. `Inbox` and
+  `Conversation`. A complete list of destination names can be found
+  [here](https://github.com/SchildiChat/schildi-revenge/blob/main/composeApp/src/jvmMain/kotlin/chat/schildi/revenge/Destination.kt).
+
+
 ## Implementation process
 
 ### MVP
