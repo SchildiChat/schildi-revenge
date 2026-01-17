@@ -53,7 +53,7 @@ This list is not sufficient to consider the client feature-complete in any way.
         - [ ] Reject & Ignore
 - [ ] Conversation view
     - [x] Render plain text and notices
-    - [ ] Render formatted text and notices
+    - [x] Render formatted text and notices
     - [x] Send text messages
     - [x] Render read receipts
     - [ ] Render media

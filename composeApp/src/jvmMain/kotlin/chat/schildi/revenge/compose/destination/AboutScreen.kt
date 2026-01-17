@@ -95,6 +95,14 @@ private val ThirdPartyAcknowledgements = listOf(
         licenseUrl = "https://www.gnu.org/licenses/agpl-3.0.txt",
     ),
     ThirdPartyAcknowledgement(
+        name = "matrix-messageformat-compose",
+        url = "https://github.com/beeper/matrix-messageformat-compose",
+        author = "Beeper (Automattic)",
+        authorUrl = "https://www.beeper.com/",
+        license = "MIT",
+        licenseUrl = "https://mit-license.org/",
+    ),
+    ThirdPartyAcknowledgement(
         name = "tortoise",
         url = "https://pictogrammers.com/library/mdi/icon/tortoise/",
         author = "Nick",

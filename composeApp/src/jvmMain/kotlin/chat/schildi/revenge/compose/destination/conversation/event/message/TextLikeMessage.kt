@@ -20,11 +20,12 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewInfo
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.LocalMatrixBodyDrawStyle
+import chat.schildi.revenge.LocalMatrixBodyFormatter
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.revenge.compose.util.containsOnlyEmojis
 import chat.schildi.revenge.model.conversation.MessageMetadata
-import co.touchlab.kermit.Logger
 import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.SubcomposeAsyncImageContent

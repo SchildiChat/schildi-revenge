@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.components.LocalSessionId
 import chat.schildi.revenge.compose.destination.conversation.event.EventContentLayout
-import chat.schildi.revenge.model.conversation.MessageFormatDefaults
+import chat.schildi.revenge.MessageFormatDefaults
 import chat.schildi.revenge.model.conversation.messageMetadata
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo

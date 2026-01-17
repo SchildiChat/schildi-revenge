@@ -42,6 +42,8 @@ import chat.schildi.revenge.Anim
 import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.LocalDestinationState
+import chat.schildi.revenge.LocalMatrixBodyDrawStyle
+import chat.schildi.revenge.LocalMatrixBodyFormatter
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.ListAction
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
@@ -54,13 +56,11 @@ import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.composer.ComposerRow
 import chat.schildi.revenge.compose.destination.SplashScreenContent
 import chat.schildi.revenge.compose.destination.conversation.event.EventHighlight
-import chat.schildi.revenge.compose.destination.conversation.event.message.LocalMatrixBodyDrawStyle
-import chat.schildi.revenge.compose.destination.conversation.event.message.LocalMatrixBodyFormatter
 import chat.schildi.revenge.compose.destination.conversation.event.message.LocalUrlPreviewStateProvider
-import chat.schildi.revenge.compose.destination.conversation.event.message.matrixBodyDrawStyle
-import chat.schildi.revenge.compose.destination.conversation.event.message.matrixBodyFormatter
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
+import chat.schildi.revenge.matrixBodyDrawStyle
+import chat.schildi.revenge.matrixBodyFormatter
 import chat.schildi.revenge.model.conversation.EventJumpTarget
 import chat.schildi.revenge.publishTitle
 import co.touchlab.kermit.Logger
