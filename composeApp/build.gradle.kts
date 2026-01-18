@@ -6,6 +6,8 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.time.LocalDateTime
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 plugins {
@@ -180,6 +182,9 @@ tasks.named("compileKotlinJvm").configure {
     dependsOn(generateBuildInfo)
 }
 
+val calVer: String = ZonedDateTime.now(ZoneOffset.UTC)
+    .format(DateTimeFormatter.ofPattern("yy.MM.dd"))
+
 compose.desktop {
     application {
         mainClass = "chat.schildi.revenge.MainKt"
@@ -203,7 +208,7 @@ compose.desktop {
                 // TargetFormat.Dmg, // Needs Apple volunteers
             )
             packageName = "SchildiChatRevenge"
-            packageVersion = "0.1.0"
+            packageVersion = calVer
             vendor = "SchildiChat"
             description = "SchildiChat Revenge"
 
