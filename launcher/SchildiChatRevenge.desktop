@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=SchildiChat Revenge
+Comment=Matrix chat client
+Exec=SchildiChatRevenge
+Icon=ic_launcher
+Categories=Network;Chat;InstantMessaging;
+Terminal=false
+StartupWMClass=SchildiChatRevenge
