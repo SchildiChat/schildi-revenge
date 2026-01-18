@@ -70,7 +70,7 @@ const val PSEUDO_SPACE_ID_PREFIX = "p:"
 
 private typealias ScopedSpaceId = ScopedRoomKey
 
-private data class SpaceBuilderRoom(
+data class SpaceBuilderRoom(
     val client: MatrixClient,
     val summary: RoomSummary,
 ) {
@@ -97,7 +97,7 @@ class SpaceListDataSource(
     private val _forceRebuildFlow = MutableStateFlow(System.currentTimeMillis())
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val allSpacesFlat = combinedSessions.flatMerge(
+    val allSpacesFlat = combinedSessions.flatMerge(
         map = { input ->
             input.client.roomListService.allSpaces.summaries.map {
                 it.map {

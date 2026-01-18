@@ -4,7 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import chat.schildi.revenge.config.keybindings.Action
+import chat.schildi.revenge.config.keybindings.ActionArgument
+import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
 import chat.schildi.revenge.config.keybindings.KeyTrigger
+import kotlin.collections.orEmpty
 
 val LocalKeyboardActionProvider = compositionLocalOf<HierarchicalKeyboardActionProvider?> { null }
 
@@ -33,6 +36,7 @@ interface KeyboardActionProvider<A : Action> {
             handleAction(context, safeAction, args)
         }
     }
+    fun impliedArguments(): List<Pair<ActionArgumentPrimitive, String>> = emptyList()
 }
 
 data class HierarchicalKeyboardActionProvider(
@@ -59,6 +63,9 @@ data class HierarchicalKeyboardActionProvider(
             { parent?.handleActionOrInapplicable(context, action, args) ?: ActionResult.Inapplicable }
         )
     }
+
+    override fun impliedArguments(): List<Pair<ActionArgumentPrimitive, String>> =
+        (instance.impliedArguments() + parent?.impliedArguments().orEmpty()).distinct()
 }
 
 
@@ -81,4 +88,7 @@ data class FlatMergedKeyboardActionProvider(
     ) = ActionResult.chain(*instances.map {{
         it.handleActionOrInapplicable(context, action, args)
     }}.toTypedArray())
+
+    override fun impliedArguments(): List<Pair<ActionArgumentPrimitive, String>> =
+        instances.flatMap { it.impliedArguments() }.distinct()
 }

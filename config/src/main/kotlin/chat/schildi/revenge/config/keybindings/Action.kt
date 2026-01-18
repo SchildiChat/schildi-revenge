@@ -55,6 +55,8 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     SettingValue,
     NavigatableDestinationName,
     SpaceId,
+    ParentSpaceId, // For current room contexts, a space that is currently already parent of that room
+    NonParentSpaceId, // For current room contexts, a space that is *not* currently already parent of that room
     SpaceSelectionId,
     SpaceIndex,
     EventType,
@@ -232,6 +234,8 @@ sealed interface Action {
         ClearEventCache(aliases = listOf("ClearRoomCache")),
         SetRoomUserDisplayName(aliases = listOf("myroomnick"), args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.UserName))),
         SetRoomNotifications(args = listOf(ActionArgumentPrimitive.RoomNotificationSetting)),
+        AddToSpace(args = listOf(ActionArgumentPrimitive.NonParentSpaceId)),
+        RemoveFromSpace(args = listOf(ActionArgumentPrimitive.ParentSpaceId)),
     }
     enum class Event(
         override val aliases: kotlin.collections.List<String> = emptyList(),

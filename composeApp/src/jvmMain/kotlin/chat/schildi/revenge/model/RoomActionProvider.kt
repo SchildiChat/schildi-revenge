@@ -11,9 +11,12 @@ import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
+import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
 import chat.schildi.revenge.config.keybindings.ActionRoomNotificationSetting
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import io.element.android.libraries.matrix.api.MatrixClient
+import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.room.BaseRoom
 import io.element.android.libraries.matrix.api.room.RoomNotificationMode
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
@@ -27,6 +30,8 @@ import shire.composeapp.generated.resources.command_copy_name_event_id
 private val RoomInviteActions = setOf(Action.Room.Join)
 
 class RoomActionProvider(
+    val sessionId: SessionId,
+    val roomId: RoomId,
     val isInvite: Boolean,
     val getClient: suspend () -> MatrixClient?,
     val getRoom: suspend () -> BaseRoom?,
@@ -138,8 +143,25 @@ class RoomActionProvider(
                     client.notificationSettingsService.setRoomNotificationMode(room.roomId, mode).toActionResult()
                 }
             }
+            Action.Room.AddToSpace -> {
+                val spaceId = args.firstOrNull()?.let { RoomId(it) }.orActionValidationError()
+                val client = getClient() ?: return ActionResult.Failure("Client not ready")
+                val space = client.getRoom(spaceId) ?: return ActionResult.Failure("Space not found")
+                space.addSpaceChild(room.roomId).toActionResult()
+            }
+            Action.Room.RemoveFromSpace -> {
+                val spaceId = args.firstOrNull()?.let { RoomId(it) }.orActionValidationError()
+                val client = getClient() ?: return ActionResult.Failure("Client not ready")
+                val space = client.getRoom(spaceId) ?: return ActionResult.Failure("Space not found")
+                space.removeSpaceChild(room.roomId).toActionResult()
+            }
         }
     }
+
+    override fun impliedArguments(): List<Pair<ActionArgumentPrimitive, String>> = listOf(
+        ActionArgumentPrimitive.SessionId to sessionId.value,
+        ActionArgumentPrimitive.RoomId to roomId.value,
+    )
 }
 
 fun ActionRoomNotificationSetting.toNotificationMode(): RoomNotificationMode? {

@@ -159,6 +159,7 @@ sealed interface KeyboardActionMode {
         val focused: UUID?,
         val suggestionsProvider: CommandSuggestionsProvider,
         val selectedSuggestion: String?,
+        val impliedArguments: List<Pair<ActionArgumentPrimitive, String>>,
     ) : KeyboardActionMode
 }
 
@@ -1530,17 +1531,19 @@ class KeyboardActionHandler(
             } else {
                 val focusTarget = currentFocus.value?.let { focusableTargets[it] }
                     ?: focusableTargets.values.find { it.role == FocusRole.DESTINATION_ROOT_CONTAINER }
+                val actionHandlers = getCurrentKeyActionHandlers(focusTarget)
                 KeyboardActionMode.Command(
                     query = query,
                     focused = focusTarget?.id,
                     suggestionsProvider = CommandSuggestionsProvider(
                         queryFlow = _mode.map { it as? KeyboardActionMode.Command },
                         scope = scope.childScope(Dispatchers.IO, "commandSuggestions"),
-                        commandParser = CommandParser(getCurrentKeyActionHandlers(focusTarget)),
+                        commandParser = CommandParser(actionHandlers),
                         userIdSuggestionsProvider = focusTarget?.actions?.userIdSuggestionsProvider,
                         roomContextSuggestionsProvider = focusTarget?.actions?.roomContextSuggestionsProvider,
                     ),
                     selectedSuggestion = null,
+                    impliedArguments = actionHandlers.flatMap { it.impliedArguments() }.distinct(),
                 )
             }.also {
                 success = it
@@ -1854,6 +1857,8 @@ fun checkArgument(
             }
         }
         ActionArgumentPrimitive.SpaceId,
+        ActionArgumentPrimitive.ParentSpaceId,
+        ActionArgumentPrimitive.NonParentSpaceId,
         ActionArgumentPrimitive.RoomId -> {
             if (!argVal.startsWith("!")) {
                 ActionResult.Malformed(

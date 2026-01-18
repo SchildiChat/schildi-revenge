@@ -799,6 +799,8 @@ class ConversationViewModel(
     }
 
     private val roomActionProvider = RoomActionProvider(
+        sessionId = sessionId,
+        roomId = roomId,
         isInvite = false,
         getClient = { clientFlow.value },
     ) {

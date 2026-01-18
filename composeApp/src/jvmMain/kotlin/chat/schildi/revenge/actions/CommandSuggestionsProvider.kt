@@ -23,6 +23,9 @@ import chat.schildi.revenge.flatMergeCombinedWith
 import chat.schildi.revenge.model.RevengeRoomListDataSource
 import chat.schildi.revenge.model.RoomListDataSource
 import chat.schildi.revenge.model.account.AccountComparator
+import chat.schildi.revenge.model.spaces.RevengeSpaceListDataSource
+import chat.schildi.revenge.model.spaces.SpaceBuilderRoom
+import chat.schildi.revenge.model.spaces.SpaceListDataSource
 import co.touchlab.kermit.Logger
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
@@ -69,6 +72,7 @@ class CommandSuggestionsProvider(
     private val userIdSuggestionsProvider: UserIdSuggestionsProvider?,
     private val roomContextSuggestionsProvider: RoomContextSuggestionsProvider?,
     private val roomListDataSource: RoomListDataSource = RevengeRoomListDataSource,
+    private val spaceListDataSource: SpaceListDataSource = RevengeSpaceListDataSource,
 ) {
     private val log = Logger.withTag("CmdSuggestions")
 
@@ -103,6 +107,9 @@ class CommandSuggestionsProvider(
         .flowOn(Dispatchers.IO)
         .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
+    private val spaceSuggestionSource = spaceListDataSource.allSpacesFlat
+        .stateIn(scope, SharingStarted.Eagerly, emptyList())
+
     private val prefKeySuggestions = buildList {
         ScPrefs.rootPrefs.forEachPreference {
             if (it.key != null) {
@@ -129,12 +136,16 @@ class CommandSuggestionsProvider(
     @OptIn(ExperimentalCoroutinesApi::class)
     val suggestionState = queryFlow.mapLatest { mode ->
         mode ?: return@mapLatest null
-        suggestForCommandString(mode.query.text)
+        mode.focused
+        suggestForCommandString(mode.query.text, mode.impliedArguments)
     }
         .flowOn(Dispatchers.IO)
         .stateIn(scope, SharingStarted.Eagerly, null)
 
-    fun suggestForCommandString(query: String): CommandSuggestionsState? {
+    fun suggestForCommandString(
+        query: String,
+        impliedContext: List<Pair<ActionArgument, String>>,
+    ): CommandSuggestionsState? {
         val (cmd, args) = commandParser.parseCommandString(query) ?: return null
         return if (args.isEmpty() && !query.endsWith(" ")) {
             val isValidCommand = cmd in allCommandSuggestions && commandParser
@@ -198,7 +209,7 @@ class CommandSuggestionsProvider(
                             if (argDef == null) {
                                 emptyList()
                             } else {
-                                val argContext = it.first.args.take(currentArgIndex).zip(args)
+                                val argContext = it.first.args.take(currentArgIndex).zip(args) + impliedContext
                                 suggestFor(argDef, argContext, args.getOrNull(currentArgIndex) ?: "")
                             }
                         }.distinct()
@@ -268,13 +279,36 @@ class CommandSuggestionsProvider(
                 ActionArgumentPrimitive.RoomNotificationSetting -> {
                     ActionRoomNotificationSetting.entries.map { it.name }.toSuggestionsWithoutHint()
                 }
+                ActionArgumentPrimitive.SpaceId -> {
+                    val sessionIds = context.findAll(ActionArgumentPrimitive.SessionId)
+                    if (sessionIds.isEmpty()) {
+                        spaceSuggestionSource.value.toSuggestions()
+                    } else {
+                        spaceSuggestionSource.value.filter { it.id.sessionId.value in sessionIds }.toSuggestions()
+                    }
+                }
+                ActionArgumentPrimitive.ParentSpaceId -> {
+                    val sessionIds = context.findAll(ActionArgumentPrimitive.SessionId)
+                    val roomIds = context.findAll(ActionArgumentPrimitive.RoomId)
+                    spaceSuggestionSource.value.filter {
+                        (sessionIds.isEmpty() || it.id.sessionId.value in sessionIds) &&
+                                (roomIds.isEmpty() || it.summary.info.spaceChildren.any { it.roomId in roomIds })
+                    }.toSuggestions()
+                }
+                ActionArgumentPrimitive.NonParentSpaceId -> {
+                    val sessionIds = context.findAll(ActionArgumentPrimitive.SessionId)
+                    val roomIds = context.findAll(ActionArgumentPrimitive.RoomId)
+                    spaceSuggestionSource.value.filter {
+                        (sessionIds.isEmpty() || it.id.sessionId.value in sessionIds) &&
+                                (roomIds.isEmpty() || it.summary.info.spaceChildren.all { it.roomId !in roomIds })
+                    }.toSuggestions()
+                }
                 ActionArgumentPrimitive.Text,
                 ActionArgumentPrimitive.Reason,
                 ActionArgumentPrimitive.Integer,
                 ActionArgumentPrimitive.Index,
                 ActionArgumentPrimitive.SessionIndex,
                 ActionArgumentPrimitive.EventId,
-                ActionArgumentPrimitive.SpaceId,
                 ActionArgumentPrimitive.SpaceSelectionId,
                 ActionArgumentPrimitive.SpaceIndex,
                 ActionArgumentPrimitive.UserName,
@@ -338,6 +372,9 @@ class CommandSuggestionsProvider(
             // Sometimes startsWith(), sometimes contains() makes more sense
             when (arg) {
                 ActionArgumentPrimitive.SettingKey -> select(it).lowercase().contains(queryLower)
+                ActionArgumentPrimitive.SpaceId,
+                ActionArgumentPrimitive.ParentSpaceId,
+                ActionArgumentPrimitive.NonParentSpaceId,
                 ActionArgumentPrimitive.RoomId -> select(it).lowercase().startsWith(queryLower) ||
                         selectHint(it)?.lowercase()?.contains(queryLower) == true
                 else -> select(it).lowercase().contains(queryLower)
@@ -354,3 +391,11 @@ fun List<StateEventCompletionSnapshot>.toStateEventTypeSuggestions() =
     map { it.eventType }.distinct().toSuggestionsWithoutHint()
 fun List<StateEventCompletionSnapshot>.toStateEventKeySuggestions(eventTypes: List<String>) =
     filter { it.eventType in eventTypes && it.stateKey.isNotEmpty() }.map { it.stateKey }.distinct().toSuggestionsWithoutHint()
+
+fun List<SpaceBuilderRoom>.toSuggestions() =
+    distinctBy { it.id.roomId }.map {
+        CommandSuggestion(
+            it.summary.roomId.value,
+            it.summary.info.name?.toStringHolder()
+        )
+    }

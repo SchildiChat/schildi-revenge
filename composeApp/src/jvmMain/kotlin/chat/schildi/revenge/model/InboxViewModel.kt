@@ -664,6 +664,8 @@ class InboxViewModel(
         isInvite: Boolean
     ): KeyboardActionProvider<Action.Room> {
         return RoomActionProvider(
+            sessionId = sessionId,
+            roomId = roomId,
             isInvite = isInvite,
             getClient = { UiState.currentClientFor(sessionId) },
         ) {
