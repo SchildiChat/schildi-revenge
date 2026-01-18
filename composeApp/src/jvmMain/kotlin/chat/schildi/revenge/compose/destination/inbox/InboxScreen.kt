@@ -68,7 +68,7 @@ fun InboxScreen(modifier: Modifier = Modifier) {
         null
     }
 
-    val listState = key(searchQuery, selectedSpace?.selectionId, accountsSorted) {
+    val listState = key(searchQuery, selectedSpace?.selectionId) {
         rememberLazyListState()
     }
 
