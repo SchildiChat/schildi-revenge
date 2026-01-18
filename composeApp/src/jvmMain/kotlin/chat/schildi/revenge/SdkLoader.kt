@@ -28,8 +28,7 @@ object SdkLoader {
             val candidateDirs = buildList<File> {
                 if (isDebugBuild) {
                     // For development, use local path
-                    add(File("matrix-rust-sdk/target/${BuildInfo.RUST_PROFILE}"))
-                    add(File("./matrix-rust-sdk/target/${BuildInfo.RUST_PROFILE}").absoluteFile)
+                    add(File("../matrix-rust-sdk/target/${BuildInfo.RUST_PROFILE}").absoluteFile)
                 } else {
                     // When installed natively
                     val resourcesDir = System.getProperty("compose.application.resources.dir")
