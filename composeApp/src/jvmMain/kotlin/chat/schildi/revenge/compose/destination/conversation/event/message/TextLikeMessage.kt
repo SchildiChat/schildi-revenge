@@ -4,24 +4,36 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.StringAnnotation
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewInfo
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalMatrixBodyDrawStyle
 import chat.schildi.revenge.LocalMatrixBodyFormatter
+import chat.schildi.revenge.MessageFormatDefaults
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.revenge.compose.util.containsOnlyEmojis
@@ -119,6 +131,21 @@ fun TextLikeMessageContent(
     } else {
         Dimens.Conversation.textMessageStyle
     }
+    val blockQuotes = remember(text) {
+        text.text.getStringAnnotations("mx:BLOCK_QUOTE", 0, text.text.length)
+    }
+    if (blockQuotes.isNotEmpty()) {
+        // HACK - blockquotes are dumb on JVM, they tend to forget the indent if there's no soft wrap
+        IndentionHackFormattedText(
+            blockQuotes = blockQuotes,
+            text = text,
+            textStyle = textStyle,
+            modifier = modifier,
+            textColor = textColor,
+            onTextLayout = onTextLayout,
+        )
+        return
+    }
     MatrixStyledFormattedText(
         text,
         color = textColor,
@@ -134,6 +161,55 @@ fun TextLikeMessageContent(
             InlineImage(info, textStyle, textColor, modifier)
         }
     )
+}
+
+@Composable
+fun IndentionHackFormattedText(
+    blockQuotes: List<AnnotatedString.Range<String>>,
+    text: MatrixBodyParseResult,
+    textStyle: TextStyle,
+    modifier: Modifier = Modifier,
+    textColor: Color = MaterialTheme.colorScheme.primary,
+    onTextLayout: (TextLayoutResult) -> Unit,
+) {
+    BoxWithConstraints(modifier) {
+        var textWidth by remember(maxWidth) { mutableIntStateOf(-1) }
+        val density = LocalDensity.current
+        val maxDepth = remember(blockQuotes) {
+            blockQuotes.maxOfOrNull {
+                it.item.toIntOrNull() ?: 1
+            } ?: 1
+        }
+        MatrixStyledFormattedText(
+            text,
+            color = textColor,
+            style = textStyle,
+            modifier =
+                // HACK - blockquotes are dumb on JVM, they tend to forget the indent if there's no soft wrap
+                // and no sufficient fixed width
+                textWidth.takeIf { it > 0 }?.let {
+                    val forcedWidth = min(
+                        maxWidth,
+                        density.run { textWidth.toDp() + MessageFormatDefaults.blockIndention.toDp() * maxDepth }
+                    )
+                    Modifier.width(forcedWidth)
+                } ?: Modifier,
+            formatter = LocalMatrixBodyFormatter.current,
+            drawStyle = LocalMatrixBodyDrawStyle.current,
+            onTextLayout = {
+                onTextLayout(it)
+                if (textWidth == -1) {
+                    textWidth = it.size.width
+                }
+            },
+            inlineContent = text.inlineImages.toInlineContent(
+                density = LocalDensity.current,
+                defaultHeight = textStyle.lineHeight,
+            ) { info, modifier ->
+                InlineImage(info, textStyle, textColor, modifier)
+            }
+        )
+    }
 }
 
 @Composable

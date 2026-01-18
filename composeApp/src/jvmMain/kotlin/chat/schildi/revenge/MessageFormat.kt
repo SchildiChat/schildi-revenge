@@ -27,7 +27,7 @@ import com.beeper.android.messageformat.MatrixHtmlParser
 import com.beeper.android.messageformat.MatrixToLink
 
 object MessageFormatDefaults {
-    val blockIndention = 24.sp
+    val blockIndention = 16.sp
     val parser: MatrixHtmlParser = MatrixHtmlParser()
     val parseStyle: MatrixBodyPreFormatStyle = MatrixBodyPreFormatStyle(
         formatRoomMention = {
@@ -127,7 +127,7 @@ fun matrixBodyDrawStyle(): MatrixBodyDrawStyle {
                 val barWidthDp = 4f
                 drawRoundRect(
                     onSurfaceVariantColor,
-                    topLeft = Offset((MessageFormatDefaults.blockIndention * (depth - 0.5)).toPx() - barWidthDp / 2, position.top),
+                    topLeft = Offset((MessageFormatDefaults.blockIndention * (depth - 1)).toPx(), position.top),
                     size = Size(barWidthDp * density, position.height),
                     cornerRadius = CornerRadius(barWidthDp * density, barWidthDp * density),
                 )
