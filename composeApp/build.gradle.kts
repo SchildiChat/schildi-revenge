@@ -83,6 +83,20 @@ val rustProfile: String = if (isReleaseBuild) "release" else "debug"
 
 val generatedSrcDir = layout.buildDirectory.dir("generated/src/jvmMain/kotlin").get().asFile
 
+val distributionResourcesDirName = "distribution-resources"
+val distributionResourcesDir = layout.buildDirectory.dir(distributionResourcesDirName)
+val resourceOsIdentifier: String = run {
+    val os = org.gradle.internal.os.OperatingSystem.current()
+    when {
+        os.isWindows -> "windows"
+        os.isMacOsX -> "macos"
+        os.isLinux -> "linux"
+        // ???
+        else -> "common"
+    }
+}
+val distributionResourcesOsDir = layout.buildDirectory.dir("$distributionResourcesDirName/$resourceOsIdentifier")
+
 abstract class GenerateBuildInfoTask : DefaultTask() {
     @get:Input
     abstract val debugMode: Property<Boolean>
@@ -193,6 +207,8 @@ compose.desktop {
             vendor = "SchildiChat"
             description = "SchildiChat Revenge"
 
+            appResourcesRootDir.set(distributionResourcesDir)
+
             windows {
                 menu = true
                 shortcut = true
@@ -226,28 +242,20 @@ val ffiLibName: String = run {
     }
 }
 
-val copyNativeLib = tasks.register<Copy>("copyNativeLibToDistribution") {
+val copyNativeLib = tasks.register<Sync>("copyNativeLibToDistribution") {
     description = "Copy native matrix-sdk-ffi library to distribution lib directory"
     group = "distribution"
 
     val ffiLib = rustSdkDir.resolve("target/${rustProfile}/${ffiLibName}")
     from(ffiLib)
 
-    // Copy to the lib directory of the app distribution
-    into(layout.buildDirectory.dir("compose/binaries/main/app/SchildiChatRevenge/lib"))
+    into(distributionResourcesOsDir)
 
     dependsOn(":matrix:buildSdk")
 }
 
-// Run after packaging tasks to copy library to distribution
 tasks.matching {
-    it.name == "createDistributable" ||
-    it.name == "packageDistributionForCurrentOS" ||
-    it.name == "packageAppImage" ||
-    it.name == "packageDeb" ||
-    it.name == "packageRpm" ||
-    it.name == "packageMsi" ||
-    it.name == "packageExe"
+    it.name == "prepareAppResources"
 }.configureEach {
-    finalizedBy(copyNativeLib)
+    dependsOn(copyNativeLib)
 }
