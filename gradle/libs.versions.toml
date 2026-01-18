@@ -1,4 +1,5 @@
 [versions]
+versionsPlugin = "0.53.0"
 androidx-lifecycle = "2.9.4"
 androidx-datastore = "1.2.0"
 composeHotReload = "1.0.0-beta07"
@@ -50,6 +51,7 @@ beeper-messageformat = { module = "com.github.beeper.matrix-messageformat-compos
 jsoup = "org.jsoup:jsoup:1.21.2"
 
 [plugins]
+versions = { id = "com.github.ben-manes.versions", version.ref = "versionsPlugin" }
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
