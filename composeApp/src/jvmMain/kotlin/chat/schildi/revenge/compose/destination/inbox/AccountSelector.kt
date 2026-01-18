@@ -49,6 +49,7 @@ import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.media.MediaSource
+import io.element.android.libraries.matrix.api.roomlist.RoomListService
 import io.element.android.libraries.matrix.api.sync.SyncState
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
@@ -219,6 +220,30 @@ fun AccountButton(
                             MaterialTheme.colorScheme.error
                         else
                             MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                if (ScPrefs.SHOW_DEV_INFOS.value()) {
+                    val roomListState = when (account.roomListState) {
+                        RoomListService.State.Error -> stringResource(Res.string.hint_sync_state_error)
+                        RoomListService.State.Idle -> stringResource(Res.string.hint_sync_state_idle)
+                        RoomListService.State.Running -> stringResource(Res.string.hint_sync_state_running)
+                        RoomListService.State.Terminated -> stringResource(Res.string.hint_sync_state_terminated)
+                    }
+                    val roomListStateIcon = when (account.roomListState) {
+                        RoomListService.State.Error -> Icons.Default.Error
+                        RoomListService.State.Idle -> Icons.Default.CheckCircleOutline
+                        RoomListService.State.Running -> Icons.Default.Sync
+                        RoomListService.State.Terminated -> Icons.Default.Stop
+                    }
+                    Icon(
+                        roomListStateIcon,
+                        roomListState,
+                        Modifier.size(16.dp),
+                        tint = if (account.roomListState is RoomListService.State.Running ||
+                            account.roomListState is RoomListService.State.Idle)
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        else
+                            MaterialTheme.colorScheme.error,
                     )
                 }
             }
