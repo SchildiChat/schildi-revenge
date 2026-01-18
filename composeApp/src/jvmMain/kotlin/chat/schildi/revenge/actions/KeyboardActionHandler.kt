@@ -52,6 +52,7 @@ import chat.schildi.revenge.config.keybindings.ActionArgumentAnyOf
 import chat.schildi.revenge.config.keybindings.ActionArgumentContextBased
 import chat.schildi.revenge.config.keybindings.ActionArgumentOptional
 import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
+import chat.schildi.revenge.config.keybindings.ActionRoomNotificationSetting
 import chat.schildi.revenge.config.keybindings.AllowedComposerTextFieldBindingKeys
 import chat.schildi.revenge.config.keybindings.AllowedSingleLineTextFieldBindingKeys
 import chat.schildi.revenge.config.keybindings.AllowedTextFieldBindingKeys
@@ -1891,6 +1892,15 @@ fun checkArgument(
                         "Invalid parameter for $actionName, not a valid destination: $argVal"
                     )
                 }
+            } else {
+                null
+            }
+        }
+        ActionArgumentPrimitive.RoomNotificationSetting -> {
+            if (ActionRoomNotificationSetting.tryResolve(argVal) == null) {
+                ActionResult.Malformed(
+                    "Invalid parameter for $actionName, not a valid room notification setting: $argVal"
+                )
             } else {
                 null
             }

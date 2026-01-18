@@ -14,6 +14,7 @@ import chat.schildi.revenge.config.keybindings.ActionArgumentAnyOf
 import chat.schildi.revenge.config.keybindings.ActionArgumentContextBased
 import chat.schildi.revenge.config.keybindings.ActionArgumentOptional
 import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
+import chat.schildi.revenge.config.keybindings.ActionRoomNotificationSetting
 import chat.schildi.revenge.config.keybindings.CommandArgContext
 import chat.schildi.revenge.config.keybindings.SUGGESTED_DESTINATION_STRINGS
 import chat.schildi.revenge.config.keybindings.findAll
@@ -264,6 +265,9 @@ class CommandSuggestionsProvider(
                         }
                     }
                 }
+                ActionArgumentPrimitive.RoomNotificationSetting -> {
+                    ActionRoomNotificationSetting.entries.map { it.name }.toSuggestionsWithoutHint()
+                }
                 ActionArgumentPrimitive.Text,
                 ActionArgumentPrimitive.Reason,
                 ActionArgumentPrimitive.Integer,
@@ -307,6 +311,9 @@ class CommandSuggestionsProvider(
                         // Now we didn't find the room ID for this session, but we can still search for the others
                         scopedRoomSuggestions.value.map { it.second }
                     }
+                }
+                ActionArgumentPrimitive.RoomNotificationSetting -> {
+                    ActionRoomNotificationSetting.entries.flatMap { it.aliases }.toSuggestionsWithoutHint()
                 }
                 else -> emptyList()
             }.filterValidSuggestionsFor(query, arg).distinct()

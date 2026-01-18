@@ -6,12 +6,16 @@ import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.actions.launchActionAsync
+import chat.schildi.revenge.actions.orActionValidationError
 import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
+import chat.schildi.revenge.config.keybindings.ActionRoomNotificationSetting
 import chat.schildi.revenge.config.keybindings.KeyTrigger
+import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.room.BaseRoom
+import io.element.android.libraries.matrix.api.room.RoomNotificationMode
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import kotlinx.coroutines.Dispatchers
 import shire.composeapp.generated.resources.Res
@@ -24,6 +28,7 @@ private val RoomInviteActions = setOf(Action.Room.Join)
 
 class RoomActionProvider(
     val isInvite: Boolean,
+    val getClient: suspend () -> MatrixClient?,
     val getRoom: suspend () -> BaseRoom?,
 ) : KeyboardActionProvider<Action.Room> {
     override fun getPossibleActions() = if (isInvite)
@@ -122,6 +127,26 @@ class RoomActionProvider(
                 val name = args.firstOrNull()
                 room.setRoomUserDisplayName(name).toActionResult()
             }
+            Action.Room.SetRoomNotifications -> {
+                val client = getClient() ?: return ActionResult.Failure("Client not ready")
+                val modeString = args.firstOrNull().orActionValidationError()
+                val actionMode = ActionRoomNotificationSetting.tryResolve(modeString).orActionValidationError()
+                val mode = actionMode.toNotificationMode()
+                if (mode == null) {
+                    client.notificationSettingsService.restoreDefaultRoomNotificationMode(room.roomId).toActionResult()
+                } else {
+                    client.notificationSettingsService.setRoomNotificationMode(room.roomId, mode).toActionResult()
+                }
+            }
         }
+    }
+}
+
+fun ActionRoomNotificationSetting.toNotificationMode(): RoomNotificationMode? {
+    return when (this) {
+        ActionRoomNotificationSetting.Default -> null
+        ActionRoomNotificationSetting.All -> RoomNotificationMode.ALL_MESSAGES
+        ActionRoomNotificationSetting.Mentions -> RoomNotificationMode.MENTIONS_AND_KEYWORDS_ONLY
+        ActionRoomNotificationSetting.Mute -> RoomNotificationMode.MUTE
     }
 }

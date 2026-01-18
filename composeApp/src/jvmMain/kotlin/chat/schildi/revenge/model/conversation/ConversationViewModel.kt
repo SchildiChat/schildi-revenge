@@ -798,7 +798,10 @@ class ConversationViewModel(
         }
     }
 
-    private val roomActionProvider = RoomActionProvider(isInvite = false) {
+    private val roomActionProvider = RoomActionProvider(
+        isInvite = false,
+        getClient = { clientFlow.value },
+    ) {
         // roomPair may have stale information, request a new room to be sure
         clientFlow.value?.getRoom(roomId)
     }

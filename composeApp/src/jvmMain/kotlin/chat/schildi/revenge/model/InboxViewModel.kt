@@ -663,7 +663,10 @@ class InboxViewModel(
         roomId: RoomId,
         isInvite: Boolean
     ): KeyboardActionProvider<Action.Room> {
-        return RoomActionProvider(isInvite = isInvite) {
+        return RoomActionProvider(
+            isInvite = isInvite,
+            getClient = { UiState.currentClientFor(sessionId) },
+        ) {
             UiState.currentClientFor(sessionId)?.getRoom(roomId)
         }
     }

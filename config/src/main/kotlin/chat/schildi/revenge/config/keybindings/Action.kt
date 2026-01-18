@@ -23,6 +23,21 @@ sealed interface ActionArgumentContextBased : ActionArgument {
     fun getFor(context: CommandArgContext): ActionArgument
 }
 
+enum class ActionRoomNotificationSetting(val aliases: List<String> = emptyList()) {
+    Default(aliases = listOf("followDefault")),
+    All(aliases = listOf("allMessages")),
+    Mentions(aliases = listOf("mentionsAndKeywords")),
+    Mute(aliases = listOf("none"));
+    companion object {
+        fun tryResolve(value: String): ActionRoomNotificationSetting? {
+            val lower = value.lowercase()
+            return entries.firstOrNull {
+                it.name.lowercase() == lower || it.aliases.any { it.lowercase() == lower }
+            }
+        }
+    }
+}
+
 enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: Boolean = false) : ActionArgument {
     Text,
     Reason,
@@ -46,6 +61,7 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     StateEventType,
     NonEmptyStateKey,
     UserName(consumesTrailingArgsWithSpace = true),
+    RoomNotificationSetting,
     Empty;
     override fun canHold(primitive: ActionArgumentPrimitive) = primitive == this
 }
@@ -215,6 +231,7 @@ sealed interface Action {
         CopyRoomId,
         ClearEventCache(aliases = listOf("ClearRoomCache")),
         SetRoomUserDisplayName(aliases = listOf("myroomnick"), args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.UserName))),
+        SetRoomNotifications(args = listOf(ActionArgumentPrimitive.RoomNotificationSetting)),
     }
     enum class Event(
         override val aliases: kotlin.collections.List<String> = emptyList(),
