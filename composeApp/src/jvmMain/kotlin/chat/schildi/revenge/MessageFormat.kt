@@ -75,14 +75,14 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
             urlStyle = TextLinkStyles(SpanStyle(color = linkColor)),
             blockIndention = MessageFormatDefaults.blockIndention,
         ) {
-            override fun formatUserMention(mention: MatrixToLink.UserMention): List<AnnotatedString.Annotation>? {
+            override fun formatUserMention(mention: MatrixToLink.UserMention, context: FormatContext): List<AnnotatedString.Annotation>? {
                 return if (sessionId?.value == mention.userId) {
                     listOf(SpanStyle(color = mentionHighlightColor, fontWeight = FontWeight.Bold))
                 } else {
                     listOf(SpanStyle(color = mentionColor, fontWeight = FontWeight.Bold))
                 }
             }
-            override fun formatRoomMention() = listOf(
+            override fun formatRoomMention(context: FormatContext) = listOf(
                 SpanStyle(color = mentionHighlightColor, fontWeight = FontWeight.Bold)
             )
         }
@@ -105,8 +105,8 @@ fun matrixBodyDrawStyle(): MatrixBodyDrawStyle {
             drawBehindRoomMention = { position ->
                 drawRoundRect(
                     mentionHighlightColor,
-                    topLeft = position.topLeft,
-                    size = position.size,
+                    topLeft = position.rect.topLeft,
+                    size = position.rect.size,
                     cornerRadius = mentionBgRadius(),
                 )
             },
@@ -118,8 +118,8 @@ fun matrixBodyDrawStyle(): MatrixBodyDrawStyle {
                 }
                 drawRoundRect(
                     color,
-                    topLeft = position.topLeft,
-                    size = position.size,
+                    topLeft = position.rect.topLeft,
+                    size = position.rect.size,
                     cornerRadius = mentionBgRadius(),
                 )
             },
@@ -127,8 +127,8 @@ fun matrixBodyDrawStyle(): MatrixBodyDrawStyle {
                 val barWidthDp = 4f
                 drawRoundRect(
                     onSurfaceVariantColor,
-                    topLeft = Offset((MessageFormatDefaults.blockIndention * (depth - 1)).toPx(), position.top),
-                    size = Size(barWidthDp * density, position.height),
+                    topLeft = Offset((MessageFormatDefaults.blockIndention * (depth - 1)).toPx(), position.rect.top),
+                    size = Size(barWidthDp * density, position.rect.height),
                     cornerRadius = CornerRadius(barWidthDp * density, barWidthDp * density),
                 )
             },
