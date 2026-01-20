@@ -17,7 +17,7 @@ kdroidfilterPlatformtools = "0.7.4"
 kdroidfilterComposeNativeTray = "1.0.4"
 ktoml = "0.7.1"
 ktor = "3.3.3"
-beeperMessageFormat = "4b8a36410144141393061bad29f53ed241b8d576"
+beeperMessageFormat = "a36504fe371c4acf6263dd91790435091162aab1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }

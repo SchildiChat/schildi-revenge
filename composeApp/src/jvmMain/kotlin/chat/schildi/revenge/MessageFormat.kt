@@ -110,8 +110,8 @@ fun matrixBodyDrawStyle(): MatrixBodyDrawStyle {
                     cornerRadius = mentionBgRadius(),
                 )
             },
-            drawBehindUserMention = { userId, position ->
-                val color = if (sessionId?.value == userId) {
+            drawBehindUserMention = { mention, position ->
+                val color = if (sessionId?.value == mention.userId) {
                     mentionHighlightColor
                 } else {
                     mentionColor
