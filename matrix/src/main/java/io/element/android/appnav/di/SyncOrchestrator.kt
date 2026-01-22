@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -82,7 +83,7 @@ class SyncOrchestrator(
     internal fun observeStates() = coroutineScope.launch {
         Timber.tag(tag).d("start observing the app and network state")
 
-        /* TODO?
+        /*
         val isAppActiveFlow = combine(
             appForegroundStateService.isInForeground,
             appForegroundStateService.isInCall,
@@ -91,14 +92,16 @@ class SyncOrchestrator(
         ) { isInForeground, isInCall, isSyncingNotificationEvent, hasRingingCall ->
             isInForeground || isInCall || isSyncingNotificationEvent || hasRingingCall
         }
+         */
+        val isAppActiveFlow = flowOf(true)
 
         combine(
             // small debounce to avoid spamming startSync when the state is changing quickly in case of error.
             syncService.syncState.debounce(100.milliseconds),
-            networkMonitor.connectivity,
+            flowOf(true),//networkMonitor.connectivity, // TODO?
             isAppActiveFlow,
         ) { syncState, networkState, isAppActive ->
-            val isNetworkAvailable = networkState == NetworkStatus.Connected
+            val isNetworkAvailable = networkState //== NetworkStatus.Connected
 
             Timber.tag(tag).d("isAppActive=$isAppActive, isNetworkAvailable=$isNetworkAvailable")
             if (syncState == SyncState.Running && !isAppActive) {
@@ -128,7 +131,6 @@ class SyncOrchestrator(
                     SyncStateAction.NoOp -> Unit
                 }
             }
-         */
     }
 }
 
