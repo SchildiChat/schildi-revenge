@@ -1,8 +1,12 @@
 package chat.schildi.revenge.compose.components
 
+import androidx.compose.foundation.ContextMenuState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.LocalTextContextMenu
+import androidx.compose.foundation.text.TextContextMenu
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -11,6 +15,7 @@ import androidx.compose.material3.MenuItemColors
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -54,6 +59,20 @@ data class ContextMenuEntry(
     val autoCloseMenu: Boolean = toggleState == null,
 )
 
+@OptIn(ExperimentalFoundationApi::class)
+object EmptyTextContextMenu : TextContextMenu {
+    @OptIn(ExperimentalFoundationApi::class)
+    @Composable
+    override fun Area(
+        textManager: TextContextMenu.TextManager,
+        state: ContextMenuState,
+        content: @Composable (() -> Unit)
+    ) {
+        content()
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WithContextMenu(
     focusId: UUID,
@@ -91,14 +110,20 @@ fun WithContextMenu(
             anchorBounds = it.boundsInWindow()
         }
     ) {
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { keyHandler.dismissContextMenu(focusId) },
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-            offset = offset,
-            content = popupContent,
-        )
-        content()
+        CompositionLocalProvider(
+            // If we have selectable text, want to override that menu as well.
+            // TODO teach that menu some copy-selection item
+            LocalTextContextMenu provides EmptyTextContextMenu
+        ) {
+            DropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { keyHandler.dismissContextMenu(focusId) },
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                offset = offset,
+                content = popupContent,
+            )
+            content()
+        }
     }
 }
 

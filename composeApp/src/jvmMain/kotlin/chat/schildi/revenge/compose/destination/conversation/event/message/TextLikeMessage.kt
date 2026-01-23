@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -108,8 +109,10 @@ fun TextLikeMessage(
                 keyHandler.openLinkInExternalBrowser(urlPreview.url)
             }
         }
-        TextLikeMessageContent(text, allowBigEmojiOnly, textColor = textColor) {
-            textLayoutResult.value = it
+        SelectionContainer {
+            TextLikeMessageContent(text, allowBigEmojiOnly, textColor = textColor) {
+                textLayoutResult.value = it
+            }
         }
     }
 }
