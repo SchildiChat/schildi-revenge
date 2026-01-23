@@ -20,6 +20,11 @@ A desktop Matrix client written in kotlin / Compose Multiplatform based on the M
 - Long-term: Good enough for non-power-users to use mouse-only / intuitively
 
 
+## Screenshots
+
+<img src="https://raw.githubusercontent.com/SchildiChat/schildi-revenge/refs/heads/main/screenshots/inbox_2.png" height="500"/> <img src="https://raw.githubusercontent.com/SchildiChat/schildi-revenge/refs/heads/main/screenshots/conversation_2.png" height="500"/> <img src="https://raw.githubusercontent.com/SchildiChat/schildi-revenge/refs/heads/main/screenshots/conversation_1.png" height="500"/>
+
+
 ## Initial implementation checklist
 
 This is a rough collection of features that I consider important for core use, to help with the initial bringup.
