@@ -23,7 +23,7 @@ data class ScSdkRoomSortOrder(
             selectFor(a, b) { it.info.isFavorite }?.let { return@Comparator it }
         }
         if (buryLowPriority) {
-            selectFor(a, b) { it.info.isLowPriority }?.let { return@Comparator it }
+            selectFor(a, b) { it.info.isLowPriority }?.let { return@Comparator -it }
         }
         if (byUnread) {
             selectFor(a, b) { it.info.isMarkedUnread || it.info.numUnreadNotifications > 0 }?.let { return@Comparator it }
