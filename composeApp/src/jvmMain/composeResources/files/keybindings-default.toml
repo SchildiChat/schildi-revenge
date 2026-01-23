@@ -26,6 +26,7 @@ navigation = [
     { key = "A", ctrl = true, action = "NavigateCurrent", args = ["accounts"] },
     { key = "A", ctrl = true, shift = true, action = "NavigateInNewWindow", args = ["accounts"] },
     { key = "Q", ctrl = true, action = "CloseWindow" },
+    { key = "Escape", action = "NavigateCurrent", args = ["inbox"], destinations = ["Conversation"] },
 ]
 navigationItem = [
     { key = "Enter", action = "NavigateCurrent" },
