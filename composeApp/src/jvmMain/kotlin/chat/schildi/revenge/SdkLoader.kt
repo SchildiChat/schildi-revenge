@@ -1,5 +1,8 @@
 package chat.schildi.revenge
 
+import org.matrix.rustcomponents.sdk.LogLevel
+import org.matrix.rustcomponents.sdk.TracingConfiguration
+import org.matrix.rustcomponents.sdk.initPlatform
 import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -55,6 +58,17 @@ object SdkLoader {
             if (!loaded.get()) {
                 throw IllegalStateException("Failed to find the $libName in following paths: [${candidateDirs.joinToString()}]")
             }
+
+            initPlatform(
+                config = TracingConfiguration(
+                    logLevel = LogLevel.INFO,
+                    traceLogPacks = emptyList(),
+                    extraTargets = emptyList(),
+                    writeToStdoutOrSystem = true,
+                    writeToFiles = null,
+                ),
+                useLightweightTokioRuntime = false
+            )
         }
     }
 
