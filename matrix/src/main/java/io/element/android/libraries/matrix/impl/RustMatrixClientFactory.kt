@@ -99,7 +99,7 @@ class RustMatrixClientFactory(
 
         val syncService = client.syncService()
             .withSharePos(true)
-            //.withOfflineMode()
+            .withOfflineMode()
             .finish()
 
         return RustMatrixClient(
