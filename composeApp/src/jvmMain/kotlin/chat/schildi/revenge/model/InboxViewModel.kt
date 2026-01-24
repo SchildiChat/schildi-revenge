@@ -2,6 +2,7 @@ package chat.schildi.revenge.model
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import chat.schildi.matrixsdk.ScTimelineFilterSettings
 import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPreferencesStore
 import chat.schildi.preferences.ScPrefs
@@ -669,7 +670,10 @@ class InboxViewModel(
             isInvite = isInvite,
             getClient = { UiState.currentClientFor(sessionId) },
         ) {
-            UiState.currentClientFor(sessionId)?.getRoom(roomId)
+            UiState.currentClientFor(sessionId)?.let { client ->
+                // Joined room is preferred if possible
+                client.getJoinedRoom(roomId, ScTimelineFilterSettings()) ?: client.getRoom(roomId)
+            }
         }
     }
 }

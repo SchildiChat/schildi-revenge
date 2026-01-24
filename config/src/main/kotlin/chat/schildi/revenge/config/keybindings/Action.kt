@@ -51,6 +51,7 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     SessionIndex,
     RoomId,
     EventId,
+    Mxc,
     SettingKey,
     SettingValue,
     NavigatableDestinationName,
@@ -63,6 +64,8 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     StateEventType,
     NonEmptyStateKey,
     UserName(consumesTrailingArgsWithSpace = true),
+    RoomName(consumesTrailingArgsWithSpace = true),
+    RoomTopic(consumesTrailingArgsWithSpace = true),
     RoomNotificationSetting,
     Empty;
     override fun canHold(primitive: ActionArgumentPrimitive) = primitive == this
@@ -236,6 +239,9 @@ sealed interface Action {
         SetRoomNotifications(args = listOf(ActionArgumentPrimitive.RoomNotificationSetting)),
         AddToSpace(args = listOf(ActionArgumentPrimitive.NonParentSpaceId)),
         RemoveFromSpace(args = listOf(ActionArgumentPrimitive.ParentSpaceId)),
+        SetRoomName(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.RoomName))),
+        SetRoomTopic(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.RoomTopic))),
+        SetRoomAvatar(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.Mxc))),
     }
     enum class Event(
         override val aliases: kotlin.collections.List<String> = emptyList(),

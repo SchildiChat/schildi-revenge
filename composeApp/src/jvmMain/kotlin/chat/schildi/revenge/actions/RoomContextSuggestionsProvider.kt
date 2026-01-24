@@ -5,10 +5,13 @@ import chat.schildi.revenge.PrettyJson
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.room.BaseRoom
+import io.element.android.libraries.matrix.api.room.RoomInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -28,6 +31,8 @@ class RoomContextSuggestionsProvider(
     private val log = Logger.withTag("RoomContextSuggestions")
     private val cachedStateEvents = MutableStateFlow<List<StateEventCompletionSnapshot>?>(null)
     val stateEventSuggestions = cachedStateEvents.asStateFlow()
+    private val _roomInfo = MutableStateFlow<RoomInfo?>(null)
+    val roomInfo = _roomInfo.asStateFlow()
     private var invalidated = false
     fun invalidateCachedState() {
         invalidated = true
@@ -35,6 +40,9 @@ class RoomContextSuggestionsProvider(
     fun prefetchState(scope: CoroutineScope) {
         if (cachedStateEvents.value != null && !invalidated) return
         peekRoom()?.let { room ->
+            room.roomInfoFlow.onEach {
+                _roomInfo.emit(it)
+            }.launchIn(scope)
             scope.launch(Dispatchers.IO) {
                 invalidated = false
                 val fullRoomState = room.fetchFullRoomState()

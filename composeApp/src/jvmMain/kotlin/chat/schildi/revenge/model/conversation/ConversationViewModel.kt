@@ -804,8 +804,9 @@ class ConversationViewModel(
         isInvite = false,
         getClient = { clientFlow.value },
     ) {
-        // roomPair may have stale information, request a new room to be sure
-        clientFlow.value?.getRoom(roomId)
+        // roomPair may have stale information, request a new room to be sure.
+        // JoinedRoom is preferred if possible.
+        clientFlow.value?.getJoinedRoom(roomId, ScTimelineFilterSettings()) ?: clientFlow.value?.getRoom(roomId)
     }
 
     private val conversationActionProvider = object : KeyboardActionProvider<Action.Conversation> {

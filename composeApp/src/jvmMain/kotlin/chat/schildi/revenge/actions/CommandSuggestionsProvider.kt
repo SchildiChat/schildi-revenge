@@ -173,8 +173,13 @@ class CommandSuggestionsProvider(
             // the Rust SDK then reading from storage, but TODO maybe we can access the Rust SDK state store without
             // network in the future
             if (roomContextSuggestionsProvider != null && possibleActions.any { (it, _) ->
-                it.args.any {
-                    it == ActionArgumentPrimitive.StateEventType || it == ActionArgumentPrimitive.NonEmptyStateKey
+                it.args.any { arg ->
+                    listOf(
+                        ActionArgumentPrimitive.StateEventType,
+                        ActionArgumentPrimitive.NonEmptyStateKey,
+                        ActionArgumentPrimitive.RoomName,
+                        ActionArgumentPrimitive.RoomTopic
+                    ).any { arg.canHold(it) }
                 }
             }) {
                 roomContextSuggestionsProvider.prefetchState(scope)
@@ -312,7 +317,10 @@ class CommandSuggestionsProvider(
                 ActionArgumentPrimitive.SpaceSelectionId,
                 ActionArgumentPrimitive.SpaceIndex,
                 ActionArgumentPrimitive.UserName,
+                ActionArgumentPrimitive.Mxc,
                 ActionArgumentPrimitive.Empty -> emptyList()
+                ActionArgumentPrimitive.RoomName -> roomContextSuggestionsProvider?.roomInfo?.value?.name.toSuggestionsWithoutHint()
+                ActionArgumentPrimitive.RoomTopic -> roomContextSuggestionsProvider?.roomInfo?.value?.topic.toSuggestionsWithoutHint()
                 ActionArgumentPrimitive.EventType -> EVENT_TYPE_SUGGESTIONS.toSuggestionsWithoutHint()
                 ActionArgumentPrimitive.StateEventType -> roomStateEventSuggestions?.value?.toStateEventTypeSuggestions().orEmpty()
                 ActionArgumentPrimitive.NonEmptyStateKey -> {
@@ -386,6 +394,7 @@ class CommandSuggestionsProvider(
 }
 
 fun List<String>.toSuggestionsWithoutHint() = map { CommandSuggestion(it, null) }
+fun String?.toSuggestionsWithoutHint() = if (this == null) emptyList() else listOf(CommandSuggestion(this, null))
 
 fun List<StateEventCompletionSnapshot>.toStateEventTypeSuggestions() =
     map { it.eventType }.distinct().toSuggestionsWithoutHint()

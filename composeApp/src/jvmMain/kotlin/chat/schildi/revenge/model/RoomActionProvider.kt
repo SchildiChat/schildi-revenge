@@ -18,6 +18,7 @@ import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.room.BaseRoom
+import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.room.RoomNotificationMode
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import kotlinx.coroutines.Dispatchers
@@ -154,6 +155,25 @@ class RoomActionProvider(
                 val client = getClient() ?: return ActionResult.Failure("Client not ready")
                 val space = client.getRoom(spaceId) ?: return ActionResult.Failure("Space not found")
                 space.removeSpaceChild(room.roomId).toActionResult()
+            }
+            Action.Room.SetRoomName -> {
+                val joinedRoom = (room as? JoinedRoom) ?: return ActionResult.Inapplicable
+                val name = args.firstOrNull() ?: ""
+                joinedRoom.setName(name).toActionResult()
+            }
+            Action.Room.SetRoomTopic -> {
+                val joinedRoom = (room as? JoinedRoom) ?: return ActionResult.Inapplicable
+                val topic = args.firstOrNull() ?: ""
+                joinedRoom.setTopic(topic).toActionResult()
+            }
+            Action.Room.SetRoomAvatar -> {
+                val joinedRoom = (room as? JoinedRoom) ?: return ActionResult.Inapplicable
+                val avatarUrl = args.firstOrNull()
+                if (avatarUrl == null) {
+                    joinedRoom.removeAvatar().toActionResult()
+                } else {
+                    joinedRoom.setAvatarUrl(avatarUrl).toActionResult()
+                }
             }
         }
     }

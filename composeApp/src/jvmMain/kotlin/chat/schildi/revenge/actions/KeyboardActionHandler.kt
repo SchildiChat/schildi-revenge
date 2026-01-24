@@ -1769,6 +1769,8 @@ fun checkArgument(
         ActionArgumentPrimitive.StateEventType,
         ActionArgumentPrimitive.NonEmptyStateKey,
         ActionArgumentPrimitive.UserName,
+        ActionArgumentPrimitive.RoomName,
+        ActionArgumentPrimitive.RoomTopic,
         ActionArgumentPrimitive.Text -> null
         ActionArgumentPrimitive.SettingValue -> {
             val settingKeys = context.findAll(ActionArgumentPrimitive.SettingKey)
@@ -1872,6 +1874,15 @@ fun checkArgument(
             if (!argVal.startsWith("$")) {
                 ActionResult.Malformed(
                     "Invalid parameter for $actionName, expected room ID got $argVal"
+                )
+            } else {
+                null
+            }
+        }
+        ActionArgumentPrimitive.Mxc -> {
+            if (!argVal.startsWith("mxc://")) {
+                ActionResult.Malformed(
+                    "Invalid parameter for $actionName, expected MXC URL got $argVal"
                 )
             } else {
                 null
