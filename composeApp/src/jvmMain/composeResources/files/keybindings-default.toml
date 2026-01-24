@@ -1,9 +1,6 @@
 global = [
     { key = "K", ctrl = true, action = "Search" },
-    { key = "Slash", action = "Search", destinations = ["Inbox"] },
-    { key = "Semicolon", action = "Command" },
-    { key = "Semicolon", shift = true, action = "Command" },
-    { key = "Slash", action = "Command", destinations = ["Conversation"] },
+    { key = "K", ctrl = true, shift = true, action = "Command" },
 ]
 appMessage = [
     { key = "Escape", action = "ClearAppMessages" },
@@ -21,11 +18,6 @@ conversation = [
 ]
 event = []
 navigation = [
-    { key = "I", ctrl = true, action = "NavigateCurrent", args = ["inbox"] },
-    { key = "I", ctrl = true, shift = true, action = "NavigateInNewWindow", args = ["inbox"] },
-    { key = "A", ctrl = true, action = "NavigateCurrent", args = ["accounts"] },
-    { key = "A", ctrl = true, shift = true, action = "NavigateInNewWindow", args = ["accounts"] },
-    { key = "Q", ctrl = true, action = "CloseWindow" },
     { key = "Escape", action = "NavigateCurrent", args = ["inbox"], destinations = ["Conversation"] },
 ]
 navigationItem = [
