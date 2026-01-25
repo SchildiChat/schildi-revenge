@@ -30,7 +30,7 @@ data class MessageContent(
     val inReplyTo: InReplyTo?,
     override val isEdited: Boolean,
     val threadInfo: EventThreadInfo?,
-    val type: MessageType
+    val type: MessageType,
 ) : EventContent, EventCanBeEdited
 
 data object RedactedContent : EventContent
@@ -40,6 +40,7 @@ data class StickerContent(
     val body: String?,
     val info: ImageInfo,
     val source: MediaSource,
+    val threadInfo: EventThreadInfo?,
 ) : EventContent {
     val bestDescription: String
         get() = body ?: filename
@@ -53,10 +54,12 @@ data class PollContent(
     val votes: ImmutableMap<String, ImmutableList<UserId>>,
     val endTime: ULong?,
     override val isEdited: Boolean,
+    val threadInfo: EventThreadInfo?,
 ) : EventContent, EventCanBeEdited
 
 data class UnableToDecryptContent(
-    val data: Data
+    val data: Data,
+    val threadInfo: EventThreadInfo?,
 ) : EventContent {
     @Immutable
     sealed interface Data {

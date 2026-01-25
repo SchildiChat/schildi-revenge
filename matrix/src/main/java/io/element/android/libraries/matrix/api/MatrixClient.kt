@@ -10,6 +10,7 @@ package io.element.android.libraries.matrix.api
 
 import chat.schildi.matrixsdk.ScTimelineFilterSettings
 import io.element.android.libraries.core.data.tryOrNull
+import io.element.android.libraries.matrix.api.analytics.SdkStoreSizes
 import io.element.android.libraries.matrix.api.core.DeviceId
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.MatrixPatterns
@@ -20,6 +21,8 @@ import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.createroom.CreateRoomParameters
 import io.element.android.libraries.matrix.api.encryption.EncryptionService
+import io.element.android.libraries.matrix.api.linknewdevice.LinkDesktopHandler
+import io.element.android.libraries.matrix.api.linknewdevice.LinkMobileHandler
 import io.element.android.libraries.matrix.api.media.MatrixMediaLoader
 import io.element.android.libraries.matrix.api.media.MediaPreviewService
 import io.element.android.libraries.matrix.api.notification.NotificationService
@@ -66,7 +69,7 @@ interface MatrixClient {
     val sessionCoroutineScope: CoroutineScope
     val ignoredUsersFlow: StateFlow<ImmutableList<UserId>>
     val roomMembershipObserver: RoomMembershipObserver
-    suspend fun getJoinedRoom(roomId: RoomId, scTimelineFilterSettings: ScTimelineFilterSettings): JoinedRoom?
+    suspend fun getJoinedRoom(roomId: RoomId, scTimelineFilterSettings: ScTimelineFilterSettings = ScTimelineFilterSettings()): JoinedRoom?
     suspend fun getRoom(roomId: RoomId): BaseRoom?
     suspend fun getAccountData(eventType: String): String? // SC
     suspend fun getRoomAccountData(roomId: RoomId, eventType: String): String? // SC
@@ -87,6 +90,7 @@ interface MatrixClient {
     suspend fun joinRoomByIdOrAlias(roomIdOrAlias: RoomIdOrAlias, serverNames: List<String>): Result<RoomInfo?>
     suspend fun knockRoom(roomIdOrAlias: RoomIdOrAlias, message: String, serverNames: List<String>): Result<RoomInfo?>
     suspend fun getCacheSize(): Long
+    suspend fun getDatabaseSizes(): Result<SdkStoreSizes>
 
     /**
      * Will close the client and delete the cache data.
@@ -158,7 +162,7 @@ interface MatrixClient {
     /**
      * Get a room preview for a given room ID or alias. This is especially useful for rooms that the user is not a member of, or hasn't joined yet.
      */
-    suspend fun getRoomPreview(roomIdOrAlias: RoomIdOrAlias, serverNames: List<String>, scTimelineFilterSettings: ScTimelineFilterSettings): Result<NotJoinedRoom>
+    suspend fun getRoomPreview(roomIdOrAlias: RoomIdOrAlias, serverNames: List<String>, scTimelineFilterSettings: ScTimelineFilterSettings = ScTimelineFilterSettings()): Result<NotJoinedRoom>
 
     /**
      * Returns the currently used sliding sync version.
@@ -200,6 +204,31 @@ interface MatrixClient {
      * Use [Timeline.markAsRead] instead when possible.
      */
     suspend fun markRoomAsFullyRead(roomId: RoomId, eventId: EventId, withReadReceipt: ReceiptType?): Result<Unit>
+
+    /**
+     * Check if linking a new device using QrCode is supported by the server.
+     */
+    suspend fun canLinkNewDevice(): Result<Boolean>
+
+    /**
+     * Create a handler to link a new mobile device, i.e. a device capable of scanning QrCodes.
+     */
+    fun createLinkMobileHandler(): Result<LinkMobileHandler>
+
+    /**
+     * Create a handler to link a new desktop device, i.e. a device not capable of scanning QrCodes.
+     */
+    fun createLinkDesktopHandler(): Result<LinkDesktopHandler>
+
+    /**
+     * Performs a database optimization that should flush cached data and improve performance.
+     */
+    suspend fun performDatabaseVacuum(): Result<Unit>
+
+    /**
+     * Resets the cached client `well-known` config by the SDK.
+     */
+    suspend fun resetWellKnownConfig(): Result<Unit>
 }
 
 /**

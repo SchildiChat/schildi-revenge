@@ -9,8 +9,10 @@
 package io.element.android.appnav.di
 
 import io.element.android.libraries.matrix.api.timeline.TimelineProvider
+import io.element.android.services.analytics.api.watchers.AnalyticsSendMessageWatcher
 
 interface TimelineBindings {
     //val timelineProvider: TimelineProvider
     //val pinnedEventsTimelineProvider: PinnedEventsTimelineProvider
+    //val analyticsSendMessageWatcher: AnalyticsSendMessageWatcher
 }
