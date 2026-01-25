@@ -15,7 +15,7 @@ data class ActionArgumentOptional(val argument: ActionArgument) : ActionArgument
 data class ActionArgumentAnyOf(val arguments: List<ActionArgumentPrimitive>) : ActionArgument {
     constructor(vararg arguments: ActionArgumentPrimitive) : this(arguments.toList())
     override val name: String
-        get() = "any of: ${arguments.joinToString { it.name }}"
+        get() = "(${arguments.joinToString("|") { it.name }})"
     override val consumesTrailingArgsWithSpace = arguments.any { it.consumesTrailingArgsWithSpace }
     override fun canHold(primitive: ActionArgumentPrimitive) = arguments.contains(primitive)
 }
