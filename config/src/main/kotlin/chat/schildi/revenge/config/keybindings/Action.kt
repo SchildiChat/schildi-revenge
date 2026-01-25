@@ -115,6 +115,7 @@ sealed interface Action {
         RecreateUi,
         RecreateWindow,
         ClearSessionCache(args = listOf(ActionArgumentPrimitive.SessionId)),
+        VacuumDatabase(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.SessionId))),
     }
     enum class AppMessage(
         override val aliases: kotlin.collections.List<String> = emptyList(),

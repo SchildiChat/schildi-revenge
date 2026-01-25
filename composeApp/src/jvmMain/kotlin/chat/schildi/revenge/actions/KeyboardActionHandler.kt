@@ -1171,6 +1171,53 @@ class KeyboardActionHandler(
                         ActionResult.Success(async = true, notifySuccess = false)
                     }
                 }
+                Action.Global.VacuumDatabase -> {
+                    val sessionId = args.firstOrNull()
+                    val sessionIds = if (sessionId == null) {
+                        UiState.currentValidSessionIds.value.orEmpty().takeIf { it.isNotEmpty() }
+                            ?: return ActionResult.Inapplicable
+                    } else {
+                        listOf(sessionId)
+                    }
+                    context.launchActionAsync(
+                        "vacuumDb",
+                        GlobalActionsScope,
+                        Dispatchers.IO,
+                        "vacuumDb",
+                        notifyProcessing = true,
+                    ) {
+                        var error: ActionResult.Failure? = null
+                        var success: ActionResult.Success? = null
+                        var notFound = 0
+                        sessionIds.forEach {
+                            publishMessage(
+                                AppMessage(
+                                    "Vacuuming $it".toStringHolder(),
+                                    uniqueId = "vacuumDb",
+                                    canAutoDismiss = false,
+                                )
+                            )
+                            val sessionId = SessionId(it)
+                            val client = UiState.currentClientFor(sessionId)
+                            if (client == null) {
+                                notFound++
+                                return@forEach
+                            }
+                            val result = client.performDatabaseVacuum().toActionResult(async = true)
+                            if (result is ActionResult.Failure && error == null) {
+                                error = result
+                            } else if (result is ActionResult.Success) {
+                                success = result
+                            }
+                        }
+                        error
+                            ?: if (notFound > 0) {
+                                ActionResult.Failure("Unable to find $notFound/${sessionIds.size} clients")
+                            } else {
+                                success ?: ActionResult.Inapplicable
+                            }
+                    }
+                }
             }
         }
     }
