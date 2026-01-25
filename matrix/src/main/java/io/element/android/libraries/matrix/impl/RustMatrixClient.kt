@@ -8,7 +8,7 @@
 
 package io.element.android.libraries.matrix.impl
 
-import chat.schildi.lib.preferences.ScPreferencesStore
+//import chat.schildi.lib.preferences.ScPreferencesStore
 import chat.schildi.matrixsdk.ScTimelineFilterSettings
 import io.element.android.libraries.androidutils.file.getSizeOfFiles
 import io.element.android.libraries.core.bool.orFalse
@@ -197,7 +197,7 @@ class RustMatrixClient(
         roomListFactory = RoomListFactory(
             innerRoomListService = innerRoomListService,
             sessionCoroutineScope = sessionCoroutineScope,
-            //analyticsService = analyticsService,
+            analyticsService = analyticsService,
         ),
         roomSyncSubscriber = roomSyncSubscriber,
     )

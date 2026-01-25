@@ -5,6 +5,8 @@
  * Please see LICENSE files in the repository root for full details.
  */
 
+/*
+
 package io.element.android.libraries.matrix.api.analytics
 
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -12,3 +14,5 @@ import io.element.android.libraries.matrix.api.core.SessionId
 fun interface GetDatabaseSizesUseCase {
     suspend operator fun invoke(sessionId: SessionId): Result<SdkStoreSizes>
 }
+
+ */

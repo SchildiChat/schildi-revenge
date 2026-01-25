@@ -13,6 +13,7 @@ import io.element.android.libraries.matrix.api.roomlist.RoomList
 import io.element.android.libraries.matrix.api.roomlist.RoomListFilter
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
 import io.element.android.libraries.matrix.api.roomlist.ScSdkInboxSettings
+import io.element.android.services.analytics.api.AnalyticsService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,7 +38,7 @@ private val ROOM_LIST_RUST_FILTERS = listOf(
 internal class RoomListFactory(
     private val innerRoomListService: RoomListService,
     private val sessionCoroutineScope: CoroutineScope,
-    //private val analyticsService: AnalyticsService,
+    private val analyticsService: AnalyticsService,
 ) {
     private val roomSummaryFactory: RoomSummaryFactory = RoomSummaryFactory()
 

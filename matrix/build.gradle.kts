@@ -10,6 +10,7 @@ plugins {
 dependencies {
     implementation(libs.jna)
     implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.test)
     implementation(libs.kotlinx.collections.immutable)
     implementation(compose.runtime)
     implementation(libs.skydoves.compose.stable.marker)
@@ -33,7 +34,10 @@ kotlin {
     }
     sourceSets {
         named("main") {
-            kotlin.srcDir(layout.projectDirectory.dir("../matrix-rust-sdk/target/generated-bindings"))
+            kotlin.srcDirs(
+                layout.projectDirectory.dir("../matrix-rust-sdk/target/generated-bindings"),
+                layout.projectDirectory.dir("src/main/workmanager-shim"),
+            )
             dependencies {
                 implementation(libs.kermit)
                 implementation(libs.kotlinx.serialization.json)

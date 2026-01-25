@@ -18,7 +18,7 @@ import io.element.android.libraries.matrix.api.sync.SyncState
 import io.element.android.services.analytics.api.AnalyticsService
 import io.element.android.services.analytics.api.recordTransaction
 import io.element.android.services.analyticsproviders.api.AnalyticsUserData
-import io.element.android.services.appnavstate.api.AppForegroundStateService
+//import io.element.android.services.appnavstate.api.AppForegroundStateService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.combine

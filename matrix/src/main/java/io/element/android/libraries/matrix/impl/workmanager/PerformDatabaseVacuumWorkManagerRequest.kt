@@ -7,6 +7,8 @@
 
 package io.element.android.libraries.matrix.impl.workmanager
 
+/*
+
 import androidx.work.Constraints
 import androidx.work.Data
 import androidx.work.PeriodicWorkRequest
@@ -38,3 +40,5 @@ class PerformDatabaseVacuumWorkManagerRequest(
         return Result.success(listOf(workRequest))
     }
 }
+
+ */

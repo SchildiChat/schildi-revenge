@@ -5,6 +5,8 @@
  * Please see LICENSE files in the repository root for full details.
  */
 
+/*
+
 package io.element.android.libraries.matrix.impl.analytics
 
 import dev.zacsweers.metro.AppScope
@@ -16,7 +18,7 @@ import org.matrix.rustcomponents.sdk.enableSentryLogging
 @ContributesBinding(AppScope::class)
 class RustAnalyticsSdkManager : AnalyticsSdkManager {
     override fun enableSdkAnalytics(enabled: Boolean) {
-        enableSentryLogging(enabled)
+        //enableSentryLogging(enabled)
     }
 
     override fun startSpan(name: String, parentTraceId: String?): AnalyticsSdkSpan {
@@ -28,3 +30,5 @@ class RustAnalyticsSdkManager : AnalyticsSdkManager {
         return RustAnalyticsSdkSpan(name = null, parentTraceId = parentTraceId)
     }
 }
+
+ */

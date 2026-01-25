@@ -5,6 +5,8 @@
  * Please see LICENSE files in the repository root for full details.
  */
 
+/*
+
 package io.element.android.libraries.matrix.impl.analytics
 
 import dev.zacsweers.metro.AppScope
@@ -25,3 +27,5 @@ class DefaultGetDatabaseSizesUseCase(
         return client.getDatabaseSizes()
     }
 }
+
+ */

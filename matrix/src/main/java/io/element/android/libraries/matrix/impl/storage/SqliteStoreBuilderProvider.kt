@@ -16,7 +16,7 @@ interface SqliteStoreBuilderProvider {
 }
 
 @ContributesBinding(AppScope::class)
-class RustSqliteStoreBuilderProvider : SqliteStoreBuilderProvider {
+object RustSqliteStoreBuilderProvider : SqliteStoreBuilderProvider {
     override fun provide(sessionPaths: SessionPaths): SqliteStoreBuilder {
         return RustSqliteStoreBuilder(sessionPaths)
     }
