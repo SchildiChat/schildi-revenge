@@ -160,6 +160,7 @@ sealed interface KeyboardActionMode {
         val suggestionsProvider: CommandSuggestionsProvider,
         val selectedSuggestion: String?,
         val impliedArguments: List<Pair<ActionArgumentPrimitive, String>>,
+        val forSearch: Search?,
     ) : KeyboardActionMode
 }
 
@@ -284,11 +285,11 @@ class KeyboardActionHandler(
     }.stateIn(scope, SharingStarted.Eagerly, FocusState())
 
     val needsKeyboardSearchBar = mode.map { m ->
-        m is KeyboardActionMode.Search
+        m.asSearchMode() != null
     }.stateIn(scope, SharingStarted.Eagerly, false)
 
     val searchQuery = mode.map {
-        (it as? KeyboardActionMode.Search)?.query ?: ""
+        it.asSearchMode()?.query ?: ""
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -567,8 +568,8 @@ class KeyboardActionHandler(
     private fun updateMode(update: (KeyboardActionMode) -> KeyboardActionMode) {
         _mode.update { old ->
             val new = update(old)
-            val oldSearchProvider = (old as? KeyboardActionMode.Search)?.searchProvider
-            if (oldSearchProvider != null && oldSearchProvider != (new as? KeyboardActionMode.Search)?.searchProvider) {
+            val oldSearchProvider = old.asSearchMode()?.searchProvider
+            if (oldSearchProvider != null && oldSearchProvider != new.asSearchMode()?.searchProvider) {
                 oldSearchProvider.onSearchCleared()
             }
             val oldCommandSuggestionsProvider = (old as? KeyboardActionMode.Command)?.suggestionsProvider
@@ -618,7 +619,7 @@ class KeyboardActionHandler(
         }
         return when (key.rawKey) {
             KeyMapped.Escape -> {
-                updateMode { KeyboardActionMode.Navigation }
+                updateMode { it.asSearchMode() ?: KeyboardActionMode.Navigation }
                 true
             }
             KeyMapped.Enter -> {
@@ -1095,9 +1096,16 @@ class KeyboardActionHandler(
                         // Search already active, just focus again
                         focusByRole(FocusRole.SEARCH_BAR).orActionInapplicable()
                     } else {
-                        handleSearchUpdate("", navigating = false) {
+                        val previousSearch = mode.value.asSearchMode()
+                        if (previousSearch != null) {
+                            updateMode { previousSearch }
                             focusByRole(FocusRole.SEARCH_BAR)
-                        }.orActionInapplicable()
+                            ActionResult.Success()
+                        } else {
+                            handleSearchUpdate("", navigating = false) {
+                                focusByRole(FocusRole.SEARCH_BAR)
+                            }.orActionInapplicable()
+                        }
                     }
                 }
                 Action.Global.Command -> {
@@ -1591,6 +1599,7 @@ class KeyboardActionHandler(
                     ),
                     selectedSuggestion = null,
                     impliedArguments = actionHandlers.flatMap { it.impliedArguments() }.distinct(),
+                    forSearch = mode.asSearchMode(),
                 )
             }.also {
                 success = it
@@ -2142,4 +2151,10 @@ fun currentActionContext(): ActionContext {
     return remember(keyHandler, destination) {
         keyHandler.getActionContext(destination)
     }
+}
+
+private fun KeyboardActionMode.asSearchMode() = when (this) {
+    is KeyboardActionMode.Search -> this
+    is KeyboardActionMode.Command -> forSearch
+    else -> null
 }
