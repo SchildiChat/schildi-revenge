@@ -9,6 +9,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -59,6 +60,7 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
     val mentionColor = MaterialTheme.scExposures.mentionFg
     val mentionHighlightColor = MaterialTheme.scExposures.mentionFgHighlight
     val sessionId = LocalSessionId.current
+    val urlHandler = LocalUriHandler.current
     return remember(
         density,
         textMeasurer,
@@ -66,7 +68,8 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
         linkColor,
         mentionColor,
         mentionHighlightColor,
-        sessionId
+        sessionId,
+        urlHandler,
     ) {
         object : DefaultMatrixBodyStyledFormatter(
             density,
@@ -74,6 +77,7 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
             textStyle,
             urlStyle = TextLinkStyles(SpanStyle(color = linkColor)),
             blockIndention = MessageFormatDefaults.blockIndention,
+            handleWebLinkClick = urlHandler::openUri,
         ) {
             override fun formatUserMention(mention: MatrixToLink.UserMention, context: FormatContext): List<AnnotatedString.Annotation>? {
                 return if (sessionId?.value == mention.userId) {
