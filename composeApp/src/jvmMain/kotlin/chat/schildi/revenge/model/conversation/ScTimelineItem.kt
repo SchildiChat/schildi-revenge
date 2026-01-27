@@ -1,5 +1,6 @@
 package chat.schildi.revenge.model.conversation
 
+import chat.schildi.revenge.MessageFormatDefaults
 import com.beeper.android.messageformat.MatrixBodyParseResult
 import com.beeper.android.messageformat.MatrixBodyPreFormatStyle
 import com.beeper.android.messageformat.MatrixHtmlParser
@@ -41,8 +42,8 @@ fun MatrixTimelineItem.toScTimelineItem(
  * Avoid in UI thread if possible (but exceptions are probably ok).
  */
 fun EventContent.messageMetadata(
-    parser: MatrixHtmlParser,
-    style: MatrixBodyPreFormatStyle,
+    parser: MatrixHtmlParser = MessageFormatDefaults.parser,
+    style: MatrixBodyPreFormatStyle = MessageFormatDefaults.parseStyle,
 ): MessageMetadata {
     val (formattedBody, plaintext) = when (val type = (this as? MessageContent)?.type) {
         is TextLikeMessageType -> Pair(type.formatted, type.body)

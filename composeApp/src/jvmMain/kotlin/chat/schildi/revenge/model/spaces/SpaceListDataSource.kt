@@ -79,6 +79,7 @@ data class SpaceBuilderRoom(
     fun toScopedRoomSummary() = ScopedRoomSummary(
         client.sessionId,
         summary,
+        latestEventMessageMetadata = null, // We're not going to render message previews for spaces
     )
 }
 

@@ -226,10 +226,20 @@ private fun RowScope.ScLastMessageAndIndicatorRow(
         stringResource(Res.string.message_placeholder_tombstone)
     } else {
         when (val event = room.latestEvent) {
-            is LatestEventValue.Local -> EventTextFormat.eventToText(event.content, event.senderProfile, event.senderId)
+            is LatestEventValue.Local -> EventTextFormat.eventToText(
+                event.content,
+                scopedRoom.latestEventMessageMetadata,
+                event.senderProfile,
+                event.senderId
+            )
             LatestEventValue.None -> null
             is LatestEventValue.Remote -> {
-                val eventText = EventTextFormat.eventToText(event.content, event.senderProfile, event.senderId)
+                val eventText = EventTextFormat.eventToText(
+                    event.content,
+                    scopedRoom.latestEventMessageMetadata,
+                    event.senderProfile,
+                    event.senderId,
+                )
                 if (event.isOwn || room.isOneToOne) {
                     eventText
                 } else {

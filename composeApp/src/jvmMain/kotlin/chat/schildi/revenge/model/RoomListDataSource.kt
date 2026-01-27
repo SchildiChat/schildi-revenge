@@ -8,9 +8,11 @@ import chat.schildi.preferences.safeLookup
 import chat.schildi.revenge.CombinedSessions
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.flatMergeCombinedWith
+import chat.schildi.revenge.model.conversation.messageMetadata
 import chat.schildi.revenge.util.mergeLists
 import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.Inject
+import io.element.android.libraries.matrix.api.roomlist.LatestEventValue
 import io.element.android.libraries.matrix.api.roomlist.RoomListFilter
 import io.element.android.libraries.matrix.api.roomlist.ScSdkInboxSettings
 import io.element.android.libraries.matrix.api.roomlist.ScSdkRoomSortOrder
@@ -51,7 +53,15 @@ class RoomListDataSource(
         map = { input, _ ->
             input.client.roomListService.allRooms.summaries.map {
                 it.map {
-                    ScopedRoomSummary(input.client.sessionId, it)
+                    val latestEventContent = when (val event = it.latestEvent) {
+                        is LatestEventValue.Local -> event.content
+                        is LatestEventValue.Remote -> event.content
+                        LatestEventValue.None -> null
+                    }
+                    ScopedRoomSummary(
+                        input.client.sessionId,
+                        it,
+                        latestEventContent?.messageMetadata())
                 }
             }
         },

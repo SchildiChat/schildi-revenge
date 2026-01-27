@@ -28,6 +28,7 @@ import chat.schildi.revenge.compose.util.throttleLatest
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.flatMerge
+import chat.schildi.revenge.model.conversation.MessageMetadata
 import chat.schildi.revenge.model.spaces.RevengeSpaceListDataSource
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
 import chat.schildi.revenge.model.spaces.SpaceListDataSource
@@ -76,6 +77,7 @@ import kotlin.collections.map
 data class ScopedRoomSummary(
     val sessionId: SessionId,
     val summary: RoomSummary,
+    val latestEventMessageMetadata: MessageMetadata?,
 ) {
     val key = ScopedRoomKey(sessionId, summary.roomId)
 }

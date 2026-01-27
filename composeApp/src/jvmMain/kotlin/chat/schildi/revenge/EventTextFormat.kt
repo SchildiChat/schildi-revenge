@@ -1,6 +1,7 @@
 package chat.schildi.revenge
 
 import androidx.compose.runtime.Composable
+import chat.schildi.revenge.model.conversation.MessageMetadata
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.timeline.item.event.AudioMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.CallNotifyContent
@@ -101,7 +102,16 @@ import shire.composeapp.generated.resources.profile_update_set_name_and_avatar
 
 object EventTextFormat {
     @Composable
-    fun eventToText(content: EventContent, senderProfile: ProfileDetails, senderId: UserId): String {
+    fun eventToText(
+        content: EventContent,
+        messageMetadata: MessageMetadata?,
+        senderProfile: ProfileDetails,
+        senderId: UserId,
+    ): String {
+        messageMetadata?.preFormattedContent?.text?.let {
+            // Strip formatting & trim
+            return it.toString().trim().replace("\\s+".toRegex(), " ")
+        }
         return when (content) {
             is MessageContent -> {
                 when (val type = content.type) {
