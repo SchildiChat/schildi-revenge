@@ -9,6 +9,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
+import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.timeline.item.event.ProfileDetails
@@ -35,10 +36,12 @@ fun SenderName(senderId: UserId, senderProfile: ProfileDetails, modifier: Modifi
     }
     // TODO user coloring?
     SelectionContainer(modifier) {
-        Text(
-            text = renderedName,
-            color = MaterialTheme.scExposures.accentColor,
-            style = MaterialTheme.typography.labelLarge,
-        )
+        WithTooltip(senderId.value) {
+            Text(
+                text = renderedName,
+                color = MaterialTheme.scExposures.accentColor,
+                style = MaterialTheme.typography.labelLarge,
+            )
+        }
     }
 }
