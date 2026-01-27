@@ -5,9 +5,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -25,10 +23,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.StringAnnotation
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewInfo
 import chat.schildi.revenge.Dimens
@@ -244,7 +240,7 @@ private fun InlineImage(
                 is AsyncImagePainter.State.Success -> SubcomposeAsyncImageContent(modifier)
                 else -> {
                     Text(
-                        info.alt ?: info.title ?: "\uFFFD",
+                        info.alt ?: info.title ?: MessageFormatDefaults.INLINE_IMAGE_PLACEHOLDER,
                         modifier,
                         style = textStyle,
                         color = textColor,

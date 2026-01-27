@@ -30,6 +30,7 @@ import com.beeper.android.messageformat.MatrixToLink
 object MessageFormatDefaults {
     val blockIndention = 16.sp
     val parser: MatrixHtmlParser = MatrixHtmlParser()
+    const val INLINE_IMAGE_PLACEHOLDER = "\uFFFD"
     val parseStyle: MatrixBodyPreFormatStyle = MatrixBodyPreFormatStyle(
         formatRoomMention = {
             // Wrap in non-breakable space to add padding for background
@@ -43,6 +44,12 @@ object MessageFormatDefaults {
                 append("\u00A0")
             }
         },
+        formatInlineImageFallback = {
+            // Anything that's not length 1 will cause spans that come after the image to misalign later (JVM bug?)
+            it.alt?.takeIf { it.length == 1 }
+                ?: it.title?.takeIf { it.length == 1 }
+                ?: INLINE_IMAGE_PLACEHOLDER
+        }
     )
 }
 
