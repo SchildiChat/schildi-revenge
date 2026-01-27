@@ -59,7 +59,7 @@ internal class CoilMediaFetcher(
                 )
             }
             .onFailure {
-                Timber.e(it)
+                Timber.w("Failed to fetch file: $it")
             }
             .getOrNull()
     }
@@ -70,7 +70,7 @@ internal class CoilMediaFetcher(
         ).map { byteArray ->
             byteArray.asSourceResult()
         }.onFailure {
-            Timber.e(it)
+            Timber.w("Failed to fetch content: $it")
         }.getOrNull()
     }
 
@@ -82,7 +82,7 @@ internal class CoilMediaFetcher(
         ).map { byteArray ->
             byteArray.asSourceResult()
         }.onFailure {
-            Timber.e(it)
+            Timber.w("Failed to fetch thumbnail: $it")
         }.getOrNull()
     }
 
