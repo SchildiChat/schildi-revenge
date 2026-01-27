@@ -1,5 +1,6 @@
 package chat.schildi.revenge.compose.destination.conversation.event
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import chat.schildi.revenge.compose.destination.conversation.event.message.FileMessage
@@ -163,7 +164,9 @@ fun EventContentLayout(
                 }
                 UnableToDecryptContent.Data.Unknown -> stringResource(Res.string.message_placeholder_unable_to_decrypt)
             }
-            EventMessageFallback(message)
+            EventMessageLayout {
+                MessageFallback(message, isOwn, timestamp, inReplyTo, textColor = MaterialTheme.colorScheme.error)
+            }
         }
     }
 }

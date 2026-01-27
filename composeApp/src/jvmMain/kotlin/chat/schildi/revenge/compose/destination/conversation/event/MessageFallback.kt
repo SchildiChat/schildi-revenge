@@ -3,6 +3,7 @@ package chat.schildi.revenge.compose.destination.conversation.event;
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable;
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontStyle
@@ -18,7 +19,8 @@ fun MessageFallback(
     isOwn: Boolean,
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    textColor: Color = MaterialTheme.colorScheme.secondary,
 ) {
     // TODO make clearer that this is a fallback and not actual message content?
     val formatted = buildAnnotatedString {
@@ -32,6 +34,6 @@ fun MessageFallback(
         timestamp,
         inReplyTo,
         modifier,
-        textColor = MaterialTheme.colorScheme.secondary,
+        textColor = textColor,
     )
 }
