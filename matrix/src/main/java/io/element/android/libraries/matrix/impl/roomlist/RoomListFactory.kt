@@ -37,7 +37,6 @@ private val ROOM_LIST_RUST_FILTERS = listOf(
 
 internal class RoomListFactory(
     private val innerRoomListService: RoomListService,
-    private val sessionCoroutineScope: CoroutineScope,
     private val analyticsService: AnalyticsService,
 ) {
     private val roomSummaryFactory: RoomSummaryFactory = RoomSummaryFactory()
@@ -48,8 +47,8 @@ internal class RoomListFactory(
     fun createRoomList(
         pageSize: Int,
         coroutineContext: CoroutineContext,
-        isSpaceList: Boolean,
-        coroutineScope: CoroutineScope = sessionCoroutineScope,
+        isSpaceList: Boolean, // SC
+        coroutineScope: CoroutineScope,
         initialFilter: RoomListFilter = RoomListFilter.all(),
         initialInboxSettings: ScSdkInboxSettings? = null,
         innerProvider: suspend () -> InnerRoomList
