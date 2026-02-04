@@ -1456,7 +1456,7 @@ class KeyboardActionHandler(
         val commandMode = (mode.value as? KeyboardActionMode.Command) ?: return
         executeCommand(commandMode)
         updateMode {
-            it.takeIf { it !is KeyboardActionMode.Command } ?: KeyboardActionMode.Navigation
+            it.takeIf { it !is KeyboardActionMode.Command } ?: it.asSearchMode() ?: KeyboardActionMode.Navigation
         }
     }
 
