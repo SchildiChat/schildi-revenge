@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.min
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewInfo
 import chat.schildi.revenge.Dimens
@@ -153,6 +154,12 @@ fun TextLikeMessageContent(
         formatter = LocalMatrixBodyFormatter.current,
         drawStyle = LocalMatrixBodyDrawStyle.current,
         onTextLayout = onTextLayout,
+        maxLines = if (LocalMessageRenderContext.current == MessageRenderContext.IN_REPLY_TO) {
+            20
+        } else {
+            Integer.MAX_VALUE
+        },
+        overflow = TextOverflow.Ellipsis,
         inlineContent = text.inlineImages.toInlineContent(
             density = LocalDensity.current,
             defaultHeight = textStyle.lineHeight,
