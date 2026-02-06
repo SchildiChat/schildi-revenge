@@ -7,6 +7,7 @@ import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.actions.launchActionAsync
 import chat.schildi.revenge.actions.orActionValidationError
+import chat.schildi.revenge.actions.runWithMessage
 import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.toStringHolder
@@ -27,6 +28,10 @@ import shire.composeapp.generated.resources.action_leave
 import shire.composeapp.generated.resources.action_leave_room_prompt
 import shire.composeapp.generated.resources.action_leave_unnamed_room_prompt
 import shire.composeapp.generated.resources.command_copy_name_event_id
+import shire.composeapp.generated.resources.toast_added_to_space
+import shire.composeapp.generated.resources.toast_adding_to_space
+import shire.composeapp.generated.resources.toast_removed_from_space
+import shire.composeapp.generated.resources.toast_removing_from_space
 
 private val RoomInviteActions = setOf(Action.Room.Join)
 
@@ -148,13 +153,23 @@ class RoomActionProvider(
                 val spaceId = args.firstOrNull()?.let { RoomId(it) }.orActionValidationError()
                 val client = getClient() ?: return ActionResult.Failure("Client not ready")
                 val space = client.getRoom(spaceId) ?: return ActionResult.Failure("Space not found")
-                space.addSpaceChild(room.roomId).toActionResult()
+                addRoomToSpace(context, space, room)
             }
             Action.Room.RemoveFromSpace -> {
                 val spaceId = args.firstOrNull()?.let { RoomId(it) }.orActionValidationError()
                 val client = getClient() ?: return ActionResult.Failure("Client not ready")
                 val space = client.getRoom(spaceId) ?: return ActionResult.Failure("Space not found")
-                space.removeSpaceChild(room.roomId).toActionResult()
+                removeRoomFromSpace(context, space, room)
+            }
+            Action.Room.ToggleRoomInSpace -> {
+                val spaceId = args.firstOrNull()?.let { RoomId(it) }.orActionValidationError()
+                val client = getClient() ?: return ActionResult.Failure("Client not ready")
+                val space = client.getRoom(spaceId) ?: return ActionResult.Failure("Space not found")
+                if (space.info().spaceChildren.any { it.roomId == room.roomId.value }) {
+                    removeRoomFromSpace(context, space, room)
+                } else {
+                    addRoomToSpace(context, space, room)
+                }
             }
             Action.Room.SetRoomName -> {
                 val joinedRoom = (room as? JoinedRoom) ?: return ActionResult.Inapplicable
@@ -175,6 +190,44 @@ class RoomActionProvider(
                     joinedRoom.setAvatarUrl(avatarUrl).toActionResult()
                 }
             }
+        }
+    }
+
+    private suspend fun addRoomToSpace(context: ActionContext, space: BaseRoom, room: BaseRoom): ActionResult {
+        val spaceName = (space.info().name ?: space.roomId.value).toStringHolder()
+        val roomName = (room.info().name ?: room.roomId.value).toStringHolder()
+        return context.runWithMessage(
+            messageId = "addRoomToSpace/${space.roomId}/${room.roomId}",
+            start = StringResourceHolder(Res.string.toast_adding_to_space, roomName, spaceName),
+            end = {
+                if (it is ActionResult.Success) {
+                    StringResourceHolder(Res.string.toast_added_to_space, roomName, spaceName)
+                } else {
+                    (it as? ActionResult.Failure)?.message?.toStringHolder()
+                        ?: it.toString().toStringHolder()
+                }
+            }
+        ) {
+            space.addSpaceChild(room.roomId).toActionResult()
+        }
+    }
+
+    private suspend fun removeRoomFromSpace(context: ActionContext, space: BaseRoom, room: BaseRoom): ActionResult {
+        val spaceName = (space.info().name ?: space.roomId.value).toStringHolder()
+        val roomName = (room.info().name ?: room.roomId.value).toStringHolder()
+        return context.runWithMessage(
+            messageId = "removeRoomFromSpace/${space.roomId}/${room.roomId}",
+            start = StringResourceHolder(Res.string.toast_removing_from_space, roomName, spaceName),
+            end = {
+                if (it is ActionResult.Success) {
+                    StringResourceHolder(Res.string.toast_removed_from_space, roomName, spaceName)
+                } else {
+                    (it as? ActionResult.Failure)?.message?.toStringHolder()
+                        ?: it.toString().toStringHolder()
+                }
+            }
+        ) {
+            space.removeSpaceChild(room.roomId).toActionResult()
         }
     }
 

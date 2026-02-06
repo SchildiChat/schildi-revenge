@@ -2089,6 +2089,34 @@ interface ActionContext {
     val keybindingConfig: KeybindingConfig?
 }
 
+inline fun ActionContext.runWithMessage(
+    messageId: String,
+    start: ComposableStringHolder,
+    end: (ActionResult) -> ComposableStringHolder,
+    block: () -> ActionResult,
+): ActionResult {
+    publishMessage(
+        AppMessage(
+            message = start,
+            uniqueId = messageId,
+            canAutoDismiss = false,
+        )
+    )
+    var result: ActionResult? = null
+    try {
+        result = block()
+        return result
+    } finally {
+        publishMessage(
+            AppMessage(
+                message = end(result ?: ActionResult.Failure("Unexpected exit")),
+                uniqueId = messageId,
+                isError = result !is ActionResult.Success,
+            )
+        )
+    }
+}
+
 private interface InternalActionContext : ActionContext {
     val focused: FocusTarget?
     val criticalActionRequiresConfirmation: Boolean

@@ -240,6 +240,7 @@ sealed interface Action {
         SetRoomNotifications(args = listOf(ActionArgumentPrimitive.RoomNotificationSetting)),
         AddToSpace(args = listOf(ActionArgumentPrimitive.NonParentSpaceId)),
         RemoveFromSpace(args = listOf(ActionArgumentPrimitive.ParentSpaceId)),
+        ToggleRoomInSpace(args = listOf(ActionArgumentPrimitive.SpaceId)),
         SetRoomName(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.RoomName))),
         SetRoomTopic(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.RoomTopic))),
         SetRoomAvatar(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.Mxc))),
