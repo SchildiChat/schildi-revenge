@@ -61,9 +61,12 @@ object SdkLoader {
 
             initPlatform(
                 config = TracingConfiguration(
-                    logLevel = LogLevel.INFO,
+                    logLevel = LogLevel.TRACE,
                     traceLogPacks = emptyList(),
-                    extraTargets = emptyList(),
+                    extraTargets = listOf(
+                        "matrix_sdk_sqlite::connection",
+                        "matrix_sdk_sqlite"
+                    ),
                     writeToStdoutOrSystem = true,
                     writeToFiles = null,
                 ),
