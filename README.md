@@ -2,7 +2,9 @@
 
 # SchildiChat Revenge
 
-A desktop Matrix client written in kotlin / Compose Multiplatform based on the Matrix Rust SDK.
+A desktop Matrix client written in kotlin / Compose Multiplatform based on the Matrix Rust SDK.  
+Currently still in its alpha stage, so expect bugs and missing functionality, but feel free to open issues if you're
+noticing/missing something particular that's not already tracked below or in an existing issue.
 
 ## Main goals
 
