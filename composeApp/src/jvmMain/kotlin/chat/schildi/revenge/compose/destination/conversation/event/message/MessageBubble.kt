@@ -15,6 +15,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.NoEncryption
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -220,9 +222,18 @@ private fun TimestampContent(
                 is MessageShield.UnverifiedIdentity -> stringResource(Res.string.message_shield_unverified_identity)
                 is MessageShield.VerificationViolation -> stringResource(Res.string.message_shield_verification_violation)
             }
+            val icon = when (messageShield) {
+                is MessageShield.SentInClear -> Icons.Default.NoEncryption
+                is MessageShield.UnknownDevice,
+                is MessageShield.UnsignedDevice,
+                is MessageShield.UnverifiedIdentity,
+                is MessageShield.AuthenticityNotGuaranteed -> Icons.Default.Info
+                is MessageShield.MismatchedSender,
+                is MessageShield.VerificationViolation -> Icons.Default.Warning
+            }
             WithTooltip(hint) {
                 Icon(
-                    Icons.Default.Info,
+                    icon,
                     hint,
                     tint = if (messageShield.isCritical) MaterialTheme.colorScheme.error else textColor,
                     modifier = Modifier.size(Dimens.Conversation.timestampDecorationIcon)
