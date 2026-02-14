@@ -68,6 +68,7 @@ enum class KeyMapped(val key: Key) {
     Period(Key.Period),
     Equals(Key.Equals),
     Tab(Key.Tab),
+    Minus(Key.Minus),
 
     // F-keys
     F1(Key.F1),
