@@ -444,25 +444,32 @@ class InboxViewModel(
 
             Action.Inbox.NavigateSpaceRelative -> {
                 val diff = args[0].toIntOrNull().orActionValidationError()
-                navigateSpaceRelative(diff).orActionInapplicable()
+                navigateSpaceRelative(diff)
+            }
+
+            Action.Inbox.SelectSpaceIfNotHidden -> {
+                val spaceSelection = args[0]
+                navigateToSpaceById(spaceSelection) { selection ->
+                    spaces.value?.resolveSelection(selection)?.shouldShow(filterByUnread = true) == true
+                }
             }
 
             Action.Inbox.SelectSpace -> {
                 val spaceSelection = args[0]
                 val asIndex = spaceSelection.toIntOrNull()
                 if (asIndex != null) {
-                    navigateToSpaceIndex(asIndex).orActionInapplicable()
+                    navigateToSpaceIndex(asIndex)
                 } else {
-                    navigateToSpaceById(spaceSelection).orActionFailure("Space with ID $spaceSelection not found")
+                    navigateToSpaceById(spaceSelection)
                 }
             }
         }
     }
 
     private fun navigateSpaceInCurrentHierarchyLevel(
-        select: (List<SpaceListDataSource.AbstractSpaceHierarchyItem?>, List<String>, List<String>) -> Boolean
-    ): Boolean {
-        val currentSpaces = spaces.value ?: return false
+        select: (List<SpaceListDataSource.AbstractSpaceHierarchyItem?>, List<String>, List<String>) -> ActionResult
+    ): ActionResult {
+        val currentSpaces = spaces.value ?: return ActionResult.Failure("No spaces found")
         val currentSelection = spaceSelection.value
         val currentParentSelection = if (currentSelection.isEmpty()) {
             emptyList()
@@ -483,12 +490,12 @@ class InboxViewModel(
                 ?: currentSpaces
         }
         if (currentSpaceLevel.size <= 1) {
-            return false
+            return ActionResult.Inapplicable
         }
         return select(currentSpaceLevel, currentSelection, currentParentSelection)
     }
 
-    private fun navigateSpaceRelative(diff: Int): Boolean = navigateSpaceInCurrentHierarchyLevel { currentSpaceLevel, currentSelection, currentParentSelection ->
+    private fun navigateSpaceRelative(diff: Int): ActionResult = navigateSpaceInCurrentHierarchyLevel { currentSpaceLevel, currentSelection, currentParentSelection ->
         val currentIndex = if (currentSelection.isEmpty()) {
             0
         } else {
@@ -497,24 +504,24 @@ class InboxViewModel(
         }
         val navigatedIndex = (currentIndex + diff).coerceIn(0, currentSpaceLevel.size - 1)
         if (navigatedIndex == currentIndex) {
-            return@navigateSpaceInCurrentHierarchyLevel false
+            return@navigateSpaceInCurrentHierarchyLevel ActionResult.NoOp
         }
         setSpaceSelection(currentParentSelection + listOfNotNull(currentSpaceLevel[navigatedIndex]?.selectionId))
-        return@navigateSpaceInCurrentHierarchyLevel true
+        return@navigateSpaceInCurrentHierarchyLevel ActionResult.Success()
     }
 
-    private fun navigateToSpaceIndex(index: Int): Boolean = navigateSpaceInCurrentHierarchyLevel { currentSpaceLevel, currentSelection, currentParentSelection ->
+    private fun navigateToSpaceIndex(index: Int): ActionResult = navigateSpaceInCurrentHierarchyLevel { currentSpaceLevel, currentSelection, currentParentSelection ->
         val navigatedIndex = index.coerceIn(0, currentSpaceLevel.size - 1)
         val newSelectionId = currentSpaceLevel[navigatedIndex]?.selectionId
         if (newSelectionId == currentSelection.lastOrNull()) {
-            return@navigateSpaceInCurrentHierarchyLevel false
+            return@navigateSpaceInCurrentHierarchyLevel ActionResult.NoOp
         }
         setSpaceSelection(currentParentSelection + listOfNotNull(newSelectionId))
-        return@navigateSpaceInCurrentHierarchyLevel true
+        return@navigateSpaceInCurrentHierarchyLevel ActionResult.Success()
     }
 
-    private fun navigateToSpaceById(spaceId: String): Boolean {
-        val currentSpaces = spaces.value ?: return false
+    private fun navigateToSpaceById(spaceId: String, condition: (List<String>) -> Boolean = { true }): ActionResult {
+        val currentSpaces = spaces.value ?: return ActionResult.Failure("No spaces found")
         val condition: (SpaceListDataSource.AbstractSpaceHierarchyItem) -> Boolean = when {
             spaceId.startsWith("!") -> {{
                 (it as? SpaceListDataSource.SpaceHierarchyItem)?.room?.summary?.roomId?.value == spaceId
@@ -527,9 +534,17 @@ class InboxViewModel(
             }}
         }
         return currentSpaces.findInHierarchy(condition)?.let {
-            setSpaceSelection(it)
-            true
-        } ?: false
+            if (it == _spaceSelection.value) {
+                ActionResult.NoOp
+            } else {
+                if (condition(it)) {
+                    setSpaceSelection(it)
+                    ActionResult.Success()
+                } else {
+                    ActionResult.NoOp
+                }
+            }
+        } ?: ActionResult.Failure("Space with ID $spaceSelection not found")
     }
 
     private fun findSessionIdForAccountAction(parameter: String): SessionId? {

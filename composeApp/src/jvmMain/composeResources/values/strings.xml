@@ -83,6 +83,7 @@
     <string name="command_setting_set_to">%1$s set to %2$s</string>
     <string name="command_not_found">"%1$s" is not a valid command in this context</string>
     <string name="command_not_applicable">"%1$s" is not applicable in this context</string>
+    <string name="command_is_no_op">"%1$s" succeeded as no-op</string>
     <string name="command_ambiguous">Command "%1$s" is ambiguous in this context</string>
     <string name="command_ambiguous_none_valid">Command "%1$s" matches no available command with the provided parameters in this context</string>
     <string name="command_suggestion_title_and_hint">%1$s: %2$s</string>

@@ -186,6 +186,12 @@ sealed interface Action {
         ToggleAccountMuted(args = listOf(SessionIdOrIndex)),
         NavigateSpaceRelative(args = listOf(ActionArgumentPrimitive.Integer)),
         SelectSpace(args = listOf(SpaceIdSelectable)),
+        SelectSpaceIfNotHidden(args = listOf(
+            ActionArgumentAnyOf(
+                ActionArgumentPrimitive.SpaceId,
+                ActionArgumentPrimitive.SpaceSelectionId,
+            )
+        )),
     }
     enum class Conversation(
         override val aliases: kotlin.collections.List<String> = emptyList(),

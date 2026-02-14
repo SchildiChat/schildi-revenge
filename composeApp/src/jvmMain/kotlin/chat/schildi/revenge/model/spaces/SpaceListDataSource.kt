@@ -323,6 +323,8 @@ class SpaceListDataSource(
         fun canHide(spaceUnreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts): Boolean = false
         // To add additional space information independent of the actual space hierarchy, use separate flows to enrich
         fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?): AbstractSpaceHierarchyItem
+
+        fun shouldShow(filterByUnread: Boolean) = enabled && (!filterByUnread || unreadCounts?.let { canHide(it) } != true)
     }
 
     @Immutable
@@ -623,15 +625,8 @@ fun ImmutableList<SpaceListDataSource.AbstractSpaceHierarchyItem>.filterByVisibl
     filterByUnread: Boolean,
 ): ImmutableList<SpaceListDataSource.AbstractSpaceHierarchyItem> {
     val currentSelection = selection?.firstOrNull()
-    return if (filterByUnread) {
-        filter { space ->
-            space.selectionId == currentSelection ||
-                    space.enabled && space.unreadCounts?.let { space.canHide(it) } != true
-        }
-    } else {
-        filter { space ->
-            space.selectionId == currentSelection || space.enabled
-        }
+    return filter { space ->
+        space.selectionId == currentSelection || space.shouldShow(filterByUnread)
     }.toImmutableList()
 }
 

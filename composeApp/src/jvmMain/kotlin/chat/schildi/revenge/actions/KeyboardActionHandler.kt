@@ -1057,7 +1057,7 @@ class KeyboardActionHandler(
                         }
                     }
                     if (wasEmpty) {
-                        ActionResult.Inapplicable
+                        ActionResult.NoOp
                     } else {
                         ActionResult.Success()
                     }
@@ -1553,6 +1553,13 @@ class KeyboardActionHandler(
                             uniqueId = COMMAND_MESSAGE_ID,
                         )
                     )
+                    is ActionResult.NoOp -> publishMessage(
+                        AppMessage(
+                            StringResourceHolder(Res.string.command_not_applicable, mainCommand.toStringHolder()),
+                            isError = true,
+                            uniqueId = COMMAND_MESSAGE_ID,
+                        )
+                    )
                     is ActionResult.InvalidCommand -> publishMessage(
                         AppMessage(
                             result.message.toStringHolder(),
@@ -1726,6 +1733,9 @@ sealed interface ActionResult {
         override fun withChainSetting(chain: Boolean) = copy(shouldExit = !chain)
     }
     data object Inapplicable : ActionResult {
+        override val shouldExit = false
+    }
+    data object NoOp : ActionResult {
         override val shouldExit = false
     }
     data object NoMatch : ActionResult {
