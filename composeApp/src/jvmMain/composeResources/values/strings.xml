@@ -279,5 +279,11 @@
     <string name="message_shield_unsigned_device">Unsigned device</string>
     <string name="message_shield_unverified_identity">Unverified identity</string>
     <string name="message_shield_verification_violation">Unverified identity</string>
+    <string name="send_error_invalid_mime_type">Invalid MIME type</string>
+    <string name="send_error_missing_media_content">Missing media content</string>
+    <string name="send_error_sending_from_unverified_device">Sending from unverified device</string>
+    <string name="send_error_unknown">Unknown error</string>
+    <string name="send_error_verified_user_changed_identity">Verified user changed identity</string>
+    <string name="send_error_verified_user_has_unsigned_device">Verified user has unsigned device</string>
 
 </resources>

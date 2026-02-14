@@ -48,12 +48,18 @@ import shire.composeapp.generated.resources.message_shield_unknown_device
 import shire.composeapp.generated.resources.message_shield_unsigned_device
 import shire.composeapp.generated.resources.message_shield_unverified_identity
 import shire.composeapp.generated.resources.message_shield_verification_violation
+import shire.composeapp.generated.resources.send_error_invalid_mime_type
+import shire.composeapp.generated.resources.send_error_missing_media_content
+import shire.composeapp.generated.resources.send_error_sending_from_unverified_device
+import shire.composeapp.generated.resources.send_error_unknown
+import shire.composeapp.generated.resources.send_error_verified_user_changed_identity
+import shire.composeapp.generated.resources.send_error_verified_user_has_unsigned_device
 
 data class TimestampOverlayContent(
     val timestamp: String,
     val isEdited: Boolean,
     val isSending: Boolean,
-    val isSendError: Boolean,
+    val sendError: LocalEventSendState.Failed?,
     val messageShield: MessageShield?,
 )
 
@@ -61,7 +67,7 @@ fun EventTimelineItem.timestampOverlayContent(settings: TimestampSettings) = Tim
     timestamp = DateTimeFormat.formatTime(DateTimeFormat.timestampToDateTime(timestamp)),
     isEdited = (content as? EventCanBeEdited)?.isEdited == true,
     isSending = localSendState is LocalEventSendState.Sending,
-    isSendError = localSendState is LocalEventSendState.Failed,
+    sendError = localSendState as? LocalEventSendState.Failed,
     messageShield = messageShieldProvider(strict = false)?.takeIf {
         when (it) {
             is MessageShield.AuthenticityNotGuaranteed -> settings.renderAuthenticityNotGuaranteed
@@ -180,13 +186,23 @@ private fun TimestampContent(
                 modifier = Modifier.size(Dimens.Conversation.timestampDecorationIcon)
             )
         }
-        if (content.isSendError) {
-            Icon(
-                Icons.Default.ErrorOutline,
-                stringResource(Res.string.hint_sending),
-                tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier.size(Dimens.Conversation.timestampDecorationIcon)
-            )
+        if (content.sendError != null) {
+            val errorText: String = when (content.sendError) {
+                is LocalEventSendState.Failed.InvalidMimeType -> stringResource(Res.string.send_error_invalid_mime_type)
+                LocalEventSendState.Failed.MissingMediaContent -> stringResource(Res.string.send_error_missing_media_content)
+                LocalEventSendState.Failed.SendingFromUnverifiedDevice -> stringResource(Res.string.send_error_sending_from_unverified_device)
+                is LocalEventSendState.Failed.Unknown -> stringResource(Res.string.send_error_unknown)
+                is LocalEventSendState.Failed.VerifiedUserChangedIdentity -> stringResource(Res.string.send_error_verified_user_changed_identity)
+                is LocalEventSendState.Failed.VerifiedUserHasUnsignedDevice -> stringResource(Res.string.send_error_verified_user_has_unsigned_device)
+            }
+            WithTooltip(errorText) {
+                Icon(
+                    Icons.Default.ErrorOutline,
+                    stringResource(Res.string.hint_sending),
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(Dimens.Conversation.timestampDecorationIcon)
+                )
+            }
         }
         Text(
             content.timestamp,
