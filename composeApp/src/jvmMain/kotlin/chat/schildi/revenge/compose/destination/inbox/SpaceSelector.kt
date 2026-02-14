@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -169,26 +170,28 @@ private fun ColumnScope.SpaceSelector(
         }
         spacesList.forEachIndexed { index, space ->
             val selected = selectedSpaceIndex == index
-            SpaceTab(
-                space,
-                selected,
-                expandSpaceChildren,
-                renderExpandableIndicatorInTabs && space.spaces.isNotEmpty(),
-                compactTabs,
-            ) {
-                if (selectedSpaceIndex == index) {
-                    if (expandSpaceChildren) {
-                        expandSpaceChildren = false
-                        // In case we selected a child, need to re-select this space
-                        if (childSelections.isNotEmpty()) {
-                            selectSpace(spacesList[index], parentSelection)
+            key(space.selectionId) {
+                SpaceTab(
+                    space,
+                    selected,
+                    expandSpaceChildren,
+                    renderExpandableIndicatorInTabs && space.spaces.isNotEmpty(),
+                    compactTabs,
+                ) {
+                    if (selectedSpaceIndex == index) {
+                        if (expandSpaceChildren) {
+                            expandSpaceChildren = false
+                            // In case we selected a child, need to re-select this space
+                            if (childSelections.isNotEmpty()) {
+                                selectSpace(spacesList[index], parentSelection)
+                            }
+                        } else if (space.spaces.isNotEmpty()) {
+                            expandSpaceChildren = true
                         }
-                    } else if (space.spaces.isNotEmpty()) {
-                        expandSpaceChildren = true
+                    } else {
+                        expandSpaceChildren = false
+                        selectSpace(spacesList[index], parentSelection)
                     }
-                } else {
-                    expandSpaceChildren = false
-                    selectSpace(spacesList[index], parentSelection)
                 }
             }
         }
