@@ -5,6 +5,7 @@ import com.beeper.android.messageformat.MatrixBodyParseResult
 import com.beeper.android.messageformat.MatrixBodyPreFormatStyle
 import com.beeper.android.messageformat.MatrixHtmlParser
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
+import io.element.android.libraries.matrix.api.timeline.item.event.CanMentionRoom
 import io.element.android.libraries.matrix.api.timeline.item.event.EventContent
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageFormat
@@ -50,8 +51,7 @@ fun EventContent.messageMetadata(
         is MessageTypeWithAttachment -> Pair(type.formattedCaption, type.caption)
         else -> Pair(null, null)
     }
-    // TODO pass through intentional mentions, and don't render @room if unintentional
-    val allowRoomMention = true
+    val allowRoomMention = (this as? CanMentionRoom)?.isRoomMention ?: true
     val preFormattedContent = formattedBody?.takeIf { it.format == MessageFormat.HTML }?.let {
         parser.parseHtml(it.body, style, allowRoomMention)
     } ?: plaintext?.let {
