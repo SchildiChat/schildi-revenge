@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusState
@@ -1640,6 +1641,7 @@ class KeyboardActionHandler(
         }
     }
 
+    @OptIn(ExperimentalComposeUiApi::class)
     fun copyToClipboard(context: ActionContext, content: String, description: ComposableStringHolder): ActionResult {
         val localClipboard = clipboard ?: return ActionResult.Failure("No clipboard found")
         context.launchActionAsync("copyToClipboard", scope) {

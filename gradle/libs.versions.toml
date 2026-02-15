@@ -1,22 +1,23 @@
 [versions]
 versionsPlugin = "0.53.0"
-androidx-lifecycle = "2.9.4"
+androidx-lifecycle = "2.9.6"
 androidx-datastore = "1.2.0"
 composeHotReload = "1.0.0"
-composeMultiplatform = "1.9.3"
+composeMultiplatform = "1.10.1"
 junit = "4.13.2"
-kotlin = "2.2.20"
+kotlin = "2.3.10"
 kotlinx-coroutines = "1.10.2"
 kotlinx-datetime = "0.7.1"
-jetbrainsKotlinJvm = "2.2.20"
-jna = "5.14.0"
-kotlinxSerialization = "1.9.0"
-metro = "0.7.5"
+jetbrainsKotlinJvm = "2.3.10"
+jna = "5.18.1"
+kotlinxSerialization = "1.10.0"
+metro = "0.10.4"
 coil = "3.3.0"
-kdroidfilterPlatformtools = "0.7.4"
-kdroidfilterComposeNativeTray = "1.0.4"
+kdroidfilterPlatformtools = "0.7.5"
+kdroidfilterComposeNativeTray = "1.1.0"
 ktoml = "0.7.1"
-ktor = "3.3.3"
+ktor = "3.4.0"
+jsoup = "1.22.1"
 beeperMessageFormat = "ebf2b6238958ec2956c6c57b0f1a4458ce5c6974"
 
 [libraries]
@@ -49,7 +50,7 @@ kodein-emojiKt = { group = "org.kodein.emoji", name = "emoji-kt", version = "2.3
 ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 #beeper-messageformat = { module = "com.beeper.android.messageformat:messageformat-jvm", version = "1.0" }
 beeper-messageformat = { module = "com.github.beeper.matrix-messageformat-compose:messageformat-jvm", version.ref = "beeperMessageFormat" }
-jsoup = "org.jsoup:jsoup:1.21.2"
+jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 
 [plugins]
 versions = { id = "com.github.ben-manes.versions", version.ref = "versionsPlugin" }
@@ -58,5 +59,5 @@ composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMul
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 jetbrainsKotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
-kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version = "2.2.0" }
+kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 metro = { id = "dev.zacsweers.metro", version.ref = "metro" }

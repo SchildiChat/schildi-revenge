@@ -15,6 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Dimens
@@ -35,7 +37,7 @@ import shire.composeapp.generated.resources.hint_settings
 
 @Composable
 fun SettingsScreen(modifier: Modifier = Modifier) {
-    val viewModel: SettingsViewModel = viewModel()
+    val viewModel: SettingsViewModel = viewModel(factory = viewModelFactory { initializer { SettingsViewModel() } })
     val stringLookup = viewModel.stringLookupRequest.lookup()
     LaunchedEffect(stringLookup) {
         viewModel.stringLookupTable = stringLookup

@@ -23,6 +23,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Anim
@@ -48,7 +50,7 @@ import kotlinx.coroutines.flow.debounce
 @OptIn(FlowPreview::class)
 @Composable
 fun InboxScreen(modifier: Modifier = Modifier) {
-    val viewModel: InboxViewModel = viewModel(key = LocalDestinationState.current?.id.toString())
+    val viewModel: InboxViewModel = viewModel(key = LocalDestinationState.current?.id.toString(), factory = viewModelFactory { initializer { InboxViewModel() } })
     publishTitle(viewModel)
 
     // Filters that should reset list state

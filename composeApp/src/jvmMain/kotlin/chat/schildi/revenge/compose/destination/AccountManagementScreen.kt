@@ -34,6 +34,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Dimens
@@ -66,7 +68,7 @@ import shire.composeapp.generated.resources.title_login_account
 
 @Composable
 fun AccountManagementScreen(modifier: Modifier = Modifier) {
-    val viewModel: AccountManagementViewModel = viewModel()
+    val viewModel: AccountManagementViewModel = viewModel(factory = viewModelFactory { initializer { AccountManagementViewModel() } })
     val accounts = viewModel.data.collectAsState().value
     FocusContainer(
         modifier = modifier,

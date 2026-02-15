@@ -12,7 +12,11 @@ plugins {
 }
 
 fun isNonStable(version: String): Boolean {
-    return "alpha" in version || "beta" in version || "rc" in version
+    return "alpha" in version
+            || "beta" in version
+            || "Beta" in version
+            || ".x-compat" in version
+            || "rc" in version
 }
 
 tasks.withType<DependencyUpdatesTask> {
