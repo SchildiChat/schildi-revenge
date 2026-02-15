@@ -49,6 +49,7 @@ fun main() {
     }
     // Ensure single instance and set up IPC to restore window on subsequent launches
     SingleInstance.ensureSingleInstanceOrExit()
+    TrayWatcher.start()
     application(exitProcessOnExit = false) {
         LaunchedEffect(Unit) {
             RevengePrefs.prefetch()

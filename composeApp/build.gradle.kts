@@ -57,6 +57,8 @@ kotlin {
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
+            implementation(libs.dbus.java.core)
+            implementation(libs.dbus.java.transport.native.unixsocket)
         }
     }
 }
@@ -199,6 +201,7 @@ compose.desktop {
         }
 
         nativeDistributions {
+            modules("jdk.security.auth")
             targetFormats(
                 TargetFormat.Deb,
                 TargetFormat.AppImage,
