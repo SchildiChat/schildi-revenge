@@ -54,9 +54,11 @@ fun main() {
         LaunchedEffect(Unit) {
             RevengePrefs.prefetch()
         }
-        key(UiState.forceRecreationCounter.collectAsState().value) {
-            val minimized = UiState.minimizedToTray.collectAsState().value
+        val minimized = UiState.minimizedToTray.collectAsState().value
+        key(UiState.trayIconRecreationCounter.collectAsState().value) {
             TrayIcon(isMinimized = minimized, setMinimized = UiState::setMinimized)
+        }
+        key(UiState.forceRecreationCounter.collectAsState().value) {
             if (!minimized) {
                 val windows = UiState.windows.collectAsState().value
                 val scope = rememberCoroutineScope()

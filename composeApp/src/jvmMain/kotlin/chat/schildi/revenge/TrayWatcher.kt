@@ -70,7 +70,7 @@ object TrayWatcher {
                         log.i {
                             "StatusNotifierWatcher owner changed from '${signal.oldOwner}' to '${signal.newOwner}', recreating UI"
                         }
-                        UiState.recreateUi()
+                        UiState.recreateTayIcon()
                     }
 
                 while (connection.isConnected) {

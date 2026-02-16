@@ -72,6 +72,8 @@ object UiState {
 
     private val _forceRecreationCounter = MutableStateFlow(0)
     val forceRecreationCounter = _forceRecreationCounter.asStateFlow()
+    private val _trayIconRecreationCounter = MutableStateFlow(0)
+    val trayIconRecreationCounter = _trayIconRecreationCounter.asStateFlow()
 
     private val _globalMessageBoard = MutableSharedFlow<AbstractAppMessage>(3)
     val globalMessageBoard = _globalMessageBoard.asSharedFlow()
@@ -275,6 +277,14 @@ object UiState {
 
     fun recreateUi() {
         _forceRecreationCounter.update { it + 1 }
+        _trayIconRecreationCounter.update { it + 1 }
+    }
+
+    fun recreateTayIcon() {
+        scope.launch {
+            delay(1000)
+            _trayIconRecreationCounter.update { it + 1 }
+        }
     }
 
     fun recreateWindow(windowId: Int) {
