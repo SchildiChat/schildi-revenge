@@ -18,7 +18,7 @@ kdroidfilterComposeNativeTray = "1.1.0"
 ktoml = "0.7.1"
 ktor = "3.4.0"
 jsoup = "1.22.1"
-beeperMessageFormat = "ebf2b6238958ec2956c6c57b0f1a4458ce5c6974"
+beeperMessageFormat = "8f5e8d14f072f145106b6de12ded571b680c248c"
 dbusJava = "5.2.0"
 
 [libraries]

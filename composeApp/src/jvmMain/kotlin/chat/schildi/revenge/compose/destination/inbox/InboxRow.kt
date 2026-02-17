@@ -28,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import chat.schildi.preferences.ScPrefs
@@ -268,7 +269,7 @@ private fun RowScope.ScLastMessageAndIndicatorRow(
         Text(
             text = messagePreview,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyMedium.copy(textDirection = TextDirection.Content),
             maxLines = 2,
             overflow = TextOverflow.Ellipsis
         )
