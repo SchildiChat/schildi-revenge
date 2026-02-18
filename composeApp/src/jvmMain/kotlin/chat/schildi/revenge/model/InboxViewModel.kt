@@ -225,7 +225,10 @@ class InboxViewModel(
             val lowercaseSearch = searchTerm.lowercase()
             rooms.filter {
                 it.summary.info.name?.lowercase()?.contains(lowercaseSearch) == true
-            }
+            }.sortedWith(compareBy(
+                { it.summary.info.name?.lowercase()?.indexOf(lowercaseSearch)?.takeIf { it >= 0 } },
+                { it.summary.latestEventTimestamp?.let { -it } },
+            ))
         }
     }
         .flowOn(Dispatchers.IO)
