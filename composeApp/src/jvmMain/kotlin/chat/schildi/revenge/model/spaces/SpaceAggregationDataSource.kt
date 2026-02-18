@@ -13,6 +13,7 @@ import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.collections.immutable.toImmutableSet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -164,7 +165,6 @@ private fun List<SpaceListDataSource.SpaceHierarchyItem>.mergeSpaceSessionDuplic
             prioritized.forEach { other ->
                 unreadCount = unreadCount.add(other.unreadCounts)
             }
-            // TODO is this a good heuristic for sort order?
             val sortOrder = duplicates.mapNotNull { it.order }.takeIf { it.isNotEmpty() }?.min()
             SpaceListDataSource.SpaceHierarchyItem(
                 room = mainSpace.room,
@@ -174,6 +174,7 @@ private fun List<SpaceListDataSource.SpaceHierarchyItem>.mergeSpaceSessionDuplic
                 flattenedRooms = prioritized.flatMap { it.flattenedRooms }.toImmutableSet(),
                 unreadCounts = unreadCount,
                 mergedRooms = mergedRooms.map { it.room }.toImmutableList(),
+                mergedOrders = duplicates.associate { it.room.sessionId to it.order }.toImmutableMap(),
             )
         }
     }.sortedWith(SpaceComparator(sessionIdComparator))

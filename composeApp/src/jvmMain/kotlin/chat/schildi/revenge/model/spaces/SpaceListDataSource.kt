@@ -41,8 +41,10 @@ import io.element.android.libraries.matrix.api.roomlist.RoomListFilter
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
 import io.element.android.libraries.matrix.api.user.MatrixUser
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
 import kotlinx.coroutines.Dispatchers
@@ -336,6 +338,7 @@ class SpaceListDataSource(
         val flattenedRooms: ImmutableSet<ScopedRoomKey>,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
         val mergedRooms: ImmutableList<ScopedRoomSummary> = persistentListOf(),
+        val mergedOrders: ImmutableMap<SessionId, String?> = persistentMapOf(),
     ) : AbstractSpaceHierarchyItem {
         override val name = room.summary.info.name?.toStringHolder() ?: StringResourceHolder(Res.string.nameless_space_fallback_title)
         override val selectionId = "$REAL_SPACE_ID_PREFIX{${sessionIds.sortedBy(SessionId::value).joinToString(separator = ";")}}:${room.summary.roomId.value}"
@@ -343,6 +346,8 @@ class SpaceListDataSource(
 
         override val sessionIds: ImmutableList<SessionId>
             get() = persistentListOf(room.sessionId, *mergedRooms.map { it.sessionId }.toTypedArray())
+
+        fun orderFor(sessionId: SessionId) = if (sessionId in mergedOrders) mergedOrders[sessionId] else order
 
         override fun enrich(
             getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?
