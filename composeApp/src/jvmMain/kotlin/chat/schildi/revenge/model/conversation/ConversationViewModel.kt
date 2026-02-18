@@ -98,6 +98,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.EventTimeline
 import io.element.android.libraries.matrix.api.timeline.item.event.FileMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.ImageMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
+import io.element.android.libraries.matrix.api.timeline.item.event.LocalEventSendState
 import io.element.android.libraries.matrix.api.timeline.item.event.LocationMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
@@ -1457,6 +1458,12 @@ class ConversationViewModel(
                 } else {
                     it
                 }
+            }.let {
+                if (event.localSendState !is LocalEventSendState.Failed) {
+                    it - setOf(Action.Event.RetrySend)
+                } else {
+                    it
+                }
             }
             override fun ensureActionType(action: Action) = action as? Action.Event
 
@@ -1692,6 +1699,19 @@ class ConversationViewModel(
                         ) {
                             timeline.toggleReaction(reactionToToggle.key, eventOrTransactionId)
                             ActionResult.Success()
+                        }
+                    }
+
+                    Action.Event.RetrySend -> {
+                        val sendHandle = event.sendHandleProvider() ?: return@run ActionResult.Inapplicable
+                        launchActionAsync(
+                            "sendRetry",
+                            viewModelScope,
+                            Dispatchers.IO,
+                            "sendRetry",
+                            notifyProcessing = true
+                        ) {
+                            sendHandle.retry().toActionResult(async = true)
                         }
                     }
                 }

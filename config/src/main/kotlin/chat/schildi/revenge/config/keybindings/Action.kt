@@ -275,5 +275,6 @@ sealed interface Action {
         DownloadFileAndOpen,
         ToggleReactionKey(args = listOf(ActionArgumentPrimitive.Text), aliases = listOf("react")),
         ToggleReactionIndex(args = listOf(ActionArgumentPrimitive.Index)),
+        RetrySend,
     }
 }
