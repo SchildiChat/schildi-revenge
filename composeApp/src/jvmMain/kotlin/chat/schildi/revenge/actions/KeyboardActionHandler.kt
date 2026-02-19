@@ -1343,11 +1343,13 @@ class KeyboardActionHandler(
     }
 
     fun handlePointer(position: Offset) {
-        // Remember pointer position
-        if (_lastPointerPosition != position) {
-            _lastPointerPosition = position
-            _keyboardPrimary.value = false
+        // Don't action if nothing changed
+        if (_lastPointerPosition == position) {
+            return
         }
+        // Remember pointer position
+        _lastPointerPosition = position
+        _keyboardPrimary.value = false
 
         // Check if we should focus any elements below the pointer
         if (!handlerSettings.value.focusFollowsMouse) {
