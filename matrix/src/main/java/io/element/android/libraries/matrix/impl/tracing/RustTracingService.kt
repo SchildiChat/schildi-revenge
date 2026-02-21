@@ -51,7 +51,8 @@ private fun WriteToFilesConfiguration.toTracingFileConfiguration(): TracingFileC
             path = directory,
             filePrefix = filenamePrefix,
             fileSuffix = filenameSuffix,
-            maxFiles = numberOfFiles?.toULong(),
+            maxTotalSizeBytes = null,
+            maxAgeSeconds = null,
         )
     }
 }
