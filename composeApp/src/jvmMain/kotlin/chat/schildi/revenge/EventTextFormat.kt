@@ -39,7 +39,6 @@ import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.join_rule_invite
 import shire.composeapp.generated.resources.join_rule_knock
 import shire.composeapp.generated.resources.join_rule_knock_restricted
-import shire.composeapp.generated.resources.join_rule_private
 import shire.composeapp.generated.resources.join_rule_public
 import shire.composeapp.generated.resources.join_rule_restricted
 import shire.composeapp.generated.resources.membership_change_banned
@@ -199,7 +198,6 @@ object EventTextFormat {
     private fun joinRuleToText(rule: JoinRule): String {
         return when (rule) {
             JoinRule.Public -> stringResource(Res.string.join_rule_public)
-            JoinRule.Private -> stringResource(Res.string.join_rule_private)
             JoinRule.Knock -> stringResource(Res.string.join_rule_knock)
             JoinRule.Invite -> stringResource(Res.string.join_rule_invite)
             is JoinRule.Restricted -> stringResource(Res.string.join_rule_restricted)

@@ -58,7 +58,7 @@ internal class RustRoomListService(
         roomSyncSubscriber.batchSubscribe(roomIds)
     }
 
-    override val allRooms: RoomList = roomListFactory.createRoomList(
+    override val allRooms: DynamicRoomList = roomListFactory.createRoomList(
         pageSize = Int.MAX_VALUE,
         coroutineContext = sessionDispatcher,
         coroutineScope = sessionCoroutineScope,

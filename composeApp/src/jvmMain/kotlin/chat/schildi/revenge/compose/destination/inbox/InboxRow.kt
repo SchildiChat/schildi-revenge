@@ -59,11 +59,14 @@ import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import io.element.android.libraries.matrix.api.roomlist.LatestEventValue
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
+import io.element.android.libraries.matrix.api.timeline.item.event.MembershipChange
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisambiguatedDisplayName
+import io.element.android.libraries.matrix.api.timeline.item.event.getDisplayName
 import io.element.android.libraries.matrix.api.user.MatrixUser
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_join
+import shire.composeapp.generated.resources.membership_change_invited
 import shire.composeapp.generated.resources.message_placeholder_invite
 import shire.composeapp.generated.resources.message_placeholder_invite_by
 import shire.composeapp.generated.resources.message_placeholder_invite_by_disambiguated
@@ -247,6 +250,15 @@ private fun RowScope.ScLastMessageAndIndicatorRow(
                     "${event.senderProfile.getDisambiguatedDisplayName(event.senderId)}: $eventText"
                 }
             }
+            is LatestEventValue.RoomInvite -> event.inviterId?.let { inviterId ->
+                event.invitedProfile.getDisplayName()?.let {
+                    stringResource(
+                        Res.string.membership_change_invited,
+                        inviterId,
+                        it
+                    )
+                }
+            } ?: stringResource(Res.string.message_placeholder_invite)
         } ?: ""
     }
     Row(

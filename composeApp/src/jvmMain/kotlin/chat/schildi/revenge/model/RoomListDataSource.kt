@@ -56,6 +56,7 @@ class RoomListDataSource(
                     val latestEventContent = when (val event = it.latestEvent) {
                         is LatestEventValue.Local -> event.content
                         is LatestEventValue.Remote -> event.content
+                        is LatestEventValue.RoomInvite,
                         LatestEventValue.None -> null
                     }
                     ScopedRoomSummary(
@@ -67,9 +68,7 @@ class RoomListDataSource(
         },
         onUpdatedInput = { it, settings ->
             it.forEach {
-                it.client.roomListService.allRooms.updateSettings(settings)
-                it.client.roomListService.allRooms.updateFilter(RoomListFilter.All(emptyList()))
-                it.client.roomListService.allRooms.loadMore()
+                it.client.roomListService.allRooms.updateSettings(RoomListFilter.All(emptyList()), settings)
             }
         },
         merge = { it, settings ->

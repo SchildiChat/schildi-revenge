@@ -108,13 +108,7 @@ class SpaceListDataSource(
                 }
             }
         },
-        onUpdatedInput = { it ->
-            it.forEach {
-                it.client.roomListService.allRooms.updateFilter(RoomListFilter.All(emptyList()))
-                it.client.roomListService.allRooms.loadMore()
-            }
-        },
-        merge = { it ->
+        merge = {
             // No need to do sophisticated sorted merging at this time, before we built any hierarchy
             it.asIterable().flatten()
         },

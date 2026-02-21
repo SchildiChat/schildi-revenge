@@ -57,12 +57,12 @@ interface RoomListService {
      * Returns a [RoomList] object with all rooms locally known.
      * If you want to get a filtered room list, consider using [createRoomList].
      */
-    val allRooms: RoomList
+    val allRooms: DynamicRoomList
 
     /**
      * Root spaces.
      */
-    val allSpaces: RoomList
+    val allSpaces: DynamicRoomList
 
     /**
      * The sync indicator as a flow.

@@ -172,12 +172,11 @@
     <string name="event_placeholder_room_beginning">Room beginning</string>
 
     <!-- Join rules mapping -->
-    <string name="join_rule_public">public</string>
-    <string name="join_rule_private">private</string>
-    <string name="join_rule_knock">knock</string>
-    <string name="join_rule_invite">invite</string>
-    <string name="join_rule_restricted">restricted</string>
-    <string name="join_rule_knock_restricted">knock_restricted</string>
+    <string name="join_rule_public">Public</string>
+    <string name="join_rule_knock">Knock</string>
+    <string name="join_rule_invite">Invite</string>
+    <string name="join_rule_restricted">Restricted</string>
+    <string name="join_rule_knock_restricted">Knock restricted</string>
 
     <string name="membership_change_none">%1$s made no changes</string>
     <string name="membership_change_error">%1$s made a suspicious membership change</string>

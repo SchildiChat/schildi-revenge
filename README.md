@@ -275,6 +275,18 @@ So in order to do an upstream merge:
     - `git fetch skeleton`
     - `git subtree merge --prefix=matrix skeleton/main`
 
+#### tl;dr if you know what you're doing
+```
+pushd scripts
+./cleaned_upstream.sh
+popd
+git fetch skeleton
+git subtree merge --prefix=matrix skeleton/main
+pushd matrix-rust-sdk
+git fetch origin
+git merge origin/main
+```
+
 
 ## Troubleshooting
 
