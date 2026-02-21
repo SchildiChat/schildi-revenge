@@ -34,7 +34,7 @@ data class MessageContent(
     override val isEdited: Boolean,
     val threadInfo: EventThreadInfo?,
     val type: MessageType,
-    override val isRoomMention: Boolean?, // SC
+    override val isRoomMention: Boolean? = null, // SC
 ) : EventContent, EventCanBeEdited, CanMentionRoom
 
 data object RedactedContent : EventContent

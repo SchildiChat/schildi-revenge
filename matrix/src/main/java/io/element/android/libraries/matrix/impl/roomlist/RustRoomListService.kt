@@ -15,7 +15,6 @@ import io.element.android.libraries.matrix.api.roomlist.RoomListFilter
 import io.element.android.libraries.matrix.api.roomlist.RoomListService
 import io.element.android.libraries.matrix.api.roomlist.ScSdkInboxSettings
 import io.element.android.libraries.matrix.api.roomlist.ScSdkRoomSortOrder
-import io.element.android.libraries.matrix.api.roomlist.loadAllIncrementally
 import io.element.android.libraries.matrix.impl.room.RoomSyncSubscriber
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -30,8 +29,6 @@ import org.matrix.rustcomponents.sdk.RoomListServiceSyncIndicator
 import timber.log.Timber
 import org.matrix.rustcomponents.sdk.RoomListService as InnerRustRoomListService
 
-private const val DEFAULT_PAGE_SIZE = 20
-
 internal class RustRoomListService(
     private val innerRoomListService: InnerRustRoomListService,
     private val sessionDispatcher: CoroutineDispatcher,
@@ -43,15 +40,11 @@ internal class RustRoomListService(
 
     override fun createRoomList(
         pageSize: Int,
-        initialFilter: RoomListFilter,
-        isSpaceList: Boolean, // SC
         source: RoomList.Source,
         coroutineScope: CoroutineScope,
     ): DynamicRoomList {
         return roomListFactory.createRoomList(
             pageSize = pageSize,
-            initialFilter = initialFilter,
-            isSpaceList = isSpaceList,
             coroutineContext = sessionDispatcher,
             coroutineScope = coroutineScope,
         ) {
@@ -65,28 +58,25 @@ internal class RustRoomListService(
         roomSyncSubscriber.batchSubscribe(roomIds)
     }
 
-    override val allRooms: DynamicRoomList = roomListFactory.createRoomList(
-        pageSize = DEFAULT_PAGE_SIZE,
+    override val allRooms: RoomList = roomListFactory.createRoomList(
+        pageSize = Int.MAX_VALUE,
         coroutineContext = sessionDispatcher,
         coroutineScope = sessionCoroutineScope,
-        isSpaceList = false,
         initialInboxSettings = ScSdkInboxSettings(), // TODO can we initialize this smarter with prefs
     ) {
         innerRoomListService.allRooms()
     }
 
     override val allSpaces: DynamicRoomList = roomListFactory.createRoomList(
-        pageSize = DEFAULT_PAGE_SIZE,
+        pageSize = Integer.MAX_VALUE,
         isSpaceList = true,
+        initialFilter = RoomListFilter.all(
+            RoomListFilter.Category.Space,
+        ),
         coroutineContext = sessionDispatcher,
         coroutineScope = sessionCoroutineScope,
     ) {
         innerRoomListService.allRooms()
-    }
-
-    init {
-        allRooms.loadAllIncrementally(sessionCoroutineScope)
-        allSpaces.loadAllIncrementally(sessionCoroutineScope)
     }
 
     override val syncIndicator: StateFlow<RoomListService.SyncIndicator> =

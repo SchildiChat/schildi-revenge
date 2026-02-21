@@ -15,11 +15,3 @@ fun ScSdkRoomSortOrder.toSdkSortOrder() = uniffi.matrix_sdk.ScSortOrder(
 fun ScSdkInboxSettings.toSdkSettings() = uniffi.matrix_sdk.ScInboxSettings(
     sortOrder = sortOrder.toSdkSortOrder(),
 )
-
-fun List<RoomListEntriesDynamicFilterKind>.initialFilterForSpaces(isSpaceList: Boolean) = if (isSpaceList) {
-    filter { it != RoomListEntriesDynamicFilterKind.NonSpace } + RoomListEntriesDynamicFilterKind.Space
-} else if (RoomListEntriesDynamicFilterKind.NonSpace in this) {
-    this
-} else {
-    this + RoomListEntriesDynamicFilterKind.NonSpace
-}
