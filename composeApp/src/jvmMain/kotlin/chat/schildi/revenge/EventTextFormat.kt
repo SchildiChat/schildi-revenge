@@ -1,7 +1,12 @@
 package chat.schildi.revenge
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.buildAnnotatedString
 import chat.schildi.revenge.model.conversation.MessageMetadata
+import co.touchlab.kermit.Logger
+import com.beeper.android.messageformat.MatrixBodyAnnotations
+import com.beeper.android.messageformat.SpanAttributes
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.timeline.item.event.AudioMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.CallNotifyContent
@@ -34,6 +39,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.VoiceMessageT
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisambiguatedDisplayName
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisplayName
 import io.element.android.libraries.matrix.api.room.join.JoinRule
+import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.join_rule_invite
@@ -108,8 +114,12 @@ object EventTextFormat {
         senderId: UserId,
     ): String {
         messageMetadata?.preFormattedContent?.text?.let {
-            // Strip formatting & trim
-            return it.toString().trim().replace("\\s+".toRegex(), " ")
+            // Strip spoilers, formatting, and unnecessary whitespace
+            return it
+                .stripMatrixSpoilers()
+                .toString()
+                .trim()
+                .replace("\\s+".toRegex(), " ")
         }
         return when (content) {
             is MessageContent -> {
@@ -266,6 +276,43 @@ object EventTextFormat {
                 append(". ")
                 append(stringResource(Res.string.membership_reason, content.reason ?: ""))
             }
+        }
+    }
+}
+
+fun AnnotatedString.stripMatrixSpoilers(): AnnotatedString {
+    val ranges = getStringAnnotations(MatrixBodyAnnotations.SPAN, 0, text.length)
+        .filter {
+            try {
+                Json.decodeFromString<SpanAttributes>(it.item).isSpoiler
+            } catch (e: Exception) {
+                Logger.withTag("stripMatrixSpoilers").w("Failed to parse span attributes", e)
+                false
+            }
+        }
+        .sortedBy { it.start }
+
+    if (ranges.isEmpty()) return this
+
+    return buildAnnotatedString {
+        var cursor = 0
+
+        for (r in ranges) {
+            // Skip overlapping/contained ranges
+            if (r.start < cursor) continue
+
+            if (cursor < r.start) {
+                append(subSequence(cursor, r.start))
+            }
+
+            val replacement = "■".repeat((r.end - r.start).coerceIn(0, 5))
+            append(replacement)
+
+            cursor = r.end
+        }
+
+        if (cursor < text.length) {
+            append(subSequence(cursor, text.length))
         }
     }
 }
