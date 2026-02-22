@@ -41,7 +41,9 @@ import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.SubcomposeAsyncImageContent
 import com.beeper.android.messageformat.InlineImageInfo
 import com.beeper.android.messageformat.MatrixBodyParseResult
+import com.beeper.android.messageformat.MatrixFormatInteractionState
 import com.beeper.android.messageformat.MatrixStyledFormattedText
+import com.beeper.android.messageformat.rememberMatrixFormatInteractionState
 import com.beeper.android.messageformat.toInlineContent
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.timeline.item.event.EmoteMessageType
@@ -60,6 +62,7 @@ fun TextLikeMessage(
     inReplyTo: InReplyTo?,
     modifier: Modifier = Modifier,
     allowBigEmojiOnly: Boolean = true,
+    interactionState: MatrixFormatInteractionState? = null,
 ) {
     val alpha = when (message) {
         is NoticeMessageType -> 0.7f
@@ -76,6 +79,7 @@ fun TextLikeMessage(
         urlPreview = resolveUrlPreview(text),
         allowBigEmojiOnly = allowBigEmojiOnly,
         outlined = message is EmoteMessageType,
+        interactionState = interactionState ?: rememberMatrixFormatInteractionState(text),
     )
 }
 
@@ -90,6 +94,7 @@ fun TextLikeMessage(
     allowBigEmojiOnly: Boolean = true,
     outlined: Boolean = false,
     textColor: Color = MaterialTheme.colorScheme.primary,
+    interactionState: MatrixFormatInteractionState = rememberMatrixFormatInteractionState(text),
 ) {
     val textLayoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
     MessageBubble(
@@ -107,7 +112,12 @@ fun TextLikeMessage(
             }
         }
         SelectionContainer {
-            TextLikeMessageContent(text, allowBigEmojiOnly, textColor = textColor) {
+            TextLikeMessageContent(
+                text,
+                allowBigEmojiOnly,
+                textColor = textColor,
+                interactionState = interactionState,
+            ) {
                 textLayoutResult.value = it
             }
         }
@@ -120,6 +130,7 @@ fun TextLikeMessageContent(
     allowBigEmojiOnly: Boolean,
     modifier: Modifier = Modifier,
     textColor: Color = MaterialTheme.colorScheme.primary,
+    interactionState: MatrixFormatInteractionState = rememberMatrixFormatInteractionState(text),
     onTextLayout: (TextLayoutResult) -> Unit,
 ) {
     val isEmojiOnly = allowBigEmojiOnly && LocalMessageRenderContext.current == MessageRenderContext.NORMAL &&
@@ -153,6 +164,7 @@ fun TextLikeMessageContent(
         modifier = modifier,
         formatter = LocalMatrixBodyFormatter.current,
         drawStyle = LocalMatrixBodyDrawStyle.current,
+        interactionState = interactionState,
         onTextLayout = onTextLayout,
         maxLines = if (LocalMessageRenderContext.current == MessageRenderContext.IN_REPLY_TO) {
             20

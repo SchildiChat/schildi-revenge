@@ -68,6 +68,8 @@ import chat.schildi.revenge.util.tryOrNull
 import chat.schildi.revenge.util.MediaInfoUtil
 import chat.schildi.revenge.util.ScJson
 import co.touchlab.kermit.Logger
+import com.beeper.android.messageformat.MatrixBodyRenderState
+import com.beeper.android.messageformat.MatrixFormatInteractionState
 import io.element.android.features.messages.impl.timeline.EventFocusResult
 import io.element.android.features.messages.impl.timeline.TimelineController
 import io.element.android.libraries.core.coroutine.childScope
@@ -1428,6 +1430,7 @@ class ConversationViewModel(
     fun getKeyboardActionProviderForEvent(
         event: EventTimelineItem,
         messageMetadata: MessageMetadata?,
+        formatInteractionState: MatrixFormatInteractionState?,
     ): KeyboardActionProvider<Action.Event> {
         val eventId = event.eventId
         val eventOrTransactionId = tryOrNull {
@@ -1463,6 +1466,20 @@ class ConversationViewModel(
                     it - setOf(Action.Event.RetrySend)
                 } else {
                     it
+                }
+            }.let {
+                if (formatInteractionState?.expandableItems.isNullOrEmpty()) {
+                    it - setOf(
+                        Action.Event.ExpandDetails,
+                        Action.Event.CollapseDetails,
+                        Action.Event.ToggleDetails,
+                    )
+                } else {
+                    when (formatInteractionState.expandedItems.value.size) {
+                        0 -> it - setOf(Action.Event.CollapseDetails)
+                        formatInteractionState.expandableItems.size -> it - setOf(Action.Event.ExpandDetails)
+                        else -> it
+                    }
                 }
             }
             override fun ensureActionType(action: Action) = action as? Action.Event
@@ -1713,6 +1730,35 @@ class ConversationViewModel(
                         ) {
                             sendHandle.retry().toActionResult(async = true)
                         }
+                    }
+
+                    Action.Event.ExpandDetails -> {
+                        formatInteractionState ?: return@run ActionResult.Inapplicable
+                        if (formatInteractionState.expandableItems.isEmpty()) {
+                            return@run ActionResult.Inapplicable
+                        }
+                        formatInteractionState.expandedItems.value = formatInteractionState.expandableItems
+                        ActionResult.Success()
+                    }
+                    Action.Event.CollapseDetails -> {
+                        formatInteractionState ?: return@run ActionResult.Inapplicable
+                        if (formatInteractionState.expandableItems.isEmpty()) {
+                            return@run ActionResult.Inapplicable
+                        }
+                        formatInteractionState.expandedItems.value = emptySet()
+                        ActionResult.Success()
+                    }
+                    Action.Event.ToggleDetails -> {
+                        formatInteractionState ?: return@run ActionResult.Inapplicable
+                        if (formatInteractionState.expandableItems.isEmpty()) {
+                            return@run ActionResult.Inapplicable
+                        }
+                        if (formatInteractionState.expandedItems.value.size < formatInteractionState.expandableItems.size) {
+                            formatInteractionState.expandedItems.value = formatInteractionState.expandableItems
+                        } else {
+                            formatInteractionState.expandedItems.value = emptySet()
+                        }
+                        ActionResult.Success()
                     }
                 }
             }

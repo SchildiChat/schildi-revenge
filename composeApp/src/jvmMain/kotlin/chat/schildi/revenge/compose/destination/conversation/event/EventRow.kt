@@ -27,6 +27,8 @@ import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.model.conversation.MessageMetadata
 import chat.schildi.revenge.model.conversation.TimestampSettings
+import com.beeper.android.messageformat.MatrixFormatInteractionState
+import com.beeper.android.messageformat.rememberMatrixFormatInteractionState
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
@@ -60,6 +62,9 @@ fun EventRow(
         }
     ).value
     val focusId = rememberFocusId()
+    val formatInteractionState = messageMetadata?.preFormattedContent?.let {
+        rememberMatrixFormatInteractionState(it)
+    }
     WithContextMenu(
         focusId,
         event.contextMenu(),
@@ -70,7 +75,12 @@ fun EventRow(
                     FocusRole.LIST_ITEM,
                     focusId,
                     actionProvider = actionProvider(
-                        keyActions = eventRowKeyboardActionProvider(viewModel, event, messageMetadata),
+                        keyActions = eventRowKeyboardActionProvider(
+                            viewModel,
+                            event,
+                            messageMetadata,
+                            formatInteractionState,
+                        ),
                         primaryAction = eventClickAction(viewModel, currentActionContext(), event),
                         secondaryAction = openContextMenu,
                     ),
@@ -85,6 +95,7 @@ fun EventRow(
             EventContentLayout(
                 content = event.content,
                 messageMetadata = messageMetadata,
+                formatInteractionState = formatInteractionState,
                 senderId = event.sender,
                 senderProfile = event.senderProfile,
                 isOwn = event.isOwn,
@@ -114,9 +125,10 @@ private fun eventRowKeyboardActionProvider(
     viewModel: ConversationViewModel,
     event: EventTimelineItem,
     messageMetadata: MessageMetadata?,
+    formatInteractionState: MatrixFormatInteractionState?,
 ): HierarchicalKeyboardActionProvider {
     val ownHandler = remember(viewModel, event) {
-        viewModel.getKeyboardActionProviderForEvent(event, messageMetadata)
+        viewModel.getKeyboardActionProviderForEvent(event, messageMetadata, formatInteractionState)
     }
     return ownHandler.hierarchicalKeyboardActionProvider()
 }

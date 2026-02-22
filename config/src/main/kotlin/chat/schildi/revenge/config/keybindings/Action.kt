@@ -276,5 +276,8 @@ sealed interface Action {
         ToggleReactionKey(args = listOf(ActionArgumentPrimitive.Text), aliases = listOf("react")),
         ToggleReactionIndex(args = listOf(ActionArgumentPrimitive.Index)),
         RetrySend,
+        ExpandDetails(aliases = listOf("revealDetails", "expand", "revealSpoiler", "showSpoiler")),
+        CollapseDetails(aliases = listOf("collapseDetails", "collapse", "hideSpoiler")),
+        ToggleDetails(aliases = listOf("toggleDetails", "toggleSpoiler")),
     }
 }

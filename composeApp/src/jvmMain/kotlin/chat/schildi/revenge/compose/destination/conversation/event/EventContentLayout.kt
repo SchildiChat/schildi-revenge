@@ -11,6 +11,7 @@ import chat.schildi.revenge.compose.destination.conversation.event.message.Times
 import chat.schildi.revenge.compose.destination.conversation.event.sender.SenderAvatar
 import chat.schildi.revenge.compose.destination.conversation.event.sender.SenderName
 import chat.schildi.revenge.model.conversation.MessageMetadata
+import com.beeper.android.messageformat.MatrixFormatInteractionState
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.timeline.item.event.AudioMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.CallNotifyContent
@@ -19,7 +20,6 @@ import io.element.android.libraries.matrix.api.timeline.item.event.FailedToParse
 import io.element.android.libraries.matrix.api.timeline.item.event.FailedToParseStateContent
 import io.element.android.libraries.matrix.api.timeline.item.event.FileMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.ImageLikeMessageType
-import io.element.android.libraries.matrix.api.timeline.item.event.ImageMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 import io.element.android.libraries.matrix.api.timeline.item.event.LegacyCallInviteContent
 import io.element.android.libraries.matrix.api.timeline.item.event.LocationMessageType
@@ -32,14 +32,12 @@ import io.element.android.libraries.matrix.api.timeline.item.event.RedactedConte
 import io.element.android.libraries.matrix.api.timeline.item.event.RoomMembershipContent
 import io.element.android.libraries.matrix.api.timeline.item.event.StateContent
 import io.element.android.libraries.matrix.api.timeline.item.event.StickerContent
-import io.element.android.libraries.matrix.api.timeline.item.event.StickerMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.TextLikeMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.UnableToDecryptContent
 import io.element.android.libraries.matrix.api.timeline.item.event.UnknownContent
 import io.element.android.libraries.matrix.api.timeline.item.event.VideoMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.VoiceMessageType
 import org.jetbrains.compose.resources.stringResource
-import org.matrix.rustcomponents.sdk.FileMessageContent
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.message_placeholder_message_failed_to_parse
 import shire.composeapp.generated.resources.message_placeholder_message_redacted
@@ -56,7 +54,8 @@ fun EventContentLayout(
     timestamp: TimestampOverlayContent?,
     isSameAsPreviousSender: Boolean,
     inReplyTo: InReplyTo?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    formatInteractionState: MatrixFormatInteractionState? = null,
 ) {
     @Composable
     fun EventMessageLayout(messageContent: @Composable () -> Unit) {
@@ -91,7 +90,14 @@ fun EventContentLayout(
             EventMessageLayout {
                 when (val contentType = content.type) {
                     is TextLikeMessageType -> {
-                        TextLikeMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo)
+                        TextLikeMessage(
+                            contentType,
+                            messageMetadata,
+                            isOwn,
+                            timestamp,
+                            inReplyTo,
+                            interactionState = formatInteractionState,
+                        )
                     }
                     is ImageLikeMessageType -> {
                         ImageMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo)
