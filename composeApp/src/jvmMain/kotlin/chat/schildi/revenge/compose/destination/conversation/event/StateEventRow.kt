@@ -3,7 +3,7 @@ package chat.schildi.revenge.compose.destination.conversation.event
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
-import chat.schildi.revenge.EventTextFormat
+import chat.schildi.revenge.plaintext.EventTextFormat
 import chat.schildi.revenge.compose.destination.conversation.event.message.TimestampOverlayContent
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.timeline.item.event.ProfileDetails

@@ -3,6 +3,11 @@
     <string name="manage_accounts">Accounts</string>
     <string name="inbox">Inbox</string>
     <string name="inbox_search">Inbox search</string>
+    <string name="room_members_title_loading">Loading room members</string>
+    <plurals name="room_members_title_loaded">
+        <item quantity="one">%1$s members in %2$s</item>
+        <item quantity="other">%1$s members in %2$s</item>
+    </plurals>
 
     <string name="about">About</string>
     <string name="about_credits">Credits</string>
@@ -213,6 +218,7 @@
     <string name="pref_max_width_inbox_title">Inbox max width</string>
     <string name="pref_max_width_conversation_title">Conversation max width</string>
     <string name="pref_max_width_settings_title">Settings max width</string>
+    <string name="pref_max_width_room_details_title">Room info max width</string>
     <string name="pref_always_show_keyboard_focus">Always highlight keyboard focus</string>
     <string name="pref_focus_follows_mouse_title">Focus follows mouse</string>
     <string name="pref_focus_follows_mouse_summary">Update keyboard focus immediately when moving the mouse</string>
@@ -284,5 +290,12 @@
     <string name="send_error_unknown">Unknown error</string>
     <string name="send_error_verified_user_changed_identity">Verified user changed identity</string>
     <string name="send_error_verified_user_has_unsigned_device">Verified user has unsigned device</string>
+
+    <string name="power_level_user_role_creator">Creator</string>
+    <string name="power_level_user_role_owner">Creator</string>
+    <string name="power_level_user_role_admin">Admin</string>
+    <string name="power_level_user_role_moderator">Moderator</string>
+    <string name="power_level_user_role_default">Default</string>
+    <string name="power_level_user_role_combined">%1$s (%2$s)</string>
 
 </resources>

@@ -265,7 +265,6 @@ sealed interface Action {
         CopyFormattedBody,
         CopyEventSource,
         CopyEventId,
-        CopyMxId,
         CopyMxc,
         CopyContentLink,
         OpenContentLinks,
@@ -279,5 +278,11 @@ sealed interface Action {
         ExpandDetails(aliases = listOf("revealDetails", "expand", "revealSpoiler", "showSpoiler")),
         CollapseDetails(aliases = listOf("collapseDetails", "collapse", "hideSpoiler")),
         ToggleDetails(aliases = listOf("toggleDetails", "toggleSpoiler")),
+    }
+    enum class User(
+        override val aliases: kotlin.collections.List<String> = emptyList(),
+        override val args: kotlin.collections.List<ActionArgument> = emptyList()
+    ) : Action {
+        CopyMxId,
     }
 }

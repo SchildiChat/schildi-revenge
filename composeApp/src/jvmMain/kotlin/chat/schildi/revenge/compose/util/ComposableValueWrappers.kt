@@ -4,7 +4,9 @@ import androidx.compose.runtime.Composable
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
+import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 sealed interface ComposableStringHolder {
@@ -28,5 +30,16 @@ data class StringResourceHolder(
     override fun render() = stringResource(res, *formatArgs.map { it.render() }.toTypedArray())
 }
 
+data class PluralsResourceHolder(
+    val res: PluralStringResource,
+    val quantity: Int,
+    val formatArgs: ImmutableList<ComposableStringHolder> = persistentListOf(),
+) : ComposableStringHolder {
+    constructor(res: PluralStringResource, quantity: Int, vararg formatArgs: ComposableStringHolder) : this(res, quantity, formatArgs.toPersistentList())
+    @Composable
+    override fun render() = pluralStringResource(res, quantity, *formatArgs.map { it.render() }.toTypedArray())
+}
+
 fun String.toStringHolder() = HardcodedStringHolder(this)
-fun StringResource.toStringHolder() = StringResourceHolder(this)
+fun StringResource.toStringHolder(vararg formatArgs: ComposableStringHolder) = StringResourceHolder(this, formatArgs.toPersistentList())
+fun PluralStringResource.toStringHolder(quantity: Int, vararg formatArgs: ComposableStringHolder) = PluralsResourceHolder(this, quantity, formatArgs.toPersistentList())

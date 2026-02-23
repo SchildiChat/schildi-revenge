@@ -1,4 +1,4 @@
-package chat.schildi.revenge
+package chat.schildi.revenge.plaintext
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString

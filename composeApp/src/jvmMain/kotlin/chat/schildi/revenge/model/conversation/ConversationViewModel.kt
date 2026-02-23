@@ -61,6 +61,7 @@ import chat.schildi.revenge.model.DraftValue
 import chat.schildi.revenge.model.PersistentAttachmentDownload
 import chat.schildi.revenge.model.RoomActionProvider
 import chat.schildi.revenge.model.ScopedRoomKey
+import chat.schildi.revenge.model.UserActionProvider
 import chat.schildi.revenge.model.getCurrentCompletionEntity
 import chat.schildi.revenge.toPrettyJson
 import chat.schildi.revenge.util.MimeUtil
@@ -68,7 +69,6 @@ import chat.schildi.revenge.util.tryOrNull
 import chat.schildi.revenge.util.MediaInfoUtil
 import chat.schildi.revenge.util.ScJson
 import co.touchlab.kermit.Logger
-import com.beeper.android.messageformat.MatrixBodyRenderState
 import com.beeper.android.messageformat.MatrixFormatInteractionState
 import io.element.android.features.messages.impl.timeline.EventFocusResult
 import io.element.android.features.messages.impl.timeline.TimelineController
@@ -115,7 +115,6 @@ import io.element.android.libraries.matrix.api.timeline.item.event.VoiceMessageT
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisambiguatedDisplayName
 import io.element.android.libraries.matrix.api.timeline.item.event.toEventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.virtual.VirtualTimelineItem
-import io.element.android.x.di.AppGraph
 import kotlinx.collections.immutable.persistentHashMapOf
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -227,7 +226,6 @@ private fun buildScTimelineFilterSettings(lookup: (ScPref<*>) -> Any?) = ScTimel
 class ConversationViewModel(
     private val sessionId: SessionId,
     private val roomId: RoomId,
-    private val appGraph: AppGraph = UiState.appGraph,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
 ) : ViewModel(), TitleProvider, SearchProvider, UserIdSuggestionsProvider, ComposerViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
@@ -238,12 +236,6 @@ class ConversationViewModel(
 
     private val _targetEvent = MutableStateFlow<EventJumpTarget?>(EventJumpTarget.Index(0))
     val targetEvent = _targetEvent.asStateFlow()
-
-    private val sessionGraphFlow = clientFlow.map { client ->
-        client?.let {
-            appGraph.sessionGraphFactory.create(it)
-        }
-    }
 
     private val timelineFilterSettings = scPreferencesStore.combinedSettingFlow { lookup ->
         buildScTimelineFilterSettings(lookup)
@@ -287,13 +279,6 @@ class ConversationViewModel(
         viewModelScope, SharingStarted.Eagerly,
         ComposerSettings.from { scPreferencesStore.getCachedOrDefaultValue(it) }
     )
-
-    private val roomGraphFlow = combine(sessionGraphFlow, roomPair) { sessionGraph, (baseRoom, joinedRoom) ->
-        sessionGraph ?: return@combine null
-        joinedRoom ?: return@combine null
-        baseRoom ?: return@combine null
-        sessionGraph.roomGraphFactory.create(joinedRoom, baseRoom)
-    }
 
     private val currentUrlPreviewStateProvider = AtomicReference<UrlPreviewStateProvider?>(null)
     val urlPreviewStateProvider = combine(
@@ -1431,6 +1416,17 @@ class ConversationViewModel(
         event: EventTimelineItem,
         messageMetadata: MessageMetadata?,
         formatInteractionState: MatrixFormatInteractionState?,
+    ) = FlatMergedKeyboardActionProvider(
+        listOf(
+            getEventKeyboardActionProviderForEvent(event, messageMetadata, formatInteractionState),
+            UserActionProvider(sessionId, event.sender, roomId)
+        )
+    )
+
+    private fun getEventKeyboardActionProviderForEvent(
+        event: EventTimelineItem,
+        messageMetadata: MessageMetadata?,
+        formatInteractionState: MatrixFormatInteractionState?,
     ): KeyboardActionProvider<Action.Event> {
         val eventId = event.eventId
         val eventOrTransactionId = tryOrNull {
@@ -1614,10 +1610,6 @@ class ConversationViewModel(
                         (eventId?.value ?: event.transactionId?.value)?.let {
                             copyToClipboard(it, Res.string.command_copy_name_event_id.toStringHolder())
                         } ?: ActionResult.Inapplicable
-                    }
-
-                    Action.Event.CopyMxId -> {
-                        copyToClipboard(event.sender.value, Res.string.command_copy_name_mxid.toStringHolder())
                     }
 
                     Action.Event.CopyMxc -> {

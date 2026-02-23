@@ -17,6 +17,9 @@ conversation = [
     { key = "Tab", shift = true, action = "ComposerSuggestionFocusPrevious" },
 ]
 event = []
+user = [
+    { key = "C", ctrl = true, action = "CopyMxId", destinations = ["RoomMembers"] },
+]
 navigation = [
     { key = "Escape", action = "NavigateCurrent", args = ["inbox"], destinations = ["Conversation"] },
 ]

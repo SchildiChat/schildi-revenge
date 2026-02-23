@@ -6,7 +6,6 @@ import chat.schildi.revenge.UiState
 import chat.schildi.revenge.flatMergeCombinedWith
 import chat.schildi.revenge.model.account.AccountComparator
 import co.touchlab.kermit.Logger
-import dev.zacsweers.metro.Inject
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.encryption.BackupState
 import io.element.android.libraries.matrix.api.encryption.RecoveryState
@@ -30,7 +29,6 @@ data class AccountManagementData(
         get() = sessionVerifiedStatus == SessionVerifiedStatus.NotVerified
 }
 
-@Inject
 class AccountManagementViewModel(
     appGraph: AppGraph = UiState.appGraph,
 ) : ViewModel() {

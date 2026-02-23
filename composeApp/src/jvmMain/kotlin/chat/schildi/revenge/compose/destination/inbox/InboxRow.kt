@@ -43,7 +43,7 @@ import chat.schildi.revenge.compose.components.ComposeSessionScope
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.ScopedRoomSummary
 import chat.schildi.revenge.Destination
-import chat.schildi.revenge.EventTextFormat
+import chat.schildi.revenge.plaintext.EventTextFormat
 import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.currentActionContext
@@ -59,7 +59,6 @@ import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import io.element.android.libraries.matrix.api.roomlist.LatestEventValue
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
-import io.element.android.libraries.matrix.api.timeline.item.event.MembershipChange
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisambiguatedDisplayName
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisplayName
 import io.element.android.libraries.matrix.api.user.MatrixUser

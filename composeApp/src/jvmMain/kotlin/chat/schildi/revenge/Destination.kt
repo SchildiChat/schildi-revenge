@@ -43,6 +43,14 @@ sealed interface Destination {
         override val title = null
     }
 
+    data class RoomMembers(
+        override val sessionId: SessionId,
+        val roomId: RoomId,
+    ) : WithSession {
+        override val name = "RoomMembers"
+        override val title = null
+    }
+
     data object Settings : Destination {
         override val name = "Settings"
         override val title = StringResourceHolder(Res.string.hint_settings)

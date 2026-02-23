@@ -18,10 +18,11 @@ val ALLOWED_DESTINATION_STRINGS = listOf(
     "room",
     "about",
     "settings",
+    "members"
 )
 
-fun String.destinationRequiresSessionId() = this in listOf("chat", "conversation", "room")
-fun String.destinationRequiresRoomId() = this in listOf("chat", "conversation", "room")
+fun String.destinationRequiresSessionId() = this in listOf("chat", "conversation", "room", "members")
+fun String.destinationRequiresRoomId() = this in listOf("chat", "conversation", "room", "members")
 
 data object NavigationDestinationSessionId : ActionArgumentContextBased {
     override val name: String = javaClass.simpleName

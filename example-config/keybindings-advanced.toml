@@ -1,10 +1,11 @@
 global = [
     { key = "Slash", action = "Search" },
     { key = "Semicolon", action = "Command" },
+    { key = "Semicolon", shift = true, action = "Command" },
     { key = "T", shift = true, action = "SetSetting", args = ["THEME_FOLLOW_SYSTEM", "false"], chain = true },
     { key = "T", shift = true, action = "ToggleSetting", args = ["THEME_DARK"] },
     { key = "T", ctrl = true, action = "SetSetting", args = ["THEME_FOLLOW_SYSTEM", "true"] },
-    { key = "S", ctrl = true, shift = true, action = "ToggleSetting", args = ["RENDER_SCALE", "1.8", "1.0"] },
+    { key = "S", ctrl = true, action = "ToggleSetting", args = ["RENDER_SCALE", "1.8", "1.0"] },
     { key = "U", ctrl = true, action = "ToggleSetting", args = ["SORT_BY_UNREAD"], destinations = ["Inbox"] },
     { key = "L", ctrl = true, action = "ToggleSetting", args = ["BURY_LOW_PRIORITY"], destinations = ["Inbox"] },
     { key = "F", ctrl = true, action = "ToggleSetting", args = ["PIN_FAVORITES"], destinations = ["Inbox"] },
@@ -40,10 +41,13 @@ inbox = [
     { key = "H", action = "NavigateSpaceRelative", args = ["-1"] },
     { key = "I", action = "NavigateSpaceRelative", args = ["1"] },
     { key = "Zero", action = "SelectSpace", args = ["0"] },
+    { key = "Equals", shift = true, action = "SelectSpaceIfNotHidden", args = ["p:notif"] },
+    { key = "Equals", shift = true, action = "SelectSpace", args = ["p:unread"] },
     { key = "Equals", shift = true, action = "SelectSpace", args = ["p:notif"] },
 ]
 room = [
     { key = "M", ctrl = true, action = "MarkRoomRead", destinations = ["Inbox"] },
+    { key = "R", alt = true, action = "ClearEventCache" },
 ]
 conversation = [
     { key = "G", shift = true, action = "JumpToBottom", chain = true },
@@ -67,7 +71,6 @@ conversation = [
     { key = "Enter", shift = true, action = "ComposerInsertAtCursor", args = ["\n"] },
     { key = "Escape", action = "HideComposerIfEmpty" },
     { key = "O", ctrl = true, action = "ClearComposer" },
-    { key = "D", ctrl = true, action = "ClearComposer" },
     { key = "Tab", action = "ComposerSuggestionFocusNext" },
     { key = "Tab", shift = true, action = "ComposerSuggestionFocusPrevious" },
 ]
@@ -76,17 +79,15 @@ event = [
     { key = "M", action = "MarkFullyRead", chain = true },
     { key = "R", action = "ComposeReply" },
     { key = "C", action = "ComposeReaction" },
-    { key = "Semicolon", shift = true, action = "ComposeReaction" },
-    { key = "E", ctrl = true, action = "ComposeEdit" },
+    { key = "J", action = "ComposeEdit" },
     { key = "Y", action = "CopyContent" },
     { key = "Y", shift = true, action = "CopyEventSource" },
     { key = "Y", ctrl = true, action = "CopyEventId" },
     { key = "Y", ctrl = true, shift = true, action = "CopyFormattedBody" },
-    { key = "Y", alt = true, action = "CopyMxId" },
     { key = "Y", alt = true, shift = true, action = "CopyMxc" },
     { key = "B", action = "OpenContentLinks" },
     { key = "B", ctrl = true, action = "CopyContentLink" },
-    { key = "D", action = "Redact" },
+    { key = "D", ctrl = true, action = "Redact" },
     { key = "Delete", action = "Redact" },
     { key = "Backspace", action = "Redact" },
     { key = "Enter", action = "DownloadFileAndOpen" },
@@ -96,6 +97,11 @@ event = [
     { key = "Four", ctrl = true, action = "ToggleReactionIndex", args = ["3"] },
     { key = "Five", ctrl = true, action = "ToggleReactionIndex", args = ["4"] },
     { key = "Six", ctrl = true, action = "ToggleReactionIndex", args = ["5"] },
+    { key = "V", action = "ToggleDetails" },
+]
+user = [
+    { key = "Y", alt = true, action = "CopyMxId" },
+    { key = "Y", action = "CopyMxId", destinations = ["RoomMembers"] },
 ]
 navigation = [
     { key = "I", shift = true, action = "NavigateCurrent", args = ["inbox"] },
