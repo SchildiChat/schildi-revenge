@@ -64,7 +64,6 @@ import chat.schildi.revenge.matrixBodyFormatter
 import chat.schildi.revenge.model.conversation.EventJumpTarget
 import chat.schildi.revenge.publishTitle
 import co.touchlab.kermit.Logger
-import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import kotlinx.collections.immutable.persistentListOf
@@ -215,11 +214,7 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
                     target = fileDragTarget,
                 ),
             ) {
-                val roomInfo = viewModel.roomInfo.collectAsState(null).value
-                ConversationTopNavigation(
-                    roomInfo?.name ?: "",
-                    roomInfo?.avatarUrl?.let { MediaSource(it) },
-                )
+                ConversationTopNavigation(viewModel)
                 // Double reverse helps with stick-to-bottom while paging backwards or receiving messages
                 LazyColumn(
                     Modifier.fillMaxWidth().weight(1f),

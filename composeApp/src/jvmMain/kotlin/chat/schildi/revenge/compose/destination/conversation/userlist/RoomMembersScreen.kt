@@ -40,7 +40,7 @@ fun RoomMembersScreen(destination: Destination.RoomMembers, modifier: Modifier =
         publishTitle(viewModel)
 
         val members = viewModel.entries.collectAsState(null)
-        if (members.value == null) {
+        if (members.value.isNullOrEmpty()) {
             SplashScreenContent()
             return@Box
         }

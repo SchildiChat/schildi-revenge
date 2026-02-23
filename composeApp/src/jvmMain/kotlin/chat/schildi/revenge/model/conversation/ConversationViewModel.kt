@@ -223,8 +223,8 @@ private fun buildScTimelineFilterSettings(lookup: (ScPref<*>) -> Any?) = ScTimel
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConversationViewModel(
-    private val sessionId: SessionId,
-    private val roomId: RoomId,
+    val sessionId: SessionId,
+    val roomId: RoomId,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
 ) : ViewModel(), TitleProvider, SearchProvider, UserIdSuggestionsProvider, ComposerViewModel {
     private val log = Logger.withTag("ChatView/$roomId")

@@ -98,7 +98,7 @@ class RoomMemberListViewModel(
     val entries = filteredEntriesFlow().stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
-        persistentListOf(),
+        null,
     )
 
     override val userIdInRoomSuggestions = userIdInRoomSuggestionsFlow()
