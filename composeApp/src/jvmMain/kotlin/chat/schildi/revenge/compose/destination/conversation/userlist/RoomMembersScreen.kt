@@ -46,7 +46,7 @@ fun RoomMembersScreen(destination: Destination.RoomMembers, modifier: Modifier =
         }
 
         val listState = rememberLazyListState()
-        val listAction = remember(listState) { ListAction(listState, isReverseList = true) }
+        val listAction = remember(listState) { ListAction(listState) }
         FocusContainer(
             LocalSearchProvider provides viewModel,
             LocalUserIdSuggestionsProvider provides viewModel,
