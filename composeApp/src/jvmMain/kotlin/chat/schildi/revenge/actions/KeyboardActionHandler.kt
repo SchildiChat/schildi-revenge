@@ -790,7 +790,7 @@ class KeyboardActionHandler(
     fun handleAction(
         focusItem: UUID,
         action: Action,
-        args: List<String>,
+        args: List<String> = emptyList(),
     ): ActionResult {
         val focused = focusableTargets[focusItem] ?: run {
             log.e("Invoked handleAction on unregistered focus item")
@@ -867,6 +867,7 @@ class KeyboardActionHandler(
         override val criticalActionRequiresConfirmation = criticalActionRequiresConfirmation
         override val keybindingConfig = keybindingConfig
         override val currentDestinationName = currentDestinationName
+        override val implicitArgs = getCurrentKeyActionHandlers(focused).flatMap { it.impliedArguments() }.distinct()
     }
 
     private fun navigationItemActionHandler(
@@ -987,12 +988,12 @@ class KeyboardActionHandler(
             return when (action) {
                 Action.Navigation.NavigateCurrent -> {
                     val extraArgs = args.subList(1, args.size)
-                    val destination = args[0].toDestinationOrNull(extraArgs).orActionValidationError()
+                    val destination = args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
                     navigateCurrentDestination(context.focused()?.destinationStateHolder) { destination }.orActionInapplicable()
                 }
                 Action.Navigation.NavigateInNewWindow -> {
                     val extraArgs = args.subList(1, args.size)
-                    val destination = args[0].toDestinationOrNull(extraArgs).orActionValidationError()
+                    val destination = args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
                     UiState.openWindow(destination)
                     ActionResult.Success()
                 }
@@ -1502,7 +1503,7 @@ class KeyboardActionHandler(
             it.first
         }.distinct()
         val possibleUniqueActionsWithArgsChecked = possibleUniqueActions.map {
-            it to checkArguments(it, args)
+            it to checkArguments(it, args, commandMode.impliedArguments)
         }
         val possibleUniqueActionsWithValidArgs = possibleUniqueActionsWithArgsChecked.mapNotNull { (action, error) ->
             action.takeIf { error == null }
@@ -1787,7 +1788,7 @@ fun <A: Action>List<Binding<A>>.execute(
     var hasChainableSuccess = false
     actions.forEach { action ->
         val actionResult = try {
-            action.checkArguments()?.also {
+            action.checkArguments(context.implicitArgs)?.also {
                 Logger.e(it.message)
             } ?: block(context, action.action, action.args).withChainSetting(action.chain)
         } catch (e: IndexOutOfBoundsException) {
@@ -1968,7 +1969,7 @@ fun checkArgument(
             }
         }
         ActionArgumentPrimitive.NavigatableDestinationName -> {
-            if (argVal.toDestinationOrNull(lookahead) == null) {
+            if (argVal.toDestinationOrNull(lookahead, context) == null) {
                 if (argVal in ALLOWED_DESTINATION_STRINGS) {
                     ActionResult.MissingParameters(
                         "Invalid parameter for $actionName, not a valid destination: $argVal with args [${lookahead.joinToString()}]"
@@ -2023,12 +2024,14 @@ fun checkArgument(
 }
 
 fun <A : Action>Binding<A>.checkArguments(
+    implicitArgs: CommandArgContext,
     checkIncompleteParameters: Boolean = false,
     validSessionIds: List<String>? = UiState.currentValidSessionIds.value,
     validSettingKeys: List<String> = ScPrefs.validSettingKeys,
 ) = checkArguments(
     action,
     args,
+    implicitArgs,
     checkIncompleteParameters,
     validSessionIds,
     validSettingKeys,
@@ -2037,6 +2040,7 @@ fun <A : Action>Binding<A>.checkArguments(
 fun checkArguments(
     action: Action,
     args: List<String>,
+    implicitArgs: CommandArgContext,
     checkIncompleteParameters: Boolean = false,
     validSessionIds: List<String>? = UiState.currentValidSessionIds.value,
     validSettingKeys: List<String> = ScPrefs.validSettingKeys,
@@ -2054,7 +2058,7 @@ fun checkArguments(
             if (checkIncompleteParameters) {
                 action.args.zip(args).forEachIndexed { index, (argDef, argVal) ->
                     val lookahead = args.subList(index + 1, args.size)
-                    val context = action.args.zip(args.subList(0, index))
+                    val context = action.args.zip(args.subList(0, index)) + implicitArgs
                     checkArgument(action.name, argDef, argVal, context, lookahead, validSessionIds, validSettingKeys)?.let {
                         return it
                     }
@@ -2068,7 +2072,7 @@ fun checkArguments(
     // Optional arguments only supported to leave away at the end right now
     action.args.zip(args).forEachIndexed { index, (argDef, argVal) ->
         val lookahead = args.subList(index + 1, args.size)
-        val context = action.args.zip(args.subList(0, index))
+        val context = action.args.zip(args.subList(0, index)) + implicitArgs
         checkArgument(action.name, argDef, argVal, context, lookahead, validSessionIds, validSettingKeys)?.let {
             return it
         }
@@ -2101,6 +2105,7 @@ interface ActionContext {
     ): ActionResult
     val currentDestinationName: String?
     val keybindingConfig: KeybindingConfig?
+    val implicitArgs: CommandArgContext
 }
 
 inline fun ActionContext.runWithMessage(

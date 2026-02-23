@@ -157,7 +157,6 @@ import shire.composeapp.generated.resources.command_copy_name_formatted_message_
 import shire.composeapp.generated.resources.command_copy_name_full_room_state
 import shire.composeapp.generated.resources.command_copy_name_message_content
 import shire.composeapp.generated.resources.command_copy_name_mxc
-import shire.composeapp.generated.resources.command_copy_name_mxid
 import shire.composeapp.generated.resources.command_copy_name_url
 import shire.composeapp.generated.resources.command_event_name_fully_read_marker
 import shire.composeapp.generated.resources.command_event_name_own_read_receipt

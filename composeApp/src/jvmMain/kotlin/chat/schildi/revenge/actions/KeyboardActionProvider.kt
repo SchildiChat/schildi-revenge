@@ -4,7 +4,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import chat.schildi.revenge.config.keybindings.Action
-import chat.schildi.revenge.config.keybindings.ActionArgument
 import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import kotlin.collections.orEmpty

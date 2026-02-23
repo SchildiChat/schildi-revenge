@@ -51,7 +51,6 @@ fun ConversationTopNavigation(
                 keyHandler.handleAction(
                     focusItem = focusParent.uuid,
                     action = Action.Conversation.JumpToFullyRead,
-                    args = emptyList(),
                 )
             }
             TopNavigationIcon(
@@ -61,12 +60,10 @@ fun ConversationTopNavigation(
                 keyHandler.handleAction(
                     focusItem = focusParent.uuid,
                     action = Action.Room.MarkRoomRead,
-                    args = emptyList(),
                 )
                 keyHandler.handleAction(
                     focusItem = focusParent.uuid,
                     action = Action.Room.MarkRoomFullyRead,
-                    args = emptyList(),
                 )
             }
         }

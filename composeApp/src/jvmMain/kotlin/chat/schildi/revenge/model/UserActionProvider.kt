@@ -33,7 +33,7 @@ class UserActionProvider(
     override fun handleAction(
         context: ActionContext,
         action: Action.User,
-        args: List<String>
+        args: List<String>,
     ): ActionResult {
         return when (action) {
             Action.User.CopyMxId -> {

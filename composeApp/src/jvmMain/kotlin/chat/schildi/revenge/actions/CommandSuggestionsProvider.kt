@@ -136,7 +136,6 @@ class CommandSuggestionsProvider(
     @OptIn(ExperimentalCoroutinesApi::class)
     val suggestionState = queryFlow.mapLatest { mode ->
         mode ?: return@mapLatest null
-        mode.focused
         suggestForCommandString(mode.query.text, mode.impliedArguments)
     }
         .flowOn(Dispatchers.IO)
@@ -187,7 +186,7 @@ class CommandSuggestionsProvider(
             val (currentValidity, argSuggestions) = when {
                 possibleActions.isEmpty() -> Pair(CurrentCommandValidity.INVALID, emptyList())
                 else -> {
-                    val argumentsChecked = possibleActions.map { checkArguments(it.first, args) }
+                    val argumentsChecked = possibleActions.map { checkArguments(it.first, args, impliedContext) }
                     val validity = when {
                         argumentsChecked.any { it == null } -> CurrentCommandValidity.VALID
                         argumentsChecked.any { it is ActionResult.MissingParameters } ->
@@ -197,7 +196,7 @@ class CommandSuggestionsProvider(
                             // is only invalid because of missing arguments we don't mark it as invalid
                             val stableArgs = if (args.isEmpty()) args else args.subList(0, args.size - 1)
                             if (possibleActions.any {
-                                checkArguments(it.first, stableArgs) is ActionResult.MissingParameters
+                                checkArguments(it.first, stableArgs, impliedContext) is ActionResult.MissingParameters
                             }) {
                                 CurrentCommandValidity.INCOMPLETE
                             } else {
