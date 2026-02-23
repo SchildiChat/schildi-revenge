@@ -298,4 +298,10 @@
     <string name="power_level_user_role_default">Default</string>
     <string name="power_level_user_role_combined">%1$s (%2$s)</string>
 
+    <string name="room_membership_ban">Banned</string>
+    <string name="room_membership_invite">Invited</string>
+    <string name="room_membership_join">Joined</string>
+    <string name="room_membership_knock">Knocking</string>
+    <string name="room_membership_leave">Left</string>
+
 </resources>

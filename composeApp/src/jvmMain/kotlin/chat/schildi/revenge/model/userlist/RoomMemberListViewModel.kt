@@ -15,6 +15,7 @@ import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.RoomInfo
 import io.element.android.libraries.matrix.api.room.RoomMember
+import io.element.android.libraries.matrix.api.room.RoomMembershipState
 import io.element.android.libraries.matrix.api.room.roomMembers
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -67,15 +68,27 @@ class RoomMemberListViewModel(
     override val allEntries: StateFlow<ImmutableList<RoomMemberItem>> = roomMembersState.map { state ->
         val members = state.roomMembers() ?: return@map persistentListOf()
         members
-            .sortedWith(
+            .filter {
+                it.membership == RoomMembershipState.JOIN ||
+                        it.membership == RoomMembershipState.KNOCK ||
+                        it.membership == RoomMembershipState.INVITE
+            }.sortedWith(
                 compareBy(
+                    {
+                        when (it.membership) {
+                            RoomMembershipState.JOIN -> 0
+                            RoomMembershipState.KNOCK -> 1
+                            RoomMembershipState.INVITE -> 2
+                            RoomMembershipState.LEAVE -> 4
+                            RoomMembershipState.BAN -> 5
+                        }
+                    },
                     { -it.powerLevel },
                     { it.displayName == null },
                     { it.displayName },
                     { it.userId.value }
                 )
-            )
-            .map(::RoomMemberItem).toImmutableList()
+            ).map(::RoomMemberItem).toImmutableList()
     }.stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
