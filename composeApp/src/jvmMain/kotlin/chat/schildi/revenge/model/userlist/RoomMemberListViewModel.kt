@@ -85,8 +85,8 @@ class RoomMemberListViewModel(
                     },
                     { -it.powerLevel },
                     { it.displayName == null },
-                    { it.displayName },
-                    { it.userId.value }
+                    { it.displayName?.lowercase() },
+                    { it.userId.value.lowercase() }
                 )
             ).map(::RoomMemberItem).toImmutableList()
     }.stateIn(

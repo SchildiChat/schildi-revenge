@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,18 +47,20 @@ fun <T : UserListItem>UserListRow(
             displayName = item.displayName ?: item.userId.value,
             modifier = modifier,
         )
-        Column(Modifier.weight(1f)) {
-            Text(
-                item.displayName ?: item.userId.value,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-            if (item.displayName != null) {
+        SelectionContainer(Modifier.weight(1f)) {
+            Column {
                 Text(
-                    item.userId.value,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    item.displayName ?: item.userId.value,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
                 )
+                if (item.displayName != null) {
+                    Text(
+                        item.userId.value,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
         Box {

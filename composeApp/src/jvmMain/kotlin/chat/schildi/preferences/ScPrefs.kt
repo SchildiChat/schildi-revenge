@@ -107,7 +107,7 @@ object ScPrefs {
     val FONT_SCALE = ScFloatPref("FONT_SCALE", 1f, Res.string.pref_font_scale, minValue = 0.5f, maxValue = 5f, allowLiveSliderChange = false)
     val MAX_WIDTH_INBOX = ScIntPref("MAX_WIDTH_INBOX", 1024, Res.string.pref_max_width_inbox_title, minValue = 400, maxValue = 4000)
     val MAX_WIDTH_CONVERSATION = ScIntPref("MAX_WIDTH_CONVERSATION", 1600, Res.string.pref_max_width_conversation_title, minValue = 400, maxValue = 4000)
-    val MAX_WIDTH_ROOM_DETAILS = ScIntPref("MAX_WIDTH_ROOM_DETAILS", 400, Res.string.pref_max_width_room_details_title, minValue = 200, maxValue = 4000)
+    val MAX_WIDTH_ROOM_DETAILS = ScIntPref("MAX_WIDTH_ROOM_DETAILS", 600, Res.string.pref_max_width_room_details_title, minValue = 200, maxValue = 4000)
     val MAX_WIDTH_SETTINGS = ScIntPref("MAX_WIDTH_SETTINGS", 1024, Res.string.pref_max_width_settings_title, minValue = 400, maxValue = 4000, allowLiveSliderChange = false)
 
     // Tray icon
