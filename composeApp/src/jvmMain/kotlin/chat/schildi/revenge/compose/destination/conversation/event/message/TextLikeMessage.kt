@@ -6,13 +6,16 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -26,6 +29,8 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewInfo
 import chat.schildi.revenge.Dimens
@@ -36,9 +41,14 @@ import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.revenge.compose.util.containsOnlyEmojis
 import chat.schildi.revenge.model.conversation.MessageMetadata
+import coil3.PlatformContext
 import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.SubcomposeAsyncImageContent
+import coil3.request.ImageRequest
+import coil3.request.SuccessResult
+import coil3.request.maxBitmapSize
+import coil3.size.Size
 import com.beeper.android.messageformat.InlineImageInfo
 import com.beeper.android.messageformat.MatrixBodyParseResult
 import com.beeper.android.messageformat.MatrixFormatInteractionState
@@ -52,6 +62,12 @@ import io.element.android.libraries.matrix.api.timeline.item.event.NoticeMessage
 import io.element.android.libraries.matrix.api.timeline.item.event.TextLikeMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.TextMessageType
 import io.element.android.libraries.matrix.ui.media.MediaRequestData
+import kotlin.math.roundToInt
+
+private const val INLINE_IMG_MIN_WIDTH_DP = 16
+private const val INLINE_IMG_MAX_WIDTH_DP = 256
+private const val INLINE_IMG_MIN_HEIGHT_DP = 16
+private const val INLINE_IMG_MAX_HEIGHT_DP = 256
 
 @Composable
 fun TextLikeMessage(
@@ -172,12 +188,7 @@ fun TextLikeMessageContent(
             Integer.MAX_VALUE
         },
         overflow = TextOverflow.Ellipsis,
-        inlineContent = text.inlineImages.toInlineContent(
-            density = LocalDensity.current,
-            defaultHeight = textStyle.lineHeight,
-        ) { info, modifier ->
-            InlineImage(info, textStyle, textColor, modifier)
-        }
+        inlineContent = text.inlineImages.toInlineContent(textStyle, textColor),
     )
 }
 
@@ -220,13 +231,29 @@ fun IndentionHackFormattedText(
                     textWidth = it.size.width
                 }
             },
-            inlineContent = text.inlineImages.toInlineContent(
-                density = LocalDensity.current,
-                defaultHeight = textStyle.lineHeight,
-            ) { info, modifier ->
-                InlineImage(info, textStyle, textColor, modifier)
-            }
+            inlineContent = text.inlineImages.toInlineContent(textStyle, textColor),
         )
+    }
+}
+
+@Composable
+private fun Map<String, InlineImageInfo>.toInlineContent(
+    textStyle: TextStyle,
+    textColor: Color,
+): Map<String, InlineTextContent> {
+    val inlineImageSizes = remember { mutableStateMapOf<String, IntSize>() }
+    return toInlineContent(
+        density = LocalDensity.current,
+        defaultHeight = textStyle.lineHeight,
+        actualImageSizes = inlineImageSizes,
+        minWidth = INLINE_IMG_MIN_WIDTH_DP.dp,
+        maxWidth = INLINE_IMG_MAX_WIDTH_DP.dp,
+        minHeight = INLINE_IMG_MIN_HEIGHT_DP.dp,
+        maxHeight = INLINE_IMG_MAX_HEIGHT_DP.dp,
+    ) { info, modifier ->
+        InlineImage(info, textStyle, textColor, modifier) {
+            inlineImageSizes[info.uri] = IntSize(it.image.width, it.image.height)
+        }
     }
 }
 
@@ -236,11 +263,23 @@ private fun InlineImage(
     textStyle: TextStyle,
     textColor: Color,
     modifier: Modifier = Modifier,
+    onPainterSuccess: (SuccessResult) -> Unit = {},
 ) {
+    val density = LocalDensity.current
     SubcomposeAsyncImage(
         modifier = modifier,
         imageLoader = imageLoader(),
-        model = MediaRequestData(MediaSource(info.uri), MediaRequestData.Kind.Content),
+        model = ImageRequest
+            .Builder(PlatformContext.INSTANCE)
+            .data(MediaRequestData(MediaSource(info.uri), MediaRequestData.Kind.Content))
+            .size(Size.ORIGINAL)
+            .maxBitmapSize(
+                Size(
+                    width = (INLINE_IMG_MAX_WIDTH_DP * density.density.coerceIn(1f, 4f)).roundToInt(),
+                    height = (INLINE_IMG_MAX_HEIGHT_DP * density.density.coerceIn(1f, 4f)).roundToInt(),
+                )
+            )
+            .build(),
         contentScale = ContentScale.Crop,
         alignment = Alignment.Center,
         contentDescription = info.alt ?: info.title,
@@ -256,7 +295,12 @@ private fun InlineImage(
             },
         ) { state ->
             when (state) {
-                is AsyncImagePainter.State.Success -> SubcomposeAsyncImageContent(modifier)
+                is AsyncImagePainter.State.Success -> {
+                    SubcomposeAsyncImageContent(modifier)
+                    LaunchedEffect(state.result) {
+                        onPainterSuccess(state.result)
+                    }
+                }
                 else -> {
                     Text(
                         info.alt ?: info.title ?: MessageFormatDefaults.INLINE_IMAGE_PLACEHOLDER,
