@@ -8,6 +8,7 @@
         <item quantity="one">%1$s members in %2$s</item>
         <item quantity="other">%1$s members in %2$s</item>
     </plurals>
+    <string name="message_reactions_title">Message reactions</string>
 
     <string name="about">About</string>
     <string name="about_credits">Credits</string>
@@ -52,6 +53,7 @@
     <string name="action_reply">Reply</string>
     <string name="action_edit">Edit</string>
     <string name="action_react">React</string>
+    <string name="action_view_reactions">View reactions</string>
     <string name="action_copy_body">Copy text</string>
     <string name="action_navigate_in_current">Open in current window</string>
     <string name="action_navigate_in_new_window">Open in new window</string>

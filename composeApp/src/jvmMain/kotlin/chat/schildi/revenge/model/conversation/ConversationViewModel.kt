@@ -46,6 +46,7 @@ import chat.schildi.revenge.compose.util.insertAtCursor
 import chat.schildi.revenge.compose.util.insertTextFieldValue
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
+import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.model.Attachment
 import chat.schildi.revenge.model.ComposerRoomMentionSuggestion
@@ -1753,6 +1754,12 @@ class ConversationViewModel(
                     }
                 }
             }
+
+            override fun impliedArguments(): List<Pair<ActionArgumentPrimitive, String>> = listOfNotNull(
+                ActionArgumentPrimitive.SessionId to sessionId.value,
+                ActionArgumentPrimitive.RoomId to roomId.value,
+                eventId?.value?.let { ActionArgumentPrimitive.EventId to it },
+            )
         }
     }
 

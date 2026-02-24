@@ -28,7 +28,7 @@ interface UserListItem {
 abstract class AbstractUserListViewModel<T: UserListItem>: ViewModel(), SearchProvider, UserIdSuggestionsProvider {
     abstract val sessionId: SessionId
     abstract val roomId: RoomId?
-    abstract val allEntries: Flow<ImmutableList<T>>
+    abstract val allEntries: Flow<ImmutableList<T>?>
 
     protected val searchTerm = MutableStateFlow<String?>(null)
 
@@ -43,7 +43,7 @@ abstract class AbstractUserListViewModel<T: UserListItem>: ViewModel(), SearchPr
             allEntries
         } else {
             val lowercaseSearchTerm = searchTerm.lowercase()
-            allEntries.filter {
+            allEntries?.filter {
                 searchMatches(it, lowercaseSearchTerm)
             }
         }
@@ -66,8 +66,8 @@ abstract class AbstractUserListViewModel<T: UserListItem>: ViewModel(), SearchPr
     }
 
     fun userIdInRoomSuggestionsFlow(): Flow<List<UserIdSuggestion>> = allEntries.map {
-        it.map {
+        it?.map {
             UserIdSuggestion(it.userId, it.displayName)
-        }
+        }.orEmpty()
     }
 }

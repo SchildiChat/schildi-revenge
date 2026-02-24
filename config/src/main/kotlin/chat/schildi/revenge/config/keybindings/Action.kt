@@ -87,7 +87,8 @@ private val StateKey = ActionArgumentOptional(ActionArgumentPrimitive.NonEmptySt
 private val navigationArgs = listOf(
     ActionArgumentPrimitive.NavigatableDestinationName,
     ActionArgumentOptional(NavigationDestinationSessionId),
-    ActionArgumentOptional(NavigationDestinationRoomId)
+    ActionArgumentOptional(NavigationDestinationRoomId),
+    ActionArgumentOptional(NavigationDestinationEventId),
 )
 
 fun Action.handlesCommand(command: String): Boolean {

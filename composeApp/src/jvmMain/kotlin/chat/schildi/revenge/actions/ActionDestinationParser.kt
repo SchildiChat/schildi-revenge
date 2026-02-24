@@ -5,6 +5,7 @@ import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
 import chat.schildi.revenge.config.keybindings.CommandArgContext
 import chat.schildi.revenge.config.keybindings.getParameter
 import chat.schildi.revenge.util.tryOrNull
+import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 
@@ -28,6 +29,12 @@ internal fun String.toDestinationOrNull(
         val roomId = args.getOrNull(1)?.let(::RoomId) ?: context!!.ensureRoomId()
         Destination.RoomMembers(sessionId, roomId)
     }
+    "reactions" -> tryOrNull {
+        val sessionId = args.getOrNull(0)?.let(::SessionId) ?: context!!.ensureSessionId()
+        val roomId = args.getOrNull(1)?.let(::RoomId) ?: context!!.ensureRoomId()
+        val eventId = args.getOrNull(2)?.let(::EventId) ?: context!!.ensureEventId()
+        Destination.MessageReactions(sessionId, roomId, eventId)
+    }
     "about" -> Destination.About
     "settings" -> Destination.Settings
     else -> null
@@ -37,3 +44,5 @@ private fun CommandArgContext.ensureSessionId() =
     SessionId(getParameter(ActionArgumentPrimitive.SessionId)!!)
 private fun CommandArgContext.ensureRoomId() =
     RoomId(getParameter(ActionArgumentPrimitive.RoomId)!!)
+private fun CommandArgContext.ensureEventId() =
+    EventId(getParameter(ActionArgumentPrimitive.EventId)!!)

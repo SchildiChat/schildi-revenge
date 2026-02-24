@@ -2,6 +2,7 @@ package chat.schildi.revenge
 
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
+import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import shire.composeapp.generated.resources.Res
@@ -10,6 +11,7 @@ import shire.composeapp.generated.resources.app_title
 import shire.composeapp.generated.resources.hint_settings
 import shire.composeapp.generated.resources.inbox
 import shire.composeapp.generated.resources.manage_accounts
+import shire.composeapp.generated.resources.message_reactions_title
 
 sealed interface Destination {
     // For referring to destinations via key bindings config, in order to restrict bindings to destinations
@@ -49,6 +51,15 @@ sealed interface Destination {
     ) : WithSession {
         override val name = "RoomMembers"
         override val title = null
+    }
+
+    data class MessageReactions(
+        override val sessionId: SessionId,
+        val roomId: RoomId,
+        val eventId: EventId,
+    ) : WithSession {
+        override val name = "MessageReactions"
+        override val title = StringResourceHolder(Res.string.message_reactions_title)
     }
 
     data object Settings : Destination {

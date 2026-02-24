@@ -67,7 +67,7 @@ fun EventRow(
     }
     WithContextMenu(
         focusId,
-        event.contextMenu(),
+        event.contextMenu(viewModel.sessionId, viewModel.roomId),
     ) { openContextMenu ->
         Column(
             modifier

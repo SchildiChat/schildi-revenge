@@ -7,14 +7,18 @@ import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.EmojiPeople
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.OpenWith
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.key.Key
 import chat.schildi.revenge.compose.components.ContextMenuEntry
+import chat.schildi.revenge.compose.components.LocalSessionId
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
+import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
@@ -30,9 +34,13 @@ import shire.composeapp.generated.resources.action_jump_to_replied_to_message
 import shire.composeapp.generated.resources.action_react
 import shire.composeapp.generated.resources.action_redact
 import shire.composeapp.generated.resources.action_reply
+import shire.composeapp.generated.resources.action_view_reactions
 
 @Composable
-fun EventTimelineItem.contextMenu(): ImmutableList<ContextMenuEntry> {
+fun EventTimelineItem.contextMenu(
+    sessionId: SessionId,
+    roomId: RoomId,
+): ImmutableList<ContextMenuEntry> {
     val messageContent = content as? MessageContent ?: return persistentListOf()
     val canSendMessages = true // TODO from permissions
     val canSendReactions = true // TODO from permissions
@@ -74,6 +82,13 @@ fun EventTimelineItem.contextMenu(): ImmutableList<ContextMenuEntry> {
             Action.Event.ComposeReaction,
             keyboardShortcut = Key.C,
         ).takeIf { canSendReactions },
+        ContextMenuEntry(
+            Res.string.action_view_reactions.toStringHolder(),
+            rememberVectorPainter(Icons.Default.EmojiPeople),
+            Action.Navigation.NavigateInNewWindow,
+            actionArgs = persistentListOf("reactions", sessionId.value, roomId.value, eventId?.value ?: ""),
+            keyboardShortcut = Key.V,
+        ).takeIf { reactions.isNotEmpty() && eventId != null },
         ContextMenuEntry(
             Res.string.action_copy_body.toStringHolder(),
             rememberVectorPainter(Icons.Default.ContentCopy),

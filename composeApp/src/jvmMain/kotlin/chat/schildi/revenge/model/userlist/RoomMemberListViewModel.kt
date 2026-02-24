@@ -7,7 +7,6 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.RoomContextSuggestionsProvider
-import chat.schildi.revenge.actions.UserIdSuggestion
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.toStringHolder
 import io.element.android.libraries.matrix.api.core.RoomId
@@ -18,7 +17,6 @@ import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.room.RoomMembershipState
 import io.element.android.libraries.matrix.api.room.roomMembers
 import kotlinx.collections.immutable.ImmutableList
-import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -36,7 +34,6 @@ import kotlinx.coroutines.flow.stateIn
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.room_members_title_loaded
 import shire.composeapp.generated.resources.room_members_title_loading
-import kotlin.comparisons.compareByDescending
 
 data class RoomMemberItem(
     val value: RoomMember
@@ -65,8 +62,8 @@ class RoomMemberListViewModel(
         room?.membersStateFlow ?: flowOf()
     }
 
-    override val allEntries: StateFlow<ImmutableList<RoomMemberItem>> = roomMembersState.map { state ->
-        val members = state.roomMembers() ?: return@map persistentListOf()
+    override val allEntries: StateFlow<ImmutableList<RoomMemberItem>?> = roomMembersState.map { state ->
+        val members = state.roomMembers() ?: return@map null
         members
             .filter {
                 it.membership == RoomMembershipState.JOIN ||
@@ -92,7 +89,7 @@ class RoomMemberListViewModel(
     }.stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
-        persistentListOf(),
+        null,
     )
 
     val entries = filteredEntriesFlow().stateIn(
@@ -112,12 +109,13 @@ class RoomMemberListViewModel(
         roomFlow,
         allEntries,
     ) { room, allMembers ->
-        windowTitle(roomId, room?.info(), allMembers.size)
+        windowTitle(roomId, room?.info(), allMembers?.size)
     }
 
     init {
         roomFlow.onEach { room ->
             room?.updateMembers()
+            room?.subscribeToSync()
         }
             .flowOn(Dispatchers.IO)
             .launchIn(viewModelScope)

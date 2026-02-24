@@ -28,6 +28,7 @@ fun <T : UserListItem>UserListRow(
         keyActions = viewModel.getItemActionHandler(item.userId),
     ),
     modifier: Modifier = Modifier,
+    leadingContent: @Composable () -> Unit = {},
     trailingContent: @Composable () -> Unit = {},
 ) {
     Row(
@@ -40,6 +41,7 @@ fun <T : UserListItem>UserListRow(
         horizontalArrangement = Dimens.horizontalArrangement,
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        leadingContent()
         AvatarImage(
             source = item.avatarUrl?.let { MediaSource(it) },
             size = Dimens.Conversation.avatar,
