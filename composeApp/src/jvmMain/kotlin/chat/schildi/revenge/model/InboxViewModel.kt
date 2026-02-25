@@ -225,7 +225,8 @@ class InboxViewModel(
             rooms.filter {
                 it.summary.info.name?.lowercase()?.contains(lowercaseSearch) == true
             }.sortedWith(compareBy(
-                { it.summary.info.name?.lowercase()?.indexOf(lowercaseSearch)?.takeIf { it >= 0 } },
+                { it.summary.info.name?.lowercase()?.indexOf(lowercaseSearch)?.takeIf { it >= 0 } ?: Integer.MAX_VALUE },
+                { it.summary.latestEventTimestamp == null },
                 { it.summary.latestEventTimestamp?.let { -it } },
             ))
         }
