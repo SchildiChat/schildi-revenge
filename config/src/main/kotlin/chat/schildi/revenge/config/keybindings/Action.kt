@@ -130,7 +130,7 @@ sealed interface Action {
         override val args: kotlin.collections.List<ActionArgument> = emptyList()
     ) : Action {
         NavigateCurrent(aliases = listOf("navigate", "nav"), args = navigationArgs),
-        NavigateInNewWindow(aliases = listOf("open-new", "window"), args = navigationArgs),
+        NavigateInNewWindow(aliases = listOf("open", "window"), args = navigationArgs),
         SplitHorizontal(aliases = listOf("split", "vsplit")),
         SplitVertical(aliases = listOf("hsplit")),
         CloseWindow(aliases = listOf("close")),
@@ -140,8 +140,8 @@ sealed interface Action {
         override val aliases: kotlin.collections.List<String> = emptyList(),
         override val args: kotlin.collections.List<ActionArgument> = emptyList()
     ) : Action {
-        NavigateCurrent(aliases = listOf("follow", "open")),
-        NavigateInNewWindow(aliases = listOf("open-new")),
+        NavigateCurrent(aliases = listOf("navigate", "nav")),
+        NavigateInNewWindow(aliases = listOf("open", "window")),
     }
     enum class Focus(
         override val aliases: kotlin.collections.List<String> = emptyList(),
