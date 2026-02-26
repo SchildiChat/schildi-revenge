@@ -18,6 +18,9 @@ sealed interface Destination {
     val name: String
     val title: ComposableStringHolder?
 
+    // Data classes should contain everything we need to key on in the toString()
+    fun key() = toString()
+
     sealed interface WithSession : Destination {
         val sessionId: SessionId
     }

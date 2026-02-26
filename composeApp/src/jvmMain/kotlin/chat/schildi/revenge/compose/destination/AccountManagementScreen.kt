@@ -38,6 +38,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
+import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.FocusRole
@@ -51,6 +52,7 @@ import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.AccountManagementData
 import chat.schildi.revenge.model.AccountManagementViewModel
+import chat.schildi.revenge.viewModelKey
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
@@ -67,8 +69,14 @@ import shire.composeapp.generated.resources.manage_accounts
 import shire.composeapp.generated.resources.title_login_account
 
 @Composable
-fun AccountManagementScreen(modifier: Modifier = Modifier) {
-    val viewModel: AccountManagementViewModel = viewModel(factory = viewModelFactory { initializer { AccountManagementViewModel() } })
+fun AccountManagementScreen(
+    destination: Destination.AccountManagement,
+    modifier: Modifier = Modifier
+) {
+    val viewModel: AccountManagementViewModel = viewModel(
+        key = viewModelKey(destination),
+        factory = viewModelFactory { initializer { AccountManagementViewModel() } }
+    )
     val accounts = viewModel.data.collectAsState().value
     FocusContainer(
         modifier = modifier,

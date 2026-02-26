@@ -39,6 +39,7 @@ import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.focus.FocusParent
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.Destination
+import chat.schildi.revenge.DestinationState
 import chat.schildi.revenge.GlobalActionsScope
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
@@ -449,26 +450,27 @@ class KeyboardActionHandler(
     private fun navigateCurrentDestination(
         destination: Destination,
         destinationStateHolder: DestinationStateHolder? = null,
+        invalidateHolderId: Boolean = false,
     ): Boolean {
         return (
                 destinationStateHolder
                     ?: currentFocused()?.destinationStateHolder ?:
                     focusableTargets.values.firstNotNullOfOrNull { it.destinationStateHolder }
-        )?.navigate(destination) != null
+        )?.navigate(destination, invalidateHolderId = invalidateHolderId) != null
     }
 
     private fun navigateCurrentDestination(
         destinationStateHolder: DestinationStateHolder? = currentFocused()?.destinationStateHolder,
-        buildDestination: (Destination) -> Destination?
+        invalidateHolderId: Boolean = false,
+        buildDestination: (DestinationState) -> Destination?
     ): Boolean {
-        return destinationStateHolder?.state?.value.let { destinationState ->
-            destinationState?.destination?.let { destination ->
-                buildDestination(destination)?.let {
-                    navigateCurrentDestination(
-                        destination = it,
-                        destinationStateHolder = destinationStateHolder,
-                    )
-                }
+        return destinationStateHolder?.state?.value?.let { destinationState ->
+            buildDestination(destinationState)?.let {
+                navigateCurrentDestination(
+                    destination = it,
+                    destinationStateHolder = destinationStateHolder,
+                    invalidateHolderId = invalidateHolderId,
+                )
             }
         } ?: false
     }
@@ -997,16 +999,22 @@ class KeyboardActionHandler(
                     UiState.openWindow(destination)
                     ActionResult.Success()
                 }
-                Action.Navigation.SplitHorizontal -> navigateCurrentDestination(context.focused()?.destinationStateHolder) {
+                Action.Navigation.SplitHorizontal -> navigateCurrentDestination(
+                    destinationStateHolder = context.focused()?.destinationStateHolder,
+                    invalidateHolderId = true,
+                ) { destinationState ->
                     Destination.SplitHorizontal(
-                        DestinationStateHolder.forInitialDestination(it),
-                        DestinationStateHolder.forInitialDestination(it),
+                        DestinationStateHolder(destinationState),
+                        DestinationStateHolder.forInitialDestination(destinationState.destination),
                     )
                 }.orActionInapplicable()
-                Action.Navigation.SplitVertical -> navigateCurrentDestination(context.focused()?.destinationStateHolder) {
+                Action.Navigation.SplitVertical -> navigateCurrentDestination(
+                    destinationStateHolder = context.focused()?.destinationStateHolder,
+                    invalidateHolderId = true,
+                ) { destinationState ->
                     Destination.SplitVertical(
-                        DestinationStateHolder.forInitialDestination(it),
-                        DestinationStateHolder.forInitialDestination(it),
+                        DestinationStateHolder(destinationState),
+                        DestinationStateHolder.forInitialDestination(destinationState.destination),
                     )
                 }.orActionInapplicable()
                 Action.Navigation.CloseWindow -> {

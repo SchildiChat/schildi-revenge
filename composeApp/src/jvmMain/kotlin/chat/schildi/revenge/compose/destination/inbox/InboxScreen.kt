@@ -28,8 +28,8 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Anim
+import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
-import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.ListAction
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
@@ -43,14 +43,21 @@ import chat.schildi.revenge.model.InboxViewModel
 import chat.schildi.revenge.model.spaces.filterByVisible
 import chat.schildi.revenge.model.spaces.resolveSelection
 import chat.schildi.revenge.publishTitle
+import chat.schildi.revenge.viewModelKey
 import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 
 @OptIn(FlowPreview::class)
 @Composable
-fun InboxScreen(modifier: Modifier = Modifier) {
-    val viewModel: InboxViewModel = viewModel(key = LocalDestinationState.current?.id.toString(), factory = viewModelFactory { initializer { InboxViewModel() } })
+fun InboxScreen(
+    destination: Destination.Inbox,
+    modifier: Modifier = Modifier
+) {
+    val viewModel: InboxViewModel = viewModel(
+        key = viewModelKey(destination),
+        factory = viewModelFactory { initializer { InboxViewModel() } }
+    )
     publishTitle(viewModel)
 
     // Filters that should reset list state

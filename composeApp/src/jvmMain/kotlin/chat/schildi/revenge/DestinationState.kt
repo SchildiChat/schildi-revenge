@@ -6,16 +6,35 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import java.util.UUID
 
 class DestinationStateHolder(
-    val id: UUID,
-    val state: MutableStateFlow<DestinationState>,
+    initialDestination: DestinationState,
 ) {
-    fun navigate(destination: Destination) {
-        state.value = DestinationState(destination)
+    private val _state = MutableStateFlow(initialDestination)
+    val state = _state.asStateFlow()
+
+    fun navigate(destination: Destination, invalidateHolderId: Boolean = false) {
+        val holderId = if (invalidateHolderId) UUID.randomUUID() else null
+        _state.update {
+            DestinationState(
+                holderId = holderId ?: it.holderId,
+                destination = destination,
+            )
+        }
+    }
+
+    fun publishTitle(titleOverride: ComposableStringHolder?, verifyDestination: (Destination) -> Boolean) {
+        _state.update {
+            if (verifyDestination(it.destination)) {
+                it.copy(titleOverride = titleOverride)
+            } else {
+                it
+            }
+        }
     }
 
     companion object {
@@ -24,12 +43,10 @@ class DestinationStateHolder(
             initialTitle: ComposableStringHolder? = null,
         ): DestinationStateHolder {
             return DestinationStateHolder(
-                UUID.randomUUID(),
-                MutableStateFlow(
-                    DestinationState(
-                        destination,
-                        initialTitle
-                    )
+                DestinationState(
+                    UUID.randomUUID(),
+                    destination,
+                    initialTitle,
                 )
             )
         }
@@ -37,6 +54,8 @@ class DestinationStateHolder(
 }
 
 data class DestinationState(
+    // Mutable ID allows moving destinations around, e.g. when entering split screen
+    val holderId: UUID,
     val destination: Destination,
     val titleOverride: ComposableStringHolder? = null,
 )
@@ -56,12 +75,6 @@ fun publishTitle(provider: TitleProvider) {
         .collectAsState(StringOverrideState.Uninitialized).value
     LaunchedEffect(title) {
         if (title !is StringOverrideState.Override) return@LaunchedEffect
-        destinationState?.state?.update {
-            if (provider.verifyDestination(it.destination)) {
-                it.copy(titleOverride = title.value)
-            } else {
-                it
-            }
-        }
+        destinationState?.publishTitle(title.value, provider::verifyDestination)
     }
 }

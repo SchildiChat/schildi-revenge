@@ -28,12 +28,13 @@ import chat.schildi.revenge.compose.destination.SplashScreenContent
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.model.userlist.MessageReactionListViewModel
+import chat.schildi.revenge.viewModelKey
 
 @Composable
 fun MessageReactionsScreen(destination: Destination.MessageReactions, modifier: Modifier = Modifier) {
     Box(modifier, contentAlignment = Alignment.Center) {
         val viewModel: MessageReactionListViewModel = viewModel(
-            key = "${LocalDestinationState.current?.id}/${destination.sessionId}/${destination.roomId}/${destination.eventId}",
+            key = viewModelKey(destination),
             factory = MessageReactionListViewModel.factory(destination.sessionId, destination.roomId, destination.eventId)
         )
 

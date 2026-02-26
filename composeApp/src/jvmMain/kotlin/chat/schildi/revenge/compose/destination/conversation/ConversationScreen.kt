@@ -63,6 +63,7 @@ import chat.schildi.revenge.matrixBodyDrawStyle
 import chat.schildi.revenge.matrixBodyFormatter
 import chat.schildi.revenge.model.conversation.EventJumpTarget
 import chat.schildi.revenge.publishTitle
+import chat.schildi.revenge.viewModelKey
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
@@ -77,7 +78,7 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
 
         val keyHandler = LocalKeyboardActionHandler.current
         val viewModel: ConversationViewModel = viewModel(
-            key = "${LocalDestinationState.current?.id}/${destination.sessionId}/${destination.roomId}",
+            key = viewModelKey(destination),
             factory = ConversationViewModel.factory(destination.sessionId, destination.roomId)
         )
         val timelineItems = viewModel.timelineItems.collectAsState().value

@@ -33,8 +33,8 @@ fun DestinationContent(destinationHolder: DestinationStateHolder, modifier: Modi
         val contentModifier = Modifier.fillMaxSize()
         DestinationWrapper(destination, modifier) {
             when (destination) {
-                is Destination.AccountManagement -> AccountManagementScreen(contentModifier)
-                is Destination.Inbox -> InboxScreen(contentModifier)
+                is Destination.AccountManagement -> AccountManagementScreen(destination, contentModifier)
+                is Destination.Inbox -> InboxScreen(destination, contentModifier)
                 is Destination.Splash -> SplashScreen(contentModifier)
                 is Destination.Conversation -> ConversationScreen(destination, contentModifier)
                 is Destination.RoomMembers -> RoomMembersScreen(destination, contentModifier)
@@ -42,7 +42,7 @@ fun DestinationContent(destinationHolder: DestinationStateHolder, modifier: Modi
                 is Destination.SplitHorizontal -> SplitHorizontal(destination, contentModifier)
                 is Destination.SplitVertical -> SplitVertical(destination, contentModifier)
                 is Destination.About -> AboutScreen(contentModifier)
-                is Destination.Settings -> SettingsScreen(contentModifier)
+                is Destination.Settings -> SettingsScreen(destination, contentModifier)
             }
         }
     }

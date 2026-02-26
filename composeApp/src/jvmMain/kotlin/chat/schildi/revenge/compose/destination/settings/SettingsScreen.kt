@@ -19,6 +19,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
+import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.ListAction
@@ -31,13 +32,17 @@ import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.model.SettingsViewModel
 import chat.schildi.revenge.publishTitle
+import chat.schildi.revenge.viewModelKey
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.hint_settings
 
 @Composable
-fun SettingsScreen(modifier: Modifier = Modifier) {
-    val viewModel: SettingsViewModel = viewModel(factory = viewModelFactory { initializer { SettingsViewModel() } })
+fun SettingsScreen(destination: Destination.Settings, modifier: Modifier = Modifier) {
+    val viewModel: SettingsViewModel = viewModel(
+        key = viewModelKey(destination),
+        factory = viewModelFactory { initializer { SettingsViewModel() } }
+    )
     val stringLookup = viewModel.stringLookupRequest.lookup()
     LaunchedEffect(stringLookup) {
         viewModel.stringLookupTable = stringLookup

@@ -29,12 +29,13 @@ import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.model.userlist.RoomMemberListViewModel
 import chat.schildi.revenge.publishTitle
+import chat.schildi.revenge.viewModelKey
 
 @Composable
 fun RoomMembersScreen(destination: Destination.RoomMembers, modifier: Modifier = Modifier) {
     Box(modifier, contentAlignment = Alignment.Center) {
         val viewModel: RoomMemberListViewModel = viewModel(
-            key = "${LocalDestinationState.current?.id}/${destination.sessionId}/${destination.roomId}",
+            key = viewModelKey(destination),
             factory = RoomMemberListViewModel.factory(destination.sessionId, destination.roomId)
         )
         publishTitle(viewModel)
