@@ -131,8 +131,10 @@ sealed interface Action {
     ) : Action {
         NavigateCurrent(aliases = listOf("navigate", "nav"), args = navigationArgs),
         NavigateInNewWindow(aliases = listOf("open", "window"), args = navigationArgs),
-        SplitHorizontal(aliases = listOf("split", "vsplit")),
-        SplitVertical(aliases = listOf("hsplit")),
+        NavigateSplitHorizontal(aliases = listOf("split", "vsplit"), args = navigationArgs),
+        NavigateSplitVertical(aliases = listOf("hsplit"), args = navigationArgs),
+        SplitCurrentHorizontal(aliases = listOf("split", "vsplit")),
+        SplitCurrentVertical(aliases = listOf("hsplit")),
         CloseWindow(aliases = listOf("close")),
         CloseWindowUnlessLast,
     }
