@@ -45,6 +45,19 @@ class SplitKeyboardActionProvider(
                 destinationStateHolder.replaceWith(keptDestinationState)
                 ActionResult.Success()
             }
+            Action.Split.SwapSplit -> {
+                val currentDestination = destinationStateHolder?.state?.value?.destination
+                val destinationState = (currentDestination as? Destination.Split) ?: return ActionResult.Inapplicable
+                val oldPrimary = destinationState.primary.state.value
+                val oldSecondary = destinationState.secondary.state.value
+                // Avoid having the same key twice at any given time just in case
+                destinationState.primary.navigate(Destination.Splash)
+                destinationState.secondary.navigate(Destination.Splash)
+                // Now do the actual swap
+                destinationState.primary.replaceWith(oldSecondary)
+                destinationState.secondary.replaceWith(oldPrimary)
+                ActionResult.Success()
+            }
         }
     }
 }

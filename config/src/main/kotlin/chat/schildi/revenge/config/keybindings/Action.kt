@@ -174,6 +174,7 @@ sealed interface Action {
         override val args: kotlin.collections.List<ActionArgument> = emptyList()
     ) : Action {
         Unsplit,
+        SwapSplit(aliases = listOf("swap")),
     }
     enum class Inbox(
         override val aliases: kotlin.collections.List<String> = emptyList(),
