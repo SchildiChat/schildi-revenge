@@ -14,6 +14,7 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.ActionProvider
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.actionProvider
+import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.userlist.AbstractUserListViewModel
@@ -25,7 +26,7 @@ fun <T : UserListItem>UserListRow(
     item: T,
     viewModel: AbstractUserListViewModel<T>,
     actionProvider: ActionProvider = actionProvider(
-        keyActions = viewModel.getItemActionHandler(item.userId),
+        keyActions = viewModel.getItemActionHandler(item.userId).hierarchicalKeyboardActionProvider(),
     ),
     modifier: Modifier = Modifier,
     leadingContent: @Composable () -> Unit = {},
