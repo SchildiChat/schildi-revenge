@@ -27,6 +27,14 @@ class DestinationStateHolder(
         }
     }
 
+    /**
+     * Only use with no longer elsewhere used DestinationState!
+     * Useful for moving nested destinations out, e.g. unsplit action
+     */
+    fun replaceWith(destinationState: DestinationState) {
+        _state.value = destinationState
+    }
+
     fun publishTitle(titleOverride: ComposableStringHolder?, verifyDestination: (Destination) -> Boolean) {
         _state.update {
             if (verifyDestination(it.destination)) {
