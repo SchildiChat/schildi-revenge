@@ -106,4 +106,9 @@ object Dimens {
 
         val fileIconSize = 36.dp
     }
+
+    object Split {
+        val highlightShape = RoundedCornerShape(4.dp)
+        val outlineWidth = 3.dp
+    }
 }

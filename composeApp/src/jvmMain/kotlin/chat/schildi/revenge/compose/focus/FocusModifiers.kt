@@ -88,6 +88,7 @@ fun FocusRole.allowsFocusable() = when (this) {
     FocusRole.NESTED_AUX_ITEM,
     FocusRole.CONTAINER_ITEM,
     FocusRole.DESTINATION_ROOT_CONTAINER,
+    FocusRole.NESTING_DESTINATION_ROOT_CONTAINER,
     FocusRole.CONTAINER -> true
     FocusRole.TEXT_FIELD_SINGLE_LINE,
     FocusRole.TEXT_FIELD_MULTI_LINE,

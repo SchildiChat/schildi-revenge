@@ -73,6 +73,7 @@ import io.element.android.libraries.core.coroutine.childScope
 import io.element.android.libraries.matrix.api.core.SessionId
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -138,6 +139,7 @@ enum class FocusRole(val consumesKeyWhitelist: List<Key>? = null, val autoReques
     AUX_ITEM,
     NESTED_AUX_ITEM,
     DESTINATION_ROOT_CONTAINER,
+    NESTING_DESTINATION_ROOT_CONTAINER,
     CONTAINER,
     CONTAINER_ITEM, // Can both like AUX_ITEM and CONTAINER
     TEXT_FIELD_SINGLE_LINE(consumesKeyWhitelist = AllowedSingleLineTextFieldBindingKeys),
@@ -247,6 +249,13 @@ class KeyboardActionHandler(
     val lastPointerPosition: Offset
         get() = _lastPointerPosition
     private val currentFocus = MutableStateFlow<UUID?>(null)
+
+    val currentFocusedNestingDestinations = currentFocus.map { focusId ->
+        focusId ?: return@map persistentListOf()
+        focusableTargets[focusId].findAllInHierarchy { it.role == FocusRole.NESTING_DESTINATION_ROOT_CONTAINER }.map {
+            it.id
+        }.toImmutableList()
+    }
 
     private val _mode = MutableStateFlow<KeyboardActionMode>(KeyboardActionMode.Navigation)
     val mode = _mode.asStateFlow()
@@ -1728,6 +1737,18 @@ class KeyboardActionHandler(
         } catch (e: Exception) {
             log.w("Failed to open URL in external browser", e)
             return ActionResult.Failure(e.message ?: e.toString())
+        }
+    }
+
+    private fun FocusTarget?.findAllInHierarchy(condition: (FocusTarget) -> Boolean): List<FocusTarget> {
+        var current = this
+        return buildList {
+            while (current != null) {
+                if (condition(current)) {
+                    add(current)
+                }
+                current = current.parent?.uuid?.let { focusableTargets[it] }
+            }
         }
     }
 }
