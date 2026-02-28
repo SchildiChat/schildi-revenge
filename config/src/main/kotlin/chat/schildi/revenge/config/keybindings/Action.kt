@@ -54,7 +54,8 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     Mxc,
     SettingKey,
     SettingValue,
-    NavigatableDestinationName,
+    NavigatableDestination,
+    DestinationName,
     SpaceId,
     ParentSpaceId, // For current room contexts, a space that is currently already parent of that room
     NonParentSpaceId, // For current room contexts, a space that is *not* currently already parent of that room
@@ -91,11 +92,11 @@ private val navigationDestinationArgs = listOf(
 )
 
 private val navigationArgs = listOf(
-    ActionArgumentPrimitive.NavigatableDestinationName,
+    ActionArgumentPrimitive.NavigatableDestination,
 ) + navigationDestinationArgs
 
 private val optionalNavigationArgs = listOf(
-    ActionArgumentOptional(ActionArgumentPrimitive.NavigatableDestinationName),
+    ActionArgumentOptional(ActionArgumentPrimitive.NavigatableDestination),
 ) + navigationDestinationArgs
 
 fun Action.handlesCommand(command: String): Boolean {
@@ -179,6 +180,7 @@ sealed interface Action {
         override val args: kotlin.collections.List<ActionArgument> = emptyList()
     ) : Action {
         Unsplit,
+        UnsplitDestination(args = listOf(ActionArgumentPrimitive.DestinationName)),
         SwapSplit(aliases = listOf("swap")),
     }
     enum class Inbox(

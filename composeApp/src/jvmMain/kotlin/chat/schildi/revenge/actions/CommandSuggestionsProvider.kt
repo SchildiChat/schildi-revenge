@@ -267,7 +267,8 @@ class CommandSuggestionsProvider(
                     }
                 }
                 ActionArgumentPrimitive.SettingKey -> prefKeySuggestions
-                ActionArgumentPrimitive.NavigatableDestinationName ->
+                ActionArgumentPrimitive.DestinationName,
+                ActionArgumentPrimitive.NavigatableDestination ->
                     SUGGESTED_DESTINATION_STRINGS.toSuggestionsWithoutHint()
                 ActionArgumentPrimitive.SettingValue -> {
                     val settingKeys = context.findAll(ActionArgumentPrimitive.SettingKey)
@@ -341,7 +342,7 @@ class CommandSuggestionsProvider(
     ): List<CommandSuggestion> = when (arg) {
         is ActionArgumentPrimitive -> {
             when (arg) {
-                ActionArgumentPrimitive.NavigatableDestinationName ->
+                ActionArgumentPrimitive.NavigatableDestination ->
                     ALLOWED_DESTINATION_STRINGS.toSuggestionsWithoutHint()
                 ActionArgumentPrimitive.RoomId -> {
                     val sessionIds = context.findAll(ActionArgumentPrimitive.SessionId)

@@ -11,6 +11,8 @@ import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
+import chat.schildi.revenge.actions.orActionValidationError
+import chat.schildi.revenge.actions.toDestinationEnum
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 
@@ -40,7 +42,22 @@ class SplitKeyboardActionProvider(
                         it.secondary
                     else
                         it.primary
-
+                }?.state?.value ?: return ActionResult.Inapplicable
+                destinationStateHolder.replaceWith(keptDestinationState)
+                ActionResult.Success()
+            }
+            Action.Split.UnsplitDestination -> {
+                val destinationType = args.firstOrNull()?.toDestinationEnum()?.orActionValidationError()
+                val currentDestination = destinationStateHolder?.state?.value?.destination
+                val keptDestinationState = (currentDestination as? Destination.Split)?.let {
+                    if (it.secondary.state.value.destination.type == destinationType) {
+                        it.primary
+                    } else if (it.primary.state.value.destination.type == destinationType) {
+                        it.secondary
+                    } else {
+                        // Keep both
+                        null
+                    }
                 }?.state?.value ?: return ActionResult.Inapplicable
                 destinationStateHolder.replaceWith(keptDestinationState)
                 ActionResult.Success()

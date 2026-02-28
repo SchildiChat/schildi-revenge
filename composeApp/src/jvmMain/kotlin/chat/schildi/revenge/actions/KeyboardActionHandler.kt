@@ -60,6 +60,7 @@ import chat.schildi.revenge.config.keybindings.AllowedSingleLineTextFieldBinding
 import chat.schildi.revenge.config.keybindings.AllowedTextFieldBindingKeys
 import chat.schildi.revenge.config.keybindings.Binding
 import chat.schildi.revenge.config.keybindings.CommandArgContext
+import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.config.keybindings.KeyMapped
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.config.keybindings.KeybindingConfig
@@ -795,7 +796,7 @@ class KeyboardActionHandler(
         focused = currentFocused(),
         criticalActionRequiresConfirmation = criticalActionRequiresConfirmation,
         keybindingConfig = UiState.keybindingsConfig.value,
-        currentDestinationName = destination?.name,
+        currentDestinationType = destination?.type,
     )
 
     fun handleAction(
@@ -820,7 +821,7 @@ class KeyboardActionHandler(
         focused: FocusTarget?,
         criticalActionRequiresConfirmation: Boolean,
         keybindingConfig: KeybindingConfig? = UiState.keybindingsConfig.value,
-        currentDestinationName: String? = focused?.destinationStateHolder?.state?.value?.destination?.name,
+        currentDestinationType: DestinationEnum? = focused?.destinationStateHolder?.state?.value?.destination?.type,
     ) = object : InternalActionContext {
         override fun publishMessage(message: AbstractAppMessage) =
             this@KeyboardActionHandler.publishMessage(message)
@@ -877,7 +878,7 @@ class KeyboardActionHandler(
         override val focused = focused
         override val criticalActionRequiresConfirmation = criticalActionRequiresConfirmation
         override val keybindingConfig = keybindingConfig
-        override val currentDestinationName = currentDestinationName
+        override val currentDestinationType = currentDestinationType
         override val implicitArgs = getCurrentKeyActionHandlers(focused).flatMap { it.impliedArguments() }.distinct()
     }
 
@@ -1829,7 +1830,10 @@ fun <A: Action>List<Binding<A>>.execute(
     block: (ActionContext, action: A, args: List<String>) -> ActionResult
 ): ActionResult {
     val actions = filter {
-        it.trigger == key && (it.destinations.isEmpty() || it.destinations.contains(context.currentDestinationName))
+        it.trigger == key && (
+                it.destinations.isEmpty() ||
+                        it.destinations.any { context.currentDestinationType?.matches(it) == true}
+                )
     }
     var hasChainableSuccess = false
     actions.forEach { action ->
@@ -2014,7 +2018,16 @@ fun checkArgument(
                 null
             }
         }
-        ActionArgumentPrimitive.NavigatableDestinationName -> {
+        ActionArgumentPrimitive.DestinationName -> {
+            if (argVal !in ALLOWED_DESTINATION_STRINGS) {
+                ActionResult.Malformed(
+                    "Invalid parameter for $actionName, not a valid destination: $argVal"
+                )
+            } else {
+                null
+            }
+        }
+        ActionArgumentPrimitive.NavigatableDestination -> {
             if (argVal.toDestinationOrNull(lookahead, context) == null) {
                 if (argVal in ALLOWED_DESTINATION_STRINGS) {
                     ActionResult.MissingParameters(
@@ -2149,7 +2162,7 @@ interface ActionContext {
         coroutineContext: CoroutineContext = EmptyCoroutineContext,
         action: suspend () -> ActionResult,
     ): ActionResult
-    val currentDestinationName: String?
+    val currentDestinationType: DestinationEnum?
     val keybindingConfig: KeybindingConfig?
     val implicitArgs: CommandArgContext
 }

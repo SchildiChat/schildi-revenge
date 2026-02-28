@@ -145,4 +145,7 @@ list = [
 split = [
     { key = "Q", ctrl = true, action = "Unsplit" },
     { key = "X", action = "Unsplit" },
+    { key = "L", action = "UnsplitDestination", args = ["reactions"] },
+    { key = "L", ctrl = true, action = "UnsplitDestination", args = ["reactions"] },
+    { key = "L", action = "UnsplitDestination", args = ["members"] },
 ]

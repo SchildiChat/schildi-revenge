@@ -2,6 +2,7 @@ package chat.schildi.revenge
 
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
+import chat.schildi.revenge.config.keybindings.DestinationEnum
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -14,8 +15,8 @@ import shire.composeapp.generated.resources.manage_accounts
 import shire.composeapp.generated.resources.message_reactions_title
 
 sealed interface Destination {
-    // For referring to destinations via key bindings config, in order to restrict bindings to destinations
-    val name: String
+    // For referring to destinations via key bindings config
+    val type: DestinationEnum
     val title: ComposableStringHolder?
 
     // Data classes should contain everything we need to key on in the toString()
@@ -26,17 +27,17 @@ sealed interface Destination {
     }
 
     data object AccountManagement : Destination {
-        override val name = "AccountManagement"
+        override val type = DestinationEnum.AccountManagement
         override val title = StringResourceHolder(Res.string.manage_accounts)
     }
 
     data object Inbox : Destination {
-        override val name = "Inbox"
+        override val type = DestinationEnum.Inbox
         override val title = StringResourceHolder(Res.string.inbox)
     }
 
     data object Splash : Destination {
-        override val name = "Splash"
+        override val type = DestinationEnum.Splash
         override val title = StringResourceHolder(Res.string.app_title)
     }
 
@@ -44,7 +45,7 @@ sealed interface Destination {
         override val sessionId: SessionId,
         val roomId: RoomId,
     ) : WithSession {
-        override val name = "Conversation"
+        override val type = DestinationEnum.Conversation
         override val title = null
     }
 
@@ -52,7 +53,7 @@ sealed interface Destination {
         override val sessionId: SessionId,
         val roomId: RoomId,
     ) : WithSession {
-        override val name = "RoomMembers"
+        override val type = DestinationEnum.RoomMembers
         override val title = null
     }
 
@@ -61,17 +62,17 @@ sealed interface Destination {
         val roomId: RoomId,
         val eventId: EventId,
     ) : WithSession {
-        override val name = "MessageReactions"
+        override val type = DestinationEnum.MessageReactions
         override val title = StringResourceHolder(Res.string.message_reactions_title)
     }
 
     data object Settings : Destination {
-        override val name = "Settings"
+        override val type = DestinationEnum.Settings
         override val title = StringResourceHolder(Res.string.hint_settings)
     }
 
     data object About : Destination {
-        override val name = "About"
+        override val type = DestinationEnum.About
         override val title = StringResourceHolder(Res.string.about)
     }
 
@@ -85,7 +86,7 @@ sealed interface Destination {
         override val secondary: DestinationStateHolder,
         val fraction: Float = 0.5f,
     ) : Split {
-        override val name = "SplitHorizontal"
+        override val type = DestinationEnum.SplitHorizontal
         override val title = StringResourceHolder(Res.string.app_title)
     }
 
@@ -94,7 +95,7 @@ sealed interface Destination {
         override val secondary: DestinationStateHolder,
         val fraction: Float = 0.5f,
     ) : Split {
-        override val name = "SplitVertical"
+        override val type = DestinationEnum.SplitVertical
         override val title = StringResourceHolder(Res.string.app_title)
     }
 }
