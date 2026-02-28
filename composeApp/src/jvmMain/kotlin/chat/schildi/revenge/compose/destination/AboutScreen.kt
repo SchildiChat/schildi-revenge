@@ -25,6 +25,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.BuildInfo
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.MatrixSdkMetadata
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
@@ -41,6 +42,7 @@ import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.appendUrlText
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.theme.scLinkStyle
+import io.element.android.libraries.matrix.api.SdkMetadata
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
@@ -48,6 +50,7 @@ import shire.composeapp.generated.resources.about
 import shire.composeapp.generated.resources.about_build_date
 import shire.composeapp.generated.resources.about_build_info
 import shire.composeapp.generated.resources.about_credits
+import shire.composeapp.generated.resources.about_kotlin_base_revision
 import shire.composeapp.generated.resources.about_privacy_policy
 import shire.composeapp.generated.resources.about_release_variant
 import shire.composeapp.generated.resources.about_revision
@@ -61,6 +64,7 @@ import shire.composeapp.generated.resources.ic_launcher
 
 private const val REVENGE_SOURCE_URL = "https://github.com/SchildiChat/schildi-revenge"
 private const val REVENGE_SDK_SOURCE_URL = "https://github.com/SchildiChat/matrix-rust-sdk"
+private const val SCHILDI_NEXT_SOURCE_URL = "https://github.com/SchildiChat/schildichat-android-next"
 
 private data class ThirdPartyAcknowledgement(
     val name: String,
@@ -213,14 +217,19 @@ fun AboutScreen(modifier: Modifier = Modifier) {
                     buildInfoItem("release_variant") {
                         stringResource(Res.string.about_release_variant, BuildInfo.BUILD_TYPE)
                     }
-                    buildInfoItem("rust_release_variant") {
-                        stringResource(Res.string.about_rust_release_variant, BuildInfo.RUST_PROFILE)
+                    if (BuildInfo.RUST_PROFILE != BuildInfo.BUILD_TYPE) {
+                        buildInfoItem("rust_release_variant") {
+                            stringResource(Res.string.about_rust_release_variant, BuildInfo.RUST_PROFILE)
+                        }
                     }
                     buildInfoItem("revision", action = InteractionAction.OpenInBrowser("$REVENGE_SOURCE_URL/commits/${BuildInfo.SOURCE_REVISION}")) {
-                        stringResource(Res.string.about_revision, BuildInfo.SOURCE_REVISION.take(12))
+                        stringResource(Res.string.about_revision, BuildInfo.SOURCE_REVISION.formatCommitHash())
                     }
-                    buildInfoItem("rust_revision", action = InteractionAction.OpenInBrowser("$REVENGE_SDK_SOURCE_URL/commits/${BuildInfo.SDK_REVISION}")) {
-                        stringResource(Res.string.about_rust_revision, BuildInfo.SDK_REVISION.take(12))
+                    buildInfoItem("kotlin_sdk_revision", action = InteractionAction.OpenInBrowser("$SCHILDI_NEXT_SOURCE_URL/commits/${MatrixSdkMetadata.SCHILDI_NEXT_REVISION}")) {
+                        stringResource(Res.string.about_kotlin_base_revision, MatrixSdkMetadata.ELEMENT_VERSION)
+                    }
+                    buildInfoItem("rust_sdk_revision", action = InteractionAction.OpenInBrowser("$REVENGE_SDK_SOURCE_URL/commits/${BuildInfo.SDK_REVISION}")) {
+                        stringResource(Res.string.about_rust_revision, BuildInfo.SDK_REVISION.formatCommitHash())
                     }
                     buildInfoItem("build_timestamp") {
                         stringResource(Res.string.about_build_date, BuildInfo.BUILD_TIMESTAMP)
@@ -230,6 +239,8 @@ fun AboutScreen(modifier: Modifier = Modifier) {
         }
     }
 }
+
+private fun String.formatCommitHash() = take(12)
 
 @Composable
 private fun AboutHeader(modifier: Modifier = Modifier) {

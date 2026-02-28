@@ -18,6 +18,7 @@
     <string name="about_build_info">Build info</string>
     <string name="about_build_date">Build date: %1$s</string>
     <string name="about_revision">Source revision: %1$s</string>
+    <string name="about_kotlin_base_revision">SDK base: %1$s</string>
     <string name="about_rust_revision">SDK revision: %1$s</string>
     <string name="about_release_variant">Variant: %1$s</string>
     <string name="about_rust_release_variant">SDK variant: %1$s</string>
