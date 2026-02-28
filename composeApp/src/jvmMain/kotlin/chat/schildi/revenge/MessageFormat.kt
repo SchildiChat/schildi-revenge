@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
@@ -104,6 +105,7 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
 fun matrixBodyDrawStyle(): MatrixBodyDrawStyle {
     val mentionColor = MaterialTheme.scExposures.mentionBg
     val mentionHighlightColor = MaterialTheme.scExposures.mentionBgHighlight
+    val onSurface = MaterialTheme.colorScheme.onSurface
     val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
     val sessionId = LocalSessionId.current
     return remember(
@@ -113,7 +115,7 @@ fun matrixBodyDrawStyle(): MatrixBodyDrawStyle {
         sessionId,
     ) {
         MatrixBodyDrawStyle(
-            defaultForegroundColor = onSurfaceVariant,
+            defaultForegroundColor = onSurface,
             drawBehindRoomMention = { position ->
                 drawRoundRect(
                     mentionHighlightColor,
@@ -143,6 +145,41 @@ fun matrixBodyDrawStyle(): MatrixBodyDrawStyle {
                     size = Size(barWidthDp * density, position.rect.height),
                     cornerRadius = CornerRadius(barWidthDp * density, barWidthDp * density),
                 )
+            },
+            drawBehindDetailsSummaryFirstLine = { revealId, pos, state ->
+                val rect = pos.rect
+                // Use line height and available width as baseline size for triangle size
+                val lineHeight = rect.size.height
+                val triangleSideLength = lineHeight / 2f
+                // * sqrt(3) / 2
+                val triangleHeight = triangleSideLength * 0.8660254f
+                val shortSidePadding = (triangleSideLength - triangleHeight) / 2
+                val trianglePath = Path().apply {
+                    if (revealId in state.expandedItems.value) {
+                        // Already expanded => downward-facing triangle
+                        moveTo(0f, shortSidePadding)
+                        lineTo(triangleSideLength / 2, triangleSideLength - shortSidePadding)
+                        lineTo(triangleSideLength, shortSidePadding)
+                    } else {
+                        moveTo(shortSidePadding, 0f)
+                        lineTo(triangleSideLength - shortSidePadding, triangleSideLength / 2)
+                        lineTo(shortSidePadding, triangleSideLength)
+                    }
+                    close()
+                    val canvasPadding = (lineHeight - triangleSideLength) / 2
+                    translate(
+                        Offset(
+                            if (pos.isRtl) {
+                                rect.right - triangleSideLength + canvasPadding
+                            } else {
+                                rect.left
+                            },
+                            // Center in line height
+                            rect.top + canvasPadding,
+                        )
+                    )
+                }
+                drawPath(trianglePath, onSurfaceVariant)
             },
         )
     }

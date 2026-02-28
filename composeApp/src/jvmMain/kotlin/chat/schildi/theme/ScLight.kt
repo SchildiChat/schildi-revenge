@@ -5,7 +5,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
-val scl_fgPrimary = ScColors.colorBlackAlpha_de
+val scl_fgPrimary = ScColors.colorGray_21
 val scl_fgSecondary = ScColors.colorBlackAlpha_8a
 val scl_fgTertiary = ScColors.colorBlackAlpha_4c
 val scl_fgHint = ScColors.colorBlackAlpha_4c
