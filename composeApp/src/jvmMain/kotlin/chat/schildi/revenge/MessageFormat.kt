@@ -104,15 +104,16 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
 fun matrixBodyDrawStyle(): MatrixBodyDrawStyle {
     val mentionColor = MaterialTheme.scExposures.mentionBg
     val mentionHighlightColor = MaterialTheme.scExposures.mentionBgHighlight
-    val onSurfaceVariantColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
     val sessionId = LocalSessionId.current
     return remember(
         mentionColor,
         mentionHighlightColor,
-        onSurfaceVariantColor,
+        onSurfaceVariant,
         sessionId,
     ) {
         MatrixBodyDrawStyle(
+            defaultForegroundColor = onSurfaceVariant,
             drawBehindRoomMention = { position ->
                 drawRoundRect(
                     mentionHighlightColor,
@@ -137,7 +138,7 @@ fun matrixBodyDrawStyle(): MatrixBodyDrawStyle {
             drawBehindBlockQuote = { depth, position ->
                 val barWidthDp = 4f
                 drawRoundRect(
-                    onSurfaceVariantColor,
+                    onSurfaceVariant,
                     topLeft = Offset((MessageFormatDefaults.blockIndention * (depth - 1)).toPx(), position.rect.top),
                     size = Size(barWidthDp * density, position.rect.height),
                     cornerRadius = CornerRadius(barWidthDp * density, barWidthDp * density),
