@@ -27,7 +27,7 @@ fun UserReactionRow(
             SelectionContainer {
                 ReactionContent(
                     reaction = reactionItem.reaction,
-                    baseStyle = if (reactionItem.reaction.length <= 2)
+                    baseStyle = if (reactionItem.reaction.length <= 4)
                         MaterialTheme.typography.headlineLarge
                     else
                         MaterialTheme.typography.bodyMedium,
