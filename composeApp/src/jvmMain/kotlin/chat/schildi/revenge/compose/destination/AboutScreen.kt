@@ -150,7 +150,10 @@ private val AppLinks = listOf(
 )
 
 @Composable
-fun AboutScreen(modifier: Modifier = Modifier) {
+fun AboutScreen(
+    modifier: Modifier = Modifier,
+    contentModifier: Modifier = Modifier,
+) {
     val listState = rememberLazyListState()
     val listAction = remember(listState) { ListAction(listState, isReverseList = true) }
     val keyHandler = LocalKeyboardActionHandler.current
@@ -166,7 +169,7 @@ fun AboutScreen(modifier: Modifier = Modifier) {
             }
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 LazyColumn(
-                    modifier = Modifier.padding(horizontal = Dimens.windowPadding),
+                    modifier = contentModifier.padding(horizontal = Dimens.windowPadding),
                     verticalArrangement = Dimens.verticalArrangement,
                     state = listState,
                 ) {

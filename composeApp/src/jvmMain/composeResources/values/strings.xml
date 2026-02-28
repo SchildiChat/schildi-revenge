@@ -214,6 +214,7 @@
     <string name="profile_update_name_and_avatar">%1$s changed their avatar and name (was %2$s)</string>
     <string name="profile_update_set_name_and_avatar">%1$s changed their avatar and set their name</string>
 
+    <string name="pref_category_scale">Render scale</string>
     <string name="pref_category_dimensions">Dimensions</string>
     <string name="pref_category_keyboard_control">Keyboard control</string>
     <string name="pref_category_developer_options">Developer options</string>

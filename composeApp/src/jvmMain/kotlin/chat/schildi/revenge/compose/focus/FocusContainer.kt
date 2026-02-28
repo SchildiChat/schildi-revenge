@@ -25,16 +25,40 @@ fun FocusContainer(
     focusId: UUID = rememberFocusId(),
     content: @Composable BoxScope.() -> Unit,
 ) {
+    FlatFocusContainer(
+        providedValues = providedValues,
+        modifier = modifier,
+        role = role,
+        focusId = focusId,
+    ) { modifier ->
+        Box(
+            modifier = modifier,
+            contentAlignment = contentAlignment,
+            content = content,
+        )
+    }
+}
+
+/**
+ * A container for items in the same hierarchy depth, similar to [focusGroup]
+ * but with a more explicit depth for keyboard navigation.
+ * This alternative variant of [FocusContainer] assumes you will use the provided
+ * [Modifier] yourself rather than relying on an implicit [Box].
+ */
+@Composable
+fun FlatFocusContainer(
+    vararg providedValues: ProvidedValue<*>,
+    modifier: Modifier = Modifier,
+    role: FocusRole = FocusRole.CONTAINER,
+    focusId: UUID = rememberFocusId(),
+    content: @Composable (Modifier) -> Unit,
+) {
     val parent = LocalFocusParent.current
     val me = remember(focusId, parent) { FocusParent(focusId, parent) }
     CompositionLocalProvider(
         LocalFocusParent provides me,
         *providedValues
     ) {
-        Box(
-            modifier = modifier.focusGroup().keyFocusableContainer(me.uuid, parent, role),
-            contentAlignment = contentAlignment,
-            content = content,
-        )
+        content(modifier.focusGroup().keyFocusableContainer(me.uuid, parent, role))
     }
 }

@@ -9,7 +9,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -21,7 +20,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -52,7 +50,8 @@ import kotlinx.coroutines.flow.debounce
 @Composable
 fun InboxScreen(
     destination: Destination.Inbox,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    contentModifier: Modifier = Modifier,
 ) {
     val viewModel: InboxViewModel = viewModel(
         key = viewModelKey(destination),
@@ -128,7 +127,7 @@ fun InboxScreen(
                         viewModel.onVisibleRoomsChanged(visibleRooms)
                     }
             }
-            LazyColumn(Modifier.widthIn(max = ScPrefs.MAX_WIDTH_INBOX.value().dp).fillMaxSize(), state = listState) {
+            LazyColumn(contentModifier.fillMaxSize(), state = listState) {
                 if (!accountsSorted.isNullOrEmpty()) {
                     item {
                         AccountSelectorRow(

@@ -10,6 +10,7 @@ import shire.composeapp.generated.resources.pref_auto_hide_composer_title
 import shire.composeapp.generated.resources.pref_category_developer_options
 import shire.composeapp.generated.resources.pref_category_dimensions
 import shire.composeapp.generated.resources.pref_category_keyboard_control
+import shire.composeapp.generated.resources.pref_category_scale
 import shire.composeapp.generated.resources.pref_category_theme_dark
 import shire.composeapp.generated.resources.pref_category_theme_light
 import shire.composeapp.generated.resources.pref_close_to_tray_summary
@@ -102,9 +103,11 @@ import shire.composeapp.generated.resources.sc_url_previews_title
 
 object ScPrefs {
 
-    // Measures
+    // Render scale
     val RENDER_SCALE = ScFloatPref("RENDER_SCALE", 1f, Res.string.pref_render_scale, minValue = 0.5f, maxValue = 5f, allowLiveSliderChange = false)
     val FONT_SCALE = ScFloatPref("FONT_SCALE", 1f, Res.string.pref_font_scale, minValue = 0.5f, maxValue = 5f, allowLiveSliderChange = false)
+
+    // Layout limits
     val MAX_WIDTH_INBOX = ScIntPref("MAX_WIDTH_INBOX", 1024, Res.string.pref_max_width_inbox_title, minValue = 400, maxValue = 4000)
     val MAX_WIDTH_CONVERSATION = ScIntPref("MAX_WIDTH_CONVERSATION", 1600, Res.string.pref_max_width_conversation_title, minValue = 400, maxValue = 4000)
     val MAX_WIDTH_ROOM_DETAILS = ScIntPref("MAX_WIDTH_ROOM_DETAILS", 600, Res.string.pref_max_width_room_details_title, minValue = 200, maxValue = 4000)
@@ -314,9 +317,11 @@ object ScPrefs {
                 DUAL_MENTION_UNREAD_COUNTS,
             )),
         )),
-        ScPrefScreen(Res.string.pref_category_dimensions, null, listOf(
+        ScPrefScreen(Res.string.pref_category_scale, null, listOf(
             RENDER_SCALE,
             FONT_SCALE,
+        )),
+        ScPrefScreen(Res.string.pref_category_dimensions, null, listOf(
             MAX_WIDTH_INBOX,
             MAX_WIDTH_CONVERSATION,
             MAX_WIDTH_ROOM_DETAILS,

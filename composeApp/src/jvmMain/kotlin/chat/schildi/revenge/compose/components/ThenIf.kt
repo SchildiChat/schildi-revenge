@@ -10,6 +10,14 @@ fun Modifier.thenIf(condition: Boolean, block: Modifier.() -> Modifier) = let {
     }
 }
 
+fun Modifier.thenIf(condition: Boolean, other: Modifier) = let {
+    if (condition) {
+        it.then(other)
+    } else {
+        it
+    }
+}
+
 fun <T>Modifier.ifNotNull(item: T?, additionalCondition: Boolean = true, block: Modifier.(T) -> Modifier) = let {
     if (item == null || !additionalCondition) {
         it

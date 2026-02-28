@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -71,7 +70,8 @@ import shire.composeapp.generated.resources.title_login_account
 @Composable
 fun AccountManagementScreen(
     destination: Destination.AccountManagement,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    contentModifier: Modifier = Modifier,
 ) {
     val viewModel: AccountManagementViewModel = viewModel(
         key = viewModelKey(destination),
@@ -92,8 +92,7 @@ fun AccountManagementScreen(
             }
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 LazyColumn(
-                    Modifier.widthIn(max = ScPrefs.MAX_WIDTH_SETTINGS.value().dp)
-                        .padding(vertical = Dimens.windowPadding),
+                    contentModifier.padding(vertical = Dimens.windowPadding),
                     verticalArrangement = Dimens.verticalArrangement,
                 ) {
                     if (accounts.isNotEmpty()) {

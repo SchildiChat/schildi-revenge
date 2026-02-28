@@ -7,10 +7,12 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -37,46 +39,53 @@ fun WindowContent(destinationHolder: DestinationStateHolder) {
         } else {
             ScPrefs.BACKGROUND_ALPHA_LIGHT.value()
         }
-        Column(
-            modifier = Modifier
-                .background(MaterialTheme.colorScheme.surface.copy(alpha = backgroundAlpha))
-                .safeContentPadding()
-                .fillMaxSize()
-                .windowFocusContainer(),
-        ) {
-            DestinationContent(destinationHolder, Modifier.fillMaxWidth().weight(1f))
-            val keyboardActionHandler = LocalKeyboardActionHandler.current
-
-            // App messages
-            val publishedMessages = keyboardActionHandler.messageBoard.collectAsState().value
-            rememberInvalidating(
-                500L.takeIf { publishedMessages.any { it.dismissedTimestamp == null && it.canAutoDismiss } },
-                publishedMessages
+        Box {
+            Column(
+                modifier = Modifier
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = backgroundAlpha))
+                    .safeContentPadding()
+                    .fillMaxSize()
+                    .windowFocusContainer(),
             ) {
-                keyboardActionHandler.cleanUpMessageBoard()
+                Box(Modifier.fillMaxWidth().weight(1f)) {
+                    DestinationContent(destinationHolder, Modifier.fillMaxSize())
+                }
+                val keyboardActionHandler = LocalKeyboardActionHandler.current
+
+                // App messages
+                val publishedMessages = keyboardActionHandler.messageBoard.collectAsState().value
+                rememberInvalidating(
+                    500L.takeIf { publishedMessages.any { it.dismissedTimestamp == null && it.canAutoDismiss } },
+                    publishedMessages
+                ) {
+                    keyboardActionHandler.cleanUpMessageBoard()
+                }
+                AppMessages(publishedMessages)
+
+                // Search bar
+                AnimatedVisibility(
+                    visible = ScPrefs.MINIMAL_MODE.value() && keyboardActionHandler.needsKeyboardSearchBar.collectAsState().value,
+                    enter = slideInVertically(tween(Anim.DURATION)) { it } +
+                            expandVertically(tween(Anim.DURATION), expandFrom = Alignment.Bottom),
+                    exit = slideOutVertically(tween(Anim.DURATION)) { it } +
+                            shrinkVertically(tween(Anim.DURATION), shrinkTowards = Alignment.Bottom),
+                ) {
+                    SearchBar()
+                }
+
+                // Command bar
+                AnimatedVisibility(
+                    visible = keyboardActionHandler.mode.collectAsState().value is KeyboardActionMode.Command,
+                    enter = slideInVertically(tween(Anim.DURATION)) { it } +
+                            expandVertically(tween(Anim.DURATION), expandFrom = Alignment.Bottom),
+                    exit = slideOutVertically(tween(Anim.DURATION)) { it } +
+                            shrinkVertically(tween(Anim.DURATION), shrinkTowards = Alignment.Bottom),
+                ) {
+                    CommandBar()
+                }
             }
-            AppMessages(publishedMessages)
-
-            // Search bar
-            AnimatedVisibility(
-                visible = ScPrefs.MINIMAL_MODE.value() && keyboardActionHandler.needsKeyboardSearchBar.collectAsState().value,
-                enter = slideInVertically(tween(Anim.DURATION)) { it } +
-                        expandVertically(tween(Anim.DURATION), expandFrom = Alignment.Bottom),
-                exit = slideOutVertically(tween(Anim.DURATION)) { it } +
-                        shrinkVertically(tween(Anim.DURATION), shrinkTowards = Alignment.Bottom),
-            ) {
-                SearchBar()
-            }
-
-            // Command bar
-            AnimatedVisibility(
-                visible = keyboardActionHandler.mode.collectAsState().value is KeyboardActionMode.Command,
-                enter = slideInVertically(tween(Anim.DURATION)) { it } +
-                        expandVertically(tween(Anim.DURATION), expandFrom = Alignment.Bottom),
-                exit = slideOutVertically(tween(Anim.DURATION)) { it } +
-                        shrinkVertically(tween(Anim.DURATION), shrinkTowards = Alignment.Bottom),
-            ) {
-                CommandBar()
+            if (ScPrefs.FRAME_DROP_SPINNER.value()) {
+                CircularProgressIndicator()
             }
         }
     }

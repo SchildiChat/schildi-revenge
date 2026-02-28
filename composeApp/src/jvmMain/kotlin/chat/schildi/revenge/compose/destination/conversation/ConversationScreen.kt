@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -34,14 +33,10 @@ import androidx.compose.ui.draganddrop.DragData
 import androidx.compose.ui.draganddrop.dragData
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import chat.schildi.preferences.ScPrefs
-import chat.schildi.preferences.value
 import chat.schildi.revenge.Anim
 import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.Destination
-import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.LocalMatrixBodyDrawStyle
 import chat.schildi.revenge.LocalMatrixBodyFormatter
 import chat.schildi.revenge.actions.FocusRole
@@ -71,8 +66,12 @@ import kotlinx.collections.immutable.persistentListOf
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
-fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier = Modifier) {
-    BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
+fun ConversationScreen(
+    destination: Destination.Conversation,
+    modifier: Modifier = Modifier,
+    contentModifier: Modifier = Modifier,
+) {
+    BoxWithConstraints(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         val contentHeight = maxHeight
         val density = LocalDensity.current
 
@@ -87,7 +86,7 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
         val timestampSettings = viewModel.timestampSettings.collectAsState().value
 
         if (timelineItems == null) {
-            SplashScreenContent()
+            SplashScreenContent(contentModifier)
             return@BoxWithConstraints
         }
 
@@ -194,6 +193,7 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
             LocalMatrixBodyFormatter provides matrixBodyFormatter(),
             LocalMatrixBodyDrawStyle provides matrixBodyDrawStyle(),
             role = FocusRole.DESTINATION_ROOT_CONTAINER,
+            modifier = Modifier.fillMaxSize(),
         ) {
             val roomMembersById = viewModel.roomMembersById.collectAsState()
             val highlightedJumpTargetEventId = (targetEvent as? EventJumpTarget.Event)?.let {
@@ -204,9 +204,8 @@ fun ConversationScreen(destination: Destination.Conversation, modifier: Modifier
                 }
             }
             val highlightedActionEventId = viewModel.highlightedActionEventId.collectAsState().value
-            Column(Modifier
+            Column(contentModifier
                 .fillMaxSize()
-                .widthIn(max = ScPrefs.MAX_WIDTH_CONVERSATION.value().dp)
                 .alpha(dragAlpha.value)
                 .dragAndDropTarget(
                     shouldStartDragAndDrop = { event ->
