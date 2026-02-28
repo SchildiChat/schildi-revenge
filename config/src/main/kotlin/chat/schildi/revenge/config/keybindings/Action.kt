@@ -84,12 +84,19 @@ private val OptionalSettingValue = ActionArgumentOptional(ActionArgumentPrimitiv
 private val OptionalReason = ActionArgumentOptional(ActionArgumentPrimitive.Reason)
 private val StateKey = ActionArgumentOptional(ActionArgumentPrimitive.NonEmptyStateKey)
 
-private val navigationArgs = listOf(
-    ActionArgumentPrimitive.NavigatableDestinationName,
+private val navigationDestinationArgs = listOf(
     ActionArgumentOptional(NavigationDestinationSessionId),
     ActionArgumentOptional(NavigationDestinationRoomId),
     ActionArgumentOptional(NavigationDestinationEventId),
 )
+
+private val navigationArgs = listOf(
+    ActionArgumentPrimitive.NavigatableDestinationName,
+) + navigationDestinationArgs
+
+private val optionalNavigationArgs = listOf(
+    ActionArgumentOptional(ActionArgumentPrimitive.NavigatableDestinationName),
+) + navigationDestinationArgs
 
 fun Action.handlesCommand(command: String): Boolean {
     val lowerCommand = command.lowercase()
@@ -131,10 +138,8 @@ sealed interface Action {
     ) : Action {
         NavigateCurrent(aliases = listOf("navigate", "nav"), args = navigationArgs),
         NavigateInNewWindow(aliases = listOf("open", "window"), args = navigationArgs),
-        NavigateSplitHorizontal(aliases = listOf("split", "vsplit"), args = navigationArgs),
-        NavigateSplitVertical(aliases = listOf("hsplit"), args = navigationArgs),
-        SplitCurrentHorizontal(aliases = listOf("split", "vsplit")),
-        SplitCurrentVertical(aliases = listOf("hsplit")),
+        SplitHorizontal(aliases = listOf("split", "vsplit"), args = optionalNavigationArgs),
+        SplitVertical(aliases = listOf("hsplit"), args = optionalNavigationArgs),
         CloseWindow(aliases = listOf("close")),
         CloseWindowUnlessLast,
     }

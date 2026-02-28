@@ -1008,50 +1008,40 @@ class KeyboardActionHandler(
                     UiState.openWindow(destination)
                     ActionResult.Success()
                 }
-                Action.Navigation.NavigateSplitHorizontal -> {
-                    val extraArgs = args.subList(1, args.size)
-                    val destination = args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
+                Action.Navigation.SplitHorizontal -> {
+                    val destination = if (args.isEmpty()) {
+                        null
+                    } else {
+                        val extraArgs = args.subList(1, args.size)
+                        args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
+                    }
                     navigateCurrentDestination(
                         destinationStateHolder = context.focused()?.destinationStateHolder,
                         invalidateHolderId = true,
                     ) { destinationState ->
                         Destination.SplitHorizontal(
                             DestinationStateHolder(destinationState),
-                            DestinationStateHolder.forInitialDestination(destination),
+                            DestinationStateHolder.forInitialDestination(destination ?: destinationState.destination),
                         )
                     }.orActionInapplicable()
                 }
-                Action.Navigation.NavigateSplitVertical -> {
-                    val extraArgs = args.subList(1, args.size)
-                    val destination = args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
+                Action.Navigation.SplitVertical -> {
+                    val destination = if (args.isEmpty()) {
+                        null
+                    } else {
+                        val extraArgs = args.subList(1, args.size)
+                        args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
+                    }
                     navigateCurrentDestination(
                         destinationStateHolder = context.focused()?.destinationStateHolder,
                         invalidateHolderId = true,
                     ) { destinationState ->
                         Destination.SplitVertical(
                             DestinationStateHolder(destinationState),
-                            DestinationStateHolder.forInitialDestination(destination),
+                            DestinationStateHolder.forInitialDestination(destination ?: destinationState.destination),
                         )
                     }.orActionInapplicable()
                 }
-                Action.Navigation.SplitCurrentHorizontal -> navigateCurrentDestination(
-                    destinationStateHolder = context.focused()?.destinationStateHolder,
-                    invalidateHolderId = true,
-                ) { destinationState ->
-                    Destination.SplitHorizontal(
-                        DestinationStateHolder(destinationState),
-                        DestinationStateHolder.forInitialDestination(destinationState.destination),
-                    )
-                }.orActionInapplicable()
-                Action.Navigation.SplitCurrentVertical -> navigateCurrentDestination(
-                    destinationStateHolder = context.focused()?.destinationStateHolder,
-                    invalidateHolderId = true,
-                ) { destinationState ->
-                    Destination.SplitVertical(
-                        DestinationStateHolder(destinationState),
-                        DestinationStateHolder.forInitialDestination(destinationState.destination),
-                    )
-                }.orActionInapplicable()
                 Action.Navigation.CloseWindow -> {
                     UiState.closeWindow(windowId, applicationScope)
                     ActionResult.Success()

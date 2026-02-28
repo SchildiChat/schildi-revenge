@@ -70,7 +70,7 @@ conversation = [
     { key = "Enter", ctrl = true, action = "ComposerSend" },
     { key = "Enter", shift = true, action = "ComposerInsertAtCursor", args = ["\n"] },
     { key = "Escape", action = "HideComposerIfEmpty" },
-    { key = "O", ctrl = true, action = "ClearComposer" },
+    { key = "Escape", shift = true, action = "ClearComposer" },
     { key = "Tab", action = "ComposerSuggestionFocusNext" },
     { key = "Tab", shift = true, action = "ComposerSuggestionFocusPrevious" },
 ]
@@ -102,6 +102,7 @@ event = [
 user = [
     { key = "Y", alt = true, action = "CopyMxId" },
     { key = "Y", action = "CopyMxId", destinations = ["RoomMembers"] },
+    { key = "C", ctrl = true, action = "CopyMxId", destinations = ["RoomMembers"] },
 ]
 navigation = [
     { key = "I", shift = true, action = "NavigateCurrent", args = ["inbox"] },
@@ -110,6 +111,8 @@ navigation = [
     { key = "A", shift = true, ctrl = true, action = "NavigateInNewWindow", args = ["accounts"] },
     { key = "S", shift = true, action = "NavigateCurrent", args = ["settings"] },
     { key = "S", shift = true, ctrl = true, action = "NavigateInNewWindow", args = ["settings"] },
+    { key = "L", action = "SplitHorizontal", args = ["members"], destinations = ["Conversation"] },
+    { key = "L", ctrl = true, action = "SplitHorizontal", args = ["reactions"], destinations = ["Conversation"] },
     { key = "X", action = "CloseWindowUnlessLast" },
     { key = "X", action = "NavigateCurrent", args = ["inbox"] },
     { key = "F", alt = true, action = "CloseWindowUnlessLast", destinations = ["Conversation"] },
@@ -130,7 +133,7 @@ focus = [
     { key = "H", shift = true, action = "FocusTop" },
     { key = "M", shift = true, action = "FocusCenter" },
     { key = "L", shift = true, action = "FocusBottom" },
-    { key = "Escape", shift = true, action = "FocusParent" },
+    { key = "Escape", ctrl = true, action = "FocusParent" },
     { key = "Enter", action = "FocusEnterContainer" },
     { key = "MoveHome", action = "FocusTop" },
     { key = "MoveEnd", action = "FocusBottom" },
@@ -141,4 +144,5 @@ list = [
 ]
 split = [
     { key = "Q", ctrl = true, action = "Unsplit" },
+    { key = "X", action = "Unsplit" },
 ]
