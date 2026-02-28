@@ -10,6 +10,7 @@ import shire.composeapp.generated.resources.pref_auto_hide_composer_title
 import shire.composeapp.generated.resources.pref_category_developer_options
 import shire.composeapp.generated.resources.pref_category_dimensions
 import shire.composeapp.generated.resources.pref_category_keyboard_control
+import shire.composeapp.generated.resources.pref_category_layout_weights
 import shire.composeapp.generated.resources.pref_category_scale
 import shire.composeapp.generated.resources.pref_category_theme_dark
 import shire.composeapp.generated.resources.pref_category_theme_light
@@ -32,6 +33,10 @@ import shire.composeapp.generated.resources.pref_initial_window_height_summary
 import shire.composeapp.generated.resources.pref_initial_window_height_title
 import shire.composeapp.generated.resources.pref_initial_window_width_summary
 import shire.composeapp.generated.resources.pref_initial_window_width_title
+import shire.composeapp.generated.resources.pref_layout_weight_conversation_title
+import shire.composeapp.generated.resources.pref_layout_weight_inbox_title
+import shire.composeapp.generated.resources.pref_layout_weight_room_details_title
+import shire.composeapp.generated.resources.pref_layout_weight_settings_title
 import shire.composeapp.generated.resources.pref_max_width_conversation_title
 import shire.composeapp.generated.resources.pref_max_width_inbox_title
 import shire.composeapp.generated.resources.pref_max_width_room_details_title
@@ -112,6 +117,11 @@ object ScPrefs {
     val MAX_WIDTH_CONVERSATION = ScIntPref("MAX_WIDTH_CONVERSATION", 1600, Res.string.pref_max_width_conversation_title, minValue = 400, maxValue = 4000)
     val MAX_WIDTH_ROOM_DETAILS = ScIntPref("MAX_WIDTH_ROOM_DETAILS", 600, Res.string.pref_max_width_room_details_title, minValue = 200, maxValue = 4000)
     val MAX_WIDTH_SETTINGS = ScIntPref("MAX_WIDTH_SETTINGS", 1024, Res.string.pref_max_width_settings_title, minValue = 400, maxValue = 4000, allowLiveSliderChange = false)
+    // Layout weights
+    val LAYOUT_WEIGHT_INBOX = ScIntPref("LAYOUT_WEIGHT_INBOX", 80, Res.string.pref_layout_weight_inbox_title, minValue = 20, maxValue = 1000)
+    val LAYOUT_WEIGHT_CONVERSATION = ScIntPref("LAYOUT_WEIGHT_CONVERSATION", 100, Res.string.pref_layout_weight_conversation_title, minValue = 20, maxValue = 1000)
+    val LAYOUT_WEIGHT_ROOM_DETAILS = ScIntPref("LAYOUT_WEIGHT_ROOM_DETAILS", 40, Res.string.pref_layout_weight_room_details_title, minValue = 20, maxValue = 1000)
+    val LAYOUT_WEIGHT_SETTINGS = ScIntPref("LAYOUT_WEIGHT_SETTINGS", 100, Res.string.pref_layout_weight_settings_title, minValue = 20, maxValue = 1000, allowLiveSliderChange = false)
 
     // Tray icon
     val CLOSE_TO_TRAY = ScBoolPref("CLOSE_TO_TRAY", false, Res.string.pref_close_to_tray_title, Res.string.pref_close_to_tray_summary)
@@ -326,6 +336,12 @@ object ScPrefs {
             MAX_WIDTH_CONVERSATION,
             MAX_WIDTH_ROOM_DETAILS,
             MAX_WIDTH_SETTINGS,
+        )),
+        ScPrefScreen(Res.string.pref_category_layout_weights, null, listOf(
+            LAYOUT_WEIGHT_INBOX,
+            LAYOUT_WEIGHT_CONVERSATION,
+            LAYOUT_WEIGHT_ROOM_DETAILS,
+            LAYOUT_WEIGHT_SETTINGS,
         )),
         ScPrefScreen(Res.string.sc_pref_category_spaces, null, listOf(
             SPACE_UNREAD_COUNTS,

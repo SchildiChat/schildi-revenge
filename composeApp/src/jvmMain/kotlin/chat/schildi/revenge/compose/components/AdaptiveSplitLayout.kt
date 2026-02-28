@@ -21,27 +21,34 @@ import chat.schildi.preferences.value
 private data class AdaptiveSplitParentData(
     val maxWidth: Int?,
     val maxHeight: Int?,
+    val weight: Int,
 )
 
 private data class AdaptiveSplitDataModifier(
     private val maxWidth: Int?,
     private val maxHeight: Int?,
+    private val weight: Int,
 ) : ParentDataModifier {
-    override fun Density.modifyParentData(parentData: Any?): Any = AdaptiveSplitParentData(maxWidth, maxHeight)
+    override fun Density.modifyParentData(parentData: Any?): Any = AdaptiveSplitParentData(maxWidth, maxHeight, weight)
 }
+
+const val WEIGHT_DEFAULT = 100
 
 data class AdaptiveSplitLayoutModifierPair(
     val outer: Modifier,
     val inner: Modifier,
+    val weight: Int,
 )
 
 @Composable
 fun prefWidthModifiers(
     maxWidth: ScPref<Int>,
+    weight: Int = WEIGHT_DEFAULT,
 ): AdaptiveSplitLayoutModifierPair {
     val prefValue = maxWidth.value()
     return adaptiveLimitedSizeModifiers(
         maxWidth = prefValue.dp,
+        weight = weight,
     )
 }
 
@@ -51,6 +58,7 @@ fun adaptiveLimitedSizeModifiers(
     minHeight: Dp = Dp.Unspecified,
     maxWidth: Dp = Dp.Unspecified,
     maxHeight: Dp = Dp.Unspecified,
+    weight: Int = WEIGHT_DEFAULT,
 ): AdaptiveSplitLayoutModifierPair {
     val density = LocalDensity.current
     return AdaptiveSplitLayoutModifierPair(
@@ -58,6 +66,7 @@ fun adaptiveLimitedSizeModifiers(
             density = density,
             maxWidth = maxWidth,
             maxHeight = maxHeight,
+            weight = weight,
         ),
         Modifier.sizeIn(
             minWidth = minWidth,
@@ -65,6 +74,7 @@ fun adaptiveLimitedSizeModifiers(
             maxWidth = maxWidth,
             maxHeight = maxHeight,
         ),
+        weight = weight,
     )
 }
 
@@ -73,11 +83,13 @@ private fun Modifier.reportAdaptiveLimitedSizeToParent(
     density: Density,
     maxWidth: Dp = Dp.Unspecified,
     maxHeight: Dp = Dp.Unspecified,
+    weight: Int = WEIGHT_DEFAULT,
 ): Modifier {
-    return thenIf(maxWidth.isSpecified || maxHeight.isSpecified) {
+    return thenIf(maxWidth.isSpecified || maxHeight.isSpecified || weight != WEIGHT_DEFAULT) {
         AdaptiveSplitDataModifier(
             maxWidth = if (maxWidth.isSpecified) density.run { maxWidth.roundToPx() } else null,
             maxHeight = if (maxHeight.isSpecified) density.run { maxHeight.roundToPx() } else null,
+            weight = weight,
         )
     }
 }
@@ -87,6 +99,8 @@ private data class MeasureInfo(
     val measurable: Measurable,
     val data: AdaptiveSplitParentData?,
 )
+
+private fun MeasureInfo.weight(): Int = (data?.weight ?: WEIGHT_DEFAULT).coerceAtLeast(1)
 
 /**
  * A Row-like layout that spaces children equally in the available width.
@@ -152,22 +166,28 @@ private fun AdaptiveSplitLayout(
         if (measurables.isEmpty()) {
             return@Layout layout(constraints.maxWidth, constraints.maxHeight) {}
         }
-        val items = measurables.mapIndexed { index, measurable ->
-            MeasureInfo(
-                index,
-                measurable,
-                measurable.parentData as? AdaptiveSplitParentData,
-            )
-        }
+        val items =
+            measurables.mapIndexed { index, measurable ->
+                MeasureInfo(
+                    index,
+                    measurable,
+                    measurable.parentData as? AdaptiveSplitParentData,
+                )
+            }
 
-        var equallySplitChunk = constraints.maxConstraint() / items.size
+        val maxConstraint = constraints.maxConstraint()
         var fixedRenderedSum = 0
         var itemsRenderedDynamically = items
         while (true) {
-            val canProvideMoreSpace = itemsRenderedDynamically.filter { info ->
-                val dimension = info.data?.maxDimension()
-                dimension != null && dimension < equallySplitChunk
-            }
+            val dynamicWeightSum = itemsRenderedDynamically.sumOf { it.weight() }
+            val dynamicAvailableSpace = maxConstraint - fixedRenderedSum
+            val canProvideMoreSpace =
+                itemsRenderedDynamically.filter { info ->
+                    val dimension = info.data?.maxDimension()
+                    val weightedSplitChunk =
+                        ((dynamicAvailableSpace.toLong() * info.weight()) / dynamicWeightSum).toInt()
+                    dimension != null && dimension < weightedSplitChunk
+                }
             if (canProvideMoreSpace.isEmpty()) {
                 break
             } else {
@@ -176,39 +196,38 @@ private fun AdaptiveSplitLayout(
                 if (itemsRenderedDynamically.isEmpty()) {
                     break
                 }
-                equallySplitChunk = (constraints.maxConstraint() - fixedRenderedSum) / itemsRenderedDynamically.size
             }
         }
 
-        val itemIndicesToRenderDynamically = itemsRenderedDynamically.map { it.index }
+        val itemIndicesToRenderDynamically = itemsRenderedDynamically.map { it.index }.toSet()
 
-        val fixedSpace = items.sumOf { item ->
-            item.data?.maxDimension()?.takeIf { item.index !in itemIndicesToRenderDynamically } ?: 0
-        }
-        val dynamicSpace = constraints.maxConstraint() - fixedSpace
-        val dynamicSpacePerItem = if (itemIndicesToRenderDynamically.isEmpty()) {
-            0
-        } else {
-            dynamicSpace / itemsRenderedDynamically.size
-        }
-        val measuredItems = items.map { item ->
-            val maxDimension = if (item.index in itemIndicesToRenderDynamically) {
-                dynamicSpacePerItem
-            } else {
-                item.data?.maxDimension() ?: 0
+        val fixedSpace =
+            items.sumOf { item ->
+                item.data?.maxDimension()?.takeIf { item.index !in itemIndicesToRenderDynamically } ?: 0
             }
-            val constraints = constraints.adjustConstraints(maxDimension.coerceAtLeast(1))
-            item.measurable.measure(constraints)
-        }
+        val dynamicSpace = maxConstraint - fixedSpace
+        val dynamicWeightSum = itemsRenderedDynamically.sumOf { it.weight() }
+        val measuredItems =
+            items.map { item ->
+                val maxDimension =
+                    if (item.index in itemIndicesToRenderDynamically) {
+                        ((dynamicSpace.toLong() * item.weight()) / dynamicWeightSum).toInt()
+                    } else {
+                        item.data?.maxDimension() ?: 0
+                    }
+                val constraints = constraints.adjustConstraints(maxDimension.coerceAtLeast(1))
+                item.measurable.measure(constraints)
+            }
 
         layout(constraints.maxWidth, constraints.maxHeight) {
-            val perItemHalfPadding = if (itemIndicesToRenderDynamically.isEmpty()) {
-                // Everything renders at its max, need to fill some gaps
-                dynamicSpace / measuredItems.size / 2
-            } else {
-                // We can fill all bounds
-                0
-            }
+            val perItemHalfPadding =
+                if (itemIndicesToRenderDynamically.isEmpty()) {
+                    // Everything renders at its max, need to fill some gaps
+                    dynamicSpace / measuredItems.size / 2
+                } else {
+                    // We can fill all bounds
+                    0
+                }
             var offset = 0
             measuredItems.forEach { item ->
                 item.placeRelative(placeOffset(offset + perItemHalfPadding))

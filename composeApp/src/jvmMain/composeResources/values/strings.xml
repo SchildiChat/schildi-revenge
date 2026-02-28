@@ -216,6 +216,7 @@
 
     <string name="pref_category_scale">Render scale</string>
     <string name="pref_category_dimensions">Dimensions</string>
+    <string name="pref_category_layout_weights">Splitscreen layout weights</string>
     <string name="pref_category_keyboard_control">Keyboard control</string>
     <string name="pref_category_developer_options">Developer options</string>
     <string name="pref_render_scale">Render scale</string>
@@ -224,6 +225,10 @@
     <string name="pref_max_width_conversation_title">Conversation max width</string>
     <string name="pref_max_width_settings_title">Settings max width</string>
     <string name="pref_max_width_room_details_title">Room info max width</string>
+    <string name="pref_layout_weight_inbox_title">Inbox weight</string>
+    <string name="pref_layout_weight_conversation_title">Conversation weight</string>
+    <string name="pref_layout_weight_settings_title">Settings weight</string>
+    <string name="pref_layout_weight_room_details_title">Room info weight</string>
     <string name="pref_always_show_keyboard_focus">Always highlight keyboard focus</string>
     <string name="pref_focus_follows_mouse_title">Focus follows mouse</string>
     <string name="pref_focus_follows_mouse_summary">Update keyboard focus immediately when moving the mouse</string>

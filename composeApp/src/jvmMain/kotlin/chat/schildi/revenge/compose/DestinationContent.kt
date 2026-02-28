@@ -6,27 +6,32 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import chat.schildi.preferences.ScPrefs
+import chat.schildi.preferences.value
+import chat.schildi.revenge.Destination
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.LocalDestinationState
-import chat.schildi.revenge.compose.components.ComposeSessionScope
-import chat.schildi.revenge.compose.destination.AccountManagementScreen
-import chat.schildi.revenge.compose.destination.conversation.ConversationScreen
-import chat.schildi.revenge.compose.destination.inbox.InboxScreen
-import chat.schildi.revenge.compose.destination.SplashScreen
-import chat.schildi.revenge.compose.destination.split.SplitHorizontal
-import chat.schildi.revenge.compose.destination.split.SplitVertical
-import chat.schildi.revenge.Destination
 import chat.schildi.revenge.compose.components.AdaptiveSplitLayoutModifierPair
+import chat.schildi.revenge.compose.components.ComposeSessionScope
+import chat.schildi.revenge.compose.components.WEIGHT_DEFAULT
 import chat.schildi.revenge.compose.components.prefWidthModifiers
 import chat.schildi.revenge.compose.destination.AboutScreen
+import chat.schildi.revenge.compose.destination.AccountManagementScreen
+import chat.schildi.revenge.compose.destination.SplashScreen
+import chat.schildi.revenge.compose.destination.conversation.ConversationScreen
 import chat.schildi.revenge.compose.destination.conversation.userlist.MessageReactionsScreen
 import chat.schildi.revenge.compose.destination.conversation.userlist.RoomMembersScreen
+import chat.schildi.revenge.compose.destination.inbox.InboxScreen
 import chat.schildi.revenge.compose.destination.settings.SettingsScreen
+import chat.schildi.revenge.compose.destination.split.SplitHorizontal
+import chat.schildi.revenge.compose.destination.split.SplitVertical
 
 val LocalDestinationDepth = compositionLocalOf { 0 }
 
 @Composable
-fun DestinationContent(destinationHolder: DestinationStateHolder, modifier: Modifier = Modifier) {
+fun DestinationContent(
+    destinationHolder: DestinationStateHolder,
+    modifier: Modifier = Modifier,
+) {
     CompositionLocalProvider(
         LocalDestinationState provides destinationHolder,
         LocalDestinationDepth provides LocalDestinationDepth.current + 1,
@@ -52,22 +57,22 @@ fun DestinationContent(destinationHolder: DestinationStateHolder, modifier: Modi
 
 @Composable
 private fun Modifier.forDestination(destination: Destination): AdaptiveSplitLayoutModifierPair {
-    val pref = when (destination) {
-        Destination.Inbox -> ScPrefs.MAX_WIDTH_INBOX
-        is Destination.Conversation -> ScPrefs.MAX_WIDTH_CONVERSATION
+    val (pref, weight) = when (destination) {
+        Destination.Inbox -> Pair(ScPrefs.MAX_WIDTH_INBOX, ScPrefs.LAYOUT_WEIGHT_INBOX.value())
+        is Destination.Conversation -> Pair(ScPrefs.MAX_WIDTH_CONVERSATION, ScPrefs.LAYOUT_WEIGHT_CONVERSATION.value())
         is Destination.MessageReactions,
-        is Destination.RoomMembers -> ScPrefs.MAX_WIDTH_ROOM_DETAILS
+        is Destination.RoomMembers -> Pair(ScPrefs.MAX_WIDTH_ROOM_DETAILS, ScPrefs.LAYOUT_WEIGHT_ROOM_DETAILS.value())
         Destination.Settings,
         Destination.AccountManagement,
-        Destination.About -> ScPrefs.MAX_WIDTH_SETTINGS
+        Destination.About -> Pair(ScPrefs.MAX_WIDTH_SETTINGS, ScPrefs.LAYOUT_WEIGHT_SETTINGS.value())
         is Destination.SplitHorizontal,
         is Destination.SplitVertical,
-        Destination.Splash -> null
+        Destination.Splash -> Pair(null, WEIGHT_DEFAULT)
     }
     return if (pref == null) {
-        AdaptiveSplitLayoutModifierPair(this, Modifier)
+        AdaptiveSplitLayoutModifierPair(this, Modifier, weight)
     } else {
-        val pair = prefWidthModifiers(pref)
+        val pair = prefWidthModifiers(pref, weight = weight)
         pair.copy(outer = this.then(pair.outer))
     }
 }
