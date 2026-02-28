@@ -7,5 +7,8 @@ cd "$mydir"
 
 rm -rf skeleton
 git clone https://github.com/SchildiChat/schildichat-android-next.git skeleton
+
+./persist_sdk_metadata.sh skeleton
+
 cd skeleton
 git filter-repo --paths-from-file ../../elex_imports.txt
