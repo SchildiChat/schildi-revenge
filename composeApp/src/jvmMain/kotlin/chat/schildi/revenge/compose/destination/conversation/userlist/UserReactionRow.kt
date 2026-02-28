@@ -27,7 +27,10 @@ fun UserReactionRow(
             SelectionContainer {
                 ReactionContent(
                     reaction = reactionItem.reaction,
-                    baseStyle = MaterialTheme.typography.headlineLarge,
+                    baseStyle = if (reactionItem.reaction.length <= 2)
+                        MaterialTheme.typography.headlineLarge
+                    else
+                        MaterialTheme.typography.bodyMedium,
                 )
             }
             Spacer(Modifier.width(Dimens.horizontalItemPadding))
