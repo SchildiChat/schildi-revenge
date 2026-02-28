@@ -1402,6 +1402,7 @@ class KeyboardActionHandler(
             target.takeIf {
                 it.isFullyVisible &&
                         it.role != FocusRole.CONTAINER &&
+                        it.role != FocusRole.NESTING_DESTINATION_ROOT_CONTAINER &&
                         it.role != FocusRole.DESTINATION_ROOT_CONTAINER &&
                         it.role != FocusRole.NESTED_AUX_ITEM &&
                         it.coordinates.contains(position)
