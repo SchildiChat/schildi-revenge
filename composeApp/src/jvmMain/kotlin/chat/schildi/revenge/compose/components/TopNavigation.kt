@@ -35,12 +35,15 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
+import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.compose.search.SearchBar
+import chat.schildi.revenge.compose.search.SearchProvider
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_close_window
 import shire.composeapp.generated.resources.action_open_inbox
 import shire.composeapp.generated.resources.hint_search
+import java.util.UUID
 
 @Composable
 fun TopNavigation(content: @Composable RowScope.() -> Unit) {
@@ -124,9 +127,16 @@ fun RowScope.TopNavigationTitle(title: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun RowScope.TopNavigationSearchOrTitle(title: String, modifier: Modifier = Modifier) {
+fun RowScope.TopNavigationSearchOrTitle(
+    title: String,
+    modifier: Modifier = Modifier,
+    searchProvider: SearchProvider = LocalSearchProvider.current ?: run {
+        throw IllegalStateException("Called TopNavigationSearchOrTitle without search provider")
+    },
+    searchFocusContainer: UUID? = null,
+) {
     val keyHandler = LocalKeyboardActionHandler.current
-    val searchBarVisible = keyHandler.needsKeyboardSearchBar.collectAsState().value
+    val searchBarVisible = keyHandler.needsKeyboardSearchBar(searchProvider).collectAsState().value
     AnimatedContent(
         searchBarVisible,
         modifier.weight(1f),
@@ -134,14 +144,19 @@ fun RowScope.TopNavigationSearchOrTitle(title: String, modifier: Modifier = Modi
     ) { searchBarVisible ->
         Row(verticalAlignment = Alignment.CenterVertically) {
             if (searchBarVisible) {
-                SearchBar(Modifier.weight(1f), showClearButton = true)
+                SearchBar(
+                    searchProvider,
+                    searchFocusContainer,
+                    Modifier.weight(1f),
+                    showClearButton = true,
+                )
             } else {
                 TopNavigationTitle(title, Modifier.weight(1f))
                 TopNavigationIcon(
                     Icons.Default.Search,
                     stringResource(Res.string.hint_search)
                 ) {
-                    keyHandler.onSearchEnter("")
+                    keyHandler.onSearchEnter(searchProvider, searchFocusContainer, "")
                 }
             }
         }

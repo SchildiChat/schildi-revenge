@@ -22,17 +22,20 @@ import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_clear_search
 import shire.composeapp.generated.resources.hint_search
+import java.util.UUID
 
 @Composable
 fun SearchBar(
+    searchProvider: SearchProvider?,
+    searchFocusContainer: UUID?,
     modifier: Modifier = Modifier,
-    showClearButton: Boolean = false
+    showClearButton: Boolean = false,
 ) {
     val handler = LocalKeyboardActionHandler.current
     TextField(
-        value = handler.searchQuery.collectAsState("").value,
+        value = handler.globalSearchQuery.collectAsState("").value,
         onValueChange = {
-            handler.onSearchType(it)
+            handler.onSearchType(it, searchProvider, searchFocusContainer)
         },
         label = {
             Text(
@@ -46,7 +49,7 @@ fun SearchBar(
             .keyFocusable(role = FocusRole.SEARCH_BAR),
         maxLines = 1,
         keyboardActions = KeyboardActions {
-            handler.onSearchEnter()
+            handler.onSearchEnter(searchProvider, searchFocusContainer)
         },
         colors = TextFieldDefaults.colors().copy(
             focusedContainerColor = MaterialTheme.colorScheme.surface,

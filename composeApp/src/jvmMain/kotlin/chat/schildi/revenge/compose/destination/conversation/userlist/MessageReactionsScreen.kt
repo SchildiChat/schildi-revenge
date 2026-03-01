@@ -17,7 +17,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.ListAction
-import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
 import chat.schildi.revenge.actions.LocalUserIdSuggestionsProvider
@@ -57,7 +56,6 @@ fun MessageReactionsScreen(
             EmptyListScreen(
                 title = Res.string.empty_screen_placeholder_message_reactions.toStringHolder(),
                 icon = rememberVectorPainter(Icons.Default.EmojiPeople),
-                currentSearchTerm = LocalKeyboardActionHandler.current.searchQuery.collectAsState("").value,
                 renderedSearchTerm = reactionsState?.searchTerm,
                 modifier = contentModifier,
             )

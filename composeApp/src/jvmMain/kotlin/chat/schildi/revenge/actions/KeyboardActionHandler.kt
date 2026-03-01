@@ -296,13 +296,18 @@ class KeyboardActionHandler(
         )
     }.stateIn(scope, SharingStarted.Eagerly, FocusState())
 
-    val needsKeyboardSearchBar = mode.map { m ->
-        m.asSearchMode() != null
-    }.stateIn(scope, SharingStarted.Eagerly, false)
-
-    val searchQuery = mode.map {
+    /** Use for UI components that aren't destination-specific, otherwise use [searchQueryForDestination]. */
+    val globalSearchQuery = mode.map {
         it.asSearchMode()?.query ?: ""
     }
+
+    fun searchQueryForDestination(searchProvider: SearchProvider) = mode.map {
+        it.asSearchMode()?.takeIf { it.searchProvider == searchProvider }?.query ?: ""
+    }
+
+    fun needsKeyboardSearchBar(searchProvider: SearchProvider?) = mode.map { m ->
+        m.asSearchMode()?.takeIf { searchProvider == it.searchProvider || searchProvider == null} != null
+    }.stateIn(scope, SharingStarted.Eagerly, false)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val commandSuggestionsState = mode.flatMapLatest { mode ->
@@ -1138,7 +1143,7 @@ class KeyboardActionHandler(
                             focusByRole(FocusRole.SEARCH_BAR)
                             ActionResult.Success()
                         } else {
-                            handleSearchUpdate("", navigating = false) {
+                            handleSearchUpdate("", null, null, navigating = false) {
                                 focusByRole(FocusRole.SEARCH_BAR)
                             }.orActionInapplicable()
                         }
@@ -1414,12 +1419,20 @@ class KeyboardActionHandler(
         }
     }
 
-    fun onSearchType(query: String) = handleSearchUpdate(query, navigating = false) {
+    fun onSearchType(
+        query: String,
+        searchProvider: SearchProvider?,
+        searchFocusContainer: UUID?,
+    ) = handleSearchUpdate(query, searchProvider, searchFocusContainer, navigating = false) {
         it.searchProvider.onSearchEnter(it.query)
     }
 
-    fun onSearchEnter(query: String? = null) {
-        handleSearchUpdate(query, navigating = true) {
+    fun onSearchEnter(
+        searchProvider: SearchProvider?,
+        searchFocusContainer: UUID?,
+        query: String? = null,
+    ) {
+        handleSearchUpdate(query, searchProvider, searchFocusContainer, navigating = true) {
             it.searchProvider.onSearchEnter(it.query)
             focusSearchResults(it.searchFocusContainer)
         }
@@ -1431,32 +1444,50 @@ class KeyboardActionHandler(
 
     private fun handleSearchUpdate(
         query: String?,
+        searchProvider: SearchProvider?,
+        searchFocusContainer: UUID?,
         navigating: Boolean,
         handleSuccess: (KeyboardActionMode.Search) -> Unit,
     ): Boolean {
         var success: KeyboardActionMode.Search? = null
         updateMode { mode ->
             if (mode is KeyboardActionMode.Search) {
-                mode.copy(query = query ?: mode.query, navigating = navigating).also {
+                mode.copy(
+                    query = query ?: mode.query,
+                    navigating = navigating && (searchProvider == null || mode.searchProvider == searchProvider),
+                    searchProvider = searchProvider ?: mode.searchProvider,
+                    searchFocusContainer = searchFocusContainer ?: mode.searchFocusContainer,
+                ).also {
                     success = it
                 }
             } else {
-                val current = currentFocused() ?: focusableTargets.values.firstNotNullOfOrNull {
-                    it.takeIf { it.actions?.searchProvider != null }
-                }
-                if (current?.actions?.searchProvider != null) {
+                if (searchProvider == null) {
+                    val current = currentFocused() ?: focusableTargets.values.firstNotNullOfOrNull {
+                        it.takeIf { it.actions?.searchProvider != null }
+                    }
+                    if (current?.actions?.searchProvider != null) {
+                        KeyboardActionMode.Search(
+                            query = query ?: "",
+                            searchProvider = current.actions.searchProvider,
+                            navigating = navigating,
+                            searchFocusContainer = searchFocusContainer ?: current.parent?.uuid,
+                        ).also {
+                            success = it
+                        }
+                    } else {
+                        success = null
+                        log.w { "Updates search but no search provider available" }
+                        mode
+                    }
+                } else {
                     KeyboardActionMode.Search(
                         query = query ?: "",
-                        searchProvider = current.actions.searchProvider,
+                        searchProvider = searchProvider,
                         navigating = navigating,
-                        searchFocusContainer = current.parent?.uuid,
+                        searchFocusContainer = searchFocusContainer,
                     ).also {
                         success = it
                     }
-                } else {
-                    success = null
-                    log.w { "Updates search but no search provider available" }
-                    mode
                 }
             }
         }

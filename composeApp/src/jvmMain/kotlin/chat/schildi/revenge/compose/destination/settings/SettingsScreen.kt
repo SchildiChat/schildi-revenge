@@ -22,7 +22,6 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.ListAction
-import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.compose.components.EmptyListScreen
 import chat.schildi.revenge.compose.components.TopNavigation
@@ -75,7 +74,6 @@ fun SettingsScreen(
                     EmptyListScreen(
                         title = Res.string.empty_screen_placeholder_unexpected.toStringHolder(),
                         icon = rememberVectorPainter(Icons.Default.BugReport),
-                        currentSearchTerm = LocalKeyboardActionHandler.current.searchQuery.collectAsState("").value,
                         renderedSearchTerm = prefScreenState.searchQuery,
                     )
                 } else {

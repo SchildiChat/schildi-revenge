@@ -64,13 +64,13 @@ fun WindowContent(destinationHolder: DestinationStateHolder) {
 
                 // Search bar
                 AnimatedVisibility(
-                    visible = ScPrefs.MINIMAL_MODE.value() && keyboardActionHandler.needsKeyboardSearchBar.collectAsState().value,
+                    visible = ScPrefs.MINIMAL_MODE.value() && keyboardActionHandler.needsKeyboardSearchBar(null).collectAsState().value,
                     enter = slideInVertically(tween(Anim.DURATION)) { it } +
                             expandVertically(tween(Anim.DURATION), expandFrom = Alignment.Bottom),
                     exit = slideOutVertically(tween(Anim.DURATION)) { it } +
                             shrinkVertically(tween(Anim.DURATION), shrinkTowards = Alignment.Bottom),
                 ) {
-                    SearchBar()
+                    SearchBar(null, null)
                 }
 
                 // Command bar

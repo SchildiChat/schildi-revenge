@@ -9,31 +9,38 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.destination.SplashScreenContent
+import chat.schildi.revenge.compose.search.LocalSearchProvider
+import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.toStringHolder
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.empty_screen_placeholder_search
 import shire.composeapp.generated.resources.empty_screen_placeholder_search_in_progress
 
-
 @Composable
 fun EmptyListScreen(
     title: ComposableStringHolder,
     icon: Painter,
-    currentSearchTerm: String?,
     renderedSearchTerm: String?,
     isLoading: Boolean = false,
+    searchProvider: SearchProvider = LocalSearchProvider.current ?: run {
+        throw IllegalStateException("No search provider for EmptyListScreen with rendered search term detection")
+    },
     modifier: Modifier = Modifier,
 ) {
-    val isSearchInProgress = (currentSearchTerm ?: "") != (renderedSearchTerm ?: "")
-    val isSearching = isSearchInProgress || !currentSearchTerm.isNullOrEmpty()
+    val currentSearchTerm = LocalKeyboardActionHandler.current
+        .searchQueryForDestination(searchProvider).collectAsState("").value
+    val isSearchInProgress = currentSearchTerm != (renderedSearchTerm ?: "")
+    val isSearching = isSearchInProgress || currentSearchTerm.isNotEmpty()
     EmptyListScreen(
         title = title,
         icon = icon,

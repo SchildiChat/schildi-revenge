@@ -70,7 +70,8 @@ fun InboxScreen(
     publishTitle(viewModel)
 
     // Filters that should reset list state
-    val searchQuery = LocalKeyboardActionHandler.current.searchQuery.collectAsState("").value
+    val searchQuery = LocalKeyboardActionHandler.current.searchQueryForDestination(viewModel)
+        .collectAsState("").value
     val accounts = viewModel.accounts.collectAsState().value
     val accountsSorted = viewModel.accountsSorted.collectAsState().value
     val accountUnreadCounts = viewModel.accountUnreadCounts.collectAsState().value
@@ -165,7 +166,6 @@ fun InboxScreen(
                                 rememberVectorPainter(Icons.Default.TravelExplore)
                             }
                         },
-                        currentSearchTerm = searchQuery,
                         renderedSearchTerm = roomsState?.searchTerm,
                         isLoading = roomsState == null,
                         modifier = Modifier.fillMaxSize(),
