@@ -1518,6 +1518,9 @@ class ConversationViewModel(
                     } ?: ActionResult.Inapplicable
 
                     Action.Event.ComposeEdit -> eventOrTransactionId?.let {
+                        if (!event.isOwn) {
+                            return@let ActionResult.Inapplicable
+                        }
                         val eventContent = event.content
                         if (eventContent is MessageContent) {
                             val draftValue = when (val messageType = eventContent.type) {
