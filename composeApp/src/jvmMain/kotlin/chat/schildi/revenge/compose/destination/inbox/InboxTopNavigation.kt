@@ -14,7 +14,7 @@ import chat.schildi.revenge.compose.components.TopNavigationSearchOrTitle
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.about
-import shire.composeapp.generated.resources.app_title
+import shire.composeapp.generated.resources.app_title_short
 import shire.composeapp.generated.resources.hint_settings
 import shire.composeapp.generated.resources.manage_accounts
 
@@ -22,7 +22,7 @@ import shire.composeapp.generated.resources.manage_accounts
 fun InboxTopNavigation(title: String?) {
     TopNavigation {
         val destinationState = LocalDestinationState.current
-        TopNavigationSearchOrTitle(title ?: stringResource(Res.string.app_title))
+        TopNavigationSearchOrTitle(title ?: stringResource(Res.string.app_title_short))
         if (destinationState != null) {
             TopNavigationIcon(
                 Icons.Default.Info,

@@ -23,7 +23,7 @@ import com.kdroid.composetray.tray.api.Tray
 import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.app_title
+import shire.composeapp.generated.resources.app_title_full
 import shire.composeapp.generated.resources.ic_launcher
 import shire.composeapp.generated.resources.tray_exit
 import shire.composeapp.generated.resources.tray_minimize
@@ -65,7 +65,7 @@ fun ApplicationScope.TrayIcon(
                 badgeColor,
             )
         },
-        tooltip = stringResource(Res.string.app_title)
+        tooltip = stringResource(Res.string.app_title_full)
     ) {
         if (isMinimized) {
             Item(label = titleShow) {

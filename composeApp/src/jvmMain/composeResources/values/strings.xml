@@ -1,5 +1,6 @@
 <resources>
-    <string name="app_title">SchildiChat Revenge</string>
+    <string name="app_title_full" translatable="false">SchildiChat Revenge</string>
+    <string name="app_title_short" translatable="false">SchildiChat</string>
     <string name="manage_accounts">Accounts</string>
     <string name="inbox">Inbox</string>
     <string name="inbox_search">Inbox search</string>

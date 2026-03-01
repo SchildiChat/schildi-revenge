@@ -31,7 +31,6 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.app_title
 import shire.composeapp.generated.resources.ic_launcher
 import kotlin.system.exitProcess
 import chat.schildi.revenge.ipc.SingleInstance
@@ -65,10 +64,9 @@ fun main() {
                 windows.forEach { windowState ->
                     key(windowState.windowId) {
                         val destinationState = windowState.destinationHolder.state.collectAsState().value
-                        val appTitle = stringResource(Res.string.app_title)
                         val title = destinationState.titleOverride?.render()
                             ?: destinationState.destination.title?.render()
-                            ?: appTitle
+                            ?: DEFAULT_WINDOW_APP_TITLE.render()
                         val initialWidth = ScPrefs.INITIAL_WINDOW_WIDTH.value()
                         val initialHeight = ScPrefs.INITIAL_WINDOW_HEIGHT.value()
                         val composeWindowState = rememberWindowState(

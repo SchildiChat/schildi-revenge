@@ -8,11 +8,13 @@ import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.about
-import shire.composeapp.generated.resources.app_title
+import shire.composeapp.generated.resources.app_title_short
 import shire.composeapp.generated.resources.hint_settings
 import shire.composeapp.generated.resources.inbox
 import shire.composeapp.generated.resources.manage_accounts
 import shire.composeapp.generated.resources.message_reactions_title
+
+val DEFAULT_WINDOW_APP_TITLE = StringResourceHolder(Res.string.app_title_short)
 
 sealed interface Destination {
     // For referring to destinations via key bindings config
@@ -38,7 +40,7 @@ sealed interface Destination {
 
     data object Splash : Destination {
         override val type = DestinationEnum.Splash
-        override val title = StringResourceHolder(Res.string.app_title)
+        override val title = DEFAULT_WINDOW_APP_TITLE
     }
 
     data class Conversation(
@@ -87,7 +89,7 @@ sealed interface Destination {
         val fraction: Float = 0.5f,
     ) : Split {
         override val type = DestinationEnum.SplitHorizontal
-        override val title = StringResourceHolder(Res.string.app_title)
+        override val title = DEFAULT_WINDOW_APP_TITLE
     }
 
     data class SplitVertical(
@@ -96,6 +98,6 @@ sealed interface Destination {
         val fraction: Float = 0.5f,
     ) : Split {
         override val type = DestinationEnum.SplitVertical
-        override val title = StringResourceHolder(Res.string.app_title)
+        override val title = DEFAULT_WINDOW_APP_TITLE
     }
 }

@@ -58,7 +58,7 @@ import shire.composeapp.generated.resources.about_rust_release_variant
 import shire.composeapp.generated.resources.about_rust_revision
 import shire.composeapp.generated.resources.about_source_code
 import shire.composeapp.generated.resources.about_website
-import shire.composeapp.generated.resources.app_title
+import shire.composeapp.generated.resources.app_title_full
 import shire.composeapp.generated.resources.hint_app_icon
 import shire.composeapp.generated.resources.ic_launcher
 
@@ -262,7 +262,7 @@ private fun AboutHeader(modifier: Modifier = Modifier) {
             horizontalArrangement = Dimens.horizontalArrangement,
         ) {
             Text(
-                stringResource(Res.string.app_title),
+                stringResource(Res.string.app_title_full),
                 style = MaterialTheme.typography.headlineLarge,
                 modifier = Modifier.alignByBaseline(),
             )
