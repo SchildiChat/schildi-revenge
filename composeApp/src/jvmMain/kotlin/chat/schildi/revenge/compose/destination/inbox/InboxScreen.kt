@@ -12,6 +12,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Inbox
+import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -20,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -34,10 +38,13 @@ import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
+import chat.schildi.revenge.compose.components.EmptyListScreen
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
+import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.model.DraftRepo
 import chat.schildi.revenge.model.InboxViewModel
+import chat.schildi.revenge.model.spaces.SpaceListDataSource
 import chat.schildi.revenge.model.spaces.filterByVisible
 import chat.schildi.revenge.model.spaces.resolveSelection
 import chat.schildi.revenge.publishTitle
@@ -45,6 +52,9 @@ import chat.schildi.revenge.viewModelKey
 import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
+import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.empty_screen_placeholder_inbox
+import shire.composeapp.generated.resources.empty_screen_placeholder_space
 
 @OptIn(FlowPreview::class)
 @Composable
@@ -90,7 +100,8 @@ fun InboxScreen(
     ) {
         Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
             InboxTopNavigation(viewModel.windowTitle.collectAsState(null).value?.render())
-            val rooms = viewModel.rooms.collectAsState().value
+            val roomsState = viewModel.filteredRooms.collectAsState().value
+            val rooms = roomsState?.rooms
             val roomsByRoomId = viewModel.roomsByRoomId.collectAsState().value
             val dmsByHeroes = viewModel.dmsByHeroes.collectAsState().value
             val needsAccountDisambiguation = (accountsSorted?.count { it.isCurrentlyVisible } ?: 0) > 1
@@ -127,9 +138,9 @@ fun InboxScreen(
                         viewModel.onVisibleRoomsChanged(visibleRooms)
                     }
             }
-            LazyColumn(contentModifier.fillMaxSize(), state = listState) {
-                if (!accountsSorted.isNullOrEmpty()) {
-                    item {
+            if (rooms.isNullOrEmpty()) {
+                Column(contentModifier.fillMaxSize()) {
+                    if (!accountsSorted.isNullOrEmpty()) {
                         AccountSelectorRow(
                             viewModel = viewModel,
                             accounts = accountsSorted,
@@ -137,8 +148,41 @@ fun InboxScreen(
                             modifier = Modifier.padding(vertical = Dimens.listPadding),
                         )
                     }
+                    EmptyListScreen(
+                        title = if (selectedSpace == null) {
+                            Res.string.empty_screen_placeholder_inbox.toStringHolder()
+                        } else {
+                            Res.string.empty_screen_placeholder_space.toStringHolder()
+                        },
+                        icon = if (selectedSpace == null) {
+                            rememberVectorPainter(Icons.Default.Inbox)
+                        } else {
+                            val pseudoSpaceIcon = (selectedSpace as? SpaceListDataSource.PseudoSpaceItem)
+                                ?.icon as? SpaceListDataSource.PseudoSpaceIconSource.Icon
+                            if (pseudoSpaceIcon != null) {
+                                rememberVectorPainter(pseudoSpaceIcon.icon)
+                            } else {
+                                rememberVectorPainter(Icons.Default.TravelExplore)
+                            }
+                        },
+                        currentSearchTerm = searchQuery,
+                        renderedSearchTerm = roomsState?.searchTerm,
+                        isLoading = roomsState == null,
+                        modifier = Modifier.fillMaxSize(),
+                    )
                 }
-                rooms?.let {
+            } else {
+                LazyColumn(contentModifier.fillMaxSize(), state = listState) {
+                    if (!accountsSorted.isNullOrEmpty()) {
+                        item {
+                            AccountSelectorRow(
+                                viewModel = viewModel,
+                                accounts = accountsSorted,
+                                unreadCounts = accountUnreadCounts,
+                                modifier = Modifier.padding(vertical = Dimens.listPadding),
+                            )
+                        }
+                    }
                     items(
                         rooms,
                         key = { room ->
@@ -148,10 +192,11 @@ fun InboxScreen(
                         val needsDisambiguation = needsAccountDisambiguation &&
                                 selectedSpace?.sessionIds.let { it == null || it.size > 1 } &&
                                 (
-                                room.summary.isInvite() ||
-                                        (roomsByRoomId[room.summary.roomId]?.size ?: 0) > 1 ||
-                                        room.summary.isOneToOne && (dmsByHeroes[room.summary.info.heroes]?.size ?: 0) > 1
-                                )
+                                        room.summary.isInvite() ||
+                                                (roomsByRoomId[room.summary.roomId]?.size ?: 0) > 1 ||
+                                                room.summary.isOneToOne && (dmsByHeroes[room.summary.info.heroes]?.size
+                                            ?: 0) > 1
+                                        )
                         InboxRow(
                             viewModel,
                             room,

@@ -10,6 +10,7 @@ import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -25,6 +26,11 @@ interface UserListItem {
     val avatarUrl: String?
 }
 
+data class FilteredUserList<T : UserListItem>(
+    val items: ImmutableList<T>,
+    val searchTerm: String?,
+)
+
 abstract class AbstractUserListViewModel<T: UserListItem>: ViewModel(), SearchProvider, UserIdSuggestionsProvider {
     abstract val sessionId: SessionId
     abstract val roomId: RoomId?
@@ -39,13 +45,21 @@ abstract class AbstractUserListViewModel<T: UserListItem>: ViewModel(), SearchPr
     ) { allEntries, searchTerm ->
         Pair(allEntries, searchTerm)
     }.mapLatest { (allEntries, searchTerm) ->
-        if (searchTerm == null) {
-            allEntries
+        if (allEntries == null) {
+            null
+        } else if (searchTerm.isNullOrEmpty()) {
+            FilteredUserList(
+                allEntries.toPersistentList(),
+                null,
+            )
         } else {
             val lowercaseSearchTerm = searchTerm.lowercase()
-            allEntries?.filter {
-                searchMatches(it, lowercaseSearchTerm)
-            }
+            FilteredUserList(
+                allEntries.filter {
+                    searchMatches(it, lowercaseSearchTerm)
+                }.toPersistentList(),
+                searchTerm,
+            )
         }
     }.flowOn(Dispatchers.Default)
 

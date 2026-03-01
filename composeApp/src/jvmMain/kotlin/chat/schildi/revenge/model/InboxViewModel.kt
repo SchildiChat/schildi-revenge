@@ -24,7 +24,6 @@ import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.throttleLatest
 import chat.schildi.revenge.config.keybindings.Action
-import chat.schildi.revenge.config.keybindings.CommandArgContext
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.flatMerge
 import chat.schildi.revenge.model.conversation.MessageMetadata
@@ -101,6 +100,11 @@ private data class InboxSettings(
     val showAllRoomsSpace: Boolean,
     val hiddenAccounts: Set<SessionId>,
     val selectedAccounts: Set<SessionId>,
+)
+
+data class RoomListState(
+    val rooms: ImmutableList<ScopedRoomSummary>,
+    val searchTerm: String?,
 )
 
 class InboxViewModel(
@@ -212,23 +216,30 @@ class InboxViewModel(
     /**
      * Rooms filtered by search and space selection.
      */
-    val rooms = combine(
+    val filteredRooms = combine(
         allRooms,
         searchTerm,
         selectedSpace,
     ) { rooms, searchTerm, selectedSpace ->
         // Only filter by spaces if search term is empty
         if (searchTerm.isNullOrBlank()) {
-            selectedSpace?.applyFilter(rooms) ?: rooms
+            RoomListState(
+                rooms = selectedSpace?.applyFilter(rooms) ?: rooms.toPersistentList(),
+                searchTerm = null,
+            )
         } else {
             val lowercaseSearch = searchTerm.lowercase()
-            rooms.filter {
+            val searchedRooms = rooms.filter {
                 it.summary.info.name?.lowercase()?.contains(lowercaseSearch) == true
             }.sortedWith(compareBy(
                 { it.summary.info.name?.lowercase()?.indexOf(lowercaseSearch)?.takeIf { it >= 0 } ?: Integer.MAX_VALUE },
                 { it.summary.latestEventTimestamp == null },
                 { it.summary.latestEventTimestamp?.let { -it } },
             ))
+            RoomListState(
+                rooms = searchedRooms.toPersistentList(),
+                searchTerm = searchTerm,
+            )
         }
     }
         .flowOn(Dispatchers.IO)

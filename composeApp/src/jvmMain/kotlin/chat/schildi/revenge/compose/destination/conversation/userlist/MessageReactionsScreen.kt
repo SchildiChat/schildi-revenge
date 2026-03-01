@@ -6,22 +6,29 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.EmojiPeople
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.ListAction
+import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
 import chat.schildi.revenge.actions.LocalUserIdSuggestionsProvider
-import chat.schildi.revenge.compose.destination.SplashScreenContent
+import chat.schildi.revenge.compose.components.EmptyListScreen
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
+import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.model.userlist.MessageReactionListViewModel
 import chat.schildi.revenge.viewModelKey
+import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.empty_screen_placeholder_message_reactions
 
 @Composable
 fun MessageReactionsScreen(
@@ -44,9 +51,16 @@ fun MessageReactionsScreen(
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
         modifier = modifier.fillMaxSize()
     ) {
-        val reactions = viewModel.entries.collectAsState(null)
-        if (reactions.value.isNullOrEmpty()) {
-            SplashScreenContent(contentModifier)
+        val reactionsState = viewModel.entries.collectAsState(null).value
+        val reactions = reactionsState?.items
+        if (reactions.isNullOrEmpty()) {
+            EmptyListScreen(
+                title = Res.string.empty_screen_placeholder_message_reactions.toStringHolder(),
+                icon = rememberVectorPainter(Icons.Default.EmojiPeople),
+                currentSearchTerm = LocalKeyboardActionHandler.current.searchQuery.collectAsState("").value,
+                renderedSearchTerm = reactionsState?.searchTerm,
+                modifier = contentModifier,
+            )
             return@FocusContainer
         }
 
@@ -55,9 +69,7 @@ fun MessageReactionsScreen(
                 Modifier.fillMaxWidth().weight(1f),
                 state = listState,
             ) {
-                items(
-                    reactions.value ?: emptyList(),
-                ) { item ->
+                items(reactions) { item ->
                     UserReactionRow(
                         reactionItem = item,
                         viewModel = viewModel,

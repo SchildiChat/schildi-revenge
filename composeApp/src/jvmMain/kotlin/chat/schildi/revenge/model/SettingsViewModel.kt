@@ -3,13 +3,11 @@ package chat.schildi.revenge.model
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import chat.schildi.preferences.AbstractScPref
-import chat.schildi.preferences.ScPref
 import chat.schildi.preferences.ScPrefContainer
 import chat.schildi.preferences.ScPrefFilter
 import chat.schildi.preferences.ScPrefScreen
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.filteredBy
-import chat.schildi.preferences.forEachPreference
 import chat.schildi.preferences.forEachPreferenceOrContainer
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.TitleProvider
@@ -25,6 +23,11 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+
+data class PrefScreenState(
+    val prefScreen: ScPrefContainer,
+    val searchQuery: String? = null,
+)
 
 class SettingsViewModel(
     private val rootPrefs: ScPrefScreen = ScPrefs.rootPrefs,
@@ -45,7 +48,7 @@ class SettingsViewModel(
     private val searchQuery = MutableStateFlow<String?>(null)
     val prefScreen = searchQuery.map { query ->
         val lookup = stringLookupTable?.stringLookup
-        if (query.isNullOrBlank() || lookup == null) {
+        val pref = if (query.isNullOrBlank() || lookup == null) {
             rootPrefs
         } else {
             val lowerQuery = query.lowercase()
@@ -62,8 +65,12 @@ class SettingsViewModel(
             )
             rootPrefs.filteredBy(filter)
         }
+        PrefScreenState(
+            prefScreen = pref,
+            searchQuery = query,
+        )
     }.flowOn(Dispatchers.IO)
-        .stateIn(viewModelScope, SharingStarted.Lazily, rootPrefs)
+        .stateIn(viewModelScope, SharingStarted.Lazily, PrefScreenState(rootPrefs))
 
     override fun onSearchType(query: String) {
         searchQuery.value = query
