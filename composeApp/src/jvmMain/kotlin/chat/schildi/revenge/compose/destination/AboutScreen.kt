@@ -137,11 +137,11 @@ private val ThirdPartyAcknowledgements = listOf(
 private val AppLinks = listOf(
     AppLink(
         name = Res.string.about_website.toStringHolder(),
-        url = "https://schildi.chat/",
+        url = "https://schildi.chat/revenge",
     ),
     AppLink(
         name = Res.string.about_privacy_policy.toStringHolder(),
-        url = "https://schildi.chat/desktop/privacy/",
+        url = "https://schildi.chat/revenge/privacy/",
     ),
     AppLink(
         name = Res.string.about_source_code.toStringHolder(),
