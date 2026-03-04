@@ -10,6 +10,7 @@ import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.throttleLatest
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.ConfigWatchers
+import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.store.AppStateStore
 import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.createGraphFactory
@@ -32,6 +33,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -86,12 +88,41 @@ object UiState {
             RevengePrefs.getCachedOrDefaultValue(ScPrefs.CLOSE_TO_TRAY),
         )
 
+    private val preferMultiPaneInbox = RevengePrefs
+        .settingFlow(ScPrefs.PREFER_DUAL_PANE_INBOX)
+        .distinctUntilChanged()
+        .onEach { preferMultiPane ->
+            // Recreate any potential inbox destinations to apply the new setting
+            windows.value.forEach { window ->
+                val destination = window.destinationHolder.state.value.destination
+                if (destination.category == DestinationCategory.INBOX) {
+                    val newDestination = getInboxDestination(preferMultiPane)
+                    if (newDestination.type != destination.type) {
+                        window.destinationHolder.navigate(newDestination, NavigationPreference.REPLACE)
+                    }
+                }
+            }
+        }
+        .stateIn(
+            scope,
+            SharingStarted.Eagerly,
+            RevengePrefs.getCachedOrDefaultValue(ScPrefs.PREFER_DUAL_PANE_INBOX),
+        )
+
+    fun getInboxDestination(
+        preferMultiPane: Boolean = preferMultiPaneInbox.value
+    ): Destination = if (preferMultiPane) {
+        Destination.InboxConversationMultiPane()
+    } else {
+        Destination.Inbox
+    }
+
     val hasInboxOpen = windows.flatMerge(
         map = {
             it.destinationHolder.state
         },
         merge = {
-            it.any { it.destination is Destination.Inbox }
+            it.any { it.destination.category == DestinationCategory.INBOX }
         },
         onEmpty = { false },
     ).stateIn(scope, SharingStarted.Eagerly, false)
@@ -147,7 +178,7 @@ object UiState {
             val destination = if (sessions.isEmpty()) {
                 Destination.AccountManagement
             } else {
-                Destination.Inbox
+                getInboxDestination()
             }
             clearSplashScreen(destination)
             hasClearedSplashScreen = true
@@ -318,7 +349,7 @@ object UiState {
             // Ensure at least one window is open
             _windows.update {
                 if (it.isEmpty()) {
-                    persistentListOf(createWindow(Destination.Inbox))
+                    persistentListOf(createWindow(getInboxDestination()))
                 } else {
                     it
                 }

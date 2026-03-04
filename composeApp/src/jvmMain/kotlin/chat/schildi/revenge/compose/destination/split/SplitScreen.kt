@@ -23,7 +23,6 @@ import chat.schildi.revenge.compose.components.AdaptiveRow
 import chat.schildi.revenge.compose.focus.FlatFocusContainer
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.config.keybindings.DestinationEnum
-import co.touchlab.kermit.Logger
 import kotlinx.collections.immutable.persistentListOf
 import java.util.UUID
 
@@ -32,6 +31,9 @@ enum class SplitRole {
     End,
     Top,
     Bottom,
+    Singular,
+    Horizontal,
+    Vertical,
 }
 
 @Composable
@@ -140,6 +142,9 @@ private fun Modifier.splitContainerDecoration(
         SplitRole.End -> PaddingValues(start = halfPadding, top = padding, end = padding, bottom = padding)
         SplitRole.Top -> PaddingValues(start = padding, top = padding, end = padding, bottom = halfPadding)
         SplitRole.Bottom -> PaddingValues(start = padding, top = halfPadding, end = padding, bottom = padding)
+        SplitRole.Singular -> PaddingValues()
+        SplitRole.Horizontal -> PaddingValues(horizontal = halfPadding, vertical = padding)
+        SplitRole.Vertical -> PaddingValues(horizontal = padding, vertical = halfPadding)
     }
     val outline = animateColorAsState(
         if (isActive) {

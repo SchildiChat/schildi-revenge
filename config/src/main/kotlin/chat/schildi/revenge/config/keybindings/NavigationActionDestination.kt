@@ -13,7 +13,9 @@ enum class DestinationEnum(
     Settings("Settings", listOf("settings")),
     About("About", listOf("about")),
     SplitHorizontal("SplitHorizontal"),
-    SplitVertical("SplitVertical");
+    SplitVertical("SplitVertical"),
+    SplitPlaceholder("SplitPlaceholder"),
+    InboxConversationSplit("InboxConversationSplit", listOf("home"));
 
     fun allDestinationNames() = aliases + destName
     fun matches(destinationName: String): Boolean {
@@ -28,6 +30,7 @@ val SUGGESTED_DESTINATION_STRINGS = listOf(
     DestinationEnum.Conversation.aliases[0],
     DestinationEnum.About.aliases[0],
     DestinationEnum.Settings.aliases[0],
+    DestinationEnum.InboxConversationSplit.aliases[0],
 )
 
 val ALLOWED_DESTINATION_STRINGS = listOf(
@@ -38,6 +41,7 @@ val ALLOWED_DESTINATION_STRINGS = listOf(
     DestinationEnum.Settings.allDestinationNames(),
     DestinationEnum.RoomMembers.allDestinationNames(),
     DestinationEnum.MessageReactions.allDestinationNames(),
+    DestinationEnum.InboxConversationSplit.allDestinationNames(),
 ).flatten()
 
 fun String.destinationRequiresSessionId() = this in listOf("chat", "conversation", "room", "members", "reactions")

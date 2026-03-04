@@ -105,7 +105,7 @@ user = [
     { key = "C", ctrl = true, action = "CopyMxId", destinations = ["RoomMembers"] },
 ]
 navigation = [
-    { key = "I", shift = true, action = "NavigateCurrent", args = ["inbox"] },
+    { key = "I", shift = true, action = "NavigateCurrent", args = ["inbox"], notDestinations = ["InboxConversationSplit"] },
     { key = "I", shift = true, ctrl = true, action = "NavigateInNewWindow", args = ["inbox"] },
     { key = "A", shift = true, action = "NavigateCurrent", args = ["accounts"] },
     { key = "A", shift = true, ctrl = true, action = "NavigateInNewWindow", args = ["accounts"] },
@@ -144,8 +144,11 @@ list = [
 ]
 split = [
     { key = "Q", ctrl = true, action = "Unsplit" },
-    { key = "X", action = "Unsplit" },
-    { key = "L", action = "UnsplitDestination", args = ["reactions"] },
-    { key = "L", ctrl = true, action = "UnsplitDestination", args = ["reactions"] },
     { key = "L", action = "UnsplitDestination", args = ["members"] },
+    { key = "L", ctrl = true, action = "UnsplitDestination", args = ["reactions"] },
+    { key = "L", action = "UnsplitDestination", args = ["reactions"], chain = true },
+    { key = "L", action = "UnsplitDestination", args = ["reactions"], chain = true },
+    { key = "X", action = "UnsplitDestination", args = ["members"] },
+    { key = "X", action = "UnsplitDestination", args = ["reactions"] },
+    { key = "X", action = "Unsplit" },
 ]

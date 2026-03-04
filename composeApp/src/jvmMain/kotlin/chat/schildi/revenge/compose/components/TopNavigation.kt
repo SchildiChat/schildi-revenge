@@ -41,7 +41,7 @@ import chat.schildi.revenge.compose.search.SearchBar
 import chat.schildi.revenge.compose.search.SearchProvider
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.action_close_window
+import shire.composeapp.generated.resources.action_close
 import shire.composeapp.generated.resources.action_open_inbox
 import shire.composeapp.generated.resources.hint_search
 import java.util.UUID
@@ -96,10 +96,10 @@ fun TopNavigationCloseOrNavigateToInboxIcon(modifier: Modifier = Modifier) {
         } else {
             TopNavigationIcon(
                 Icons.Default.Close,
-                stringResource(Res.string.action_close_window),
+                stringResource(Res.string.action_close),
                 modifier,
             ) {
-                keyHandler.closeWindow()
+                destinationState?.closeScreen(keyHandler)
             }
         }
     }

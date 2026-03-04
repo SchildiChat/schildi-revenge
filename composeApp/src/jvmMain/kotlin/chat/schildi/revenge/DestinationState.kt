@@ -4,8 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
+import chat.schildi.revenge.actions.KeyboardActionHandler
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
@@ -17,17 +19,51 @@ enum class NavigationPreference {
     NEW_WINDOW,
 }
 
-class DestinationStateHolder(
-    initialDestination: DestinationState,
-) {
-    private val _state = MutableStateFlow(initialDestination)
-    val state = _state.asStateFlow()
+interface DestinationStateHolder {
 
+    val state: StateFlow<DestinationState>
+
+    /**
+     * Only use with no longer elsewhere used DestinationState!
+     * Useful for moving nested destinations out, e.g. unsplit action
+     */
+    fun replaceWith(destinationState: chat.schildi.revenge.DestinationState)
+    fun publishTitle(titleOverride: ComposableStringHolder?, verifyDestination: (Destination) -> Boolean)
     fun navigate(
         destination: Destination,
         preference: NavigationPreference = NavigationPreference.AUTO,
         invalidateHolderId: Boolean = false,
         initialTitle: ComposableStringHolder? = null,
+    )
+    fun closeScreen(keyHandler: KeyboardActionHandler)
+
+    companion object {
+        fun forInitialDestination(
+            destination: Destination,
+            initialTitle: ComposableStringHolder? = null,
+        ): DestinationStateHolder {
+            return DefaultDestinationStateHolder(
+                DestinationState(
+                    UUID.randomUUID(),
+                    destination,
+                    initialTitle,
+                ),
+            )
+        }
+    }
+}
+
+class DefaultDestinationStateHolder(
+    initialDestination: DestinationState,
+) : DestinationStateHolder {
+    private val _state = MutableStateFlow(initialDestination)
+    override val state = _state.asStateFlow()
+
+    override fun navigate(
+        destination: Destination,
+        preference: NavigationPreference,
+        invalidateHolderId: Boolean,
+        initialTitle: ComposableStringHolder?,
     ) {
         when (preference) {
             NavigationPreference.REPLACE -> navigateThis(destination, invalidateHolderId)
@@ -60,32 +96,19 @@ class DestinationStateHolder(
      * Only use with no longer elsewhere used DestinationState!
      * Useful for moving nested destinations out, e.g. unsplit action
      */
-    fun replaceWith(destinationState: DestinationState) {
+    override fun replaceWith(destinationState: DestinationState) {
         _state.value = destinationState
     }
 
-    fun publishTitle(titleOverride: ComposableStringHolder?, verifyDestination: (Destination) -> Boolean) {
+    override fun closeScreen(keyHandler: KeyboardActionHandler) = keyHandler.closeWindow()
+
+    override fun publishTitle(titleOverride: ComposableStringHolder?, verifyDestination: (Destination) -> Boolean) {
         _state.update {
             if (verifyDestination(it.destination)) {
                 it.copy(titleOverride = titleOverride)
             } else {
                 it
             }
-        }
-    }
-
-    companion object {
-        fun forInitialDestination(
-            destination: Destination,
-            initialTitle: ComposableStringHolder? = null,
-        ): DestinationStateHolder {
-            return DestinationStateHolder(
-                DestinationState(
-                    UUID.randomUUID(),
-                    destination,
-                    initialTitle,
-                )
-            )
         }
     }
 }

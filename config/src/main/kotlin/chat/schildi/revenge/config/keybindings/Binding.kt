@@ -15,6 +15,7 @@ data class Binding<A : Action>(
     val action: A,
     val args: List<String> = emptyList(),
     val destinations: List<String> = emptyList(),
+    val notDestinations: List<String> = emptyList(),
 ) {
     val key: Key
         get() = rawKey.key

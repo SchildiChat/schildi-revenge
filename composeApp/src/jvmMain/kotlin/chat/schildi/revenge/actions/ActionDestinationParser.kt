@@ -49,7 +49,9 @@ internal fun String.toDestinationOrNull(
         }
         DestinationEnum.Settings -> Destination.Settings
         DestinationEnum.About -> Destination.About
-        // Not navigatable destinations
+        DestinationEnum.InboxConversationSplit -> Destination.InboxConversationMultiPane()
+        // Destinations not reachable via "navigate" action
+        DestinationEnum.SplitPlaceholder,
         DestinationEnum.SplitHorizontal,
         DestinationEnum.SplitVertical,
         null -> null

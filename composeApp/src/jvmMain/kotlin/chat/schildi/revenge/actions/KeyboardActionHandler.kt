@@ -34,6 +34,7 @@ import chat.schildi.preferences.ScPref
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.findPreference
 import chat.schildi.preferences.safeLookup
+import chat.schildi.revenge.DefaultDestinationStateHolder
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.focus.FocusParent
@@ -1050,7 +1051,7 @@ class KeyboardActionHandler(
                         invalidateHolderId = true,
                     ) { destinationState ->
                         Destination.SplitHorizontal(
-                            DestinationStateHolder(destinationState),
+                            DefaultDestinationStateHolder(destinationState),
                             DestinationStateHolder.forInitialDestination(destination ?: destinationState.destination),
                         )
                     }.orActionInapplicable()
@@ -1067,7 +1068,7 @@ class KeyboardActionHandler(
                         invalidateHolderId = true,
                     ) { destinationState ->
                         Destination.SplitVertical(
-                            DestinationStateHolder(destinationState),
+                            DefaultDestinationStateHolder(destinationState),
                             DestinationStateHolder.forInitialDestination(destination ?: destinationState.destination),
                         )
                     }.orActionInapplicable()
@@ -1389,7 +1390,12 @@ class KeyboardActionHandler(
         actions: ActionProvider?,
         role: FocusRole = FocusRole.LIST_ITEM,
     ) {
-        val bounds = coordinates.boundsInWindow()
+        val bounds = try {
+            coordinates.boundsInWindow()
+        } catch (e: IllegalStateException) {
+            unregisterFocusTarget(target)
+            return
+        }
         focusableTargets[target] = FocusTarget(
             target,
             parent,
@@ -1886,7 +1892,7 @@ fun <A: Action>List<Binding<A>>.execute(
 ): ActionResult {
     val actions = filter {
         it.trigger == key && (
-                it.destinations.isEmpty() ||
+                it.destinations.isEmpty() && it.notDestinations.none { context.currentDestinationType?.matches(it) == true } ||
                         it.destinations.any { context.currentDestinationType?.matches(it) == true}
                 )
     }

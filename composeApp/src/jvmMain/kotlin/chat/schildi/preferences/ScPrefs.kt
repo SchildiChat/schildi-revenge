@@ -43,6 +43,8 @@ import shire.composeapp.generated.resources.pref_max_width_room_details_title
 import shire.composeapp.generated.resources.pref_max_width_settings_title
 import shire.composeapp.generated.resources.pref_minimal_mode_summary
 import shire.composeapp.generated.resources.pref_minimal_mode_title
+import shire.composeapp.generated.resources.pref_prefer_dual_pane_inbox_summary
+import shire.composeapp.generated.resources.pref_prefer_dual_pane_inbox_title
 import shire.composeapp.generated.resources.pref_render_scale
 import shire.composeapp.generated.resources.pref_show_dev_infos_summary
 import shire.composeapp.generated.resources.pref_show_dev_infos_title
@@ -193,6 +195,7 @@ object ScPrefs {
     )
     val DUAL_MENTION_UNREAD_COUNTS = ScBoolPref("DUAL_MENTION_UNREAD_COUNTS", false, Res.string.sc_pref_dual_mention_unread_counts_title, Res.string.sc_pref_dual_mention_unread_counts_summary)
     //val HIDE_INVITES = ScBoolPref("HIDE_INVITES", false, Res.string.sc_pref_hide_invites_title, Res.string.sc_pref_hide_invites_summary)
+    val PREFER_DUAL_PANE_INBOX = ScBoolPref("PREFER_DUAL_PANE_INBOX", false, Res.string.pref_prefer_dual_pane_inbox_title, Res.string.pref_prefer_dual_pane_inbox_summary)
 
     // Spaces
     val COMPACT_ROOT_SPACES = ScBoolPref("COMPACT_ROOT_SPACES", false, Res.string.sc_compact_root_spaces_title, Res.string.sc_compact_root_spaces_summary)
@@ -316,6 +319,7 @@ object ScPrefs {
             */
         )),
         ScPrefScreen(Res.string.sc_pref_category_chat_overview, null, listOf(
+            PREFER_DUAL_PANE_INBOX,
             ScPrefCategory(Res.string.sc_pref_category_chat_sorting, null, listOf(
                 SORT_BY_UNREAD,
                 SORT_WITH_SILENT_UNREAD,

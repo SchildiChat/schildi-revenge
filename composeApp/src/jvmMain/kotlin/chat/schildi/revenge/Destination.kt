@@ -107,7 +107,6 @@ sealed interface Destination {
     data class SplitHorizontal(
         override val primary: DestinationStateHolder,
         override val secondary: DestinationStateHolder,
-        val fraction: Float = 0.5f,
     ) : Split {
         override val type = DestinationEnum.SplitHorizontal
         override val title = DEFAULT_WINDOW_APP_TITLE
@@ -117,10 +116,29 @@ sealed interface Destination {
     data class SplitVertical(
         override val primary: DestinationStateHolder,
         override val secondary: DestinationStateHolder,
-        val fraction: Float = 0.5f,
     ) : Split {
         override val type = DestinationEnum.SplitVertical
         override val title = DEFAULT_WINDOW_APP_TITLE
         override val category = DestinationCategory.WILDCARD
+    }
+
+    sealed interface MultiPane : Destination
+
+    data class MultiPanePlaceholder(
+        override val category: DestinationCategory,
+    ) : Destination {
+        override val type = DestinationEnum.SplitPlaceholder
+        override val title = DEFAULT_WINDOW_APP_TITLE
+    }
+
+    data class InboxConversationMultiPane(
+        val inbox: DestinationStateHolder = DestinationStateHolder.forInitialDestination(Inbox),
+        val conversation: DestinationStateHolder = DestinationStateHolder.forInitialDestination(
+            MultiPanePlaceholder(DestinationCategory.CONVERSATION),
+        ),
+    ) : MultiPane {
+        override val type = DestinationEnum.InboxConversationSplit
+        override val title = DEFAULT_WINDOW_APP_TITLE
+        override val category = DestinationCategory.INBOX
     }
 }

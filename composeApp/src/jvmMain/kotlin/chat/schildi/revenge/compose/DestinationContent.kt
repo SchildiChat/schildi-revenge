@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Destination
+import chat.schildi.revenge.DestinationCategory
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.compose.components.AdaptiveSplitLayoutModifierPair
@@ -22,6 +23,8 @@ import chat.schildi.revenge.compose.destination.conversation.userlist.MessageRea
 import chat.schildi.revenge.compose.destination.conversation.userlist.RoomMembersScreen
 import chat.schildi.revenge.compose.destination.inbox.InboxScreen
 import chat.schildi.revenge.compose.destination.settings.SettingsScreen
+import chat.schildi.revenge.compose.destination.split.EmptyPaneScreen
+import chat.schildi.revenge.compose.destination.split.InboxConversationMultiPaneScreen
 import chat.schildi.revenge.compose.destination.split.SplitHorizontal
 import chat.schildi.revenge.compose.destination.split.SplitVertical
 
@@ -50,6 +53,8 @@ fun DestinationContent(
                 is Destination.SplitVertical -> SplitVertical(destination, baseModifier, contentModifier)
                 is Destination.About -> AboutScreen(baseModifier, contentModifier)
                 is Destination.Settings -> SettingsScreen(destination, baseModifier, contentModifier)
+                is Destination.MultiPanePlaceholder -> EmptyPaneScreen(baseModifier, contentModifier)
+                is Destination.InboxConversationMultiPane -> InboxConversationMultiPaneScreen(destination, baseModifier, contentModifier)
             }
         }
     }
@@ -67,7 +72,15 @@ private fun Modifier.forDestination(destination: Destination): AdaptiveSplitLayo
         Destination.About -> Pair(ScPrefs.MAX_WIDTH_SETTINGS, ScPrefs.LAYOUT_WEIGHT_SETTINGS.value())
         is Destination.SplitHorizontal,
         is Destination.SplitVertical,
+        is Destination.MultiPane,
         Destination.Splash -> Pair(null, WEIGHT_DEFAULT)
+        is Destination.MultiPanePlaceholder -> when (destination.category) {
+            DestinationCategory.INBOX -> Pair(ScPrefs.MAX_WIDTH_INBOX, ScPrefs.LAYOUT_WEIGHT_INBOX.value())
+            DestinationCategory.CONVERSATION -> Pair(ScPrefs.MAX_WIDTH_CONVERSATION, ScPrefs.LAYOUT_WEIGHT_CONVERSATION.value())
+            DestinationCategory.CONVERSATION_DETAILS -> Pair(ScPrefs.MAX_WIDTH_ROOM_DETAILS, ScPrefs.LAYOUT_WEIGHT_ROOM_DETAILS.value())
+            DestinationCategory.SETTINGS -> Pair(ScPrefs.MAX_WIDTH_SETTINGS, ScPrefs.LAYOUT_WEIGHT_SETTINGS.value())
+            DestinationCategory.WILDCARD -> Pair(null, WEIGHT_DEFAULT)
+        }
     }
     return if (pref == null) {
         AdaptiveSplitLayoutModifierPair(this, Modifier, weight)
