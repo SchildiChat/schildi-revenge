@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -20,12 +21,14 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.ListAction
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.compose.components.EmptyListScreen
 import chat.schildi.revenge.compose.components.TopNavigation
 import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInboxIcon
+import chat.schildi.revenge.compose.components.TopNavigationIcon
 import chat.schildi.revenge.compose.components.TopNavigationSearchOrTitle
 import chat.schildi.revenge.compose.components.lookup
 import chat.schildi.revenge.compose.focus.FocusContainer
@@ -36,6 +39,7 @@ import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.about
 import shire.composeapp.generated.resources.empty_screen_placeholder_unexpected
 import shire.composeapp.generated.resources.hint_settings
 
@@ -66,7 +70,14 @@ fun SettingsScreen(
     ) {
         Column {
             TopNavigation {
+                val destinationState = LocalDestinationState.current
                 TopNavigationSearchOrTitle(stringResource(Res.string.hint_settings))
+                TopNavigationIcon(
+                    Icons.Default.Info,
+                    stringResource(Res.string.about)
+                ) {
+                    destinationState?.navigate(Destination.About)
+                }
                 TopNavigationCloseOrNavigateToInboxIcon()
             }
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {

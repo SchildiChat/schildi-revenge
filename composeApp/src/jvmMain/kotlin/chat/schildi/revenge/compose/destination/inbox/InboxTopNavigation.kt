@@ -25,12 +25,6 @@ fun InboxTopNavigation(title: String?) {
         TopNavigationSearchOrTitle(title ?: stringResource(Res.string.app_title_short))
         if (destinationState != null) {
             TopNavigationIcon(
-                Icons.Default.Info,
-                stringResource(Res.string.about)
-            ) {
-                destinationState.navigate(Destination.About)
-            }
-            TopNavigationIcon(
                 Icons.Default.AccountCircle,
                 stringResource(Res.string.manage_accounts)
             ) {
@@ -40,7 +34,7 @@ fun InboxTopNavigation(title: String?) {
                 Icons.Default.Settings,
                 stringResource(Res.string.hint_settings)
             ) {
-                UiState.openWindow(Destination.Settings)
+                destinationState.navigate(Destination.Settings)
             }
         }
     }

@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.components.AvatarImage
@@ -35,6 +36,7 @@ fun ConversationTopNavigation(viewModel: ConversationViewModel) {
     val avatar = roomInfo?.avatarUrl?.let { MediaSource(it) }
     val keyHandler = LocalKeyboardActionHandler.current
     val focusParent = LocalFocusParent.current
+    val destinationState = LocalDestinationState.current
     TopNavigation {
         if (avatar != null) {
             AvatarImage(
@@ -54,7 +56,7 @@ fun ConversationTopNavigation(viewModel: ConversationViewModel) {
                 Icons.Default.Group,
                 stringResource(Res.string.action_show_room_members),
             ) {
-                UiState.openWindow(Destination.RoomMembers(viewModel.sessionId, viewModel.roomId))
+                destinationState?.navigate(Destination.RoomMembers(viewModel.sessionId, viewModel.roomId))
             }
             TopNavigationIcon(
                 Icons.Default.Update,

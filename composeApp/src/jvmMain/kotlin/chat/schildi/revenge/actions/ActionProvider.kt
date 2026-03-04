@@ -64,7 +64,7 @@ fun buildNavigationActionProvider(
 ): ActionProvider {
     return ActionProvider(
         searchProvider = searchProvider,
-        primaryAction = InteractionAction.NavigateCurrent(
+        primaryAction = InteractionAction.Navigate(
             initialTitle = initialTitle,
             buildDestination = buildDestination,
         ),

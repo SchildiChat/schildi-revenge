@@ -5,6 +5,7 @@ import androidx.compose.runtime.remember
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.LocalDestinationState
+import chat.schildi.revenge.NavigationPreference
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
@@ -68,8 +69,8 @@ class SplitKeyboardActionProvider(
                 val oldPrimary = destinationState.primary.state.value
                 val oldSecondary = destinationState.secondary.state.value
                 // Avoid having the same key twice at any given time just in case
-                destinationState.primary.navigate(Destination.Splash)
-                destinationState.secondary.navigate(Destination.Splash)
+                destinationState.primary.navigate(Destination.Splash, NavigationPreference.REPLACE)
+                destinationState.secondary.navigate(Destination.Splash, NavigationPreference.REPLACE)
                 // Now do the actual swap
                 destinationState.primary.replaceWith(oldSecondary)
                 destinationState.secondary.replaceWith(oldPrimary)

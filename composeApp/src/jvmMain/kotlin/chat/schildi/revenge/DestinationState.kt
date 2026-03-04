@@ -11,13 +11,42 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import java.util.UUID
 
+enum class NavigationPreference {
+    AUTO,
+    REPLACE,
+    NEW_WINDOW,
+}
+
 class DestinationStateHolder(
     initialDestination: DestinationState,
 ) {
     private val _state = MutableStateFlow(initialDestination)
     val state = _state.asStateFlow()
 
-    fun navigate(destination: Destination, invalidateHolderId: Boolean = false) {
+    fun navigate(
+        destination: Destination,
+        preference: NavigationPreference = NavigationPreference.AUTO,
+        invalidateHolderId: Boolean = false,
+        initialTitle: ComposableStringHolder? = null,
+    ) {
+        when (preference) {
+            NavigationPreference.REPLACE -> navigateThis(destination, invalidateHolderId)
+            NavigationPreference.NEW_WINDOW -> UiState.openWindow(destination, initialTitle)
+            NavigationPreference.AUTO -> {
+                val currentCategory = state.value.destination.category
+                when {
+                    currentCategory == DestinationCategory.WILDCARD ||
+                    currentCategory == destination.category -> navigateThis(destination, invalidateHolderId)
+                    else -> UiState.openWindow(destination, initialTitle)
+                }
+            }
+        }
+    }
+
+    private fun navigateThis(
+        destination: Destination,
+        invalidateHolderId: Boolean = false,
+    ) {
         val holderId = if (invalidateHolderId) UUID.randomUUID() else null
         _state.update {
             DestinationState(

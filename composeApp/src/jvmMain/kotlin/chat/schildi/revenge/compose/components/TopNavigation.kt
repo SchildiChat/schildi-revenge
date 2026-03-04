@@ -33,6 +33,7 @@ import chat.schildi.revenge.Anim
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
+import chat.schildi.revenge.NavigationPreference
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.search.LocalSearchProvider
@@ -90,7 +91,7 @@ fun TopNavigationCloseOrNavigateToInboxIcon(modifier: Modifier = Modifier) {
                 stringResource(Res.string.action_open_inbox),
                 modifier,
             ) {
-                destinationState?.navigate(Destination.Inbox)
+                destinationState?.navigate(Destination.Inbox, NavigationPreference.REPLACE)
             }
         } else {
             TopNavigationIcon(

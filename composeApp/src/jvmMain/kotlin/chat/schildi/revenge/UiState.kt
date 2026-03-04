@@ -228,7 +228,7 @@ object UiState {
                         null
                     } else {
                         window.also {
-                            it.destinationHolder.navigate(destination)
+                            it.destinationHolder.navigate(destination, NavigationPreference.REPLACE)
                         }
                     }
                 } else {

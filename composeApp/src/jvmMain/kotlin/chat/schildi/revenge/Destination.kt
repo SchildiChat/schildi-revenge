@@ -16,10 +16,23 @@ import shire.composeapp.generated.resources.message_reactions_title
 
 val DEFAULT_WINDOW_APP_TITLE = StringResourceHolder(Res.string.app_title_short)
 
+/**
+ * Categories of destination for deciding on some navigation behavior (split-screen, new window, same destination)
+ */
+enum class DestinationCategory {
+    INBOX,
+    CONVERSATION,
+    CONVERSATION_DETAILS,
+    SETTINGS,
+    // Wildcard can be anything (wrapper or tmp loading destination resolving to sth else later)
+    WILDCARD,
+}
+
 sealed interface Destination {
     // For referring to destinations via key bindings config
     val type: DestinationEnum
     val title: ComposableStringHolder?
+    val category: DestinationCategory
 
     // Data classes should contain everything we need to key on in the toString()
     fun key() = toString()
@@ -31,16 +44,19 @@ sealed interface Destination {
     data object AccountManagement : Destination {
         override val type = DestinationEnum.AccountManagement
         override val title = StringResourceHolder(Res.string.manage_accounts)
+        override val category = DestinationCategory.SETTINGS
     }
 
     data object Inbox : Destination {
         override val type = DestinationEnum.Inbox
         override val title = StringResourceHolder(Res.string.inbox)
+        override val category = DestinationCategory.INBOX
     }
 
     data object Splash : Destination {
         override val type = DestinationEnum.Splash
         override val title = DEFAULT_WINDOW_APP_TITLE
+        override val category = DestinationCategory.WILDCARD
     }
 
     data class Conversation(
@@ -49,6 +65,7 @@ sealed interface Destination {
     ) : WithSession {
         override val type = DestinationEnum.Conversation
         override val title = null
+        override val category = DestinationCategory.CONVERSATION
     }
 
     data class RoomMembers(
@@ -57,6 +74,7 @@ sealed interface Destination {
     ) : WithSession {
         override val type = DestinationEnum.RoomMembers
         override val title = null
+        override val category = DestinationCategory.CONVERSATION_DETAILS
     }
 
     data class MessageReactions(
@@ -66,16 +84,19 @@ sealed interface Destination {
     ) : WithSession {
         override val type = DestinationEnum.MessageReactions
         override val title = StringResourceHolder(Res.string.message_reactions_title)
+        override val category = DestinationCategory.CONVERSATION_DETAILS
     }
 
     data object Settings : Destination {
         override val type = DestinationEnum.Settings
         override val title = StringResourceHolder(Res.string.hint_settings)
+        override val category = DestinationCategory.SETTINGS
     }
 
     data object About : Destination {
         override val type = DestinationEnum.About
         override val title = StringResourceHolder(Res.string.about)
+        override val category = DestinationCategory.SETTINGS
     }
 
     sealed interface Split : Destination {
@@ -90,6 +111,7 @@ sealed interface Destination {
     ) : Split {
         override val type = DestinationEnum.SplitHorizontal
         override val title = DEFAULT_WINDOW_APP_TITLE
+        override val category = DestinationCategory.WILDCARD
     }
 
     data class SplitVertical(
@@ -99,5 +121,6 @@ sealed interface Destination {
     ) : Split {
         override val type = DestinationEnum.SplitVertical
         override val title = DEFAULT_WINDOW_APP_TITLE
+        override val category = DestinationCategory.WILDCARD
     }
 }

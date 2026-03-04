@@ -13,7 +13,7 @@ sealed interface InteractionAction {
         val buildDestination: () -> Destination
     }
 
-    data class NavigateCurrent(
+    data class Navigate(
         override val initialTitle: () -> ComposableStringHolder? = { null },
         override val buildDestination: () -> Destination,
     ) : NavigationAction

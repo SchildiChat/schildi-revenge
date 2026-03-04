@@ -42,6 +42,7 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.DestinationState
 import chat.schildi.revenge.GlobalActionsScope
 import chat.schildi.revenge.LocalDestinationState
+import chat.schildi.revenge.NavigationPreference
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
 import chat.schildi.revenge.compose.focus.FakeFocusRequester
 import chat.schildi.revenge.compose.util.ComposableStringHolder
@@ -440,13 +441,16 @@ class KeyboardActionHandler(
             is InteractionAction.NavigationAction -> {
                 val destination = action.buildDestination()
                 when (action) {
+                    is InteractionAction.Navigate -> {
+                        updateMode { KeyboardActionMode.Navigation }
+                        navigateAuto(
+                            destination,
+                            destinationStateHolder,
+                        )
+                    }
                     is InteractionAction.OpenWindow -> {
                         UiState.openWindow(destination, action.initialTitle())
                         true
-                    }
-                    is InteractionAction.NavigateCurrent -> {
-                        updateMode { KeyboardActionMode.Navigation }
-                        navigateCurrentDestination(destination, destinationStateHolder)
                     }
                 }
             }
@@ -471,7 +475,11 @@ class KeyboardActionHandler(
                 destinationStateHolder
                     ?: currentFocused()?.destinationStateHolder ?:
                     focusableTargets.values.firstNotNullOfOrNull { it.destinationStateHolder }
-        )?.navigate(destination, invalidateHolderId = invalidateHolderId) != null
+        )?.navigate(
+                destination,
+                NavigationPreference.REPLACE,
+                invalidateHolderId = invalidateHolderId,
+        ) != null
     }
 
     private fun navigateCurrentDestination(
@@ -488,6 +496,22 @@ class KeyboardActionHandler(
                 )
             }
         } ?: false
+    }
+
+    private fun navigateAuto(
+        destination: Destination,
+        destinationStateHolder: DestinationStateHolder? = null,
+        invalidateHolderId: Boolean = false,
+    ): Boolean {
+        return (
+                destinationStateHolder
+                    ?: currentFocused()?.destinationStateHolder ?:
+                    focusableTargets.values.firstNotNullOfOrNull { it.destinationStateHolder }
+                )?.navigate(
+                destination,
+                NavigationPreference.AUTO,
+                invalidateHolderId = invalidateHolderId,
+            ) != null
     }
 
     fun publishMessage(
