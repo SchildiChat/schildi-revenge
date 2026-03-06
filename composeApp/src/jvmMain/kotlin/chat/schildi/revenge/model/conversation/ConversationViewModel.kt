@@ -1616,7 +1616,7 @@ class ConversationViewModel(
                     }
 
                     Action.Event.CopyMxc -> {
-                        val url = event.mediaSource()?.url
+                        val url = event.mediaSource()?.safeUrl
                         if (url == null) {
                             ActionResult.Inapplicable
                         } else {
@@ -1809,13 +1809,13 @@ class ConversationViewModel(
         val mediaSource = event.mediaSource() ?: return ActionResult.Inapplicable
         val client = clientFlow.value ?: return ActionResult.Failure("Client not ready")
         val mediaLoader = client.matrixMediaLoader
-        val appMessageId = "downloadFile_${mediaSource.url}"
+        val appMessageId = "downloadFile_${mediaSource.safeUrl}"
         val filename = event.mediaFilename()
         val outFile = PersistentAttachmentDownload.getPersistentAttachmentFile(
             sessionId = sessionId,
             roomId = roomId,
             timestamp = event.timestamp,
-            mxcUrl = mediaSource.url,
+            mxcUrl = mediaSource.safeUrl,
             filename = filename,
         )
         if (outFile.exists() && outFile.length() > 0) {

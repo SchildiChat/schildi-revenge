@@ -89,9 +89,9 @@ val buildSdk = tasks.register<Exec>("buildSdk") {
     group = "build"
     workingDir = rustSdkDir
     if (isReleaseBuild) {
-        commandLine("cargo", "build", "--release", "-p", "matrix-sdk-ffi", "--features", "rustls-tls")
+        commandLine("cargo", "build", "--release", "-p", "matrix-sdk-ffi")
     } else {
-        commandLine("cargo", "build", "-p", "matrix-sdk-ffi", "--features", "rustls-tls")
+        commandLine("cargo", "build", "-p", "matrix-sdk-ffi")
     }
 
     // Skip rebuilding FFI if the SDK did not change, since uniffi-bindgen is very slow and doesn't

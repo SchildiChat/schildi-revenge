@@ -6,6 +6,6 @@ package kotlinx.parcelize
 annotation class Parcelize
 
 /** Shim **/
-@Target(AnnotationTarget.CLASS)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FIELD)
 @Retention(AnnotationRetention.RUNTIME)
 annotation class IgnoredOnParcel
