@@ -15,6 +15,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.NoEncryption
+import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.minimumInteractiveComponentSize
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -35,6 +37,7 @@ import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.compose.destination.conversation.event.message.ReplyContent
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.Attachment
+import chat.schildi.revenge.model.ComposerRoomInfo
 import chat.schildi.revenge.model.ComposerViewModel
 import chat.schildi.revenge.model.DraftType
 import chat.schildi.theme.scExposures
@@ -54,6 +57,8 @@ import shire.composeapp.generated.resources.hint_composer_notice
 import shire.composeapp.generated.resources.hint_composer_reaction
 import shire.composeapp.generated.resources.hint_composer_text
 import shire.composeapp.generated.resources.hint_composer_video
+import shire.composeapp.generated.resources.hint_not_encrypted
+import shire.composeapp.generated.resources.hint_public_room
 
 // TODO
 //  formatted messages: markdown toggle + rendered preview
@@ -61,6 +66,7 @@ import shire.composeapp.generated.resources.hint_composer_video
 fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
     val draftState = viewModel.composerState.collectAsState().value
     val suggestionsState = viewModel.composerSuggestions.collectAsState().value
+    val composerInfo = viewModel.composerRoomInfo.collectAsState().value
     Column(modifier) {
         ComposerSuggestions(
             suggestionsState,
@@ -156,7 +162,23 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
                             DraftType.CUSTOM_STATE_EVENT -> MaterialTheme.scExposures.customEventHint
                         }
                     ).value
-                    Text(hint, color = hintColor)
+                    Row(
+                        horizontalArrangement = Dimens.horizontalArrangement,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        when (draftState.type) {
+                            DraftType.TEXT,
+                            DraftType.NOTICE,
+                            DraftType.EMOTE,
+                            DraftType.ATTACHMENT -> RoomPrivacyIndicator(composerInfo, hintColor)
+                            DraftType.EDIT,
+                            DraftType.EDIT_CAPTION,
+                            DraftType.REACTION,
+                            DraftType.CUSTOM_EVENT,
+                            DraftType.CUSTOM_STATE_EVENT -> {}
+                        }
+                        Text(hint, color = hintColor)
+                    }
                 },
                 modifier = Modifier
                     .weight(1f)
@@ -184,6 +206,33 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
                 }
             }
         }
+    }
+}
+
+@Composable
+fun RoomPrivacyIndicator(
+    composerInfo: ComposerRoomInfo?,
+    hintColor: Color,
+) {
+    val tint = if (hintColor == Color.Unspecified) {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    } else {
+        hintColor
+    }
+    if (composerInfo?.isPublic == true) {
+        Icon(
+            Icons.Outlined.Public,
+            stringResource(Res.string.hint_public_room),
+            Modifier.size(12.dp),
+            tint = tint,
+        )
+    } else if (composerInfo?.isEncrypted != true) {
+        Icon(
+            Icons.Default.NoEncryption,
+            stringResource(Res.string.hint_not_encrypted),
+            Modifier.size(12.dp),
+            tint = tint,
+        )
     }
 }
 

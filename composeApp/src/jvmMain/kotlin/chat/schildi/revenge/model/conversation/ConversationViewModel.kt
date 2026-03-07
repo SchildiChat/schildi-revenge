@@ -49,6 +49,7 @@ import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.model.Attachment
+import chat.schildi.revenge.model.ComposerRoomInfo
 import chat.schildi.revenge.model.ComposerRoomMentionSuggestion
 import chat.schildi.revenge.model.ComposerSuggestion
 import chat.schildi.revenge.model.ComposerSuggestionsProvider
@@ -741,6 +742,16 @@ class ConversationViewModel(
     val userProfile = clientFlow.flatMapLatest { it?.userProfile ?: flowOf(null) }
 
     val roomInfo = roomPair.map { (it, _) -> it?.info() }
+
+    override val composerRoomInfo: StateFlow<ComposerRoomInfo?> =
+        roomInfo.map { info ->
+            info?.let {
+                ComposerRoomInfo(
+                    isEncrypted = info.isEncrypted,
+                    isPublic = info.isPublic,
+                )
+            }
+        }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     override val windowTitle: Flow<ComposableStringHolder?> = combine(
         roomPair,

@@ -49,10 +49,16 @@ data class ComposerSuggestionsState(
     val selectedSuggestion: ComposerSuggestion? = null,
 )
 
+data class ComposerRoomInfo(
+    val isEncrypted: Boolean?,
+    val isPublic: Boolean?,
+)
+
 // TODO also expose can-send-message permissions
 interface ComposerViewModel {
     val composerState: StateFlow<DraftValue>
     val composerSuggestions: StateFlow<ComposerSuggestionsState>
+    val composerRoomInfo: StateFlow<ComposerRoomInfo?>
     fun onComposerUpdate(value: DraftValue)
     fun sendMessage(context: ActionContext): ActionResult
     fun attachFile(context: ActionContext, path: String): Boolean

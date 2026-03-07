@@ -131,6 +131,8 @@
     <string name="hint_sending">Sending</string>
     <string name="hint_send_error">Send error</string>
     <string name="hint_app_icon">App icon</string>
+    <string name="hint_public_room">Public room</string>
+    <string name="hint_not_encrypted">Not encrypted</string>
 
     <string name="reply_failed_to_load">Failed to load replied-to message</string>
 
