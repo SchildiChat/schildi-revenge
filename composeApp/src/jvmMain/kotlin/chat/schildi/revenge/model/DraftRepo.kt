@@ -39,6 +39,12 @@ enum class DraftType {
     CUSTOM_STATE_EVENT,
 }
 
+enum class ComposerFormat {
+    PLAIN,
+    MARKDOWN,
+    HTML,
+}
+
 sealed interface Attachment {
     val file: File
 
@@ -74,6 +80,7 @@ data class DraftMention(
 
 data class DraftValue(
     val type: DraftType = DraftType.TEXT,
+    val preferredFormat: ComposerFormat = ComposerFormat.MARKDOWN,
     val textFieldValue: TextFieldValue = TextFieldValue(""),
     val mentions: ImmutableList<DraftMention> = persistentListOf(),
     val inReplyTo: InReplyTo.Ready? = null,
@@ -84,11 +91,35 @@ data class DraftValue(
     val customEventType: String? = null, // Only for DraftType.CUSTOM_EVENT and DraftType.CUSTOM_STATE_EVENT
     val stateKey: String? = null, // Only for DraftType.CUSTOM_STATE_EVENT
 ) {
-    val body: String
+    val rawBody: String
         get() = textFieldValue.text.trim()
+    val format: ComposerFormat = when (type) {
+        DraftType.TEXT,
+        DraftType.NOTICE,
+        DraftType.EMOTE,
+        DraftType.EDIT -> preferredFormat
+        // TODO I haven't taught captions to not do auto-markdown on the SDK side yet
+        DraftType.ATTACHMENT,
+        DraftType.EDIT_CAPTION -> preferredFormat.takeIf { it != ComposerFormat.PLAIN } ?: ComposerFormat.MARKDOWN
+        else -> ComposerFormat.PLAIN
+    }
+    val body: String
+        get() = when (format) {
+            ComposerFormat.MARKDOWN -> ComposerBodyFormatter.preformatPlaintextMentionsForMarkdown(rawBody, mentions)
+            ComposerFormat.HTML,
+            ComposerFormat.PLAIN -> rawBody
+        }
     val htmlBody: String?
-        get() = ComposerHtmlGenerator.generateFormattedHtmlBody(body, mentions)
+        get() = when (format) {
+            // SDK generates Markdown for us
+            ComposerFormat.MARKDOWN,
+            ComposerFormat.PLAIN -> null
+            ComposerFormat.HTML -> body
+        }
     val intentionalMentions = mentions.map { it.mention }
+
+    val shouldSendAsPlaintext: Boolean
+        get() = format == ComposerFormat.PLAIN
 
     fun isEmpty() = attachment?.takeIf { type == DraftType.ATTACHMENT } == null &&
             (textFieldValue.text.isBlank() || textFieldValue.text == initialBody)

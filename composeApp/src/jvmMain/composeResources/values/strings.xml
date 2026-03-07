@@ -122,6 +122,9 @@
     <string name="hint_composer_video">Video</string>
     <string name="hint_composer_audio">Audio message</string>
     <string name="hint_composer_file">File attachment</string>
+    <string name="hint_composer_format_plain">plaintext</string>
+    <string name="hint_composer_format_markdown">Markdown</string>
+    <string name="hint_composer_format_html">HTML</string>
     <string name="hint_sync_state_error">Error</string>
     <string name="hint_sync_state_idle">Idle</string>
     <string name="hint_sync_state_running">Running</string>
@@ -280,6 +283,8 @@
     <string name="pref_prefer_dual_pane_inbox_title">Combine inbox &amp; conversation</string>
     <string name="pref_prefer_dual_pane_inbox_summary">Prefer showing inbox and conversation side by side in a given window when there's enough space</string>
     <string name="pref_inbox_conversation_dual_pane_min_width_title">Minimum width for Inbox/conversation split</string>
+    <string name="pref_preferred_message_format_title">Composer input format</string>
+    <string name="pref_preferred_message_format_summary">Input type for formatted message generation</string>
 
     <string name="nameless_space_fallback_title">Nameless space</string>
 

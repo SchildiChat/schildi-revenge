@@ -49,6 +49,7 @@ import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.model.Attachment
+import chat.schildi.revenge.model.ComposerFormat
 import chat.schildi.revenge.model.ComposerRoomInfo
 import chat.schildi.revenge.model.ComposerRoomMentionSuggestion
 import chat.schildi.revenge.model.ComposerSuggestion
@@ -130,6 +131,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
@@ -399,9 +401,50 @@ class ConversationViewModel(
     }
 
     private val draftKey = ScopedRoomKey(sessionId, roomId)
-    override val composerState = DraftRepo.followDraft(draftKey).map {
-        it ?: DraftValue()
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, DraftValue())
+
+    private val preferredComposerFormat = scPreferencesStore.settingFlow(ScPrefs.PREFERRED_MESSAGE_FORMAT).map {
+        tryOrNull { ComposerFormat.valueOf(it) }
+            ?: ComposerFormat.valueOf(ScPrefs.PREFERRED_MESSAGE_FORMAT.defaultValue)
+    }
+        .distinctUntilChanged()
+        .onEach { preferredFormat ->
+            DraftRepo.update(draftKey) {
+                it?.copy(
+                    preferredFormat = preferredFormat,
+                )
+            }
+        }
+        .stateIn(
+            viewModelScope,
+            SharingStarted.Eagerly,
+            tryOrNull { ComposerFormat.valueOf(scPreferencesStore.getCachedOrDefaultValue(ScPrefs.PREFERRED_MESSAGE_FORMAT)) }
+                ?: ComposerFormat.valueOf(ScPrefs.PREFERRED_MESSAGE_FORMAT.defaultValue)
+        )
+
+    private fun createDraftValue(
+        type: DraftType = DraftType.TEXT,
+        textFieldValue: TextFieldValue = TextFieldValue(""),
+        inReplyTo: InReplyTo.Ready? = null,
+        editEventId: EventOrTransactionId? = null,
+        initialBody: String = "",
+        attachment: Attachment? = null,
+        customEventType: String? = null,
+        stateKey: String? = null,
+    ) = DraftValue(
+        type = type,
+        textFieldValue = textFieldValue,
+        inReplyTo = inReplyTo,
+        editEventId = editEventId,
+        initialBody = initialBody,
+        attachment = attachment,
+        customEventType = customEventType,
+        stateKey = stateKey,
+        preferredFormat = preferredComposerFormat.value,
+    )
+
+    override val composerState = DraftRepo.followDraft(draftKey).combine(preferredComposerFormat) { it, _ ->
+        it ?: createDraftValue()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, createDraftValue())
 
     private val composerSuggestionsProvider = ComposerSuggestionsProvider(
         queryFlow = composerState,
@@ -501,12 +544,14 @@ class ConversationViewModel(
                                 repliedToEventId = draft.inReplyTo.eventId,
                                 body = draft.body,
                                 htmlBody = draft.htmlBody,
+                                plaintext = draft.shouldSendAsPlaintext,
                                 intentionalMentions = draft.intentionalMentions,
                             )
                         } else {
                             currentTimeline.sendMessage(
                                 body = draft.body,
                                 htmlBody = draft.htmlBody,
+                                plaintext = draft.shouldSendAsPlaintext,
                                 intentionalMentions = draft.intentionalMentions,
                             )
                         }
@@ -516,6 +561,7 @@ class ConversationViewModel(
                         currentTimeline.sendNotice(
                             body = draft.body,
                             htmlBody = draft.htmlBody,
+                            plaintext = draft.shouldSendAsPlaintext,
                             intentionalMentions = draft.intentionalMentions,
                             inReplyToEventId = draft.inReplyTo?.eventId,
                         )
@@ -525,6 +571,7 @@ class ConversationViewModel(
                         currentTimeline.sendEmote(
                             body = draft.body,
                             htmlBody = draft.htmlBody,
+                            plaintext = draft.shouldSendAsPlaintext,
                             intentionalMentions = draft.intentionalMentions,
                             inReplyToEventId = draft.inReplyTo?.eventId,
                         )
@@ -540,6 +587,7 @@ class ConversationViewModel(
                             eventOrTransactionId = editEventId,
                             body = draft.body,
                             htmlBody = draft.htmlBody,
+                            plaintext = draft.shouldSendAsPlaintext,
                             intentionalMentions = draft.intentionalMentions,
                         )
                     }
@@ -554,6 +602,7 @@ class ConversationViewModel(
                             eventOrTransactionId = editEventId,
                             caption = draft.body,
                             formattedCaption = draft.htmlBody,
+                            plaintext = draft.shouldSendAsPlaintext,
                         )
                     }
 
@@ -579,6 +628,7 @@ class ConversationViewModel(
                                     audioInfo = attachment.audioInfo,
                                     caption = caption,
                                     formattedCaption = formattedCaption,
+                                    plaintext = draft.shouldSendAsPlaintext,
                                     inReplyToEventId = draft.inReplyTo?.eventId,
                                 )
                             }
@@ -589,6 +639,7 @@ class ConversationViewModel(
                                     fileInfo = attachment.fileInfo,
                                     caption = caption,
                                     formattedCaption = formattedCaption,
+                                    plaintext = draft.shouldSendAsPlaintext,
                                     inReplyToEventId = draft.inReplyTo?.eventId,
                                 )
                             }
@@ -600,6 +651,7 @@ class ConversationViewModel(
                                     imageInfo = attachment.imageInfo,
                                     caption = caption,
                                     formattedCaption = formattedCaption,
+                                    plaintext = draft.shouldSendAsPlaintext,
                                     inReplyToEventId = draft.inReplyTo?.eventId,
                                 )
                             }
@@ -611,6 +663,7 @@ class ConversationViewModel(
                                     videoInfo = attachment.videoInfo,
                                     caption = caption,
                                     formattedCaption = formattedCaption,
+                                    plaintext = draft.shouldSendAsPlaintext,
                                     inReplyToEventId = draft.inReplyTo?.eventId,
                                 )
                             }
@@ -867,7 +920,7 @@ class ConversationViewModel(
                     forceShowComposer.value = true
                     DraftRepo.update(draftKey) {
                         it?.copy(type = DraftType.TEXT, editEventId = null, initialBody = "", attachment = null)
-                            ?: DraftValue(type = DraftType.TEXT)
+                            ?: createDraftValue(type = DraftType.TEXT)
                     }
                     focusByRole(FocusRole.MESSAGE_COMPOSER)
                     ActionResult.Success()
@@ -877,7 +930,7 @@ class ConversationViewModel(
                     forceShowComposer.value = true
                     DraftRepo.update(draftKey) {
                         it?.copy(type = DraftType.NOTICE, editEventId = null, initialBody = "", attachment = null)
-                            ?: DraftValue(type = DraftType.NOTICE)
+                            ?: createDraftValue(type = DraftType.NOTICE)
                     }
                     focusByRole(FocusRole.MESSAGE_COMPOSER)
                     ActionResult.Success()
@@ -887,7 +940,7 @@ class ConversationViewModel(
                     forceShowComposer.value = true
                     DraftRepo.update(draftKey) {
                         it?.copy(type = DraftType.EMOTE, editEventId = null, initialBody = "", attachment = null)
-                            ?: DraftValue(type = DraftType.EMOTE)
+                            ?: createDraftValue(type = DraftType.EMOTE)
                     }
                     focusByRole(FocusRole.MESSAGE_COMPOSER)
                     ActionResult.Success()
@@ -905,7 +958,7 @@ class ConversationViewModel(
                             editEventId = null,
                             initialBody = "",
                             attachment = null
-                        ) ?: DraftValue(
+                        ) ?: createDraftValue(
                             textFieldValue = TextFieldValue("{\n\n}", TextRange(2)),
                             type = DraftType.CUSTOM_EVENT,
                             customEventType = eventType,
@@ -958,7 +1011,7 @@ class ConversationViewModel(
                                 editEventId = null,
                                 initialBody = if (initialState == null) "" else initialText.text,
                                 attachment = null
-                            ) ?: DraftValue(
+                            ) ?: createDraftValue(
                                 textFieldValue = initialText,
                                 initialBody = if (initialState == null) "" else initialText.text,
                                 type = DraftType.CUSTOM_STATE_EVENT,
@@ -992,7 +1045,7 @@ class ConversationViewModel(
                         DraftRepo.update(draftKey) {
                             it?.copy(
                                 textFieldValue = it.textFieldValue.insertAtCursor(content)
-                            ) ?: DraftValue(
+                            ) ?: createDraftValue(
                                 textFieldValue = TextFieldValue(content, TextRange(content.length))
                             )
                         }
@@ -1304,7 +1357,7 @@ class ConversationViewModel(
                 type = DraftType.ATTACHMENT,
                 editEventId = null,
                 isSendInProgress = false,
-            ) ?: DraftValue(
+            ) ?: createDraftValue(
                 attachment = attachment,
                 type = DraftType.ATTACHMENT,
             )
@@ -1522,7 +1575,7 @@ class ConversationViewModel(
                         )
                         DraftRepo.update(draftKey) {
                             it?.copy(inReplyTo = inReplyTo)
-                                ?: DraftValue(inReplyTo = inReplyTo)
+                                ?: createDraftValue(inReplyTo = inReplyTo)
                         }
                         focusByRole(FocusRole.MESSAGE_COMPOSER)
                         ActionResult.Success()
@@ -1535,7 +1588,7 @@ class ConversationViewModel(
                         val eventContent = event.content
                         if (eventContent is MessageContent) {
                             val draftValue = when (val messageType = eventContent.type) {
-                                is TextLikeMessageType -> DraftValue(
+                                is TextLikeMessageType -> createDraftValue(
                                     type = DraftType.EDIT,
                                     textFieldValue = insertTextFieldValue(messageType.body),
                                     editEventId = eventOrTransactionId,
@@ -1545,7 +1598,7 @@ class ConversationViewModel(
                                     //intentionalMentions = // TODO?
                                 )
 
-                                is MessageTypeWithAttachment -> DraftValue(
+                                is MessageTypeWithAttachment -> createDraftValue(
                                     type = DraftType.EDIT_CAPTION,
                                     textFieldValue = insertTextFieldValue(
                                         messageType.caption ?: ""
@@ -1586,7 +1639,7 @@ class ConversationViewModel(
                                 type = DraftType.REACTION,
                                 attachment = null,
                                 editEventId = null,
-                            ) ?: DraftValue(
+                            ) ?: createDraftValue(
                                 textFieldValue = TextFieldValue(":", TextRange(1)),
                                 initialBody = ":",
                                 inReplyTo = inReplyTo,

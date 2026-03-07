@@ -37,9 +37,11 @@ import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.compose.destination.conversation.event.message.ReplyContent
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.Attachment
+import chat.schildi.revenge.model.ComposerFormat
 import chat.schildi.revenge.model.ComposerRoomInfo
 import chat.schildi.revenge.model.ComposerViewModel
 import chat.schildi.revenge.model.DraftType
+import chat.schildi.revenge.model.DraftValue
 import chat.schildi.theme.scExposures
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
@@ -52,6 +54,9 @@ import shire.composeapp.generated.resources.hint_composer_edit
 import shire.composeapp.generated.resources.hint_composer_edit_caption
 import shire.composeapp.generated.resources.hint_composer_emote
 import shire.composeapp.generated.resources.hint_composer_file
+import shire.composeapp.generated.resources.hint_composer_format_html
+import shire.composeapp.generated.resources.hint_composer_format_markdown
+import shire.composeapp.generated.resources.hint_composer_format_plain
 import shire.composeapp.generated.resources.hint_composer_image
 import shire.composeapp.generated.resources.hint_composer_notice
 import shire.composeapp.generated.resources.hint_composer_reaction
@@ -84,7 +89,7 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
         if (draftState.attachment != null) {
             ComposerAttachment(draftState.attachment, viewModel::clearAttachment)
         }
-        val bodyValidationError = remember(draftState.body) { draftState.bodyValidationError() }
+        val bodyValidationError = remember(draftState.rawBody) { draftState.bodyValidationError() }
         if (bodyValidationError != null) {
             Text(
                 bodyValidationError,
@@ -123,11 +128,11 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
                 enabled = !draftState.isSendInProgress,
                 label = {
                     val hint = when (draftState.type) {
-                        DraftType.TEXT -> stringResource(Res.string.hint_composer_text)
-                        DraftType.NOTICE -> stringResource(Res.string.hint_composer_notice)
-                        DraftType.EMOTE -> stringResource(Res.string.hint_composer_emote)
-                        DraftType.EDIT -> stringResource(Res.string.hint_composer_edit)
-                        DraftType.EDIT_CAPTION -> stringResource(Res.string.hint_composer_edit_caption)
+                        DraftType.TEXT -> stringResource(Res.string.hint_composer_text).appendComposerFormat(draftState)
+                        DraftType.NOTICE -> stringResource(Res.string.hint_composer_notice).appendComposerFormat(draftState)
+                        DraftType.EMOTE -> stringResource(Res.string.hint_composer_emote).appendComposerFormat(draftState)
+                        DraftType.EDIT -> stringResource(Res.string.hint_composer_edit).appendComposerFormat(draftState)
+                        DraftType.EDIT_CAPTION -> stringResource(Res.string.hint_composer_edit_caption).appendComposerFormat(draftState)
                         DraftType.REACTION -> stringResource(Res.string.hint_composer_reaction)
                         DraftType.ATTACHMENT -> when (draftState.attachment) {
                             is Attachment.Audio -> stringResource(Res.string.hint_composer_audio)
@@ -135,7 +140,7 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
                             is Attachment.Image -> stringResource(Res.string.hint_composer_image)
                             is Attachment.Video -> stringResource(Res.string.hint_composer_video)
                             null -> stringResource(Res.string.hint_composer_caption)
-                        }
+                        }.appendComposerFormat(draftState)
                         DraftType.CUSTOM_EVENT -> draftState.customEventType ?: ""
                         DraftType.CUSTOM_STATE_EVENT -> {
                             if (draftState.stateKey == null) {
@@ -206,6 +211,23 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun String.appendComposerFormat(draftState: DraftValue): String {
+    val host = this
+    return buildString {
+        append(host)
+        append(" (")
+        append(
+            when (draftState.format) {
+                ComposerFormat.PLAIN -> stringResource(Res.string.hint_composer_format_plain)
+                ComposerFormat.MARKDOWN -> stringResource(Res.string.hint_composer_format_markdown)
+                ComposerFormat.HTML -> stringResource(Res.string.hint_composer_format_html)
+            }
+        )
+        append(")")
     }
 }
 

@@ -120,7 +120,7 @@ sealed interface Action {
         Command,
         SetSetting(args = listOf(ActionArgumentPrimitive.SettingKey, OptionalSettingValue), aliases = listOf("set")),
         ResetSetting(args = listOf(ActionArgumentPrimitive.SettingKey), aliases = listOf("reset")),
-        ToggleSetting(args = listOf(ActionArgumentPrimitive.SettingKey, OptionalSettingValue, OptionalSettingValue), aliases = listOf("toggle")),
+        ToggleSetting(args = listOf(ActionArgumentPrimitive.SettingKey, OptionalSettingValue, OptionalSettingValue, OptionalSettingValue, OptionalSettingValue, OptionalSettingValue, OptionalSettingValue, OptionalSettingValue, OptionalSettingValue), aliases = listOf("toggle")),
         Exit(aliases = listOf("quit")),
         RecreateUi,
         RecreateWindow,

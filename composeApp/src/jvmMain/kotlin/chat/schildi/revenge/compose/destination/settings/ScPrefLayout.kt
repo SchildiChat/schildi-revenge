@@ -41,7 +41,7 @@ fun <T> ScPref<T>.ScPrefLayout(
 ) {
     val currentValue = value()
     val enabled = LocalScPreferencesStore.current.enabledState(this).value
-    val secondaryText = summaryRes?.let { stringResource(it, currentValue.toString()) }
+    val secondaryText = summaryRes?.let { stringResource(it, valueToString(currentValue)) }
         ?: currentValue.takeIf { selectionAsSummary }?.let { valueToString(it) }
     ListItem(
         modifier = modifier.keyFocusable(

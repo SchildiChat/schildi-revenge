@@ -1,8 +1,12 @@
 package chat.schildi.preferences
 
 import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.revenge.model.ComposerFormat
 import kotlinx.collections.immutable.persistentListOf
 import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.hint_composer_format_html
+import shire.composeapp.generated.resources.hint_composer_format_markdown
+import shire.composeapp.generated.resources.hint_composer_format_plain
 import shire.composeapp.generated.resources.hint_settings
 import shire.composeapp.generated.resources.pref_always_show_keyboard_focus
 import shire.composeapp.generated.resources.pref_auto_hide_composer_summary
@@ -57,6 +61,8 @@ import shire.composeapp.generated.resources.pref_minimal_mode_summary
 import shire.composeapp.generated.resources.pref_minimal_mode_title
 import shire.composeapp.generated.resources.pref_prefer_dual_pane_inbox_summary
 import shire.composeapp.generated.resources.pref_prefer_dual_pane_inbox_title
+import shire.composeapp.generated.resources.pref_preferred_message_format_summary
+import shire.composeapp.generated.resources.pref_preferred_message_format_title
 import shire.composeapp.generated.resources.pref_render_scale
 import shire.composeapp.generated.resources.pref_show_dev_infos_summary
 import shire.composeapp.generated.resources.pref_show_dev_infos_title
@@ -236,6 +242,17 @@ object ScPrefs {
     val HIDE_AUTHENTICITY_NOT_GUARANTEED = ScBoolPref("HIDE_AUTHENTICITY_NOT_GUARANTEED", false, Res.string.pref_hide_message_authenticity_not_guaranteed_title, Res.string.pref_hide_message_authenticity_not_guaranteed_summary)
     val VIEW_HIDDEN_EVENTS = ScBoolPref("VIEW_HIDDEN_EVENTS", false, Res.string.pref_view_hidden_events_title) // TODO
     val VIEW_REDACTIONS = ScBoolPref("VIEW_REDACTIONS", false, Res.string.pref_view_redactions_title, /*dependencies = listOf(VIEW_HIDDEN_EVENTS.toDependency(expect = false)),*/ disabledValue = true)
+    val PREFERRED_MESSAGE_FORMAT = ScStringListPref(
+        "PREFERRED_MESSAGE_FORMAT",
+        defaultValue = ComposerFormat.MARKDOWN.toString(),
+        items = persistentListOf(
+            ScListPrefEntry(ComposerFormat.MARKDOWN.toString(), Res.string.hint_composer_format_markdown.toStringHolder()),
+            ScListPrefEntry(ComposerFormat.PLAIN.toString(), Res.string.hint_composer_format_plain.toStringHolder()),
+            ScListPrefEntry(ComposerFormat.HTML.toString(), Res.string.hint_composer_format_html.toStringHolder()),
+        ),
+        titleRes = Res.string.pref_preferred_message_format_title,
+        summaryRes = Res.string.pref_preferred_message_format_summary,
+    )
     /*
     val PINNED_MESSAGE_OVERLAY = ScBoolPref("PINNED_MESSAGE_OVERLAY", false, Res.string.sc_pref_pinned_message_overlay_title, Res.string.sc_pref_pinned_message_overlay_summary, authorsChoice = false, upstreamChoice = true)
     val PINNED_MESSAGE_TOOLBAR_ACTION = ScBoolPref("PINNED_MESSAGE_TOOLBAR_ACTION", true, Res.string.sc_pref_pinned_message_toolbar_title, Res.string.sc_pref_pinned_message_toolbar_summary, authorsChoice = true, upstreamChoice = false, dependencies = PINNED_MESSAGE_OVERLAY.asDependencies(expect = false), disabledValue = false)
@@ -326,6 +343,7 @@ object ScPrefs {
             VIEW_REDACTIONS,
             HIDE_AUTHENTICITY_NOT_GUARANTEED,
             HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS,
+            PREFERRED_MESSAGE_FORMAT,
             /*
             SC_TIMELINE_LAYOUT,
             RENDER_INLINE_IMAGES,

@@ -68,12 +68,14 @@ interface Timeline : AutoCloseable {
     suspend fun sendMessage(
         body: String,
         htmlBody: String?,
+        plaintext: Boolean, // SC
         intentionalMentions: List<IntentionalMention>,
     ): Result<Unit>
 
     suspend fun sendNotice( // SC
         body: String,
         htmlBody: String?,
+        plaintext: Boolean,
         intentionalMentions: List<IntentionalMention>,
         inReplyToEventId: EventId?,
     ): Result<Unit>
@@ -81,6 +83,7 @@ interface Timeline : AutoCloseable {
     suspend fun sendEmote( // SC
         body: String,
         htmlBody: String?,
+        plaintext: Boolean,
         intentionalMentions: List<IntentionalMention>,
         inReplyToEventId: EventId?,
     ): Result<Unit>
@@ -89,6 +92,7 @@ interface Timeline : AutoCloseable {
         eventOrTransactionId: EventOrTransactionId,
         body: String,
         htmlBody: String?,
+        plaintext: Boolean, // SC
         intentionalMentions: List<IntentionalMention>,
     ): Result<Unit>
 
@@ -96,12 +100,14 @@ interface Timeline : AutoCloseable {
         eventOrTransactionId: EventOrTransactionId,
         caption: String?,
         formattedCaption: String?,
+        plaintext: Boolean,  // SC
     ): Result<Unit>
 
     suspend fun replyMessage(
         repliedToEventId: EventId,
         body: String,
         htmlBody: String?,
+        plaintext: Boolean,  // SC
         intentionalMentions: List<IntentionalMention>,
         fromNotification: Boolean = false,
     ): Result<Unit>
@@ -112,6 +118,7 @@ interface Timeline : AutoCloseable {
         imageInfo: ImageInfo,
         caption: String?,
         formattedCaption: String?,
+        plaintext: Boolean,  // SC
         inReplyToEventId: EventId?,
     ): Result<MediaUploadHandler>
 
@@ -121,6 +128,7 @@ interface Timeline : AutoCloseable {
         videoInfo: VideoInfo,
         caption: String?,
         formattedCaption: String?,
+        plaintext: Boolean,  // SC
         inReplyToEventId: EventId?,
     ): Result<MediaUploadHandler>
 
@@ -129,6 +137,7 @@ interface Timeline : AutoCloseable {
         audioInfo: AudioInfo,
         caption: String?,
         formattedCaption: String?,
+        plaintext: Boolean,  // SC
         inReplyToEventId: EventId?,
     ): Result<MediaUploadHandler>
 
@@ -137,6 +146,7 @@ interface Timeline : AutoCloseable {
         fileInfo: FileInfo,
         caption: String?,
         formattedCaption: String?,
+        plaintext: Boolean,  // SC
         inReplyToEventId: EventId?,
     ): Result<MediaUploadHandler>
 

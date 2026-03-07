@@ -5,17 +5,20 @@ import io.element.android.libraries.matrix.api.room.IntentionalMention
 import io.ktor.http.encodeURLPath
 import org.jsoup.nodes.Entities
 
-object ComposerHtmlGenerator {
-    private val log = Logger.withTag("ComposerHtml")
+object ComposerBodyFormatter {
+    private val log = Logger.withTag("ComposerBodyFormatter")
 
-    fun generateFormattedHtmlBody(plaintext: String, mentions: List<DraftMention>): String? {
-        // If there's no need for HTML, don't.
+    /**
+     * The SDK requires intentional mentions for generating markdown to be already html-formatted.
+     */
+    fun preformatPlaintextMentionsForMarkdown(plaintext: String, mentions: List<DraftMention>): String {
+        // If there's no need, don't.
         if (mentions.none { mention ->
                 (mention.mention as? IntentionalMention.User)?.let {
                     it.userId.value != plaintext.substring(mention.range)
                 } == true
         }) {
-            return null
+            return plaintext
         }
 
         // Don't allow entering plaintext html for now

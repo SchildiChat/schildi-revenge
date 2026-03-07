@@ -18,6 +18,7 @@ import chat.schildi.revenge.actions.CommandSuggestionsState
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.compose.focus.keyFocusable
+import chat.schildi.revenge.util.tryOrNull
 import chat.schildi.theme.scExposures
 import kotlinx.collections.immutable.ImmutableList
 
