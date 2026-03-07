@@ -304,7 +304,7 @@ class KeyboardActionHandler(
     }
 
     fun searchQueryForDestination(searchProvider: SearchProvider) = mode.map {
-        it.asSearchMode()?.takeIf { it.searchProvider == searchProvider }?.query ?: ""
+        it.asSearchMode()?.takeIf { it.searchProvider == searchProvider }?.query
     }
 
     fun needsKeyboardSearchBar(searchProvider: SearchProvider?) = mode.map { m ->

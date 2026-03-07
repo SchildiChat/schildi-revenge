@@ -53,6 +53,7 @@ fun DestinationContent(
                 is Destination.SplitVertical -> SplitVertical(destination, baseModifier, contentModifier)
                 is Destination.About -> AboutScreen(baseModifier, contentModifier)
                 is Destination.Settings -> SettingsScreen(destination, baseModifier, contentModifier)
+                is Destination.SettingsPane -> SettingsScreen(destination, baseModifier, contentModifier)
                 is Destination.MultiPanePlaceholder -> EmptyPaneScreen(baseModifier, contentModifier)
                 is Destination.InboxConversationMultiPane -> InboxConversationMultiPaneScreen(destination, baseModifier, contentModifier)
             }
@@ -67,9 +68,16 @@ private fun Modifier.forDestination(destination: Destination): AdaptiveSplitLayo
         is Destination.Conversation -> Pair(ScPrefs.MAX_WIDTH_CONVERSATION, ScPrefs.LAYOUT_WEIGHT_CONVERSATION.value())
         is Destination.MessageReactions,
         is Destination.RoomMembers -> Pair(ScPrefs.MAX_WIDTH_ROOM_DETAILS, ScPrefs.LAYOUT_WEIGHT_ROOM_DETAILS.value())
-        is Destination.Settings,
         Destination.AccountManagement,
         Destination.About -> Pair(ScPrefs.MAX_WIDTH_SETTINGS, ScPrefs.LAYOUT_WEIGHT_SETTINGS.value())
+        is Destination.SettingsPane -> Pair(
+            ScPrefs.MAX_WIDTH_SETTINGS,
+            if (destination.rootPreferenceCategory == null) {
+                ScPrefs.LAYOUT_WEIGHT_SETTINGS_ROOT.value()
+            } else {
+                ScPrefs.LAYOUT_WEIGHT_SETTINGS.value()
+            }
+        )
         is Destination.SplitHorizontal,
         is Destination.SplitVertical,
         is Destination.MultiPane,
@@ -78,6 +86,7 @@ private fun Modifier.forDestination(destination: Destination): AdaptiveSplitLayo
             DestinationCategory.INBOX -> Pair(ScPrefs.MAX_WIDTH_INBOX, ScPrefs.LAYOUT_WEIGHT_INBOX.value())
             DestinationCategory.CONVERSATION -> Pair(ScPrefs.MAX_WIDTH_CONVERSATION, ScPrefs.LAYOUT_WEIGHT_CONVERSATION.value())
             DestinationCategory.CONVERSATION_DETAILS -> Pair(ScPrefs.MAX_WIDTH_ROOM_DETAILS, ScPrefs.LAYOUT_WEIGHT_ROOM_DETAILS.value())
+            DestinationCategory.ABOUT,
             DestinationCategory.SETTINGS -> Pair(ScPrefs.MAX_WIDTH_SETTINGS, ScPrefs.LAYOUT_WEIGHT_SETTINGS.value())
             DestinationCategory.WILDCARD -> Pair(null, WEIGHT_DEFAULT)
         }

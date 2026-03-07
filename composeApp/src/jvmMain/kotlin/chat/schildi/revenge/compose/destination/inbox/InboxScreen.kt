@@ -80,7 +80,7 @@ fun InboxScreen(
         spaceSelection,
         ScPrefs.PSEUDO_SPACE_HIDE_EMPTY_UNREAD.value(),
     )
-    val selectedSpace = if (searchQuery.isBlank()) {
+    val selectedSpace = if (searchQuery.isNullOrBlank()) {
         spaces?.resolveSelection(spaceSelection)
     } else {
         // Search ignores spaces

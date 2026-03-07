@@ -232,6 +232,7 @@
     <string name="pref_layout_weight_inbox_title">Inbox weight</string>
     <string name="pref_layout_weight_conversation_title">Conversation weight</string>
     <string name="pref_layout_weight_settings_title">Settings weight</string>
+    <string name="pref_layout_weight_settings_root_title">Settings root weight</string>
     <string name="pref_layout_weight_room_details_title">Room info weight</string>
     <string name="pref_always_show_keyboard_focus">Always highlight keyboard focus</string>
     <string name="pref_focus_follows_mouse_title">Focus follows mouse</string>

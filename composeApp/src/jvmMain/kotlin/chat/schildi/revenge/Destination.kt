@@ -1,5 +1,6 @@
 package chat.schildi.revenge
 
+import chat.schildi.preferences.ScPrefs
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.config.keybindings.DestinationEnum
@@ -24,6 +25,7 @@ enum class DestinationCategory {
     CONVERSATION,
     CONVERSATION_DETAILS,
     SETTINGS,
+    ABOUT,
     // Wildcard can be anything (wrapper or tmp loading destination resolving to sth else later)
     WILDCARD,
 }
@@ -88,9 +90,20 @@ sealed interface Destination {
     }
 
     data class Settings(
+        val root: DestinationStateHolder = DestinationStateHolder.forInitialDestination(SettingsPane()),
+        val details: DestinationStateHolder = DestinationStateHolder.forInitialDestination(
+            MultiPanePlaceholder(DestinationCategory.SETTINGS),
+        ),
+    ) : Destination, MultiPane {
+        override val type = DestinationEnum.Settings
+        override val title = StringResourceHolder(Res.string.hint_settings)
+        override val category = DestinationCategory.SETTINGS
+    }
+
+    data class SettingsPane(
         val rootPreferenceCategory: String? = null,
     ) : Destination {
-        override val type = DestinationEnum.Settings
+        override val type = DestinationEnum.SettingsPane
         override val title = StringResourceHolder(Res.string.hint_settings)
         override val category = DestinationCategory.SETTINGS
     }
@@ -98,7 +111,7 @@ sealed interface Destination {
     data object About : Destination {
         override val type = DestinationEnum.About
         override val title = StringResourceHolder(Res.string.about)
-        override val category = DestinationCategory.SETTINGS
+        override val category = DestinationCategory.ABOUT
     }
 
     sealed interface Split : Destination {

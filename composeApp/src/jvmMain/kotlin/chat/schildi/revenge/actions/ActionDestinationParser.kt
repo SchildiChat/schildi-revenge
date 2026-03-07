@@ -48,12 +48,13 @@ internal fun String.toDestinationOrNull(
                 Destination.MessageReactions(sessionId, roomId, eventId)
             }
         }
-        DestinationEnum.Settings -> {
+        DestinationEnum.Settings -> Destination.Settings()
+        DestinationEnum.SettingsPane -> {
             val rootPref = args.getOrNull(0)
             if (rootPref == null) {
-                Destination.Settings()
+                Destination.SettingsPane()
             } else if (ScPrefs.validCategoryKeys.contains(rootPref)) {
-                Destination.Settings(rootPref)
+                Destination.SettingsPane(rootPref)
             } else {
                 null
             }

@@ -32,10 +32,7 @@ import kotlinx.coroutines.flow.stateIn
 data class PrefScreenState(
     val prefScreen: ScPrefContainer,
     val searchQuery: String? = null,
-) {
-    val shouldRenderPrefScreensInline: Boolean
-        get() = !searchQuery.isNullOrEmpty()
-}
+)
 
 class SettingsViewModel(
     rootPreferenceCategory: String? = null
@@ -52,8 +49,10 @@ class SettingsViewModel(
         ScPrefs.rootPrefs
     }
 
-    val rootPreferenceKey = rootPrefs.sKey
-    val parentPreferenceKey = if (rootPreferenceKey == null) {
+    private val rootPreferenceKey = rootPrefs.sKey
+    val isRootPreferences = rootPrefs == ScPrefs.rootPrefs
+
+    val parentPreferenceKey = if (isRootPreferences) {
         null
     } else {
         ScPrefs.rootPrefs.findPreferenceContainer { pref ->
@@ -67,7 +66,8 @@ class SettingsViewModel(
 
     override val windowTitle = flowOf(rootPrefs.titleRes.toStringHolder())
     override fun verifyDestination(destination: Destination) =
-        (destination as? Destination.Settings)?.rootPreferenceCategory == rootPrefs.sKey
+        (destination is Destination.Settings) ||
+                (destination as? Destination.SettingsPane)?.rootPreferenceCategory == rootPrefs.sKey
 
     val stringLookupRequest = ComposableStringLookupRequest(
         buildList {

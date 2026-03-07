@@ -121,7 +121,7 @@ fun ScPrefScreen.Rendered() {
         secondaryText = summaryRes?.let { stringResource(it) },
         clickAction = {
             InteractionAction.Navigate {
-                Destination.Settings(sKey)
+                Destination.SettingsPane(sKey)
             }
         }
     )

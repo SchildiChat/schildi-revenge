@@ -11,6 +11,7 @@ enum class DestinationEnum(
     RoomMembers("RoomMembers", listOf("members")),
     MessageReactions("MessageReactions", listOf("reactions")),
     Settings("Settings", listOf("settings")),
+    SettingsPane("SettingsPane"),
     About("About", listOf("about")),
     SplitHorizontal("SplitHorizontal"),
     SplitVertical("SplitVertical"),

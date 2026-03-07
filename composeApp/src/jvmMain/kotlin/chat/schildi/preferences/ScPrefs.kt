@@ -39,6 +39,7 @@ import shire.composeapp.generated.resources.pref_initial_window_width_title
 import shire.composeapp.generated.resources.pref_layout_weight_conversation_title
 import shire.composeapp.generated.resources.pref_layout_weight_inbox_title
 import shire.composeapp.generated.resources.pref_layout_weight_room_details_title
+import shire.composeapp.generated.resources.pref_layout_weight_settings_root_title
 import shire.composeapp.generated.resources.pref_layout_weight_settings_title
 import shire.composeapp.generated.resources.pref_max_width_conversation_title
 import shire.composeapp.generated.resources.pref_max_width_inbox_title
@@ -125,6 +126,7 @@ object ScPrefs {
     val LAYOUT_WEIGHT_CONVERSATION = ScIntPref("LAYOUT_WEIGHT_CONVERSATION", 100, Res.string.pref_layout_weight_conversation_title, minValue = 20, maxValue = 1000)
     val LAYOUT_WEIGHT_ROOM_DETAILS = ScIntPref("LAYOUT_WEIGHT_ROOM_DETAILS", 40, Res.string.pref_layout_weight_room_details_title, minValue = 20, maxValue = 1000)
     val LAYOUT_WEIGHT_SETTINGS = ScIntPref("LAYOUT_WEIGHT_SETTINGS", 100, Res.string.pref_layout_weight_settings_title, minValue = 20, maxValue = 1000, allowLiveSliderChange = false)
+    val LAYOUT_WEIGHT_SETTINGS_ROOT = ScIntPref("LAYOUT_WEIGHT_SETTINGS_ROOT", 80, Res.string.pref_layout_weight_settings_root_title, minValue = 20, maxValue = 1000, allowLiveSliderChange = false)
 
     // Tray icon
     val CLOSE_TO_TRAY = ScBoolPref("CLOSE_TO_TRAY", false, Res.string.pref_close_to_tray_title, Res.string.pref_close_to_tray_summary)
@@ -291,8 +293,10 @@ object ScPrefs {
         )
     )
 
+    const val GENERAL_PREF_CATEGORY_KEY = "GENERAL"
+
     val rootPrefs = ScPrefScreen("ROOT", Res.string.hint_settings, null, listOf<AbstractScPref>(
-        ScPrefScreen("GENERAL", Res.string.sc_pref_category_general, Res.string.sc_pref_category_general_summary, listOf(
+        ScPrefScreen(GENERAL_PREF_CATEGORY_KEY, Res.string.sc_pref_category_general, Res.string.sc_pref_category_general_summary, listOf(
             CLOSE_TO_TRAY,
             ScPrefCategory("GENERAL_APPEARANCE", Res.string.sc_pref_category_general_appearance, null, listOf(
                 THEME_FOLLOW_SYSTEM,
@@ -352,6 +356,7 @@ object ScPrefs {
                 LAYOUT_WEIGHT_CONVERSATION,
                 LAYOUT_WEIGHT_ROOM_DETAILS,
                 LAYOUT_WEIGHT_SETTINGS,
+                LAYOUT_WEIGHT_SETTINGS_ROOT,
             )),
         )),
         ScPrefScreen("SPACES", Res.string.sc_pref_category_spaces, null, listOf(
