@@ -218,7 +218,9 @@
 
     <string name="pref_category_scale">Render scale</string>
     <string name="pref_category_dimensions">Dimensions</string>
-    <string name="pref_category_layout_weights">Splitscreen layout weights</string>
+    <string name="pref_category_split_screen">Splitscreen</string>
+    <string name="pref_category_split_limits">Split limits</string>
+    <string name="pref_category_layout_weights">Layout weights</string>
     <string name="pref_category_keyboard_control">Keyboard control</string>
     <string name="pref_category_developer_options">Developer options</string>
     <string name="pref_render_scale">Render scale</string>
@@ -265,7 +267,8 @@
     <string name="pref_framed_rop_spinner_title">Frame-drop spinner</string>
     <string name="pref_framed_rop_spinner_summary">Overlay a spinner on screen to quickly spot dropped frames and frozen screens</string>
     <string name="pref_prefer_dual_pane_inbox_title">Combine inbox &amp; conversation</string>
-    <string name="pref_prefer_dual_pane_inbox_summary">Render inbox and conversation side by side in a given window when there's enough space</string>
+    <string name="pref_prefer_dual_pane_inbox_summary">Prefer showing inbox and conversation side by side in a given window when there's enough space</string>
+    <string name="pref_inbox_conversation_dual_pane_min_width_title">Minimum width for Inbox/conversation split</string>
 
     <string name="nameless_space_fallback_title">Nameless space</string>
 

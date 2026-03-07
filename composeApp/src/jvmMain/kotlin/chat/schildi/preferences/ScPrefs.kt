@@ -12,6 +12,8 @@ import shire.composeapp.generated.resources.pref_category_dimensions
 import shire.composeapp.generated.resources.pref_category_keyboard_control
 import shire.composeapp.generated.resources.pref_category_layout_weights
 import shire.composeapp.generated.resources.pref_category_scale
+import shire.composeapp.generated.resources.pref_category_split_limits
+import shire.composeapp.generated.resources.pref_category_split_screen
 import shire.composeapp.generated.resources.pref_category_theme_dark
 import shire.composeapp.generated.resources.pref_category_theme_light
 import shire.composeapp.generated.resources.pref_close_to_tray_summary
@@ -29,6 +31,7 @@ import shire.composeapp.generated.resources.pref_hide_message_authenticity_warni
 import shire.composeapp.generated.resources.pref_hide_message_authenticity_warnings_in_bridged_chats_title
 import shire.composeapp.generated.resources.pref_hide_window_decoration_summary
 import shire.composeapp.generated.resources.pref_hide_window_decoration_title
+import shire.composeapp.generated.resources.pref_inbox_conversation_dual_pane_min_width_title
 import shire.composeapp.generated.resources.pref_initial_window_height_summary
 import shire.composeapp.generated.resources.pref_initial_window_height_title
 import shire.composeapp.generated.resources.pref_initial_window_width_summary
@@ -196,6 +199,7 @@ object ScPrefs {
     val DUAL_MENTION_UNREAD_COUNTS = ScBoolPref("DUAL_MENTION_UNREAD_COUNTS", false, Res.string.sc_pref_dual_mention_unread_counts_title, Res.string.sc_pref_dual_mention_unread_counts_summary)
     //val HIDE_INVITES = ScBoolPref("HIDE_INVITES", false, Res.string.sc_pref_hide_invites_title, Res.string.sc_pref_hide_invites_summary)
     val PREFER_DUAL_PANE_INBOX = ScBoolPref("PREFER_DUAL_PANE_INBOX", false, Res.string.pref_prefer_dual_pane_inbox_title, Res.string.pref_prefer_dual_pane_inbox_summary)
+    val INBOX_CONVERSATION_SPLIT_MIN_WIDTH = ScIntPref("INBOX_CONVERSATION_SPLIT_MIN_WIDTH", 800, Res.string.pref_inbox_conversation_dual_pane_min_width_title, minValue = 400, maxValue = 2000)
 
     // Spaces
     val COMPACT_ROOT_SPACES = ScBoolPref("COMPACT_ROOT_SPACES", false, Res.string.sc_compact_root_spaces_title, Res.string.sc_compact_root_spaces_summary)
@@ -319,7 +323,6 @@ object ScPrefs {
             */
         )),
         ScPrefScreen(Res.string.sc_pref_category_chat_overview, null, listOf(
-            PREFER_DUAL_PANE_INBOX,
             ScPrefCategory(Res.string.sc_pref_category_chat_sorting, null, listOf(
                 SORT_BY_UNREAD,
                 SORT_WITH_SILENT_UNREAD,
@@ -341,11 +344,17 @@ object ScPrefs {
             MAX_WIDTH_ROOM_DETAILS,
             MAX_WIDTH_SETTINGS,
         )),
-        ScPrefScreen(Res.string.pref_category_layout_weights, null, listOf(
-            LAYOUT_WEIGHT_INBOX,
-            LAYOUT_WEIGHT_CONVERSATION,
-            LAYOUT_WEIGHT_ROOM_DETAILS,
-            LAYOUT_WEIGHT_SETTINGS,
+        ScPrefScreen(Res.string.pref_category_split_screen, null, listOf(
+            PREFER_DUAL_PANE_INBOX,
+            ScPrefCategory(Res.string.pref_category_split_limits, null, listOf(
+                INBOX_CONVERSATION_SPLIT_MIN_WIDTH,
+            )),
+            ScPrefCategory(Res.string.pref_category_layout_weights, null, listOf(
+                LAYOUT_WEIGHT_INBOX,
+                LAYOUT_WEIGHT_CONVERSATION,
+                LAYOUT_WEIGHT_ROOM_DETAILS,
+                LAYOUT_WEIGHT_SETTINGS,
+            )),
         )),
         ScPrefScreen(Res.string.sc_pref_category_spaces, null, listOf(
             SPACE_UNREAD_COUNTS,

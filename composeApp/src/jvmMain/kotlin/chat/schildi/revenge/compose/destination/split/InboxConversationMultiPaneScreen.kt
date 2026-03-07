@@ -5,6 +5,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import chat.schildi.preferences.ScPrefs
+import chat.schildi.preferences.value
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.DestinationCategory
 import chat.schildi.revenge.DestinationStateHolder
@@ -17,7 +19,8 @@ fun InboxConversationMultiPaneScreen(
     contentModifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(modifier) {
-        val collapseSinglePane = maxWidth < 800.dp // TODO config or something
+        val minSplitWidth = ScPrefs.INBOX_CONVERSATION_SPLIT_MIN_WIDTH.value().dp
+        val collapseSinglePane = maxWidth < minSplitWidth
         val hasConversation =
             destination.conversation.state.collectAsState().value.destination !is Destination.MultiPanePlaceholder
         MultiPaneLayout(
