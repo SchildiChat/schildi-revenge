@@ -1926,12 +1926,11 @@ fun checkArgument(
     context: CommandArgContext,
     lookahead: List<String>,
     validSessionIds: List<String>?,
-    validSettingKeys: List<String>,
 ): ActionResult.InvalidCommand? {
     return when (argDef) {
         is ActionArgumentAnyOf -> {
             if (argDef.arguments.any {
-                checkArgument(actionName, it, argVal, context, lookahead, validSessionIds, validSettingKeys) != null
+                checkArgument(actionName, it, argVal, context, lookahead, validSessionIds) != null
             }) {
                 null
             } else {
@@ -1941,10 +1940,10 @@ fun checkArgument(
             }
         }
         is ActionArgumentOptional -> {
-            checkArgument(actionName, argDef.argument, argVal, context, lookahead, validSessionIds, validSettingKeys)
+            checkArgument(actionName, argDef.argument, argVal, context, lookahead, validSessionIds)
         }
         is ActionArgumentContextBased -> {
-            checkArgument(actionName, argDef.getFor(context), argVal, context, lookahead, validSessionIds, validSettingKeys)
+            checkArgument(actionName, argDef.getFor(context), argVal, context, lookahead, validSessionIds)
         }
         ActionArgumentPrimitive.Reason,
         ActionArgumentPrimitive.EventType,
@@ -2071,9 +2070,18 @@ fun checkArgument(
             }
         }
         ActionArgumentPrimitive.SettingKey -> {
-            if (argVal !in validSettingKeys) {
+            if (argVal !in ScPrefs.validSettingKeys) {
                 ActionResult.Malformed(
                     "Invalid parameter for $actionName, not a valid settings key: $argVal"
+                )
+            } else {
+                null
+            }
+        }
+        ActionArgumentPrimitive.SettingCategory -> {
+            if (argVal !in ScPrefs.validCategoryKeys) {
+                ActionResult.Malformed(
+                    "Invalid parameter for $actionName, not a valid settings category: $argVal"
                 )
             } else {
                 null
@@ -2147,14 +2155,12 @@ fun <A : Action>Binding<A>.checkArguments(
     implicitArgs: CommandArgContext,
     checkIncompleteParameters: Boolean = false,
     validSessionIds: List<String>? = UiState.currentValidSessionIds.value,
-    validSettingKeys: List<String> = ScPrefs.validSettingKeys,
 ) = checkArguments(
     action,
     args,
     implicitArgs,
     checkIncompleteParameters,
     validSessionIds,
-    validSettingKeys,
 )
 
 fun checkArguments(
@@ -2163,7 +2169,6 @@ fun checkArguments(
     implicitArgs: CommandArgContext,
     checkIncompleteParameters: Boolean = false,
     validSessionIds: List<String>? = UiState.currentValidSessionIds.value,
-    validSettingKeys: List<String> = ScPrefs.validSettingKeys,
 ): ActionResult.InvalidCommand? {
     val actionName = action.name
     val minArgSize = action.minArgsSize()
@@ -2179,7 +2184,7 @@ fun checkArguments(
                 action.args.zip(args).forEachIndexed { index, (argDef, argVal) ->
                     val lookahead = args.subList(index + 1, args.size)
                     val context = action.args.zip(args.subList(0, index)) + implicitArgs
-                    checkArgument(action.name, argDef, argVal, context, lookahead, validSessionIds, validSettingKeys)?.let {
+                    checkArgument(action.name, argDef, argVal, context, lookahead, validSessionIds)?.let {
                         return it
                     }
                 }
@@ -2193,7 +2198,7 @@ fun checkArguments(
     action.args.zip(args).forEachIndexed { index, (argDef, argVal) ->
         val lookahead = args.subList(index + 1, args.size)
         val context = action.args.zip(args.subList(0, index)) + implicitArgs
-        checkArgument(action.name, argDef, argVal, context, lookahead, validSessionIds, validSettingKeys)?.let {
+        checkArgument(action.name, argDef, argVal, context, lookahead, validSessionIds)?.let {
             return it
         }
     }

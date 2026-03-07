@@ -32,6 +32,7 @@ import chat.schildi.preferences.ScPrefCollection
 import chat.schildi.preferences.ScPrefContainer
 import chat.schildi.preferences.ScPrefScreen
 import chat.schildi.preferences.ScStringListPref
+import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
@@ -51,8 +52,9 @@ import kotlin.math.roundToInt
 
 fun LazyListScope.renderPref(
     pref: AbstractScPref,
-    isVeryFirst: Boolean = true,
+    isRenderedRoot: Boolean = true,
     isFirst: Boolean = true,
+    renderPrefScreenInline: Boolean = false,
 ) {
     when (pref) {
         is ScPref<*> -> {
@@ -61,7 +63,7 @@ fun LazyListScope.renderPref(
             }
         }
         is ScPrefContainer -> {
-            if (!isVeryFirst) {
+            if (!isRenderedRoot) {
                 when (pref) {
                     is ScPrefCategory -> {
                         item {
@@ -73,19 +75,30 @@ fun LazyListScope.renderPref(
                     }
                     is ScPrefScreen -> {
                         item {
-                            ScPrefCategoryHeader(
-                                title = stringResource(pref.titleRes),
-                                isFirst = isFirst,
-                                color = MaterialTheme.scExposures.accentColor,
-                                style = MaterialTheme.typography.headlineMedium,
-                            )
+                            if (renderPrefScreenInline) {
+                                ScPrefCategoryHeader(
+                                    title = stringResource(pref.titleRes),
+                                    isFirst = isFirst,
+                                    color = MaterialTheme.scExposures.accentColor,
+                                    style = MaterialTheme.typography.headlineMedium,
+                                )
+                            } else {
+                                pref.Rendered()
+                            }
                         }
                     }
                     is ScPrefCollection -> {}
                 }
             }
-            pref.prefs.forEachIndexed { index, childPref ->
-                renderPref(childPref, isFirst = index == 0, isVeryFirst = false)
+            if (renderPrefScreenInline || isRenderedRoot || pref !is ScPrefScreen) {
+                pref.prefs.forEachIndexed { index, childPref ->
+                    renderPref(
+                        childPref,
+                        isFirst = index == 0,
+                        isRenderedRoot = false,
+                        renderPrefScreenInline = renderPrefScreenInline,
+                    )
+                }
             }
         }
     }
@@ -99,6 +112,19 @@ fun <T>ScPref<T>.AutoRendered() {
         is ScIntPref -> Rendered()
         is ScStringListPref -> Rendered()
     }
+}
+
+@Composable
+fun ScPrefScreen.Rendered() {
+    ScPrefLayout(
+        title = stringResource(titleRes),
+        secondaryText = summaryRes?.let { stringResource(it) },
+        clickAction = {
+            InteractionAction.Navigate {
+                Destination.Settings(sKey)
+            }
+        }
+    )
 }
 
 @Composable

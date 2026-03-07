@@ -54,6 +54,7 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     Mxc,
     SettingKey,
     SettingValue,
+    SettingCategory,
     NavigatableDestination,
     DestinationName,
     SpaceId,

@@ -76,8 +76,6 @@ import shire.composeapp.generated.resources.sc_pref_client_side_sort_by_unread_s
 import shire.composeapp.generated.resources.sc_pref_client_side_sort_by_unread_title
 import shire.composeapp.generated.resources.sc_pref_dual_mention_unread_counts_summary
 import shire.composeapp.generated.resources.sc_pref_dual_mention_unread_counts_title
-import shire.composeapp.generated.resources.sc_pref_hide_invites_summary
-import shire.composeapp.generated.resources.sc_pref_hide_invites_title
 import shire.composeapp.generated.resources.sc_pref_pin_favorites_summary
 import shire.composeapp.generated.resources.sc_pref_pin_favorites_title
 import shire.composeapp.generated.resources.sc_pref_render_silent_unread_summary
@@ -143,7 +141,6 @@ object ScPrefs {
     }
 
     // Developer options
-    private const val SC_DEVELOPER_OPTIONS_CATEGORY_KEY = "SC_DEVELOPER_OPTIONS_CATEGORY"
     val RENDER_AVATAR_STATES = ScBoolPref("RENDER_AVATAR_STATES", false, Res.string.pref_debug_avatar_render_states_title)
     val SHOW_DEV_INFOS = ScBoolPref("SHOW_DEV_INFOS", false, Res.string.pref_show_dev_infos_title, Res.string.pref_show_dev_infos_summary)
     val FRAME_DROP_SPINNER = ScBoolPref("FRAME_DROP_SPINNER", false, Res.string.pref_framed_rop_spinner_title, Res.string.pref_framed_rop_spinner_summary)
@@ -271,19 +268,20 @@ object ScPrefs {
 
     // Separate collection so we can restore defaults for these only
     val scTweaksAdvancedTheming = ScPrefCollection(
+        "ADVANCED_THEMING",
         Res.string.sc_pref_screen_advanced_theming_summary,
         listOf(
             INITIAL_WINDOW_WIDTH,
             INITIAL_WINDOW_HEIGHT,
             HIDE_WINDOW_DECORATION,
-            ScPrefCategory(Res.string.pref_category_theme_light, null, listOf(
+            ScPrefCategory("THEME_LIGHT", Res.string.pref_category_theme_light, null, listOf(
                 BACKGROUND_ALPHA_LIGHT,
                 /*
                 BUBBLE_BG_LIGHT_INCOMING,
                 BUBBLE_BG_LIGHT_OUTGOING,
                  */
             )),
-            ScPrefCategory(Res.string.pref_category_theme_dark, null, listOf(
+            ScPrefCategory("THEME_DARK", Res.string.pref_category_theme_dark, null, listOf(
                 BACKGROUND_ALPHA_DARK,
                 /*
                 BUBBLE_BG_DARK_INCOMING,
@@ -293,10 +291,10 @@ object ScPrefs {
         )
     )
 
-    val rootPrefs = ScPrefScreen(Res.string.hint_settings, null, listOf<AbstractScPref>(
-        ScPrefScreen(Res.string.sc_pref_category_general, Res.string.sc_pref_category_general_summary, listOf(
+    val rootPrefs = ScPrefScreen("ROOT", Res.string.hint_settings, null, listOf<AbstractScPref>(
+        ScPrefScreen("GENERAL", Res.string.sc_pref_category_general, Res.string.sc_pref_category_general_summary, listOf(
             CLOSE_TO_TRAY,
-            ScPrefCategory(Res.string.sc_pref_category_general_appearance, null, listOf(
+            ScPrefCategory("GENERAL_APPEARANCE", Res.string.sc_pref_category_general_appearance, null, listOf(
                 THEME_FOLLOW_SYSTEM,
                 THEME_DARK,
                 /*
@@ -310,7 +308,7 @@ object ScPrefs {
                 ))
                  */
             )),
-            ScPrefCategory(Res.string.pref_category_keyboard_control, null, listOf(
+            ScPrefCategory("KEYBOARD_CONTROL", Res.string.pref_category_keyboard_control, null, listOf(
                 MINIMAL_MODE,
                 AUTO_HIDE_COMPOSER,
                 FOCUS_FOLLOWS_MOUSE,
@@ -322,45 +320,45 @@ object ScPrefs {
             )),
             */
         )),
-        ScPrefScreen(Res.string.sc_pref_category_chat_overview, null, listOf(
-            ScPrefCategory(Res.string.sc_pref_category_chat_sorting, null, listOf(
+        ScPrefScreen("INBOX", Res.string.sc_pref_category_chat_overview, null, listOf(
+            ScPrefCategory("INBOX_SORT", Res.string.sc_pref_category_chat_sorting, null, listOf(
                 SORT_BY_UNREAD,
                 SORT_WITH_SILENT_UNREAD,
                 PIN_FAVORITES,
                 BURY_LOW_PRIORITY,
             )),
-            ScPrefCategory(Res.string.sc_pref_category_unread_counts, null, listOf(
+            ScPrefCategory("INBOX_UNREADS", Res.string.sc_pref_category_unread_counts, null, listOf(
                 RENDER_SILENT_UNREAD,
                 DUAL_MENTION_UNREAD_COUNTS,
             )),
         )),
-        ScPrefScreen(Res.string.pref_category_scale, null, listOf(
+        ScPrefScreen("UI_SCALE", Res.string.pref_category_scale, null, listOf(
             RENDER_SCALE,
             FONT_SCALE,
         )),
-        ScPrefScreen(Res.string.pref_category_dimensions, null, listOf(
+        ScPrefScreen("DIMENSIONS", Res.string.pref_category_dimensions, null, listOf(
             MAX_WIDTH_INBOX,
             MAX_WIDTH_CONVERSATION,
             MAX_WIDTH_ROOM_DETAILS,
             MAX_WIDTH_SETTINGS,
         )),
-        ScPrefScreen(Res.string.pref_category_split_screen, null, listOf(
+        ScPrefScreen("SPLIT", Res.string.pref_category_split_screen, null, listOf(
             PREFER_DUAL_PANE_INBOX,
-            ScPrefCategory(Res.string.pref_category_split_limits, null, listOf(
+            ScPrefCategory("SPLIT_LIMITS", Res.string.pref_category_split_limits, null, listOf(
                 INBOX_CONVERSATION_SPLIT_MIN_WIDTH,
             )),
-            ScPrefCategory(Res.string.pref_category_layout_weights, null, listOf(
+            ScPrefCategory("SPLIT_WEIGHTS", Res.string.pref_category_layout_weights, null, listOf(
                 LAYOUT_WEIGHT_INBOX,
                 LAYOUT_WEIGHT_CONVERSATION,
                 LAYOUT_WEIGHT_ROOM_DETAILS,
                 LAYOUT_WEIGHT_SETTINGS,
             )),
         )),
-        ScPrefScreen(Res.string.sc_pref_category_spaces, null, listOf(
+        ScPrefScreen("SPACES", Res.string.sc_pref_category_spaces, null, listOf(
             SPACE_UNREAD_COUNTS,
             COMPACT_ROOT_SPACES,
-            ScPrefScreen(Res.string.sc_pseudo_spaces_title, Res.string.sc_pseudo_spaces_summary, listOf(
-                ScPrefCategory(Res.string.sc_pseudo_spaces_title, null, listOf(
+            ScPrefScreen("PSEUDO_SPACES", Res.string.sc_pseudo_spaces_title, Res.string.sc_pseudo_spaces_summary, listOf(
+                ScPrefCategory("PSEUDO_SPACE_TOGGLES", Res.string.sc_pseudo_spaces_title, null, listOf(
                     PSEUDO_SPACE_ALL_ROOMS,
                     PSEUDO_SPACE_FAVORITES,
                     PSEUDO_SPACE_DMS,
@@ -372,12 +370,12 @@ object ScPrefs {
                     PSEUDO_SPACE_INVITES,
                     PSEUDO_SPACE_ACCOUNTS,
                 )),
-                ScPrefCategory(Res.string.sc_pref_category_general_behaviour, null, listOf(
+                ScPrefCategory("PSEUDO_SPACE_BEHAVIOR", Res.string.sc_pref_category_general_behaviour, null, listOf(
                     PSEUDO_SPACE_HIDE_EMPTY_UNREAD,
                 )),
             ))
         )),
-        ScPrefScreen(Res.string.sc_pref_category_timeline, null, listOf(
+        ScPrefScreen("CONVERSATION", Res.string.sc_pref_category_timeline, null, listOf(
             VIEW_REDACTIONS,
             HIDE_AUTHENTICITY_NOT_GUARANTEED,
             HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS,
@@ -388,7 +386,7 @@ object ScPrefs {
             HIDE_CALL_TOOLBAR_ACTION,
             REPLY_PREVIEW_LINE_COUNT,
             */
-            ScPrefCategory(Res.string.sc_url_previews_title, null, listOf(
+            ScPrefCategory("URL_PREVIEWS", Res.string.sc_url_previews_title, null, listOf(
                 URL_PREVIEWS,
                 URL_PREVIEWS_IN_E2EE_ROOMS,
                 URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS,
@@ -427,7 +425,7 @@ object ScPrefs {
             SC_PUSH_INFO,
         )),
         */
-        ScPrefScreen(Res.string.pref_category_developer_options, null, prefs = listOf(
+        ScPrefScreen("DEVELOPER", Res.string.pref_category_developer_options, null, prefs = listOf(
             RENDER_AVATAR_STATES,
             VIEW_HIDDEN_EVENTS,
             SHOW_DEV_INFOS,
@@ -518,5 +516,12 @@ object ScPrefs {
     )
      */
 
-    val validSettingKeys = rootPrefs.prefs.collectScPrefs().map { it.sKey }
+    val validSettingKeys = rootPrefs.prefs.collectScPrefs().map { it.sKey }.toSet()
+    val validCategoryKeys = buildList {
+        rootPrefs.forEachPreferenceOrContainer {
+            (it as? ScPrefContainer)?.sKey?.let { key ->
+                add(key)
+            }
+        }
+    }.toSet()
 }

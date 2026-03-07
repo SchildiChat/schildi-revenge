@@ -1,5 +1,6 @@
 package chat.schildi.revenge.actions
 
+import chat.schildi.preferences.ScPrefs
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
 import chat.schildi.revenge.config.keybindings.CommandArgContext
@@ -47,7 +48,16 @@ internal fun String.toDestinationOrNull(
                 Destination.MessageReactions(sessionId, roomId, eventId)
             }
         }
-        DestinationEnum.Settings -> Destination.Settings
+        DestinationEnum.Settings -> {
+            val rootPref = args.getOrNull(0)
+            if (rootPref == null) {
+                Destination.Settings()
+            } else if (ScPrefs.validCategoryKeys.contains(rootPref)) {
+                Destination.Settings(rootPref)
+            } else {
+                null
+            }
+        }
         DestinationEnum.About -> Destination.About
         DestinationEnum.InboxConversationSplit -> Destination.InboxConversationMultiPane()
         // Destinations not reachable via "navigate" action

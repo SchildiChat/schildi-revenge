@@ -2,19 +2,24 @@ package chat.schildi.revenge.model
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.preferences.AbstractScPref
 import chat.schildi.preferences.ScPrefContainer
 import chat.schildi.preferences.ScPrefFilter
 import chat.schildi.preferences.ScPrefScreen
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.filteredBy
+import chat.schildi.preferences.findPreferenceContainer
 import chat.schildi.preferences.forEachPreferenceOrContainer
+import chat.schildi.preferences.hasDirectChild
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.compose.components.ComposableStringLookupRequest
 import chat.schildi.revenge.compose.components.ComposableStringLookupTable
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.compose.util.toStringHolder
+import co.touchlab.kermit.Logger
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,13 +32,42 @@ import kotlinx.coroutines.flow.stateIn
 data class PrefScreenState(
     val prefScreen: ScPrefContainer,
     val searchQuery: String? = null,
-)
+) {
+    val shouldRenderPrefScreensInline: Boolean
+        get() = !searchQuery.isNullOrEmpty()
+}
 
 class SettingsViewModel(
-    private val rootPrefs: ScPrefScreen = ScPrefs.rootPrefs,
+    rootPreferenceCategory: String? = null
 ) : ViewModel(), SearchProvider, TitleProvider {
+    private val log = Logger.withTag("SettingsViewModel")
+
+    private val rootPrefs: ScPrefContainer = if (rootPreferenceCategory != null) {
+        ScPrefs.rootPrefs.findPreferenceContainer { it.sKey == rootPreferenceCategory }
+            ?: run {
+                log.e("Did not find initial preference category $rootPreferenceCategory")
+                ScPrefs.rootPrefs
+            }
+    } else {
+        ScPrefs.rootPrefs
+    }
+
+    val rootPreferenceKey = rootPrefs.sKey
+    val parentPreferenceKey = if (rootPreferenceKey == null) {
+        null
+    } else {
+        ScPrefs.rootPrefs.findPreferenceContainer { pref ->
+            pref.hasDirectChild(
+                allowedIntermediate = { it !is ScPrefScreen },
+            ) {
+                (it as? ScPrefContainer)?.sKey == rootPreferenceKey
+            }
+        }?.sKey
+    }
+
     override val windowTitle = flowOf(rootPrefs.titleRes.toStringHolder())
-    override fun verifyDestination(destination: Destination) = destination == Destination.Settings
+    override fun verifyDestination(destination: Destination) =
+        (destination as? Destination.Settings)?.rootPreferenceCategory == rootPrefs.sKey
 
     val stringLookupRequest = ComposableStringLookupRequest(
         buildList {
@@ -82,5 +116,15 @@ class SettingsViewModel(
 
     override fun onSearchCleared() {
         searchQuery.value = null
+    }
+
+    companion object {
+        fun factory(
+            rootPreferenceCategory: String? = null,
+        ) = viewModelFactory {
+            initializer {
+                SettingsViewModel(rootPreferenceCategory)
+            }
+        }
     }
 }

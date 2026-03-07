@@ -34,7 +34,7 @@ fun InboxTopNavigation(title: String?) {
                 Icons.Default.Settings,
                 stringResource(Res.string.hint_settings)
             ) {
-                destinationState.navigate(Destination.Settings)
+                destinationState.navigate(Destination.Settings())
             }
         }
     }

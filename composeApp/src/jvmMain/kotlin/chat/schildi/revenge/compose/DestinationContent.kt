@@ -67,7 +67,7 @@ private fun Modifier.forDestination(destination: Destination): AdaptiveSplitLayo
         is Destination.Conversation -> Pair(ScPrefs.MAX_WIDTH_CONVERSATION, ScPrefs.LAYOUT_WEIGHT_CONVERSATION.value())
         is Destination.MessageReactions,
         is Destination.RoomMembers -> Pair(ScPrefs.MAX_WIDTH_ROOM_DETAILS, ScPrefs.LAYOUT_WEIGHT_ROOM_DETAILS.value())
-        Destination.Settings,
+        is Destination.Settings,
         Destination.AccountManagement,
         Destination.About -> Pair(ScPrefs.MAX_WIDTH_SETTINGS, ScPrefs.LAYOUT_WEIGHT_SETTINGS.value())
         is Destination.SplitHorizontal,

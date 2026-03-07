@@ -87,7 +87,9 @@ sealed interface Destination {
         override val category = DestinationCategory.CONVERSATION_DETAILS
     }
 
-    data object Settings : Destination {
+    data class Settings(
+        val rootPreferenceCategory: String? = null,
+    ) : Destination {
         override val type = DestinationEnum.Settings
         override val title = StringResourceHolder(Res.string.hint_settings)
         override val category = DestinationCategory.SETTINGS

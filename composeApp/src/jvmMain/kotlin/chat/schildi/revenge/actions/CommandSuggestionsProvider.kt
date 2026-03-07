@@ -1,8 +1,10 @@
 package chat.schildi.revenge.actions
 
+import chat.schildi.preferences.ScPrefContainer
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.findPreference
 import chat.schildi.preferences.forEachPreference
+import chat.schildi.preferences.forEachPreferenceOrContainer
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.HardcodedStringHolder
@@ -124,6 +126,25 @@ class CommandSuggestionsProvider(
                     it.titleRes.toStringHolder()
                 }
                 add(CommandSuggestion(it.sKey, hint))
+            }
+        }
+    }
+
+    private val prefCategorySuggestions = buildList {
+        ScPrefs.rootPrefs.forEachPreferenceOrContainer {
+            val containerKey = (it as? ScPrefContainer)?.sKey
+            if (containerKey != null) {
+                val summaryRes = it.summaryRes
+                val hint = if (summaryRes != null) {
+                    StringResourceHolder(
+                        Res.string.command_suggestion_title_and_hint,
+                        it.titleRes.toStringHolder(),
+                        summaryRes.toStringHolder(),
+                    )
+                } else {
+                    it.titleRes.toStringHolder()
+                }
+                add(CommandSuggestion(containerKey, hint))
             }
         }
     }
@@ -267,6 +288,7 @@ class CommandSuggestionsProvider(
                     }
                 }
                 ActionArgumentPrimitive.SettingKey -> prefKeySuggestions
+                ActionArgumentPrimitive.SettingCategory -> prefCategorySuggestions
                 ActionArgumentPrimitive.DestinationName,
                 ActionArgumentPrimitive.NavigatableDestination ->
                     SUGGESTED_DESTINATION_STRINGS.toSuggestionsWithoutHint()

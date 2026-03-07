@@ -340,6 +340,30 @@ fun ScPrefContainer.findPreference(condition: (ScPref<*>) -> Boolean): ScPref<*>
     return null
 }
 
+fun ScPrefContainer.findPreferenceContainer(condition: (ScPrefContainer) -> Boolean): ScPrefContainer? {
+    prefs.forEach { pref ->
+        if (pref is ScPrefContainer) {
+            if (condition(pref)) {
+                return pref
+            }
+            pref.findPreferenceContainer(condition)?.let { return it }
+        }
+    }
+    return null
+}
+
+fun ScPrefContainer.hasDirectChild(
+    allowedIntermediate: (ScPrefContainer) -> Boolean = { false },
+    condition: (AbstractScPref) -> Boolean,
+): Boolean {
+    return prefs.any { pref ->
+        condition(pref) ||
+                (pref as? ScPrefContainer)
+                    ?.takeIf(allowedIntermediate)
+                    ?.hasDirectChild(allowedIntermediate, condition) == true
+    }
+}
+
 data class ScPrefFilter(
     // Condition for normal preferences to have fulfilled.
     val predicate: (ScPref<*>) -> Boolean = { true },

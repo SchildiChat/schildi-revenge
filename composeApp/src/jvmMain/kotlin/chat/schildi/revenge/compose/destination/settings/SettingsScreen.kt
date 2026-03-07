@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BugReport
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,6 +41,7 @@ import chat.schildi.revenge.viewModelKey
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.about
+import shire.composeapp.generated.resources.action_close
 import shire.composeapp.generated.resources.empty_screen_placeholder_unexpected
 import shire.composeapp.generated.resources.hint_settings
 
@@ -51,7 +53,7 @@ fun SettingsScreen(
 ) {
     val viewModel: SettingsViewModel = viewModel(
         key = viewModelKey(destination),
-        factory = viewModelFactory { initializer { SettingsViewModel() } }
+        factory = viewModelFactory { initializer { SettingsViewModel(destination.rootPreferenceCategory) } }
     )
     val stringLookup = viewModel.stringLookupRequest.lookup()
     LaunchedEffect(stringLookup) {
@@ -78,7 +80,16 @@ fun SettingsScreen(
                 ) {
                     destinationState?.navigate(Destination.About)
                 }
-                TopNavigationCloseOrNavigateToInboxIcon()
+                if (viewModel.rootPreferenceKey == null) {
+                    TopNavigationCloseOrNavigateToInboxIcon()
+                } else {
+                    TopNavigationIcon(
+                        Icons.Default.Close,
+                        stringResource(Res.string.action_close),
+                    ) {
+                        destinationState?.navigate(Destination.Settings(viewModel.parentPreferenceKey))
+                    }
+                }
             }
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 if (prefScreen.prefs.isEmpty()) {
@@ -93,7 +104,10 @@ fun SettingsScreen(
                         verticalArrangement = Dimens.verticalArrangement,
                         state = listState,
                     ) {
-                        renderPref(prefScreen)
+                        renderPref(
+                            prefScreen,
+                            renderPrefScreenInline = prefScreenState.shouldRenderPrefScreensInline
+                        )
                     }
                 }
             }

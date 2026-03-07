@@ -79,6 +79,54 @@ fun <T> ScPref<T>.ScPrefLayout(
     )
 }
 
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+fun ScPrefLayout(
+    title: String,
+    secondaryText: String? = null,
+    enabled: Boolean = true,
+    modifier: Modifier = Modifier,
+    clickAction: (() -> InteractionAction?) = { null },
+    focusId: UUID = rememberFocusId(),
+    secondaryContent: @Composable ((Boolean) -> Unit)? = null,
+    trailing: @Composable ((Boolean) -> Unit)? = null,
+) {
+    ListItem(
+        modifier = modifier.keyFocusable(
+            role = FocusRole.LIST_ITEM,
+            id = focusId,
+            actionProvider = actionProvider(
+                primaryAction = if (enabled) clickAction() else null,
+            ),
+            enableClicks = enabled,
+        ),
+        text = {
+            val color = animateColorAsState(
+                if (enabled)
+                    MaterialTheme.colorScheme.primary
+                else
+                    MaterialTheme.colorScheme.tertiary
+            ).value
+            Text(title, color = color)
+        },
+        secondaryText = secondaryText?.let {{
+            val color = animateColorAsState(
+                if (enabled)
+                    MaterialTheme.colorScheme.secondary
+                else
+                    MaterialTheme.colorScheme.tertiary
+            ).value
+            Column(verticalArrangement = Dimens.verticalArrangement) {
+                Text(it, color = color)
+                secondaryContent?.invoke(enabled)
+            }
+        }} ?: secondaryContent?.let {{ it.invoke(enabled) }},
+        trailing = trailing?.let {{
+            it.invoke(enabled)
+        }},
+    )
+}
+
 @Composable
 fun ScPrefCategoryHeader(
     title: String,
