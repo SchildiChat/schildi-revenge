@@ -218,11 +218,19 @@
 
     <string name="pref_category_scale">Render scale</string>
     <string name="pref_category_dimensions">Dimensions</string>
+    <string name="pref_category_dimensions_summary">Window and screen size defaults and limits</string>
     <string name="pref_category_split_screen">Splitscreen</string>
+    <string name="pref_category_split_screen_summary">Enable &amp; fine-tune split layouts</string>
     <string name="pref_category_split_limits">Split limits</string>
     <string name="pref_category_layout_weights">Layout weights</string>
     <string name="pref_category_keyboard_control">Keyboard control</string>
     <string name="pref_category_developer_options">Developer options</string>
+    <string name="pref_category_inbox">Inbox</string>
+    <string name="pref_category_inbox_summary">Chat overview</string>
+    <string name="pref_category_conversation">Conversation screen</string>
+    <string name="pref_category_conversation_summary">Chat &amp; message rendering</string>
+    <string name="pref_category_spaces">Spaces</string>
+    <string name="pref_category_spaces_summary">Inbox filters</string>
     <string name="pref_render_scale">Render scale</string>
     <string name="pref_font_scale">Font scale</string>
     <string name="pref_max_width_inbox_title">Inbox max width</string>

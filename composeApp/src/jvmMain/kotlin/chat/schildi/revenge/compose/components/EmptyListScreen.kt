@@ -38,9 +38,9 @@ fun EmptyListScreen(
     modifier: Modifier = Modifier,
 ) {
     val currentSearchTerm = LocalKeyboardActionHandler.current
-        .searchQueryForDestination(searchProvider).collectAsState("").value
-    val isSearchInProgress = currentSearchTerm != (renderedSearchTerm ?: "")
-    val isSearching = isSearchInProgress || currentSearchTerm.isNotEmpty()
+        .searchQueryForDestination(searchProvider).collectAsState(null).value
+    val isSearchInProgress = (currentSearchTerm ?: "") != (renderedSearchTerm ?: "")
+    val isSearching = isSearchInProgress || !currentSearchTerm.isNullOrEmpty()
     EmptyListScreen(
         title = title,
         icon = icon,

@@ -7,13 +7,21 @@ import shire.composeapp.generated.resources.hint_settings
 import shire.composeapp.generated.resources.pref_always_show_keyboard_focus
 import shire.composeapp.generated.resources.pref_auto_hide_composer_summary
 import shire.composeapp.generated.resources.pref_auto_hide_composer_title
+import shire.composeapp.generated.resources.pref_category_conversation
+import shire.composeapp.generated.resources.pref_category_conversation_summary
 import shire.composeapp.generated.resources.pref_category_developer_options
 import shire.composeapp.generated.resources.pref_category_dimensions
+import shire.composeapp.generated.resources.pref_category_dimensions_summary
+import shire.composeapp.generated.resources.pref_category_inbox
+import shire.composeapp.generated.resources.pref_category_inbox_summary
 import shire.composeapp.generated.resources.pref_category_keyboard_control
 import shire.composeapp.generated.resources.pref_category_layout_weights
 import shire.composeapp.generated.resources.pref_category_scale
+import shire.composeapp.generated.resources.pref_category_spaces
+import shire.composeapp.generated.resources.pref_category_spaces_summary
 import shire.composeapp.generated.resources.pref_category_split_limits
 import shire.composeapp.generated.resources.pref_category_split_screen
+import shire.composeapp.generated.resources.pref_category_split_screen_summary
 import shire.composeapp.generated.resources.pref_category_theme_dark
 import shire.composeapp.generated.resources.pref_category_theme_light
 import shire.composeapp.generated.resources.pref_close_to_tray_summary
@@ -64,14 +72,11 @@ import shire.composeapp.generated.resources.sc_compact_root_spaces_summary
 import shire.composeapp.generated.resources.sc_compact_root_spaces_title
 import shire.composeapp.generated.resources.sc_pref_bury_low_priority_summary
 import shire.composeapp.generated.resources.sc_pref_bury_low_priority_title
-import shire.composeapp.generated.resources.sc_pref_category_chat_overview
 import shire.composeapp.generated.resources.sc_pref_category_chat_sorting
 import shire.composeapp.generated.resources.sc_pref_category_general
 import shire.composeapp.generated.resources.sc_pref_category_general_appearance
 import shire.composeapp.generated.resources.sc_pref_category_general_behaviour
 import shire.composeapp.generated.resources.sc_pref_category_general_summary
-import shire.composeapp.generated.resources.sc_pref_category_spaces
-import shire.composeapp.generated.resources.sc_pref_category_timeline
 import shire.composeapp.generated.resources.sc_pref_category_unread_counts
 import shire.composeapp.generated.resources.sc_pref_client_side_sort_by_unread_summary
 import shire.composeapp.generated.resources.sc_pref_client_side_sort_by_unread_title
@@ -81,7 +86,6 @@ import shire.composeapp.generated.resources.sc_pref_pin_favorites_summary
 import shire.composeapp.generated.resources.sc_pref_pin_favorites_title
 import shire.composeapp.generated.resources.sc_pref_render_silent_unread_summary
 import shire.composeapp.generated.resources.sc_pref_render_silent_unread_title
-import shire.composeapp.generated.resources.sc_pref_screen_advanced_theming_summary
 import shire.composeapp.generated.resources.sc_pref_sort_with_silent_unread_summary
 import shire.composeapp.generated.resources.sc_pref_sort_with_silent_unread_title
 import shire.composeapp.generated.resources.sc_pseudo_space_accounts_summary
@@ -268,49 +272,31 @@ object ScPrefs {
     val BUBBLE_BG_DARK_INCOMING = ScColorPref("BUBBLE_BG_DARK_INCOMING", Res.string.sc_pref_bubble_color_incoming_title)
      */
 
-    // Separate collection so we can restore defaults for these only
-    val scTweaksAdvancedTheming = ScPrefCollection(
-        "ADVANCED_THEMING",
-        Res.string.sc_pref_screen_advanced_theming_summary,
-        listOf(
-            INITIAL_WINDOW_WIDTH,
-            INITIAL_WINDOW_HEIGHT,
-            HIDE_WINDOW_DECORATION,
-            ScPrefCategory("THEME_LIGHT", Res.string.pref_category_theme_light, null, listOf(
-                BACKGROUND_ALPHA_LIGHT,
-                /*
-                BUBBLE_BG_LIGHT_INCOMING,
-                BUBBLE_BG_LIGHT_OUTGOING,
-                 */
-            )),
-            ScPrefCategory("THEME_DARK", Res.string.pref_category_theme_dark, null, listOf(
-                BACKGROUND_ALPHA_DARK,
-                /*
-                BUBBLE_BG_DARK_INCOMING,
-                BUBBLE_BG_DARK_OUTGOING,
-                 */
-            )),
-        )
-    )
-
-    const val GENERAL_PREF_CATEGORY_KEY = "GENERAL"
-
     val rootPrefs = ScPrefScreen("ROOT", Res.string.hint_settings, null, listOf<AbstractScPref>(
-        ScPrefScreen(GENERAL_PREF_CATEGORY_KEY, Res.string.sc_pref_category_general, Res.string.sc_pref_category_general_summary, listOf(
+        ScPrefScreen("GENERAL", Res.string.sc_pref_category_general, Res.string.sc_pref_category_general_summary, listOf(
             CLOSE_TO_TRAY,
+            ScPrefCategory("UI_SCALE", Res.string.pref_category_scale, null, listOf(
+                RENDER_SCALE,
+                FONT_SCALE,
+            )),
             ScPrefCategory("GENERAL_APPEARANCE", Res.string.sc_pref_category_general_appearance, null, listOf(
                 THEME_FOLLOW_SYSTEM,
                 THEME_DARK,
-                /*
-                SC_THEME,
-                EL_TYPOGRAPHY,
-                ScPrefScreen(Res.string.sc_pref_screen_advanced_theming_title, Res.string.sc_pref_screen_advanced_theming_summary, listOf(
-                */
-                    //SC_RESTORE_ADVANCED_THEME_DEFAULTS,
-                    scTweaksAdvancedTheming,
-                /*
-                ))
-                 */
+                HIDE_WINDOW_DECORATION,
+                ScPrefCategory("THEME_LIGHT", Res.string.pref_category_theme_light, null, listOf(
+                    BACKGROUND_ALPHA_LIGHT,
+                    /*
+                    BUBBLE_BG_LIGHT_INCOMING,
+                    BUBBLE_BG_LIGHT_OUTGOING,
+                     */
+                )),
+                ScPrefCategory("THEME_DARK", Res.string.pref_category_theme_dark, null, listOf(
+                    BACKGROUND_ALPHA_DARK,
+                    /*
+                    BUBBLE_BG_DARK_INCOMING,
+                    BUBBLE_BG_DARK_OUTGOING,
+                     */
+                )),
             )),
             ScPrefCategory("KEYBOARD_CONTROL", Res.string.pref_category_keyboard_control, null, listOf(
                 MINIMAL_MODE,
@@ -324,7 +310,7 @@ object ScPrefs {
             )),
             */
         )),
-        ScPrefScreen("INBOX", Res.string.sc_pref_category_chat_overview, null, listOf(
+        ScPrefScreen("INBOX", Res.string.pref_category_inbox, Res.string.pref_category_inbox_summary, listOf(
             ScPrefCategory("INBOX_SORT", Res.string.sc_pref_category_chat_sorting, null, listOf(
                 SORT_BY_UNREAD,
                 SORT_WITH_SILENT_UNREAD,
@@ -336,51 +322,7 @@ object ScPrefs {
                 DUAL_MENTION_UNREAD_COUNTS,
             )),
         )),
-        ScPrefScreen("UI_SCALE", Res.string.pref_category_scale, null, listOf(
-            RENDER_SCALE,
-            FONT_SCALE,
-        )),
-        ScPrefScreen("DIMENSIONS", Res.string.pref_category_dimensions, null, listOf(
-            MAX_WIDTH_INBOX,
-            MAX_WIDTH_CONVERSATION,
-            MAX_WIDTH_ROOM_DETAILS,
-            MAX_WIDTH_SETTINGS,
-        )),
-        ScPrefScreen("SPLIT", Res.string.pref_category_split_screen, null, listOf(
-            PREFER_DUAL_PANE_INBOX,
-            ScPrefCategory("SPLIT_LIMITS", Res.string.pref_category_split_limits, null, listOf(
-                INBOX_CONVERSATION_SPLIT_MIN_WIDTH,
-            )),
-            ScPrefCategory("SPLIT_WEIGHTS", Res.string.pref_category_layout_weights, null, listOf(
-                LAYOUT_WEIGHT_INBOX,
-                LAYOUT_WEIGHT_CONVERSATION,
-                LAYOUT_WEIGHT_ROOM_DETAILS,
-                LAYOUT_WEIGHT_SETTINGS,
-                LAYOUT_WEIGHT_SETTINGS_ROOT,
-            )),
-        )),
-        ScPrefScreen("SPACES", Res.string.sc_pref_category_spaces, null, listOf(
-            SPACE_UNREAD_COUNTS,
-            COMPACT_ROOT_SPACES,
-            ScPrefScreen("PSEUDO_SPACES", Res.string.sc_pseudo_spaces_title, Res.string.sc_pseudo_spaces_summary, listOf(
-                ScPrefCategory("PSEUDO_SPACE_TOGGLES", Res.string.sc_pseudo_spaces_title, null, listOf(
-                    PSEUDO_SPACE_ALL_ROOMS,
-                    PSEUDO_SPACE_FAVORITES,
-                    PSEUDO_SPACE_DMS,
-                    PSEUDO_SPACE_GROUPS,
-                    PSEUDO_SPACE_SPACELESS_GROUPS,
-                    PSEUDO_SPACE_SPACELESS,
-                    PSEUDO_SPACE_NOTIFICATIONS,
-                    PSEUDO_SPACE_UNREAD,
-                    PSEUDO_SPACE_INVITES,
-                    PSEUDO_SPACE_ACCOUNTS,
-                )),
-                ScPrefCategory("PSEUDO_SPACE_BEHAVIOR", Res.string.sc_pref_category_general_behaviour, null, listOf(
-                    PSEUDO_SPACE_HIDE_EMPTY_UNREAD,
-                )),
-            ))
-        )),
-        ScPrefScreen("CONVERSATION", Res.string.sc_pref_category_timeline, null, listOf(
+        ScPrefScreen("CONVERSATION", Res.string.pref_category_conversation, Res.string.pref_category_conversation_summary, listOf(
             VIEW_REDACTIONS,
             HIDE_AUTHENTICITY_NOT_GUARANTEED,
             HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS,
@@ -411,25 +353,47 @@ object ScPrefs {
                 ALWAYS_SHOW_REACTION_SEARCH_BAR,
             )),
             */
-        )), /*
-        ScPrefScreen(Res.string.sc_pref_category_notifications, null, listOf(
-            NOTIFICATION_ONLY_ALERT_ONCE,
         )),
-        ScPrefScreen(Res.string.sc_pref_screen_experimental_title, Res.string.sc_pref_screen_experimental_summary, listOf(
-            ScPrefCategory(Res.string.sc_pref_category_timeline, null, listOf(
-                PL_DISPLAY_NAME,
-                JUMP_TO_UNREAD,
+        ScPrefScreen("SPACES", Res.string.pref_category_spaces, Res.string.pref_category_spaces_summary, listOf(
+            SPACE_UNREAD_COUNTS,
+            COMPACT_ROOT_SPACES,
+            ScPrefCategory("PSEUDO_SPACES", Res.string.sc_pseudo_spaces_title, Res.string.sc_pseudo_spaces_summary, listOf(
+                PSEUDO_SPACE_ALL_ROOMS,
+                PSEUDO_SPACE_FAVORITES,
+                PSEUDO_SPACE_DMS,
+                PSEUDO_SPACE_GROUPS,
+                PSEUDO_SPACE_SPACELESS_GROUPS,
+                PSEUDO_SPACE_SPACELESS,
+                PSEUDO_SPACE_NOTIFICATIONS,
+                PSEUDO_SPACE_UNREAD,
+                PSEUDO_SPACE_INVITES,
+                PSEUDO_SPACE_ACCOUNTS,
             )),
-            ScPrefCategory(Res.string.sc_pref_category_general_behaviour, null, listOf(
-                SHOW_SYNCING_INDICATOR,
-                DEBOUNCE_OFFLINE_STATE,
+            ScPrefCategory("PSEUDO_SPACE_BEHAVIOR", Res.string.sc_pref_category_general_behaviour, null, listOf(
+                PSEUDO_SPACE_HIDE_EMPTY_UNREAD,
             )),
         )),
-        ScPrefCategory(Res.string.sc_pref_category_debug_infos, null, listOf(
-            SC_USER_CHANGED_SETTINGS,
-            SC_PUSH_INFO,
+        ScPrefScreen("DIMENSIONS", Res.string.pref_category_dimensions, Res.string.pref_category_dimensions_summary, listOf(
+            INITIAL_WINDOW_WIDTH,
+            INITIAL_WINDOW_HEIGHT,
+            MAX_WIDTH_INBOX,
+            MAX_WIDTH_CONVERSATION,
+            MAX_WIDTH_ROOM_DETAILS,
+            MAX_WIDTH_SETTINGS,
         )),
-        */
+        ScPrefScreen("SPLIT", Res.string.pref_category_split_screen, Res.string.pref_category_split_screen_summary, listOf(
+            PREFER_DUAL_PANE_INBOX,
+            ScPrefCategory("SPLIT_LIMITS", Res.string.pref_category_split_limits, null, listOf(
+                INBOX_CONVERSATION_SPLIT_MIN_WIDTH,
+            )),
+            ScPrefCategory("SPLIT_WEIGHTS", Res.string.pref_category_layout_weights, null, listOf(
+                LAYOUT_WEIGHT_INBOX,
+                LAYOUT_WEIGHT_CONVERSATION,
+                LAYOUT_WEIGHT_ROOM_DETAILS,
+                LAYOUT_WEIGHT_SETTINGS,
+                LAYOUT_WEIGHT_SETTINGS_ROOT,
+            )),
+        )),
         ScPrefScreen("DEVELOPER", Res.string.pref_category_developer_options, null, prefs = listOf(
             RENDER_AVATAR_STATES,
             VIEW_HIDDEN_EVENTS,
