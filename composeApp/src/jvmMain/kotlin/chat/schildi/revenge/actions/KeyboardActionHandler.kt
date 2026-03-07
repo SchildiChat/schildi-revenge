@@ -471,23 +471,27 @@ class KeyboardActionHandler(
         destination: Destination,
         destinationStateHolder: DestinationStateHolder? = null,
         invalidateHolderId: Boolean = false,
-    ): Boolean {
-        return (
-                destinationStateHolder
+    ): ActionResult {
+        val effectiveStateHolder = destinationStateHolder
                     ?: currentFocused()?.destinationStateHolder ?:
                     focusableTargets.values.firstNotNullOfOrNull { it.destinationStateHolder }
-        )?.navigate(
+                    ?: return ActionResult.Inapplicable
+        if (effectiveStateHolder.state.value.destination == destination) {
+            return ActionResult.Inapplicable
+        }
+        effectiveStateHolder.navigate(
                 destination,
                 NavigationPreference.REPLACE,
                 invalidateHolderId = invalidateHolderId,
-        ) != null
+        )
+        return ActionResult.Success()
     }
 
     private fun navigateCurrentDestination(
         destinationStateHolder: DestinationStateHolder? = currentFocused()?.destinationStateHolder,
         invalidateHolderId: Boolean = false,
         buildDestination: (DestinationState) -> Destination?
-    ): Boolean {
+    ): ActionResult {
         return destinationStateHolder?.state?.value?.let { destinationState ->
             buildDestination(destinationState)?.let {
                 navigateCurrentDestination(
@@ -496,7 +500,7 @@ class KeyboardActionHandler(
                     invalidateHolderId = invalidateHolderId,
                 )
             }
-        } ?: false
+        } ?: ActionResult.Inapplicable
     }
 
     private fun navigateAuto(
@@ -938,7 +942,7 @@ class KeyboardActionHandler(
                     Action.NavigationItem.NavigateCurrent -> {
                         val destinationStateHolder = focused.destinationStateHolder ?: return ActionResult.Inapplicable
                         updateMode { KeyboardActionMode.Navigation }
-                        navigateCurrentDestination(destination, destinationStateHolder).orActionInapplicable()
+                        navigateCurrentDestination(destination, destinationStateHolder)
                     }
                     Action.NavigationItem.NavigateInNewWindow -> {
                         UiState.openWindow(destination, navigationActionable.initialTitle())
@@ -1031,7 +1035,7 @@ class KeyboardActionHandler(
                 Action.Navigation.NavigateCurrent -> {
                     val extraArgs = args.subList(1, args.size)
                     val destination = args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
-                    navigateCurrentDestination(context.focused()?.destinationStateHolder) { destination }.orActionInapplicable()
+                    navigateCurrentDestination(context.focused()?.destinationStateHolder) { destination }
                 }
                 Action.Navigation.NavigateInNewWindow -> {
                     val extraArgs = args.subList(1, args.size)
@@ -1054,7 +1058,7 @@ class KeyboardActionHandler(
                             DefaultDestinationStateHolder(destinationState),
                             DestinationStateHolder.forInitialDestination(destination ?: destinationState.destination),
                         )
-                    }.orActionInapplicable()
+                    }
                 }
                 Action.Navigation.SplitVertical -> {
                     val destination = if (args.isEmpty()) {
@@ -1071,7 +1075,7 @@ class KeyboardActionHandler(
                             DefaultDestinationStateHolder(destinationState),
                             DestinationStateHolder.forInitialDestination(destination ?: destinationState.destination),
                         )
-                    }.orActionInapplicable()
+                    }
                 }
                 Action.Navigation.CloseWindow -> {
                     UiState.closeWindow(windowId, applicationScope)

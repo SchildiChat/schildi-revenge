@@ -113,14 +113,15 @@ navigation = [
     { key = "S", shift = true, ctrl = true, action = "NavigateInNewWindow", args = ["settings"] },
     { key = "L", action = "SplitHorizontal", args = ["members"], destinations = ["Conversation"] },
     { key = "L", ctrl = true, action = "SplitHorizontal", args = ["reactions"], destinations = ["Conversation"] },
+    { key = "X", action = "NavigateCurrent", args = ["SettingsPane"], destinations = ["SettingsPane"] },
     { key = "X", action = "CloseWindowUnlessLast" },
     { key = "X", action = "NavigateCurrent", args = ["inbox"] },
     { key = "F", alt = true, action = "CloseWindowUnlessLast", destinations = ["Conversation"] },
     { key = "F", alt = true, action = "NavigateCurrent", args = ["inbox"] },
 ]
 navigationItem = [
-    { key = "Enter", action = "NavigateInNewWindow" },
-    { key = "Enter", shift = true, action = "NavigateCurrent" },
+    { key = "Enter", action = "NavigateCurrent" },
+    { key = "O", action = "NavigateInNewWindow" },
 ]
 focus = [
     { key = "Enter", ctrl = true, action = "OpenContextMenu" },
