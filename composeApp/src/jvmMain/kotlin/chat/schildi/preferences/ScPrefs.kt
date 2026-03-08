@@ -35,6 +35,8 @@ import shire.composeapp.generated.resources.pref_debug_avatar_render_states_titl
 import shire.composeapp.generated.resources.pref_focus_follows_mouse_summary
 import shire.composeapp.generated.resources.pref_focus_follows_mouse_title
 import shire.composeapp.generated.resources.pref_font_scale
+import shire.composeapp.generated.resources.pref_formatted_composer_preview_summary
+import shire.composeapp.generated.resources.pref_formatted_composer_preview_title
 import shire.composeapp.generated.resources.pref_framed_rop_spinner_summary
 import shire.composeapp.generated.resources.pref_framed_rop_spinner_title
 import shire.composeapp.generated.resources.pref_hide_message_authenticity_not_guaranteed_summary
@@ -253,6 +255,7 @@ object ScPrefs {
         titleRes = Res.string.pref_preferred_message_format_title,
         summaryRes = Res.string.pref_preferred_message_format_summary,
     )
+    val FORMATTED_COMPOSER_PREVIEW = ScBoolPref("FORMATTED_COMPOSER_PREVIEW", false, Res.string.pref_formatted_composer_preview_title, Res.string.pref_formatted_composer_preview_summary)
     /*
     val PINNED_MESSAGE_OVERLAY = ScBoolPref("PINNED_MESSAGE_OVERLAY", false, Res.string.sc_pref_pinned_message_overlay_title, Res.string.sc_pref_pinned_message_overlay_summary, authorsChoice = false, upstreamChoice = true)
     val PINNED_MESSAGE_TOOLBAR_ACTION = ScBoolPref("PINNED_MESSAGE_TOOLBAR_ACTION", true, Res.string.sc_pref_pinned_message_toolbar_title, Res.string.sc_pref_pinned_message_toolbar_summary, authorsChoice = true, upstreamChoice = false, dependencies = PINNED_MESSAGE_OVERLAY.asDependencies(expect = false), disabledValue = false)
@@ -344,6 +347,7 @@ object ScPrefs {
             HIDE_AUTHENTICITY_NOT_GUARANTEED,
             HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS,
             PREFERRED_MESSAGE_FORMAT,
+            FORMATTED_COMPOSER_PREVIEW,
             /*
             SC_TIMELINE_LAYOUT,
             RENDER_INLINE_IMAGES,

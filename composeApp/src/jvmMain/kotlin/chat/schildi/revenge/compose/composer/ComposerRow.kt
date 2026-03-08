@@ -4,9 +4,11 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -25,16 +27,24 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import chat.schildi.preferences.ScPrefs
+import chat.schildi.preferences.value
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.LocalMatrixBodyDrawStyle
+import chat.schildi.revenge.MessageFormatDefaults
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.compose.destination.conversation.event.message.ReplyContent
+import chat.schildi.revenge.compose.destination.conversation.event.message.TextLikeMessage
+import chat.schildi.revenge.compose.destination.conversation.event.message.TextLikeMessageContent
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.Attachment
 import chat.schildi.revenge.model.ComposerFormat
@@ -43,7 +53,18 @@ import chat.schildi.revenge.model.ComposerViewModel
 import chat.schildi.revenge.model.DraftType
 import chat.schildi.revenge.model.DraftValue
 import chat.schildi.theme.scExposures
+import com.beeper.android.messageformat.MatrixBodyParseResult
+import io.element.android.libraries.matrix.api.room.IntentionalMention
+import io.element.android.libraries.matrix.impl.room.map
+import io.element.android.libraries.matrix.impl.util.ScMessageEventContent
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
+import org.matrix.rustcomponents.sdk.markdownToHtml
+import org.matrix.rustcomponents.sdk.messageEventContentFromHtml
+import org.matrix.rustcomponents.sdk.messageEventContentFromMarkdown
+import org.matrix.rustcomponents.sdk.messageEventContentFromPlaintext
+import org.matrix.rustcomponents.sdk.use
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_add_attachment
 import shire.composeapp.generated.resources.action_clear_reply
@@ -119,6 +140,17 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
                         tint = color,
                     )
                 }
+            }
+            if (ScPrefs.FORMATTED_COMPOSER_PREVIEW.value() && draftState.format != ComposerFormat.PLAIN) {
+                val content = formattedMessagePreview(draftState)
+                TextLikeMessageContent(
+                    content,
+                    Modifier
+                        .fillMaxWidth(fraction = 0.4f)
+                        .padding(horizontal = Dimens.horizontalItemPadding)
+                        .border(1.dp, MaterialTheme.scExposures.accentColor, Dimens.Conversation.messageBubbleShape)
+                        .padding(Dimens.Conversation.messageBubbleInnerPadding),
+                )
             }
             TextField(
                 value = draftState.textFieldValue,
@@ -284,4 +316,27 @@ fun ClearReplyButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
             tint = MaterialTheme.colorScheme.onSurface,
         )
     }
+}
+
+@Composable
+fun formattedMessagePreview(draft: DraftValue): MatrixBodyParseResult {
+    val preview = remember { mutableStateOf<MatrixBodyParseResult?>(null) }
+    LaunchedEffect(draft.rawBody, draft.format) {
+        withContext(Dispatchers.IO) {
+            val parser = MessageFormatDefaults.parser
+            val parseStyle = MessageFormatDefaults.parseStyle
+            val allowRoomMention = draft.hasRoomMention
+            val messageContent = when (draft.format) {
+                ComposerFormat.HTML -> parser.parseHtml(draft.htmlBody ?: "", parseStyle, allowRoomMention = allowRoomMention)
+                ComposerFormat.PLAIN -> parser.parsePlaintext(draft.body, parseStyle, allowRoomMention = allowRoomMention)
+                ComposerFormat.MARKDOWN -> {
+                    val body = draft.body
+                    val html = markdownToHtml(body) ?: body
+                    parser.parseHtml(html, parseStyle, allowRoomMention = allowRoomMention)
+                }
+            }
+            preview.value = messageContent
+        }
+    }
+    return preview.value ?: MatrixBodyParseResult(draft.rawBody)
 }

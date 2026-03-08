@@ -130,8 +130,8 @@ fun TextLikeMessage(
         SelectionContainer {
             TextLikeMessageContent(
                 text,
-                allowBigEmojiOnly,
                 textColor = textColor,
+                allowBigEmojiOnly = allowBigEmojiOnly,
                 interactionState = interactionState,
             ) {
                 textLayoutResult.value = it
@@ -143,11 +143,11 @@ fun TextLikeMessage(
 @Composable
 fun TextLikeMessageContent(
     text: MatrixBodyParseResult,
-    allowBigEmojiOnly: Boolean,
     modifier: Modifier = Modifier,
+    allowBigEmojiOnly: Boolean = false,
     textColor: Color = MaterialTheme.colorScheme.primary,
     interactionState: MatrixFormatInteractionState = rememberMatrixFormatInteractionState(text),
-    onTextLayout: (TextLayoutResult) -> Unit,
+    onTextLayout: (TextLayoutResult) -> Unit = {},
 ) {
     val isEmojiOnly = allowBigEmojiOnly && LocalMessageRenderContext.current == MessageRenderContext.NORMAL &&
          remember(text) {

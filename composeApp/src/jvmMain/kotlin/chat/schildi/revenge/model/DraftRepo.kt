@@ -117,6 +117,7 @@ data class DraftValue(
             ComposerFormat.HTML -> body
         }
     val intentionalMentions = mentions.map { it.mention }
+    val hasRoomMention = mentions.any { it.mention == IntentionalMention.Room }
 
     val shouldSendAsPlaintext: Boolean
         get() = format == ComposerFormat.PLAIN

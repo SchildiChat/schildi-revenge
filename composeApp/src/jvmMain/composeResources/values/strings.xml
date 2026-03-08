@@ -285,6 +285,8 @@
     <string name="pref_inbox_conversation_dual_pane_min_width_title">Minimum width for Inbox/conversation split</string>
     <string name="pref_preferred_message_format_title">Composer input format</string>
     <string name="pref_preferred_message_format_summary">Input type for formatted message generation</string>
+    <string name="pref_formatted_composer_preview_title">Preview formatted composer</string>
+    <string name="pref_formatted_composer_preview_summary">Show a preview of the rendered message before sending next to the composer</string>
 
     <string name="nameless_space_fallback_title">Nameless space</string>
 
