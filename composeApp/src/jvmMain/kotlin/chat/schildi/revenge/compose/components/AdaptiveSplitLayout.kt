@@ -166,6 +166,11 @@ private fun AdaptiveSplitLayout(
         if (measurables.isEmpty()) {
             return@Layout layout(constraints.maxWidth, constraints.maxHeight) {}
         }
+        if (measurables.size == 1) {
+            return@Layout layout(constraints.maxWidth, constraints.maxHeight) {
+                measurables.first().measure(constraints).placeRelative(0, 0)
+            }
+        }
         val items =
             measurables.mapIndexed { index, measurable ->
                 MeasureInfo(

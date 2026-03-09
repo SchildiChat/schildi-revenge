@@ -42,8 +42,13 @@ fun MultiPaneLayout(
             )
         }
     }
+    val (outerModifier, innerContentModifier) = if (targets.size == 1) {
+        Pair(modifier, contentModifier)
+    } else {
+        Pair(modifier.then(contentModifier), Modifier)
+    }
     AdaptiveRow(
-        modifier.then(contentModifier).fillMaxSize(),
+        outerModifier.fillMaxSize(),
     ) {
         targets.forEach { target ->
             SplitScreenDestination(
@@ -51,6 +56,7 @@ fun MultiPaneLayout(
                 splitRole = target.role,
                 splitType = outerDestination,
                 destinationHolder = target.destinationHolder,
+                contentModifier = innerContentModifier,
             )
         }
     }

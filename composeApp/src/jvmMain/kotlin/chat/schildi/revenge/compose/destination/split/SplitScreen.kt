@@ -95,6 +95,7 @@ fun SplitScreenDestination(
     splitType: DestinationEnum,
     destinationHolder: DestinationStateHolder,
     modifier: Modifier = Modifier,
+    contentModifier: Modifier = Modifier,
 ) {
     val keyHandler = LocalKeyboardActionHandler.current
     val focusedContainers = keyHandler.currentFocusedNestingDestinations.collectAsState(persistentListOf())
@@ -126,7 +127,7 @@ fun SplitScreenDestination(
             splitRole,
         ),
     ) { modifier ->
-        DestinationContent(destinationHolder, modifier)
+        DestinationContent(destinationHolder, modifier.then(contentModifier))
     }
 }
 
@@ -135,6 +136,9 @@ private fun Modifier.splitContainerDecoration(
     isActive: Boolean,
     splitRole: SplitRole,
 ): Modifier {
+    if (splitRole == SplitRole.Singular) {
+        return this
+    }
     val padding = Dimens.Split.outlineWidth
     val halfPadding = padding / 2
     val paddingValues = when (splitRole) {
@@ -142,7 +146,6 @@ private fun Modifier.splitContainerDecoration(
         SplitRole.End -> PaddingValues(start = halfPadding, top = padding, end = padding, bottom = padding)
         SplitRole.Top -> PaddingValues(start = padding, top = padding, end = padding, bottom = halfPadding)
         SplitRole.Bottom -> PaddingValues(start = padding, top = halfPadding, end = padding, bottom = padding)
-        SplitRole.Singular -> PaddingValues()
         SplitRole.Horizontal -> PaddingValues(horizontal = halfPadding, vertical = padding)
         SplitRole.Vertical -> PaddingValues(horizontal = padding, vertical = halfPadding)
     }
