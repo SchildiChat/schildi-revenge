@@ -39,6 +39,8 @@ import shire.composeapp.generated.resources.pref_formatted_composer_preview_summ
 import shire.composeapp.generated.resources.pref_formatted_composer_preview_title
 import shire.composeapp.generated.resources.pref_framed_rop_spinner_summary
 import shire.composeapp.generated.resources.pref_framed_rop_spinner_title
+import shire.composeapp.generated.resources.pref_hide_empty_inbox_pane_summary
+import shire.composeapp.generated.resources.pref_hide_empty_inbox_pane_title
 import shire.composeapp.generated.resources.pref_hide_message_authenticity_not_guaranteed_summary
 import shire.composeapp.generated.resources.pref_hide_message_authenticity_not_guaranteed_title
 import shire.composeapp.generated.resources.pref_hide_message_authenticity_warnings_in_bridged_chats_summary
@@ -210,6 +212,7 @@ object ScPrefs {
     val DUAL_MENTION_UNREAD_COUNTS = ScBoolPref("DUAL_MENTION_UNREAD_COUNTS", false, Res.string.sc_pref_dual_mention_unread_counts_title, Res.string.sc_pref_dual_mention_unread_counts_summary)
     //val HIDE_INVITES = ScBoolPref("HIDE_INVITES", false, Res.string.sc_pref_hide_invites_title, Res.string.sc_pref_hide_invites_summary)
     val PREFER_DUAL_PANE_INBOX = ScBoolPref("PREFER_DUAL_PANE_INBOX", true, Res.string.pref_prefer_dual_pane_inbox_title, Res.string.pref_prefer_dual_pane_inbox_summary)
+    val HIDE_EMPTY_INBOX_PANE = ScBoolPref("HIDE_EMPTY_INBOX_PANE", false, Res.string.pref_hide_empty_inbox_pane_title, Res.string.pref_hide_empty_inbox_pane_summary)
     val INBOX_CONVERSATION_SPLIT_MIN_WIDTH = ScIntPref("INBOX_CONVERSATION_SPLIT_MIN_WIDTH", 800, Res.string.pref_inbox_conversation_dual_pane_min_width_title, minValue = 400, maxValue = 2000)
 
     // Spaces
@@ -405,6 +408,7 @@ object ScPrefs {
         )),
         ScPrefScreen("SPLIT", Res.string.pref_category_split_screen, Res.string.pref_category_split_screen_summary, listOf(
             PREFER_DUAL_PANE_INBOX,
+            HIDE_EMPTY_INBOX_PANE,
             ScPrefCategory("SPLIT_LIMITS", Res.string.pref_category_split_limits, null, listOf(
                 INBOX_CONVERSATION_SPLIT_MIN_WIDTH,
             )),

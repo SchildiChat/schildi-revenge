@@ -287,6 +287,8 @@
     <string name="pref_preferred_message_format_summary">Input type for formatted message generation</string>
     <string name="pref_formatted_composer_preview_title">Preview formatted composer</string>
     <string name="pref_formatted_composer_preview_summary">Show a preview of the rendered message before sending next to the composer</string>
+    <string name="pref_hide_empty_inbox_pane_title">Hide empty inbox pane</string>
+    <string name="pref_hide_empty_inbox_pane_summary">Use full width for inbox when no conversation is open, even when above the splitting threshold</string>
 
     <string name="nameless_space_fallback_title">Nameless space</string>
 

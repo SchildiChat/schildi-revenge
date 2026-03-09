@@ -30,7 +30,7 @@ fun InboxConversationMultiPaneScreen(
                     null
                 else
                     destination.inbox.wrapped(destination, DestinationCategory.INBOX),
-                if (collapseSinglePane && !hasConversation)
+                if (!hasConversation && (collapseSinglePane || ScPrefs.HIDE_EMPTY_INBOX_PANE.value()))
                     null
                 else
                     destination.conversation.wrapped(destination, DestinationCategory.CONVERSATION),
