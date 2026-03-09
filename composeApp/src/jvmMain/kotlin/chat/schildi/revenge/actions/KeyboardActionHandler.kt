@@ -253,11 +253,14 @@ class KeyboardActionHandler(
         get() = _lastPointerPosition
     private val currentFocus = MutableStateFlow<UUID?>(null)
 
+    private val lastFocusByDestination = MutableStateFlow<Map<UUID, UUID>>(emptyMap())
+
     val currentFocusedNestingDestinations = currentFocus.map { focusId ->
         focusId ?: return@map persistentListOf()
-        focusableTargets[focusId].findAllInHierarchy { it.role == FocusRole.NESTING_DESTINATION_ROOT_CONTAINER }.map {
-            it.id
-        }.toImmutableList()
+        focusableTargets[focusId].findAllInParentHierarchy { it.role == FocusRole.NESTING_DESTINATION_ROOT_CONTAINER }
+            .map {
+                it.id
+            }.toImmutableList()
     }
 
     private val _mode = MutableStateFlow<KeyboardActionMode>(KeyboardActionMode.Navigation)
@@ -272,7 +275,8 @@ class KeyboardActionHandler(
 
     private val handlerSettings = RevengePrefs.combinedSettingFlow { lookup ->
         KeyboardActionHandlerSettings.from(lookup)
-    }.stateIn(scope, SharingStarted.Eagerly,
+    }.stateIn(
+        scope, SharingStarted.Eagerly,
         KeyboardActionHandlerSettings.from {
             RevengePrefs.getCachedOrDefaultValue(it)
         }
@@ -308,7 +312,7 @@ class KeyboardActionHandler(
     }
 
     fun needsKeyboardSearchBar(searchProvider: SearchProvider?) = mode.map { m ->
-        m.asSearchMode()?.takeIf { searchProvider == it.searchProvider || searchProvider == null} != null
+        m.asSearchMode()?.takeIf { searchProvider == it.searchProvider || searchProvider == null } != null
     }.stateIn(scope, SharingStarted.Eagerly, false)
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -354,10 +358,21 @@ class KeyboardActionHandler(
             return focusManager?.moveFocus(focusDirection) == true
         }
         val focusDirectionCheck: (FocusTarget) -> Boolean = when (focusDirection) {
-            FocusDirection.Left -> {{ it.coordinates.right <= currentFocus.coordinates.left }}
-            FocusDirection.Right -> {{ it.coordinates.left >= currentFocus.coordinates.right }}
-            FocusDirection.Up -> {{ it.coordinates.bottom <= currentFocus.coordinates.top }}
-            FocusDirection.Down -> {{ it.coordinates.top >= currentFocus.coordinates.bottom }}
+            FocusDirection.Left -> {
+                { it.coordinates.right <= currentFocus.coordinates.left }
+            }
+
+            FocusDirection.Right -> {
+                { it.coordinates.left >= currentFocus.coordinates.right }
+            }
+
+            FocusDirection.Up -> {
+                { it.coordinates.bottom <= currentFocus.coordinates.top }
+            }
+
+            FocusDirection.Down -> {
+                { it.coordinates.top >= currentFocus.coordinates.bottom }
+            }
             // Unsupported directions, unclear what to do; fallback to focus manager
             else -> {
                 return focusManager?.moveFocus(focusDirection) == true
@@ -372,7 +387,7 @@ class KeyboardActionHandler(
         return filteredTargets.minByOrNull {
             distanceToRect(it.coordinates, currentFocus.coordinates.center)
         }?.focusRequester?.requestFocus()
-            // E.g. at the bottom of a scrolled list, the focus manager can still get us to the next item
+        // E.g. at the bottom of a scrolled list, the focus manager can still get us to the next item
             ?: (focusManager?.moveFocus(focusDirection) == true)
     }
 
@@ -449,20 +464,24 @@ class KeyboardActionHandler(
                             destinationStateHolder,
                         )
                     }
+
                     is InteractionAction.OpenWindow -> {
                         UiState.openWindow(destination, action.initialTitle())
                         true
                     }
                 }
             }
+
             is InteractionAction.Invoke -> action.invoke()
             is InteractionAction.CopyToClipboard -> {
                 val context = getActionContext(destinationStateHolder?.state?.value?.destination)
                 copyToClipboard(context, action.text, action.text.toStringHolder()) is ActionResult.Success
             }
+
             is InteractionAction.OpenInBrowser -> {
                 openLinkInExternalBrowser(action.url) is ActionResult.Success
             }
+
             is InteractionAction.ContextMenu -> openContextMenu(action.focusId)
         }
     }
@@ -473,16 +492,16 @@ class KeyboardActionHandler(
         invalidateHolderId: Boolean = false,
     ): ActionResult {
         val effectiveStateHolder = destinationStateHolder
-                    ?: currentFocused()?.destinationStateHolder ?:
-                    focusableTargets.values.firstNotNullOfOrNull { it.destinationStateHolder }
-                    ?: return ActionResult.Inapplicable
+            ?: currentFocused()?.destinationStateHolder
+            ?: focusableTargets.values.firstNotNullOfOrNull { it.destinationStateHolder }
+            ?: return ActionResult.Inapplicable
         if (effectiveStateHolder.state.value.destination == destination) {
             return ActionResult.Inapplicable
         }
         effectiveStateHolder.navigate(
-                destination,
-                NavigationPreference.REPLACE,
-                invalidateHolderId = invalidateHolderId,
+            destination,
+            NavigationPreference.REPLACE,
+            invalidateHolderId = invalidateHolderId,
         )
         return ActionResult.Success()
     }
@@ -510,8 +529,8 @@ class KeyboardActionHandler(
     ): Boolean {
         return (
                 destinationStateHolder
-                    ?: currentFocused()?.destinationStateHolder ?:
-                    focusableTargets.values.firstNotNullOfOrNull { it.destinationStateHolder }
+                    ?: currentFocused()?.destinationStateHolder
+                    ?: focusableTargets.values.firstNotNullOfOrNull { it.destinationStateHolder }
                 )?.navigate(
                 destination,
                 NavigationPreference.AUTO,
@@ -582,7 +601,7 @@ class KeyboardActionHandler(
         return when (event.type) {
             KeyDown -> {
                 val consumed = if (contextMenu != null) {
-                     handleContextMenuEvent(event, contextMenu)
+                    handleContextMenuEvent(event, contextMenu)
                 } else when (val mode = mode.value) {
                     is KeyboardActionMode.Navigation -> {
                         val result = handleNavigationEvent(trigger, focused)
@@ -597,6 +616,7 @@ class KeyboardActionHandler(
                         }
                         result is ActionResult.Actioned
                     }
+
                     is KeyboardActionMode.Search -> handleSearchEvent(trigger, focused, mode)
                     is KeyboardActionMode.Command -> handleCommandEvent(trigger, focused)
                 }
@@ -605,9 +625,11 @@ class KeyboardActionHandler(
                 }
                 consumed
             }
+
             KeyUp -> {
                 pendingKeyTriggersInAction.remove(trigger) != null
             }
+
             else -> false
         }
     }
@@ -644,6 +666,7 @@ class KeyboardActionHandler(
                 updateMode { KeyboardActionMode.Navigation }
                 true
             }
+
             KeyMapped.Enter -> {
                 updateMode { mode.copy(navigating = true) }
                 windowCoordinates?.let {
@@ -651,6 +674,7 @@ class KeyboardActionHandler(
                 }
                 true
             }
+
             KeyMapped.DirectionUp -> false // TODO cycle search history; configurable binding?
             KeyMapped.DirectionDown -> false // TODO cycle search history; configurable binding?
             else -> false
@@ -669,6 +693,7 @@ class KeyboardActionHandler(
                 updateMode { it.asSearchMode() ?: KeyboardActionMode.Navigation }
                 true
             }
+
             KeyMapped.Enter -> {
                 // If we have a non-null suggestion selected, consume enter and clear that
                 var commandMode: KeyboardActionMode.Command? = null
@@ -686,6 +711,7 @@ class KeyboardActionHandler(
                 }
                 true
             }
+
             KeyMapped.Tab -> {
                 val direction = if (key.ctrl || key.shift) {
                     -1
@@ -695,14 +721,17 @@ class KeyboardActionHandler(
                 cycleCommandSuggestions(direction)
                 true
             }
+
             KeyMapped.DirectionUp -> {
                 cycleCommandSuggestions(-1)
                 true
             }
+
             KeyMapped.DirectionDown -> {
                 cycleCommandSuggestions(1)
                 true
             }
+
             else -> false
         }
     }
@@ -753,7 +782,7 @@ class KeyboardActionHandler(
         currentFocus: FocusTarget?,
         role: FocusRole? = null,
         select: (Rect) -> Offset,
-    ) = focusCurrentContainerRelative(parentId =  currentFocus?.parent?.uuid, select = select, role = role)
+    ) = focusCurrentContainerRelative(parentId = currentFocus?.parent?.uuid, select = select, role = role)
 
     private fun focusCurrentContainerRelative(
         parentId: UUID? = currentFocused()?.parent?.uuid,
@@ -770,6 +799,9 @@ class KeyboardActionHandler(
         log.v { "Focus parent: $parent" }
         parent ?: return false
         currentFocus.value = parent.uuid
+        focusableTargets[parent.uuid]?.let {
+            onFocusChanged(parent.uuid, null)
+        }
         return true
     }
 
@@ -782,6 +814,75 @@ class KeyboardActionHandler(
         }
         return focusCurrentContainerRelative(focused.id) { it.topCenter }
     }
+
+    private fun focusNextSplit(
+        focused: FocusTarget? = currentFocused(),
+    ): Boolean {
+        val currentDestination = focused.findFirstInParentHierarchy { it.role == FocusRole.DESTINATION_ROOT_CONTAINER }
+        val availableDestinations = focusableTargets.values.filter {
+            it.role == FocusRole.DESTINATION_ROOT_CONTAINER && it.id != currentDestination?.id
+        }
+        val target = if (availableDestinations.isEmpty()) {
+            return false
+        } else {
+            // TODO logic to cycle in a certain direction?
+            availableDestinations.first()
+        }
+        // Find best suitable focus target
+        val lastFocusForDestination = lastFocusByDestination.value[target.id]?.let {
+            focusableTargets[it]
+        }
+        return lastFocusForDestination?.focusRequester?.requestFocus() == true ||
+                findVisibleListItemStart(target.id)?.focusRequester?.requestFocus() == true ||
+                target.focusRequester.requestFocus()
+    }
+
+    private fun findFocusableListItems(parentId: UUID?) = if (parentId == null) {
+        focusableTargets.values.filter {
+            it.role == FocusRole.LIST_ITEM
+        }
+    } else {
+        findAllChildren(parentId) {
+            it.role == FocusRole.LIST_ITEM
+        }
+    }
+
+    private fun findVisibleListItemTop(parentId: UUID?) = findFocusableListItems(parentId)
+        .filter { it.actions?.listActions != null }
+        .takeIf { it.isNotEmpty() }
+        ?.minBy {
+            it.coordinates.top
+        }
+
+
+    private fun findVisibleListItemBottom(parentId: UUID?) = findFocusableListItems(parentId)
+        .filter { it.actions?.listActions != null }
+        .takeIf { it.isNotEmpty() }
+        ?.maxBy {
+            it.coordinates.bottom
+        }
+
+    private fun findVisibleListItemStart(parentId: UUID?) = findFocusableListItems(parentId)
+        .filter { it.actions?.listActions != null }
+        .takeIf { it.isNotEmpty() }
+        ?.maxBy {
+            if (it.actions?.listActions?.isReverseList == true) {
+                it.coordinates.bottom
+            } else {
+                -it.coordinates.top
+            }
+        }
+
+    private fun findVisibleListItemEnd(parentId: UUID?) = findFocusableListItems(parentId)
+        .filter { it.actions?.listActions != null }
+        .takeIf { it.isNotEmpty() }
+        ?.maxBy {
+            if (it.actions?.listActions?.isReverseList == true) {
+                -it.coordinates.top
+            } else {
+                it.coordinates.bottom
+            }
+        }
 
     private fun scrollListToTop(
         focused: FocusTarget? = currentFocused(),
@@ -1005,6 +1106,11 @@ class KeyboardActionHandler(
                 Action.Focus.FocusBottom -> focusCurrentContainerRelative(context.focused()) { it.bottomCenter } // TODO keep X offset rather than assuming center
                 Action.Focus.FocusParent -> focusParent(context.focused())
                 Action.Focus.FocusEnterContainer -> focusEnterContainer(context.focused())
+                Action.Focus.FocusNextSplit -> focusNextSplit(context.focused())
+                Action.Focus.FocusVisibleListTop -> findVisibleListItemTop(context.focused()?.id)?.focusRequester?.requestFocus() == true
+                Action.Focus.FocusVisibleListBottom -> findVisibleListItemBottom(context.focused()?.id)?.focusRequester?.requestFocus() == true
+                Action.Focus.FocusVisibleListStart -> findVisibleListItemStart(context.focused()?.id)?.focusRequester?.requestFocus() == true
+                Action.Focus.FocusVisibleListEnd -> findVisibleListItemEnd(context.focused()?.id)?.focusRequester?.requestFocus() == true
                 Action.Focus.OpenContextMenu -> {
                     context.focused()?.let {
                         openContextMenu(it.id)
@@ -1336,10 +1442,15 @@ class KeyboardActionHandler(
         return false
     }
 
-    fun onFocusChanged(target: UUID, state: FocusState) {
+    fun onFocusChanged(target: UUID, state: FocusState?) {
         //log.v { "Focus changed for $target to $state" }
         var lostFocusTargetId: UUID? = null
-        if (state.isFocused) {
+        if (state == null) {
+            // Should already happen in focusParent() via key actions where we already set this...?
+            if (currentFocus.value != target) {
+                log.e("Tried to request focus on null state")
+            }
+        } else if (state.isFocused) {
             currentFocus.update {
                 lostFocusTargetId = it
                 target
@@ -1365,6 +1476,18 @@ class KeyboardActionHandler(
             pauseFocusFollowsMouseUntil = null
         }
         lostFocusTarget?.let(::handleLostFocus)
+        lastFocusByDestination.update {
+            it.filter {
+                it.value != lostFocusTargetId
+            }.let { filtered ->
+                val destination = newFocus?.findFirstInParentHierarchy { it.role == FocusRole.DESTINATION_ROOT_CONTAINER }
+                if (destination == null) {
+                    filtered
+                } else {
+                    filtered + (destination.id to newFocus.id)
+                }
+            }
+        }
     }
 
     private fun handleLostFocus(target: FocusTarget) {
@@ -1797,7 +1920,7 @@ class KeyboardActionHandler(
         }
     }
 
-    private fun FocusTarget?.findAllInHierarchy(condition: (FocusTarget) -> Boolean): List<FocusTarget> {
+    private fun FocusTarget?.findAllInParentHierarchy(condition: (FocusTarget) -> Boolean): List<FocusTarget> {
         var current = this
         return buildList {
             while (current != null) {
@@ -1806,6 +1929,25 @@ class KeyboardActionHandler(
                 }
                 current = current.parent?.uuid?.let { focusableTargets[it] }
             }
+        }
+    }
+
+    private fun FocusTarget?.findFirstInParentHierarchy(condition: (FocusTarget) -> Boolean): FocusTarget? {
+        var current = this
+        while (current != null) {
+            if (condition(current)) {
+                return current
+            }
+            current = current.parent?.uuid?.let { focusableTargets[it] }
+        }
+        return null
+    }
+
+    private fun findAllChildren(parentId: UUID, condition: (FocusTarget) -> Boolean = { true }): List<FocusTarget> {
+        return focusableTargets.values.filter { focusable ->
+            focusable.findFirstInParentHierarchy {
+                it.parent?.uuid == parentId && condition(it)
+            } != null
         }
     }
 }

@@ -165,6 +165,11 @@ sealed interface Action {
         FocusBottom,
         FocusParent,
         FocusEnterContainer,
+        FocusNextSplit,
+        FocusVisibleListStart,
+        FocusVisibleListEnd,
+        FocusVisibleListTop,
+        FocusVisibleListBottom,
         OpenContextMenu,
     }
     enum class List(
