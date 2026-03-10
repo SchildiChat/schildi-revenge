@@ -333,8 +333,8 @@ class RustTimeline(
         eventOrTransactionId: EventOrTransactionId,
         body: String,
         htmlBody: String?,
-        plaintext: Boolean,  // SC
         intentionalMentions: List<IntentionalMention>,
+        plaintext: Boolean,  // SC
     ): Result<Unit> = withContext(dispatcher) {
         runCatchingExceptions {
             val editedContent = EditedContent.RoomMessage(

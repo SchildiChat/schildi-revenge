@@ -281,7 +281,9 @@ pushd scripts
 ./cleaned_upstream.sh
 popd
 git fetch skeleton
+git stash
 git subtree merge --prefix=matrix skeleton/main
+git stash pop
 pushd matrix-rust-sdk
 git fetch origin
 git merge origin/main

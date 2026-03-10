@@ -2,6 +2,7 @@ package io.element.android.services.analytics.api
 
 import co.touchlab.kermit.Logger
 import io.element.android.services.analyticsproviders.api.AnalyticsTransaction
+import kotlinx.coroutines.flow.flowOf
 
 object AnalyticsService {
     fun getLongRunningTransaction(tx: Any) {}
@@ -9,6 +10,7 @@ object AnalyticsService {
     fun trackError(t: Throwable) {
         Logger.withTag("TrackError").w("Tracked error", t)
     }
+    val userConsentFlow = flowOf(false)
 }
 
 inline fun <T> AnalyticsService.recordTransaction(

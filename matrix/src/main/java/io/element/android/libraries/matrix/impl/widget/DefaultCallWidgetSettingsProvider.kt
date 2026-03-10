@@ -10,8 +10,12 @@ package io.element.android.libraries.matrix.impl.widget
 
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
+import io.element.android.libraries.core.meta.BuildMeta
+import io.element.android.libraries.matrix.api.widget.CallAnalyticCredentialsProvider
 import io.element.android.libraries.matrix.api.widget.CallWidgetSettingsProvider
 import io.element.android.libraries.matrix.api.widget.MatrixWidgetSettings
+import io.element.android.services.analytics.api.AnalyticsService
+import kotlinx.coroutines.flow.first
 import org.matrix.rustcomponents.sdk.newVirtualElementCallWidget
 import timber.log.Timber
 import uniffi.matrix_sdk.EncryptionSystem
@@ -20,8 +24,20 @@ import uniffi.matrix_sdk.VirtualElementCallWidgetProperties
 import uniffi.matrix_sdk.Intent as CallIntent
 
 @ContributesBinding(AppScope::class)
-object DefaultCallWidgetSettingsProvider : CallWidgetSettingsProvider {
-    override suspend fun provide(baseUrl: String, widgetId: String, encrypted: Boolean, direct: Boolean, hasActiveCall: Boolean): MatrixWidgetSettings {
+class DefaultCallWidgetSettingsProvider(
+    private val buildMeta: BuildMeta,
+    private val callAnalyticsCredentialsProvider: CallAnalyticCredentialsProvider,
+    private val analyticsService: AnalyticsService,
+) : CallWidgetSettingsProvider {
+    override suspend fun provide(
+        baseUrl: String,
+        widgetId: String,
+        encrypted: Boolean,
+        direct: Boolean,
+        isAudioCall: Boolean,
+        hasActiveCall: Boolean
+    ): MatrixWidgetSettings {
+        val isAnalyticsEnabled = analyticsService.userConsentFlow.first()
         val properties = VirtualElementCallWidgetProperties(
             elementCallUrl = baseUrl,
             widgetId = widgetId,
@@ -37,14 +53,18 @@ object DefaultCallWidgetSettingsProvider : CallWidgetSettingsProvider {
             parentUrl = null,
         )
         val config = VirtualElementCallWidgetConfig(
-            // TODO remove this once we have the next EC version
-            preload = false,
-            // TODO remove this once we have the next EC version
-            skipLobby = null,
+//            // TODO remove this once we have the next EC version
+//            preload = false,
+//            // TODO remove this once we have the next EC version
+//            skipLobby = null,
             intent = when {
-                direct && hasActiveCall -> CallIntent.JOIN_EXISTING_DM
+                direct && hasActiveCall -> {
+                    if (isAudioCall) CallIntent.JOIN_EXISTING_DM_VOICE else CallIntent.JOIN_EXISTING_DM
+                }
                 hasActiveCall -> CallIntent.JOIN_EXISTING
-                direct -> CallIntent.START_CALL_DM
+                direct -> {
+                    if (isAudioCall) CallIntent.START_CALL_DM_VOICE else CallIntent.START_CALL_DM
+                }
                 else -> CallIntent.START_CALL
             }.also {
                 Timber.d("Starting/joining call with intent: $it")
