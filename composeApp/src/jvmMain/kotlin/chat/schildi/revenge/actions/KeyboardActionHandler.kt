@@ -104,6 +104,7 @@ import shire.composeapp.generated.resources.action_processing_done
 import shire.composeapp.generated.resources.command_ambiguous
 import shire.composeapp.generated.resources.command_ambiguous_none_valid
 import shire.composeapp.generated.resources.command_copied_to_clipboard
+import shire.composeapp.generated.resources.command_copy_name_full_account_data
 import shire.composeapp.generated.resources.command_not_applicable
 import shire.composeapp.generated.resources.command_not_found
 import shire.composeapp.generated.resources.toast_restart_required
@@ -1400,6 +1401,30 @@ class KeyboardActionHandler(
                             } else {
                                 success ?: ActionResult.Inapplicable
                             }
+                    }
+                }
+                Action.Global.CopyGlobalAccountData -> {
+                    val sessionId = SessionId(args.firstOrNull().orActionValidationError())
+                    val client = UiState.currentClientFor(sessionId) ?: return ActionResult.Failure("Client not ready")
+                    context.launchActionAsync(
+                        "copyGlobalAccountData",
+                        GlobalActionsScope,
+                        Dispatchers.IO,
+                        "copyGlobalAccountData",
+                        notifyProcessing = true,
+                    ) {
+                        val result = client.getGlobalAccountData()
+                        if (result.isSuccess) {
+                            val joined = result.getOrNull()?.joinToString(",\n\n") {
+                                "# ${it.eventType}\n${it.content}"
+                            } ?: "{}"
+                            context.copyToClipboard(
+                                joined,
+                                Res.string.command_copy_name_full_account_data.toStringHolder()
+                            )
+                        } else {
+                            result.toActionResult(async = true)
+                        }
                     }
                 }
             }

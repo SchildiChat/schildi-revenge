@@ -85,6 +85,7 @@
     <string name="command_copy_name_formatted_message_content">formatted message content</string>
     <string name="command_copy_name_event_source">event source</string>
     <string name="command_copy_name_full_room_state">room state</string>
+    <string name="command_copy_name_full_account_data">account data</string>
     <string name="command_copy_name_event_id">event ID</string>
     <string name="command_copy_name_room_id">room ID</string>
     <string name="command_copy_name_mxid">MXID</string>
@@ -99,6 +100,7 @@
     <string name="command_ambiguous_none_valid">Command "%1$s" matches no available command with the provided parameters in this context</string>
     <string name="command_suggestion_title_and_hint">%1$s: %2$s</string>
     <string name="command_fetching_state">Fetching state</string>
+    <string name="command_fetching_data">Fetching data</string>
 
     <string name="common_internal_error">Internal error</string>
     <string name="common_learn_more">Learn more</string>

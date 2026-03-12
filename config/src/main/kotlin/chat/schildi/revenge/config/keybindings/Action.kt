@@ -125,6 +125,7 @@ sealed interface Action {
         RecreateUi,
         RecreateWindow,
         ClearSessionCache(args = listOf(ActionArgumentPrimitive.SessionId)),
+        CopyGlobalAccountData(args = listOf(ActionArgumentPrimitive.SessionId), aliases = listOf("accountData", "copyAccountData", "globalAccountData")),
         VacuumDatabase(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.SessionId))),
     }
     enum class AppMessage(
@@ -240,7 +241,7 @@ sealed interface Action {
         InviteUser(aliases = listOf("invite"), args = listOf(ActionArgumentPrimitive.UserIdNotInRoom)),
         BanUser(aliases = listOf("ban"), args = listOf(ActionArgumentPrimitive.UserIdInRoom, OptionalReason)),
         UnbanUser(aliases = listOf("unban"), args = listOf(ActionArgumentPrimitive.UserIdNotInRoom, OptionalReason)),
-        CopyFullRoomState(aliases = listOf("roomState")),
+        CopyFullRoomState(aliases = listOf("roomState", "copyRoomState")),
     }
     enum class Room(
         override val aliases: kotlin.collections.List<String> = emptyList(),
@@ -267,6 +268,7 @@ sealed interface Action {
         SetRoomName(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.RoomName))),
         SetRoomTopic(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.RoomTopic))),
         SetRoomAvatar(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.Mxc))),
+        CopyFullRoomAccountData(aliases = listOf("roomAccountData", "copyRoomAccountData")),
     }
     enum class Event(
         override val aliases: kotlin.collections.List<String> = emptyList(),

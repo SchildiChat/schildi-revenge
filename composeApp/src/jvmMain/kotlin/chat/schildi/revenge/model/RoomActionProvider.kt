@@ -3,10 +3,12 @@ package chat.schildi.revenge.model
 import chat.schildi.revenge.GlobalActionsScope
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
+import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.actions.launchActionAsync
 import chat.schildi.revenge.actions.orActionValidationError
+import chat.schildi.revenge.actions.parseRoomStateSnapshot
 import chat.schildi.revenge.actions.runWithMessage
 import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.revenge.compose.util.StringResourceHolder
@@ -21,6 +23,7 @@ import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.room.BaseRoom
 import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.room.RoomNotificationMode
+import io.element.android.libraries.matrix.api.roomAliasFromName
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import kotlinx.coroutines.Dispatchers
 import shire.composeapp.generated.resources.Res
@@ -28,6 +31,9 @@ import shire.composeapp.generated.resources.action_leave
 import shire.composeapp.generated.resources.action_leave_room_prompt
 import shire.composeapp.generated.resources.action_leave_unnamed_room_prompt
 import shire.composeapp.generated.resources.command_copy_name_event_id
+import shire.composeapp.generated.resources.command_copy_name_full_account_data
+import shire.composeapp.generated.resources.command_copy_name_full_room_state
+import shire.composeapp.generated.resources.command_fetching_data
 import shire.composeapp.generated.resources.toast_added_to_space
 import shire.composeapp.generated.resources.toast_adding_to_space
 import shire.composeapp.generated.resources.toast_removed_from_space
@@ -188,6 +194,21 @@ class RoomActionProvider(
                     joinedRoom.removeAvatar().toActionResult()
                 } else {
                     joinedRoom.setAvatarUrl(avatarUrl).toActionResult()
+                }
+            }
+            Action.Room.CopyFullRoomAccountData -> {
+                val client = getClient() ?: return ActionResult.Failure("Client not ready")
+                val result = client.getRoomAccountData(room.roomId)
+                if (result.isSuccess) {
+                    val joined = result.getOrNull()?.joinToString(",\n\n") {
+                        "# ${it.eventType}\n${it.content}"
+                    } ?: "{}"
+                    context.copyToClipboard(
+                        joined,
+                        Res.string.command_copy_name_full_account_data.toStringHolder()
+                    )
+                } else {
+                    result.toActionResult(async = true)
                 }
             }
         }

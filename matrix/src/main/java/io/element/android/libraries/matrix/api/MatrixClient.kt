@@ -49,6 +49,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import org.matrix.rustcomponents.sdk.AccountDataRawEvent
 import java.util.Optional
 
 interface MatrixClient {
@@ -72,6 +73,8 @@ interface MatrixClient {
     suspend fun getJoinedRoom(roomId: RoomId, scTimelineFilterSettings: ScTimelineFilterSettings = ScTimelineFilterSettings()): JoinedRoom?
     suspend fun getRoom(roomId: RoomId): BaseRoom?
     suspend fun getAccountData(eventType: String): String? // SC
+    suspend fun getGlobalAccountData(): Result<List<AccountDataRawEvent>> // SC
+    suspend fun getRoomAccountData(roomId: RoomId): Result<List<AccountDataRawEvent>> // SC
     suspend fun getRoomAccountData(roomId: RoomId, eventType: String): String? // SC
     suspend fun setAccountData(eventType: String, content: String) // SC
     suspend fun getUrlPreviewJson(url: String): String // SC
