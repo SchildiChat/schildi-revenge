@@ -1987,12 +1987,12 @@ class ConversationViewModel(
                 buildString {
                     append(it)
                     append(" - ")
-                    val userName = accountUserDisplayName ?: roomUserDisplayName
+                    val userName = roomUserDisplayName ?: accountUserDisplayName
                     if (userName != null) {
                         append(userName)
-                        if (roomUserDisplayName != null && roomUserDisplayName != userName) {
+                        if (accountUserDisplayName != null && accountUserDisplayName != userName) {
                             append(" (")
-                            append(roomUserDisplayName)
+                            append(accountUserDisplayName)
                             append(")")
                         }
                     } else {
