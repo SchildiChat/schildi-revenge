@@ -17,6 +17,7 @@ fun isNonStable(version: String): Boolean {
             || "Beta" in version
             || ".x-compat" in version
             || "rc" in version
+            || "RC" in version
 }
 
 tasks.withType<DependencyUpdatesTask> {

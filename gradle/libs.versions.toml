@@ -1,9 +1,11 @@
 [versions]
 versionsPlugin = "0.53.0"
 androidx-lifecycle = "2.9.6"
-androidx-datastore = "1.2.0"
+androidx-datastore = "1.2.1"
 composeHotReload = "1.0.0"
-composeMultiplatform = "1.10.1"
+composeMultiplatform = "1.10.2"
+composeMaterial3 = "1.9.0"
+composeMaterialIconsExtended = "1.7.3"
 junit = "4.13.2"
 kotlin = "2.3.10"
 kotlinx-coroutines = "1.10.2"
@@ -11,12 +13,12 @@ kotlinx-datetime = "0.7.1"
 jetbrainsKotlinJvm = "2.3.10"
 jna = "5.18.1"
 kotlinxSerialization = "1.10.0"
-metro = "0.10.4"
-coil = "3.3.0"
+metro = "0.11.2"
+coil = "3.4.0"
 kdroidfilterPlatformtools = "0.7.5"
 kdroidfilterComposeNativeTray = "1.1.0"
 ktoml = "0.7.1"
-ktor = "3.4.0"
+ktor = "3.4.1"
 jsoup = "1.22.1"
 beeperMessageFormat = "625f17508b966606cfbfcee5e3ea8bc106c2077c"
 dbusJava = "5.2.0"
@@ -25,6 +27,13 @@ dbusJava = "5.2.0"
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 junit = { module = "junit:junit", version.ref = "junit" }
+compose-runtime = { module = "org.jetbrains.compose.runtime:runtime", version.ref = "composeMultiplatform" }
+compose-foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatform" }
+compose-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "composeMaterial3" }
+compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
+compose-components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
+compose-ui-tooling-preview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
+compose-material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "composeMaterialIconsExtended" }
 androidx-lifecycle-viewmodelCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "androidx-lifecycle" }
 androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
 androidx-datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "androidx-datastore" }
@@ -34,7 +43,7 @@ kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-c
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinx-coroutines" }
 kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.ref = "kotlinx-datetime" }
 jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
-kermit = "co.touchlab:kermit:2.0.8"
+kermit = "co.touchlab:kermit:2.1.0"
 appdirs = "ca.gosyer:kotlin-multiplatform-appdirs:2.0.0"
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
