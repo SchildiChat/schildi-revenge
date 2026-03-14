@@ -254,6 +254,7 @@ class KeyboardActionHandler(
         get() = _lastPointerPosition
     private val currentFocus = MutableStateFlow<UUID?>(null)
 
+    private val lastFocusedDestination = MutableStateFlow<UUID?>(null)
     private val lastFocusByDestination = MutableStateFlow<Map<UUID, UUID>>(emptyMap())
 
     val currentFocusedNestingDestinations = currentFocus.map { focusId ->
@@ -441,8 +442,10 @@ class KeyboardActionHandler(
             }
         }
         if (fallbackToRoot) {
-            val root = focusableTargets.values.find { it.parent == null }
-            log.i { "No active focus, use root ${root?.id}" }
+            val root = lastFocusedDestination.value?.let { focusableTargets[it] }
+                ?: focusableTargets.values.filter { it.role == FocusRole.DESTINATION_ROOT_CONTAINER }
+                    .maxByOrNull { it.coordinates.contains(lastPointerPosition) }
+            log.i { "No active focus, use destination root ${root?.id}" }
             return root
         }
         return null
@@ -1501,17 +1504,23 @@ class KeyboardActionHandler(
             pauseFocusFollowsMouseUntil = null
         }
         lostFocusTarget?.let(::handleLostFocus)
+        var newFocusedDestination: UUID? = null
         lastFocusByDestination.update {
             it.filter {
                 it.value != lostFocusTargetId
             }.let { filtered ->
                 val destination = newFocus?.findFirstInParentHierarchy { it.role == FocusRole.DESTINATION_ROOT_CONTAINER }
                 if (destination == null) {
+                    newFocusedDestination = null
                     filtered
                 } else {
+                    newFocusedDestination = destination.id
                     filtered + (destination.id to newFocus.id)
                 }
             }
+        }
+        if (newFocusedDestination != null) {
+            lastFocusedDestination.value = newFocusedDestination
         }
     }
 
