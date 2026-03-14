@@ -349,6 +349,7 @@ class CommandSuggestionsProvider(
                     val eventTypes = context.findAll(ActionArgumentPrimitive.StateEventType)
                     roomStateEventSuggestions?.value?.toStateEventKeySuggestions(eventTypes).orEmpty()
                 }
+                ActionArgumentPrimitive.FocusRole -> FocusRole.entries.map { it.name }.toSuggestionsWithoutHint()
             }.filterValidSuggestionsFor(query, arg).distinct()
         }
         is ActionArgumentAnyOf -> arg.arguments.flatMap { suggestPrimaryFor(it, context, query) }

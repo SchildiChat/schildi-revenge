@@ -46,6 +46,8 @@ import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.NavigationPreference
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
 import chat.schildi.revenge.compose.focus.FakeFocusRequester
+import chat.schildi.revenge.compose.focus.allowsFocusable
+import chat.schildi.revenge.compose.focus.preferFocusChildren
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.toStringHolder
@@ -71,6 +73,7 @@ import chat.schildi.revenge.config.keybindings.maxArgsSize
 import chat.schildi.revenge.config.keybindings.minArgsSize
 import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.REAL_SPACE_ID_PREFIX
+import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.core.coroutine.childScope
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -416,7 +419,7 @@ class KeyboardActionHandler(
 
     fun focusByRole(role: FocusRole): Boolean {
         _keyboardPrimary.value = true
-        val focusRequester = focusableTargets.values.find { it.role == role }?.focusRequester
+        val focusRequester = findClosestByRole(role)?.focusRequester
         return if (focusRequester != null) {
             // Don't immediately request focus, it causes issues where text fields
             // may still consume the key in addition to us focusing it
@@ -429,6 +432,30 @@ class KeyboardActionHandler(
             true
         } else {
             false
+        }
+    }
+
+    private fun findClosestByRole(
+        role: FocusRole,
+        focused: FocusTarget? = currentFocused(fallbackToRoot = false),
+    ): FocusTarget? {
+        val preferredDestination = lastFocusedDestination.value
+        val candidates = if (preferredDestination != null) {
+            focusableTargets.values.filter {
+                it.role == role && preferredDestination == it.destination()
+            }.ifEmpty {
+                focusableTargets.values.filter { it.role == role }
+            }
+        } else {
+            focusableTargets.values.filter { it.role == role }
+        }
+        val preferredPosition = focused?.coordinates?.center
+            ?: preferredDestination?.let { lastFocusByDestination.value[it] }?.let {
+                focusableTargets[it]?.coordinates?.center
+            }
+            ?: lastPointerPosition
+        return candidates.minByOrNull {
+            distanceToRect(it.coordinates, preferredPosition)
         }
     }
 
@@ -451,7 +478,8 @@ class KeyboardActionHandler(
         return null
     }
 
-    private fun ActionContext.focused() = (this as? InternalActionContext)?.focused ?: currentFocused()
+    private fun ActionContext.focused(fallbackToRoot: Boolean = true) =
+        (this as? InternalActionContext)?.focused ?: currentFocused(fallbackToRoot)
 
     fun executeAction(
         action: InteractionAction,
@@ -822,7 +850,7 @@ class KeyboardActionHandler(
     private fun focusNextSplit(
         focused: FocusTarget? = currentFocused(),
     ): Boolean {
-        val currentDestination = focused.findFirstInParentHierarchy { it.role == FocusRole.DESTINATION_ROOT_CONTAINER }
+        val currentDestination = focused?.destination()
         val availableDestinations = focusableTargets.values.filter {
             it.role == FocusRole.DESTINATION_ROOT_CONTAINER && it.id != currentDestination?.id
         }
@@ -1111,10 +1139,24 @@ class KeyboardActionHandler(
                 Action.Focus.FocusParent -> focusParent(context.focused())
                 Action.Focus.FocusEnterContainer -> focusEnterContainer(context.focused())
                 Action.Focus.FocusNextSplit -> focusNextSplit(context.focused())
-                Action.Focus.FocusVisibleListTop -> findVisibleListItemTop(context.focused()?.id)?.focusRequester?.requestFocus() == true
-                Action.Focus.FocusVisibleListBottom -> findVisibleListItemBottom(context.focused()?.id)?.focusRequester?.requestFocus() == true
-                Action.Focus.FocusVisibleListStart -> findVisibleListItemStart(context.focused()?.id)?.focusRequester?.requestFocus() == true
-                Action.Focus.FocusVisibleListEnd -> findVisibleListItemEnd(context.focused()?.id)?.focusRequester?.requestFocus() == true
+                Action.Focus.FocusVisibleListTop -> findVisibleListItemTop(context.focused()?.destination()?.id)?.focusRequester?.requestFocus() == true
+                Action.Focus.FocusVisibleListBottom -> findVisibleListItemBottom(context.focused()?.destination()?.id)?.focusRequester?.requestFocus() == true
+                Action.Focus.FocusVisibleListStart -> findVisibleListItemStart(context.focused()?.destination()?.id)?.focusRequester?.requestFocus() == true
+                Action.Focus.FocusVisibleListEnd -> findVisibleListItemEnd(context.focused()?.destination()?.id)?.focusRequester?.requestFocus() == true
+                Action.Focus.FocusByRole -> {
+                    val roleString = args.firstOrNull().orActionValidationError()
+                    val role = tryOrNull { FocusRole.valueOf(roleString) }.orActionValidationError()
+                    val allowContainer = role.preferFocusChildren()
+                    val currentFocus = context.focused(fallbackToRoot = allowContainer)?.takeIf {
+                        !it.role.preferFocusChildren() || allowContainer
+                    }
+                    if (currentFocus?.role == role) {
+                        // Already focused, no-op
+                        false
+                    } else {
+                        findClosestByRole(role, currentFocus)?.focusRequester?.requestFocus() == true
+                    }
+                }
                 Action.Focus.OpenContextMenu -> {
                     context.focused()?.let {
                         openContextMenu(it.id)
@@ -1509,7 +1551,7 @@ class KeyboardActionHandler(
             it.filter {
                 it.value != lostFocusTargetId
             }.let { filtered ->
-                val destination = newFocus?.findFirstInParentHierarchy { it.role == FocusRole.DESTINATION_ROOT_CONTAINER }
+                val destination = newFocus?.destination()
                 if (destination == null) {
                     newFocusedDestination = null
                     filtered
@@ -1984,6 +2026,8 @@ class KeyboardActionHandler(
             } != null
         }
     }
+
+    private fun FocusTarget.destination() = findFirstInParentHierarchy { it.role == FocusRole.DESTINATION_ROOT_CONTAINER }
 }
 
 private fun KeyEvent.toTrigger(): KeyTrigger? {
@@ -2089,6 +2133,7 @@ fun <A: Action>List<Binding<A>>.execute(
             Logger.e("Error executing action", e)
             ActionResult.Failure(e.message ?: "Exception occurred trying to execute action")
         }
+        Logger.i("Action binding $action yielded $actionResult")
         if (actionResult.shouldExit) {
             return actionResult
         }
@@ -2317,6 +2362,15 @@ fun checkArgument(
                 ActionResult.Malformed(
                     "Invalid parameter for $actionName, expected non-negative integer got $argVal"
                 )
+            }
+        }
+        ActionArgumentPrimitive.FocusRole -> {
+            if (tryOrNull { FocusRole.valueOf(argVal) } == null) {
+                ActionResult.Malformed(
+                    "Invalid parameter for $actionName, expected valid FocusRole, got $argVal"
+                )
+            } else {
+                null
             }
         }
         ActionArgumentPrimitive.Empty -> {

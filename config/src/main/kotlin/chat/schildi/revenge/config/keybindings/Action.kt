@@ -69,6 +69,7 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     RoomName(consumesTrailingArgsWithSpace = true),
     RoomTopic(consumesTrailingArgsWithSpace = true),
     RoomNotificationSetting,
+    FocusRole,
     Empty;
     override fun canHold(primitive: ActionArgumentPrimitive) = primitive == this
 }
@@ -171,6 +172,7 @@ sealed interface Action {
         FocusVisibleListEnd,
         FocusVisibleListTop,
         FocusVisibleListBottom,
+        FocusByRole(args = listOf(ActionArgumentPrimitive.FocusRole)),
         OpenContextMenu,
     }
     enum class List(

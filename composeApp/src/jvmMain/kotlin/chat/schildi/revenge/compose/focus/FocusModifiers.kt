@@ -97,6 +97,21 @@ fun FocusRole.allowsFocusable() = when (this) {
     FocusRole.SEARCH_BAR -> false
 }
 
+fun FocusRole.preferFocusChildren() = when (this) {
+    FocusRole.DESTINATION_ROOT_CONTAINER,
+    FocusRole.NESTING_DESTINATION_ROOT_CONTAINER,
+    FocusRole.CONTAINER -> true
+    FocusRole.CONTAINER_ITEM,
+    FocusRole.LIST_ITEM,
+    FocusRole.AUX_ITEM,
+    FocusRole.NESTED_AUX_ITEM,
+    FocusRole.TEXT_FIELD_SINGLE_LINE,
+    FocusRole.TEXT_FIELD_MULTI_LINE,
+    FocusRole.MESSAGE_COMPOSER,
+    FocusRole.COMMAND_BAR,
+    FocusRole.SEARCH_BAR -> false
+}
+
 @Composable
 fun rememberFocusId(): UUID = remember { UUID.randomUUID() }
 
