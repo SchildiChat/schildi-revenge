@@ -226,6 +226,11 @@ the SDK changed. Usually the build process will pick up automatically whether to
 SDK compiles, run `cargo clean` in the `matrix-rust-sdk` directory. `./gradlew clean` *will not* clean a previous SDK
 build (which is intended).
 
+To cross-compile the Rust SDK for a different target triple, pass `-PrustTarget=<target-triple>` to Gradle. For example,
+to build a Linux ARM64 package from another Linux host, use `-PrustTarget=aarch64-unknown-linux-gnu`. This requires the
+matching Rust target and system linker/toolchain to be installed, e.g. `rustup target add aarch64-unknown-linux-gnu`
+plus an `aarch64-linux-gnu` cross-compiler.
+
 ## Building release builds
 
 [For now, no cross-compilation for Windows targets from Linux](https://youtrack.jetbrains.com/issue/CMP-2918).
@@ -234,6 +239,12 @@ For Linux releases:
 
 ```
 ./package_appimage.sh
+```
+
+For Linux ARM64 AppImage releases:
+
+```
+RUST_TARGET=aarch64-unknown-linux-gnu ./package_appimage.sh
 ```
 
 For Windows releases:

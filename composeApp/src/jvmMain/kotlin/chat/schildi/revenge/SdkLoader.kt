@@ -13,6 +13,7 @@ object SdkLoader {
     private val loaded = AtomicBoolean(false)
 
     private val isDebugBuild = BuildInfo.BUILD_TYPE == "debug"
+    private val rustTarget = BuildInfo.RUST_TARGET.takeIf { it.isNotBlank() }
     private val libName = when (val os = System.getProperty("os.name").lowercase()) {
         else -> {
             when {
@@ -31,6 +32,9 @@ object SdkLoader {
             val candidateDirs = buildList<File> {
                 if (isDebugBuild) {
                     // For development, use local path
+                    rustTarget?.let {
+                        add(File("../matrix-rust-sdk/target/$it/${BuildInfo.RUST_PROFILE}").absoluteFile)
+                    }
                     add(File("../matrix-rust-sdk/target/${BuildInfo.RUST_PROFILE}").absoluteFile)
                 } else {
                     // When installed natively

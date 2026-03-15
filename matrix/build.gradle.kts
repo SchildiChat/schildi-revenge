@@ -48,6 +48,7 @@ kotlin {
 
 val rustSdkDir = layout.projectDirectory.dir("../matrix-rust-sdk").asFile
 val generatedBindingsDir = rustSdkDir.resolve("target/generated-bindings")
+val rustTarget: String? = (project.findProperty("rustTarget") as String?)?.trim()?.takeIf { it.isNotEmpty() }
 
 // Decide which Cargo profile to use for the Rust FFI build (debug or release)
 // Evaluate at configuration time to avoid capturing gradle.startParameter in configuration cache
@@ -82,22 +83,32 @@ val ffiLibName: String = run {
 }
 
 // FFI library path depends on cargo profile
-val ffiLib = rustSdkDir.resolve("target/${rustProfile}/${ffiLibName}")
+val ffiLib = rustSdkDir.resolve("target/${rustTarget?.let { "$it/" } ?: ""}${rustProfile}/${ffiLibName}")
+val ffiFeatures = "bundled-sqlite,unstable-msc4274,experimental-element-recent-emojis,rustls-tls"
 
 val buildSdk = tasks.register<Exec>("buildSdk") {
     description = "Build matrix-sdk-ffi"
     group = "build"
     workingDir = rustSdkDir
     if (isReleaseBuild) {
-        commandLine("cargo", "build", "--release", "-p", "matrix-sdk-ffi")
+        if (rustTarget != null) {
+            commandLine("cargo", "build", "--release", "--target", rustTarget, "-p", "matrix-sdk-ffi", "--no-default-features", "--features", ffiFeatures)
+        } else {
+            commandLine("cargo", "build", "--release", "-p", "matrix-sdk-ffi", "--no-default-features", "--features", ffiFeatures)
+        }
     } else {
-        commandLine("cargo", "build", "-p", "matrix-sdk-ffi")
+        if (rustTarget != null) {
+            commandLine("cargo", "build", "--target", rustTarget, "-p", "matrix-sdk-ffi", "--no-default-features", "--features", ffiFeatures)
+        } else {
+            commandLine("cargo", "build", "-p", "matrix-sdk-ffi", "--no-default-features", "--features", ffiFeatures)
+        }
     }
 
     // Skip rebuilding FFI if the SDK did not change, since uniffi-bindgen is very slow and doesn't
     // notice nothing changed.
     // TODO this may miss changes in the SDK that didn't change cargo files (e.g. SDK changes without version bump)
     inputs.files(rustSdkDir.resolve("Cargo.toml"), rustSdkDir.resolve("Cargo.lock"))
+    inputs.property("rustTarget", rustTarget ?: "")
     outputs.file(ffiLib)
 }
 

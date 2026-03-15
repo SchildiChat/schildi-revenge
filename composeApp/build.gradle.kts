@@ -84,6 +84,7 @@ val isReleaseBuild: Boolean = run {
 
 val buildType: String = if (isReleaseBuild) "release" else "debug"
 val rustProfile: String = if (isReleaseBuild) "release" else "debug"
+val rustTarget: String? = (project.findProperty("rustTarget") as String?)?.trim()?.takeIf { it.isNotEmpty() }
 
 val generatedSrcDir = layout.buildDirectory.dir("generated/src/jvmMain/kotlin").get().asFile
 
@@ -112,6 +113,9 @@ abstract class GenerateBuildInfoTask : DefaultTask() {
     abstract val rustProfileValue: Property<String>
 
     @get:Input
+    abstract val rustTargetValue: Property<String>
+
+    @get:Input
     abstract val packageName: Property<String>
 
     @get:Input
@@ -138,6 +142,7 @@ abstract class GenerateBuildInfoTask : DefaultTask() {
             |    const val DEBUG: Boolean = ${debugMode.get()}
             |    const val BUILD_TYPE: String = "${buildTypeValue.get()}"
             |    const val RUST_PROFILE: String = "${rustProfileValue.get()}"
+            |    const val RUST_TARGET: String = "${rustTargetValue.get()}"
             |    const val BUILD_TIMESTAMP: String = "${buildTimestamp.get()}"
             |    const val SOURCE_REVISION: String = "${sourceRevision.get()}"
             |    const val SDK_REVISION: String = "${sdkRevision.get()}"
@@ -157,6 +162,7 @@ val generateBuildInfo = tasks.register<GenerateBuildInfoTask>("generateBuildInfo
     debugMode.set(!isReleaseBuild)
     buildTypeValue.set(buildType)
     rustProfileValue.set(rustProfile)
+    rustTargetValue.set(rustTarget ?: "")
     packageName.set(pkg)
 
     buildTimestamp.set(LocalDateTime.now()
@@ -254,7 +260,7 @@ val copyNativeLib = tasks.register<Sync>("copyNativeLibToDistribution") {
     description = "Copy native matrix-sdk-ffi library to distribution lib directory"
     group = "distribution"
 
-    val ffiLib = rustSdkDir.resolve("target/${rustProfile}/${ffiLibName}")
+    val ffiLib = rustSdkDir.resolve("target/${rustTarget?.let { "$it/" } ?: ""}${rustProfile}/${ffiLibName}")
     from(ffiLib)
 
     into(distributionResourcesOsDir)
