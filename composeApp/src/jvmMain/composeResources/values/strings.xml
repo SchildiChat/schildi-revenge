@@ -238,6 +238,7 @@
     <string name="pref_category_conversation_summary">Chat &amp; message rendering</string>
     <string name="pref_category_spaces">Spaces</string>
     <string name="pref_category_spaces_summary">Inbox filters</string>
+    <string name="pref_category_typing_notices">Typing indicator</string>
     <string name="pref_render_scale">Render scale</string>
     <string name="pref_font_scale">Font scale</string>
     <string name="pref_max_width_inbox_title">Inbox max width</string>
@@ -291,6 +292,10 @@
     <string name="pref_formatted_composer_preview_summary">Show a preview of the rendered message before sending next to the composer</string>
     <string name="pref_hide_empty_inbox_pane_title">Hide empty inbox pane</string>
     <string name="pref_hide_empty_inbox_pane_summary">Use full width for inbox when no conversation is open, even when above the splitting threshold</string>
+    <string name="pref_send_typing_notice_title">Send typing notifications</string>
+    <string name="pref_send_typing_notice_summary">Allow other users to see when you're typing</string>
+    <string name="pref_disable_typing_notice_in_public_rooms_title">Disable typing notifications in public rooms</string>
+    <string name="pref_disable_typing_notice_in_public_rooms_summary">Do not share your typing status in public rooms</string>
 
     <string name="nameless_space_fallback_title">Nameless space</string>
 

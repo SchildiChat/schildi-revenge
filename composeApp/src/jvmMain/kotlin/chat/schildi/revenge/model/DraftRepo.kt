@@ -234,6 +234,8 @@ object DraftRepo {
         }
     }
 
+    fun lookupDraft(draftKey: DraftKey) = drafts.value[draftKey]
+
     fun followDraft(draftKey: DraftKey) = drafts.map {
         it[draftKey]
     }

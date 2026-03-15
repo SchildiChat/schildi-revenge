@@ -177,6 +177,8 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.path.toPath
 import kotlin.math.max
 
+private const val TYPING_NOTICE_REPEAT_INTERVAL = 5000L
+
 data class TimestampSettings(
     val renderAuthenticityNotGuaranteed: Boolean = true,
     val renderSenderMismatch: Boolean = true,
@@ -283,6 +285,20 @@ class ConversationViewModel(
         ComposerSettings.from { scPreferencesStore.getCachedOrDefaultValue(it) }
     )
 
+    private val shouldSendTypingIndicators = scPreferencesStore.combinedSettingFlow { lookup ->
+        Pair(
+            ScPrefs.SEND_TYPING_NOTICE.safeLookup(lookup),
+            ScPrefs.DISABLE_SEND_TYPING_NOTICE_IN_PUBLIC_ROOMS.safeLookup(lookup),
+        )
+    }.combine(roomPair) { (sendTyping, disableInPublic), (_, room) ->
+        when {
+            room == null -> false
+            !sendTyping -> false
+            room.info().isPublic != false -> !disableInPublic
+            else -> true
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
     private val currentUrlPreviewStateProvider = AtomicReference<UrlPreviewStateProvider?>(null)
     val urlPreviewStateProvider = combine(
         clientFlow,
@@ -321,6 +337,14 @@ class ConversationViewModel(
 
     override fun onCleared() {
         super.onCleared()
+        if (shouldSendTypingIndicators.value) {
+            val room = roomPair.value.second
+            if (room != null) {
+                viewModelScope.launch {
+                    room.typingNotice(false)
+                }
+            }
+        }
         timelineController.value?.close()
         currentUrlPreviewStateProvider.getAndSet(null)?.clear()
     }
@@ -442,9 +466,14 @@ class ConversationViewModel(
         preferredFormat = preferredComposerFormat.value,
     )
 
+    // Combined() with preferred composer format to re-trigger createDraftValue() fallback on demand
     override val composerState = DraftRepo.followDraft(draftKey).combine(preferredComposerFormat) { it, _ ->
         it ?: createDraftValue()
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, createDraftValue())
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        DraftRepo.lookupDraft(draftKey) ?: createDraftValue(),
+    )
 
     private val composerSuggestionsProvider = ComposerSuggestionsProvider(
         queryFlow = composerState,
@@ -826,6 +855,25 @@ class ConversationViewModel(
         }
             .flowOn(Dispatchers.IO)
             .launchIn(viewModelScope)
+
+        // Typing indicators
+        var wasTyping = false
+        var initialDraft = composerState.value.rawBody
+        var lastTypingNotice = 0L
+        combine(
+            shouldSendTypingIndicators,
+            roomPair,
+            composerState.map { it.rawBody }.distinctUntilChanged(),
+        ) { shouldSendTypingIndicators, (_, room), draft ->
+            val isTyping = shouldSendTypingIndicators && draft.isNotEmpty() && (wasTyping || draft != initialDraft)
+            Pair(room, isTyping)
+        }.onEach { (room, isTyping) ->
+            val now = System.currentTimeMillis()
+            if (room != null && (wasTyping != isTyping || now - lastTypingNotice >= TYPING_NOTICE_REPEAT_INTERVAL)) {
+                room.typingNotice(isTyping)
+                wasTyping = isTyping
+            }
+        }.flowOn(Dispatchers.IO).launchIn(viewModelScope)
     }
 
     override fun verifyDestination(destination: Destination): Boolean {

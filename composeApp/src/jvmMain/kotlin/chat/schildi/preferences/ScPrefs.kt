@@ -28,10 +28,13 @@ import shire.composeapp.generated.resources.pref_category_split_screen
 import shire.composeapp.generated.resources.pref_category_split_screen_summary
 import shire.composeapp.generated.resources.pref_category_theme_dark
 import shire.composeapp.generated.resources.pref_category_theme_light
+import shire.composeapp.generated.resources.pref_category_typing_notices
 import shire.composeapp.generated.resources.pref_close_to_tray_summary
 import shire.composeapp.generated.resources.pref_close_to_tray_title
 import shire.composeapp.generated.resources.pref_dark_theme_title
 import shire.composeapp.generated.resources.pref_debug_avatar_render_states_title
+import shire.composeapp.generated.resources.pref_disable_typing_notice_in_public_rooms_summary
+import shire.composeapp.generated.resources.pref_disable_typing_notice_in_public_rooms_title
 import shire.composeapp.generated.resources.pref_focus_follows_mouse_summary
 import shire.composeapp.generated.resources.pref_focus_follows_mouse_title
 import shire.composeapp.generated.resources.pref_font_scale
@@ -68,6 +71,8 @@ import shire.composeapp.generated.resources.pref_prefer_dual_pane_inbox_title
 import shire.composeapp.generated.resources.pref_preferred_message_format_summary
 import shire.composeapp.generated.resources.pref_preferred_message_format_title
 import shire.composeapp.generated.resources.pref_render_scale
+import shire.composeapp.generated.resources.pref_send_typing_notice_summary
+import shire.composeapp.generated.resources.pref_send_typing_notice_title
 import shire.composeapp.generated.resources.pref_show_dev_infos_summary
 import shire.composeapp.generated.resources.pref_show_dev_infos_title
 import shire.composeapp.generated.resources.pref_theme_follow_system_summary
@@ -285,6 +290,8 @@ object ScPrefs {
 
     // Composer
     val AUTO_HIDE_COMPOSER = ScBoolPref("AUTO_HIDE_COMPOSER", false, Res.string.pref_auto_hide_composer_title, Res.string.pref_auto_hide_composer_summary, dependencies = MINIMAL_MODE.asDependencies())
+    val SEND_TYPING_NOTICE = ScBoolPref("SEND_TYPING_NOTICE", true, Res.string.pref_send_typing_notice_title, Res.string.pref_send_typing_notice_summary)
+    val DISABLE_SEND_TYPING_NOTICE_IN_PUBLIC_ROOMS = ScBoolPref("DISABLE_SEND_TYPING_NOTICE_IN_PUBLIC_ROOMS", false, Res.string.pref_disable_typing_notice_in_public_rooms_title, Res.string.pref_disable_typing_notice_in_public_rooms_summary, dependencies = SEND_TYPING_NOTICE.asDependencies())
 
     /*
     // Advanced theming options - Light theme
@@ -358,6 +365,10 @@ object ScPrefs {
             HIDE_CALL_TOOLBAR_ACTION,
             REPLY_PREVIEW_LINE_COUNT,
             */
+            ScPrefCategory("TYPING_INDICATORS", Res.string.pref_category_typing_notices, null, listOf(
+                SEND_TYPING_NOTICE,
+                DISABLE_SEND_TYPING_NOTICE_IN_PUBLIC_ROOMS,
+            )),
             ScPrefCategory("URL_PREVIEWS", Res.string.sc_url_previews_title, null, listOf(
                 URL_PREVIEWS,
                 URL_PREVIEWS_IN_E2EE_ROOMS,
