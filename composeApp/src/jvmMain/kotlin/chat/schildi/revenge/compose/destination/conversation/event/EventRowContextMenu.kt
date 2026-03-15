@@ -10,11 +10,11 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EmojiPeople
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.OpenWith
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.key.Key
 import chat.schildi.revenge.compose.components.ContextMenuEntry
-import chat.schildi.revenge.compose.components.LocalSessionId
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
 import io.element.android.libraries.matrix.api.core.RoomId
@@ -35,6 +35,7 @@ import shire.composeapp.generated.resources.action_react
 import shire.composeapp.generated.resources.action_redact
 import shire.composeapp.generated.resources.action_reply
 import shire.composeapp.generated.resources.action_view_reactions
+import shire.composeapp.generated.resources.action_view_read_receipts
 
 @Composable
 fun EventTimelineItem.contextMenu(
@@ -89,6 +90,13 @@ fun EventTimelineItem.contextMenu(
             actionArgs = persistentListOf("reactions", sessionId.value, roomId.value, eventId?.value ?: ""),
             keyboardShortcut = Key.V,
         ).takeIf { reactions.isNotEmpty() && eventId != null },
+        ContextMenuEntry(
+            Res.string.action_view_read_receipts.toStringHolder(),
+            rememberVectorPainter(Icons.Default.Visibility),
+            Action.Navigation.NavigateInNewWindow,
+            actionArgs = persistentListOf("readReceipts", sessionId.value, roomId.value, eventId?.value ?: ""),
+            keyboardShortcut = Key.P,
+        ).takeIf { receipts.isNotEmpty() && eventId != null },
         ContextMenuEntry(
             Res.string.action_copy_body.toStringHolder(),
             rememberVectorPainter(Icons.Default.ContentCopy),

@@ -59,6 +59,7 @@ fun RoomMembersScreen(
                 title = Res.string.empty_screen_placeholder_room_members.toStringHolder(),
                 icon = rememberVectorPainter(Icons.Default.Groups),
                 renderedSearchTerm = membersState?.searchTerm,
+                isLoading = members == null,
                 modifier = contentModifier,
             )
             return@FocusContainer

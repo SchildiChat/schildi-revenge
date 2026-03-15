@@ -10,6 +10,7 @@
         <item quantity="other">%1$s members in %2$s</item>
     </plurals>
     <string name="message_reactions_title">Message reactions</string>
+    <string name="message_read_receipts_title">Message read receipts</string>
 
     <string name="about">About</string>
     <string name="about_credits">Credits</string>
@@ -56,6 +57,7 @@
     <string name="action_edit">Edit</string>
     <string name="action_react">React</string>
     <string name="action_view_reactions">View reactions</string>
+    <string name="action_view_read_receipts">View read receipts</string>
     <string name="action_copy_body">Copy text</string>
     <string name="action_navigate_in_current">Open in current window</string>
     <string name="action_navigate_in_new_window">Open in new window</string>
@@ -354,6 +356,7 @@
     <string name="empty_screen_placeholder_inbox">No chats yet</string>
     <string name="empty_screen_placeholder_room_members">No known room members</string>
     <string name="empty_screen_placeholder_message_reactions">No message reactions</string>
+    <string name="empty_screen_placeholder_message_read_receipts">No message read receipts</string>
     <string name="empty_screen_placeholder_unexpected">This screen is unexpectedly empty</string>
 
 </resources>

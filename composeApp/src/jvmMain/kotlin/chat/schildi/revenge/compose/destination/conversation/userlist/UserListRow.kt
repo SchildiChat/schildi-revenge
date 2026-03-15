@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import chat.schildi.revenge.DateTimeFormat
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.ActionProvider
 import chat.schildi.revenge.actions.FocusRole
@@ -70,4 +71,17 @@ fun <T : UserListItem>UserListRow(
             trailingContent()
         }
     }
+}
+
+@Composable
+fun UserListTimestamp(
+    timestamp: Long,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        DateTimeFormat.formatTimeOrDateTime(timestamp),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = modifier,
+    )
 }

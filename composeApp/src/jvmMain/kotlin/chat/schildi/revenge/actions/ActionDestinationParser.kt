@@ -48,6 +48,14 @@ internal fun String.toDestinationOrNull(
                 Destination.MessageReactions(sessionId, roomId, eventId)
             }
         }
+        DestinationEnum.MessageReadReceipts -> {
+            tryOrNull {
+                val sessionId = args.getOrNull(0)?.let(::SessionId) ?: context!!.ensureSessionId()
+                val roomId = args.getOrNull(1)?.let(::RoomId) ?: context!!.ensureRoomId()
+                val eventId = args.getOrNull(2)?.let(::EventId) ?: context!!.ensureEventId()
+                Destination.MessageReadReceipts(sessionId, roomId, eventId)
+            }
+        }
         DestinationEnum.Settings -> Destination.Settings()
         DestinationEnum.SettingsPane -> {
             val rootPref = args.getOrNull(0)

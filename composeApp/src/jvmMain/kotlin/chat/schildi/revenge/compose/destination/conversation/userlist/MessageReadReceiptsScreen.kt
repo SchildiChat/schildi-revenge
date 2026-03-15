@@ -7,7 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.EmojiPeople
+import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
@@ -24,20 +24,21 @@ import chat.schildi.revenge.compose.components.EmptyListScreen
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.compose.util.toStringHolder
-import chat.schildi.revenge.model.userlist.MessageReactionListViewModel
+import chat.schildi.revenge.model.userlist.MessageReadReceiptListViewModel
 import chat.schildi.revenge.viewModelKey
 import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.empty_screen_placeholder_message_reactions
+import shire.composeapp.generated.resources.empty_screen_placeholder_message_read_receipts
+
 
 @Composable
-fun MessageReactionsScreen(
-    destination: Destination.MessageReactions,
+fun MessageReadReceiptsScreen(
+    destination: Destination.MessageReadReceipts,
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
 ) {
-    val viewModel: MessageReactionListViewModel = viewModel(
+    val viewModel: MessageReadReceiptListViewModel = viewModel(
         key = viewModelKey(destination),
-        factory = MessageReactionListViewModel.factory(destination.sessionId, destination.roomId, destination.eventId)
+        factory = MessageReadReceiptListViewModel.factory(destination.sessionId, destination.roomId, destination.eventId)
     )
 
     val listState = rememberLazyListState()
@@ -50,14 +51,14 @@ fun MessageReactionsScreen(
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
         modifier = modifier.fillMaxSize()
     ) {
-        val reactionsState = viewModel.entries.collectAsState(null).value
-        val reactions = reactionsState?.items
-        if (reactions.isNullOrEmpty()) {
+        val state = viewModel.entries.collectAsState(null).value
+        val items = state?.items
+        if (items.isNullOrEmpty()) {
             EmptyListScreen(
-                title = Res.string.empty_screen_placeholder_message_reactions.toStringHolder(),
-                icon = rememberVectorPainter(Icons.Default.EmojiPeople),
-                renderedSearchTerm = reactionsState?.searchTerm,
-                isLoading = reactions == null,
+                title = Res.string.empty_screen_placeholder_message_read_receipts.toStringHolder(),
+                icon = rememberVectorPainter(Icons.Default.Visibility),
+                renderedSearchTerm = state?.searchTerm,
+                isLoading = items == null,
                 modifier = contentModifier,
             )
             return@FocusContainer
@@ -69,11 +70,11 @@ fun MessageReactionsScreen(
                 state = listState,
             ) {
                 items(
-                    reactions,
-                    key = { Pair(it.reactionSender, it.reaction) },
+                    items,
+                    key = { it.userId },
                 ) { item ->
-                    UserReactionRow(
-                        reactionItem = item,
+                    ReadReceiptListRow(
+                        receiptItem = item,
                         viewModel = viewModel,
                     )
                 }

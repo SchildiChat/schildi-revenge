@@ -10,6 +10,7 @@ enum class DestinationEnum(
     Conversation("Conversation", listOf("room", "conversation", "chat")),
     RoomMembers("RoomMembers", listOf("members")),
     MessageReactions("MessageReactions", listOf("reactions")),
+    MessageReadReceipts("MessageReadReceipts", listOf("readReceipts", "receipts")),
     Settings("Settings", listOf("settings")),
     SettingsPane("SettingsPane"),
     About("About", listOf("about")),
@@ -42,6 +43,7 @@ val ALLOWED_DESTINATION_STRINGS = listOf(
     DestinationEnum.Settings.allDestinationNames(),
     DestinationEnum.RoomMembers.allDestinationNames(),
     DestinationEnum.MessageReactions.allDestinationNames(),
+    DestinationEnum.MessageReadReceipts.allDestinationNames(),
     DestinationEnum.InboxConversationSplit.allDestinationNames(),
 ).flatten()
 
