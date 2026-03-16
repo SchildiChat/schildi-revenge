@@ -494,20 +494,7 @@ class ConversationViewModel(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, forceShowComposer.value)
 
     private val bridgeInfo = roomPair.map { (_, room) ->
-        room?.getRawState("m.bridge")
-            ?.onFailure { log.e("Failed to fetch m.bridge event", it) }
-            ?.getOrNull()
-            ?.mapNotNull {
-                try {
-                    val event = ScJson.parseToJsonElement(it)
-                    event.jsonObject["content"]?.jsonObject?.let { content ->
-                        ScJson.decodeFromJsonElement<BridgeEventContent>(content)
-                    }
-                } catch (e: Throwable) {
-                    log.e("Failed to parse m.bridge state", e)
-                    null
-                }
-            }
+        room?.info()?.bridgeState
     }.flowOn(Dispatchers.IO)
 
     val timestampSettings = combine(

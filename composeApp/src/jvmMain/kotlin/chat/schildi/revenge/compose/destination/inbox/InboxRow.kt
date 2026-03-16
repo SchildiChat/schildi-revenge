@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Archive
@@ -26,6 +27,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
@@ -139,6 +141,17 @@ fun InboxRow(
                             displayName = user.displayName ?: user.userId.value,
                             modifier = Modifier.align(Alignment.BottomStart),
                         )
+                    }
+                    room.summary.info.bridgeState.firstOrNull { it.protocol?.avatarUrl != null }?.protocol?.let { protocol ->
+                        protocol.avatarUrl?.let { bridgeAvatar ->
+                            AvatarImage(
+                                source = MediaSource(bridgeAvatar),
+                                size = Dimens.Inbox.accountAvatar,
+                                shape = CircleShape,
+                                displayName = protocol.displayName ?: protocol.id ?: "",
+                                modifier = Modifier.align(Alignment.BottomEnd),
+                            )
+                        }
                     }
                 }
                 Column(
