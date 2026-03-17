@@ -305,7 +305,7 @@ fun AnnotatedString.stripMatrixSpoilers(): AnnotatedString {
                 append(subSequence(cursor, r.start))
             }
 
-            val replacement = "█".repeat((r.end - r.start).coerceIn(0, 5))
+            val replacement = "█".repeat((r.end - r.start).coerceIn(0, 12))
             append(replacement)
 
             cursor = r.end
