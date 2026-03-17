@@ -3,12 +3,10 @@ package chat.schildi.revenge.model
 import chat.schildi.revenge.GlobalActionsScope
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
-import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.actions.launchActionAsync
 import chat.schildi.revenge.actions.orActionValidationError
-import chat.schildi.revenge.actions.parseRoomStateSnapshot
 import chat.schildi.revenge.actions.runWithMessage
 import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.revenge.compose.util.StringResourceHolder
@@ -17,27 +15,32 @@ import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
 import chat.schildi.revenge.config.keybindings.ActionRoomNotificationSetting
 import chat.schildi.revenge.config.keybindings.KeyTrigger
+import chat.schildi.revenge.util.matrix.updateAccountData
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.room.BaseRoom
 import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.room.RoomNotificationMode
-import io.element.android.libraries.matrix.api.roomAliasFromName
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import kotlinx.coroutines.Dispatchers
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonPrimitive
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_leave
 import shire.composeapp.generated.resources.action_leave_room_prompt
 import shire.composeapp.generated.resources.action_leave_unnamed_room_prompt
 import shire.composeapp.generated.resources.command_copy_name_event_id
 import shire.composeapp.generated.resources.command_copy_name_full_account_data
-import shire.composeapp.generated.resources.command_copy_name_full_room_state
-import shire.composeapp.generated.resources.command_fetching_data
 import shire.composeapp.generated.resources.toast_added_to_space
 import shire.composeapp.generated.resources.toast_adding_to_space
 import shire.composeapp.generated.resources.toast_removed_from_space
 import shire.composeapp.generated.resources.toast_removing_from_space
+import kotlin.collections.map
+import kotlin.collections.orEmpty
 
 private val RoomInviteActions = setOf(Action.Room.Join)
 
@@ -211,7 +214,53 @@ class RoomActionProvider(
                     result.toActionResult(async = true)
                 }
             }
+            Action.Room.ConvertToDm -> {
+                room.convertToDm()
+            }
+            Action.Room.ConvertToGroup -> {
+                room.convertToGroup()
+            }
         }
+    }
+
+    private suspend fun BaseRoom.convertToDm(): ActionResult {
+        val members = getMembers()
+        if (members.isFailure) {
+            return members.toActionResult()
+        }
+        val dmContact = members.getOrNull()?.filter { it.userId != sessionId }?.takeIf { it.size == 1 }?.firstOrNull()
+        if (dmContact == null) {
+            return ActionResult.Failure("Found $dmContact DM member candidates")
+        }
+        return updateGlobalAccountData("m.direct") {
+            it.orEmpty().toMutableMap().apply {
+                this[dmContact.userId.value] = JsonArray(
+                    (
+                            this[dmContact.userId.value]?.jsonArray?.map { it.jsonPrimitive.content }.orEmpty()
+                                    + roomId.value
+                            ).map(::JsonPrimitive)
+                )
+            }.let(::JsonObject)
+        }
+    }
+
+    private suspend fun BaseRoom.convertToGroup(): ActionResult {
+        return updateGlobalAccountData("m.direct") {
+            it?.toMutableMap()?.apply {
+                this.forEach { (key, element) ->
+                    if (element.jsonArray.any { it.jsonPrimitive.content == roomId.value }) {
+                        this[key]?.jsonArray?.filter { it.jsonPrimitive.content != roomId.value }?.let { content ->
+                            this[key] = JsonArray(content)
+                        }
+                    }
+                }
+            }?.let(::JsonObject)
+        }
+    }
+
+    private suspend fun updateGlobalAccountData(eventType: String, update: (JsonObject?) -> JsonObject?): ActionResult {
+        val client = getClient() ?: return ActionResult.Failure("Client not ready")
+        return updateAccountData(client, eventType, update)
     }
 
     private suspend fun addRoomToSpace(context: ActionContext, space: BaseRoom, room: BaseRoom): ActionResult {

@@ -271,6 +271,8 @@ sealed interface Action {
         SetRoomTopic(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.RoomTopic))),
         SetRoomAvatar(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.Mxc))),
         CopyFullRoomAccountData(aliases = listOf("roomAccountData", "copyRoomAccountData")),
+        ConvertToDm,
+        ConvertToGroup,
     }
     enum class Event(
         override val aliases: kotlin.collections.List<String> = emptyList(),

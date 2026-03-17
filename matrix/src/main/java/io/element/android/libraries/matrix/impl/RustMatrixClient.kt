@@ -360,7 +360,6 @@ class RustMatrixClient(
         runCatching {
             innerClient.setAccountData(eventType, content)
         }
-        Unit
     }
     override suspend fun getGlobalAccountData() = withContext(sessionDispatcher) {
         runCatching {
