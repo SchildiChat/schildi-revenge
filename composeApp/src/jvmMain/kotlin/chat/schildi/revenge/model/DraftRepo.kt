@@ -45,6 +45,18 @@ enum class ComposerFormat {
     HTML,
 }
 
+fun DraftType.shouldSendTypingIndicator() = when (this) {
+    DraftType.TEXT,
+    DraftType.EMOTE,
+    DraftType.ATTACHMENT -> true
+    DraftType.NOTICE,
+    DraftType.EDIT,
+    DraftType.EDIT_CAPTION,
+    DraftType.REACTION,
+    DraftType.CUSTOM_EVENT,
+    DraftType.CUSTOM_STATE_EVENT -> false
+}
+
 sealed interface Attachment {
     val file: File
 

@@ -66,6 +66,7 @@ import chat.schildi.revenge.model.RoomActionProvider
 import chat.schildi.revenge.model.ScopedRoomKey
 import chat.schildi.revenge.model.UserActionProvider
 import chat.schildi.revenge.model.getCurrentCompletionEntity
+import chat.schildi.revenge.model.shouldSendTypingIndicator
 import chat.schildi.revenge.toPrettyJson
 import chat.schildi.revenge.util.MimeUtil
 import chat.schildi.revenge.util.tryOrNull
@@ -867,9 +868,12 @@ class ConversationViewModel(
         combine(
             shouldSendTypingIndicators,
             roomPair,
-            composerState.map { it.rawBody }.distinctUntilChanged(),
-        ) { shouldSendTypingIndicators, (_, room), draft ->
-            val isTyping = shouldSendTypingIndicators && draft.isNotEmpty() && (wasTyping || draft != initialDraft)
+            composerState.map { Pair(it.rawBody, it.type) }.distinctUntilChanged(),
+        ) { shouldSendTypingIndicators, (_, room), (draftBody, draftType) ->
+            val isTyping = shouldSendTypingIndicators &&
+                    draftType.shouldSendTypingIndicator() &&
+                    draftBody.isNotEmpty() &&
+                    (wasTyping || draftBody != initialDraft)
             Pair(room, isTyping)
         }.onEach { (room, isTyping) ->
             val now = System.currentTimeMillis()
