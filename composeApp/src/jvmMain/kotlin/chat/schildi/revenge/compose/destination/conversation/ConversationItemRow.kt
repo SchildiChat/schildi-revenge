@@ -40,16 +40,32 @@ fun ConversationItemRow(
     timestampSettings: TimestampSettings,
     modifier: Modifier = Modifier,
 ) {
+    val fullyReadEvent = viewModel.cachedFullyRead.collectAsState().value
     Column(modifier.fillMaxWidth()) {
         if (previous == null) {
             Spacer(Modifier.height(Dimens.windowPadding))
+        }
+        val isRealUnreadLine = if (fullyReadEvent != null && (previous?.item as? MatrixTimelineItem.Event)?.eventId == fullyReadEvent) {
+            if ((item.item as? MatrixTimelineItem.Virtual)?.virtual is VirtualTimelineItem.ReadMarker) {
+                true
+            } else {
+                if (
+                    (item.item as? MatrixTimelineItem.Virtual)?.virtual !is VirtualTimelineItem.TypingNotification &&
+                    (item.item as? MatrixTimelineItem.Event)?.event?.isOwn != true
+                ) {
+                    NewMessagesLine(isReal = false, isHint = true)
+                }
+                false
+            }
+        } else {
+            false
         }
         when (item.item) {
             is MatrixTimelineItem.Virtual -> {
                 when (val virtualItem = item.item.virtual) {
                     is VirtualTimelineItem.DayDivider -> DayHeader(virtualItem)
                     is VirtualTimelineItem.LoadingIndicator -> PagingIndicator()
-                    VirtualTimelineItem.ReadMarker -> NewMessagesLine()
+                    VirtualTimelineItem.ReadMarker -> NewMessagesLine(isReal = isRealUnreadLine)
                     VirtualTimelineItem.RoomBeginning -> RoomBeginning()
                     // Not sure if we're supposed to render something for that one
                     VirtualTimelineItem.LastForwardIndicator -> {}

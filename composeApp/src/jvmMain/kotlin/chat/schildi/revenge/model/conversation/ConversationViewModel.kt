@@ -351,11 +351,28 @@ class ConversationViewModel(
 
     val activeTimeline = timelineController.flatMapLatest {
         it?.activeTimelineFlow() ?: flowOf(null)
+    }.onEach { timeline ->
+        if (timeline != null) {
+            viewModelScope.launch(Dispatchers.IO) {
+                refetchFullyRead(timeline)
+            }
+        }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val rawTimelineItems = activeTimeline.flatMapLatest {
         it?.timelineItems ?: flowOf(null)
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    private val _cachedFullyRead = MutableStateFlow<EventId?>(null)
+    val cachedFullyRead = _cachedFullyRead.asStateFlow()
+    private suspend fun refetchFullyRead(timeline: Timeline? = activeTimeline.value): EventId? {
+        timeline ?: return null
+        return timeline.fullyReadEventId()?.let {
+            val eventId = EventId(it)
+            _cachedFullyRead.value = eventId
+            eventId
+        }
+    }
 
     val timelineItems = combine(
         rawTimelineItems,
@@ -1127,7 +1144,7 @@ class ConversationViewModel(
                     action.name,
                     StringResourceHolder(Res.string.command_event_name_fully_read_marker),
                 ) {
-                    activeTimeline.value?.fullyReadEventId()?.let(::EventId)
+                    refetchFullyRead()
                 }
 
                 Action.Conversation.JumpToBottom -> {
@@ -1170,7 +1187,11 @@ class ConversationViewModel(
                         GlobalActionsScope,
                         Dispatchers.IO
                     ) {
-                        timeline.markAsRead(ReceiptType.FULLY_READ).toActionResult(async = true)
+                        timeline.markAsRead(ReceiptType.FULLY_READ).toActionResult(async = true).also {
+                            if (it is ActionResult.Success) {
+                                _cachedFullyRead.value = null
+                            }
+                        }
                     }
                 }
 
@@ -1597,7 +1618,11 @@ class ConversationViewModel(
                         markEventAsRead(eventId, ReceiptType.READ_PRIVATE)
                     } ?: ActionResult.Inapplicable
                     Action.Event.MarkFullyRead -> eventId?.let {
-                        markEventAsRead(eventId, ReceiptType.FULLY_READ)
+                        markEventAsRead(eventId, ReceiptType.FULLY_READ).also {
+                            if (it is ActionResult.Success) {
+                                _cachedFullyRead.value = eventId
+                            }
+                        }
                     } ?: ActionResult.Inapplicable
 
                     Action.Event.ComposeReply -> eventId?.let {

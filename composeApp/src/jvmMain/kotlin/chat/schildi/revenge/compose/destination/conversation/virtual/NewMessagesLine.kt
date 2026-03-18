@@ -10,13 +10,28 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import chat.schildi.preferences.ScPrefs
+import chat.schildi.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.theme.scExposures
 
 @Composable
-fun NewMessagesLine(modifier: Modifier = Modifier) {
+fun NewMessagesLine(
+    isReal: Boolean = true,
+    isHint: Boolean = false,
+    modifier: Modifier = Modifier,
+) {
+    val debugUnreadLine = ScPrefs.SHOW_DEV_INFOS.value()
+    if (!debugUnreadLine && isHint) {
+        return
+    }
     ConversationDividerLine(
-        MaterialTheme.scExposures.accentColor,
+        if (isReal || !debugUnreadLine) // fully read event ID matches where the SDK inserted it
+            MaterialTheme.scExposures.accentColor
+        else if (isHint) // this is where the fully read event ID was last time we checked, but Rust SDK didn't insert an unread line here
+            MaterialTheme.scExposures.linkColor
+        else // Rust SDK inserted it here but it may not be accurate
+            MaterialTheme.scExposures.accentColor.copy(alpha = 0.3f),
         modifier
             .padding(
                 vertical = Dimens.Conversation.virtualItemPadding,
