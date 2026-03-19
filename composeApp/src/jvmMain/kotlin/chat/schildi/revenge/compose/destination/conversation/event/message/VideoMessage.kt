@@ -1,69 +1,63 @@
 package chat.schildi.revenge.compose.destination.conversation.event.message
 
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
-import chat.schildi.revenge.compose.media.imageLoader
-import chat.schildi.revenge.compose.media.onAsyncImageError
 import chat.schildi.revenge.model.conversation.MessageMetadata
-import coil3.compose.AsyncImage
 import com.beeper.android.messageformat.MatrixBodyParseResult
 import io.element.android.libraries.matrix.api.media.MediaSource
-import io.element.android.libraries.matrix.api.timeline.item.event.ImageLikeMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
-import io.element.android.libraries.matrix.api.timeline.item.event.StickerMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.VideoMessageType
 import io.element.android.libraries.matrix.ui.media.MediaRequestData
 
 @Composable
-fun ImageMessage(
-    image: ImageLikeMessageType,
+fun VideoMessage(
+    video: VideoMessageType,
     messageMetadata: MessageMetadata?,
     isOwn: Boolean,
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
     modifier: Modifier = Modifier,
 ) {
-    ImageMessage(
-        source = image.source,
+    VideoMessage(
+        source = video.info?.thumbnailSource ?: video.source,
         messageMetadata = messageMetadata,
-        caption = image.caption,
+        caption = video.caption,
         isOwn = isOwn,
         timestamp = timestamp,
         inReplyTo = inReplyTo,
-        isSticker = image is StickerMessageType,
         modifier = modifier,
     )
 }
 
 @Composable
-fun ImageMessage(
+fun VideoMessage(
     source: MediaSource,
     messageMetadata: MessageMetadata?,
     caption: String?,
     isOwn: Boolean,
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
-    isSticker: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val captionLayoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
-    val isTransparent = isSticker && caption == null && inReplyTo == null
     MessageBubble(
         isOwn = isOwn,
         timestamp = timestamp,
@@ -71,7 +65,6 @@ fun ImageMessage(
         padding = PaddingValues(Dimens.Conversation.imageBubbleInnerPadding),
         contentTextLayoutResult = captionLayoutResult.value,
         isMediaOverlay = true,
-        transparent = isTransparent,
     ) {
         inReplyTo?.let {
             ReplyContent(
@@ -90,8 +83,8 @@ fun ImageMessage(
             bottomStart = bottomRadius,
             bottomEnd = bottomRadius,
         )
-        ImageMessageContent(
-            model = MediaRequestData(source, MediaRequestData.Kind.Content),
+        VideoMessageContent(
+            model = MediaRequestData(source, MediaRequestData.Kind.Thumbnail(1000)),
             minWidth = Dimens.Conversation.imageMinWidth,
             minHeight = Dimens.Conversation.imageMinHeight,
             maxWidth = Dimens.Conversation.imageMaxWidth,
@@ -107,7 +100,7 @@ fun ImageMessage(
 }
 
 @Composable
-fun ColumnScope.ImageMessageContent(
+fun ColumnScope.VideoMessageContent(
     model: Any,
     minWidth: Dp,
     minHeight: Dp,
@@ -116,45 +109,27 @@ fun ColumnScope.ImageMessageContent(
     caption: MatrixBodyParseResult? = null,
     shape: Shape = Dimens.Conversation.messageBubbleShape,
     onCaptionTextLayout: (TextLayoutResult?) -> Unit = {},
-    overlay: @Composable () -> Unit = {},
 ) {
-    // TODO placeholder, ...
-    Box(
-        modifier = Modifier.align(Alignment.CenterHorizontally),
-        contentAlignment = Alignment.Center,
+    ImageMessageContent(
+        model = model,
+        minWidth = minWidth,
+        minHeight = minHeight,
+        maxWidth = maxWidth,
+        maxHeight = maxHeight,
+        caption = caption,
+        shape = shape,
+        onCaptionTextLayout = onCaptionTextLayout,
     ) {
-        AsyncImage(
-            model,
-            null,
-            imageLoader = imageLoader(),
-            onError = ::onAsyncImageError,
-            filterQuality = FilterQuality.High,
-            modifier = Modifier
-                .sizeIn(
-                    minWidth = minWidth,
-                    minHeight = minHeight,
-                    maxWidth = maxWidth,
-                    maxHeight = maxHeight,
-                )
-                .clip(shape),
-        )
-        overlay()
+        VideoContentOverlay()
     }
-    if (caption != null) {
-        TextLikeMessageContent(
-            caption,
-            allowBigEmojiOnly = false,
-            modifier = Modifier.padding(
-                top = Dimens.Conversation.captionPadding,
-                bottom = Dimens.Conversation.messageBubbleInnerPadding,
-                start = Dimens.Conversation.messageBubbleInnerPadding,
-                end = Dimens.Conversation.messageBubbleInnerPadding,
-            ),
-            onTextLayout = onCaptionTextLayout,
-        )
-    } else {
-        LaunchedEffect(Unit) {
-            onCaptionTextLayout(null)
-        }
-    }
+}
+
+@Composable
+fun VideoContentOverlay(modifier: Modifier = Modifier) {
+    Icon(
+        Icons.Default.PlayArrow,
+        null,
+        modifier.size(32.dp).background(MaterialTheme.colorScheme.onSurface, CircleShape).padding(4.dp),
+        tint = MaterialTheme.colorScheme.surface,
+    )
 }

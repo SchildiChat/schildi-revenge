@@ -18,6 +18,7 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.destination.conversation.event.message.FileMessageContent
 import chat.schildi.revenge.compose.destination.conversation.event.message.FileMessageRenderType
 import chat.schildi.revenge.compose.destination.conversation.event.message.ImageMessageContent
+import chat.schildi.revenge.compose.destination.conversation.event.message.VideoMessageContent
 import chat.schildi.revenge.model.Attachment
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
@@ -48,10 +49,12 @@ fun ComposerAttachment(
                     )
                 }
                 is Attachment.Video -> {
-                    FileMessageContent(
-                        type = FileMessageRenderType.VIDEO,
-                        filename = attachment.file.name,
-                        messageMetadata = null,
+                    VideoMessageContent(
+                        model = attachment.file,
+                        minWidth = Dimens.Conversation.imageMinWidth,
+                        minHeight = Dimens.Conversation.imageMinHeight,
+                        maxWidth = Dimens.Conversation.imageMaxWidth,
+                        maxHeight = Dimens.Conversation.imageRepliedToMaxHeight,
                     )
                 }
                 is Attachment.Audio -> {

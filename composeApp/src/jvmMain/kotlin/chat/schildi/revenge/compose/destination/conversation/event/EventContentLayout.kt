@@ -8,6 +8,7 @@ import chat.schildi.revenge.compose.destination.conversation.event.message.Messa
 import chat.schildi.revenge.compose.destination.conversation.event.message.ImageMessage
 import chat.schildi.revenge.compose.destination.conversation.event.message.TextLikeMessage
 import chat.schildi.revenge.compose.destination.conversation.event.message.TimestampOverlayContent
+import chat.schildi.revenge.compose.destination.conversation.event.message.VideoMessage
 import chat.schildi.revenge.compose.destination.conversation.event.sender.SenderAvatar
 import chat.schildi.revenge.compose.destination.conversation.event.sender.SenderName
 import chat.schildi.revenge.model.conversation.MessageMetadata
@@ -114,8 +115,7 @@ fun EventContentLayout(
                         FileMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo)
                     }
                     is VideoMessageType -> {
-                        // TODO video-message specific rendering
-                        FileMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo)
+                        VideoMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo)
                     }
                     is VoiceMessageType -> {
                         // TODO voice-message specific rendering
