@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.stateIn
 
 data class UserReactionItem(
     val reaction: String,
+    val shortcode: String?,
     val reactionSender: ReactionSender,
     val senderProfile: RoomMember?,
 ) : UserListItem {
@@ -92,7 +93,7 @@ class MessageReactionListViewModel(
         timelineEvent?.event?.reactions?.flatMap { reaction ->
             reaction.senders.map {
                 val member = membersLookup?.get(it.senderId)
-                UserReactionItem(reaction.key, it, member)
+                UserReactionItem(reaction.key, reaction.shortcode, it, member)
             }
         }?.sortedByDescending { it.reactionSender.timestamp }?.toPersistentList()
     }

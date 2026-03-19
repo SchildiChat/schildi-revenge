@@ -68,8 +68,9 @@ fun ReactionsBubble(
         focusId = focusId,
         users = userTimestamps,
         modifier = modifier,
+        tooltipPrefix = reaction.shortcode?.plus(" ") ?: "",
         leadingItemContent = {
-            ReactionContent(reaction.key, MaterialTheme.typography.headlineSmall)
+            ReactionContent(reaction.key, reaction.shortcode, MaterialTheme.typography.headlineSmall)
         }
     ) {
         val includesSelf = reaction.senders.any { it.senderId == LocalSessionId.current }
@@ -104,7 +105,7 @@ fun ReactionsBubble(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            ReactionContent(reaction.key)
+            ReactionContent(reaction.key, reaction.shortcode)
             Text(
                 reaction.senders.size.toString(),
                 color = MaterialTheme.colorScheme.primary,

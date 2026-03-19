@@ -26,9 +26,9 @@ data class UserTimestampItem<T>(
     val extra: T? = null,
 )
 
-private fun <T>List<UserTimestampItem<T>>.tooltipTextFunction(): @Composable () -> String = {
+private fun <T>List<UserTimestampItem<T>>.tooltipTextFunction(prefix: String = ""): @Composable () -> String = {
     remember(this) {
-        joinToString { it.displayName ?: it.userId.value }
+        joinToString(prefix = prefix) { it.displayName ?: it.userId.value }
     }
 }
 
@@ -39,10 +39,11 @@ fun <T>WithUserTimestampListPopup(
     modifier: Modifier = Modifier,
     leadingItemContent: @Composable (T) -> Unit = {},
     trailingItemContent: @Composable (T) -> Unit = {},
+    tooltipPrefix: String = "",
     content: @Composable () -> Unit,
 ) {
     WithTooltip(
-        users.tooltipTextFunction(),
+        users.tooltipTextFunction(tooltipPrefix),
         modifier,
         isPersistent = true,
     ) {

@@ -48,10 +48,14 @@ fun WithTooltip(
 
 @Composable
 fun WithTooltip(
-    text: String,
+    text: String?,
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
+    if (text == null) {
+        content()
+        return
+    }
     WithTooltip(
         text = { text },
         modifier = modifier,

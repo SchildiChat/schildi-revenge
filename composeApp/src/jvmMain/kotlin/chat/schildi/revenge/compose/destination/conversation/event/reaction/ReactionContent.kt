@@ -24,6 +24,7 @@ import io.element.android.libraries.matrix.ui.media.MediaRequestData
 @Composable
 fun ReactionContent(
     reaction: String,
+    reactionShortcode: String? = null,
     baseStyle: TextStyle = MaterialTheme.typography.bodyMedium,
     modifier: Modifier = Modifier
 ) {
@@ -46,13 +47,13 @@ fun ReactionContent(
             imageLoader = imageLoader(),
             contentScale = ContentScale.Fit,
             alignment = Alignment.Center,
-            contentDescription = reaction,
+            contentDescription = reactionShortcode ?: reaction,
         ) {
             when (painter.state.collectAsState().value) {
                 is AsyncImagePainter.State.Success -> SubcomposeAsyncImageContent()
                 else -> {
                     Text(
-                        reaction.take(Dimens.Conversation.reactionMaxLength),
+                        (reactionShortcode ?: reaction).take(Dimens.Conversation.reactionMaxLength),
                         color = MaterialTheme.colorScheme.primary,
                         style = reactionTextStyle,
                     )
