@@ -20,6 +20,7 @@ import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.Provider
 import io.element.android.libraries.di.annotations.ApplicationContext
 import io.element.android.libraries.matrix.api.media.MatrixMediaLoader
+import io.element.android.libraries.matrix.ui.media.animated.AnimatedImageDecoderFactory
 import okhttp3.OkHttpClient
 
 interface ImageLoaderFactory {
@@ -43,6 +44,7 @@ class DefaultImageLoaderFactory(
     override fun newImageLoader(): ImageLoader {
         return ImageLoader.Builder(context)
             .components {
+                add(AnimatedImageDecoderFactory())
                 add(okHttpNetworkFetcherFactory)
             }
             .build()
@@ -51,6 +53,7 @@ class DefaultImageLoaderFactory(
     override fun newImageLoader(matrixMediaLoader: MatrixMediaLoader): ImageLoader {
         return ImageLoader.Builder(context)
             .components {
+                add(AnimatedImageDecoderFactory())
                 add(okHttpNetworkFetcherFactory)
                 // Add gif support
                 /*

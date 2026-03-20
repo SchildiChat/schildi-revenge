@@ -16,6 +16,7 @@ dependencies {
     implementation(libs.skydoves.compose.stable.marker)
     implementation(libs.coil3.compose)
     implementation(libs.coil3.okhttp)
+    implementation(libs.skiko)
     implementation(projects.config)
     // Compatibility classes for Android specifics that we don't care about but got from Element X files,
     // so we don't need to change those classes too much.
