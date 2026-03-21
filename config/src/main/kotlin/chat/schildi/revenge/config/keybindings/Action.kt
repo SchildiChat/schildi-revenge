@@ -10,14 +10,14 @@ data class ActionArgumentOptional(val argument: ActionArgument) : ActionArgument
     override val name: String
         get() = "[$argument]"
     override val consumesTrailingArgsWithSpace = argument.consumesTrailingArgsWithSpace
-    override fun canHold(primitive: ActionArgumentPrimitive) = argument == primitive
+    override fun canHold(primitive: ActionArgumentPrimitive) = argument.canHold(primitive)
 }
 data class ActionArgumentAnyOf(val arguments: List<ActionArgumentPrimitive>) : ActionArgument {
     constructor(vararg arguments: ActionArgumentPrimitive) : this(arguments.toList())
     override val name: String
         get() = "(${arguments.joinToString("|") { it.name }})"
     override val consumesTrailingArgsWithSpace = arguments.any { it.consumesTrailingArgsWithSpace }
-    override fun canHold(primitive: ActionArgumentPrimitive) = arguments.contains(primitive)
+    override fun canHold(primitive: ActionArgumentPrimitive) = arguments.any { it.canHold(primitive) }
 }
 sealed interface ActionArgumentContextBased : ActionArgument {
     fun getFor(context: CommandArgContext): ActionArgument

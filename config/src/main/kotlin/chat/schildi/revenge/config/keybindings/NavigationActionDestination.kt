@@ -69,7 +69,9 @@ data object NavigationDestinationSessionId : ActionArgumentContextBased {
 data object NavigationDestinationResolvableRoom : ActionArgumentContextBased {
     override val name: String = javaClass.simpleName
     override val consumesTrailingArgsWithSpace = false
-    override fun canHold(primitive: ActionArgumentPrimitive) = primitive == ActionArgumentPrimitive.RoomId
+    override fun canHold(primitive: ActionArgumentPrimitive) = primitive == ActionArgumentPrimitive.RoomId ||
+            primitive == ActionArgumentPrimitive.ExistingDmUserId ||
+            primitive == ActionArgumentPrimitive.SessionId
     override fun getFor(context: CommandArgContext): ActionArgument {
         val destinations = context.findAll(ActionArgumentPrimitive.NavigatableDestination)
         val enabled = destinations.any { it.destinationRequiresResolvableRoom() }
