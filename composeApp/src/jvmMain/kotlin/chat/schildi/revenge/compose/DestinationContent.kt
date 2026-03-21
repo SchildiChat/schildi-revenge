@@ -5,10 +5,10 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
+import chat.schildi.preferences.ScPref
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Destination
-import chat.schildi.revenge.DestinationCategory
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.compose.components.AdaptiveSplitLayoutModifierPair
@@ -29,6 +29,7 @@ import chat.schildi.revenge.compose.destination.split.EmptyPaneScreen
 import chat.schildi.revenge.compose.destination.split.InboxConversationMultiPaneScreen
 import chat.schildi.revenge.compose.destination.split.SplitHorizontal
 import chat.schildi.revenge.compose.destination.split.SplitVertical
+import chat.schildi.revenge.config.keybindings.DestinationEnum
 
 val LocalDestinationDepth = compositionLocalOf { 0 }
 
@@ -57,52 +58,68 @@ fun DestinationContent(
                 is Destination.About -> AboutScreen(baseModifier, contentModifier)
                 is Destination.Settings -> SettingsScreen(destination, baseModifier, contentModifier)
                 is Destination.SettingsPane -> SettingsScreen(destination, baseModifier, contentModifier)
-                is Destination.MultiPanePlaceholder -> EmptyPaneScreen(baseModifier, contentModifier)
                 is Destination.InboxConversationMultiPane -> InboxConversationMultiPaneScreen(destination, baseModifier, contentModifier)
                 is Destination.ConversationDetailsMultiPane -> ConversationDetailsMultiPaneScreen(destination, baseModifier, contentModifier)
+                is Destination.MultiPaneConversationPlaceholder,
+                is Destination.MultiPaneRoomInfoPlaceholder,
+                is Destination.MultiPaneSettingsPlaceholder -> EmptyPaneScreen(baseModifier, contentModifier)
             }
         }
     }
 }
 
+private data class DestinationMeasure(
+    val maxWidth: Int?,
+    val weight: Int,
+) {
+    operator fun plus(other: DestinationMeasure) = DestinationMeasure(
+        maxWidth = if (maxWidth == null || other.maxWidth == null) null else maxWidth + other.maxWidth,
+        weight = weight + other.weight,
+    )
+
+    companion object {
+        @Composable
+        fun from(maxWidth: ScPref<Int>?, weight: ScPref<Int>) = DestinationMeasure(
+            maxWidth = maxWidth?.value(),
+            weight = weight.value(),
+        )
+        @Composable
+        fun from(maxWidth: ScPref<Int>?, weight: Int) = DestinationMeasure(
+            maxWidth = maxWidth?.value(),
+            weight = weight,
+        )
+    }
+}
+
+@Composable
+private fun DestinationEnum.measureInfo(): DestinationMeasure = when (this) {
+    DestinationEnum.Inbox -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_INBOX, ScPrefs.LAYOUT_WEIGHT_INBOX)
+    DestinationEnum.Conversation -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_CONVERSATION, ScPrefs.LAYOUT_WEIGHT_CONVERSATION)
+    DestinationEnum.SplitRoomDetailsPlaceholder,
+    DestinationEnum.MessageReactions,
+    DestinationEnum.MessageReadReceipts,
+    DestinationEnum.RoomMembers -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_ROOM_DETAILS, ScPrefs.LAYOUT_WEIGHT_ROOM_DETAILS)
+    DestinationEnum.AccountManagement,
+    DestinationEnum.About -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_SETTINGS, ScPrefs.LAYOUT_WEIGHT_SETTINGS)
+    DestinationEnum.Settings -> DestinationEnum.SettingsRoot.measureInfo() + DestinationEnum.SplitSettingsDetailsPlaceholder.measureInfo()
+    DestinationEnum.SettingsRoot -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_SETTINGS, ScPrefs.LAYOUT_WEIGHT_SETTINGS_ROOT)
+    DestinationEnum.SplitSettingsDetailsPlaceholder,
+    DestinationEnum.SettingsDetails -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_SETTINGS, ScPrefs.LAYOUT_WEIGHT_SETTINGS)
+    DestinationEnum.SplitConversationPlaceholder -> if (ScPrefs.PREFER_CONVERSATION_DETAILS_SPLIT.value()) {
+        DestinationEnum.ConversationDetailsSplit.measureInfo()
+    } else {
+        DestinationEnum.Conversation.measureInfo()
+    }
+    DestinationEnum.InboxConversationSplit -> DestinationEnum.Inbox.measureInfo() + DestinationEnum.SplitConversationPlaceholder.measureInfo()
+    DestinationEnum.ConversationDetailsSplit -> DestinationEnum.Conversation.measureInfo() + DestinationEnum.SplitRoomDetailsPlaceholder.measureInfo()
+    DestinationEnum.SplitHorizontal,
+    DestinationEnum.SplitVertical,
+    DestinationEnum.Splash -> DestinationMeasure.from(null, WEIGHT_DEFAULT)
+}
+
 @Composable
 private fun Modifier.forDestination(destination: Destination): AdaptiveSplitLayoutModifierPair {
-    val (maxWidth, weight) = when (destination) {
-        Destination.Inbox -> Pair(ScPrefs.MAX_WIDTH_INBOX.value(), ScPrefs.LAYOUT_WEIGHT_INBOX.value())
-        is Destination.Conversation -> Pair(ScPrefs.MAX_WIDTH_CONVERSATION.value(), ScPrefs.LAYOUT_WEIGHT_CONVERSATION.value())
-        is Destination.MessageReactions,
-        is Destination.MessageReadReceipts,
-        is Destination.RoomMembers -> Pair(ScPrefs.MAX_WIDTH_ROOM_DETAILS.value(), ScPrefs.LAYOUT_WEIGHT_ROOM_DETAILS.value())
-        Destination.AccountManagement,
-        Destination.About -> Pair(ScPrefs.MAX_WIDTH_SETTINGS.value(), ScPrefs.LAYOUT_WEIGHT_SETTINGS.value())
-        is Destination.SettingsPane -> Pair(
-            ScPrefs.MAX_WIDTH_SETTINGS.value(),
-            if (destination.rootPreferenceCategory == null) {
-                ScPrefs.LAYOUT_WEIGHT_SETTINGS_ROOT.value()
-            } else {
-                ScPrefs.LAYOUT_WEIGHT_SETTINGS.value()
-            }
-        )
-        is Destination.SplitHorizontal,
-        is Destination.SplitVertical,
-        is Destination.MultiPane,
-        Destination.Splash -> Pair(null, WEIGHT_DEFAULT)
-        is Destination.MultiPanePlaceholder -> when (destination.category) {
-            DestinationCategory.INBOX -> Pair(ScPrefs.MAX_WIDTH_INBOX.value(), ScPrefs.LAYOUT_WEIGHT_INBOX.value())
-            DestinationCategory.CONVERSATION -> if (ScPrefs.PREFER_CONVERSATION_DETAILS_SPLIT.value()) {
-                Pair(
-                    ScPrefs.MAX_WIDTH_CONVERSATION.value() + ScPrefs.MAX_WIDTH_ROOM_DETAILS.value(),
-                    ScPrefs.LAYOUT_WEIGHT_CONVERSATION.value() + ScPrefs.LAYOUT_WEIGHT_ROOM_DETAILS.value(),
-                )
-            } else {
-                Pair(ScPrefs.MAX_WIDTH_CONVERSATION.value(), ScPrefs.LAYOUT_WEIGHT_CONVERSATION.value())
-            }
-            DestinationCategory.CONVERSATION_DETAILS -> Pair(ScPrefs.MAX_WIDTH_ROOM_DETAILS.value(), ScPrefs.LAYOUT_WEIGHT_ROOM_DETAILS.value())
-            DestinationCategory.ABOUT,
-            DestinationCategory.SETTINGS -> Pair(ScPrefs.MAX_WIDTH_SETTINGS.value(), ScPrefs.LAYOUT_WEIGHT_SETTINGS.value())
-            DestinationCategory.WILDCARD -> Pair(null, WEIGHT_DEFAULT)
-        }
-    }
+    val (maxWidth, weight) = destination.type.measureInfo()
     return if (maxWidth == null) {
         AdaptiveSplitLayoutModifierPair(this, Modifier, weight)
     } else {

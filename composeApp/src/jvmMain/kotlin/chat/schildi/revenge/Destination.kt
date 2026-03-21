@@ -1,6 +1,5 @@
 package chat.schildi.revenge
 
-import chat.schildi.preferences.ScPrefs
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.config.keybindings.DestinationEnum
@@ -103,7 +102,7 @@ sealed interface Destination {
     data class Settings(
         val root: DestinationStateHolder = DestinationStateHolder.forInitialDestination(SettingsPane()),
         val details: DestinationStateHolder = DestinationStateHolder.forInitialDestination(
-            MultiPanePlaceholder(DestinationCategory.SETTINGS),
+            MultiPaneSettingsPlaceholder,
         ),
     ) : Destination, MultiPane {
         override val type = DestinationEnum.Settings
@@ -114,7 +113,10 @@ sealed interface Destination {
     data class SettingsPane(
         val rootPreferenceCategory: String? = null,
     ) : Destination {
-        override val type = DestinationEnum.SettingsPane
+        override val type = if (rootPreferenceCategory == null)
+            DestinationEnum.SettingsRoot
+        else
+            DestinationEnum.SettingsDetails
         override val title = StringResourceHolder(Res.string.hint_settings)
         override val category = DestinationCategory.SETTINGS
     }
@@ -150,17 +152,28 @@ sealed interface Destination {
 
     sealed interface MultiPane : Destination
 
-    data class MultiPanePlaceholder(
-        override val category: DestinationCategory,
-    ) : Destination {
-        override val type = DestinationEnum.SplitPlaceholder
+    data object MultiPaneSettingsPlaceholder : Destination {
+        override val category: DestinationCategory = DestinationCategory.SETTINGS
+        override val type: DestinationEnum = DestinationEnum.SplitSettingsDetailsPlaceholder
+        override val title = DEFAULT_WINDOW_APP_TITLE
+    }
+
+    data object MultiPaneConversationPlaceholder : Destination {
+        override val category: DestinationCategory = DestinationCategory.CONVERSATION
+        override val type: DestinationEnum = DestinationEnum.SplitConversationPlaceholder
+        override val title = DEFAULT_WINDOW_APP_TITLE
+    }
+
+    data object MultiPaneRoomInfoPlaceholder : Destination {
+        override val category: DestinationCategory = DestinationCategory.CONVERSATION_DETAILS
+        override val type: DestinationEnum = DestinationEnum.SplitRoomDetailsPlaceholder
         override val title = DEFAULT_WINDOW_APP_TITLE
     }
 
     data class InboxConversationMultiPane(
         val inbox: DestinationStateHolder = DestinationStateHolder.forInitialDestination(Inbox),
         val conversation: DestinationStateHolder = DestinationStateHolder.forInitialDestination(
-            MultiPanePlaceholder(DestinationCategory.CONVERSATION),
+            MultiPaneConversationPlaceholder,
         ),
     ) : MultiPane {
         override val type = DestinationEnum.InboxConversationSplit
@@ -169,11 +182,9 @@ sealed interface Destination {
     }
 
     data class ConversationDetailsMultiPane(
-        val conversation: DestinationStateHolder = DestinationStateHolder.forInitialDestination(
-            MultiPanePlaceholder(DestinationCategory.CONVERSATION),
-        ),
+        val conversation: DestinationStateHolder,
         val details: DestinationStateHolder = DestinationStateHolder.forInitialDestination(
-            MultiPanePlaceholder(DestinationCategory.CONVERSATION_DETAILS),
+            MultiPaneRoomInfoPlaceholder,
         ),
     ) : MultiPane {
         constructor(conversationDestination: Conversation) : this(

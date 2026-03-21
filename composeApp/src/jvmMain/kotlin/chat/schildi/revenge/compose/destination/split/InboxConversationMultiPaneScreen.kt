@@ -10,6 +10,7 @@ import chat.schildi.preferences.value
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.DestinationCategory
 import chat.schildi.revenge.DestinationStateHolder
+import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.NavigationPreference
 
 @Composable
@@ -22,7 +23,7 @@ fun InboxConversationMultiPaneScreen(
         val minSplitWidth = ScPrefs.INBOX_CONVERSATION_SPLIT_MIN_WIDTH.value().dp
         val collapseSinglePane = maxWidth < minSplitWidth
         val hasConversation =
-            destination.conversation.state.collectAsState().value.destination !is Destination.MultiPanePlaceholder
+            destination.conversation.state.collectAsState().value.destination !is Destination.MultiPaneConversationPlaceholder
         MultiPaneLayout(
             outerDestination = destination.type,
             innerDestinations = listOfNotNull(
@@ -40,25 +41,31 @@ fun InboxConversationMultiPaneScreen(
     }
 }
 
+@Composable
 private fun DestinationStateHolder.wrapped(
     destination: Destination.InboxConversationMultiPane,
     category: DestinationCategory,
+    parent: DestinationStateHolder? = LocalDestinationState.current,
 ) = MultiPaneLayoutDestinationStateHolderWrapper(
+    parent = parent,
     inner = this,
     close = if (category == DestinationCategory.CONVERSATION) {
         {
             destination.conversation.navigate(
-                Destination.MultiPanePlaceholder(DestinationCategory.CONVERSATION),
+                Destination.MultiPaneConversationPlaceholder,
                 NavigationPreference.REPLACE
             )
         }
-    } else
+    } else if (parent != null) {
+        parent::closeScreen
+    } else {
         null
+    }
 ) { navDestination ->
     when (navDestination.category) {
         DestinationCategory.INBOX -> {
             destination.conversation.navigate(
-                Destination.MultiPanePlaceholder(DestinationCategory.CONVERSATION),
+                Destination.MultiPaneConversationPlaceholder,
                 NavigationPreference.REPLACE
             )
             true

@@ -27,7 +27,7 @@ interface DestinationStateHolder {
      * Only use with no longer elsewhere used DestinationState!
      * Useful for moving nested destinations out, e.g. unsplit action
      */
-    fun replaceWith(destinationState: chat.schildi.revenge.DestinationState)
+    fun replaceWith(destinationState: DestinationState)
     fun publishTitle(titleOverride: ComposableStringHolder?, verifyDestination: (Destination) -> Boolean)
     fun navigate(
         destination: Destination,
@@ -36,6 +36,7 @@ interface DestinationStateHolder {
         initialTitle: ComposableStringHolder? = null,
     )
     fun closeScreen(keyHandler: KeyboardActionHandler)
+    fun isNavigationDestinationApplicable(destination: Destination): Boolean
 
     companion object {
         fun forInitialDestination(
@@ -111,6 +112,9 @@ class DefaultDestinationStateHolder(
             }
         }
     }
+
+    override fun isNavigationDestinationApplicable(destination: Destination) =
+        state.value.destination != destination
 }
 
 data class DestinationState(

@@ -21,7 +21,7 @@ user = [
     { key = "C", ctrl = true, action = "CopyMxId", destinations = ["RoomMembers"] },
 ]
 navigation = [
-    { key = "Escape", action = "NavigateCurrent", args = ["inbox"], destinations = ["Conversation", "ConversationDetailsSplit"] },
+    { key = "Escape", action = "NavigateCurrent", args = ["inbox"], destinations = ["Conversation", "Inbox", "members", "reactions", "receipts"] },
 ]
 navigationItem = [
     { key = "Enter", action = "NavigateCurrent" },

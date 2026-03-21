@@ -12,7 +12,6 @@ import chat.schildi.revenge.DestinationCategory
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.NavigationPreference
-import chat.schildi.revenge.compose.LocalDestinationDepth
 
 @Composable
 fun ConversationDetailsMultiPaneScreen(
@@ -21,12 +20,10 @@ fun ConversationDetailsMultiPaneScreen(
     contentModifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(modifier) {
-        val parentDestinationState = LocalDestinationState.current
-        val isNestedDestination = LocalDestinationDepth.current > 1
         val minSplitWidth = ScPrefs.CONVERSATION_DETAILS_SPLIT_MIN_WIDTH.value().dp
         val collapseSinglePane = maxWidth < minSplitWidth
         val hasDetails =
-            destination.details.state.collectAsState().value.destination !is Destination.MultiPanePlaceholder
+            destination.details.state.collectAsState().value.destination !is Destination.MultiPaneRoomInfoPlaceholder
         MultiPaneLayout(
             outerDestination = destination.type,
             innerDestinations =
@@ -37,17 +34,6 @@ fun ConversationDetailsMultiPaneScreen(
                         destination.conversation.wrapped(
                             destination = destination,
                             category = DestinationCategory.CONVERSATION,
-                            closeConversationSplit =
-                                if (isNestedDestination) {
-                                    {
-                                        parentDestinationState?.navigate(
-                                            Destination.MultiPanePlaceholder(DestinationCategory.CONVERSATION),
-                                            NavigationPreference.REPLACE,
-                                        )
-                                    }
-                                } else {
-                                    null
-                                },
                         )
                     },
                     if (!hasDetails && (collapseSinglePane || ScPrefs.HIDE_EMPTY_CONVERSATION_DETAILS_PANE.value())) {
@@ -64,30 +50,31 @@ fun ConversationDetailsMultiPaneScreen(
     }
 }
 
+@Composable
 private fun DestinationStateHolder.wrapped(
     destination: Destination.ConversationDetailsMultiPane,
     category: DestinationCategory,
-    closeConversationSplit: (() -> Unit)? = null,
+    parent: DestinationStateHolder? = LocalDestinationState.current,
 ) = MultiPaneLayoutDestinationStateHolderWrapper(
+    parent = parent,
     inner = this,
-    close =
-        when (category) {
-            DestinationCategory.CONVERSATION -> closeConversationSplit
-            DestinationCategory.CONVERSATION_DETAILS -> {
-                {
-                    destination.details.navigate(
-                        Destination.MultiPanePlaceholder(DestinationCategory.CONVERSATION_DETAILS),
-                        NavigationPreference.REPLACE,
-                    )
-                }
-            }
-            else -> null
-        },
+    close = if (category == DestinationCategory.CONVERSATION_DETAILS) {
+        {
+            destination.details.navigate(
+                Destination.MultiPaneRoomInfoPlaceholder,
+                NavigationPreference.REPLACE
+            )
+        }
+    } else if (parent != null) {
+        parent::closeScreen
+    } else {
+        null
+    }
 ) { navDestination ->
     when (navDestination.category) {
         DestinationCategory.CONVERSATION -> {
             destination.details.navigate(
-                Destination.MultiPanePlaceholder(DestinationCategory.CONVERSATION_DETAILS),
+                Destination.MultiPaneRoomInfoPlaceholder,
                 NavigationPreference.REPLACE,
             )
             destination.conversation.navigate(navDestination, NavigationPreference.REPLACE)

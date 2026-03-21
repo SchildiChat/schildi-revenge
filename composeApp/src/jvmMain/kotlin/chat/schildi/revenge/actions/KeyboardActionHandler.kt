@@ -501,7 +501,7 @@ class KeyboardActionHandler(
                         navigateAuto(
                             destination,
                             destinationStateHolder,
-                        )
+                        ) is ActionResult.Success
                     }
 
                     is InteractionAction.OpenWindow -> {
@@ -534,7 +534,7 @@ class KeyboardActionHandler(
             ?: currentFocused()?.destinationStateHolder
             ?: focusableTargets.values.firstNotNullOfOrNull { it.destinationStateHolder }
             ?: return ActionResult.Inapplicable
-        if (effectiveStateHolder.state.value.destination == destination) {
+        if (!effectiveStateHolder.isNavigationDestinationApplicable(destination)) {
             return ActionResult.Inapplicable
         }
         effectiveStateHolder.navigate(
@@ -565,16 +565,20 @@ class KeyboardActionHandler(
         destination: Destination,
         destinationStateHolder: DestinationStateHolder? = null,
         invalidateHolderId: Boolean = false,
-    ): Boolean {
-        return (
-                destinationStateHolder
-                    ?: currentFocused()?.destinationStateHolder
-                    ?: focusableTargets.values.firstNotNullOfOrNull { it.destinationStateHolder }
-                )?.navigate(
-                destination,
-                NavigationPreference.AUTO,
-                invalidateHolderId = invalidateHolderId,
-            ) != null
+    ): ActionResult {
+        val effectiveStateHolder = destinationStateHolder
+            ?: currentFocused()?.destinationStateHolder
+            ?: focusableTargets.values.firstNotNullOfOrNull { it.destinationStateHolder }
+            ?: return ActionResult.Inapplicable
+        if (!effectiveStateHolder.isNavigationDestinationApplicable(destination)) {
+            return ActionResult.Inapplicable
+        }
+        effectiveStateHolder.navigate(
+            destination,
+            NavigationPreference.AUTO,
+            invalidateHolderId = invalidateHolderId,
+        )
+        return ActionResult.Success()
     }
 
     fun publishMessage(
@@ -1202,11 +1206,7 @@ class KeyboardActionHandler(
                     context.launchActionAsync("navigateAuto", scope) {
                         val extraArgs = args.subList(1, args.size)
                         val destination = args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
-                        if (navigateAuto(destination, context.focused()?.destinationStateHolder)) {
-                            ActionResult.Success()
-                        } else {
-                            ActionResult.Inapplicable
-                        }
+                        navigateAuto(destination, context.focused()?.destinationStateHolder)
                     }
                 }
                 Action.Navigation.NavigateInNewWindow -> {

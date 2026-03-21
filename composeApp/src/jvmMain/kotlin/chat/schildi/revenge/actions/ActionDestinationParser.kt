@@ -113,10 +113,11 @@ private inline fun String.toDestinationOrNull(
             }
         }
         DestinationEnum.Settings -> Destination.Settings()
-        DestinationEnum.SettingsPane -> {
+        DestinationEnum.SettingsRoot -> Destination.SettingsPane()
+        DestinationEnum.SettingsDetails -> {
             val rootPref = args.getOrNull(0)
             if (rootPref == null) {
-                Destination.SettingsPane()
+                null
             } else if (ScPrefs.validCategoryKeys.contains(rootPref)) {
                 Destination.SettingsPane(rootPref)
             } else {
@@ -126,7 +127,9 @@ private inline fun String.toDestinationOrNull(
         DestinationEnum.About -> Destination.About
         DestinationEnum.InboxConversationSplit -> Destination.InboxConversationMultiPane()
         // Destinations not reachable via "navigate" action
-        DestinationEnum.SplitPlaceholder,
+        DestinationEnum.SplitConversationPlaceholder,
+        DestinationEnum.SplitRoomDetailsPlaceholder,
+        DestinationEnum.SplitSettingsDetailsPlaceholder,
         DestinationEnum.SplitHorizontal,
         DestinationEnum.SplitVertical,
         null -> null

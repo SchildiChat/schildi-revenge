@@ -79,7 +79,7 @@ fun SettingsScreen(
             val minSplitWidth = ScPrefs.INBOX_CONVERSATION_SPLIT_MIN_WIDTH.value().dp
             val collapseSinglePane = maxWidth < minSplitWidth
             val hasDetails =
-                destination.details.state.collectAsState().value.destination !is Destination.MultiPanePlaceholder
+                destination.details.state.collectAsState().value.destination !is Destination.MultiPaneSettingsPlaceholder
             val rootViewModel = LocalRootPreferenceViewModel.current?.value
             val isSearching = if (rootViewModel == null) {
                 false
@@ -185,25 +185,31 @@ fun SettingsScreen(
     }
 }
 
+@Composable
 private fun DestinationStateHolder.wrapped(
     destination: Destination.Settings,
     isDetails: Boolean,
+    parent: DestinationStateHolder? = LocalDestinationState.current,
 ) = MultiPaneLayoutDestinationStateHolderWrapper(
+    parent = parent,
     inner = this,
     close = if (isDetails) {
         {
             destination.details.navigate(
-                Destination.MultiPanePlaceholder(DestinationCategory.SETTINGS),
+                Destination.MultiPaneSettingsPlaceholder,
                 NavigationPreference.REPLACE
             )
         }
-    } else
+    } else if (parent != null) {
+        parent::closeScreen
+    } else {
         null
+    }
 ) { navDestination ->
     if (navDestination is Destination.SettingsPane) {
         if (navDestination.rootPreferenceCategory == null) {
             destination.details.navigate(
-                Destination.MultiPanePlaceholder(DestinationCategory.SETTINGS),
+                Destination.MultiPaneSettingsPlaceholder,
                 NavigationPreference.REPLACE
             )
             destination.root.navigate(navDestination, NavigationPreference.REPLACE)

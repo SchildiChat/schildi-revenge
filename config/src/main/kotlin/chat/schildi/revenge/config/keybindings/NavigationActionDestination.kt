@@ -11,14 +11,17 @@ enum class DestinationEnum(
     RoomMembers("RoomMembers", listOf("members")),
     MessageReactions("MessageReactions", listOf("reactions")),
     MessageReadReceipts("MessageReadReceipts", listOf("readReceipts", "receipts")),
-    ConversationDetailsSplit("ConversationDetailsSplit", listOf("chatDetails", "conversationDetails")),
     Settings("Settings", listOf("settings")),
-    SettingsPane("SettingsPane"),
+    SettingsRoot("SettingsRoot"),
+    SettingsDetails("SettingsDetails"),
     About("About", listOf("about")),
     SplitHorizontal("SplitHorizontal"),
     SplitVertical("SplitVertical"),
-    SplitPlaceholder("SplitPlaceholder"),
-    InboxConversationSplit("InboxConversationSplit", listOf("home"));
+    SplitConversationPlaceholder("SplitConversationPlaceholder"),
+    SplitRoomDetailsPlaceholder("SplitRoomDetailsPlaceholder"),
+    SplitSettingsDetailsPlaceholder("SplitSettingsDetailsPlaceholder"),
+    InboxConversationSplit("InboxConversationSplit", listOf("home")),
+    ConversationDetailsSplit("ConversationDetailsSplit", listOf("chatDetails", "conversationDetails"));
 
     fun allDestinationNames() = aliases + destName
     fun matches(destinationName: String): Boolean {

@@ -63,8 +63,9 @@ fun MultiPaneLayout(
 }
 
 class MultiPaneLayoutDestinationStateHolderWrapper(
+    val parent: DestinationStateHolder?,
     val inner: DestinationStateHolder,
-    val close: (() -> Unit)? = null,
+    val close: ((KeyboardActionHandler) -> Unit)? = null,
     val interceptNavigation: (Destination) -> Boolean,
 ) : DestinationStateHolder {
 
@@ -91,8 +92,9 @@ class MultiPaneLayoutDestinationStateHolderWrapper(
                 return
             }
         }
-        // Fallback to normal navigation behavior
-        inner.navigate(
+        // Fallback to parent navigation behavior if possible, so we'd rather replace the whole split
+        // then having incompatible stuff in it
+        (parent ?: inner).navigate(
             destination,
             preference,
             invalidateHolderId,
@@ -101,5 +103,9 @@ class MultiPaneLayoutDestinationStateHolderWrapper(
     }
 
     override fun closeScreen(keyHandler: KeyboardActionHandler) =
-        close?.invoke() ?: inner.closeScreen(keyHandler)
+        close?.invoke(keyHandler) ?: inner.closeScreen(keyHandler)
+
+    // Need to make sure to allow navigating from inbox -> inbox to close destination pane or sth.
+    override fun isNavigationDestinationApplicable(destination: Destination) =
+        parent?.isNavigationDestinationApplicable(destination) != false
 }
