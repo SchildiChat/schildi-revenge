@@ -128,6 +128,9 @@ sealed interface Action {
         ClearSessionCache(args = listOf(ActionArgumentPrimitive.SessionId)),
         CopyGlobalAccountData(args = listOf(ActionArgumentPrimitive.SessionId), aliases = listOf("accountData", "copyAccountData", "globalAccountData")),
         VacuumDatabase(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.SessionId))),
+        CreateRoom(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.RoomName), aliases = listOf("createRoom")),
+        CreateUnencryptedRoom(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.RoomName), aliases = listOf("createUnencryptedRoom", "createRoomUnencrypted")),
+        CreateDm(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.UserId), aliases = listOf("createDm", "startDm")),
     }
     enum class AppMessage(
         override val aliases: kotlin.collections.List<String> = emptyList(),

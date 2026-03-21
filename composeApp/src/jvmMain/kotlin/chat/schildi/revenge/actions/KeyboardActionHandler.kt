@@ -46,7 +46,6 @@ import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.NavigationPreference
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
 import chat.schildi.revenge.compose.focus.FakeFocusRequester
-import chat.schildi.revenge.compose.focus.allowsFocusable
 import chat.schildi.revenge.compose.focus.preferFocusChildren
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
@@ -76,7 +75,12 @@ import chat.schildi.revenge.model.spaces.REAL_SPACE_ID_PREFIX
 import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.core.coroutine.childScope
+import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.createroom.CreateRoomParameters
+import io.element.android.libraries.matrix.api.createroom.RoomPreset
+import io.element.android.libraries.matrix.api.roomdirectory.RoomVisibility
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -111,8 +115,10 @@ import shire.composeapp.generated.resources.command_copy_name_full_account_data
 import shire.composeapp.generated.resources.command_not_applicable
 import shire.composeapp.generated.resources.command_not_found
 import shire.composeapp.generated.resources.toast_restart_required
+import shire.composeapp.generated.resources.toast_room_created
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.StringSelection
 import java.io.File
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -1472,6 +1478,86 @@ class KeyboardActionHandler(
                         }
                     }
                 }
+                Action.Global.CreateRoom -> {
+                    val sessionId = SessionId(args.firstOrNull().orActionValidationError())
+                    val name = args.getOrNull(1)
+                    val client = UiState.currentClientFor(sessionId) ?: return ActionResult.Failure("Client not ready")
+                    val parameters = CreateRoomParameters(
+                        name = name,
+                        isEncrypted = true,
+                        visibility = RoomVisibility.Private,
+                        isDirect = false,
+                        preset = RoomPreset.PRIVATE_CHAT,
+                    )
+                    context.launchCreateRoomAction("createRoom", client, parameters)
+                }
+                Action.Global.CreateUnencryptedRoom -> {
+                    val sessionId = SessionId(args.firstOrNull().orActionValidationError())
+                    val name = args.getOrNull(1)
+                    val client = UiState.currentClientFor(sessionId) ?: return ActionResult.Failure("Client not ready")
+                    val parameters = CreateRoomParameters(
+                        name = name,
+                        isEncrypted = false,
+                        visibility = RoomVisibility.Private,
+                        isDirect = false,
+                        preset = RoomPreset.PRIVATE_CHAT,
+                    )
+                    context.launchCreateRoomAction("createRoom", client, parameters)
+                }
+                Action.Global.CreateDm -> {
+                    val sessionId = SessionId(args.firstOrNull().orActionValidationError())
+                    val userId = UserId(args.getOrNull(1).orActionValidationError())
+                    val client = UiState.currentClientFor(sessionId) ?: return ActionResult.Failure("Client not ready")
+                    context.launchActionAsync(
+                        "createDm",
+                        GlobalActionsScope,
+                        Dispatchers.IO,
+                        "createDm",
+                        notifyProcessing = true,
+                    ) {
+                        val result = client.createDM(userId)
+                        if (result.isSuccess) {
+                            publishMessage(
+                                AppMessage(
+                                    StringResourceHolder(Res.string.toast_room_created, result.getOrNull().toString().toStringHolder()),
+                                    uniqueId = "createDm",
+                                    canAutoDismiss = false,
+                                )
+                            )
+                            ActionResult.Success()
+                        } else {
+                            result.toActionResult(async = true)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun ActionContext.launchCreateRoomAction(
+        actionName: String,
+        client: MatrixClient,
+        parameters: CreateRoomParameters,
+    ): ActionResult {
+        return launchActionAsync(
+            actionName,
+            GlobalActionsScope,
+            Dispatchers.IO,
+            actionName,
+            notifyProcessing = true,
+        ) {
+            val result = client.createRoom(parameters)
+            if (result.isSuccess) {
+                publishMessage(
+                    AppMessage(
+                        StringResourceHolder(Res.string.toast_room_created, result.getOrNull().toString().toStringHolder()),
+                        uniqueId = actionName,
+                        canAutoDismiss = false,
+                    )
+                )
+                ActionResult.Success()
+            } else {
+                result.toActionResult(async = true)
             }
         }
     }
@@ -1948,7 +2034,7 @@ class KeyboardActionHandler(
         val localClipboard = clipboard ?: return ActionResult.Failure("No clipboard found")
         context.launchActionAsync("copyToClipboard", scope) {
             localClipboard.setClipEntry(
-                ClipEntry(java.awt.datatransfer.StringSelection(content))
+                ClipEntry(StringSelection(content))
             )
             // TODO how to do string resources here
             publishMessage(

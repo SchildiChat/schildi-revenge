@@ -86,27 +86,27 @@ This list is not sufficient to consider the client feature-complete in any way.
     - [x] Mark as read (via command)
     - [x] Mark as unread (via command)
     - [x] Kick/ban users (via command)
-    - [ ] Devtools
+    - [x] Devtools
         - [x] Copy room state to clipboard
-        - [x] Copy account state to clipboard
         - [x] Copy room account state to clipboard
         - [x] Send custom events
         - [x] Send room state
-        - [ ] Send account state
-        - [ ] Send room account state
     - [x] User trust MVP
         - [x] Message authenticity shields
         - [x] Identity resets
     - [ ] Failed message send retries: `EventTimelineHandler.sendHandleProvider()`
 - [x] Room member list
 - [ ] Commands
-    - [ ] Create room
-    - [ ] Start DM
+    - [x] Create room
+    - [x] Start DM
     - [x] Invite user
     - [x] Kick/ban user
     - [x] Set room notification settings
     - [x] Copy room ID, room link
     - [x] Set favorite / low priority
+    - [x] Copy account state to clipboard
+    - [ ] Send account state
+    - [ ] Send room account state
 - [ ] Account management screen polish
 - [ ] Notifications
     - [x] Allow muting individual accounts
@@ -138,7 +138,7 @@ This list is not sufficient to consider the client feature-complete in any way.
         - [ ] Reset user identity
         - [ ] Session management to rename or log out other devices
     - [ ] Room settings
-    - [ ] Create new rooms
+    - [ ] Create new rooms with all the settings (room visibility, history, ...)
     - [ ] Media viewer
     - [ ] ...
 - [ ] Custom theming
