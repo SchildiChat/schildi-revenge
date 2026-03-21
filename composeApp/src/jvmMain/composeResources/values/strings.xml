@@ -6,6 +6,10 @@
     <string name="inbox_search">Inbox search</string>
     <string name="room_members_title_loading">Loading room members</string>
     <plurals name="room_members_title_loaded">
+        <item quantity="one">%1$s members</item>
+        <item quantity="other">%1$s members</item>
+    </plurals>
+    <plurals name="room_members_title_in_room_loaded">
         <item quantity="one">%1$s members in %2$s</item>
         <item quantity="other">%1$s members in %2$s</item>
     </plurals>

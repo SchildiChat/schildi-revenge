@@ -26,9 +26,10 @@ import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.model.userlist.MessageReadReceiptListViewModel
 import chat.schildi.revenge.viewModelKey
+import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.empty_screen_placeholder_message_read_receipts
-
+import shire.composeapp.generated.resources.message_read_receipts_title
 
 @Composable
 fun MessageReadReceiptsScreen(
@@ -36,10 +37,16 @@ fun MessageReadReceiptsScreen(
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
 ) {
-    val viewModel: MessageReadReceiptListViewModel = viewModel(
-        key = viewModelKey(destination),
-        factory = MessageReadReceiptListViewModel.factory(destination.sessionId, destination.roomId, destination.eventId)
-    )
+    val viewModel: MessageReadReceiptListViewModel =
+        viewModel(
+            key = viewModelKey(destination),
+            factory =
+                MessageReadReceiptListViewModel.factory(
+                    destination.sessionId,
+                    destination.roomId,
+                    destination.eventId,
+                ),
+        )
 
     val listState = rememberLazyListState()
     val listAction = remember(listState) { ListAction(listState) }
@@ -49,34 +56,34 @@ fun MessageReadReceiptsScreen(
         LocalRoomContextSuggestionsProvider provides viewModel.roomContextSuggestionsProvider,
         LocalListActionProvider provides listAction,
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
-        modifier = modifier.fillMaxSize()
+        modifier = modifier.fillMaxSize(),
     ) {
         val state = viewModel.entries.collectAsState(null).value
         val items = state?.items
-        if (items.isNullOrEmpty()) {
-            EmptyListScreen(
-                title = Res.string.empty_screen_placeholder_message_read_receipts.toStringHolder(),
-                icon = rememberVectorPainter(Icons.Default.Visibility),
-                renderedSearchTerm = state?.searchTerm,
-                isLoading = items == null,
-                modifier = contentModifier,
-            )
-            return@FocusContainer
-        }
-
         Column(contentModifier.fillMaxSize()) {
-            LazyColumn(
-                Modifier.fillMaxWidth().weight(1f),
-                state = listState,
-            ) {
-                items(
-                    items,
-                    key = { it.userId },
-                ) { item ->
-                    ReadReceiptListRow(
-                        receiptItem = item,
-                        viewModel = viewModel,
-                    )
+            ConversationDetailsTopNavigation(stringResource(Res.string.message_read_receipts_title))
+            if (items.isNullOrEmpty()) {
+                EmptyListScreen(
+                    title = Res.string.empty_screen_placeholder_message_read_receipts.toStringHolder(),
+                    icon = rememberVectorPainter(Icons.Default.Visibility),
+                    renderedSearchTerm = state?.searchTerm,
+                    isLoading = items == null,
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                )
+            } else {
+                LazyColumn(
+                    Modifier.fillMaxWidth().weight(1f),
+                    state = listState,
+                ) {
+                    items(
+                        items,
+                        key = { it.userId },
+                    ) { item ->
+                        ReadReceiptListRow(
+                            receiptItem = item,
+                            viewModel = viewModel,
+                        )
+                    }
                 }
             }
         }

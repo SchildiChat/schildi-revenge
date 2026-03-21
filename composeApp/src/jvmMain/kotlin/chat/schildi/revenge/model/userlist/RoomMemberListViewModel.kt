@@ -32,7 +32,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.room_members_title_loaded
+import shire.composeapp.generated.resources.room_members_title_in_room_loaded
 import shire.composeapp.generated.resources.room_members_title_loading
 
 data class RoomMemberItem(
@@ -143,7 +143,7 @@ class RoomMemberListViewModel(
             return if (roomInfo == null || memberCount == null) {
                 Res.string.room_members_title_loading.toStringHolder()
             } else {
-                Res.plurals.room_members_title_loaded.toStringHolder(
+                Res.plurals.room_members_title_in_room_loaded.toStringHolder(
                     memberCount,
                     memberCount.toString().toStringHolder(),
                     (roomInfo.name ?: roomId.value).toStringHolder(),

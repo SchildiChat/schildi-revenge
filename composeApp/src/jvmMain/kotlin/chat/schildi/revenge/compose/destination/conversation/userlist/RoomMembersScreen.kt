@@ -27,8 +27,12 @@ import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.model.userlist.RoomMemberListViewModel
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.empty_screen_placeholder_room_members
+import shire.composeapp.generated.resources.room_members_title_loaded
+import shire.composeapp.generated.resources.room_members_title_loading
 
 @Composable
 fun RoomMembersScreen(
@@ -36,10 +40,11 @@ fun RoomMembersScreen(
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
 ) {
-    val viewModel: RoomMemberListViewModel = viewModel(
-        key = viewModelKey(destination),
-        factory = RoomMemberListViewModel.factory(destination.sessionId, destination.roomId)
-    )
+    val viewModel: RoomMemberListViewModel =
+        viewModel(
+            key = viewModelKey(destination),
+            factory = RoomMemberListViewModel.factory(destination.sessionId, destination.roomId),
+        )
     publishTitle(viewModel)
 
     val listState = rememberLazyListState()
@@ -54,32 +59,37 @@ fun RoomMembersScreen(
     ) {
         val membersState = viewModel.entries.collectAsState(null).value
         val members = membersState?.items
-        if (members.isNullOrEmpty()) {
-            EmptyListScreen(
-                title = Res.string.empty_screen_placeholder_room_members.toStringHolder(),
-                icon = rememberVectorPainter(Icons.Default.Groups),
-                renderedSearchTerm = membersState?.searchTerm,
-                isLoading = members == null,
-                modifier = contentModifier,
-            )
-            return@FocusContainer
-        }
-
         Column(contentModifier.fillMaxSize()) {
-            LazyColumn(
-                Modifier.fillMaxWidth().weight(1f),
-                state = listState,
-            ) {
-                items(
-                    members,
-                    key = { item ->
-                        item.userId
-                    },
-                ) { roomMember ->
-                    RoomMemberRow(
-                        roomMember = roomMember,
-                        viewModel = viewModel,
-                    )
+            ConversationDetailsTopNavigation(
+                if (members == null)
+                    stringResource(Res.string.room_members_title_loading)
+                else
+                    pluralStringResource(Res.plurals.room_members_title_loaded, members.size, members.size)
+            )
+            if (members.isNullOrEmpty()) {
+                EmptyListScreen(
+                    title = Res.string.empty_screen_placeholder_room_members.toStringHolder(),
+                    icon = rememberVectorPainter(Icons.Default.Groups),
+                    renderedSearchTerm = membersState?.searchTerm,
+                    isLoading = members == null,
+                    modifier = Modifier.fillMaxWidth().weight(1f),
+                )
+            } else {
+                LazyColumn(
+                    Modifier.fillMaxWidth().weight(1f),
+                    state = listState,
+                ) {
+                    items(
+                        members,
+                        key = { item ->
+                            item.userId
+                        },
+                    ) { roomMember ->
+                        RoomMemberRow(
+                            roomMember = roomMember,
+                            viewModel = viewModel,
+                        )
+                    }
                 }
             }
         }
