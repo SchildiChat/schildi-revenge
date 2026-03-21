@@ -167,4 +167,21 @@ sealed interface Destination {
         override val title = DEFAULT_WINDOW_APP_TITLE
         override val category = DestinationCategory.INBOX
     }
+
+    data class ConversationDetailsMultiPane(
+        val conversation: DestinationStateHolder = DestinationStateHolder.forInitialDestination(
+            MultiPanePlaceholder(DestinationCategory.CONVERSATION),
+        ),
+        val details: DestinationStateHolder = DestinationStateHolder.forInitialDestination(
+            MultiPanePlaceholder(DestinationCategory.CONVERSATION_DETAILS),
+        ),
+    ) : MultiPane {
+        constructor(conversationDestination: Conversation) : this(
+            conversation = DestinationStateHolder.forInitialDestination(conversationDestination),
+        )
+
+        override val type = DestinationEnum.ConversationDetailsSplit
+        override val title = DEFAULT_WINDOW_APP_TITLE
+        override val category = DestinationCategory.CONVERSATION
+    }
 }

@@ -42,12 +42,11 @@ data class AdaptiveSplitLayoutModifierPair(
 
 @Composable
 fun prefWidthModifiers(
-    maxWidth: ScPref<Int>,
+    maxWidthDp: Int,
     weight: Int = WEIGHT_DEFAULT,
 ): AdaptiveSplitLayoutModifierPair {
-    val prefValue = maxWidth.value()
     return adaptiveLimitedSizeModifiers(
-        maxWidth = prefValue.dp,
+        maxWidth = maxWidthDp.dp,
         weight = weight,
     )
 }

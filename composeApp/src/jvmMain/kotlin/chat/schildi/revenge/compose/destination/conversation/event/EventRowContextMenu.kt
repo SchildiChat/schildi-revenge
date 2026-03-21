@@ -86,14 +86,14 @@ fun EventTimelineItem.contextMenu(
         ContextMenuEntry(
             Res.string.action_view_reactions.toStringHolder(),
             rememberVectorPainter(Icons.Default.EmojiPeople),
-            Action.Navigation.NavigateInNewWindow,
+            Action.Navigation.NavigateAuto,
             actionArgs = persistentListOf("reactions", sessionId.value, roomId.value, eventId?.value ?: ""),
             keyboardShortcut = Key.V,
         ).takeIf { reactions.isNotEmpty() && eventId != null },
         ContextMenuEntry(
             Res.string.action_view_read_receipts.toStringHolder(),
             rememberVectorPainter(Icons.Default.Visibility),
-            Action.Navigation.NavigateInNewWindow,
+            Action.Navigation.NavigateAuto,
             actionArgs = persistentListOf("readReceipts", sessionId.value, roomId.value, eventId?.value ?: ""),
             keyboardShortcut = Key.P,
         ).takeIf { receipts.isNotEmpty() && eventId != null },

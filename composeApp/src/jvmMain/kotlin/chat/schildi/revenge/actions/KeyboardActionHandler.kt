@@ -1198,6 +1198,17 @@ class KeyboardActionHandler(
                         navigateCurrentDestination(context.focused()?.destinationStateHolder) { destination }
                     }
                 }
+                Action.Navigation.NavigateAuto -> {
+                    context.launchActionAsync("navigateAuto", scope) {
+                        val extraArgs = args.subList(1, args.size)
+                        val destination = args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
+                        if (navigateAuto(destination, context.focused()?.destinationStateHolder)) {
+                            ActionResult.Success()
+                        } else {
+                            ActionResult.Inapplicable
+                        }
+                    }
+                }
                 Action.Navigation.NavigateInNewWindow -> {
                     context.launchActionAsync("navigateInNewWindow", scope) {
                         val extraArgs = args.subList(1, args.size)

@@ -14,6 +14,7 @@ import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.store.AppStateStore
 import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.createGraphFactory
+import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.x.di.AppGraph
@@ -115,6 +116,19 @@ object UiState {
         Destination.InboxConversationMultiPane()
     } else {
         Destination.Inbox
+    }
+
+    fun getConversationDestinationFromInbox(
+        sessionId: SessionId,
+        roomId: RoomId,
+        preferMultiPane: Boolean = RevengePrefs.getCachedOrDefaultValue(ScPrefs.PREFER_CONVERSATION_DETAILS_SPLIT),
+    ): Destination {
+        val conversation = Destination.Conversation(sessionId, roomId)
+        return if (preferMultiPane) {
+            Destination.ConversationDetailsMultiPane(conversation)
+        } else {
+            conversation
+        }
     }
 
     val hasInboxOpen = windows.flatMerge(

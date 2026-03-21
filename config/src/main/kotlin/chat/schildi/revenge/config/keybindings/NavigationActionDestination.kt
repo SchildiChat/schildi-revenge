@@ -11,6 +11,7 @@ enum class DestinationEnum(
     RoomMembers("RoomMembers", listOf("members")),
     MessageReactions("MessageReactions", listOf("reactions")),
     MessageReadReceipts("MessageReadReceipts", listOf("readReceipts", "receipts")),
+    ConversationDetailsSplit("ConversationDetailsSplit", listOf("chatDetails", "conversationDetails")),
     Settings("Settings", listOf("settings")),
     SettingsPane("SettingsPane"),
     About("About", listOf("about")),
@@ -33,6 +34,7 @@ val SUGGESTED_DESTINATION_STRINGS = listOf(
     DestinationEnum.About.aliases[0],
     DestinationEnum.Settings.aliases[0],
     DestinationEnum.InboxConversationSplit.aliases[0],
+    DestinationEnum.ConversationDetailsSplit.aliases[0],
 )
 
 val ALLOWED_DESTINATION_STRINGS = listOf(
@@ -45,10 +47,11 @@ val ALLOWED_DESTINATION_STRINGS = listOf(
     DestinationEnum.MessageReactions.allDestinationNames(),
     DestinationEnum.MessageReadReceipts.allDestinationNames(),
     DestinationEnum.InboxConversationSplit.allDestinationNames(),
+    DestinationEnum.ConversationDetailsSplit.allDestinationNames(),
 ).flatten()
 
-fun String.destinationRequiresSessionId() = this in listOf("chat", "conversation", "room", "members", "reactions")
-fun String.destinationRequiresResolvableRoom() = this in listOf("chat", "conversation", "room", "members", "reactions")
+fun String.destinationRequiresSessionId() = this in listOf("chat", "conversation", "room", "members", "reactions", "chatDetails", "conversationDetails")
+fun String.destinationRequiresResolvableRoom() = this in listOf("chat", "conversation", "room", "members", "reactions", "chatDetails", "conversationDetails")
 fun String.destinationRequiresEventId() = this in listOf("reactions")
 
 data object NavigationDestinationSessionId : ActionArgumentContextBased {

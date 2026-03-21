@@ -24,6 +24,7 @@ import chat.schildi.revenge.compose.destination.conversation.userlist.MessageRea
 import chat.schildi.revenge.compose.destination.conversation.userlist.RoomMembersScreen
 import chat.schildi.revenge.compose.destination.inbox.InboxScreen
 import chat.schildi.revenge.compose.destination.settings.SettingsScreen
+import chat.schildi.revenge.compose.destination.split.ConversationDetailsMultiPaneScreen
 import chat.schildi.revenge.compose.destination.split.EmptyPaneScreen
 import chat.schildi.revenge.compose.destination.split.InboxConversationMultiPaneScreen
 import chat.schildi.revenge.compose.destination.split.SplitHorizontal
@@ -58,6 +59,7 @@ fun DestinationContent(
                 is Destination.SettingsPane -> SettingsScreen(destination, baseModifier, contentModifier)
                 is Destination.MultiPanePlaceholder -> EmptyPaneScreen(baseModifier, contentModifier)
                 is Destination.InboxConversationMultiPane -> InboxConversationMultiPaneScreen(destination, baseModifier, contentModifier)
+                is Destination.ConversationDetailsMultiPane -> ConversationDetailsMultiPaneScreen(destination, baseModifier, contentModifier)
             }
         }
     }
@@ -65,16 +67,16 @@ fun DestinationContent(
 
 @Composable
 private fun Modifier.forDestination(destination: Destination): AdaptiveSplitLayoutModifierPair {
-    val (pref, weight) = when (destination) {
-        Destination.Inbox -> Pair(ScPrefs.MAX_WIDTH_INBOX, ScPrefs.LAYOUT_WEIGHT_INBOX.value())
-        is Destination.Conversation -> Pair(ScPrefs.MAX_WIDTH_CONVERSATION, ScPrefs.LAYOUT_WEIGHT_CONVERSATION.value())
+    val (maxWidth, weight) = when (destination) {
+        Destination.Inbox -> Pair(ScPrefs.MAX_WIDTH_INBOX.value(), ScPrefs.LAYOUT_WEIGHT_INBOX.value())
+        is Destination.Conversation -> Pair(ScPrefs.MAX_WIDTH_CONVERSATION.value(), ScPrefs.LAYOUT_WEIGHT_CONVERSATION.value())
         is Destination.MessageReactions,
         is Destination.MessageReadReceipts,
-        is Destination.RoomMembers -> Pair(ScPrefs.MAX_WIDTH_ROOM_DETAILS, ScPrefs.LAYOUT_WEIGHT_ROOM_DETAILS.value())
+        is Destination.RoomMembers -> Pair(ScPrefs.MAX_WIDTH_ROOM_DETAILS.value(), ScPrefs.LAYOUT_WEIGHT_ROOM_DETAILS.value())
         Destination.AccountManagement,
-        Destination.About -> Pair(ScPrefs.MAX_WIDTH_SETTINGS, ScPrefs.LAYOUT_WEIGHT_SETTINGS.value())
+        Destination.About -> Pair(ScPrefs.MAX_WIDTH_SETTINGS.value(), ScPrefs.LAYOUT_WEIGHT_SETTINGS.value())
         is Destination.SettingsPane -> Pair(
-            ScPrefs.MAX_WIDTH_SETTINGS,
+            ScPrefs.MAX_WIDTH_SETTINGS.value(),
             if (destination.rootPreferenceCategory == null) {
                 ScPrefs.LAYOUT_WEIGHT_SETTINGS_ROOT.value()
             } else {
@@ -86,18 +88,25 @@ private fun Modifier.forDestination(destination: Destination): AdaptiveSplitLayo
         is Destination.MultiPane,
         Destination.Splash -> Pair(null, WEIGHT_DEFAULT)
         is Destination.MultiPanePlaceholder -> when (destination.category) {
-            DestinationCategory.INBOX -> Pair(ScPrefs.MAX_WIDTH_INBOX, ScPrefs.LAYOUT_WEIGHT_INBOX.value())
-            DestinationCategory.CONVERSATION -> Pair(ScPrefs.MAX_WIDTH_CONVERSATION, ScPrefs.LAYOUT_WEIGHT_CONVERSATION.value())
-            DestinationCategory.CONVERSATION_DETAILS -> Pair(ScPrefs.MAX_WIDTH_ROOM_DETAILS, ScPrefs.LAYOUT_WEIGHT_ROOM_DETAILS.value())
+            DestinationCategory.INBOX -> Pair(ScPrefs.MAX_WIDTH_INBOX.value(), ScPrefs.LAYOUT_WEIGHT_INBOX.value())
+            DestinationCategory.CONVERSATION -> if (ScPrefs.PREFER_CONVERSATION_DETAILS_SPLIT.value()) {
+                Pair(
+                    ScPrefs.MAX_WIDTH_CONVERSATION.value() + ScPrefs.MAX_WIDTH_ROOM_DETAILS.value(),
+                    ScPrefs.LAYOUT_WEIGHT_CONVERSATION.value() + ScPrefs.LAYOUT_WEIGHT_ROOM_DETAILS.value(),
+                )
+            } else {
+                Pair(ScPrefs.MAX_WIDTH_CONVERSATION.value(), ScPrefs.LAYOUT_WEIGHT_CONVERSATION.value())
+            }
+            DestinationCategory.CONVERSATION_DETAILS -> Pair(ScPrefs.MAX_WIDTH_ROOM_DETAILS.value(), ScPrefs.LAYOUT_WEIGHT_ROOM_DETAILS.value())
             DestinationCategory.ABOUT,
-            DestinationCategory.SETTINGS -> Pair(ScPrefs.MAX_WIDTH_SETTINGS, ScPrefs.LAYOUT_WEIGHT_SETTINGS.value())
+            DestinationCategory.SETTINGS -> Pair(ScPrefs.MAX_WIDTH_SETTINGS.value(), ScPrefs.LAYOUT_WEIGHT_SETTINGS.value())
             DestinationCategory.WILDCARD -> Pair(null, WEIGHT_DEFAULT)
         }
     }
-    return if (pref == null) {
+    return if (maxWidth == null) {
         AdaptiveSplitLayoutModifierPair(this, Modifier, weight)
     } else {
-        val pair = prefWidthModifiers(pref, weight = weight)
+        val pair = prefWidthModifiers(maxWidth, weight = weight)
         pair.copy(outer = this.then(pair.outer))
     }
 }

@@ -82,6 +82,13 @@ private inline fun String.toDestinationOrNull(
                 Destination.Conversation(sessionId, roomId)
             }
         }
+        DestinationEnum.ConversationDetailsSplit -> {
+            tryOrNull {
+                val sessionId = args.getOrNull(0)?.let(::SessionId) ?: context!!.ensureSessionId()
+                val roomId = args.getOrNull(1)?.let { resolveRoomId(sessionId, it) } ?: context!!.ensureRoomId()
+                Destination.ConversationDetailsMultiPane(Destination.Conversation(sessionId, roomId))
+            }
+        }
         DestinationEnum.RoomMembers -> {
             tryOrNull {
                 val sessionId = args.getOrNull(0)?.let(::SessionId) ?: context!!.ensureSessionId()

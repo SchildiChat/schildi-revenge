@@ -151,6 +151,7 @@ sealed interface Action {
         override val args: kotlin.collections.List<ActionArgument> = emptyList()
     ) : Action {
         NavigateCurrent(aliases = listOf("navigate", "nav"), args = navigationArgs),
+        NavigateAuto(args = navigationArgs),
         NavigateInNewWindow(aliases = listOf("open", "window"), args = navigationArgs),
         SplitHorizontal(aliases = listOf("split", "vsplit"), args = optionalNavigationArgs),
         SplitVertical(aliases = listOf("hsplit"), args = optionalNavigationArgs),

@@ -38,13 +38,13 @@ import chat.schildi.preferences.value
 import chat.schildi.lib.util.formatUnreadCount
 import chat.schildi.revenge.DateTimeFormat
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.buildNavigationActionProvider
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.ComposeSessionScope
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.ScopedRoomSummary
-import chat.schildi.revenge.Destination
 import chat.schildi.revenge.plaintext.EventTextFormat
 import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.InteractionAction
@@ -114,7 +114,7 @@ fun InboxRow(
                                 keyActions = inboxRowKeyboardActionProvider(viewModel, room.key, isInvite = false),
                                 secondaryAction = openContextMenu,
                             ) {
-                                Destination.Conversation(room.sessionId, room.summary.roomId)
+                                UiState.getConversationDestinationFromInbox(room.sessionId, room.summary.roomId)
                             }
                         },
                     )
