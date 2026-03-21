@@ -20,6 +20,7 @@ import chat.schildi.revenge.config.keybindings.ActionRoomNotificationSetting
 import chat.schildi.revenge.config.keybindings.CommandArgContext
 import chat.schildi.revenge.config.keybindings.SUGGESTED_DESTINATION_STRINGS
 import chat.schildi.revenge.config.keybindings.findAll
+import chat.schildi.revenge.config.keybindings.maxArgsSize
 import chat.schildi.revenge.config.keybindings.minArgsSize
 import chat.schildi.revenge.flatMergeCombinedWith
 import chat.schildi.revenge.model.RevengeRoomListDataSource
@@ -248,7 +249,8 @@ class CommandSuggestionsProvider(
                             // is only invalid because of missing arguments we don't mark it as invalid
                             val stableArgs = if (args.isEmpty()) args else args.subList(0, args.size - 1)
                             if (possibleActions.any {
-                                checkArguments(it.first, stableArgs, impliedContext) is ActionResult.MissingParameters
+                                val check = checkArguments(it.first, stableArgs, impliedContext)
+                                check is ActionResult.MissingParameters || (check == null && it.first.maxArgsSize() > stableArgs.size)
                             }) {
                                 CurrentCommandValidity.INCOMPLETE
                             } else {
