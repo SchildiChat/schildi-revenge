@@ -48,7 +48,7 @@ val ALLOWED_DESTINATION_STRINGS = listOf(
 ).flatten()
 
 fun String.destinationRequiresSessionId() = this in listOf("chat", "conversation", "room", "members", "reactions")
-fun String.destinationRequiresRoomId() = this in listOf("chat", "conversation", "room", "members", "reactions")
+fun String.destinationRequiresResolvableRoom() = this in listOf("chat", "conversation", "room", "members", "reactions")
 fun String.destinationRequiresEventId() = this in listOf("reactions")
 
 data object NavigationDestinationSessionId : ActionArgumentContextBased {
@@ -66,15 +66,15 @@ data object NavigationDestinationSessionId : ActionArgumentContextBased {
     }
 }
 
-data object NavigationDestinationRoomId : ActionArgumentContextBased {
+data object NavigationDestinationResolvableRoom : ActionArgumentContextBased {
     override val name: String = javaClass.simpleName
     override val consumesTrailingArgsWithSpace = false
     override fun canHold(primitive: ActionArgumentPrimitive) = primitive == ActionArgumentPrimitive.RoomId
     override fun getFor(context: CommandArgContext): ActionArgument {
         val destinations = context.findAll(ActionArgumentPrimitive.NavigatableDestination)
-        val enabled = destinations.any { it.destinationRequiresRoomId() }
+        val enabled = destinations.any { it.destinationRequiresResolvableRoom() }
         return if (enabled) {
-            ActionArgumentPrimitive.RoomId
+            ResolvableRoom
         } else {
             ActionArgumentPrimitive.Empty
         }

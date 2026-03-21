@@ -47,9 +47,11 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     UserId,
     UserIdInRoom,
     UserIdNotInRoom,
+    ExistingDmUserId,
     SessionId,
     SessionIndex,
     RoomId,
+    RoomAlias,
     EventId,
     Mxc,
     SettingKey,
@@ -82,6 +84,11 @@ private val SpaceIdSelectable =
         ActionArgumentPrimitive.SpaceSelectionId,
         ActionArgumentPrimitive.SpaceIndex
     )
+internal val ResolvableRoom = ActionArgumentAnyOf(
+    ActionArgumentPrimitive.RoomId,
+    ActionArgumentPrimitive.RoomAlias,
+    ActionArgumentPrimitive.ExistingDmUserId,
+)
 private val OptionalBoolean = ActionArgumentOptional(ActionArgumentPrimitive.Boolean)
 private val OptionalSettingValue = ActionArgumentOptional(ActionArgumentPrimitive.SettingValue)
 private val OptionalReason = ActionArgumentOptional(ActionArgumentPrimitive.Reason)
@@ -89,7 +96,7 @@ private val StateKey = ActionArgumentOptional(ActionArgumentPrimitive.NonEmptySt
 
 private val navigationDestinationArgs = listOf(
     ActionArgumentOptional(NavigationDestinationSessionId),
-    ActionArgumentOptional(NavigationDestinationRoomId),
+    ActionArgumentOptional(NavigationDestinationResolvableRoom),
     ActionArgumentOptional(NavigationDestinationEventId),
 )
 

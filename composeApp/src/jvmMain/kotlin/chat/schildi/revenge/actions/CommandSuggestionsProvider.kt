@@ -95,7 +95,7 @@ class CommandSuggestionsProvider(
         .flowOn(Dispatchers.IO)
         .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
-    private val scopedRoomSuggestions = roomListDataSource.allRooms.map {
+    private val scopedRoomIdSuggestions = roomListDataSource.allRooms.map {
         it.map {
             Pair(
                 it.sessionId,
@@ -105,6 +105,37 @@ class CommandSuggestionsProvider(
                 )
             )
         }.distinct()
+    }
+        .flowOn(Dispatchers.IO)
+        .stateIn(scope, SharingStarted.Eagerly, emptyList())
+
+    private val scopedUserIdDmsSuggestions = roomListDataSource.allRooms.map {
+        it.mapNotNull { room ->
+            if (room.summary.isOneToOne) {
+                room.summary.info.heroes
+                    .filter { it.userId != room.sessionId }
+                    .takeIf { it.size == 1 }
+                    ?.firstOrNull()?.let { user ->
+                        Pair(
+                            room.sessionId,
+                            CommandSuggestion(
+                                user.userId.value,
+                                user.displayName?.toStringHolder(),
+                            )
+                        )
+                    }
+            } else {
+                null
+            }
+        }.distinct()
+    }
+        .flowOn(Dispatchers.IO)
+        .stateIn(scope, SharingStarted.Eagerly, emptyList())
+
+    private val globalUserIdSuggestions = scopedUserIdDmsSuggestions.map {
+        it.map {
+            it.second
+        }.distinctBy { it.value }
     }
         .flowOn(Dispatchers.IO)
         .stateIn(scope, SharingStarted.Eagerly, emptyList())
@@ -267,18 +298,27 @@ class CommandSuggestionsProvider(
         is ActionArgumentPrimitive -> {
             when (arg) {
                 ActionArgumentPrimitive.Boolean -> BOOLEAN_SUGGESTIONS.toSuggestionsWithoutHint()
-                ActionArgumentPrimitive.UserId,
+                ActionArgumentPrimitive.UserId -> {
+                    val inRoomSuggestions = userIdInRoomSuggestions?.value.orEmpty().map { it.toCommandSuggestion() }
+                    if (inRoomSuggestions.isNotEmpty()) {
+                        (inRoomSuggestions + globalUserIdSuggestions.value).distinctBy { it.value }
+                    } else {
+                        globalUserIdSuggestions.value
+                    }
+                }
                 ActionArgumentPrimitive.UserIdInRoom -> userIdInRoomSuggestions?.value?.map {
                     it.toCommandSuggestion()
                 } ?: emptyList()
-                ActionArgumentPrimitive.UserIdNotInRoom -> emptyList() // TODO?
-                ActionArgumentPrimitive.SessionId -> accounts.value
-                ActionArgumentPrimitive.RoomId -> {
+                ActionArgumentPrimitive.UserIdNotInRoom -> {
+                    val inRoom = userIdInRoomSuggestions?.value?.map { it.userId.value }.orEmpty().toSet()
+                    globalUserIdSuggestions.value.filter { it.value !in inRoom }
+                }
+                ActionArgumentPrimitive.ExistingDmUserId -> {
                     val sessionIds = context.findAll(ActionArgumentPrimitive.SessionId)
                     if (sessionIds.isEmpty()) {
-                        scopedRoomSuggestions.value.map { it.second }.distinct()
+                        emptyList()
                     } else {
-                        scopedRoomSuggestions.value.mapNotNull {
+                        scopedUserIdDmsSuggestions.value.mapNotNull {
                             if (it.first.value in sessionIds) {
                                 it.second
                             } else {
@@ -286,6 +326,26 @@ class CommandSuggestionsProvider(
                             }
                         }
                     }
+                }
+                ActionArgumentPrimitive.SessionId -> accounts.value
+                ActionArgumentPrimitive.RoomId -> {
+                    val sessionIds = context.findAll(ActionArgumentPrimitive.SessionId)
+                    if (sessionIds.isEmpty()) {
+                        scopedRoomIdSuggestions.value.map { it.second }.distinct()
+                    } else {
+                        scopedRoomIdSuggestions.value.mapNotNull {
+                            if (it.first.value in sessionIds) {
+                                it.second
+                            } else {
+                                null
+                            }
+                        }
+                    }
+                }
+                ActionArgumentPrimitive.RoomAlias -> {
+                    val sessionIds = context.findAll(ActionArgumentPrimitive.SessionId)
+                    // TODO
+                    emptyList()
                 }
                 ActionArgumentPrimitive.SettingKey -> prefKeySuggestions
                 ActionArgumentPrimitive.SettingCategory -> prefCategorySuggestions
@@ -374,7 +434,7 @@ class CommandSuggestionsProvider(
                         emptyList()
                     } else {
                         // Now we didn't find the room ID for this session, but we can still search for the others
-                        scopedRoomSuggestions.value.map { it.second }
+                        scopedRoomIdSuggestions.value.map { it.second }
                     }
                 }
                 ActionArgumentPrimitive.RoomNotificationSetting -> {

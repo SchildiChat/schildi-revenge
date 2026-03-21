@@ -76,6 +76,7 @@ import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.core.coroutine.childScope
 import io.element.android.libraries.matrix.api.MatrixClient
+import io.element.android.libraries.matrix.api.core.MatrixPatterns
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.createroom.CreateRoomParameters
@@ -1191,48 +1192,61 @@ class KeyboardActionHandler(
         ): ActionResult {
             return when (action) {
                 Action.Navigation.NavigateCurrent -> {
-                    val extraArgs = args.subList(1, args.size)
-                    val destination = args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
-                    navigateCurrentDestination(context.focused()?.destinationStateHolder) { destination }
+                    context.launchActionAsync("navigateCurrent", scope) {
+                        val extraArgs = args.subList(1, args.size)
+                        val destination = args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
+                        navigateCurrentDestination(context.focused()?.destinationStateHolder) { destination }
+                    }
                 }
                 Action.Navigation.NavigateInNewWindow -> {
-                    val extraArgs = args.subList(1, args.size)
-                    val destination = args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
-                    UiState.openWindow(destination)
-                    ActionResult.Success()
+                    context.launchActionAsync("navigateInNewWindow", scope) {
+                        val extraArgs = args.subList(1, args.size)
+                        val destination =
+                            args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
+                        UiState.openWindow(destination)
+                        ActionResult.Success()
+                    }
                 }
                 Action.Navigation.SplitHorizontal -> {
-                    val destination = if (args.isEmpty()) {
-                        null
-                    } else {
-                        val extraArgs = args.subList(1, args.size)
-                        args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
-                    }
-                    navigateCurrentDestination(
-                        destinationStateHolder = context.focused()?.destinationStateHolder,
-                        invalidateHolderId = true,
-                    ) { destinationState ->
-                        Destination.SplitHorizontal(
-                            DefaultDestinationStateHolder(destinationState),
-                            DestinationStateHolder.forInitialDestination(destination ?: destinationState.destination),
-                        )
+                    context.launchActionAsync("splitHorizontal", scope) {
+                        val destination = if (args.isEmpty()) {
+                            null
+                        } else {
+                            val extraArgs = args.subList(1, args.size)
+                            args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
+                        }
+                        navigateCurrentDestination(
+                            destinationStateHolder = context.focused()?.destinationStateHolder,
+                            invalidateHolderId = true,
+                        ) { destinationState ->
+                            Destination.SplitHorizontal(
+                                DefaultDestinationStateHolder(destinationState),
+                                DestinationStateHolder.forInitialDestination(
+                                    destination ?: destinationState.destination
+                                ),
+                            )
+                        }
                     }
                 }
                 Action.Navigation.SplitVertical -> {
-                    val destination = if (args.isEmpty()) {
-                        null
-                    } else {
-                        val extraArgs = args.subList(1, args.size)
-                        args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
-                    }
-                    navigateCurrentDestination(
-                        destinationStateHolder = context.focused()?.destinationStateHolder,
-                        invalidateHolderId = true,
-                    ) { destinationState ->
-                        Destination.SplitVertical(
-                            DefaultDestinationStateHolder(destinationState),
-                            DestinationStateHolder.forInitialDestination(destination ?: destinationState.destination),
-                        )
+                    context.launchActionAsync("splitVertical", scope) {
+                        val destination = if (args.isEmpty()) {
+                            null
+                        } else {
+                            val extraArgs = args.subList(1, args.size)
+                            args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
+                        }
+                        navigateCurrentDestination(
+                            destinationStateHolder = context.focused()?.destinationStateHolder,
+                            invalidateHolderId = true,
+                        ) { destinationState ->
+                            Destination.SplitVertical(
+                                DefaultDestinationStateHolder(destinationState),
+                                DestinationStateHolder.forInitialDestination(
+                                    destination ?: destinationState.destination
+                                ),
+                            )
+                        }
                     }
                 }
                 Action.Navigation.CloseWindow -> {
@@ -2330,6 +2344,7 @@ fun checkArgument(
         ActionArgumentPrimitive.SessionId,
         ActionArgumentPrimitive.UserIdInRoom,
         ActionArgumentPrimitive.UserIdNotInRoom,
+        ActionArgumentPrimitive.ExistingDmUserId,
         ActionArgumentPrimitive.UserId -> {
             if (validSessionIds != null && argDef == ActionArgumentPrimitive.SessionId) {
                 if (!validSessionIds.contains(argVal)) {
@@ -2340,8 +2355,7 @@ fun checkArgument(
                     null
                 }
             } else {
-                // TODO full mxid regex checking
-                if (!argVal.startsWith("@") || !argVal.contains(":")) {
+                if (!MatrixPatterns.isUserId(argVal)) {
                     ActionResult.Malformed(
                         "Invalid parameter for $actionName, expected MXID got $argVal"
                     )
@@ -2354,7 +2368,7 @@ fun checkArgument(
         ActionArgumentPrimitive.ParentSpaceId,
         ActionArgumentPrimitive.NonParentSpaceId,
         ActionArgumentPrimitive.RoomId -> {
-            if (!argVal.startsWith("!")) {
+            if (!MatrixPatterns.isRoomId(argVal)) {
                 ActionResult.Malformed(
                     "Invalid parameter for $actionName, expected room ID got $argVal"
                 )
@@ -2362,8 +2376,17 @@ fun checkArgument(
                 null
             }
         }
+        ActionArgumentPrimitive.RoomAlias -> {
+            if (!MatrixPatterns.isRoomAlias(argVal)) {
+                ActionResult.Malformed(
+                    "Invalid parameter for $actionName, expected room alias got $argVal"
+                )
+            } else {
+                null
+            }
+        }
         ActionArgumentPrimitive.EventId -> {
-            if (!argVal.startsWith("$")) {
+            if (!MatrixPatterns.isEventId(argVal)) {
                 ActionResult.Malformed(
                     "Invalid parameter for $actionName, expected room ID got $argVal"
                 )
@@ -2408,7 +2431,7 @@ fun checkArgument(
             }
         }
         ActionArgumentPrimitive.NavigatableDestination -> {
-            if (argVal.toDestinationOrNull(lookahead, context) == null) {
+            if (argVal.verifyConstructableDestination(lookahead, context) == null) {
                 if (argVal in ALLOWED_DESTINATION_STRINGS) {
                     ActionResult.MissingParameters(
                         "Invalid parameter for $actionName, not a valid destination: $argVal with args [${lookahead.joinToString()}]"
