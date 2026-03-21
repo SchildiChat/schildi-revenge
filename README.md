@@ -63,9 +63,9 @@ This list is not sufficient to consider the client feature-complete in any way.
     - [x] Render formatted text and notices
     - [x] Send text messages
     - [x] Render read receipts
-    - [ ] Render media
+    - [ ] Render media thumbnails & placeholders (+ open with external applications for advanced playback)
         - [x] Images
-        - [ ] Videos
+        - [x] Video thumbnails
         - [ ] Audio
         - [x] Files
     - [x] Render reactions
@@ -81,15 +81,15 @@ This list is not sufficient to consider the client feature-complete in any way.
         - [x] Via drag&drop ([broken from some wayland
           windows](https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/841), sorry)
         - [x] Via copy&paste (if configured in key bindings)
-    - [ ] Send typing indicators
+    - [x] Send typing indicators
     - [x] Delete messages
     - [x] Mark as read (via command)
     - [x] Mark as unread (via command)
     - [x] Kick/ban users (via command)
     - [ ] Devtools
         - [x] Copy room state to clipboard
-        - [ ] View account state
-        - [ ] View room account state
+        - [x] Copy account state to clipboard
+        - [x] Copy room account state to clipboard
         - [x] Send custom events
         - [x] Send room state
         - [ ] Send account state
@@ -98,29 +98,33 @@ This list is not sufficient to consider the client feature-complete in any way.
         - [x] Message authenticity shields
         - [x] Identity resets
     - [ ] Failed message send retries: `EventTimelineHandler.sendHandleProvider()`
-- [ ] Room member list
+- [x] Room member list
 - [ ] Commands
     - [ ] Create room
     - [ ] Start DM
     - [x] Invite user
     - [x] Kick/ban user
-    - [ ] Set room notification settings
+    - [x] Set room notification settings
     - [x] Copy room ID, room link
     - [x] Set favorite / low priority
 - [ ] Account management screen polish
 - [ ] Notifications
     - [x] Allow muting individual accounts
-- [ ] App icon
-- [ ] Tray icon with unread count
+- [x] App icon
+- [x] Tray icon with unread count
     - [x] Optional minimize to tray: last window close request doesn't discard window but just sets minimized
 - [x] Mouse-user-friendly mode
   - [x] All screens accessible via mouse
   - [x] Important features accessible via mouse (e.g. search)
-- [ ] Add release flavor that builds release variant of Rust SDK
-- [ ] Release builds ready to install on various OSes
+- [x] Add release flavor that builds release variant of Rust SDK
+- [x] Release builds ready to install on various OSes
 
-### More features for "later"
+### Feature-wishlist post-MVP
 
+- [ ] Split layouts
+    - [x] Vim-style splits for arbitrary destination splitting
+    - [x] Multi-pane inbox & conversation
+    - [ ] Multi-pane conversation & conversation details
 - [ ] Mark as read automatically while you scroll
 - [ ] Verify other devices via emoji
 - [ ] MAS + rotating token support (need to re-persist session data)
@@ -135,8 +139,12 @@ This list is not sufficient to consider the client feature-complete in any way.
         - [ ] Session management to rename or log out other devices
     - [ ] Room settings
     - [ ] Create new rooms
+    - [ ] Media viewer
     - [ ] ...
 - [ ] Custom theming
+- [ ] Send / render blurhashes
+- [ ] Generate & send media thumbnails
+- [ ] Send custom emotes & stickers
 
 
 ## Customizable keybindings
