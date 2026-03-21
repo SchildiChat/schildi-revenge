@@ -110,6 +110,22 @@ class CommandSuggestionsProvider(
         .flowOn(Dispatchers.IO)
         .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
+    private val scopedRoomAliasSuggestions = roomListDataSource.allRooms.map {
+        it.flatMap { room ->
+            room.summary.info.aliases.map { alias ->
+                Pair(
+                    room.sessionId,
+                    CommandSuggestion(
+                        alias.value,
+                        room.summary.info.name?.toStringHolder(),
+                    )
+                )
+            }
+        }.distinct()
+    }
+        .flowOn(Dispatchers.IO)
+        .stateIn(scope, SharingStarted.Eagerly, emptyList())
+
     private val scopedUserIdDmsSuggestions = roomListDataSource.allRooms.map {
         it.mapNotNull { room ->
             if (room.summary.isOneToOne) {
@@ -346,8 +362,17 @@ class CommandSuggestionsProvider(
                 }
                 ActionArgumentPrimitive.RoomAlias -> {
                     val sessionIds = context.findAll(ActionArgumentPrimitive.SessionId)
-                    // TODO
-                    emptyList()
+                    if (sessionIds.isEmpty()) {
+                        scopedRoomAliasSuggestions.value.map { it.second }.distinct()
+                    } else {
+                        scopedRoomAliasSuggestions.value.mapNotNull {
+                            if (it.first.value in sessionIds) {
+                                it.second
+                            } else {
+                                null
+                            }
+                        }
+                    }
                 }
                 ActionArgumentPrimitive.SettingKey -> prefKeySuggestions
                 ActionArgumentPrimitive.SettingCategory -> prefCategorySuggestions
