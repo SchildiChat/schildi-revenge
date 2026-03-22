@@ -21,7 +21,7 @@ kdroidfilterKnotify = "0.4.3"
 ktoml = "0.7.1"
 ktor = "3.4.1"
 jsoup = "1.22.1"
-beeperMessageFormat = "7b97d15bf3557c670580fd6f3b073fe705884e96"
+beeperMessageFormat = "9c24e92ba36252e33a8d19a045874ec76d168e26"
 dbusJava = "5.2.0"
 skiko = "0.9.37.4"
 

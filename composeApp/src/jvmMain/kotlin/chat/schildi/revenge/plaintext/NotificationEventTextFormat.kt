@@ -4,19 +4,6 @@ import chat.schildi.notifications.SyncNotification
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.notification.NotificationContent
 import io.element.android.libraries.matrix.api.room.RoomMembershipState
-import io.element.android.libraries.matrix.api.timeline.item.event.AudioMessageType
-import io.element.android.libraries.matrix.api.timeline.item.event.EmoteMessageType
-import io.element.android.libraries.matrix.api.timeline.item.event.FileMessageType
-import io.element.android.libraries.matrix.api.timeline.item.event.ImageMessageType
-import io.element.android.libraries.matrix.api.timeline.item.event.LocationMessageType
-import io.element.android.libraries.matrix.api.timeline.item.event.MessageType
-import io.element.android.libraries.matrix.api.timeline.item.event.NoticeMessageType
-import io.element.android.libraries.matrix.api.timeline.item.event.OtherMessageType
-import io.element.android.libraries.matrix.api.timeline.item.event.StickerMessageType
-import io.element.android.libraries.matrix.api.timeline.item.event.TextMessageType
-import io.element.android.libraries.matrix.api.timeline.item.event.VideoMessageType
-import io.element.android.libraries.matrix.api.timeline.item.event.VoiceMessageType
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.membership_change_banned
@@ -56,22 +43,12 @@ import shire.composeapp.generated.resources.message_placeholder_state_event_spac
 import shire.composeapp.generated.resources.message_placeholder_sticker
 
 object NotificationEventTextFormat {
-    suspend fun notificationToText(notification: SyncNotification): String =
-        notificationToText(
-            notification = notification,
-            getString = { res -> getString(res) },
-            getFormatString = { res, args -> getString(res, *args) },
-        )
 
-    private inline fun notificationToText(
-        notification: SyncNotification,
-        getString: (StringResource) -> String,
-        getFormatString: (StringResource, formatArgs: Array<Any>) -> String,
-    ): String {
+    suspend fun notificationToText(notification: SyncNotification, stripNewlines: Boolean = false): String {
         return when (val content = notification.content) {
-            is NotificationContent.Invite -> getFormatString(Res.string.message_placeholder_invite_by, arrayOf(notification.senderName()))
+            is NotificationContent.Invite -> getString(Res.string.message_placeholder_invite_by)
             is NotificationContent.MessageLike -> {
-                val textContent = messageLikeToText(content, getString, getFormatString)
+                val textContent = messageLikeToText(content, stripNewlines)
                 val senderName = notification.senderName()
                 if (notification.roomInfo.isDirect && senderName == notification.roomInfo.displayName) {
                     textContent
@@ -83,17 +60,15 @@ object NotificationEventTextFormat {
                 content,
                 notification.senderId,
                 notification.senderName(),
-                getFormatString,
             )
         }
     }
 
     private fun SyncNotification.senderName() = senderInfo.displayName ?: senderId.value
 
-    private inline fun messageLikeToText(
+    private suspend fun messageLikeToText(
         content: NotificationContent.MessageLike,
-        getString: (StringResource) -> String,
-        getFormatString: (StringResource, formatArgs: Array<Any>) -> String,
+        stripNewlines: Boolean,
     ): String {
         return when (content) {
             NotificationContent.MessageLike.CallAnswer,
@@ -110,14 +85,14 @@ object NotificationEventTextFormat {
             NotificationContent.MessageLike.KeyVerificationDone -> getString(Res.string.message_placeholder_key_verification)
             is NotificationContent.MessageLike.ReactionContent -> getString(Res.string.message_placeholder_reaction)
             NotificationContent.MessageLike.RoomEncrypted -> getString(Res.string.message_placeholder_encrypted_message)
-            is NotificationContent.MessageLike.RoomMessage -> messageTypeToText(content.messageType)
+            is NotificationContent.MessageLike.RoomMessage -> EventTextFormat.messageTypeToText(content.messageType, stripNewlines)
             is NotificationContent.MessageLike.RoomRedaction -> {
                 if (content.reason.isNullOrBlank()) {
                     getString(Res.string.message_placeholder_message_redacted)
                 } else {
-                    getFormatString(
+                    getString(
                         Res.string.message_placeholder_message_redacted_with_reason,
-                        arrayOf(content.reason ?: ""),
+                        content.reason ?: "",
                     )
                 }
             }
@@ -126,189 +101,171 @@ object NotificationEventTextFormat {
         }
     }
 
-    private inline fun stateEventToText(
+    private suspend fun stateEventToText(
         stateContent: NotificationContent.StateEvent,
         senderId: UserId,
         senderName: String,
-        getFormatString: (StringResource, formatArgs: Array<Any>) -> String,
     ): String {
         return when (stateContent) {
             NotificationContent.StateEvent.PolicyRuleRoom ->
-                getFormatString(
+                getString(
                     Res.string.message_placeholder_state_event_policy_rule_room,
-                    arrayOf(senderName),
+                    senderName,
                 )
             NotificationContent.StateEvent.PolicyRuleServer ->
-                getFormatString(
+                getString(
                     Res.string.message_placeholder_state_event_policy_rule_server,
-                    arrayOf(senderName),
+                    senderName,
                 )
             NotificationContent.StateEvent.PolicyRuleUser ->
-                getFormatString(
+                getString(
                     Res.string.message_placeholder_state_event_policy_rule_user,
-                    arrayOf(senderName),
+                    senderName,
                 )
             NotificationContent.StateEvent.RoomAliases ->
-                getFormatString(
+                getString(
                     Res.string.message_placeholder_state_event_room_aliases,
-                    arrayOf(senderName),
+                    senderName,
                 )
             NotificationContent.StateEvent.RoomAvatar ->
-                getFormatString(
+                getString(
                     Res.string.message_placeholder_state_event_room_avatar_changed,
-                    arrayOf(senderName),
+                    senderName,
                 )
             NotificationContent.StateEvent.RoomCanonicalAlias ->
-                getFormatString(
+                getString(
                     Res.string.message_placeholder_state_event_room_canonical_alias,
-                    arrayOf(senderName),
+                    senderName,
                 )
             NotificationContent.StateEvent.RoomCreate ->
-                getFormatString(
+                getString(
                     Res.string.message_placeholder_state_event_room_create,
-                    arrayOf(senderName),
+                    senderName,
                 )
             NotificationContent.StateEvent.RoomEncryption ->
-                getFormatString(
+                getString(
                     Res.string.message_placeholder_state_event_room_encryption,
-                    arrayOf(senderName),
+                    senderName,
                 )
             NotificationContent.StateEvent.RoomGuestAccess ->
-                getFormatString(
+                getString(
                     Res.string.message_placeholder_state_event_room_guest_access,
-                    arrayOf(senderName),
+                    senderName,
                 )
             NotificationContent.StateEvent.RoomHistoryVisibility ->
-                getFormatString(
+                getString(
                     Res.string.message_placeholder_state_event_room_history_visibility,
-                    arrayOf(senderName),
+                    senderName,
                 )
             NotificationContent.StateEvent.RoomJoinRules ->
-                getFormatString(
+                getString(
                     Res.string.message_placeholder_state_event_room_join_rules,
-                    arrayOf(senderName),
+                    senderName,
                 )
             is NotificationContent.StateEvent.RoomMemberContent ->
                 roomMembershipToText(
                     content = stateContent,
                     senderId = senderId,
                     senderName = senderName,
-                    getFormatString = getFormatString,
                 )
             NotificationContent.StateEvent.RoomName ->
-                getFormatString(
+                getString(
                     Res.string.message_placeholder_state_event_room_name_changed,
-                    arrayOf(senderName),
+                    senderName,
                 )
             NotificationContent.StateEvent.RoomPinnedEvents ->
-                getFormatString(
+                getString(
                     Res.string.message_placeholder_state_event_room_pinned_events_changed,
-                    arrayOf(senderName),
+                    senderName,
                 )
             NotificationContent.StateEvent.RoomPowerLevels ->
-                getFormatString(
+                getString(
                     Res.string.message_placeholder_state_event_room_user_power_levels,
-                    arrayOf(senderName),
+                    senderName,
                 )
             NotificationContent.StateEvent.RoomServerAcl ->
-                getFormatString(
+                getString(
                     Res.string.message_placeholder_state_event_room_server_acl,
-                    arrayOf(senderName),
+                    senderName,
                 )
             NotificationContent.StateEvent.RoomThirdPartyInvite ->
-                getFormatString(
+                getString(
                     Res.string.message_placeholder_state_event_room_third_party_invite_generic,
-                    arrayOf(senderName),
+                    senderName,
                 )
             NotificationContent.StateEvent.RoomTombstone ->
-                getFormatString(
+                getString(
                     Res.string.message_placeholder_state_event_room_tombstone,
-                    arrayOf(senderName),
+                    senderName,
                 )
             is NotificationContent.StateEvent.RoomTopic -> {
                 if (stateContent.topic.isBlank()) {
-                    getFormatString(Res.string.message_placeholder_state_event_room_topic_cleared, arrayOf(senderName))
+                    getString(Res.string.message_placeholder_state_event_room_topic_cleared, senderName)
                 } else {
-                    getFormatString(Res.string.message_placeholder_state_event_room_topic_set, arrayOf(senderName))
+                    getString(Res.string.message_placeholder_state_event_room_topic_set, senderName)
                 }
             }
             NotificationContent.StateEvent.SpaceChild ->
-                getFormatString(
+                getString(
                     Res.string.message_placeholder_state_event_space_child,
-                    arrayOf(senderName),
+                    senderName,
                 )
             NotificationContent.StateEvent.SpaceParent ->
-                getFormatString(
+                getString(
                     Res.string.message_placeholder_state_event_space_parent,
-                    arrayOf(senderName),
+                    senderName,
                 )
         }
     }
 
-    private inline fun roomMembershipToText(
+    private suspend fun roomMembershipToText(
         content: NotificationContent.StateEvent.RoomMemberContent,
         senderId: UserId,
         senderName: String,
-        getFormatString: (StringResource, formatArgs: Array<Any>) -> String,
     ): String {
         val otherUser = content.userId.value
         return when (content.membershipState) {
             RoomMembershipState.BAN ->
-                getFormatString(
+                getString(
                     Res.string.membership_change_banned,
-                    arrayOf(senderName, otherUser),
+                    senderName, otherUser,
                 )
             RoomMembershipState.INVITE ->
-                getFormatString(
+                getString(
                     Res.string.membership_change_invited,
-                    arrayOf(senderName, otherUser),
+                    senderName, otherUser,
                 )
             RoomMembershipState.JOIN -> {
                 if (content.userId == senderId) {
-                    getFormatString(Res.string.membership_change_joined, arrayOf(senderName))
+                    getString(Res.string.membership_change_joined, senderName)
                 } else {
-                    getFormatString(
+                    getString(
                         Res.string.message_placeholder_state_event_room_member_changed,
-                        arrayOf(senderName, otherUser),
+                        senderName, otherUser,
                     )
                 }
             }
             RoomMembershipState.KNOCK -> {
                 if (content.userId == senderId) {
-                    getFormatString(Res.string.membership_change_knocked, arrayOf(senderName))
+                    getString(Res.string.membership_change_knocked, senderName)
                 } else {
-                    getFormatString(
+                    getString(
                         Res.string.message_placeholder_state_event_room_member_changed,
-                        arrayOf(senderName, otherUser),
+                        senderName, otherUser,
                     )
                 }
             }
             RoomMembershipState.LEAVE -> {
                 if (content.userId == senderId) {
-                    getFormatString(Res.string.membership_change_left, arrayOf(senderName))
+                    getString(Res.string.membership_change_left, senderName)
                 } else {
-                    getFormatString(
+                    getString(
                         Res.string.message_placeholder_state_event_room_member_changed,
-                        arrayOf(senderName, otherUser),
+                        senderName, otherUser,
                     )
                 }
             }
         }
     }
 
-    private fun messageTypeToText(type: MessageType): String {
-        return when (type) {
-            is EmoteMessageType -> type.body
-            is LocationMessageType -> type.body
-            is AudioMessageType -> type.bestDescription
-            is FileMessageType -> type.bestDescription
-            is ImageMessageType -> type.bestDescription
-            is StickerMessageType -> type.bestDescription
-            is VideoMessageType -> type.bestDescription
-            is VoiceMessageType -> type.bestDescription
-            is OtherMessageType -> type.body
-            is NoticeMessageType -> type.body
-            is TextMessageType -> type.body
-        }
-    }
 }

@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
@@ -27,6 +28,7 @@ import com.beeper.android.messageformat.MatrixBodyPreFormatStyle
 import com.beeper.android.messageformat.MatrixBodyStyledFormatter
 import com.beeper.android.messageformat.MatrixHtmlParser
 import com.beeper.android.messageformat.MatrixToLink
+import com.beeper.android.messageformat.SpanAttributes
 
 object MessageFormatDefaults {
     val blockIndention = 16.sp
@@ -52,6 +54,22 @@ object MessageFormatDefaults {
                 ?: INLINE_IMAGE_PLACEHOLDER
         }
     )
+    val plaintextFormatter = object : MatrixBodyStyledFormatter() {
+        override fun formatHeading(tag: String, context: FormatContext) = listOf(ParagraphStyle())
+        override fun formatSpan(attributes: SpanAttributes, context: FormatContext) = null
+        override fun formatInlineCode(context: FormatContext) = null
+        override fun formatCodeBlock(context: FormatContext) = null
+        override fun formatBlockQuote(depth: Int, context: FormatContext) = listOf(ParagraphStyle())
+        override fun formatRoomMention(context: FormatContext) = null
+        override fun formatUserMention(mention: MatrixToLink.UserMention, context: FormatContext) = null
+        override fun formatRoomLink(roomLink: MatrixToLink.RoomLink, context: FormatContext) = null
+        override fun formatMessageLink(messageLink: MatrixToLink.MessageLink, context: FormatContext) = null
+        override fun formatWebLink(href: String, context: FormatContext) = null
+        override fun formatUnorderedListItem(depth: Int, context: FormatContext) = listOf(ParagraphStyle())
+        override fun formatOrderedListItem(depth: Int, context: FormatContext) = listOf(ParagraphStyle())
+        override fun formatDetailsSummary(revealId: Int, context: FormatContext) = listOf(ParagraphStyle())
+        override fun formatDetailsContent(revealId: Int, context: FormatContext) = listOf(ParagraphStyle())
+    }
 }
 
 val LocalMatrixBodyFormatter = compositionLocalOf<MatrixBodyStyledFormatter> {
