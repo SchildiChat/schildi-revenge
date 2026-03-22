@@ -72,6 +72,7 @@ import chat.schildi.revenge.config.keybindings.maxArgsSize
 import chat.schildi.revenge.config.keybindings.minArgsSize
 import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.REAL_SPACE_ID_PREFIX
+import chat.schildi.revenge.model.spaces.RevengeSpaceListDataSource
 import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.core.coroutine.childScope
@@ -2463,6 +2464,15 @@ fun checkArgument(
                 )
             } else {
                 null
+            }
+        }
+        ActionArgumentPrimitive.PseudoSpaceId -> {
+            if (RevengeSpaceListDataSource.isValidPseudoSpaceId(argVal)) {
+                null
+            } else {
+                ActionResult.Malformed(
+                    "Invalid parameter for $actionName, not a valid pseudo space: $argVal"
+                )
             }
         }
         ActionArgumentPrimitive.SpaceSelectionId -> {

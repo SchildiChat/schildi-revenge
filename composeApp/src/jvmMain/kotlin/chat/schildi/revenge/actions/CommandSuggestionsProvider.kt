@@ -160,6 +160,10 @@ class CommandSuggestionsProvider(
     private val spaceSuggestionSource = spaceListDataSource.allSpacesFlat
         .stateIn(scope, SharingStarted.Eagerly, emptyList())
 
+    private val pseudoSpaceSuggestions = spaceListDataSource.pseudoSpaceIdSuggestions
+        .map { it.toSuggestionsWithoutHint() }
+        .stateIn(scope, SharingStarted.Eagerly, emptyList())
+
     private val prefKeySuggestions = buildList {
         ScPrefs.rootPrefs.forEachPreference {
             if (it.key != null) {
@@ -417,6 +421,7 @@ class CommandSuggestionsProvider(
                                 (roomIds.isEmpty() || it.summary.info.spaceChildren.all { it.roomId !in roomIds })
                     }.toSuggestions()
                 }
+                ActionArgumentPrimitive.PseudoSpaceId -> pseudoSpaceSuggestions.value
                 ActionArgumentPrimitive.Text,
                 ActionArgumentPrimitive.Reason,
                 ActionArgumentPrimitive.Integer,

@@ -127,6 +127,24 @@ class SpaceListDataSource(
         other = sessionIdComparatorFlow,
     )
 
+    private val fixedPseudoSpaceIdSuggestions = listOf(
+        FavoritesPseudoSpaceItem.ID,
+        DmsPseudoSpaceItem.ID,
+        GroupsPseudoSpaceItem.ID,
+        SpacelessGroupsPseudoSpaceItem.ID,
+        SpacelessPseudoSpaceItem.ID,
+        NotificationsPseudoSpaceItem.ID,
+        UnreadPseudoSpaceItem.ID,
+        InvitePseudoSpaceItem.ID,
+    )
+
+    val pseudoSpaceIdSuggestions = accounts.map { accounts ->
+        fixedPseudoSpaceIdSuggestions + accounts.map { SessionIdPseudoSpaceItem.idFor(it.userId) }
+    }
+
+    fun isValidPseudoSpaceId(id: String) =
+        fixedPseudoSpaceIdSuggestions.contains(id) || id.startsWith(SessionIdPseudoSpaceItem.ID_PREFIX)
+
     val allSpacesHierarchical = combine(
         accounts,
         allSpacesFlat,
@@ -374,9 +392,12 @@ class SpaceListDataSource(
         override val enabled: Boolean,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
     ) : PseudoSpaceItem(
-        "fav",
+        ID,
         Icons.Default.Star.spaceIcon(),
     ) {
+        companion object {
+            const val ID = "fav"
+        }
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
         )
@@ -390,9 +411,12 @@ class SpaceListDataSource(
         override val enabled: Boolean,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
     ) : PseudoSpaceItem(
-        "dm",
+        ID,
         Icons.Default.Person.spaceIcon(),
     ) {
+        companion object {
+            const val ID = "dm"
+        }
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
         )
@@ -406,9 +430,12 @@ class SpaceListDataSource(
         override val enabled: Boolean,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
     ) : PseudoSpaceItem(
-        "group",
+        ID,
         Icons.Default.Groups.spaceIcon(),
     ) {
+        companion object {
+            const val ID = "group"
+        }
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
         )
@@ -423,9 +450,12 @@ class SpaceListDataSource(
         val excludedRooms: ImmutableList<String>,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
     ) : PseudoSpaceItem(
-        "spaceless/group",
+        ID,
         Icons.Default.Tag.spaceIcon(),
     ) {
+        companion object {
+            const val ID = "spaceless/group"
+        }
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
         )
@@ -441,9 +471,12 @@ class SpaceListDataSource(
         val conflictsWithSpacelessGroups: Boolean,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
     ) : PseudoSpaceItem(
-        "spaceless",
+        ID,
         if (conflictsWithSpacelessGroups) Icons.Default.Rocket.spaceIcon() else Icons.Default.Tag.spaceIcon(),
     ) {
+        companion object {
+            const val ID = "spaceless"
+        }
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
         )
@@ -458,9 +491,12 @@ class SpaceListDataSource(
         val clientUnreadCounts: Boolean,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
     ) : PseudoSpaceItem(
-        "notif",
+        ID,
         Icons.Default.Notifications.spaceIcon(),
     ) {
+        companion object {
+            const val ID = "notif"
+        }
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
         )
@@ -488,9 +524,12 @@ class SpaceListDataSource(
         val clientUnreadCounts: Boolean,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
     ) : PseudoSpaceItem(
-        "unread",
+        ID,
         Icons.Default.RemoveRedEye.spaceIcon(),
     ) {
+        companion object {
+            const val ID = "unread"
+        }
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
         )
@@ -511,9 +550,12 @@ class SpaceListDataSource(
         override val enabled: Boolean,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
     ) : PseudoSpaceItem(
-        "invites",
+        ID,
         Icons.Default.MeetingRoom.spaceIcon(),
     ) {
+        companion object {
+            const val ID = "invites"
+        }
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
         )
@@ -531,9 +573,13 @@ class SpaceListDataSource(
         override val name: ComposableStringHolder,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
     ) : PseudoSpaceItem(
-        "account/$sessionId",
+        idFor(sessionId),
         avatarUrl?.let { PseudoSpaceIconSource.Avatar(it, sessionId) } ?: Icons.Default.AccountCircle.spaceIcon(),
     ) {
+        companion object {
+            const val ID_PREFIX = "account/"
+            fun idFor(sessionId: SessionId) = "$ID_PREFIX$sessionId"
+        }
         override val sessionIds = persistentListOf(sessionId)
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)

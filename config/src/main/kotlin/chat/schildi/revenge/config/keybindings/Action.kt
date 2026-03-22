@@ -60,6 +60,7 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     NavigatableDestination,
     DestinationName,
     SpaceId,
+    PseudoSpaceId,
     ParentSpaceId, // For current room contexts, a space that is currently already parent of that room
     NonParentSpaceId, // For current room contexts, a space that is *not* currently already parent of that room
     SpaceSelectionId,
@@ -81,6 +82,7 @@ private val SessionIdOrIndex =
 private val SpaceIdSelectable =
     ActionArgumentAnyOf(
         ActionArgumentPrimitive.SpaceId,
+        ActionArgumentPrimitive.PseudoSpaceId,
         ActionArgumentPrimitive.SpaceSelectionId,
         ActionArgumentPrimitive.SpaceIndex
     )
@@ -220,6 +222,7 @@ sealed interface Action {
         SelectSpaceIfNotHidden(args = listOf(
             ActionArgumentAnyOf(
                 ActionArgumentPrimitive.SpaceId,
+                ActionArgumentPrimitive.PseudoSpaceId,
                 ActionArgumentPrimitive.SpaceSelectionId,
             )
         )),

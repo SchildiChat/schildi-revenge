@@ -543,6 +543,9 @@ class InboxViewModel(
             spaceId.startsWith("@") -> {{
                 (it as? SpaceListDataSource.SessionIdPseudoSpaceItem)?.sessionId?.value == spaceId
             }}
+            RevengeSpaceListDataSource.isValidPseudoSpaceId(spaceId) -> {{
+                (it as? SpaceListDataSource.PseudoSpaceItem)?.id == spaceId
+            }}
             else -> {{
                 it.selectionId == spaceId
             }}
