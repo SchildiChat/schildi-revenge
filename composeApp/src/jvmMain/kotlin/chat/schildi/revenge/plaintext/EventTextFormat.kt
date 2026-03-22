@@ -314,7 +314,7 @@ object EventTextFormat {
         content = content,
         senderProfile = senderProfile,
         senderId = senderId,
-        getFormatString = { res, args -> stringResource(res, args) },
+        getFormatString = { res, args -> stringResource(res, *args) },
     )
 
     private inline fun roomMembershipToText(
