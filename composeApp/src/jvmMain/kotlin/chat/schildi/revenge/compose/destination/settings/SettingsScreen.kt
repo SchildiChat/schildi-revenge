@@ -28,7 +28,6 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Destination
-import chat.schildi.revenge.DestinationCategory
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
@@ -43,7 +42,6 @@ import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInb
 import chat.schildi.revenge.compose.components.TopNavigationIcon
 import chat.schildi.revenge.compose.components.TopNavigationSearchOrTitle
 import chat.schildi.revenge.compose.components.TopNavigationTitle
-import chat.schildi.revenge.compose.components.lookup
 import chat.schildi.revenge.compose.destination.split.MultiPaneLayout
 import chat.schildi.revenge.compose.destination.split.MultiPaneLayoutDestinationStateHolderWrapper
 import chat.schildi.revenge.compose.focus.FocusContainer
@@ -123,10 +121,6 @@ fun SettingsScreen(
         if (searchUpstream != null && viewModel.isRootPreferences) {
             searchUpstream.value = viewModel
         }
-    }
-    val stringLookup = viewModel.stringLookupRequest.lookup()
-    LaunchedEffect(stringLookup) {
-        viewModel.stringLookupTable = stringLookup
     }
     publishTitle(viewModel)
     val prefScreenState = viewModel.prefScreen.collectAsState().value

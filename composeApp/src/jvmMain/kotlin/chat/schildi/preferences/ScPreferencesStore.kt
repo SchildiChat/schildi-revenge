@@ -3,7 +3,6 @@ package chat.schildi.preferences
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.graphics.Color
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
@@ -12,7 +11,6 @@ import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.actions.orActionValidationError
-import chat.schildi.revenge.actions.publishError
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.RevengeDatastoreStorage
@@ -366,22 +364,22 @@ fun ScPrefContainer.hasDirectChild(
 
 data class ScPrefFilter(
     // Condition for normal preferences to have fulfilled.
-    val predicate: (ScPref<*>) -> Boolean = { true },
+    val predicate: suspend (ScPref<*>) -> Boolean = { true },
     // Condition for containers before evaluating children. If true, all children will be included no matter what their
     // individual filter results would be.
-    val prePredicate: (ScPrefContainer) -> Boolean = { false },
+    val prePredicate: suspend (ScPrefContainer) -> Boolean = { false },
     // Condition for containers to evaluate after having their children filtered, if we still want to have
     // the container included anyway. Usually we can just drop empty containers.
-    val postPredicate: (ScPrefContainer) -> Boolean = { it.prefs.isNotEmpty() },
+    val postPredicate: suspend (ScPrefContainer) -> Boolean = { it.prefs.isNotEmpty() },
 )
 
-fun ScPrefContainer.filteredBy(filter: ScPrefFilter): ScPrefContainer {
+suspend fun ScPrefContainer.filteredBy(filter: ScPrefFilter): ScPrefContainer {
     return copyWithPrefs(
         prefs = prefs.filteredBy(filter),
     )
 }
 
-fun List<AbstractScPref>.filteredBy(filter: ScPrefFilter): List<AbstractScPref> {
+suspend fun List<AbstractScPref>.filteredBy(filter: ScPrefFilter): List<AbstractScPref> {
     // First map, then filter, so we can filter out pref categories based on their filtered contents
     return mapNotNull {
         when (it) {

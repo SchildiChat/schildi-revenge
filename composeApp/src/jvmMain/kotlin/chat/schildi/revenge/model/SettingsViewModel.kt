@@ -11,16 +11,12 @@ import chat.schildi.preferences.ScPrefScreen
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.filteredBy
 import chat.schildi.preferences.findPreferenceContainer
-import chat.schildi.preferences.forEachPreferenceOrContainer
 import chat.schildi.preferences.hasDirectChild
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.TitleProvider
-import chat.schildi.revenge.compose.components.ComposableStringLookupRequest
-import chat.schildi.revenge.compose.components.ComposableStringLookupTable
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.compose.util.toStringHolder
 import co.touchlab.kermit.Logger
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -28,6 +24,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import org.jetbrains.compose.resources.getString
 
 data class PrefScreenState(
     val prefScreen: ScPrefContainer,
@@ -69,26 +66,15 @@ class SettingsViewModel(
         (destination is Destination.Settings) ||
                 (destination as? Destination.SettingsPane)?.rootPreferenceCategory == rootPrefs.sKey
 
-    val stringLookupRequest = ComposableStringLookupRequest(
-        buildList {
-            rootPrefs.forEachPreferenceOrContainer {
-                add(it.titleRes)
-                it.summaryRes?.let(::add)
-            }
-        }.toImmutableList()
-    )
-    var stringLookupTable: ComposableStringLookupTable? = null
-
     private val searchQuery = MutableStateFlow<String?>(null)
     val prefScreen = searchQuery.map { query ->
-        val lookup = stringLookupTable?.stringLookup
-        val pref = if (query.isNullOrBlank() || lookup == null) {
+        val pref = if (query.isNullOrBlank()) {
             rootPrefs
         } else {
             val lowerQuery = query.lowercase()
-            fun prefLookupMatches(pref: AbstractScPref): Boolean {
-                val title = lookup[pref.titleRes]?.lowercase() ?: ""
-                val summary = lookup[pref.summaryRes]?.lowercase() ?: ""
+            suspend fun prefLookupMatches(pref: AbstractScPref): Boolean {
+                val title = getString(pref.titleRes).lowercase()
+                val summary = pref.summaryRes?.let { getString(it) }?.lowercase() ?: ""
                 return title.contains(lowerQuery) || summary.contains(lowerQuery)
             }
             val filter = ScPrefFilter(
