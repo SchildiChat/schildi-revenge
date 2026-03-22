@@ -57,7 +57,7 @@ class UrlPreviewProvider(
 
     private fun getPreviewCacheFile(url: String): File = File(
         cacheDir,
-        MessageDigest.getInstance("SHA-256").digest(url.toByteArray()).joinToString { "%02x".format(it) }
+        MessageDigest.getInstance("SHA-256").digest(url.toByteArray()).joinToString(separator = "") { "%02x".format(it) }
     )
 
     @OptIn(ExperimentalSerializationApi::class)
