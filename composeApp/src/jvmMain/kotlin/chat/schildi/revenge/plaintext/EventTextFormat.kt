@@ -379,6 +379,7 @@ object EventTextFormat {
             .ensureParagraphItemNewlines()
             .replaceInlineImages(parseResult.inlineImages)
             .stripMatrixSpoilers()
+            .stripDetailsContent()
             .toString()
             .trim()
             .replace(if (stripNewlines) STRIP_WHITESPACE_REGEX else STRIP_WHITESPACE_EXCEPT_NEWLINES_REGEX, " ")
@@ -409,6 +410,12 @@ object EventTextFormat {
         }
     ) { content, _ ->
         AnnotatedString("█".repeat(content.length.coerceIn(0, 12)))
+    }
+
+    fun AnnotatedString.stripDetailsContent() = replaceAnnotationContent(
+        tag = MatrixBodyAnnotations.DETAILS_CONTENT,
+    ) { _, _ ->
+        AnnotatedString("")
     }
 
     private fun AnnotatedString.replaceInlineImages(
