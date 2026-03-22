@@ -29,11 +29,12 @@ import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.ic_launcher
 import kotlin.system.exitProcess
 import chat.schildi.revenge.ipc.SingleInstance
+import chat.schildi.revenge.notification.NotificationProcessor
+import chat.schildi.revenge.notification.Notifier
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main() {
@@ -49,9 +50,11 @@ fun main() {
     // Ensure single instance and set up IPC to restore window on subsequent launches
     SingleInstance.ensureSingleInstanceOrExit()
     TrayWatcher.start()
+    NotificationProcessor.observeNotifications()
     application(exitProcessOnExit = false) {
         LaunchedEffect(Unit) {
             RevengePrefs.prefetch()
+            Notifier.initialize()
         }
         val minimized = UiState.minimizedToTray.collectAsState().value
         key(UiState.trayIconRecreationCounter.collectAsState().value) {

@@ -109,7 +109,12 @@ This list is not sufficient to consider the client feature-complete in any way.
     - [ ] Send room account state
 - [ ] Account management screen polish
 - [ ] Notifications
+    - [x] Show desktop notifications
     - [x] Allow muting individual accounts
+    - [ ] Include room avatar in notification
+    - [ ] Cancel notifications / test behavior on various OSes
+    - [ ] Allow clicking notifications to open the room
+    - [ ] Improve notification reliability for sliding sync?
 - [x] App icon
 - [x] Tray icon with unread count
     - [x] Optional minimize to tray: last window close request doesn't discard window but just sets minimized

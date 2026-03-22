@@ -56,6 +56,8 @@ import shire.composeapp.generated.resources.pref_inbox_conversation_dual_pane_mi
 import shire.composeapp.generated.resources.pref_conversation_details_split_min_width_title
 import shire.composeapp.generated.resources.pref_conversation_details_split_summary
 import shire.composeapp.generated.resources.pref_conversation_details_split_title
+import shire.composeapp.generated.resources.pref_desktop_notifications_summary
+import shire.composeapp.generated.resources.pref_desktop_notifications_title
 import shire.composeapp.generated.resources.pref_initial_window_height_summary
 import shire.composeapp.generated.resources.pref_initial_window_height_title
 import shire.composeapp.generated.resources.pref_initial_window_width_summary
@@ -151,6 +153,9 @@ object ScPrefs {
     val LAYOUT_WEIGHT_ROOM_DETAILS = ScIntPref("LAYOUT_WEIGHT_ROOM_DETAILS", 40, Res.string.pref_layout_weight_room_details_title, minValue = 20, maxValue = 1000)
     val LAYOUT_WEIGHT_SETTINGS = ScIntPref("LAYOUT_WEIGHT_SETTINGS", 100, Res.string.pref_layout_weight_settings_title, minValue = 20, maxValue = 1000, allowLiveSliderChange = false)
     val LAYOUT_WEIGHT_SETTINGS_ROOT = ScIntPref("LAYOUT_WEIGHT_SETTINGS_ROOT", 80, Res.string.pref_layout_weight_settings_root_title, minValue = 20, maxValue = 1000, allowLiveSliderChange = false)
+
+    // Notifications
+    val DESKTOP_NOTIFICATIONS = ScBoolPref("DESKTOP_NOTIFICATIONS", true, Res.string.pref_desktop_notifications_title, Res.string.pref_desktop_notifications_summary)
 
     // Tray icon
     val CLOSE_TO_TRAY = ScBoolPref("CLOSE_TO_TRAY", false, Res.string.pref_close_to_tray_title, Res.string.pref_close_to_tray_summary)
@@ -313,6 +318,7 @@ object ScPrefs {
     val rootPrefs = ScPrefScreen("ROOT", Res.string.hint_settings, null, listOf<AbstractScPref>(
         ScPrefScreen("GENERAL", Res.string.sc_pref_category_general, Res.string.sc_pref_category_general_summary, listOf(
             CLOSE_TO_TRAY,
+            DESKTOP_NOTIFICATIONS,
             ScPrefCategory("UI_SCALE", Res.string.pref_category_scale, null, listOf(
                 RENDER_SCALE,
                 FONT_SCALE,

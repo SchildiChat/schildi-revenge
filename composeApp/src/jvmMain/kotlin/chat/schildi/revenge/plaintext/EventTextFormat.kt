@@ -40,6 +40,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.getDisambigua
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisplayName
 import io.element.android.libraries.matrix.api.room.join.JoinRule
 import kotlinx.serialization.json.Json
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.join_rule_invite
@@ -112,6 +113,22 @@ object EventTextFormat {
         messageMetadata: MessageMetadata?,
         senderProfile: ProfileDetails,
         senderId: UserId,
+    ): String = eventToText(
+        content = content,
+        messageMetadata = messageMetadata,
+        senderProfile = senderProfile,
+        senderId = senderId,
+        getString = { res -> stringResource(res) },
+        getFormatString = { res, args -> stringResource(res, *args) },
+    )
+
+    private inline fun eventToText(
+        content: EventContent,
+        messageMetadata: MessageMetadata?,
+        senderProfile: ProfileDetails,
+        senderId: UserId,
+        getString: (StringResource) -> String,
+        getFormatString: (StringResource, formatArgs: Array<Any>) -> String,
     ): String {
         messageMetadata?.preFormattedContent?.text?.let {
             // Strip spoilers, formatting, and unnecessary whitespace
@@ -139,142 +156,201 @@ object EventTextFormat {
             }
             is StickerContent -> content.bestDescription
             CallNotifyContent,
-            LegacyCallInviteContent -> stringResource(Res.string.message_placeholder_call)
+            LegacyCallInviteContent -> getString(Res.string.message_placeholder_call)
             is FailedToParseMessageLikeContent,
-            is FailedToParseStateContent -> stringResource(Res.string.message_placeholder_message_failed_to_parse)
+            is FailedToParseStateContent -> getString(Res.string.message_placeholder_message_failed_to_parse)
             is PollContent -> content.question
-            is ProfileChangeContent -> profileChangeToText(content, senderProfile, senderId)
-            RedactedContent -> stringResource(Res.string.message_placeholder_message_redacted)
-            is RoomMembershipContent -> roomMembershipToText(content, senderProfile, senderId)
-            is StateContent -> stateEventToText(content, senderProfile, senderId)
-            is UnableToDecryptContent -> stringResource(Res.string.message_placeholder_unable_to_decrypt)
-            UnknownContent -> stringResource(Res.string.message_placeholder_unknown)
+            is ProfileChangeContent -> profileChangeToText(content, senderProfile, senderId, getFormatString)
+            RedactedContent -> getString(Res.string.message_placeholder_message_redacted)
+            is RoomMembershipContent -> roomMembershipToText(content, senderProfile, senderId, getFormatString)
+            is StateContent -> stateEventToText(content, senderProfile, senderId, getString, getFormatString)
+            is UnableToDecryptContent -> getString(Res.string.message_placeholder_unable_to_decrypt)
+            UnknownContent -> getString(Res.string.message_placeholder_unknown)
         }
     }
 
     @Composable
-    fun stateEventToText(stateContent: StateContent, senderProfile: ProfileDetails, senderId: UserId): String {
+    fun stateEventToText(
+        stateContent: StateContent,
+        senderProfile: ProfileDetails,
+        senderId: UserId,
+    ) = stateEventToText(
+        stateContent = stateContent,
+        senderProfile = senderProfile,
+        senderId = senderId,
+        getString = { res -> stringResource(res) },
+        getFormatString = { res, args -> stringResource(res, *args) },
+    )
+
+    private inline fun stateEventToText(
+        stateContent: StateContent,
+        senderProfile: ProfileDetails,
+        senderId: UserId,
+        getString: (StringResource) -> String,
+        getFormatString: (StringResource, formatArgs: Array<Any>) -> String,
+    ): String {
         val senderName = senderProfile.getDisambiguatedDisplayName(senderId)
         return when (val content = stateContent.content) {
-            is OtherState.Custom -> stringResource(Res.string.message_placeholder_state_event, senderName, content.eventType)
-            OtherState.PolicyRuleRoom -> stringResource(Res.string.message_placeholder_state_event_policy_rule_room, senderName)
-            OtherState.PolicyRuleServer -> stringResource(Res.string.message_placeholder_state_event_policy_rule_server, senderName)
-            OtherState.PolicyRuleUser -> stringResource(Res.string.message_placeholder_state_event_policy_rule_user, senderName)
-            OtherState.RoomAliases -> stringResource(Res.string.message_placeholder_state_event_room_aliases, senderName)
+            is OtherState.Custom -> getFormatString(Res.string.message_placeholder_state_event, arrayOf(senderName, content.eventType))
+            OtherState.PolicyRuleRoom -> getFormatString(Res.string.message_placeholder_state_event_policy_rule_room, arrayOf(senderName))
+            OtherState.PolicyRuleServer -> getFormatString(Res.string.message_placeholder_state_event_policy_rule_server, arrayOf(senderName))
+            OtherState.PolicyRuleUser -> getFormatString(Res.string.message_placeholder_state_event_policy_rule_user, arrayOf(senderName))
+            OtherState.RoomAliases -> getFormatString(Res.string.message_placeholder_state_event_room_aliases, arrayOf(senderName))
             is OtherState.RoomAvatar -> when (content.url) {
-                null -> stringResource(Res.string.message_placeholder_state_event_room_avatar_cleared, senderName)
-                else -> stringResource(Res.string.message_placeholder_state_event_room_avatar_set, senderName)
+                null -> getFormatString(Res.string.message_placeholder_state_event_room_avatar_cleared, arrayOf(senderName))
+                else -> getFormatString(Res.string.message_placeholder_state_event_room_avatar_set, arrayOf(senderName))
             }
-            OtherState.RoomCanonicalAlias -> stringResource(Res.string.message_placeholder_state_event_room_canonical_alias, senderName)
-            OtherState.RoomCreate -> stringResource(Res.string.message_placeholder_state_event_room_create, senderName)
-            OtherState.RoomEncryption -> stringResource(Res.string.message_placeholder_state_event_room_encryption, senderName)
-            OtherState.RoomGuestAccess -> stringResource(Res.string.message_placeholder_state_event_room_guest_access, senderName)
-            OtherState.RoomHistoryVisibility -> stringResource(Res.string.message_placeholder_state_event_room_history_visibility, senderName)
+            OtherState.RoomCanonicalAlias -> getFormatString(Res.string.message_placeholder_state_event_room_canonical_alias, arrayOf(senderName))
+            OtherState.RoomCreate -> getFormatString(Res.string.message_placeholder_state_event_room_create, arrayOf(senderName))
+            OtherState.RoomEncryption -> getFormatString(Res.string.message_placeholder_state_event_room_encryption, arrayOf(senderName))
+            OtherState.RoomGuestAccess -> getFormatString(Res.string.message_placeholder_state_event_room_guest_access, arrayOf(senderName))
+            OtherState.RoomHistoryVisibility -> getFormatString(Res.string.message_placeholder_state_event_room_history_visibility, arrayOf(senderName))
             is OtherState.RoomJoinRules -> when (content.joinRule) {
-                null -> stringResource(Res.string.message_placeholder_state_event_room_join_rules, senderName)
-                else -> stringResource(
+                null -> getFormatString(Res.string.message_placeholder_state_event_room_join_rules, arrayOf(senderName))
+                else -> getFormatString(
                     Res.string.message_placeholder_state_event_room_join_rules_to,
-                    senderName,
-                    content.joinRule?.let { joinRuleToText(it) } ?: "",
+                    arrayOf(
+                        senderName,
+                        content.joinRule?.let { joinRuleToText(it, getString) } ?: "",
+                    )
                 )
             }
             is OtherState.RoomName -> when (content.name) {
-                null -> stringResource(Res.string.message_placeholder_state_event_room_name_cleared, senderName)
-                else -> stringResource(Res.string.message_placeholder_state_event_room_name_set, senderName, content.name ?: "")
+                null -> getFormatString(Res.string.message_placeholder_state_event_room_name_cleared, arrayOf(senderName))
+                else -> getFormatString(Res.string.message_placeholder_state_event_room_name_set, arrayOf(senderName, content.name ?: ""))
             }
             is OtherState.RoomPinnedEvents -> when (content.change) {
-                OtherState.RoomPinnedEvents.Change.ADDED -> stringResource(Res.string.message_placeholder_state_event_room_pinned_events_added, senderName)
-                OtherState.RoomPinnedEvents.Change.REMOVED -> stringResource(Res.string.message_placeholder_state_event_room_pinned_events_removed, senderName)
-                OtherState.RoomPinnedEvents.Change.CHANGED -> stringResource(Res.string.message_placeholder_state_event_room_pinned_events_changed, senderName)
+                OtherState.RoomPinnedEvents.Change.ADDED -> getFormatString(Res.string.message_placeholder_state_event_room_pinned_events_added, arrayOf(senderName))
+                OtherState.RoomPinnedEvents.Change.REMOVED -> getFormatString(Res.string.message_placeholder_state_event_room_pinned_events_removed, arrayOf(senderName))
+                OtherState.RoomPinnedEvents.Change.CHANGED -> getFormatString(Res.string.message_placeholder_state_event_room_pinned_events_changed, arrayOf(senderName))
             }
-            OtherState.RoomServerAcl -> stringResource(Res.string.message_placeholder_state_event_room_server_acl, senderName)
-            is OtherState.RoomThirdPartyInvite -> stringResource(
+            OtherState.RoomServerAcl -> getFormatString(Res.string.message_placeholder_state_event_room_server_acl, arrayOf(senderName))
+            is OtherState.RoomThirdPartyInvite -> getFormatString(
                 Res.string.message_placeholder_state_event_room_third_party_invite,
-                senderName,
-                content.displayName ?: ""
+                arrayOf(
+                    senderName,
+                    content.displayName ?: ""
+                )
             )
-            OtherState.RoomTombstone -> stringResource(Res.string.message_placeholder_state_event_room_tombstone, senderName)
+            OtherState.RoomTombstone -> getFormatString(Res.string.message_placeholder_state_event_room_tombstone, arrayOf(senderName))
             is OtherState.RoomTopic -> when (content.topic) {
-                null -> stringResource(Res.string.message_placeholder_state_event_room_topic_cleared, senderName)
-                else -> stringResource(Res.string.message_placeholder_state_event_room_topic_set, senderName)
+                null -> getFormatString(Res.string.message_placeholder_state_event_room_topic_cleared, arrayOf(senderName))
+                else -> getFormatString(Res.string.message_placeholder_state_event_room_topic_set, arrayOf(senderName))
             }
-            is OtherState.RoomUserPowerLevels -> stringResource(Res.string.message_placeholder_state_event_room_user_power_levels, senderName)
-            OtherState.SpaceChild -> stringResource(Res.string.message_placeholder_state_event_space_child, senderName)
-            OtherState.SpaceParent -> stringResource(Res.string.message_placeholder_state_event_space_parent, senderName)
+            is OtherState.RoomUserPowerLevels -> getFormatString(Res.string.message_placeholder_state_event_room_user_power_levels, arrayOf(senderName))
+            OtherState.SpaceChild -> getFormatString(Res.string.message_placeholder_state_event_space_child, arrayOf(senderName))
+            OtherState.SpaceParent -> getFormatString(Res.string.message_placeholder_state_event_space_parent, arrayOf(senderName))
         }
     }
 
-    @Composable
-    private fun joinRuleToText(rule: JoinRule): String {
+    private inline fun joinRuleToText(
+        rule: JoinRule,
+        getString: (StringResource) -> String,
+    ): String {
         return when (rule) {
-            JoinRule.Public -> stringResource(Res.string.join_rule_public)
-            JoinRule.Knock -> stringResource(Res.string.join_rule_knock)
-            JoinRule.Invite -> stringResource(Res.string.join_rule_invite)
-            is JoinRule.Restricted -> stringResource(Res.string.join_rule_restricted)
-            is JoinRule.KnockRestricted -> stringResource(Res.string.join_rule_knock_restricted)
+            JoinRule.Public -> getString(Res.string.join_rule_public)
+            JoinRule.Knock -> getString(Res.string.join_rule_knock)
+            JoinRule.Invite -> getString(Res.string.join_rule_invite)
+            is JoinRule.Restricted -> getString(Res.string.join_rule_restricted)
+            is JoinRule.KnockRestricted -> getString(Res.string.join_rule_knock_restricted)
             is JoinRule.Custom -> rule.value
         }
     }
 
+
     @Composable
-    fun profileChangeToText(content: ProfileChangeContent, senderProfile: ProfileDetails, senderId: UserId): String {
+    fun profileChangeToText(
+        content: ProfileChangeContent,
+        senderProfile: ProfileDetails,
+        senderId: UserId,
+    ) = profileChangeToText(
+        content = content,
+        senderProfile = senderProfile,
+        senderId = senderId,
+        getFormatString = { res, args -> stringResource(res, *args) },
+    )
+
+    private inline fun profileChangeToText(
+        content: ProfileChangeContent,
+        senderProfile: ProfileDetails,
+        senderId: UserId,
+        getFormatString: (StringResource, formatArgs: Array<Any>) -> String,
+    ): String {
         val senderName = senderProfile.getDisambiguatedDisplayName(senderId)
         return if (content.prevDisplayName == content.displayName) {
             if (content.prevAvatarUrl == content.avatarUrl) {
-                stringResource(Res.string.profile_update_none, senderName)
+                getFormatString(Res.string.profile_update_none, arrayOf(senderName))
             } else {
-                stringResource(Res.string.profile_update_avatar, senderName)
+                getFormatString(Res.string.profile_update_avatar, arrayOf(senderName))
             }
         } else if (content.prevAvatarUrl != content.avatarUrl) {
             if (content.prevDisplayName == null) {
-                stringResource(Res.string.profile_update_set_name_and_avatar, senderName)
+                getFormatString(Res.string.profile_update_set_name_and_avatar, arrayOf(senderName))
             } else {
-                stringResource(Res.string.profile_update_name_and_avatar, senderName, content.prevDisplayName ?: "")
+                getFormatString(Res.string.profile_update_name_and_avatar, arrayOf(senderName, content.prevDisplayName ?: ""))
             }
         } else {
             when {
-                content.prevDisplayName == null -> stringResource(Res.string.profile_update_set_name, senderName)
-                content.displayName == null -> stringResource(
+                content.prevDisplayName == null -> getFormatString(Res.string.profile_update_set_name, arrayOf(senderName))
+                content.displayName == null -> getFormatString(
                     Res.string.profile_update_cleared_name,
-                    senderName,
-                    content.prevDisplayName ?: ""
+                    arrayOf(
+                        senderName,
+                        content.prevDisplayName ?: ""
+                    )
                 )
 
-                else -> stringResource(Res.string.profile_update_name, senderName, content.prevDisplayName ?: "")
+                else -> getFormatString(Res.string.profile_update_name, arrayOf(senderName, content.prevDisplayName ?: ""))
             }
         }
     }
 
     @Composable
-    fun roomMembershipToText(content: RoomMembershipContent, senderProfile: ProfileDetails, senderId: UserId): String {
+    fun roomMembershipToText(
+        content: RoomMembershipContent,
+        senderProfile: ProfileDetails,
+        senderId: UserId,
+    ) = roomMembershipToText(
+        content = content,
+        senderProfile = senderProfile,
+        senderId = senderId,
+        getFormatString = { res, args -> stringResource(res, args) },
+    )
+
+    private inline fun roomMembershipToText(
+        content: RoomMembershipContent,
+        senderProfile: ProfileDetails,
+        senderId: UserId,
+        getFormatString: (StringResource, formatArgs: Array<Any>) -> String,
+    ): String {
         val senderName = senderProfile.getDisambiguatedDisplayName(senderId)
         val otherUser = content.userDisplayName ?: content.userId.value
         val bestName = if (senderProfile.getDisplayName() == null && content.userId == senderId) otherUser else senderName
         val mainText = when (content.change) {
             null,
-            MembershipChange.NONE -> stringResource(Res.string.membership_change_none, bestName)
-            MembershipChange.ERROR -> stringResource(Res.string.membership_change_error, bestName)
-            MembershipChange.JOINED -> stringResource(Res.string.membership_change_joined, bestName)
-            MembershipChange.LEFT -> stringResource(Res.string.membership_change_left, bestName)
-            MembershipChange.BANNED -> stringResource(Res.string.membership_change_banned, senderName, otherUser)
-            MembershipChange.UNBANNED -> stringResource(Res.string.membership_change_unbanned, senderName, otherUser)
-            MembershipChange.KICKED -> stringResource(Res.string.membership_change_kicked, senderName, otherUser)
-            MembershipChange.INVITED -> stringResource(Res.string.membership_change_invited, senderName, otherUser)
-            MembershipChange.KICKED_AND_BANNED -> stringResource(Res.string.membership_change_kicked_and_banned, senderName, otherUser)
-            MembershipChange.INVITATION_ACCEPTED -> stringResource(Res.string.membership_change_invitation_accepted, bestName)
-            MembershipChange.INVITATION_REJECTED -> stringResource(Res.string.membership_change_invitation_rejected, bestName)
-            MembershipChange.INVITATION_REVOKED -> stringResource(Res.string.membership_change_invitation_revoked, senderName, otherUser)
-            MembershipChange.KNOCKED -> stringResource(Res.string.membership_change_knocked, bestName)
-            MembershipChange.KNOCK_ACCEPTED -> stringResource(Res.string.membership_change_knock_accepted, senderName, otherUser)
-            MembershipChange.KNOCK_RETRACTED -> stringResource(Res.string.membership_change_knock_retracted, bestName)
-            MembershipChange.KNOCK_DENIED -> stringResource(Res.string.membership_change_knock_denied, senderName, otherUser)
-            MembershipChange.NOT_IMPLEMENTED -> stringResource(Res.string.membership_change_not_implemented, bestName)
+            MembershipChange.NONE -> getFormatString(Res.string.membership_change_none, arrayOf(bestName))
+            MembershipChange.ERROR -> getFormatString(Res.string.membership_change_error, arrayOf(bestName))
+            MembershipChange.JOINED -> getFormatString(Res.string.membership_change_joined, arrayOf(bestName))
+            MembershipChange.LEFT -> getFormatString(Res.string.membership_change_left, arrayOf(bestName))
+            MembershipChange.BANNED -> getFormatString(Res.string.membership_change_banned, arrayOf(senderName, otherUser))
+            MembershipChange.UNBANNED -> getFormatString(Res.string.membership_change_unbanned, arrayOf(senderName, otherUser))
+            MembershipChange.KICKED -> getFormatString(Res.string.membership_change_kicked, arrayOf(senderName, otherUser))
+            MembershipChange.INVITED -> getFormatString(Res.string.membership_change_invited, arrayOf(senderName, otherUser))
+            MembershipChange.KICKED_AND_BANNED -> getFormatString(Res.string.membership_change_kicked_and_banned, arrayOf(senderName, otherUser))
+            MembershipChange.INVITATION_ACCEPTED -> getFormatString(Res.string.membership_change_invitation_accepted, arrayOf(bestName))
+            MembershipChange.INVITATION_REJECTED -> getFormatString(Res.string.membership_change_invitation_rejected, arrayOf(bestName))
+            MembershipChange.INVITATION_REVOKED -> getFormatString(Res.string.membership_change_invitation_revoked, arrayOf(senderName, otherUser))
+            MembershipChange.KNOCKED -> getFormatString(Res.string.membership_change_knocked, arrayOf(bestName))
+            MembershipChange.KNOCK_ACCEPTED -> getFormatString(Res.string.membership_change_knock_accepted, arrayOf(senderName, otherUser))
+            MembershipChange.KNOCK_RETRACTED -> getFormatString(Res.string.membership_change_knock_retracted, arrayOf(bestName))
+            MembershipChange.KNOCK_DENIED -> getFormatString(Res.string.membership_change_knock_denied, arrayOf(senderName, otherUser))
+            MembershipChange.NOT_IMPLEMENTED -> getFormatString(Res.string.membership_change_not_implemented, arrayOf(bestName))
         }
         return buildString {
             append(mainText)
             if (!content.reason.isNullOrBlank()) {
                 append(". ")
-                append(stringResource(Res.string.membership_reason, content.reason ?: ""))
+                append(getFormatString(Res.string.membership_reason, arrayOf(content.reason ?: "")))
             }
         }
     }

@@ -9,6 +9,8 @@
 package io.element.android.libraries.matrix.impl
 
 //import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.notifications.SyncNotification
+import chat.schildi.notifications.SyncNotificationService
 import chat.schildi.matrixsdk.ScTimelineFilterSettings
 import io.element.android.libraries.androidutils.file.getSizeOfFiles
 import io.element.android.libraries.core.bool.orFalse
@@ -174,6 +176,13 @@ class RustMatrixClient(
     private val notificationProcessSetup = NotificationProcessSetup.SingleProcess(innerSyncService)
     private val innerNotificationClient = runBlocking { innerClient.notificationClient(notificationProcessSetup) }
     override val notificationService = RustNotificationService(sessionId, innerNotificationClient, dispatchers, clock)
+    private val syncNotificationService by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { // SC
+        SyncNotificationService(
+            sessionId = sessionId,
+            client = innerClient,
+            sessionCoroutineScope = sessionCoroutineScope,
+        )
+    }
     override val notificationSettingsService = RustNotificationSettingsService(innerClient, sessionCoroutineScope, dispatchers)
     override val encryptionService = RustEncryptionService(
         client = innerClient,
@@ -346,6 +355,7 @@ class RustMatrixClient(
     }
 
     // SC additions
+    override fun syncNotifications(): Flow<SyncNotification> = syncNotificationService.notifications
     override suspend fun getAccountData(eventType: String): String? = withContext(sessionDispatcher) {
         runCatching {
             innerClient.accountData(eventType)

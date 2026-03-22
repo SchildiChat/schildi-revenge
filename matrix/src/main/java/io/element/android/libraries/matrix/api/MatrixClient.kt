@@ -8,6 +8,7 @@
 
 package io.element.android.libraries.matrix.api
 
+import chat.schildi.notifications.SyncNotification
 import chat.schildi.matrixsdk.ScTimelineFilterSettings
 import io.element.android.libraries.core.data.tryOrNull
 import io.element.android.libraries.matrix.api.analytics.SdkStoreSizes
@@ -71,6 +72,7 @@ interface MatrixClient {
     val roomMembershipObserver: RoomMembershipObserver
     suspend fun getJoinedRoom(roomId: RoomId, scTimelineFilterSettings: ScTimelineFilterSettings = ScTimelineFilterSettings()): JoinedRoom?
     suspend fun getRoom(roomId: RoomId): BaseRoom?
+    fun syncNotifications(): Flow<SyncNotification> // SC
     suspend fun getAccountData(eventType: String): String? // SC
     suspend fun getGlobalAccountData(): Result<List<AccountDataRawEvent>> // SC
     suspend fun getRoomAccountData(roomId: RoomId): Result<List<AccountDataRawEvent>> // SC

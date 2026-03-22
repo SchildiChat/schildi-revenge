@@ -10,7 +10,6 @@ import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.throttleLatest
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.ConfigWatchers
-import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.store.AppStateStore
 import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.createGraphFactory

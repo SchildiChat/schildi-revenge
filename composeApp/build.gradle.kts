@@ -43,6 +43,7 @@ kotlin {
             implementation(libs.coil3.okhttp)
             implementation(libs.kdroidfilter.platformtools.darkmodedetector)
             implementation(libs.kdroidfilter.composenativetray)
+            implementation(libs.kdroidfilter.knotify)
             implementation(libs.kodein.emojiKt)
             implementation(libs.ktor.core)
             implementation(libs.jsoup)

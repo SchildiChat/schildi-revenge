@@ -17,6 +17,7 @@ metro = "0.11.2"
 coil = "3.4.0"
 kdroidfilterPlatformtools = "0.7.5"
 kdroidfilterComposeNativeTray = "1.1.0"
+kdroidfilterKnotify = "0.4.3"
 ktoml = "0.7.1"
 ktor = "3.4.1"
 jsoup = "1.22.1"
@@ -57,6 +58,7 @@ coil3_okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", versi
 kdroidfilter_platformtools_core = { group = "io.github.kdroidfilter", name = "platformtools.core", version.ref = "kdroidfilterPlatformtools" }
 kdroidfilter_platformtools_darkmodedetector = { group = "io.github.kdroidfilter", name = "platformtools.darkmodedetector", version.ref = "kdroidfilterPlatformtools" }
 kdroidfilter_composenativetray = { group = "io.github.kdroidfilter", name = "composenativetray", version.ref = "kdroidfilterComposeNativeTray" }
+kdroidfilter_knotify = { group = "io.github.kdroidfilter", name = "knotify", version.ref = "kdroidfilterKnotify" }
 kodein-emojiKt = { group = "org.kodein.emoji", name = "emoji-kt", version = "2.3.0" }
 ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 #beeper-messageformat = { module = "com.beeper.android.messageformat:messageformat-jvm", version = "1.0" }
