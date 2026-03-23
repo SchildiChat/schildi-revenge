@@ -1422,14 +1422,11 @@ class KeyboardActionHandler(
                         appMessageId,
                         notifyProcessing = true,
                     ) {
+                        log.i("Clearing session cache for $sessionId")
+                        UiState.disableSession(sessionId)
                         client.clearCache()
-                        publishMessage(
-                            AppMessage(
-                                Res.string.toast_restart_required.toStringHolder(),
-                                uniqueId = "restartRequired",
-                                canAutoDismiss = false,
-                            )
-                        )
+                        log.i("Session cache cleared, restarting $sessionId")
+                        UiState.enableSession(sessionId)
                         ActionResult.Success(async = true, notifySuccess = false)
                     }
                 }

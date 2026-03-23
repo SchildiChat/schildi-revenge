@@ -169,8 +169,14 @@ object UiState {
     )
     val keybindingsConfig = keybindingsConfigWatcher.config
 
-    val matrixClients = appGraph.sessionStore.sessionsFlow().map {
-        val persistedSessions = appGraph.sessionStore.getAllSessions()
+    // Allow temporarily disabling sessions on clear cache, in order to rebuild the client afterward.
+    private val disabledSessions = MutableStateFlow(emptySet<SessionId>())
+
+    val matrixClients = combine(
+        disabledSessions,
+        appGraph.sessionStore.sessionsFlow()
+    ) { disabled, allSessions ->
+        val persistedSessions = allSessions.filter { SessionId(it.userId) !in disabled }
         val startTs = System.currentTimeMillis()
         log.i("Restoring ${persistedSessions.size} sessions")
         val sessions = appGraph.sessionCache.runBatchRestore {
@@ -368,5 +374,14 @@ object UiState {
                 }
             }
         }
+    }
+
+    fun disableSession(sessionId: SessionId) {
+        disabledSessions.update { it + sessionId }
+        appGraph.sessionCache.remove(sessionId)
+    }
+
+    fun enableSession(sessionId: SessionId) {
+        disabledSessions.update { it - sessionId }
     }
 }
