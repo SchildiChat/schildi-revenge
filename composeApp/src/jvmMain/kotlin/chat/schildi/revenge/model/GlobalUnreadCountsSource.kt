@@ -17,7 +17,7 @@ object GlobalUnreadCountsSource {
         UiState.mutedAccounts,
     ) { allSessions, muted ->
         allSessions?.mapNotNull {
-            SessionId(it).takeIf { it !in muted }
+            SessionId(it).takeIf { it !in muted.orEmpty() }
         }.orEmpty()
     }
     private val unreadCountsDataSource = SpaceAggregationDataSource(

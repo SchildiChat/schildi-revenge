@@ -230,7 +230,8 @@ object UiState {
     val appStateStore = AppStateStore(scope)
     val sessionIdComparator = appStateStore.sessionIdComparator
 
-    val mutedAccounts = MutableStateFlow<Set<SessionId>>(emptySet())
+    private val _mutedAccounts = MutableStateFlow<Set<SessionId>?>(null)
+    val mutedAccounts = _mutedAccounts.asStateFlow()
 
     val currentLocale = RevengePrefs.settingFlow(ScPrefs.LOCALE).onEach {
         val localeToSet = when (it) {
@@ -253,8 +254,8 @@ object UiState {
             val restoredMutedAccounts = appStateStore.config.filterNotNull().first().mutedAccounts
             log.d { "Restoring ${restoredMutedAccounts.size} muted accounts" }
             if (restoredMutedAccounts.isNotEmpty()) {
-                mutedAccounts.update {
-                    if (it.isEmpty()) {
+                _mutedAccounts.update {
+                    if (it == null) {
                         restoredMutedAccounts.map { SessionId(it) }.toSet()
                     } else {
                         log.w { "Race condition restoring muted accounts" }
@@ -278,7 +279,7 @@ object UiState {
 
             // Persist muted account setting
             mutedAccounts.throttleLatest(1000).onEach {
-                appStateStore.persistMutedAccounts(it.map(SessionId::value))
+                appStateStore.persistMutedAccounts(it.orEmpty().map(SessionId::value))
             }.launchIn(scope)
         }
     }
@@ -292,6 +293,28 @@ object UiState {
         this.applicationScope = applicationScope
         headlessKeyboardActionHandler = KeyboardActionHandler(GlobalActionsScope, HEADLESS_WINDOW_ID)
         _minimizedToTray.value = startInTray
+    }
+
+    fun setAccountMuted(sessionId: SessionId, muted: Boolean) {
+        _mutedAccounts.update {
+            if (muted) {
+                it.orEmpty() + sessionId
+            } else {
+                it.orEmpty() - sessionId
+            }
+        }
+    }
+
+    fun toggleAccountMuted(sessionId: SessionId) {
+        _mutedAccounts.update {
+            if (it == null) {
+                setOf(sessionId)
+            } else if (sessionId in it) {
+                it - sessionId
+            } else {
+                it + sessionId
+            }
+        }
     }
 
     fun selectClient(sessionId: SessionId, scope: CoroutineScope) = matrixClients.map {

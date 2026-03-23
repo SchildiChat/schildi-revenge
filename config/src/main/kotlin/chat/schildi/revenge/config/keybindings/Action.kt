@@ -142,6 +142,7 @@ sealed interface Action {
         CreateRoom(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.RoomName), aliases = listOf("createRoom")),
         CreateUnencryptedRoom(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.RoomName), aliases = listOf("createUnencryptedRoom", "createRoomUnencrypted")),
         CreateDm(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.UserId), aliases = listOf("createDm", "startDm")),
+        AutoSubscribeNotifiableRooms, // Experimental feature
     }
     enum class AppMessage(
         override val aliases: kotlin.collections.List<String> = emptyList(),

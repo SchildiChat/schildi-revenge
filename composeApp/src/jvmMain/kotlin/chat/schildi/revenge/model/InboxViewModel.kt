@@ -258,7 +258,7 @@ class InboxViewModel(
             ) { user, roomListState, syncState, hiddenAccounts, selectedAccounts, mutedAccounts ->
                 val isHidden = user.userId in hiddenAccounts
                 val isSelected = user.userId in selectedAccounts
-                val isMuted = user.userId in mutedAccounts
+                val isMuted = user.userId in mutedAccounts.orEmpty()
                 InboxAccount(
                     user = user,
                     roomListState = roomListState,
@@ -613,15 +613,7 @@ class InboxViewModel(
         }
     }
 
-    fun setAccountMuted(sessionId: SessionId, muted: Boolean) {
-        UiState.mutedAccounts.update {
-            if (muted) {
-                it + sessionId
-            } else {
-                it - sessionId
-            }
-        }
-    }
+    fun setAccountMuted(sessionId: SessionId, muted: Boolean) = UiState.setAccountMuted(sessionId, muted)
 
     fun toggleAccountHidden(sessionId: SessionId) {
         hiddenAccounts.update {
@@ -653,15 +645,7 @@ class InboxViewModel(
         }
     }
 
-    fun toggleAccountMuted(sessionId: SessionId) {
-        UiState.mutedAccounts.update {
-            if (sessionId in it) {
-                it - sessionId
-            } else {
-                it + sessionId
-            }
-        }
-    }
+    fun toggleAccountMuted(sessionId: SessionId) = UiState.toggleAccountMuted(sessionId)
 
     fun setSpaceSelection(selection: List<String>) {
         _spaceSelection.value = selection.toImmutableList()

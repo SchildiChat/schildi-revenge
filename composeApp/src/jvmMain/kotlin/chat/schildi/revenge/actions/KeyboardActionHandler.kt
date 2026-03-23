@@ -72,6 +72,7 @@ import chat.schildi.revenge.config.keybindings.minArgsSize
 import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.REAL_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.RevengeSpaceListDataSource
+import chat.schildi.revenge.notification.NotifiableRoomSubscriber
 import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.core.coroutine.childScope
@@ -1569,6 +1570,10 @@ class KeyboardActionHandler(
                             result.toActionResult(async = true)
                         }
                     }
+                }
+                Action.Global.AutoSubscribeNotifiableRooms -> {
+                    NotifiableRoomSubscriber.launch()
+                    ActionResult.Success()
                 }
             }
         }

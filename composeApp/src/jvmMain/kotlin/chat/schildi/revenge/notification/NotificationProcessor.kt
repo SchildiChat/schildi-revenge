@@ -28,7 +28,7 @@ object NotificationProcessor {
         UiState.mutedAccounts,
         RevengePrefs.settingFlow(ScPrefs.DESKTOP_NOTIFICATIONS),
     ) { sessions, muted, allowNotifications ->
-        if (allowNotifications) {
+        if (allowNotifications && muted != null) {
             val filteredSessions = sessions.filter { it.client.sessionId !in muted }
             log.d { "Initializing notification listener for [${filteredSessions.joinToString()}]" }
             filteredSessions.map {
