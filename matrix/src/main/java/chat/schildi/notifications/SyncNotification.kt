@@ -20,6 +20,7 @@ data class SyncNotification(
     val roomInfo: RoomInfo,
     val isNoisy: Boolean,
     val hasMention: Boolean,
+    val roomAppearedUnreadAfterSync: Boolean?,
     val actions: List<Action>,
 ) {
     data class SenderInfo(

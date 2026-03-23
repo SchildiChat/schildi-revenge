@@ -48,8 +48,18 @@ object NotificationProcessor {
         notifications.onEach { notification ->
             val formatted = NotificationEventTextFormat.notificationToText(notification)
             val id = notification.toNotificationId()
-            // TODO pass room avatar as largeImage
+            if (!notification.actions.contains(SyncNotification.Action.Notify)) {
+                log.i { "Ignore notification $id with actions [${notification.actions.joinToString()}]" }
+                return@onEach
+            }
+            if (notification.roomAppearedUnreadAfterSync == null) {
+                log.w { "Unclear whether room is unread for notification $id" }
+            } else if (notification.roomAppearedUnreadAfterSync == false) {
+                log.i { "Ignore notification for $id, appears already read" }
+                return@onEach
+            }
             log.d { "Notifying for $id" }
+            // TODO pass room avatar as largeImage
             Notifier.notify(
                 id = id,
                 title = notification.roomInfo.displayName,
