@@ -124,6 +124,7 @@ private inline fun String.toDestinationOrNull(
                 null
             }
         }
+        DestinationEnum.Diagnostics -> Destination.Diagnostics
         DestinationEnum.About -> Destination.About
         DestinationEnum.InboxConversationSplit -> Destination.InboxConversationMultiPane()
         // Destinations not reachable via "navigate" action

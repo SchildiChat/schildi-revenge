@@ -55,6 +55,7 @@ import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.about
 import shire.composeapp.generated.resources.action_close
+import shire.composeapp.generated.resources.diagnostics
 import shire.composeapp.generated.resources.empty_screen_placeholder_unexpected
 
 private val LocalRootPreferenceViewModel = compositionLocalOf<MutableState<SettingsViewModel?>?> { null }
@@ -138,6 +139,12 @@ fun SettingsScreen(
                 val destinationState = LocalDestinationState.current
                 if (viewModel.isRootPreferences) {
                     TopNavigationSearchOrTitle(stringResource(viewModel.prefScreen.value.prefScreen.titleRes))
+                    TopNavigationIcon(
+                        Icons.Default.BugReport,
+                        stringResource(Res.string.diagnostics)
+                    ) {
+                        destinationState?.navigate(Destination.Diagnostics)
+                    }
                     TopNavigationIcon(
                         Icons.Default.Info,
                         stringResource(Res.string.about)

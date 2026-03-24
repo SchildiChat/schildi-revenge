@@ -202,7 +202,7 @@ compose.desktop {
         }
 
         nativeDistributions {
-            modules("jdk.security.auth")
+            modules("java.management", "jdk.security.auth")
             targetFormats(
                 TargetFormat.Deb,
                 TargetFormat.AppImage,

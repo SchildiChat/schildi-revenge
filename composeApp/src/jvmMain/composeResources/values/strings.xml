@@ -17,6 +17,7 @@
     <string name="message_read_receipts_title">Message read receipts</string>
 
     <string name="about">About</string>
+    <string name="diagnostics">Diagnostics</string>
     <string name="about_credits">Credits</string>
     <string name="about_privacy_policy">Privacy Policy</string>
     <string name="about_website">Website</string>
@@ -28,6 +29,14 @@
     <string name="about_rust_revision">SDK revision: %1$s</string>
     <string name="about_release_variant">Variant: %1$s</string>
     <string name="about_rust_release_variant">SDK variant: %1$s</string>
+    <string name="diagnostics_jvm_heap">JVM heap</string>
+    <string name="diagnostics_jvm_non_heap">JVM non-heap</string>
+    <string name="diagnostics_process_rss">Process RSS</string>
+    <string name="diagnostics_native_estimated">Native / other (estimated)</string>
+    <string name="diagnostics_unavailable">Unavailable</string>
+    <string name="diagnostics_current">Current</string>
+    <string name="diagnostics_committed">Committed</string>
+    <string name="diagnostics_max">Max</string>
 
     <string name="action_login">Login</string>
     <string name="action_verify">Verify</string>

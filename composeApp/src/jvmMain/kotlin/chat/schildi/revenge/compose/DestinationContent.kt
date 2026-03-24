@@ -17,6 +17,7 @@ import chat.schildi.revenge.compose.components.WEIGHT_DEFAULT
 import chat.schildi.revenge.compose.components.prefWidthModifiers
 import chat.schildi.revenge.compose.destination.AboutScreen
 import chat.schildi.revenge.compose.destination.AccountManagementScreen
+import chat.schildi.revenge.compose.destination.DiagnosticsScreen
 import chat.schildi.revenge.compose.destination.SplashScreen
 import chat.schildi.revenge.compose.destination.conversation.ConversationScreen
 import chat.schildi.revenge.compose.destination.conversation.userlist.MessageReactionsScreen
@@ -56,6 +57,7 @@ fun DestinationContent(
                 is Destination.SplitHorizontal -> SplitHorizontal(destination, baseModifier, contentModifier)
                 is Destination.SplitVertical -> SplitVertical(destination, baseModifier, contentModifier)
                 is Destination.About -> AboutScreen(baseModifier, contentModifier)
+                is Destination.Diagnostics -> DiagnosticsScreen(destination, baseModifier, contentModifier)
                 is Destination.Settings -> SettingsScreen(destination, baseModifier, contentModifier)
                 is Destination.SettingsPane -> SettingsScreen(destination, baseModifier, contentModifier)
                 is Destination.InboxConversationMultiPane -> InboxConversationMultiPaneScreen(destination, baseModifier, contentModifier)
@@ -100,6 +102,7 @@ private fun DestinationEnum.measureInfo(): DestinationMeasure = when (this) {
     DestinationEnum.MessageReadReceipts,
     DestinationEnum.RoomMembers -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_ROOM_DETAILS, ScPrefs.LAYOUT_WEIGHT_ROOM_DETAILS)
     DestinationEnum.AccountManagement,
+    DestinationEnum.Diagnostics,
     DestinationEnum.About -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_SETTINGS, ScPrefs.LAYOUT_WEIGHT_SETTINGS)
     DestinationEnum.Settings -> DestinationEnum.SettingsRoot.measureInfo() + DestinationEnum.SplitSettingsDetailsPlaceholder.measureInfo()
     DestinationEnum.SettingsRoot -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_SETTINGS, ScPrefs.LAYOUT_WEIGHT_SETTINGS_ROOT)

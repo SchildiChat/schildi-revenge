@@ -9,6 +9,7 @@ import io.element.android.libraries.matrix.api.core.SessionId
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.about
 import shire.composeapp.generated.resources.app_title_short
+import shire.composeapp.generated.resources.diagnostics
 import shire.composeapp.generated.resources.hint_settings
 import shire.composeapp.generated.resources.inbox
 import shire.composeapp.generated.resources.manage_accounts
@@ -125,6 +126,12 @@ sealed interface Destination {
         override val type = DestinationEnum.About
         override val title = StringResourceHolder(Res.string.about)
         override val category = DestinationCategory.ABOUT
+    }
+
+    data object Diagnostics : Destination {
+        override val type = DestinationEnum.Diagnostics
+        override val title = StringResourceHolder(Res.string.diagnostics)
+        override val category = DestinationCategory.SETTINGS
     }
 
     sealed interface Split : Destination {
