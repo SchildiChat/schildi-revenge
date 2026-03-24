@@ -1,6 +1,5 @@
 /*
- * Copyright (c) 2025 Element Creations Ltd.
- * Copyright 2023-2025 New Vector Ltd.
+ * Copyright (c) 2026 Element Creations Ltd.
  *
  * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Element-Commercial.
  * Please see LICENSE files in the repository root for full details.
@@ -8,8 +7,8 @@
 
 package io.element.android.libraries.matrix.api.room.location
 
-enum class AssetType {
-    SENDER,
-    PIN,
-    UNKNOWN
-}
+data class LiveLocationInfo(
+    val description: String?,
+    val geoUri: String,
+    val timestamp: Long,
+)
