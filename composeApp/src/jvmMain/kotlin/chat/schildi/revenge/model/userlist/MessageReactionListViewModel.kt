@@ -5,6 +5,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.RoomContextSuggestionsProvider
+import chat.schildi.revenge.util.flowClosable
 import co.touchlab.kermit.Logger
 import io.element.android.features.messages.impl.timeline.TimelineController
 import io.element.android.libraries.matrix.api.core.EventId
@@ -58,17 +59,16 @@ class MessageReactionListViewModel(
 
     private val roomFlow = clientFlow.map { client ->
         client?.getJoinedRoom(roomId)
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    }.flowClosable().stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val timelineController = flow {
-        var controller: TimelineController? = null
-        roomFlow.collect {
-            controller?.close()
-            controller = it?.let { TimelineController(it) }
-            controller?.focusOnEvent(eventId, null)
-            emit(controller)
+
+    private val timelineController = roomFlow.map {
+        it?.let {
+            TimelineController(it)
         }
-    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+    }
+        .flowClosable()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     private val roomMembersState = roomFlow.flatMapLatest { room ->
         room?.membersStateFlow ?: flowOf()

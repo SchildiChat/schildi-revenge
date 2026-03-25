@@ -1,10 +1,15 @@
 package chat.schildi.revenge.util
 
+import co.touchlab.kermit.Logger
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.io.IOException
+import java.io.Closeable
 
 @Suppress("UNCHECKED_CAST")
 fun <T1, T2, T3, T4, T5, T6, R>combine(
@@ -33,3 +38,25 @@ fun <T>Flow<T>.throttleLatest(period: Long) = flow {
         delay(period)
     }
 }
+
+fun <T : Closeable>Flow<T?>.flowClosable(): Flow<T?> = flow {
+    var current: T? = null
+    try {
+        collect { value ->
+            current?.close()
+            current = value
+            emit(value)
+        }
+    } finally {
+        try {
+            current?.let {
+                // TODO not an error
+                Logger.withTag("flowClosable").e("Closing ${it.javaClass.name}")
+                it.close()
+            }
+        } catch (e: IOException) {
+            Logger.withTag("flowClosable").e("Failed to close ${current?.javaClass?.name}", e)
+        }
+        current = null
+    }
+}.flowOn(Dispatchers.IO)

@@ -8,7 +8,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import chat.schildi.matrixsdk.BridgeEventContent
 import chat.schildi.matrixsdk.ScTimelineFilterSettings
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewProvider
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewStateProvider
@@ -71,7 +70,7 @@ import chat.schildi.revenge.toPrettyJson
 import chat.schildi.revenge.util.MimeUtil
 import chat.schildi.revenge.util.tryOrNull
 import chat.schildi.revenge.util.MediaInfoUtil
-import chat.schildi.revenge.util.ScJson
+import chat.schildi.revenge.util.flowClosable
 import co.touchlab.kermit.Logger
 import com.beeper.android.messageformat.MatrixFormatInteractionState
 import io.element.android.features.messages.impl.timeline.EventFocusResult
@@ -135,7 +134,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.getAndUpdate
@@ -146,7 +144,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.jsonObject
 import java.awt.FileDialog
 import java.awt.Frame
@@ -250,18 +247,40 @@ class ConversationViewModel(
         buildScTimelineFilterSettings { scPreferencesStore.getCachedOrDefaultValue(it) }
     )
 
-    private val roomPair = combine(
+    private val joinedRoom = combine(
         clientFlow,
         timelineFilterSettings,
     ) { client, settings ->
-        Pair(client?.getRoom(roomId), client?.getJoinedRoom(roomId, settings))
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, Pair(null, null))
+        client?.getJoinedRoom(roomId, settings)
+    }
+        .flowClosable()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val typingUsers = roomPair.flatMapLatest { (_, joined) ->
+    private val notJoinedRoom = combine(clientFlow, joinedRoom) { client, joined ->
+        if (joined == null) {
+            client?.getRoom(roomId)
+        } else {
+            // Unnecessary
+            null
+        }
+    }.flowClosable()
+
+    private val baseRoom = combine(
+        joinedRoom,
+        notJoinedRoom
+    ) { joined, notJoined ->
+        joined ?: notJoined
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val roomInfo: Flow<RoomInfo?> = baseRoom.flatMapLatest {
+        it?.roomInfoFlow ?: flowOf(null)
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val typingUsers = joinedRoom.flatMapLatest { joined ->
         joined?.roomTypingMembersFlow?.map { it.toPersistentList() } ?: flowOf(null)
     }
 
-    private val identityStateChanges = roomPair.flatMapLatest { (_, joined) ->
+    private val identityStateChanges = joinedRoom.flatMapLatest { joined ->
         joined?.identityStateChangesFlow ?: flowOf(null)
     }
 
@@ -273,7 +292,7 @@ class ConversationViewModel(
     val highlightedActionEventId = _highlightedActionEventId.asStateFlow()
 
     // TODO?
-    private val powerLevels = roomPair.map { (_, room) ->
+    private val powerLevels = joinedRoom.map { room ->
         room?.powerLevels()
             ?.onFailure { log.e("Failed to get room power levels", it) }
             ?.getOrNull()
@@ -291,7 +310,7 @@ class ConversationViewModel(
             ScPrefs.SEND_TYPING_NOTICE.safeLookup(lookup),
             ScPrefs.DISABLE_SEND_TYPING_NOTICE_IN_PUBLIC_ROOMS.safeLookup(lookup),
         )
-    }.combine(roomPair) { (sendTyping, disableInPublic), (_, room) ->
+    }.combine(joinedRoom) { (sendTyping, disableInPublic), room ->
         when {
             room == null -> false
             !sendTyping -> false
@@ -309,9 +328,9 @@ class ConversationViewModel(
                 ScPrefs.URL_PREVIEWS_IN_E2EE_ROOMS.safeLookup(lookup),
             )
         },
-        roomPair,
-    ) { client, (enable, enableInE2ee), (room, _) ->
-        client?.takeIf { enable && (enableInE2ee || (room?.info()?.isEncrypted == false)) }?.let {
+        roomInfo,
+    ) { client, (enable, enableInE2ee), info ->
+        client?.takeIf { enable && (enableInE2ee || (info?.isEncrypted == false)) }?.let {
             UrlPreviewStateProvider(
                 urlPreviewProvider = UrlPreviewProvider(client),
                 scope = viewModelScope.childScope(Dispatchers.IO, "urlPreviews"),
@@ -323,23 +342,21 @@ class ConversationViewModel(
 
     val roomContextSuggestionsProvider = RoomContextSuggestionsProvider(
         sessionId = sessionId,
-        peekRoom = { roomPair.value.first },
+        peekRoom = { baseRoom.value },
     )
 
-    private val timelineController = flow {
-        var controller: TimelineController? = null
-        roomPair.collect {
-            controller?.close()
-            controller = it.second?.let { TimelineController(it) }
-            emit(controller)
+    private val timelineController = joinedRoom.map {
+        it?.let {
+            TimelineController(it)
         }
     }
+        .flowClosable()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     override fun onCleared() {
         super.onCleared()
         if (shouldSendTypingIndicators.value) {
-            val room = roomPair.value.second
+            val room = joinedRoom.value
             if (room != null) {
                 viewModelScope.launch {
                     room.typingNotice(false)
@@ -424,7 +441,7 @@ class ConversationViewModel(
     val forwardPaginationStatus = activeTimeline.flatMapLatest { it?.forwardPaginationStatus ?: flowOf(null) }
     val backwardPaginationStatus = activeTimeline.flatMapLatest { it?.backwardPaginationStatus ?: flowOf(null) }
 
-    private val roomMembersState = roomPair.flatMapLatest { (_, joined) ->
+    private val roomMembersState = joinedRoom.flatMapLatest { joined ->
         joined?.membersStateFlow ?: flowOf()
     }
 
@@ -511,9 +528,9 @@ class ConversationViewModel(
         force || !minimalMode || !state.isEmpty()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, forceShowComposer.value)
 
-    private val bridgeInfo = roomPair.map { (_, room) ->
-        room?.info()?.bridgeState
-    }.flowOn(Dispatchers.IO)
+    private val bridgeInfo = roomInfo.map { info ->
+        info?.bridgeState
+    }.distinctUntilChanged()
 
     val timestampSettings = combine(
         scPreferencesStore.settingFlow(ScPrefs.HIDE_AUTHENTICITY_NOT_GUARANTEED),
@@ -707,7 +724,7 @@ class ConversationViewModel(
                     }
 
                     DraftType.CUSTOM_EVENT -> {
-                        val room = roomPair.value.second ?: return@result Result.failure(
+                        val room = joinedRoom.value ?: return@result Result.failure(
                             IllegalStateException("Room not ready")
                         )
                         val eventType = draft.customEventType ?: return@result Result.failure(
@@ -720,7 +737,7 @@ class ConversationViewModel(
                     }
 
                     DraftType.CUSTOM_STATE_EVENT -> {
-                        val room = roomPair.value.second ?: return@result Result.failure(
+                        val room = joinedRoom.value ?: return@result Result.failure(
                             IllegalStateException("Room not ready")
                         )
                         val eventType = draft.customEventType ?: return@result Result.failure(
@@ -828,8 +845,6 @@ class ConversationViewModel(
 
     val userProfile = clientFlow.flatMapLatest { it?.userProfile ?: flowOf(null) }
 
-    val roomInfo = roomPair.map { (it, _) -> it?.info() }
-
     override val composerRoomInfo: StateFlow<ComposerRoomInfo?> =
         roomInfo.map { info ->
             info?.let {
@@ -841,12 +856,12 @@ class ConversationViewModel(
         }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     override val windowTitle: Flow<ComposableStringHolder?> = combine(
-        roomPair,
+        roomInfo,
         userProfile,
         roomMembersById,
-    ) { (baseRoom, _), user, roomMembers ->
+    ) { info, user, roomMembers ->
         windowTitle(
-            roomInfo = baseRoom?.info(),
+            roomInfo = info,
             accountUserDisplayName = user?.displayName,
             roomUserDisplayName = roomMembers[sessionId]?.displayName,
             sessionId = sessionId,
@@ -854,9 +869,13 @@ class ConversationViewModel(
     }.filterNotNull()
 
     init {
-        roomPair.onEach { (baseRoom, joinedRoom) ->
-            baseRoom?.subscribeToSync()
-            joinedRoom?.updateMembers()
+        baseRoom.onEach { room ->
+            room?.subscribeToSync()
+        }
+            .flowOn(Dispatchers.IO)
+            .launchIn(viewModelScope)
+        joinedRoom.onEach { room ->
+            room?.updateMembers()
         }
             .flowOn(Dispatchers.IO)
             .launchIn(viewModelScope)
@@ -867,9 +886,9 @@ class ConversationViewModel(
         var lastTypingNotice = 0L
         combine(
             shouldSendTypingIndicators,
-            roomPair,
+            joinedRoom,
             composerState.map { Pair(it.rawBody, it.type) }.distinctUntilChanged(),
-        ) { shouldSendTypingIndicators, (_, room), (draftBody, draftType) ->
+        ) { shouldSendTypingIndicators, room, (draftBody, draftType) ->
             val isTyping = shouldSendTypingIndicators &&
                     draftType.shouldSendTypingIndicator() &&
                     draftBody.isNotEmpty() &&
@@ -910,12 +929,9 @@ class ConversationViewModel(
         sessionId = sessionId,
         roomId = roomId,
         isInvite = false,
-        getClient = { clientFlow.value },
-    ) {
-        // roomPair may have stale information, request a new room to be sure.
-        // JoinedRoom is preferred if possible.
-        clientFlow.value?.getJoinedRoom(roomId, ScTimelineFilterSettings()) ?: clientFlow.value?.getRoom(roomId)
-    }
+        peekClient = { clientFlow.value },
+        peekRoom = { baseRoom.value },
+    )
 
     private val conversationActionProvider = object : KeyboardActionProvider<Action.Conversation> {
         override fun getPossibleActions() = Action.Conversation.entries.toSet()
@@ -1027,7 +1043,7 @@ class ConversationViewModel(
                 Action.Conversation.ComposeCustomStateEvent -> {
                     val eventType = args.firstOrNull().orActionValidationError()
                     val stateKey = args.getOrNull(1)
-                    val room = roomPair.value.second ?: return@run ActionResult.Failure("Room not ready")
+                    val room = joinedRoom.value ?: return@run ActionResult.Failure("Room not ready")
                     publishMessage(
                         AppMessage(
                             message = Res.string.command_fetching_state.toStringHolder(),
@@ -1200,7 +1216,7 @@ class ConversationViewModel(
                 }
 
                 Action.Conversation.KickUser -> {
-                    val room = roomPair.value.second ?: return@run ActionResult.Failure("Room not ready")
+                    val room = joinedRoom.value ?: return@run ActionResult.Failure("Room not ready")
                     val userId = UserId(args.firstOrNull().orActionValidationError())
                     val reason = if (args.size > 1) {
                         args.subList(1, args.size).joinToString().takeIf(String::isNotBlank)
@@ -1219,7 +1235,7 @@ class ConversationViewModel(
                 }
 
                 Action.Conversation.InviteUser -> {
-                    val room = roomPair.value.second ?: return@run ActionResult.Failure("Room not ready")
+                    val room = joinedRoom.value ?: return@run ActionResult.Failure("Room not ready")
                     val userId = UserId(args.firstOrNull().orActionValidationError())
                     launchActionAsync(
                         "inviteUser",
@@ -1233,7 +1249,7 @@ class ConversationViewModel(
                 }
 
                 Action.Conversation.BanUser -> {
-                    val room = roomPair.value.second ?: return@run ActionResult.Failure("Room not ready")
+                    val room = joinedRoom.value ?: return@run ActionResult.Failure("Room not ready")
                     val userId = UserId(args.firstOrNull().orActionValidationError())
                     launchActionAsync(
                         "banUser",
@@ -1247,7 +1263,7 @@ class ConversationViewModel(
                 }
 
                 Action.Conversation.UnbanUser -> {
-                    val room = roomPair.value.second ?: return@run ActionResult.Failure("Room not ready")
+                    val room = joinedRoom.value ?: return@run ActionResult.Failure("Room not ready")
                     val userId = UserId(args.firstOrNull().orActionValidationError())
                     val reason = if (args.size > 1) {
                         args.subList(1, args.size).joinToString().takeIf(String::isNotBlank)
@@ -1266,7 +1282,7 @@ class ConversationViewModel(
                 }
 
                 Action.Conversation.CopyFullRoomState -> {
-                    val room = roomPair.value.first ?: return@run ActionResult.Failure("Room not ready")
+                    val room = baseRoom.value ?: return@run ActionResult.Failure("Room not ready")
                     publishMessage(
                         AppMessage(
                             Res.string.command_fetching_state.toStringHolder(),

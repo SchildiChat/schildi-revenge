@@ -9,6 +9,7 @@ import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.RoomContextSuggestionsProvider
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.revenge.util.flowClosable
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
@@ -55,6 +56,11 @@ class RoomMemberListViewModel(
 
     private val roomFlow = clientFlow.map { client ->
         client?.getRoom(roomId)
+    }.flowClosable().stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val roomInfo: Flow<RoomInfo?> = roomFlow.flatMapLatest {
+        it?.roomInfoFlow ?: flowOf(null)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -106,10 +112,10 @@ class RoomMemberListViewModel(
     )
 
     override val windowTitle: Flow<ComposableStringHolder?> = combine(
-        roomFlow,
+        roomInfo,
         allEntries,
-    ) { room, allMembers ->
-        windowTitle(roomId, room?.info(), allMembers?.size)
+    ) { info, allMembers ->
+        windowTitle(roomId, info, allMembers?.size)
     }
 
     init {

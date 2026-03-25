@@ -48,8 +48,8 @@ class RoomActionProvider(
     val sessionId: SessionId,
     val roomId: RoomId,
     val isInvite: Boolean,
-    val getClient: suspend () -> MatrixClient?,
-    val getRoom: suspend () -> BaseRoom?,
+    val peekClient: suspend () -> MatrixClient?,
+    val peekRoom: (suspend () -> BaseRoom?)?,
 ) : KeyboardActionProvider<Action.Room> {
     override fun getPossibleActions() = if (isInvite)
         RoomInviteActions
@@ -76,8 +76,16 @@ class RoomActionProvider(
             scope = GlobalActionsScope,
             context = Dispatchers.IO,
         ) {
-            val room = getRoom() ?: return@launchActionAsync ActionResult.Failure("Room not ready")
-            handleActionWithRoom(context, action, args, room)
+            if (peekRoom == null) {
+                val client = peekClient() ?: return@launchActionAsync ActionResult.Failure("Client not ready")
+                val room = client.getJoinedRoom(roomId) ?: client.getRoom(roomId) ?: return@launchActionAsync ActionResult.Failure("Room not ready")
+                room.use {
+                    handleActionWithRoom(context, action, args, room)
+                }
+            } else {
+                val room = peekRoom() ?: return@launchActionAsync ActionResult.Failure("Room not ready")
+                handleActionWithRoom(context, action, args, room)
+            }
         }
     }
 
@@ -148,7 +156,7 @@ class RoomActionProvider(
                 room.setRoomUserDisplayName(name).toActionResult()
             }
             Action.Room.SetRoomNotifications -> {
-                val client = getClient() ?: return ActionResult.Failure("Client not ready")
+                val client = peekClient() ?: return ActionResult.Failure("Client not ready")
                 val modeString = args.firstOrNull().orActionValidationError()
                 val actionMode = ActionRoomNotificationSetting.tryResolve(modeString).orActionValidationError()
                 val mode = actionMode.toNotificationMode()
@@ -160,24 +168,30 @@ class RoomActionProvider(
             }
             Action.Room.AddToSpace -> {
                 val spaceId = args.firstOrNull()?.let { RoomId(it) }.orActionValidationError()
-                val client = getClient() ?: return ActionResult.Failure("Client not ready")
+                val client = peekClient() ?: return ActionResult.Failure("Client not ready")
                 val space = client.getRoom(spaceId) ?: return ActionResult.Failure("Space not found")
-                addRoomToSpace(context, space, room)
+                space.use {
+                    addRoomToSpace(context, space, room)
+                }
             }
             Action.Room.RemoveFromSpace -> {
                 val spaceId = args.firstOrNull()?.let { RoomId(it) }.orActionValidationError()
-                val client = getClient() ?: return ActionResult.Failure("Client not ready")
+                val client = peekClient() ?: return ActionResult.Failure("Client not ready")
                 val space = client.getRoom(spaceId) ?: return ActionResult.Failure("Space not found")
-                removeRoomFromSpace(context, space, room)
+                space.use {
+                    removeRoomFromSpace(context, space, room)
+                }
             }
             Action.Room.ToggleRoomInSpace -> {
                 val spaceId = args.firstOrNull()?.let { RoomId(it) }.orActionValidationError()
-                val client = getClient() ?: return ActionResult.Failure("Client not ready")
+                val client = peekClient() ?: return ActionResult.Failure("Client not ready")
                 val space = client.getRoom(spaceId) ?: return ActionResult.Failure("Space not found")
-                if (space.info().spaceChildren.any { it.roomId == room.roomId.value }) {
-                    removeRoomFromSpace(context, space, room)
-                } else {
-                    addRoomToSpace(context, space, room)
+                space.use {
+                    if (space.info().spaceChildren.any { it.roomId == room.roomId.value }) {
+                        removeRoomFromSpace(context, space, room)
+                    } else {
+                        addRoomToSpace(context, space, room)
+                    }
                 }
             }
             Action.Room.SetRoomName -> {
@@ -200,7 +214,7 @@ class RoomActionProvider(
                 }
             }
             Action.Room.CopyFullRoomAccountData -> {
-                val client = getClient() ?: return ActionResult.Failure("Client not ready")
+                val client = peekClient() ?: return ActionResult.Failure("Client not ready")
                 val result = client.getRoomAccountData(room.roomId)
                 if (result.isSuccess) {
                     val joined = result.getOrNull()?.joinToString(",\n\n") {
@@ -259,7 +273,7 @@ class RoomActionProvider(
     }
 
     private suspend fun updateGlobalAccountData(eventType: String, update: (JsonObject?) -> JsonObject?): ActionResult {
-        val client = getClient() ?: return ActionResult.Failure("Client not ready")
+        val client = peekClient() ?: return ActionResult.Failure("Client not ready")
         return updateAccountData(client, eventType, update)
     }
 

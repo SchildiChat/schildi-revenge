@@ -702,12 +702,8 @@ class InboxViewModel(
             sessionId = sessionId,
             roomId = roomId,
             isInvite = isInvite,
-            getClient = { UiState.currentClientFor(sessionId) },
-        ) {
-            UiState.currentClientFor(sessionId)?.let { client ->
-                // Joined room is preferred if possible
-                client.getJoinedRoom(roomId, ScTimelineFilterSettings()) ?: client.getRoom(roomId)
-            }
-        }
+            peekClient = { UiState.currentClientFor(sessionId) },
+            peekRoom = null,
+        )
     }
 }
