@@ -7,10 +7,10 @@ import chat.schildi.revenge.actions.AbstractAppMessage
 import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
-import chat.schildi.revenge.compose.util.throttleLatest
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.ConfigWatchers
 import chat.schildi.revenge.store.AppStateStore
+import chat.schildi.revenge.util.throttleLatest
 import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.createGraphFactory
 import io.element.android.libraries.matrix.api.core.RoomId

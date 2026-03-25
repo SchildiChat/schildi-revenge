@@ -5,9 +5,9 @@ import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPreferencesStore
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.revenge.UiState
-import chat.schildi.revenge.compose.util.throttleLatest
 import chat.schildi.revenge.model.ScopedRoomSummary
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource.SpaceUnreadCounts
+import chat.schildi.revenge.util.throttleLatest
 import dev.zacsweers.metro.Inject
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership

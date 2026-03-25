@@ -1,10 +1,13 @@
 package chat.schildi.revenge.util
 
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.flow
 
 @Suppress("UNCHECKED_CAST")
-fun <T1, T2, T3, T4, T5, T6, R> combine(
+fun <T1, T2, T3, T4, T5, T6, R>combine(
     flow: Flow<T1>,
     flow2: Flow<T2>,
     flow3: Flow<T3>,
@@ -21,4 +24,12 @@ fun <T1, T2, T3, T4, T5, T6, R> combine(
         args[4] as T5,
         args[5] as T6,
     )
+}
+
+// Emit immediately but delay too fast updates after that
+fun <T>Flow<T>.throttleLatest(period: Long) = flow {
+    conflate().collect {
+        emit(it)
+        delay(period)
+    }
 }

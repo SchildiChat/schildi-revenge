@@ -22,7 +22,6 @@ import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
-import chat.schildi.revenge.compose.util.throttleLatest
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.flatMerge
@@ -37,6 +36,7 @@ import chat.schildi.revenge.model.spaces.resolveSelection
 import chat.schildi.revenge.store.AppStateStore
 import chat.schildi.revenge.store.PersistentInboxState
 import chat.schildi.revenge.util.combine
+import chat.schildi.revenge.util.throttleLatest
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
