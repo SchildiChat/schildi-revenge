@@ -8,6 +8,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -38,6 +39,7 @@ import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
+import chat.schildi.revenge.compose.components.DiagnosticsRow
 import chat.schildi.revenge.compose.components.EmptyListScreen
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
@@ -124,6 +126,10 @@ fun InboxScreen(
                         modifier = Modifier,
                     )
                 }
+            }
+
+            if (ScPrefs.SHOW_DEV_INFOS.value()) {
+                DiagnosticsRow(Modifier.fillMaxWidth())
             }
 
             // Observe which rooms are visible in the list so subscribe to room list updates

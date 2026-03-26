@@ -36,6 +36,7 @@ import chat.schildi.revenge.model.DiagnosticsSnapshot
 import chat.schildi.revenge.model.DiagnosticsViewModel
 import chat.schildi.revenge.model.ProcessDiagnosticsSnapshot
 import chat.schildi.revenge.publishTitle
+import chat.schildi.revenge.util.formatBytes
 import chat.schildi.revenge.viewModelKey
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
@@ -200,15 +201,4 @@ private fun safeRatio(
 ): Float {
     if (maxValue <= 0L) return 0f
     return (value.toDouble() / maxValue.toDouble()).coerceIn(0.0, 1.0).toFloat()
-}
-
-private fun Long.formatBytes(): String {
-    val units = arrayOf("B", "KiB", "MiB", "GiB", "TiB")
-    var value = toDouble()
-    var unitIndex = 0
-    while (value >= 1024 && unitIndex < units.lastIndex) {
-        value /= 1024
-        unitIndex++
-    }
-    return String.format(Locale.ROOT, "%.1f %s", value, units[unitIndex])
 }
