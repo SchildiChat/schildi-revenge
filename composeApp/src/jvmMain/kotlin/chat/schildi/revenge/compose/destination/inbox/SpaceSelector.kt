@@ -61,7 +61,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.sc_space_all_rooms_title
+import shire.composeapp.generated.resources.pref_space_all_rooms_title
 
 @Composable
 fun SpaceSelectorRow(
@@ -403,7 +403,7 @@ private fun ShowAllTab(
     onClick: () -> Unit
 ) {
     AbstractSpaceTab(
-        text = stringResource(Res.string.sc_space_all_rooms_title),
+        text = stringResource(Res.string.pref_space_all_rooms_title),
         selected = selected,
         collapsed = collapsed,
         expandable = false,

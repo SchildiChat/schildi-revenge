@@ -88,53 +88,53 @@ import shire.composeapp.generated.resources.pref_view_hidden_events_title
 import shire.composeapp.generated.resources.pref_view_redactions_title
 import shire.composeapp.generated.resources.pref_window_transparency_summary
 import shire.composeapp.generated.resources.pref_window_transparency_title
-import shire.composeapp.generated.resources.sc_client_generated_unread_counts_summary
-import shire.composeapp.generated.resources.sc_client_generated_unread_counts_title
-import shire.composeapp.generated.resources.sc_compact_root_spaces_summary
-import shire.composeapp.generated.resources.sc_compact_root_spaces_title
-import shire.composeapp.generated.resources.sc_pref_bury_low_priority_summary
-import shire.composeapp.generated.resources.sc_pref_bury_low_priority_title
-import shire.composeapp.generated.resources.sc_pref_category_chat_sorting
-import shire.composeapp.generated.resources.sc_pref_category_general
-import shire.composeapp.generated.resources.sc_pref_category_general_appearance
-import shire.composeapp.generated.resources.sc_pref_category_general_behaviour
-import shire.composeapp.generated.resources.sc_pref_category_general_summary
-import shire.composeapp.generated.resources.sc_pref_category_unread_counts
-import shire.composeapp.generated.resources.sc_pref_client_side_sort_by_unread_summary
-import shire.composeapp.generated.resources.sc_pref_client_side_sort_by_unread_title
-import shire.composeapp.generated.resources.sc_pref_dual_mention_unread_counts_summary
-import shire.composeapp.generated.resources.sc_pref_dual_mention_unread_counts_title
-import shire.composeapp.generated.resources.sc_pref_pin_favorites_summary
-import shire.composeapp.generated.resources.sc_pref_pin_favorites_title
-import shire.composeapp.generated.resources.sc_pref_render_silent_unread_summary
-import shire.composeapp.generated.resources.sc_pref_render_silent_unread_title
-import shire.composeapp.generated.resources.sc_pref_sort_with_silent_unread_summary
-import shire.composeapp.generated.resources.sc_pref_sort_with_silent_unread_title
-import shire.composeapp.generated.resources.sc_pseudo_space_accounts_summary
-import shire.composeapp.generated.resources.sc_pseudo_space_accounts_title
-import shire.composeapp.generated.resources.sc_pseudo_space_dms
-import shire.composeapp.generated.resources.sc_pseudo_space_favorites
-import shire.composeapp.generated.resources.sc_pseudo_space_groups
-import shire.composeapp.generated.resources.sc_pseudo_space_hide_empty_unread
-import shire.composeapp.generated.resources.sc_pseudo_space_invites
-import shire.composeapp.generated.resources.sc_pseudo_space_notifications
-import shire.composeapp.generated.resources.sc_pseudo_space_spaceless
-import shire.composeapp.generated.resources.sc_pseudo_space_spaceless_groups
-import shire.composeapp.generated.resources.sc_pseudo_space_unread
-import shire.composeapp.generated.resources.sc_pseudo_spaces_summary
-import shire.composeapp.generated.resources.sc_pseudo_spaces_title
-import shire.composeapp.generated.resources.sc_space_all_rooms_summary
-import shire.composeapp.generated.resources.sc_space_all_rooms_title
-import shire.composeapp.generated.resources.sc_space_unread_counts_mode_chats
-import shire.composeapp.generated.resources.sc_space_unread_counts_mode_hide
-import shire.composeapp.generated.resources.sc_space_unread_counts_mode_messages
-import shire.composeapp.generated.resources.sc_space_unread_counts_mode_title
-import shire.composeapp.generated.resources.sc_url_previews_in_e2ee_rooms_summary
-import shire.composeapp.generated.resources.sc_url_previews_in_e2ee_rooms_title
-import shire.composeapp.generated.resources.sc_url_previews_require_explicit_links_summary
-import shire.composeapp.generated.resources.sc_url_previews_require_explicit_links_title
-import shire.composeapp.generated.resources.sc_url_previews_summary
-import shire.composeapp.generated.resources.sc_url_previews_title
+import shire.composeapp.generated.resources.pref_client_generated_unread_counts_summary
+import shire.composeapp.generated.resources.pref_client_generated_unread_counts_title
+import shire.composeapp.generated.resources.pref_compact_root_spaces_summary
+import shire.composeapp.generated.resources.pref_compact_root_spaces_title
+import shire.composeapp.generated.resources.pref_bury_low_priority_summary
+import shire.composeapp.generated.resources.pref_bury_low_priority_title
+import shire.composeapp.generated.resources.pref_category_chat_sorting
+import shire.composeapp.generated.resources.pref_category_general
+import shire.composeapp.generated.resources.pref_category_general_appearance
+import shire.composeapp.generated.resources.pref_category_general_behaviour
+import shire.composeapp.generated.resources.pref_category_general_summary
+import shire.composeapp.generated.resources.pref_category_unread_counts
+import shire.composeapp.generated.resources.pref_client_side_sort_by_unread_summary
+import shire.composeapp.generated.resources.pref_client_side_sort_by_unread_title
+import shire.composeapp.generated.resources.pref_dual_mention_unread_counts_summary
+import shire.composeapp.generated.resources.pref_dual_mention_unread_counts_title
+import shire.composeapp.generated.resources.pref_pin_favorites_summary
+import shire.composeapp.generated.resources.pref_pin_favorites_title
+import shire.composeapp.generated.resources.pref_render_silent_unread_summary
+import shire.composeapp.generated.resources.pref_render_silent_unread_title
+import shire.composeapp.generated.resources.pref_sort_with_silent_unread_summary
+import shire.composeapp.generated.resources.pref_sort_with_silent_unread_title
+import shire.composeapp.generated.resources.pseudo_space_accounts_summary
+import shire.composeapp.generated.resources.pseudo_space_accounts_title
+import shire.composeapp.generated.resources.pseudo_space_dms
+import shire.composeapp.generated.resources.pseudo_space_favorites
+import shire.composeapp.generated.resources.pseudo_space_groups
+import shire.composeapp.generated.resources.pseudo_space_hide_empty_unread
+import shire.composeapp.generated.resources.pseudo_space_invites
+import shire.composeapp.generated.resources.pseudo_space_notifications
+import shire.composeapp.generated.resources.pseudo_space_spaceless
+import shire.composeapp.generated.resources.pseudo_space_spaceless_groups
+import shire.composeapp.generated.resources.pseudo_space_unread
+import shire.composeapp.generated.resources.pref_pseudo_spaces_summary
+import shire.composeapp.generated.resources.pref_pseudo_spaces_title
+import shire.composeapp.generated.resources.pref_space_all_rooms_summary
+import shire.composeapp.generated.resources.pref_space_all_rooms_title
+import shire.composeapp.generated.resources.pref_space_unread_counts_mode_chats
+import shire.composeapp.generated.resources.pref_space_unread_counts_mode_hide
+import shire.composeapp.generated.resources.pref_space_unread_counts_mode_messages
+import shire.composeapp.generated.resources.pref_space_unread_counts_mode_title
+import shire.composeapp.generated.resources.pref_url_previews_in_e2ee_rooms_summary
+import shire.composeapp.generated.resources.pref_url_previews_in_e2ee_rooms_title
+import shire.composeapp.generated.resources.pref_url_previews_require_explicit_links_summary
+import shire.composeapp.generated.resources.pref_url_previews_require_explicit_links_title
+import shire.composeapp.generated.resources.pref_url_previews_summary
+import shire.composeapp.generated.resources.pref_url_previews_title
 
 object ScPrefs {
 
@@ -175,17 +175,6 @@ object ScPrefs {
     val RENDER_AVATAR_STATES = ScBoolPref("RENDER_AVATAR_STATES", false, Res.string.pref_debug_avatar_render_states_title)
     val SHOW_DEV_INFOS = ScBoolPref("SHOW_DEV_INFOS", false, Res.string.pref_show_dev_infos_title, Res.string.pref_show_dev_infos_summary)
     val FRAME_DROP_SPINNER = ScBoolPref("FRAME_DROP_SPINNER", false, Res.string.pref_framed_rop_spinner_title, Res.string.pref_framed_rop_spinner_summary)
-    /*
-    private val SC_DANGER_ZONE = ScBoolPref("SC_DANGER_ZONE", false, Res.string.sc_pref_danger_zone, Res.string.sc_pref_danger_zone_summary, authorsChoice = true)
-    val SC_PUSH_INFO = ScActionablePref("SC_PUSH_INFO", Res.string.sc_push_info_title, Res.string.sc_push_info_summary)
-    val SC_USER_CHANGED_SETTINGS = ScActionablePref("SC_USER_CHANGED_SETTINGS", Res.string.sc_pref_user_changed_prefs_title, Res.string.sc_pref_user_changed_prefs_summary)
-    val SC_DEV_QUICK_OPTIONS = ScBoolPref("SC_DEV_QUICK_OPTIONS", false, Res.string.sc_pref_dev_quick_options, authorsChoice = true)
-    val READ_MARKER_DEBUG = ScBoolPref("READ_MARKER_DEBUG", false, Res.string.sc_pref_debug_read_marker, authorsChoice = true, upstreamChoice = false)
-    val SC_RESTORE_DEFAULTS = ScActionablePref("SC_RESTORE_DEFAULTS", Res.string.sc_pref_restore_defaults, dependencies = SC_DANGER_ZONE.asDependencies())
-    val SC_RESTORE_ADVANCED_THEME_DEFAULTS = ScActionablePref("SC_RESTORE_ADVANCED_THEME_DEFAULTS", Res.string.sc_pref_restore_defaults)
-    val SC_RESTORE_UPSTREAM = ScActionablePref("SC_RESTORE_UPSTREAM", Res.string.sc_pref_restore_element, dependencies = SC_DANGER_ZONE.asDependencies())
-    val SC_RESTORE_AUTHORS_CHOICE = ScActionablePref("SC_RESTORE_AUTHORS_CHOICE", Res.string.sc_pref_restore_authors_choice, dependencies = SC_DANGER_ZONE.asDependencies())
-    */
 
     // Appearance
     val INITIAL_WINDOW_WIDTH = ScIntPref("INITIAL_WINDOW_WIDTH", 900, Res.string.pref_initial_window_width_title, Res.string.pref_initial_window_width_summary, minValue = 600, maxValue = 3840)
@@ -195,37 +184,24 @@ object ScPrefs {
     val BACKGROUND_ALPHA_DARK = ScFloatPref("BACKGROUND_ALPHA_DARK", 1f, Res.string.pref_window_transparency_title, Res.string.pref_window_transparency_summary, minValue = 0f, maxValue = 1f, dependencies = HIDE_WINDOW_DECORATION.asDependencies(), stepSize = 0.01f, stringFormat = "%.2f")
     val THEME_FOLLOW_SYSTEM = ScBoolPref("THEME_FOLLOW_SYSTEM", true, Res.string.pref_theme_follow_system_title, Res.string.pref_theme_follow_system_summary)
     val THEME_DARK = ScBoolPref("THEME_DARK", false, Res.string.pref_dark_theme_title, dependencies = listOf(THEME_FOLLOW_SYSTEM.toDependency(expect = false)))
-    /*
-    val SC_THEME = ScBoolPref("SC_THEMES", true, Res.string.sc_pref_sc_themes_title, Res.string.sc_pref_sc_themes_summary, upstreamChoice = false)
-    val EL_TYPOGRAPHY = ScBoolPref("EL_TYPOGRAPHY", false, Res.string.sc_pref_el_typography_title, Res.string.sc_pref_el_typography_summary, upstreamChoice = true)
 
-    // General behavior
-    val FAST_TRANSITIONS = ScBoolPref("FAST_TRANSITIONS", true, Res.string.sc_pref_fast_transitions_title, Res.string.sc_pref_fast_transitions_summary, upstreamChoice = false)
-    val NOTIFICATION_ONLY_ALERT_ONCE = ScBoolPref("NOTIFICATION_ONLY_ALERT_ONCE", false, Res.string.sc_pref_notification_only_alert_once_title, Res.string.sc_pref_notification_only_alert_once_summary, upstreamChoice = false)
-    val SHOW_SYNCING_INDICATOR = ScBoolPref("SHOW_SYNCING_INDICATOR", true, Res.string.sc_pref_syncing_indicator_title, Res.string.sc_pref_syncing_indicator_summary, upstreamChoice = true, authorsChoice = true)
-    val DEBOUNCE_OFFLINE_STATE = ScBoolPref("DEBOUNCE_OFFLINE_STATE", true, Res.string.sc_pref_debounce_offline_state_title, Res.string.sc_pref_debounce_offline_state_summary, authorsChoice = null, upstreamChoice = false)
-
-    // Chat overview
-    val SC_OVERVIEW_LAYOUT = ScBoolPref("SC_OVERVIEW_LAYOUT", true, Res.string.sc_pref_sc_overview_layout_title, Res.string.sc_pref_sc_layout_summary, upstreamChoice = false)
-     */
-    val CLIENT_GENERATED_UNREAD_COUNTS = ScBoolPref("CLIENT_GENERATED_UNREAD_COUNTS", true, Res.string.sc_client_generated_unread_counts_title, Res.string.sc_client_generated_unread_counts_summary, disabledValue = true)
-    val RENDER_SILENT_UNREAD = ScBoolPref("RENDER_SILENT_UNREAD", true, Res.string.sc_pref_render_silent_unread_title, Res.string.sc_pref_render_silent_unread_summary, disabledValue = false)
-    val PIN_FAVORITES = ScBoolPref("PIN_FAVORITES", false, Res.string.sc_pref_pin_favorites_title, Res.string.sc_pref_pin_favorites_summary)
-    val BURY_LOW_PRIORITY = ScBoolPref("BURY_LOW_PRIORITY", false, Res.string.sc_pref_bury_low_priority_title, Res.string.sc_pref_bury_low_priority_summary)
-    val SORT_BY_UNREAD = ScBoolPref("SORT_BY_UNREAD", false, Res.string.sc_pref_client_side_sort_by_unread_title, Res.string.sc_pref_client_side_sort_by_unread_summary)
+    val CLIENT_GENERATED_UNREAD_COUNTS = ScBoolPref("CLIENT_GENERATED_UNREAD_COUNTS", true, Res.string.pref_client_generated_unread_counts_title, Res.string.pref_client_generated_unread_counts_summary, disabledValue = true)
+    val RENDER_SILENT_UNREAD = ScBoolPref("RENDER_SILENT_UNREAD", true, Res.string.pref_render_silent_unread_title, Res.string.pref_render_silent_unread_summary, disabledValue = false)
+    val PIN_FAVORITES = ScBoolPref("PIN_FAVORITES", false, Res.string.pref_pin_favorites_title, Res.string.pref_pin_favorites_summary)
+    val BURY_LOW_PRIORITY = ScBoolPref("BURY_LOW_PRIORITY", false, Res.string.pref_bury_low_priority_title, Res.string.pref_bury_low_priority_summary)
+    val SORT_BY_UNREAD = ScBoolPref("SORT_BY_UNREAD", false, Res.string.pref_client_side_sort_by_unread_title, Res.string.pref_client_side_sort_by_unread_summary)
     val SORT_WITH_SILENT_UNREAD = ScBoolPref(
         "SORT_WITH_SILENT_UNREAD",
         true,
-        Res.string.sc_pref_sort_with_silent_unread_title,
-        Res.string.sc_pref_sort_with_silent_unread_summary,
+        Res.string.pref_sort_with_silent_unread_title,
+        Res.string.pref_sort_with_silent_unread_summary,
         disabledValue = false,
         dependencies = listOf(
             SORT_BY_UNREAD.toDependency(),
             RENDER_SILENT_UNREAD.toDependency(),
         )
     )
-    val DUAL_MENTION_UNREAD_COUNTS = ScBoolPref("DUAL_MENTION_UNREAD_COUNTS", false, Res.string.sc_pref_dual_mention_unread_counts_title, Res.string.sc_pref_dual_mention_unread_counts_summary)
-    //val HIDE_INVITES = ScBoolPref("HIDE_INVITES", false, Res.string.sc_pref_hide_invites_title, Res.string.sc_pref_hide_invites_summary)
+    val DUAL_MENTION_UNREAD_COUNTS = ScBoolPref("DUAL_MENTION_UNREAD_COUNTS", false, Res.string.pref_dual_mention_unread_counts_title, Res.string.pref_dual_mention_unread_counts_summary)
     val PREFER_DUAL_PANE_INBOX = ScBoolPref("PREFER_DUAL_PANE_INBOX", true, Res.string.pref_prefer_dual_pane_inbox_title, Res.string.pref_prefer_dual_pane_inbox_summary)
     val PREFER_CONVERSATION_DETAILS_SPLIT = ScBoolPref("PREFER_CONVERSATION_DETAILS_SPLIT", true, Res.string.pref_conversation_details_split_title, Res.string.pref_conversation_details_split_summary)
     val HIDE_EMPTY_INBOX_PANE = ScBoolPref("HIDE_EMPTY_INBOX_PANE", false, Res.string.pref_hide_empty_inbox_pane_title, Res.string.pref_hide_empty_inbox_pane_summary)
@@ -234,29 +210,29 @@ object ScPrefs {
     val CONVERSATION_DETAILS_SPLIT_MIN_WIDTH = ScIntPref("CONVERSATION_DETAILS_SPLIT_MIN_WIDTH", 1000, Res.string.pref_conversation_details_split_min_width_title, minValue = 400, maxValue = 2000)
 
     // Spaces
-    val COMPACT_ROOT_SPACES = ScBoolPref("COMPACT_ROOT_SPACES", false, Res.string.sc_compact_root_spaces_title, Res.string.sc_compact_root_spaces_summary)
+    val COMPACT_ROOT_SPACES = ScBoolPref("COMPACT_ROOT_SPACES", false, Res.string.pref_compact_root_spaces_title, Res.string.pref_compact_root_spaces_summary)
     val SPACE_UNREAD_COUNTS = ScStringListPref(
         "SPACE_UNREAD_COUNTS",
         SpaceUnreadCountMode.MESSAGES,
         persistentListOf(
-            ScListPrefEntry(SpaceUnreadCountMode.MESSAGES, Res.string.sc_space_unread_counts_mode_messages.toStringHolder()),
-            ScListPrefEntry(SpaceUnreadCountMode.CHATS, Res.string.sc_space_unread_counts_mode_chats.toStringHolder()),
-            ScListPrefEntry(SpaceUnreadCountMode.HIDE, Res.string.sc_space_unread_counts_mode_hide.toStringHolder()),
+            ScListPrefEntry(SpaceUnreadCountMode.MESSAGES, Res.string.pref_space_unread_counts_mode_messages.toStringHolder()),
+            ScListPrefEntry(SpaceUnreadCountMode.CHATS, Res.string.pref_space_unread_counts_mode_chats.toStringHolder()),
+            ScListPrefEntry(SpaceUnreadCountMode.HIDE, Res.string.pref_space_unread_counts_mode_hide.toStringHolder()),
         ),
-        Res.string.sc_space_unread_counts_mode_title,
+        Res.string.pref_space_unread_counts_mode_title,
         null,
     )
-    val PSEUDO_SPACE_ALL_ROOMS = ScBoolPref("PSEUDO_SPACE_ALL_CHATS", true, Res.string.sc_space_all_rooms_title, Res.string.sc_space_all_rooms_summary)
-    val PSEUDO_SPACE_FAVORITES = ScBoolPref("PSEUDO_SPACE_FAVORITES", true, Res.string.sc_pseudo_space_favorites, null)
-    val PSEUDO_SPACE_DMS = ScBoolPref("PSEUDO_SPACE_DMS", true, Res.string.sc_pseudo_space_dms, null)
-    val PSEUDO_SPACE_GROUPS = ScBoolPref("PSEUDO_SPACE_GROUPS", false, Res.string.sc_pseudo_space_groups, null)
-    val PSEUDO_SPACE_SPACELESS_GROUPS = ScBoolPref("PSEUDO_SPACE_SPACELESS_GROUPS", false, Res.string.sc_pseudo_space_spaceless_groups, null)
-    val PSEUDO_SPACE_SPACELESS = ScBoolPref("PSEUDO_SPACE_SPACELESS", false, Res.string.sc_pseudo_space_spaceless, null)
-    val PSEUDO_SPACE_NOTIFICATIONS = ScBoolPref("PSEUDO_SPACE_NOTIFICATIONS", true, Res.string.sc_pseudo_space_notifications, null)
-    val PSEUDO_SPACE_UNREAD = ScBoolPref("PSEUDO_SPACE_UNREAD", false, Res.string.sc_pseudo_space_unread, null)
-    val PSEUDO_SPACE_INVITES = ScBoolPref("PSEUDO_SPACE_INVITES", true, Res.string.sc_pseudo_space_invites, null)
-    val PSEUDO_SPACE_ACCOUNTS = ScBoolPref("PSEUDO_SPACE_ACCOUNTS", false, Res.string.sc_pseudo_space_accounts_title, Res.string.sc_pseudo_space_accounts_summary)
-    val PSEUDO_SPACE_HIDE_EMPTY_UNREAD = ScBoolPref("PSEUDO_SPACE_HIDE_EMPTY_UNREAD", true, Res.string.sc_pseudo_space_hide_empty_unread, null, dependencies = listOf(
+    val PSEUDO_SPACE_ALL_ROOMS = ScBoolPref("PSEUDO_SPACE_ALL_CHATS", true, Res.string.pref_space_all_rooms_title, Res.string.pref_space_all_rooms_summary)
+    val PSEUDO_SPACE_FAVORITES = ScBoolPref("PSEUDO_SPACE_FAVORITES", true, Res.string.pseudo_space_favorites, null)
+    val PSEUDO_SPACE_DMS = ScBoolPref("PSEUDO_SPACE_DMS", true, Res.string.pseudo_space_dms, null)
+    val PSEUDO_SPACE_GROUPS = ScBoolPref("PSEUDO_SPACE_GROUPS", false, Res.string.pseudo_space_groups, null)
+    val PSEUDO_SPACE_SPACELESS_GROUPS = ScBoolPref("PSEUDO_SPACE_SPACELESS_GROUPS", false, Res.string.pseudo_space_spaceless_groups, null)
+    val PSEUDO_SPACE_SPACELESS = ScBoolPref("PSEUDO_SPACE_SPACELESS", false, Res.string.pseudo_space_spaceless, null)
+    val PSEUDO_SPACE_NOTIFICATIONS = ScBoolPref("PSEUDO_SPACE_NOTIFICATIONS", true, Res.string.pseudo_space_notifications, null)
+    val PSEUDO_SPACE_UNREAD = ScBoolPref("PSEUDO_SPACE_UNREAD", false, Res.string.pseudo_space_unread, null)
+    val PSEUDO_SPACE_INVITES = ScBoolPref("PSEUDO_SPACE_INVITES", true, Res.string.pseudo_space_invites, null)
+    val PSEUDO_SPACE_ACCOUNTS = ScBoolPref("PSEUDO_SPACE_ACCOUNTS", false, Res.string.pseudo_space_accounts_title, Res.string.pseudo_space_accounts_summary)
+    val PSEUDO_SPACE_HIDE_EMPTY_UNREAD = ScBoolPref("PSEUDO_SPACE_HIDE_EMPTY_UNREAD", true, Res.string.pseudo_space_hide_empty_unread, null, dependencies = listOf(
         ScPrefFulfilledForAnyDependency(listOf(PSEUDO_SPACE_NOTIFICATIONS.toDependency(), PSEUDO_SPACE_UNREAD.toDependency(), PSEUDO_SPACE_INVITES.toDependency()))
     ))
 
@@ -277,69 +253,32 @@ object ScPrefs {
         summaryRes = Res.string.pref_preferred_message_format_summary,
     )
     val FORMATTED_COMPOSER_PREVIEW = ScBoolPref("FORMATTED_COMPOSER_PREVIEW", false, Res.string.pref_formatted_composer_preview_title, Res.string.pref_formatted_composer_preview_summary)
-    /*
-    val PINNED_MESSAGE_OVERLAY = ScBoolPref("PINNED_MESSAGE_OVERLAY", false, Res.string.sc_pref_pinned_message_overlay_title, Res.string.sc_pref_pinned_message_overlay_summary, authorsChoice = false, upstreamChoice = true)
-    val PINNED_MESSAGE_TOOLBAR_ACTION = ScBoolPref("PINNED_MESSAGE_TOOLBAR_ACTION", true, Res.string.sc_pref_pinned_message_toolbar_title, Res.string.sc_pref_pinned_message_toolbar_summary, authorsChoice = true, upstreamChoice = false, dependencies = PINNED_MESSAGE_OVERLAY.asDependencies(expect = false), disabledValue = false)
-    val HIDE_CALL_TOOLBAR_ACTION = ScBoolPref("HIDE_CALL_TOOLBAR_ACTION", false, Res.string.sc_pref_hide_call_toolbar_action_title, Res.string.sc_pref_hide_call_toolbar_action_summary, authorsChoice = true, upstreamChoice = false)
-    val SC_TIMELINE_LAYOUT = ScBoolPref("SC_TIMELINE_LAYOUT", true, Res.string.sc_pref_sc_timeline_layout_title, Res.string.sc_pref_sc_layout_summary, upstreamChoice = false)
-    val FLOATING_DATE = ScBoolPref("FLOATING_DATE", true, Res.string.sc_pref_sc_floating_date_title, Res.string.sc_pref_sc_floating_date_summary, upstreamChoice = false)
-    val PL_DISPLAY_NAME = ScBoolPref("PL_DISPLAY_NAME", false, Res.string.sc_pref_pl_display_name_title, Res.string.sc_pref_pl_display_name_summary_warning, authorsChoice = false, upstreamChoice = false)
-    val SYNC_READ_RECEIPT_AND_MARKER = ScBoolPref("SYNC_READ_RECEIPT_AND_MARKER", false, Res.string.sc_sync_read_receipt_and_marker_title, Res.string.sc_sync_read_receipt_and_marker_summary, authorsChoice = true, dependencies = SC_DANGER_ZONE.asDependencies())
-    val MARK_READ_REQUIRES_SEEN_UNREAD_LINE = ScBoolPref("MARK_READ_REQUIRES_SEEN_UNREAD_LINE", true, Res.string.sc_pref_mark_read_requires_seen_unread_line_title, Res.string.sc_pref_mark_read_requires_seen_unread_line_summary, authorsChoice = false, dependencies = SYNC_READ_RECEIPT_AND_MARKER.asDependencies())
-    val PREFER_FREEFORM_REACTIONS = ScBoolPref("PREFER_FREEFORM_REACTIONS", false, Res.string.sc_pref_prefer_freeform_reactions_title, Res.string.sc_pref_prefer_freeform_reactions_summary, authorsChoice = false)
-    val PREFER_FULLSCREEN_REACTION_SHEET = ScBoolPref("PREFER_FULLSCREEN_REACTION_SHEET", false, Res.string.sc_pref_prefer_fullscreen_reaction_sheet_title, Res.string.sc_pref_prefer_fullscreen_reaction_sheet_summary, authorsChoice = false, upstreamChoice = false)
-    val ALWAYS_SHOW_REACTION_SEARCH_BAR = ScBoolPref("ALWAYS_SHOW_REACTION_SEARCH_BAR", false, Res.string.sc_pref_always_show_reaction_search_bar_title, Res.string.sc_pref_always_show_reaction_search_bar_summary, authorsChoice = false, upstreamChoice = true)
-    val JUMP_TO_UNREAD = ScBoolPref("JUMP_TO_UNREAD", false, Res.string.sc_pref_jump_to_unread_title, Res.string.sc_pref_jump_to_unread_option_summary, authorsChoice = true, upstreamChoice = false)
-    val RENDER_INLINE_IMAGES = ScBoolPref("RENDER_INLINE_IMAGES", true, Res.string.sc_pref_render_inline_images_title, Res.string.sc_pref_render_inline_images_summary, authorsChoice = true, upstreamChoice = false)
-    */
-    val URL_PREVIEWS = ScBoolPref("URL_PREVIEWS", false, Res.string.sc_url_previews_title, Res.string.sc_url_previews_summary)
-    val URL_PREVIEWS_IN_E2EE_ROOMS = ScBoolPref("URL_PREVIEWS_IN_E2EE_ROOMS", false, Res.string.sc_url_previews_in_e2ee_rooms_title, Res.string.sc_url_previews_in_e2ee_rooms_summary, dependencies = URL_PREVIEWS.asDependencies(), disabledValue = false)
-    val URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS = ScBoolPref("URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS", true, Res.string.sc_url_previews_require_explicit_links_title, Res.string.sc_url_previews_require_explicit_links_summary, dependencies = URL_PREVIEWS.asDependencies(), disabledValue = null)
-    /*
-    val REPLY_PREVIEW_LINE_COUNT = ScIntPref("REPLY_PREVIEW_LINE_COUNT", 4, Res.string.sc_reply_preview_line_count_title, Res.string.sc_reply_preview_line_count_summary, minValue = 1, authorsChoice = 4, upstreamChoice = 2)
-    val FULLY_EXPAND_MESSAGE_MENU = ScBoolPref("FULLY_EXPAND_MESSAGE_MENU", false, Res.string.sc_pref_fully_expand_message_menu_title, Res.string.sc_pref_fully_expand_message_menu_summary, authorsChoice = true, upstreamChoice = false)
-    val MESSAGE_CONTEXT_MENU_TEXT_SELECTABLE = ScBoolPref("MESSAGE_CONTEXT_MENU_TEXT_SELECTABLE", true, Res.string.sc_pref_message_context_menu_text_selectable_title, Res.string.sc_pref_message_context_menu_text_selectable_summary, authorsChoice = true, upstreamChoice = false)
-     */
+    val URL_PREVIEWS = ScBoolPref("URL_PREVIEWS", false, Res.string.pref_url_previews_title, Res.string.pref_url_previews_summary)
+    val URL_PREVIEWS_IN_E2EE_ROOMS = ScBoolPref("URL_PREVIEWS_IN_E2EE_ROOMS", false, Res.string.pref_url_previews_in_e2ee_rooms_title, Res.string.pref_url_previews_in_e2ee_rooms_summary, dependencies = URL_PREVIEWS.asDependencies(), disabledValue = false)
+    val URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS = ScBoolPref("URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS", true, Res.string.pref_url_previews_require_explicit_links_title, Res.string.pref_url_previews_require_explicit_links_summary, dependencies = URL_PREVIEWS.asDependencies(), disabledValue = null)
 
     // Composer
     val AUTO_HIDE_COMPOSER = ScBoolPref("AUTO_HIDE_COMPOSER", false, Res.string.pref_auto_hide_composer_title, Res.string.pref_auto_hide_composer_summary, dependencies = MINIMAL_MODE.asDependencies())
     val SEND_TYPING_NOTICE = ScBoolPref("SEND_TYPING_NOTICE", true, Res.string.pref_send_typing_notice_title, Res.string.pref_send_typing_notice_summary)
     val DISABLE_SEND_TYPING_NOTICE_IN_PUBLIC_ROOMS = ScBoolPref("DISABLE_SEND_TYPING_NOTICE_IN_PUBLIC_ROOMS", false, Res.string.pref_disable_typing_notice_in_public_rooms_title, Res.string.pref_disable_typing_notice_in_public_rooms_summary, dependencies = SEND_TYPING_NOTICE.asDependencies())
 
-    /*
-    // Advanced theming options - Light theme
-    val BUBBLE_BG_LIGHT_OUTGOING = ScColorPref("BUBBLE_BG_LIGHT_OUTGOING", Res.string.sc_pref_bubble_color_outgoing_title)
-    val BUBBLE_BG_LIGHT_INCOMING = ScColorPref("BUBBLE_BG_LIGHT_INCOMING", Res.string.sc_pref_bubble_color_incoming_title)
-    // Advanced theming options - Dark theme
-    val BUBBLE_BG_DARK_OUTGOING = ScColorPref("BUBBLE_BG_DARK_OUTGOING", Res.string.sc_pref_bubble_color_outgoing_title)
-    val BUBBLE_BG_DARK_INCOMING = ScColorPref("BUBBLE_BG_DARK_INCOMING", Res.string.sc_pref_bubble_color_incoming_title)
-     */
-
     val rootPrefs = ScPrefScreen("ROOT", Res.string.hint_settings, null, listOf<AbstractScPref>(
-        ScPrefScreen("GENERAL", Res.string.sc_pref_category_general, Res.string.sc_pref_category_general_summary, listOf(
+        ScPrefScreen("GENERAL", Res.string.pref_category_general, Res.string.pref_category_general_summary, listOf(
             CLOSE_TO_TRAY,
             DESKTOP_NOTIFICATIONS,
             ScPrefCategory("UI_SCALE", Res.string.pref_category_scale, null, listOf(
                 RENDER_SCALE,
                 FONT_SCALE,
             )),
-            ScPrefCategory("GENERAL_APPEARANCE", Res.string.sc_pref_category_general_appearance, null, listOf(
+            ScPrefCategory("GENERAL_APPEARANCE", Res.string.pref_category_general_appearance, null, listOf(
                 THEME_FOLLOW_SYSTEM,
                 THEME_DARK,
                 HIDE_WINDOW_DECORATION,
                 ScPrefCategory("THEME_LIGHT", Res.string.pref_category_theme_light, null, listOf(
                     BACKGROUND_ALPHA_LIGHT,
-                    /*
-                    BUBBLE_BG_LIGHT_INCOMING,
-                    BUBBLE_BG_LIGHT_OUTGOING,
-                     */
                 )),
                 ScPrefCategory("THEME_DARK", Res.string.pref_category_theme_dark, null, listOf(
                     BACKGROUND_ALPHA_DARK,
-                    /*
-                    BUBBLE_BG_DARK_INCOMING,
-                    BUBBLE_BG_DARK_OUTGOING,
-                     */
                 )),
             )),
             ScPrefCategory("KEYBOARD_CONTROL", Res.string.pref_category_keyboard_control, null, listOf(
@@ -348,20 +287,15 @@ object ScPrefs {
                 FOCUS_FOLLOWS_MOUSE,
                 ALWAYS_SHOW_KEYBOARD_FOCUS,
             )),
-            /*
-            ScPrefCategory(Res.string.sc_pref_category_general_behaviour, null, listOf(
-                FAST_TRANSITIONS,
-            )),
-            */
         )),
         ScPrefScreen("INBOX", Res.string.pref_category_inbox, Res.string.pref_category_inbox_summary, listOf(
-            ScPrefCategory("INBOX_SORT", Res.string.sc_pref_category_chat_sorting, null, listOf(
+            ScPrefCategory("INBOX_SORT", Res.string.pref_category_chat_sorting, null, listOf(
                 SORT_BY_UNREAD,
                 SORT_WITH_SILENT_UNREAD,
                 PIN_FAVORITES,
                 BURY_LOW_PRIORITY,
             )),
-            ScPrefCategory("INBOX_UNREADS", Res.string.sc_pref_category_unread_counts, null, listOf(
+            ScPrefCategory("INBOX_UNREADS", Res.string.pref_category_unread_counts, null, listOf(
                 RENDER_SILENT_UNREAD,
                 DUAL_MENTION_UNREAD_COUNTS,
             )),
@@ -372,42 +306,20 @@ object ScPrefs {
             HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS,
             PREFERRED_MESSAGE_FORMAT,
             FORMATTED_COMPOSER_PREVIEW,
-            /*
-            SC_TIMELINE_LAYOUT,
-            RENDER_INLINE_IMAGES,
-            FLOATING_DATE,
-            HIDE_CALL_TOOLBAR_ACTION,
-            REPLY_PREVIEW_LINE_COUNT,
-            */
             ScPrefCategory("TYPING_INDICATORS", Res.string.pref_category_typing_notices, null, listOf(
                 SEND_TYPING_NOTICE,
                 DISABLE_SEND_TYPING_NOTICE_IN_PUBLIC_ROOMS,
             )),
-            ScPrefCategory("URL_PREVIEWS", Res.string.sc_url_previews_title, null, listOf(
+            ScPrefCategory("URL_PREVIEWS", Res.string.pref_url_previews_title, null, listOf(
                 URL_PREVIEWS,
                 URL_PREVIEWS_IN_E2EE_ROOMS,
                 URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS,
             )),
-            /*
-            ScPrefCategory(Res.string.sc_pref_category_pinned_messages, null, listOf(
-                PINNED_MESSAGE_OVERLAY,
-                PINNED_MESSAGE_TOOLBAR_ACTION,
-            )),
-            ScPrefCategory(Res.string.sc_pref_category_message_context_menu, null, listOf(
-                MESSAGE_CONTEXT_MENU_TEXT_SELECTABLE,
-                FULLY_EXPAND_MESSAGE_MENU,
-            )),
-            ScPrefCategory(Res.string.sc_pref_category_reactions, null, listOf(
-                PREFER_FREEFORM_REACTIONS,
-                PREFER_FULLSCREEN_REACTION_SHEET,
-                ALWAYS_SHOW_REACTION_SEARCH_BAR,
-            )),
-            */
         )),
         ScPrefScreen("SPACES", Res.string.pref_category_spaces, Res.string.pref_category_spaces_summary, listOf(
             SPACE_UNREAD_COUNTS,
             COMPACT_ROOT_SPACES,
-            ScPrefCategory("PSEUDO_SPACES", Res.string.sc_pseudo_spaces_title, Res.string.sc_pseudo_spaces_summary, listOf(
+            ScPrefCategory("PSEUDO_SPACES", Res.string.pref_pseudo_spaces_title, Res.string.pref_pseudo_spaces_summary, listOf(
                 PSEUDO_SPACE_ALL_ROOMS,
                 PSEUDO_SPACE_FAVORITES,
                 PSEUDO_SPACE_DMS,
@@ -419,17 +331,9 @@ object ScPrefs {
                 PSEUDO_SPACE_INVITES,
                 PSEUDO_SPACE_ACCOUNTS,
             )),
-            ScPrefCategory("PSEUDO_SPACE_BEHAVIOR", Res.string.sc_pref_category_general_behaviour, null, listOf(
+            ScPrefCategory("PSEUDO_SPACE_BEHAVIOR", Res.string.pref_category_general_behaviour, null, listOf(
                 PSEUDO_SPACE_HIDE_EMPTY_UNREAD,
             )),
-        )),
-        ScPrefScreen("DIMENSIONS", Res.string.pref_category_dimensions, Res.string.pref_category_dimensions_summary, listOf(
-            INITIAL_WINDOW_WIDTH,
-            INITIAL_WINDOW_HEIGHT,
-            MAX_WIDTH_INBOX,
-            MAX_WIDTH_CONVERSATION,
-            MAX_WIDTH_ROOM_DETAILS,
-            MAX_WIDTH_SETTINGS,
         )),
         ScPrefScreen("SPLIT", Res.string.pref_category_split_screen, Res.string.pref_category_split_screen_summary, listOf(
             PREFER_DUAL_PANE_INBOX,
@@ -448,96 +352,21 @@ object ScPrefs {
                 LAYOUT_WEIGHT_SETTINGS_ROOT,
             )),
         )),
+        ScPrefScreen("DIMENSIONS", Res.string.pref_category_dimensions, Res.string.pref_category_dimensions_summary, listOf(
+            INITIAL_WINDOW_WIDTH,
+            INITIAL_WINDOW_HEIGHT,
+            MAX_WIDTH_INBOX,
+            MAX_WIDTH_CONVERSATION,
+            MAX_WIDTH_ROOM_DETAILS,
+            MAX_WIDTH_SETTINGS,
+        )),
         ScPrefScreen("DEVELOPER", Res.string.pref_category_developer_options, null, prefs = listOf(
             RENDER_AVATAR_STATES,
             VIEW_HIDDEN_EVENTS,
             SHOW_DEV_INFOS,
             FRAME_DROP_SPINNER,
-            /*
-            SC_DEV_QUICK_OPTIONS,
-            READ_MARKER_DEBUG,
-            SC_DANGER_ZONE,
-            ScPrefScreen(Res.string.sc_pref_chamber_of_secrets_title, null, listOf(
-                ScDisclaimerPref("SC_CHAMBER_OF_SECRETS_DISCLAIMER", Res.string.sc_pref_chamber_of_secrets_summary),
-                CLIENT_GENERATED_UNREAD_COUNTS,
-                SYNC_READ_RECEIPT_AND_MARKER,
-                MARK_READ_REQUIRES_SEEN_UNREAD_LINE,
-            ), dependencies = SC_DANGER_ZONE.asDependencies()),
-            SC_RESTORE_DEFAULTS,
-            SC_RESTORE_UPSTREAM,
-            SC_RESTORE_AUTHORS_CHOICE,
-         */
         )),
     ))
-
-    /*
-    val prefsToExcludeFromBatchSet = listOf(
-        SC_DEVELOPER_OPTIONS_CATEGORY_KEY,
-    )
-
-    val devQuickTweaksOverview = listOf(
-        ELEMENT_ROOM_LIST_FILTERS, // Used to be: ScUpstreamFeatureFlagAliasPref(FeatureFlags.RoomListFilters, Res.string.sc_upstream_feature_flag_room_list_filters),
-        SNC_FAB.copy(titleRes = Res.string.sc_pref_snc_fab_title_short),
-        RENDER_SILENT_UNREAD,
-        ScPrefCategory(Res.string.sc_pref_category_chat_sorting, null, listOf(
-            SORT_BY_UNREAD,
-            SORT_WITH_SILENT_UNREAD,
-            PIN_FAVORITES,
-            BURY_LOW_PRIORITY,
-        )),
-        ScPrefCategory(Res.string.sc_pref_category_general_appearance, null, listOf(
-            SC_THEME,
-            SC_OVERVIEW_LAYOUT.copy(titleRes = Res.string.sc_pref_sc_layout_title),
-            EL_TYPOGRAPHY,
-        )),
-        ScPrefCategory(Res.string.sc_pref_category_spaces, null, listOf(
-            SPACE_NAV,
-            COMPACT_ROOT_SPACES,
-            ScPrefCategory(Res.string.sc_pseudo_spaces_title, null, listOf(
-                PSEUDO_SPACE_ALL_ROOMS,
-                PSEUDO_SPACE_FAVORITES,
-                PSEUDO_SPACE_DMS,
-                PSEUDO_SPACE_GROUPS,
-                PSEUDO_SPACE_SPACELESS_GROUPS.copy(titleRes = Res.string.sc_pseudo_space_spaceless_groups_short),
-                PSEUDO_SPACE_SPACELESS.copy(titleRes = Res.string.sc_pseudo_space_spaceless_short),
-                PSEUDO_SPACE_NOTIFICATIONS.copy(titleRes = Res.string.sc_pseudo_space_notifications_short),
-                PSEUDO_SPACE_UNREAD,
-                PSEUDO_SPACE_INVITES,
-                PSEUDO_SPACE_HIDE_EMPTY_UNREAD,
-            ), dependencies = SPACE_NAV.asDependencies()),
-        )),
-        ScPrefCategory(Res.string.sc_pref_category_misc, null, listOf(
-            HIDE_INVITES,
-            DUAL_MENTION_UNREAD_COUNTS.copy(titleRes = Res.string.sc_pref_dual_mention_unread_counts_title_short),
-            CLIENT_GENERATED_UNREAD_COUNTS,
-            SYNC_READ_RECEIPT_AND_MARKER.copy(titleRes = Res.string.sc_sync_read_receipt_and_marker_title_short),
-            MARK_READ_REQUIRES_SEEN_UNREAD_LINE.copy(titleRes = Res.string.sc_pref_mark_read_requires_seen_unread_line_title_short),
-        )),
-    )
-
-    val devQuickTweaksTimeline = listOf(
-        SC_THEME,
-        EL_TYPOGRAPHY,
-        SC_TIMELINE_LAYOUT.copy(titleRes = Res.string.sc_pref_sc_layout_title),
-        HIDE_CALL_TOOLBAR_ACTION,
-        PINNED_MESSAGE_OVERLAY.copy(titleRes = Res.string.sc_pref_pinned_message_overlay_title_short),
-        PINNED_MESSAGE_TOOLBAR_ACTION.copy(titleRes = Res.string.sc_pref_pinned_message_toolbar_title_short),
-        RENDER_INLINE_IMAGES,
-        MESSAGE_CONTEXT_MENU_TEXT_SELECTABLE.copy(titleRes = Res.string.sc_pref_message_context_menu_text_selectable_title_short),
-        ScPrefCategory(Res.string.sc_pref_category_reactions, null, listOf(
-            PREFER_FREEFORM_REACTIONS,
-            PREFER_FULLSCREEN_REACTION_SHEET,
-            ALWAYS_SHOW_REACTION_SEARCH_BAR,
-        )),
-        ScPrefCategory(Res.string.sc_pref_screen_experimental_title, null, listOf(
-            URL_PREVIEWS,
-            URL_PREVIEWS_IN_E2EE_ROOMS.copy(titleRes = Res.string.sc_url_previews_in_e2ee_rooms_title_short),
-            URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS.copy(titleRes = Res.string.sc_url_previews_require_explicit_links_title_short),
-            PL_DISPLAY_NAME,
-            READ_MARKER_DEBUG,
-        )),
-    )
-     */
 
     val validSettingKeys = rootPrefs.prefs.collectScPrefs().map { it.sKey }.toSet()
     val validCategoryKeys = buildList {

@@ -56,15 +56,15 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.nameless_space_fallback_title
-import shire.composeapp.generated.resources.sc_pseudo_space_dms
-import shire.composeapp.generated.resources.sc_pseudo_space_favorites
-import shire.composeapp.generated.resources.sc_pseudo_space_groups
-import shire.composeapp.generated.resources.sc_pseudo_space_invites
-import shire.composeapp.generated.resources.sc_pseudo_space_notifications_short
-import shire.composeapp.generated.resources.sc_pseudo_space_spaceless_groups_short
-import shire.composeapp.generated.resources.sc_pseudo_space_spaceless_short
-import shire.composeapp.generated.resources.sc_pseudo_space_unread
-import shire.composeapp.generated.resources.sc_space_all_rooms_title
+import shire.composeapp.generated.resources.pseudo_space_dms
+import shire.composeapp.generated.resources.pseudo_space_favorites
+import shire.composeapp.generated.resources.pseudo_space_groups
+import shire.composeapp.generated.resources.pseudo_space_invites
+import shire.composeapp.generated.resources.pseudo_space_notifications_short
+import shire.composeapp.generated.resources.pseudo_space_spaceless_groups_short
+import shire.composeapp.generated.resources.pseudo_space_spaceless_short
+import shire.composeapp.generated.resources.pseudo_space_unread
+import shire.composeapp.generated.resources.pref_space_all_rooms_title
 import timber.log.Timber
 
 const val REAL_SPACE_ID_PREFIX = "s:"
@@ -165,33 +165,33 @@ class SpaceListDataSource(
         val pseudoSpaces = mutableListOf<PseudoSpaceItem>()
         pseudoSpaces.add(
             FavoritesPseudoSpaceItem(
-                StringResourceHolder(Res.string.sc_pseudo_space_favorites),
+                StringResourceHolder(Res.string.pseudo_space_favorites),
                 pseudoSpaceSettings.favorites
             )
         )
         pseudoSpaces.add(
             DmsPseudoSpaceItem(
-                StringResourceHolder(Res.string.sc_pseudo_space_dms),
+                StringResourceHolder(Res.string.pseudo_space_dms),
                 pseudoSpaceSettings.dms
             )
         )
         pseudoSpaces.add(
             GroupsPseudoSpaceItem(
-                StringResourceHolder(Res.string.sc_pseudo_space_groups),
+                StringResourceHolder(Res.string.pseudo_space_groups),
                 pseudoSpaceSettings.groups,
             )
         )
         val spacelessRooms = spaceSummaries.flatMap { it.summary.info.spaceChildren.map { it.roomId } }.toImmutableList()
         pseudoSpaces.add(
             SpacelessGroupsPseudoSpaceItem(
-                StringResourceHolder(Res.string.sc_pseudo_space_spaceless_groups_short),
+                StringResourceHolder(Res.string.pseudo_space_spaceless_groups_short),
                 pseudoSpaceSettings.spacelessGroups,
                 spacelessRooms,
             )
         )
         pseudoSpaces.add(
             SpacelessPseudoSpaceItem(
-                StringResourceHolder(Res.string.sc_pseudo_space_spaceless_short),
+                StringResourceHolder(Res.string.pseudo_space_spaceless_short),
                 pseudoSpaceSettings.spaceless,
                 spacelessRooms,
                 pseudoSpaceSettings.spacelessGroups
@@ -201,9 +201,9 @@ class SpaceListDataSource(
             NotificationsPseudoSpaceItem(
                 StringResourceHolder(
                     if (pseudoSpaceSettings.unread)
-                        Res.string.sc_pseudo_space_notifications_short
+                        Res.string.pseudo_space_notifications_short
                     else
-                        Res.string.sc_pseudo_space_unread
+                        Res.string.pseudo_space_unread
                 ),
                 pseudoSpaceSettings.notifications,
                 pseudoSpaceSettings.clientUnreadCounts
@@ -211,14 +211,14 @@ class SpaceListDataSource(
         )
         pseudoSpaces.add(
             UnreadPseudoSpaceItem(
-                StringResourceHolder(Res.string.sc_pseudo_space_unread),
+                StringResourceHolder(Res.string.pseudo_space_unread),
                 pseudoSpaceSettings.unread,
                 pseudoSpaceSettings.clientUnreadCounts
             )
         )
         pseudoSpaces.add(
             InvitePseudoSpaceItem(
-                StringResourceHolder(Res.string.sc_pseudo_space_invites),
+                StringResourceHolder(Res.string.pseudo_space_invites),
                 pseudoSpaceSettings.invites,
             )
         )
@@ -662,7 +662,7 @@ fun List<SpaceListDataSource.AbstractSpaceHierarchyItem>.resolveSpaceName(select
     if (isEmpty()) {
         return null
     }
-    return resolveSelection(selection)?.name ?: StringResourceHolder(Res.string.sc_space_all_rooms_title)
+    return resolveSelection(selection)?.name ?: StringResourceHolder(Res.string.pref_space_all_rooms_title)
 }
 
 fun ImmutableList<SpaceListDataSource.AbstractSpaceHierarchyItem>.filterByVisible(

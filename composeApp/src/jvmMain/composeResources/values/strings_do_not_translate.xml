@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_title_full" translatable="false">SchildiChat Revenge</string>
+    <string name="app_title_short" translatable="false">SchildiChat</string>
+</resources>

@@ -1,6 +1,4 @@
 <resources>
-    <string name="app_title_full" translatable="false">SchildiChat Revenge</string>
-    <string name="app_title_short" translatable="false">SchildiChat</string>
     <string name="manage_accounts">Accounts</string>
     <string name="inbox">Inbox</string>
     <string name="inbox_search">Inbox search</string>
@@ -17,7 +15,6 @@
     <string name="message_read_receipts_title">Message read receipts</string>
 
     <string name="about">About</string>
-    <string name="diagnostics">Diagnostics</string>
     <string name="about_credits">Credits</string>
     <string name="about_privacy_policy">Privacy Policy</string>
     <string name="about_website">Website</string>
@@ -29,6 +26,8 @@
     <string name="about_rust_revision">SDK revision: %1$s</string>
     <string name="about_release_variant">Variant: %1$s</string>
     <string name="about_rust_release_variant">SDK variant: %1$s</string>
+
+    <string name="diagnostics">Diagnostics</string>
     <string name="diagnostics_jvm_heap">JVM heap</string>
     <string name="diagnostics_jvm_non_heap">JVM non-heap</string>
     <string name="diagnostics_process_rss">Process RSS</string>
@@ -330,8 +329,60 @@
 
     <string name="nameless_space_fallback_title">Nameless space</string>
 
-    <string name="sc_pseudo_space_accounts_title">Accounts</string>
-    <string name="sc_pseudo_space_accounts_summary">One pseudo-space for each logged-in account</string>
+    <string name="pref_pseudo_spaces_title">Pseudo spaces</string>
+    <string name="pref_pseudo_spaces_summary">Additional space pages</string>
+    <string name="pref_space_all_rooms_title">All chats</string>
+    <string name="pref_space_all_rooms_summary">You may no longer see all your chats or invites if you disable this.</string>
+    <string name="pseudo_space_favorites">Favorites</string>
+    <string name="pseudo_space_dms">Direct chats</string>
+    <string name="pseudo_space_groups">All groups</string>
+    <string name="pseudo_space_spaceless">Chats not added to spaces</string>
+    <string name="pseudo_space_spaceless_short">Space orphans</string>
+    <string name="pseudo_space_spaceless_groups">Group chats not added to spaces</string>
+    <string name="pseudo_space_spaceless_groups_short">Groups</string>
+    <string name="pseudo_space_notifications">Unread notifications and mentions</string>
+    <string name="pseudo_space_notifications_short">Notifications</string>
+    <string name="pseudo_space_unread">Unread</string>
+    <string name="pseudo_space_invites">Invites</string>
+    <string name="pseudo_space_hide_empty_unread">Hide empty unread spaces</string>
+    <string name="pseudo_space_accounts_title">Accounts</string>
+    <string name="pseudo_space_accounts_summary">One pseudo-space for each logged-in account</string>
+
+    <string name="pref_compact_root_spaces_title">Compact root spaces</string>
+    <string name="pref_compact_root_spaces_summary">Show icon without name for root spaces</string>
+    <string name="pref_space_unread_counts_mode_title">Aggregated unread counts</string>
+    <string name="pref_space_unread_counts_mode_messages">Count unread messages</string>
+    <string name="pref_space_unread_counts_mode_chats">Count unread chats</string>
+    <string name="pref_space_unread_counts_mode_hide">Hide</string>
+    <string name="pref_client_generated_unread_counts_title">Client-generated unread counts</string>
+    <string name="pref_client_generated_unread_counts_summary">Calculate unread counts on the device instead of trusting server-reported values</string>
+    <string name="pref_pin_favorites_title">Pin favorites</string>
+    <string name="pref_pin_favorites_summary">Show chats marked as favorite on top of the list</string>
+    <string name="pref_bury_low_priority_title">Low priority on bottom</string>
+    <string name="pref_bury_low_priority_summary">Sort low priority on the bottom of the list</string>
+    <string name="pref_client_side_sort_by_unread_title">Sort by unread</string>
+    <string name="pref_client_side_sort_by_unread_summary">Sort unread chats on top of the list</string>
+    <string name="pref_sort_with_silent_unread_title">Sort with muted unread</string>
+    <string name="pref_sort_with_silent_unread_summary">Sort muted unread chats above fully read chats</string>
+    <string name="pref_render_silent_unread_title">Show silent unread counts</string>
+    <string name="pref_render_silent_unread_summary">Render unread message counts also for muted chats</string>
+
+    <string name="pref_dual_mention_unread_counts_title">Combined mention/unread count</string>
+    <string name="pref_dual_mention_unread_counts_summary">When a highlighted chat's mention count differs from unread count, show both</string>
+
+    <string name="pref_category_general">General</string>
+    <string name="pref_category_general_summary">App appearance and behavior</string>
+    <string name="pref_category_general_appearance">Appearance</string>
+    <string name="pref_category_general_behaviour">Behaviour</string>
+    <string name="pref_category_chat_sorting">Sort order</string>
+    <string name="pref_category_unread_counts">Unread counts</string>
+
+    <string name="pref_url_previews_title">Link previews</string>
+    <string name="pref_url_previews_summary">Query and render previews for links included in messages</string>
+    <string name="pref_url_previews_in_e2ee_rooms_title">Link previews in encrypted rooms</string>
+    <string name="pref_url_previews_in_e2ee_rooms_summary">Leak partial message content to your homeserver by also allowing link previews in encrypted rooms</string>
+    <string name="pref_url_previews_require_explicit_links_title">Require explicit links for previews</string>
+    <string name="pref_url_previews_require_explicit_links_summary">Only query previews for links explicitly starting with "https://"</string>
 
     <string name="toast_key_config_reload_success">Key bindings reloaded</string>
     <string name="toast_key_config_reload_error">Failed parsing key bindings config: %1$s</string>
