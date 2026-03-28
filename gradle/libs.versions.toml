@@ -59,6 +59,7 @@ kdroidfilter_platformtools_core = { group = "io.github.kdroidfilter", name = "pl
 kdroidfilter_platformtools_darkmodedetector = { group = "io.github.kdroidfilter", name = "platformtools.darkmodedetector", version.ref = "kdroidfilterPlatformtools" }
 kdroidfilter_composenativetray = { group = "io.github.kdroidfilter", name = "composenativetray", version.ref = "kdroidfilterComposeNativeTray" }
 kdroidfilter_knotify = { group = "io.github.kdroidfilter", name = "knotify", version.ref = "kdroidfilterKnotify" }
+kdroidfilter_knotify_compose = { group = "io.github.kdroidfilter", name = "knotify-compose", version.ref = "kdroidfilterKnotify" }
 kodein-emojiKt = { group = "org.kodein.emoji", name = "emoji-kt", version = "2.3.0" }
 ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 #beeper-messageformat = { module = "com.beeper.android.messageformat:messageformat-jvm", version = "1.0" }

@@ -48,6 +48,7 @@ kotlin {
             implementation(libs.kdroidfilter.platformtools.darkmodedetector)
             implementation(libs.kdroidfilter.composenativetray)
             implementation(libs.kdroidfilter.knotify)
+            implementation(libs.kdroidfilter.knotify.compose)
             implementation(libs.kodein.emojiKt)
             implementation(libs.ktor.core)
             implementation(libs.jsoup)

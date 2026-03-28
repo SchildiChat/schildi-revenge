@@ -6,6 +6,7 @@ import chat.schildi.preferences.ScPrefs
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.plaintext.NotificationEventTextFormat
 import co.touchlab.kermit.Logger
+import io.element.android.libraries.matrix.api.media.MediaSource
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -59,11 +60,12 @@ object NotificationProcessor {
                 return@onEach
             }
             log.d { "Notifying for $id" }
-            // TODO pass room avatar as largeImage
             Notifier.notify(
                 id = id,
                 title = notification.roomInfo.displayName,
-                formatted
+                message = formatted,
+                largeImage = notification.roomInfo.avatarUrl?.let { MediaSource(it) }
+                    ?: notification.senderInfo.avatarUrl?.let { MediaSource(it) },
             )
         }.launchIn(scope)
     }
