@@ -116,7 +116,6 @@ import shire.composeapp.generated.resources.command_copied_to_clipboard
 import shire.composeapp.generated.resources.command_copy_name_full_account_data
 import shire.composeapp.generated.resources.command_not_applicable
 import shire.composeapp.generated.resources.command_not_found
-import shire.composeapp.generated.resources.toast_restart_required
 import shire.composeapp.generated.resources.toast_room_created
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
@@ -295,7 +294,6 @@ class KeyboardActionHandler(
         }
     )
 
-    private var pauseFocusFollowsMouseUntil: Long? = null
     private val mouseFocusRequests = MutableSharedFlow<FocusTarget>(
         replay = 1,
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
@@ -433,9 +431,6 @@ class KeyboardActionHandler(
             // may still consume the key in addition to us focusing it
             scope.launch {
                 focusRequester.requestFocus()
-            }
-            if (role.autoRequestFocus) {
-                pauseFocusFollowsMouseUntil = System.currentTimeMillis() + MOUSE_FOCUS_PAUSE_DURATION
             }
             true
         } else {
@@ -1651,9 +1646,6 @@ class KeyboardActionHandler(
             focusManager?.clearFocus()
         }
         val lostFocusTarget = lostFocusTargetId?.let { focusableTargets[it] }
-        if (lostFocusTarget?.role?.autoRequestFocus == true && newFocus?.role?.autoRequestFocus == false) {
-            pauseFocusFollowsMouseUntil = null
-        }
         lostFocusTarget?.let(::handleLostFocus)
         var newFocusedDestination: UUID? = null
         lastFocusByDestination.update {
@@ -1725,6 +1717,7 @@ class KeyboardActionHandler(
     }
 
     fun handlePointer(position: Offset) {
+        val previous = _lastPointerPosition
         // Don't action if nothing changed
         if (_lastPointerPosition == position) {
             return
@@ -1736,13 +1729,6 @@ class KeyboardActionHandler(
         // Check if we should focus any elements below the pointer
         if (!handlerSettings.value.focusFollowsMouse) {
             return
-        }
-        pauseFocusFollowsMouseUntil?.let {
-            if (it < System.currentTimeMillis()) {
-                pauseFocusFollowsMouseUntil = null
-            } else {
-                return
-            }
         }
 
         // Find element to focus and request focus
@@ -1757,6 +1743,10 @@ class KeyboardActionHandler(
             }
         }
         focusable?.let {
+            val current = currentFocus.value?.let { focusableTargets[it] }
+            if (current != null && (current.role == FocusRole.SEARCH_BAR || current.role == FocusRole.COMMAND_BAR || current.role == FocusRole.MESSAGE_COMPOSER)) {
+                log.e { "Losing focus from moving pointer $previous -> $position" }
+            }
             mouseFocusRequests.tryEmit(it)
         }
     }
