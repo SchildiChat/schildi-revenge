@@ -50,8 +50,7 @@ fun <T : Closeable>Flow<T?>.flowClosable(): Flow<T?> = flow {
     } finally {
         try {
             current?.let {
-                // TODO not an error
-                Logger.withTag("flowClosable").e("Closing ${it.javaClass.name}")
+                Logger.withTag("flowClosable").d("Closing ${it.javaClass.name}")
                 it.close()
             }
         } catch (e: IOException) {
