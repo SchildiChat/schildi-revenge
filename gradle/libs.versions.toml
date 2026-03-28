@@ -24,6 +24,7 @@ jsoup = "1.22.1"
 beeperMessageFormat = "9c24e92ba36252e33a8d19a045874ec76d168e26"
 dbusJava = "5.2.0"
 skiko = "0.9.37.4"
+clikt = "5.1.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -68,6 +69,7 @@ jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 dbus-java-core = { module = "com.github.hypfvieh:dbus-java-core", version.ref = "dbusJava" }
 dbus-java-transport-native-unixsocket = { module = "com.github.hypfvieh:dbus-java-transport-native-unixsocket", version.ref = "dbusJava" }
 skiko = { module = "org.jetbrains.skiko:skiko", version.ref = "skiko" }
+clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 
 [plugins]
 versions = { id = "com.github.ben-manes.versions", version.ref = "versionsPlugin" }

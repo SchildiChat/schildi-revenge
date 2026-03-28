@@ -1,6 +1,7 @@
 package chat.schildi.revenge.ipc
 
 import chat.schildi.revenge.UiState
+import chat.schildi.revenge.config.keybindings.Action
 import co.touchlab.kermit.Logger
 import java.io.BufferedReader
 import java.io.File
@@ -37,14 +38,16 @@ object SingleInstance {
     @Volatile
     private var serverThread: Thread? = null
 
-    fun ensureSingleInstanceOrExit() {
+    fun ensureSingleInstanceOrExit(startInTray: Boolean) {
         if (tryAcquireLock()) {
             startServer()
             return
         }
         // Another instance seems to be running; try to notify it and exit.
         log.i { "Another instance is already running" }
-        notifyExistingInstance()
+        if (!startInTray) {
+            notifyExistingInstance("${Action.Global.SetMinimized.name} false")
+        }
         exitProcess(0)
     }
 
@@ -101,17 +104,16 @@ object SingleInstance {
             val reader = BufferedReader(InputStreamReader(s.getInputStream()))
             val writer = PrintWriter(s.getOutputStream(), true)
             val line = reader.readLine()?.trim() ?: return
-            when (line.uppercase()) {
-                "SHOW" -> {
-                    UiState.setMinimized(false)
-                    writer.println("OK")
-                }
-                else -> writer.println("ERR Unknown command")
+            val result = UiState.headlessKeyboardActionHandler?.executeCommandFromIpc(line)
+            if (result == null) {
+                writer.println("ERR not initialized")
+            } else {
+                writer.println(result.toString())
             }
         }
     }
 
-    private fun notifyExistingInstance() {
+    fun notifyExistingInstance(command: String) {
         val port = runCatching { portFile.readText().trim().toInt() }.getOrNull()
         if (port == null) {
             log.w("Port file missing or invalid; cannot notify existing instance.")
@@ -121,8 +123,9 @@ object SingleInstance {
             Socket(InetAddress.getByName(null), port).use { socket ->
                 val writer = PrintWriter(socket.getOutputStream(), true)
                 val reader = BufferedReader(InputStreamReader(socket.getInputStream()))
-                writer.println("SHOW")
-                reader.readLine() // read response
+                writer.println(command)
+                val response = reader.readLine() // read response
+                log.i("Result: $response")
             }
         }.onFailure {
             log.w("Failed to notify existing instance on port $port", it)

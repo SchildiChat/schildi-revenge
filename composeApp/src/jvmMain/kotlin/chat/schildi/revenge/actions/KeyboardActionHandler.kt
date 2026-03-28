@@ -27,7 +27,6 @@ import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.toIntSize
-import androidx.compose.ui.window.ApplicationScope
 import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.SETTINGS_MESSAGE_ID
 import chat.schildi.preferences.ScPref
@@ -163,6 +162,19 @@ enum class FocusRole(val consumesKeyWhitelist: List<Key>? = null, val autoReques
     COMMAND_BAR(autoRequestFocus = true), // Does not need to consume plain keys, key handler has a special mode for that
 }
 
+sealed interface CommandHolder {
+    val command: String
+    val focused: UUID?
+    val impliedArguments: List<Pair<ActionArgumentPrimitive, String>>
+}
+
+data class IpcCommand(
+    override val command: String,
+) : CommandHolder {
+    override val focused: UUID? = null
+    override val impliedArguments: List<Pair<ActionArgumentPrimitive, String>> = emptyList()
+}
+
 sealed interface KeyboardActionMode {
     data object Navigation : KeyboardActionMode
     data class Search(
@@ -174,12 +186,14 @@ sealed interface KeyboardActionMode {
     data class Command(
         val query: TextFieldValue,
         // Fix the item we want to action on
-        val focused: UUID?,
+        override val focused: UUID?,
         val suggestionsProvider: CommandSuggestionsProvider,
         val selectedSuggestion: String?,
-        val impliedArguments: List<Pair<ActionArgumentPrimitive, String>>,
+        override val impliedArguments: List<Pair<ActionArgumentPrimitive, String>>,
         val forSearch: Search?,
-    ) : KeyboardActionMode
+    ) : KeyboardActionMode, CommandHolder {
+        override val command = query.text
+    }
 }
 
 sealed interface AbstractAppMessage {
@@ -246,7 +260,6 @@ private data class KeyboardActionHandlerSettings(
 class KeyboardActionHandler(
     private val scope: CoroutineScope,
     private val windowId: Int,
-    private val applicationScope: ApplicationScope,
 ) {
     private val log = Logger.withTag("Nav/$windowId")
 
@@ -1257,12 +1270,12 @@ class KeyboardActionHandler(
                     }
                 }
                 Action.Navigation.CloseWindow -> {
-                    UiState.closeWindow(windowId, applicationScope)
+                    UiState.closeWindow(windowId)
                     ActionResult.Success()
                 }
                 Action.Navigation.CloseWindowUnlessLast -> {
                     if (UiState.windows.value.size > 1) {
-                        UiState.closeWindow(windowId, applicationScope)
+                        UiState.closeWindow(windowId)
                         ActionResult.Success()
                     } else {
                         ActionResult.Inapplicable
@@ -1273,7 +1286,7 @@ class KeyboardActionHandler(
     }
 
     fun closeWindow() {
-        UiState.closeWindow(windowId, applicationScope)
+        UiState.closeWindow(windowId)
     }
 
     private val appMessageHandler = object : KeyboardActionProvider<Action.AppMessage> {
@@ -1395,7 +1408,16 @@ class KeyboardActionHandler(
                     }
                 }
                 Action.Global.Exit -> {
-                    UiState.exit(applicationScope)
+                    UiState.exit()
+                    ActionResult.Success()
+                }
+                Action.Global.SetMinimized -> {
+                    val minimized = args.firstOrNull()?.toBooleanStrictOrNull() ?: true
+                    UiState.setMinimized(minimized)
+                    ActionResult.Success()
+                }
+                Action.Global.ToggleMinimized -> {
+                    UiState.setMinimized(!UiState.minimizedToTray.value)
                     ActionResult.Success()
                 }
                 Action.Global.RecreateUi -> {
@@ -1887,26 +1909,28 @@ class KeyboardActionHandler(
         return true
     }
 
-    private fun executeCommand(commandMode: KeyboardActionMode.Command) {
-        val focused = commandMode.focused?.let {
+    fun executeCommandFromIpc(command: String) = executeCommand(IpcCommand(command))
+
+    private fun executeCommand(command: CommandHolder): ActionResult {
+        val focused = command.focused?.let {
             focusableTargets[it]
         } ?: focusableTargets.values.find { it.role == FocusRole.DESTINATION_ROOT_CONTAINER }
         val commandParser = CommandParser(getCurrentKeyActionHandlers(focused))
-        val (mainCommand, args) = commandParser.parseCommandString(commandMode.query.text) ?: run {
+        val (mainCommand, args) = commandParser.parseCommandString(command.command) ?: run {
             log.i("Ignoring empty command")
-            return
+            return ActionResult.Inapplicable
         }
         val possibleActions = commandParser.getPossibleActions(mainCommand)
         val possibleUniqueActions = possibleActions.map {
             it.first
         }.distinct()
         val possibleUniqueActionsWithArgsChecked = possibleUniqueActions.map {
-            it to checkArguments(it, args, commandMode.impliedArguments)
+            it to checkArguments(it, args, command.impliedArguments)
         }
         val possibleUniqueActionsWithValidArgs = possibleUniqueActionsWithArgsChecked.mapNotNull { (action, error) ->
             action.takeIf { error == null }
         }
-        when (possibleUniqueActionsWithValidArgs.size) {
+        return when (possibleUniqueActionsWithValidArgs.size) {
             0 -> {
                 val message = when (possibleUniqueActionsWithArgsChecked.size) {
                     0 -> StringResourceHolder(Res.string.command_not_found, mainCommand.toStringHolder())
@@ -1920,6 +1944,7 @@ class KeyboardActionHandler(
                         uniqueId = COMMAND_MESSAGE_ID,
                     )
                 )
+                ActionResult.NoMatch
             }
             1 -> {
                 val action = possibleUniqueActionsWithValidArgs.first()
@@ -1969,7 +1994,15 @@ class KeyboardActionHandler(
                             uniqueId = COMMAND_MESSAGE_ID,
                         )
                     )
+                    is ActionResult.Ambiguous -> publishMessage(
+                        AppMessage(
+                            StringResourceHolder(Res.string.command_ambiguous, mainCommand.toStringHolder()),
+                            isError = true,
+                            uniqueId = COMMAND_MESSAGE_ID,
+                        )
+                    )
                 }
+                result
             }
             else -> {
                 log.e("Found ambiguous actions for $mainCommand: ${possibleUniqueActionsWithValidArgs.joinToString { it.name }}")
@@ -1980,6 +2013,7 @@ class KeyboardActionHandler(
                         uniqueId = COMMAND_MESSAGE_ID,
                     )
                 )
+                ActionResult.Ambiguous
             }
         }
     }
@@ -2175,6 +2209,9 @@ sealed interface ActionResult {
         override val shouldExit = false
     }
     data object NoMatch : ActionResult {
+        override val shouldExit = false
+    }
+    data object Ambiguous : ActionResult {
         override val shouldExit = false
     }
     companion object {

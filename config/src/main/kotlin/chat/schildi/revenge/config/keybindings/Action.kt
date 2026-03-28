@@ -132,6 +132,8 @@ sealed interface Action {
         ResetSetting(args = listOf(ActionArgumentPrimitive.SettingKey), aliases = listOf("reset")),
         ToggleSetting(args = listOf(ActionArgumentPrimitive.SettingKey, OptionalSettingValue, OptionalSettingValue, OptionalSettingValue, OptionalSettingValue, OptionalSettingValue, OptionalSettingValue, OptionalSettingValue, OptionalSettingValue), aliases = listOf("toggle")),
         Exit(aliases = listOf("quit")),
+        SetMinimized(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.Boolean)), aliases = listOf("minimize")),
+        ToggleMinimized,
         RecreateUi,
         RecreateWindow,
         ClearSessionCache(args = listOf(ActionArgumentPrimitive.SessionId)),

@@ -5,6 +5,7 @@ import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.revenge.actions.AbstractAppMessage
 import chat.schildi.revenge.actions.AppMessage
+import chat.schildi.revenge.actions.KeyboardActionHandler
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.toStringHolder
@@ -55,6 +56,9 @@ val GlobalActionsScope = CoroutineScope(Dispatchers.IO)
 
 private const val MESSAGE_ID_KEY_CONFIG = "keyConfig"
 
+// For KeyboardActionHandler via headless IPC
+private const val HEADLESS_WINDOW_ID = -1
+
 @OptIn(ExperimentalAtomicApi::class)
 object UiState {
     private val log = Logger.withTag("UiState")
@@ -70,7 +74,12 @@ object UiState {
     val windows = _windows.asStateFlow()
     private var hasClearedSplashScreen = false
 
-    private val _minimizedToTray = MutableStateFlow(false)
+    private var applicationScope: ApplicationScope? = null
+    var headlessKeyboardActionHandler: KeyboardActionHandler? = null
+        private set
+
+    // Default to minimized - it's less disruptive to toggle true to false during init than other way round
+    private val _minimizedToTray = MutableStateFlow(true)
     val minimizedToTray = _minimizedToTray.asStateFlow()
 
     private val _forceRecreationCounter = MutableStateFlow(0)
@@ -274,6 +283,17 @@ object UiState {
         }
     }
 
+    fun initializeWith(applicationScope: ApplicationScope, startInTray: Boolean) {
+        if (this.applicationScope != null || this.headlessKeyboardActionHandler != null) {
+            throw IllegalStateException("Initializing UiState with applicationScope twice")
+        }
+
+        // Initialize application scope and headless keyboard handler
+        this.applicationScope = applicationScope
+        headlessKeyboardActionHandler = KeyboardActionHandler(GlobalActionsScope, HEADLESS_WINDOW_ID)
+        _minimizedToTray.value = startInTray
+    }
+
     fun selectClient(sessionId: SessionId, scope: CoroutineScope) = matrixClients.map {
         it[sessionId]
     }.stateIn(scope, SharingStarted.Eagerly, null)
@@ -316,7 +336,7 @@ object UiState {
         }
     }
 
-    fun closeWindow(windowId: Int, scope: ApplicationScope) {
+    fun closeWindow(windowId: Int) {
         var closedLastWindow = false
         _windows.update {
             it.filter { it.windowId != windowId }.toPersistentList().also {
@@ -327,13 +347,13 @@ object UiState {
             if (closeToTray.value) {
                 setMinimized(true)
             } else {
-                exit(scope)
+                exit()
             }
         }
     }
 
-    fun exit(scope: ApplicationScope) {
-        scope.exitApplication()
+    fun exit() {
+        applicationScope?.exitApplication()
     }
 
     fun recreateUi() {
