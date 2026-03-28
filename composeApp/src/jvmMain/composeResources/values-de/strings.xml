@@ -2,4 +2,8 @@
 <resources>
     <string name="hint_settings">Einstellungen</string>
     <string name="hint_search">Suche</string>
+    <string name="manage_accounts">Konten</string>
+    <string name="room_members_title_loading">Lade Raummitglieder</string>
+    <string name="message_reactions_title">Nachrichtenreaktionen</string>
+    <string name="about_privacy_policy">Datenschutz</string>
 </resources>
