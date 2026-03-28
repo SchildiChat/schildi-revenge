@@ -13,8 +13,10 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import coil3.Canvas
 import coil3.Image
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.jetbrains.skia.AnimationFrameInfo
 import org.jetbrains.skia.Bitmap
@@ -27,7 +29,7 @@ internal class AnimatedSkiaImage(
     private val coroutineScope: CoroutineScope,
     bufferedFramesCount: Int,
     private val timeSource: TimeSource,
-) : Image {
+) : Image, AutoCloseable {
     override val size: Long
         get() =
             codec.imageInfo.computeMinByteSize().toLong().takeIf { it > 0L }
@@ -43,7 +45,8 @@ internal class AnimatedSkiaImage(
 
     private val lock = Any()
     private val tempBitmap = Bitmap().apply { allocPixels(codec.imageInfo) }
-    private val frames = arrayOfNulls<ByteArray>(codec.frameCount)
+    private val bufferedFramesCount = bufferedFramesCount.coerceAtLeast(1)
+    private val frames = LinkedHashMap<Int, ByteArray>(this.bufferedFramesCount, 1f, true)
     private val frameDurationsMs: List<Int> = codec.framesInfo.map(AnimationFrameInfo::safeDurationMillis)
     private val singleIterationDurationMs: Long = frameDurationsMs.sumOf(Int::toLong).coerceAtLeast(1L)
     private val maxIterationCount: Int = codec.repetitionCount.takeIf { it >= 0 }?.plus(1) ?: Int.MAX_VALUE
@@ -51,15 +54,11 @@ internal class AnimatedSkiaImage(
     private var bufferFramesJob: Job? = null
     private var animationStartTime: TimeMark? = null
     private var invalidateTick by mutableIntStateOf(0)
-
-    init {
-        for (index in 0 until minOf(bufferedFramesCount, frames.size)) {
-            frames[index] = decodeFrame(index)
-        }
-    }
+    private var lastBufferedFrameIndex: Int? = null
+    private var isClosed = false
 
     override fun draw(canvas: Canvas) {
-        if (codec.frameCount <= 0) return
+        if (isClosed || codec.frameCount <= 0) return
 
         @Suppress("UNUSED_VARIABLE")
         val observedInvalidateTick = invalidateTick
@@ -68,8 +67,6 @@ internal class AnimatedSkiaImage(
             drawFrame(canvas, 0)
             return
         }
-
-        ensureBackgroundBuffering()
 
         val startTime = animationStartTime ?: timeSource.markNow().also { animationStartTime = it }
         val elapsedMs = startTime.elapsedNow().inWholeMilliseconds
@@ -83,24 +80,26 @@ internal class AnimatedSkiaImage(
 
         val currentFrameIndex = frameIndexFor(elapsedMs)
         drawFrame(canvas, currentFrameIndex)
+        ensureBackgroundBuffering(currentFrameIndex)
         invalidateTick++
     }
 
-    private fun ensureBackgroundBuffering() {
-        if (frames.all { it != null }) return
+    private fun ensureBackgroundBuffering(frameIndex: Int) {
+        if (codec.frameCount <= 1) return
         if (bufferFramesJob?.isActive == true) return
+        if (lastBufferedFrameIndex == frameIndex && cachedFramesCount() >= bufferedFramesCount) return
+        lastBufferedFrameIndex = frameIndex
         bufferFramesJob =
             coroutineScope.launch {
-                for (index in frames.indices) {
-                    if (frames[index] == null) {
-                        frames[index] = decodeFrame(index)
+                try {
+                    for (offset in 1..bufferedFramesCount) {
+                        val index = (frameIndex + offset) % codec.frameCount
+                        if (isClosed || hasCachedFrame(index)) continue
+                        cacheFrame(index, decodeFrame(index))
                         invalidateTick++
                     }
-                }
-                synchronized(lock) {
-                    if (!tempBitmap.isClosed) {
-                        tempBitmap.close()
-                    }
+                } catch (_: CancellationException) {
+                    // The image was disposed while buffering.
                 }
             }
     }
@@ -109,7 +108,7 @@ internal class AnimatedSkiaImage(
         canvas: Canvas,
         frameIndex: Int,
     ) {
-        val frame = frames[frameIndex] ?: decodeFrame(frameIndex).also { frames[frameIndex] = it }
+        val frame = synchronized(lock) { frames[frameIndex] } ?: decodeFrame(frameIndex).also { cacheFrame(frameIndex, it) }
         val image =
             org.jetbrains.skia.Image.makeRaster(
                 imageInfo = codec.imageInfo,
@@ -141,6 +140,7 @@ internal class AnimatedSkiaImage(
 
     private fun decodeFrame(frameIndex: Int): ByteArray =
         synchronized(lock) {
+            check(!isClosed) { "Cannot decode frame after image is closed." }
             check(!tempBitmap.isClosed) { "Cannot decode frame after bitmap is closed." }
             codec.readPixels(tempBitmap, frameIndex)
             return tempBitmap.readPixels(
@@ -148,6 +148,37 @@ internal class AnimatedSkiaImage(
                 dstRowBytes = codec.imageInfo.minRowBytes,
             ) ?: error("Failed to read pixels for frame $frameIndex.")
         }
+
+    private fun hasCachedFrame(frameIndex: Int): Boolean = synchronized(lock) { frames.containsKey(frameIndex) }
+
+    private fun cachedFramesCount(): Int = synchronized(lock) { frames.size }
+
+    private fun cacheFrame(frameIndex: Int, frame: ByteArray) {
+        synchronized(lock) {
+            if (isClosed) return
+            frames[frameIndex] = frame
+            while (frames.size > bufferedFramesCount) {
+                val eldestKey = frames.entries.firstOrNull()?.key ?: break
+                frames.remove(eldestKey)
+            }
+        }
+    }
+
+    override fun close() {
+        if (isClosed) return
+        isClosed = true
+        bufferFramesJob?.cancel()
+        coroutineScope.cancel()
+        synchronized(lock) {
+            frames.clear()
+            if (!tempBitmap.isClosed) {
+                tempBitmap.close()
+            }
+            if (!codec.isClosed) {
+                codec.close()
+            }
+        }
+    }
 }
 
 private fun AnimationFrameInfo.safeDurationMillis(): Int {

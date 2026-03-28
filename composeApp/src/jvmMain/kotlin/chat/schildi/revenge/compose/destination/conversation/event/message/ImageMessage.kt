@@ -19,10 +19,10 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.compose.media.ScAsyncImage
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.revenge.compose.media.onAsyncImageError
 import chat.schildi.revenge.model.conversation.MessageMetadata
-import coil3.compose.AsyncImage
 import com.beeper.android.messageformat.MatrixBodyParseResult
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.timeline.item.event.ImageLikeMessageType
@@ -123,7 +123,7 @@ fun ColumnScope.ImageMessageContent(
         modifier = Modifier.align(Alignment.CenterHorizontally),
         contentAlignment = Alignment.Center,
     ) {
-        AsyncImage(
+        ScAsyncImage(
             model,
             null,
             imageLoader = imageLoader(),
