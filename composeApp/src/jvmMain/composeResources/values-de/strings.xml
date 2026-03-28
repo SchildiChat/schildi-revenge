@@ -120,5 +120,4 @@
     <string name="message_placeholder_encrypted_message">Verschlüsselte Nachricht</string>
     <string name="message_placeholder_unknown">Unbekanntes Ereignis</string>
     <string name="message_placeholder_key_verification">Verifizierungsereignis</string>
-    <string name="message_placeholder_state_event_policy_rule_room"></string>
 </resources>
