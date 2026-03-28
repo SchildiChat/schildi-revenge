@@ -308,11 +308,11 @@ class ConversationViewModel(
             ScPrefs.SEND_TYPING_NOTICE.safeLookup(lookup),
             ScPrefs.DISABLE_SEND_TYPING_NOTICE_IN_PUBLIC_ROOMS.safeLookup(lookup),
         )
-    }.combine(joinedRoom) { (sendTyping, disableInPublic), room ->
+    }.combine(roomInfo) { (sendTyping, disableInPublic), info ->
         when {
-            room == null -> false
+            info == null -> false
             !sendTyping -> false
-            room.info().isPublic != false -> !disableInPublic
+            info.isPublic != false -> !disableInPublic
             else -> true
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, false)

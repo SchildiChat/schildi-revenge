@@ -44,74 +44,13 @@ import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.SubcomposeAsyncImageContent
 import com.beeper.android.messageformat.MatrixBodyParseResult
-import io.element.android.libraries.core.data.tryOrNull
 import io.element.android.libraries.matrix.api.media.MediaSource
-import io.element.android.libraries.matrix.api.room.BaseRoom
 import io.element.android.libraries.matrix.ui.media.MediaRequestData
-
-import java.net.InetAddress
-import java.net.URI
-import java.net.UnknownHostException
 
 /**
  * Provides a [UrlPreviewStateProvider] to the composition.
  */
 val LocalUrlPreviewStateProvider = staticCompositionLocalOf<UrlPreviewStateProvider?> { null }
-
-@Composable
-fun <T>T.takeIfUrlPreviewsEnabledForRoom(room: BaseRoom): T? {
-    val allowed = if (room.info().isEncrypted != false) {
-        ScPrefs.URL_PREVIEWS_IN_E2EE_ROOMS.value()
-    } else {
-        ScPrefs.URL_PREVIEWS.value()
-    }
-    return if (allowed) this else null
-}
-
-private fun String.isIpAddress(): Boolean {
-    val host = URI(this).host ?: return false
-    return try {
-        val inet = InetAddress.getByName(host)
-        // true if the input was already an IP literal (IPv4 or IPv6)
-        inet.hostAddress == host
-    } catch (_: UnknownHostException) {
-        false
-    }
-}
-
-private fun String.toPreviewableUrl(requireExplicitHttps: Boolean): String? {
-    val url = when {
-        "://" in this -> this
-        requireExplicitHttps -> return null
-        // There's some funny "tel:" linkifications of numbers that would match otherwise
-        ":" in this -> return null
-        else -> "https://$this"
-    }
-    val uri = tryOrNull { URI(url) } ?: return null
-    val host = uri.host ?: return null
-    // Message and room links shouldn't render an url preview
-    if (host == "matrix.to") {
-        return null
-    }
-    // Don't bother for non-http(s) schemes
-    if (uri.scheme != "https" && (requireExplicitHttps || uri.scheme != "http")) {
-        return null
-    }
-    // Don't bother for IP links
-    if (host.isIpAddress()) {
-        return null
-    }
-    return uri.toString()
-}
-
-private fun String.isAllowedUrlPrefix(): Boolean {
-    // If we have a ":" right before the URL, it's probably just part of an mxid...
-    // I also have some messages with slashes that I don't want here
-    if (endsWith(":") || endsWith("/")) {
-        return false
-    }
-    return true
-}
 
 @Composable
 fun resolveUrlPreview(body: MatrixBodyParseResult): UrlPreviewInfo? {
