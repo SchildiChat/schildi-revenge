@@ -47,6 +47,7 @@ import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
 import chat.schildi.revenge.config.keybindings.KeyTrigger
+import chat.schildi.revenge.media.MediaDownloadRepo
 import chat.schildi.revenge.model.Attachment
 import chat.schildi.revenge.model.ComposerFormat
 import chat.schildi.revenge.model.ComposerRoomInfo
@@ -60,7 +61,6 @@ import chat.schildi.revenge.model.DraftMention
 import chat.schildi.revenge.model.DraftRepo
 import chat.schildi.revenge.model.DraftType
 import chat.schildi.revenge.model.DraftValue
-import chat.schildi.revenge.model.PersistentAttachmentDownload
 import chat.schildi.revenge.model.RoomActionProvider
 import chat.schildi.revenge.model.ScopedRoomKey
 import chat.schildi.revenge.model.UserActionProvider
@@ -90,7 +90,6 @@ import io.element.android.libraries.matrix.api.media.FileInfo
 import io.element.android.libraries.matrix.api.media.ImageInfo
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.media.VideoInfo
-import io.element.android.libraries.matrix.api.media.toFile
 import io.element.android.libraries.matrix.api.room.IntentionalMention
 import io.element.android.libraries.matrix.api.room.RoomInfo
 import io.element.android.libraries.matrix.api.room.roomMembers
@@ -170,7 +169,6 @@ import shire.composeapp.generated.resources.toast_attachment_download_path_succe
 import java.awt.Desktop
 import java.io.File
 import java.lang.IllegalArgumentException
-import java.nio.file.Files
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.path.toPath
 import kotlin.math.max
@@ -1951,59 +1949,33 @@ class ConversationViewModel(
         onSuccess: (File) -> ActionResult,
     ): ActionResult {
         val mediaSource = event.mediaSource() ?: return ActionResult.Inapplicable
-        val client = clientFlow.value ?: return ActionResult.Failure("Client not ready")
-        val mediaLoader = client.matrixMediaLoader
         val appMessageId = "downloadFile_${mediaSource.safeUrl}"
-        val filename = event.mediaFilename()
-        val outFile = PersistentAttachmentDownload.getPersistentAttachmentFile(
-            sessionId = sessionId,
-            roomId = roomId,
-            timestamp = event.timestamp,
-            mxcUrl = mediaSource.safeUrl,
-            filename = filename,
-        )
-        if (outFile.exists() && outFile.length() > 0) {
-            return onSuccess(outFile)
-        }
         return launchActionAsync(
             "downloadFile",
             viewModelScope,
             Dispatchers.IO,
             appMessageId,
         ) {
-            val result = mediaLoader.downloadMediaFile(
-                source = mediaSource,
+            val result = MediaDownloadRepo.requestAttachmentDownload(
+                sessionId = sessionId,
+                roomId = roomId,
+                mediaSource = mediaSource,
+                sourceTimestamp = event.timestamp,
                 mimeType = event.mediaMimetype(),
-                filename = filename,
+                filename = event.mediaFilename(),
             )
             val file = result.getOrNull()
             if (file != null) {
-                val fileToOpen = try {
-                    /* TODO why does this not work
-                    val persistSuccess = file.persist(outFile.path)
-                    if (persistSuccess) {
-                        outFile
-                    } else {
-                        log.e("Failed to persist attachment file to ${outFile.path}, using temp one")
-                        file.toFile()
-                    }
-                     */
-                    Files.copy(file.toFile().toPath(), outFile.toPath())
-                    outFile
-                } catch (t: Throwable) {
-                    log.e("Failed to persist attachment file, using temp one", t)
-                    file.toFile()
-                }
                 publishMessage(
                     AppMessage(
                         StringResourceHolder(
                             Res.string.toast_attachment_download_path_success,
-                            file.path().toStringHolder()
+                            file.path.toStringHolder()
                         ),
                         uniqueId = appMessageId,
                     )
                 )
-                onSuccess(fileToOpen).also {
+                onSuccess(file).also {
                     if (it !is ActionResult.Success) {
                         return@launchActionAsync it
                     }
