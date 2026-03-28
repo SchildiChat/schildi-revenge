@@ -133,7 +133,9 @@ fun main() {
                                 LocalKeyboardActionHandler provides keyHandler,
                                 LocalDensity provides localDensity,
                             ) {
-                                WindowContent(windowState.destinationHolder)
+                                key(UiState.currentLocale.collectAsState().value) {
+                                    WindowContent(windowState.destinationHolder)
+                                }
                             }
                         }
                     }

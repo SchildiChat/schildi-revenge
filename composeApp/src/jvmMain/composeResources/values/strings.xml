@@ -246,6 +246,8 @@
     <string name="profile_update_name_and_avatar">%1$s changed their avatar and name (was %2$s)</string>
     <string name="profile_update_set_name_and_avatar">%1$s changed their avatar and set their name</string>
 
+    <string name="pref_locale">Locale</string>
+    <string name="pref_locale_follow_system">Follow system</string>
     <string name="pref_category_scale">Render scale</string>
     <string name="pref_category_dimensions">Dimensions</string>
     <string name="pref_category_dimensions_summary">Window and screen size defaults and limits</string>

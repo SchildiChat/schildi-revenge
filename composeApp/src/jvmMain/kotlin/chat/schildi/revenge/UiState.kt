@@ -45,6 +45,7 @@ import kotlinx.coroutines.launch
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.toast_key_config_reload_error
 import shire.composeapp.generated.resources.toast_key_config_reload_success
+import java.util.Locale
 import kotlin.collections.map
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
@@ -221,6 +222,16 @@ object UiState {
     val sessionIdComparator = appStateStore.sessionIdComparator
 
     val mutedAccounts = MutableStateFlow<Set<SessionId>>(emptySet())
+
+    val currentLocale = RevengePrefs.settingFlow(ScPrefs.LOCALE).onEach {
+        val localeToSet = when (it) {
+            "" -> ScPrefs.initialLocale
+            else -> Locale.of(it)
+        }
+        if (localeToSet != Locale.getDefault()) {
+            Locale.setDefault(localeToSet)
+        }
+    }.stateIn(scope, SharingStarted.Eagerly, "")
 
     init {
         scope.launch {

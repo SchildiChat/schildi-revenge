@@ -163,6 +163,29 @@ data class ScFloatPref(
     override fun autoSuggestionValues() = emptyList<String>()
 }
 
+/*
+data class ScStringPref(
+    override val sKey: String,
+    override val defaultValue: String,
+    override val titleRes: StringResource,
+    override val summaryRes: StringResource? = null,
+    override val disabledValue: String = defaultValue,
+    override val dependencies: List<ScPrefDependency> = emptyList(),
+    override val requiresWindowRecreation: Boolean = false,
+): ScPref<String> {
+    override val key = stringPreferencesKey(sKey)
+    override fun ensureType(value: Any?): String? {
+        if (value !is String?) {
+            Logger.withTag("ScStringPref").e("Parse string failed of $sKey for ${value?.javaClass?.simpleName}")
+            return null
+        }
+        return value
+    }
+    override fun parseType(value: String) = value
+    override fun autoSuggestionValues() = emptyList<String>()
+}
+ */
+
 data class ScListPrefEntry<T>(
     val value: T,
     val name: ComposableStringHolder,
@@ -182,6 +205,7 @@ data class ScStringListPref(
     override val disabledValue: String = defaultValue,
     override val dependencies: List<ScPrefDependency> = emptyList(),
     override val requiresWindowRecreation: Boolean = false,
+    val allowNonEntryValues: Boolean = false,
 ): ScListPref<String> {
     override val key = stringPreferencesKey(sKey)
     override fun ensureType(value: Any?): String? {
@@ -191,7 +215,7 @@ data class ScStringListPref(
         }
         return value
     }
-    override fun parseType(value: String): String? = value.takeIf { items.any { it.value == value } }
+    override fun parseType(value: String): String? = value.takeIf { allowNonEntryValues || items.any { it.value == value } }
     override fun autoSuggestionValues() = items.map { it.value }
 }
 

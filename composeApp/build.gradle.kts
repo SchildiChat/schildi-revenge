@@ -1,9 +1,13 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import java.time.LocalDateTime
 import java.time.ZoneOffset
@@ -87,6 +91,7 @@ val buildType: String = if (isReleaseBuild) "release" else "debug"
 val rustProfile: String = if (isReleaseBuild) "release" else "debug"
 
 val generatedSrcDir = layout.buildDirectory.dir("generated/src/jvmMain/kotlin").get().asFile
+val composeResourcesDir = layout.projectDirectory.dir("src/jvmMain/composeResources")
 
 val distributionResourcesDirName = "distribution-resources"
 val distributionResourcesDir = layout.buildDirectory.dir(distributionResourcesDirName)
@@ -148,6 +153,74 @@ abstract class GenerateBuildInfoTask : DefaultTask() {
     }
 }
 
+abstract class GenerateAvailableLocalesTask : DefaultTask() {
+    @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val composeResourcesDirectory: DirectoryProperty
+
+    @get:Input
+    abstract val packageName: Property<String>
+
+    @get:OutputFile
+    abstract val outputFile: RegularFileProperty
+
+    @TaskAction
+    fun generate() {
+        val localeCodes = composeResourcesDirectory.get().asFile
+            .listFiles()
+            .orEmpty()
+            .asSequence()
+            .filter { it.isDirectory }
+            .mapNotNull { directory ->
+                directory.name.removePrefix("values-")
+                    .takeIf { directory.name.startsWith("values-") }
+                    ?.let(::normalizeResourceLocale)
+            }
+            .distinct()
+            .sorted()
+            .toList()
+
+        val outFile = outputFile.get().asFile
+        outFile.parentFile.mkdirs()
+        outFile.writeText(
+            buildString {
+                appendLine("package ${packageName.get()}")
+                appendLine()
+                appendLine("object AvailableLocales {")
+                append("    val codes: List<String> = listOf(")
+                if (localeCodes.isNotEmpty()) {
+                    appendLine()
+                    localeCodes.forEach { code ->
+                        appendLine("        \"$code\",")
+                    }
+                    appendLine("    )")
+                } else {
+                    appendLine(")")
+                }
+                appendLine("}")
+            }
+        )
+    }
+
+    private fun normalizeResourceLocale(qualifier: String): String {
+        if (qualifier.startsWith("b+")) {
+            return qualifier.removePrefix("b+").replace('+', '-')
+        }
+
+        return qualifier.split('-')
+            .filter { it.isNotEmpty() }
+            .mapIndexed { index, part ->
+                when {
+                    index == 1 && part.startsWith("r") && part.length > 1 -> part.removePrefix("r").uppercase()
+                    part.length == 4 -> part.lowercase().replaceFirstChar(Char::titlecase)
+                    index == 0 -> part.lowercase()
+                    else -> part
+                }
+            }
+            .joinToString("-")
+    }
+}
+
 val generateBuildInfo = tasks.register<GenerateBuildInfoTask>("generateBuildInfo") {
     description = "Generate BuildInfo.kt with build type and rust profile"
     group = "build"
@@ -175,6 +248,18 @@ val generateBuildInfo = tasks.register<GenerateBuildInfoTask>("generateBuildInfo
     outputFile.set(outFile)
 }
 
+val generateAvailableLocales = tasks.register<GenerateAvailableLocalesTask>("generateAvailableLocales") {
+    description = "Generate AvailableLocales.kt from compose resource locales"
+    group = "build"
+    val pkg = "chat.schildi.revenge"
+    val outDir = File(generatedSrcDir, pkg.replace('.', '/'))
+    val outFile = File(outDir, "AvailableLocales.kt")
+
+    composeResourcesDirectory.set(composeResourcesDir)
+    packageName.set(pkg)
+    outputFile.set(outFile)
+}
+
 // Add generated sources to jvmMain
 kotlin.sourceSets.named("jvmMain") {
     kotlin.srcDir(generatedSrcDir)
@@ -182,7 +267,7 @@ kotlin.sourceSets.named("jvmMain") {
 
 // Ensure codegen runs before compiling JVM sources
 tasks.named("compileKotlinJvm").configure {
-    dependsOn(generateBuildInfo)
+    dependsOn(generateBuildInfo, generateAvailableLocales)
 }
 
 val calVer: String = ZonedDateTime.now(ZoneOffset.UTC)

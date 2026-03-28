@@ -1,8 +1,10 @@
 package chat.schildi.preferences
 
+import chat.schildi.revenge.AvailableLocales
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.model.ComposerFormat
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toPersistentList
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.hint_composer_format_html
 import shire.composeapp.generated.resources.hint_composer_format_markdown
@@ -104,6 +106,8 @@ import shire.composeapp.generated.resources.pref_client_side_sort_by_unread_summ
 import shire.composeapp.generated.resources.pref_client_side_sort_by_unread_title
 import shire.composeapp.generated.resources.pref_dual_mention_unread_counts_summary
 import shire.composeapp.generated.resources.pref_dual_mention_unread_counts_title
+import shire.composeapp.generated.resources.pref_locale
+import shire.composeapp.generated.resources.pref_locale_follow_system
 import shire.composeapp.generated.resources.pref_pin_favorites_summary
 import shire.composeapp.generated.resources.pref_pin_favorites_title
 import shire.composeapp.generated.resources.pref_render_silent_unread_summary
@@ -135,8 +139,18 @@ import shire.composeapp.generated.resources.pref_url_previews_require_explicit_l
 import shire.composeapp.generated.resources.pref_url_previews_require_explicit_links_title
 import shire.composeapp.generated.resources.pref_url_previews_summary
 import shire.composeapp.generated.resources.pref_url_previews_title
+import java.util.Locale
 
 object ScPrefs {
+
+    val initialLocale: Locale = Locale.getDefault()
+    const val LOCALE_DEFAULT = "en"
+    val availableLocaleSettings = (
+        listOf(ScListPrefEntry("", Res.string.pref_locale_follow_system.toStringHolder())) +
+        (listOf(LOCALE_DEFAULT) + AvailableLocales.codes).map {
+            ScListPrefEntry(it, Locale.of(it).displayName.toStringHolder())
+        }
+    ).toPersistentList()
 
     // Render scale
     val RENDER_SCALE = ScFloatPref("RENDER_SCALE", 1f, Res.string.pref_render_scale, minValue = 0.5f, maxValue = 5f, allowLiveSliderChange = false)
@@ -177,6 +191,7 @@ object ScPrefs {
     val FRAME_DROP_SPINNER = ScBoolPref("FRAME_DROP_SPINNER", false, Res.string.pref_framed_rop_spinner_title, Res.string.pref_framed_rop_spinner_summary)
 
     // Appearance
+    val LOCALE = ScStringListPref("LOCALE", "", availableLocaleSettings, Res.string.pref_locale, allowNonEntryValues = true)
     val INITIAL_WINDOW_WIDTH = ScIntPref("INITIAL_WINDOW_WIDTH", 900, Res.string.pref_initial_window_width_title, Res.string.pref_initial_window_width_summary, minValue = 600, maxValue = 3840)
     val INITIAL_WINDOW_HEIGHT = ScIntPref("INITIAL_WINDOW_HEIGHT", 1200, Res.string.pref_initial_window_height_title, Res.string.pref_initial_window_height_summary, minValue = 600, maxValue = 2160)
     val HIDE_WINDOW_DECORATION = ScBoolPref("HIDE_WINDOW_DECORATION", false, Res.string.pref_hide_window_decoration_title, Res.string.pref_hide_window_decoration_summary, requiresWindowRecreation = true)
@@ -264,6 +279,7 @@ object ScPrefs {
 
     val rootPrefs = ScPrefScreen("ROOT", Res.string.hint_settings, null, listOf<AbstractScPref>(
         ScPrefScreen("GENERAL", Res.string.pref_category_general, Res.string.pref_category_general_summary, listOf(
+            LOCALE,
             CLOSE_TO_TRAY,
             DESKTOP_NOTIFICATIONS,
             ScPrefCategory("UI_SCALE", Res.string.pref_category_scale, null, listOf(
