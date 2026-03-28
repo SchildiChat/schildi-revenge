@@ -63,7 +63,6 @@ fun main() {
         key(UiState.forceRecreationCounter.collectAsState().value) {
             if (!minimized) {
                 val windows = UiState.windows.collectAsState().value
-                val scope = rememberCoroutineScope()
                 windows.forEach { windowState ->
                     key(windowState.windowId) {
                         val destinationState = windowState.destinationHolder.state.collectAsState().value
@@ -83,6 +82,7 @@ fun main() {
                                 RevengePrefs.getSetting(ScPrefs.HIDE_WINDOW_DECORATION)
                             }
                         }
+                        val scope = rememberCoroutineScope()
                         val keyHandler = remember {
                             KeyboardActionHandler(scope, windowState.windowId, this)
                         }
