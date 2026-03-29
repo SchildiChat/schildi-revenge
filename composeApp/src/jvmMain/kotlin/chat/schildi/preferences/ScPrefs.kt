@@ -172,7 +172,7 @@ object ScPrefs {
     val DESKTOP_NOTIFICATIONS = ScBoolPref("DESKTOP_NOTIFICATIONS", true, Res.string.pref_desktop_notifications_title, Res.string.pref_desktop_notifications_summary)
 
     // Tray icon
-    val CLOSE_TO_TRAY = ScBoolPref("CLOSE_TO_TRAY", false, Res.string.pref_close_to_tray_title, Res.string.pref_close_to_tray_summary)
+    val CLOSE_TO_TRAY = ScBoolPref("CLOSE_TO_TRAY", true, Res.string.pref_close_to_tray_title, Res.string.pref_close_to_tray_summary)
 
     // Keyboard navigation
     val MINIMAL_MODE = ScBoolPref("MINIMAL_MODE", false, Res.string.pref_minimal_mode_title, Res.string.pref_minimal_mode_summary)
