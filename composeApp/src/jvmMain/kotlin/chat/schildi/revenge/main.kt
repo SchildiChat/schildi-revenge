@@ -5,6 +5,7 @@ import co.touchlab.kermit.Logger
 import kotlin.system.exitProcess
 import chat.schildi.revenge.ipc.SingleInstance
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
@@ -28,6 +29,11 @@ fun main(args: Array<String>) {
 class MainCommand : CliktCommand("schildi-revenge") {
     val startInTray by option(help = "Start the application minimized").flag()
     val command by argument("exec", help = "Send command to already running instance").multiple()
+    init {
+        context {
+            readArgumentFile = null
+        }
+    }
     override fun run() {
         if (command.isEmpty()) {
             SingleInstance.ensureSingleInstanceOrExit(startInTray)
