@@ -331,9 +331,16 @@ object UiState {
 
     fun openWindow(destination: Destination, initialTitle: ComposableStringHolder? = null) {
         val newWindow = createWindow(destination, initialTitle)
+        val wasMinimized = minimizedToTray.value
         _windows.update {
-            (it + newWindow).toPersistentList()
+            // New window replaces old state when launched via IPC while minimized
+            if (wasMinimized) {
+                persistentListOf(newWindow)
+            } else {
+                (it + newWindow).toPersistentList()
+            }
         }
+        _minimizedToTray.value = false
     }
 
     fun closeWindow(windowId: Int) {
