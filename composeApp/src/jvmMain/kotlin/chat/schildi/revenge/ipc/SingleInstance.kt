@@ -1,8 +1,10 @@
 package chat.schildi.revenge.ipc
 
 import chat.schildi.revenge.UiState
+import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.config.keybindings.Action
 import co.touchlab.kermit.Logger
+import kotlinx.serialization.json.Json
 import java.io.BufferedReader
 import java.io.File
 import java.io.InputStreamReader
@@ -108,16 +110,16 @@ object SingleInstance {
             if (result == null) {
                 writer.println("ERR not initialized")
             } else {
-                writer.println(result.toString())
+                writer.println(Json.encodeToString(result))
             }
         }
     }
 
-    fun notifyExistingInstance(command: String) {
+    fun notifyExistingInstance(command: String): Boolean {
         val port = runCatching { portFile.readText().trim().toInt() }.getOrNull()
         if (port == null) {
             log.w("Port file missing or invalid; cannot notify existing instance.")
-            return
+            return false
         }
         runCatching {
             Socket(InetAddress.getByName(null), port).use { socket ->
@@ -125,10 +127,17 @@ object SingleInstance {
                 val reader = BufferedReader(InputStreamReader(socket.getInputStream()))
                 writer.println(command)
                 val response = reader.readLine() // read response
+                val parsedResponse = try {
+                    Json.decodeFromString<ActionResult>(response)
+                } catch (_: Exception) {
+                    null
+                }
                 log.i("Result: $response")
+                return parsedResponse is ActionResult.Success
             }
         }.onFailure {
             log.w("Failed to notify existing instance on port $port", it)
         }
+        return false
     }
 }

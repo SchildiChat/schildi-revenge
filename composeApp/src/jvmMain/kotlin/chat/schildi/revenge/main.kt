@@ -39,7 +39,8 @@ class MainCommand : CliktCommand("schildi-revenge") {
             SingleInstance.ensureSingleInstanceOrExit(startInTray)
             ComposeApp.main(startInTray)
         } else {
-            SingleInstance.notifyExistingInstance(command.joinToString(separator = " "))
+            val success = SingleInstance.notifyExistingInstance(command.joinToString(separator = " "))
+            exitProcess(if (success) 0 else 1)
         }
     }
 }
