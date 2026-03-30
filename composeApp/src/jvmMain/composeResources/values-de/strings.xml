@@ -177,4 +177,6 @@
     <string name="about_build_date">Versionsdatum: %1$s</string>
     <string name="action_view_read_receipts">Zeige Lesebestätigungen an</string>
     <string name="action_open_inbox">Gehe zum Posteingng</string>
+    <string name="inbox">Posteingang</string>
+    <string name="inbox_search">Posteingangssuche</string>
 </resources>
