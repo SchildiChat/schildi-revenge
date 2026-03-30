@@ -11,6 +11,7 @@ enum class DestinationEnum(
     RoomMembers("RoomMembers", listOf("members")),
     MessageReactions("MessageReactions", listOf("reactions")),
     MessageReadReceipts("MessageReadReceipts", listOf("readReceipts", "receipts")),
+    UserDetails("UserDetails", listOf("user")),
     Settings("Settings", listOf("settings")),
     SettingsRoot("SettingsRoot"),
     SettingsDetails("SettingsDetails"),

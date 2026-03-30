@@ -112,6 +112,13 @@ private inline fun String.toDestinationOrNull(
                 Destination.MessageReadReceipts(sessionId, roomId, eventId)
             }
         }
+        DestinationEnum.UserDetails -> {
+            tryOrNull {
+                val sessionId = args.getOrNull(0)?.let(::SessionId) ?: context!!.ensureSessionId()
+                val userId = args.getOrNull(1)?.let(::UserId) ?: context!!.ensureUserId()
+                Destination.UserDetails(sessionId, userId)
+            }
+        }
         DestinationEnum.Settings -> Destination.Settings()
         DestinationEnum.SettingsRoot -> Destination.SettingsPane()
         DestinationEnum.SettingsDetails -> {
@@ -143,3 +150,5 @@ private fun CommandArgContext.ensureRoomId() =
     RoomId(getParameter(ActionArgumentPrimitive.RoomId)!!)
 private fun CommandArgContext.ensureEventId() =
     EventId(getParameter(ActionArgumentPrimitive.EventId)!!)
+private fun CommandArgContext.ensureUserId() =
+    UserId(getParameter(ActionArgumentPrimitive.UserId)!!)

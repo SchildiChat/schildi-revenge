@@ -6,6 +6,7 @@ import chat.schildi.revenge.config.keybindings.DestinationEnum
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.core.UserId
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.about
 import shire.composeapp.generated.resources.app_title_short
@@ -97,6 +98,15 @@ sealed interface Destination {
     ) : WithSession {
         override val type = DestinationEnum.MessageReadReceipts
         override val title = StringResourceHolder(Res.string.message_read_receipts_title)
+        override val category = DestinationCategory.CONVERSATION_DETAILS
+    }
+
+    data class UserDetails(
+        override val sessionId: SessionId,
+        val userId: UserId,
+    ) : WithSession {
+        override val type = DestinationEnum.UserDetails
+        override val title = null
         override val category = DestinationCategory.CONVERSATION_DETAILS
     }
 
