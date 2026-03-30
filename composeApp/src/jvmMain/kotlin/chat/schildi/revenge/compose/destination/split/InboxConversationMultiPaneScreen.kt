@@ -11,7 +11,7 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.DestinationCategory
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.LocalDestinationState
-import chat.schildi.revenge.NavigationPreference
+import chat.schildi.revenge.config.keybindings.DestinationEnum
 
 @Composable
 fun InboxConversationMultiPaneScreen(
@@ -30,11 +30,11 @@ fun InboxConversationMultiPaneScreen(
                 if (collapseSinglePane && hasConversation)
                     null
                 else
-                    destination.inbox.wrapped(destination, DestinationCategory.INBOX),
+                    destination.inbox.wrapped(destination, isDetails = false),
                 if (!hasConversation && (collapseSinglePane || ScPrefs.HIDE_EMPTY_INBOX_PANE.value()))
                     null
                 else
-                    destination.conversation.wrapped(destination, DestinationCategory.CONVERSATION),
+                    destination.conversation.wrapped(destination, isDetails = true),
             ),
             contentModifier = contentModifier,
         )
@@ -44,38 +44,15 @@ fun InboxConversationMultiPaneScreen(
 @Composable
 private fun DestinationStateHolder.wrapped(
     destination: Destination.InboxConversationMultiPane,
-    category: DestinationCategory,
+    isDetails: Boolean,
     parent: DestinationStateHolder? = LocalDestinationState.current,
-) = MultiPaneLayoutDestinationStateHolderWrapper(
+) = buildMultiPaneDestinationStateHolderWrapper(
     parent = parent,
     inner = this,
-    close = if (category == DestinationCategory.CONVERSATION) {
-        {
-            destination.conversation.navigate(
-                Destination.MultiPaneConversationPlaceholder,
-                NavigationPreference.REPLACE
-            )
-        }
-    } else if (parent != null) {
-        parent::closeScreen
-    } else {
-        null
-    }
-) { navDestination ->
-    when (navDestination.category) {
-        DestinationCategory.INBOX -> {
-            destination.conversation.navigate(
-                Destination.MultiPaneConversationPlaceholder,
-                NavigationPreference.REPLACE
-            )
-            true
-        }
-        DestinationCategory.CONVERSATION -> {
-            destination.conversation.navigate(navDestination, NavigationPreference.REPLACE)
-            true
-        }
-        else -> {
-            false
-        }
-    }
-}
+    isDetails = isDetails,
+    accessDetails = { destination.conversation },
+    createPlaceholder = { Destination.MultiPaneConversationPlaceholder },
+    mainDestination = DestinationEnum.Inbox,
+    allowedDetailsDestinations = listOf(DestinationEnum.Conversation, DestinationEnum.ConversationDetailsSplit, DestinationEnum.SplitConversationPlaceholder),
+    allowedDetailsCategories = listOf(DestinationCategory.CONVERSATION),
+)

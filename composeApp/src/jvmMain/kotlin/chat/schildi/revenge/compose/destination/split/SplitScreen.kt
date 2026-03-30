@@ -18,6 +18,7 @@ import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.FocusRole
+import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.compose.components.AdaptiveColumn
@@ -54,12 +55,14 @@ fun SplitHorizontal(
             splitRole = SplitRole.Start,
             splitType = destination.type,
             destinationHolder = destination.primary,
+            actionProvider = splitKeyboardActionProvider(true),
         )
         SplitScreenDestination(
             focusId = secondaryFocusId,
             splitRole = SplitRole.End,
             splitType = destination.type,
             destinationHolder = destination.secondary,
+            actionProvider = splitKeyboardActionProvider(false),
         )
     }
 }
@@ -80,12 +83,14 @@ fun SplitVertical(
             splitRole = SplitRole.Top,
             splitType = destination.type,
             destinationHolder = destination.primary,
+            actionProvider = splitKeyboardActionProvider(true),
         )
         SplitScreenDestination(
             focusId = secondaryFocusId,
             splitRole = SplitRole.Bottom,
             splitType = destination.type,
             destinationHolder = destination.secondary,
+            actionProvider = splitKeyboardActionProvider(false),
         )
     }
 }
@@ -98,6 +103,7 @@ fun SplitScreenDestination(
     destinationHolder: DestinationStateHolder,
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
+    actionProvider: HierarchicalKeyboardActionProvider,
 ) {
     val keyHandler = LocalKeyboardActionHandler.current
     val focusedContainers = keyHandler.currentFocusedNestingDestinations.collectAsState(persistentListOf())
@@ -121,7 +127,7 @@ fun SplitScreenDestination(
 
     // Actual content
     FlatFocusContainer(
-        LocalKeyboardActionProvider provides splitKeyboardActionProvider(false),
+        LocalKeyboardActionProvider provides actionProvider,
         role = FocusRole.NESTING_DESTINATION_ROOT_CONTAINER,
         focusId = focusId,
         modifier = modifier.splitContainerDecoration(

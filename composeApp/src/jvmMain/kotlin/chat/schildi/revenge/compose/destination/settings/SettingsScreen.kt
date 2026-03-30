@@ -28,10 +28,10 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Destination
+import chat.schildi.revenge.DestinationCategory
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
-import chat.schildi.revenge.NavigationPreference
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.ListAction
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
@@ -43,11 +43,12 @@ import chat.schildi.revenge.compose.components.TopNavigationIcon
 import chat.schildi.revenge.compose.components.TopNavigationSearchOrTitle
 import chat.schildi.revenge.compose.components.TopNavigationTitle
 import chat.schildi.revenge.compose.destination.split.MultiPaneLayout
-import chat.schildi.revenge.compose.destination.split.MultiPaneLayoutDestinationStateHolderWrapper
+import chat.schildi.revenge.compose.destination.split.buildMultiPaneDestinationStateHolderWrapper
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.model.SettingsViewModel
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
@@ -191,34 +192,13 @@ private fun DestinationStateHolder.wrapped(
     destination: Destination.Settings,
     isDetails: Boolean,
     parent: DestinationStateHolder? = LocalDestinationState.current,
-) = MultiPaneLayoutDestinationStateHolderWrapper(
+) = buildMultiPaneDestinationStateHolderWrapper(
     parent = parent,
     inner = this,
-    close = if (isDetails) {
-        {
-            destination.details.navigate(
-                Destination.MultiPaneSettingsPlaceholder,
-                NavigationPreference.REPLACE
-            )
-        }
-    } else if (parent != null) {
-        parent::closeScreen
-    } else {
-        null
-    }
-) { navDestination ->
-    if (navDestination is Destination.SettingsPane) {
-        if (navDestination.rootPreferenceCategory == null) {
-            destination.details.navigate(
-                Destination.MultiPaneSettingsPlaceholder,
-                NavigationPreference.REPLACE
-            )
-            destination.root.navigate(navDestination, NavigationPreference.REPLACE)
-        } else {
-            destination.details.navigate(navDestination, NavigationPreference.REPLACE)
-        }
-        true
-    } else {
-        false
-    }
-}
+    isDetails = isDetails,
+    accessDetails = { destination.details },
+    createPlaceholder = { Destination.MultiPaneSettingsPlaceholder },
+    mainDestination = DestinationEnum.SettingsRoot,
+    allowedDetailsDestinations = listOf(DestinationEnum.SettingsDetails, DestinationEnum.SplitSettingsDetailsPlaceholder),
+    allowedDetailsCategories = listOf(),
+)

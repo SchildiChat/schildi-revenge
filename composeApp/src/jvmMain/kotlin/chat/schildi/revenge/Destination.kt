@@ -168,20 +168,21 @@ sealed interface Destination {
     }
 
     sealed interface MultiPane : Destination
+    sealed interface MultiPanePlaceholder : Destination
 
-    data object MultiPaneSettingsPlaceholder : Destination {
+    data object MultiPaneSettingsPlaceholder : MultiPanePlaceholder {
         override val category: DestinationCategory = DestinationCategory.SETTINGS
         override val type: DestinationEnum = DestinationEnum.SplitSettingsDetailsPlaceholder
         override val title = DEFAULT_WINDOW_APP_TITLE
     }
 
-    data object MultiPaneConversationPlaceholder : Destination {
+    data object MultiPaneConversationPlaceholder : MultiPanePlaceholder {
         override val category: DestinationCategory = DestinationCategory.CONVERSATION
         override val type: DestinationEnum = DestinationEnum.SplitConversationPlaceholder
         override val title = DEFAULT_WINDOW_APP_TITLE
     }
 
-    data object MultiPaneRoomInfoPlaceholder : Destination {
+    data object MultiPaneRoomInfoPlaceholder : MultiPanePlaceholder {
         override val category: DestinationCategory = DestinationCategory.CONVERSATION_DETAILS
         override val type: DestinationEnum = DestinationEnum.SplitRoomDetailsPlaceholder
         override val title = DEFAULT_WINDOW_APP_TITLE

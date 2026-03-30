@@ -11,7 +11,7 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.DestinationCategory
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.LocalDestinationState
-import chat.schildi.revenge.NavigationPreference
+import chat.schildi.revenge.config.keybindings.DestinationEnum
 
 @Composable
 fun ConversationDetailsMultiPaneScreen(
@@ -33,7 +33,7 @@ fun ConversationDetailsMultiPaneScreen(
                     } else {
                         destination.conversation.wrapped(
                             destination = destination,
-                            category = DestinationCategory.CONVERSATION,
+                            isDetails = false,
                         )
                     },
                     if (!hasDetails && (collapseSinglePane || ScPrefs.HIDE_EMPTY_CONVERSATION_DETAILS_PANE.value())) {
@@ -41,7 +41,7 @@ fun ConversationDetailsMultiPaneScreen(
                     } else {
                         destination.details.wrapped(
                             destination = destination,
-                            category = DestinationCategory.CONVERSATION_DETAILS,
+                            isDetails = true,
                         )
                     },
                 ),
@@ -53,39 +53,20 @@ fun ConversationDetailsMultiPaneScreen(
 @Composable
 private fun DestinationStateHolder.wrapped(
     destination: Destination.ConversationDetailsMultiPane,
-    category: DestinationCategory,
+    isDetails: Boolean,
     parent: DestinationStateHolder? = LocalDestinationState.current,
-) = MultiPaneLayoutDestinationStateHolderWrapper(
+) = buildMultiPaneDestinationStateHolderWrapper(
     parent = parent,
     inner = this,
-    close = if (category == DestinationCategory.CONVERSATION_DETAILS) {
-        {
-            destination.details.navigate(
-                Destination.MultiPaneRoomInfoPlaceholder,
-                NavigationPreference.REPLACE
-            )
-        }
-    } else if (parent != null) {
-        parent::closeScreen
-    } else {
-        null
-    }
-) { navDestination ->
-    when (navDestination.category) {
-        DestinationCategory.CONVERSATION -> {
-            destination.details.navigate(
-                Destination.MultiPaneRoomInfoPlaceholder,
-                NavigationPreference.REPLACE,
-            )
-            destination.conversation.navigate(navDestination, NavigationPreference.REPLACE)
-            true
-        }
-        DestinationCategory.CONVERSATION_DETAILS -> {
-            destination.details.navigate(navDestination, NavigationPreference.REPLACE)
-            true
-        }
-        else -> {
-            false
-        }
-    }
-}
+    isDetails = isDetails,
+    accessDetails = { destination.details },
+    createPlaceholder = { Destination.MultiPaneRoomInfoPlaceholder },
+    mainDestination = DestinationEnum.Conversation,
+    allowedDetailsDestinations = listOf(
+        DestinationEnum.RoomMembers,
+        DestinationEnum.MessageReactions,
+        DestinationEnum.MessageReadReceipts,
+        DestinationEnum.UserDetails,
+    ),
+    allowedDetailsCategories = listOf(DestinationCategory.CONVERSATION_DETAILS),
+)

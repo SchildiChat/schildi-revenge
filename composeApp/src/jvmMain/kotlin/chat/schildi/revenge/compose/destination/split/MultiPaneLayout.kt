@@ -5,9 +5,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import chat.schildi.revenge.Destination
+import chat.schildi.revenge.DestinationCategory
 import chat.schildi.revenge.DestinationState
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.NavigationPreference
+import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.KeyboardActionHandler
 import chat.schildi.revenge.compose.components.AdaptiveRow
 import chat.schildi.revenge.compose.focus.rememberFocusId
@@ -16,7 +18,7 @@ import chat.schildi.revenge.config.keybindings.DestinationEnum
 import java.util.UUID
 
 private data class MultiPaneLayoutTarget(
-    val destinationHolder: DestinationStateHolder,
+    val destinationHolder: MultiPaneLayoutDestinationStateHolderWrapper,
     val focusId: UUID,
     val role: SplitRole,
 )
@@ -24,7 +26,7 @@ private data class MultiPaneLayoutTarget(
 @Composable
 fun MultiPaneLayout(
     outerDestination: DestinationEnum,
-    innerDestinations: List<DestinationStateHolder>,
+    innerDestinations: List<MultiPaneLayoutDestinationStateHolderWrapper>,
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
 ) {
@@ -57,6 +59,7 @@ fun MultiPaneLayout(
                 splitType = outerDestination,
                 destinationHolder = target.destinationHolder,
                 contentModifier = innerContentModifier,
+                actionProvider = multiPaneKeyboardActionProvider(target.destinationHolder)
             )
         }
     }
@@ -65,6 +68,8 @@ fun MultiPaneLayout(
 class MultiPaneLayoutDestinationStateHolderWrapper(
     val parent: DestinationStateHolder?,
     val inner: DestinationStateHolder,
+    val closeSplit: () -> ActionResult,
+    val closeDestination: (DestinationEnum) -> ActionResult,
     val close: ((KeyboardActionHandler) -> Unit)? = null,
     val interceptNavigation: (Destination) -> Boolean,
 ) : DestinationStateHolder {
@@ -108,4 +113,78 @@ class MultiPaneLayoutDestinationStateHolderWrapper(
     // Need to make sure to allow navigating from inbox -> inbox to close destination pane or sth.
     override fun isNavigationDestinationApplicable(destination: Destination) =
         parent?.isNavigationDestinationApplicable(destination) != false
+}
+
+fun buildMultiPaneDestinationStateHolderWrapper(
+    inner: DestinationStateHolder,
+    parent: DestinationStateHolder?,
+    isDetails: Boolean,
+    accessDetails: () -> DestinationStateHolder,
+    createPlaceholder: () -> Destination.MultiPanePlaceholder,
+    mainDestination: DestinationEnum,
+    allowedDetailsDestinations: List<DestinationEnum>,
+    allowedDetailsCategories: List<DestinationCategory>,
+) = MultiPaneLayoutDestinationStateHolderWrapper(
+    parent = parent,
+    inner = inner,
+    closeSplit = {
+        val details = accessDetails()
+        if (accessDetails().state.value.destination is Destination.MultiPanePlaceholder) {
+            ActionResult.Inapplicable
+        } else {
+            details.navigate(
+                createPlaceholder(),
+                NavigationPreference.REPLACE
+            )
+            ActionResult.Success()
+        }
+    },
+    closeDestination = { toClose ->
+        val details = accessDetails()
+        val placeholder = createPlaceholder()
+        if (toClose !in allowedDetailsDestinations || toClose == placeholder.type) {
+            ActionResult.Inapplicable
+        } else if (details.state.value.destination.type != toClose) {
+            ActionResult.Inapplicable
+        } else {
+            details.navigate(
+                placeholder,
+                NavigationPreference.REPLACE
+            )
+            ActionResult.Success()
+        }
+    },
+    close = if (isDetails) {
+        {
+            accessDetails().navigate(
+                createPlaceholder(),
+                NavigationPreference.REPLACE
+            )
+        }
+    } else if (parent != null) {
+        parent::closeScreen
+    } else {
+        null
+    }
+) { navDestination ->
+    when {
+        navDestination.type == mainDestination -> {
+            accessDetails().navigate(
+                createPlaceholder(),
+                NavigationPreference.REPLACE
+            )
+            true
+        }
+        navDestination.type in allowedDetailsDestinations -> {
+            accessDetails().navigate(navDestination)
+            true
+        }
+        navDestination.category in allowedDetailsCategories -> {
+            accessDetails().navigate(navDestination)
+            true
+        }
+        else -> {
+            false
+        }
+    }
 }
