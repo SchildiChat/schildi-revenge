@@ -208,7 +208,7 @@ fun AccountButton(
                     val renderAsError = when (account.syncState) {
                         SyncState.Terminated,
                         SyncState.Offline,
-                        SyncState.Error -> true
+                        SyncState.Error -> !account.shouldHideErrors
 
                         else -> false
                     }
@@ -240,7 +240,8 @@ fun AccountButton(
                         roomListState,
                         Modifier.size(16.dp),
                         tint = if (account.roomListState is RoomListService.State.Running ||
-                            account.roomListState is RoomListService.State.Idle)
+                            account.roomListState is RoomListService.State.Idle ||
+                            account.shouldHideErrors)
                             MaterialTheme.colorScheme.onSurfaceVariant
                         else
                             MaterialTheme.colorScheme.error,

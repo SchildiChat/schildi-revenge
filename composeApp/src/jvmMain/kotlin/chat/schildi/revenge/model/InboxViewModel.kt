@@ -93,7 +93,10 @@ data class InboxAccount(
     val isSelected: Boolean,
     val isCurrentlyVisible: Boolean,
     val isMuted: Boolean,
-)
+) {
+    val shouldHideErrors: Boolean
+        get() = isMuted && !isCurrentlyVisible
+}
 
 private data class InboxSettings(
     val hideEmptyUnreadPseudoSpaces: Boolean,
