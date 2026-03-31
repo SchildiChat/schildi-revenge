@@ -97,7 +97,7 @@ fun MessageBubble(
     content: @Composable ColumnScope.() -> Unit
 ) {
     // Bypass double message bubble when nested in a reply
-    if (LocalMessageRenderContext.current == MessageRenderContext.IN_REPLY_TO) {
+    if (LocalMessageRenderContext.current.isReply()) {
         Column(modifier.padding(padding), verticalArrangement = verticalArrangement, content = content)
     } else {
         val color = if (transparent)

@@ -1,11 +1,24 @@
 package chat.schildi.revenge.compose.destination.conversation.event
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Gesture
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.revenge.compose.destination.conversation.event.message.FileMessage
 import chat.schildi.revenge.compose.destination.conversation.event.message.MessageLayout
 import chat.schildi.revenge.compose.destination.conversation.event.message.ImageMessage
+import chat.schildi.revenge.compose.destination.conversation.event.message.LocalMessageRenderContext
+import chat.schildi.revenge.compose.destination.conversation.event.message.MessageRenderContext
 import chat.schildi.revenge.compose.destination.conversation.event.message.TextLikeMessage
 import chat.schildi.revenge.compose.destination.conversation.event.message.TimestampOverlayContent
 import chat.schildi.revenge.compose.destination.conversation.event.message.VideoMessage
@@ -14,6 +27,7 @@ import chat.schildi.revenge.compose.destination.conversation.event.sender.Sender
 import chat.schildi.revenge.model.conversation.MessageMetadata
 import com.beeper.android.messageformat.MatrixFormatInteractionState
 import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.AudioMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.CallNotifyContent
 import io.element.android.libraries.matrix.api.timeline.item.event.EventContent
@@ -44,6 +58,7 @@ import shire.composeapp.generated.resources.message_placeholder_message_failed_t
 import shire.composeapp.generated.resources.message_placeholder_message_redacted
 import shire.composeapp.generated.resources.message_placeholder_unable_to_decrypt
 import shire.composeapp.generated.resources.message_placeholder_unknown
+import shire.composeapp.generated.resources.message_thread
 
 @Composable
 fun EventContentLayout(
@@ -55,6 +70,7 @@ fun EventContentLayout(
     timestamp: TimestampOverlayContent?,
     isSameAsPreviousSender: Boolean,
     inReplyTo: InReplyTo?,
+    threadInfo: EventThreadInfo?,
     modifier: Modifier = Modifier,
     formatInteractionState: MatrixFormatInteractionState? = null,
 ) {
@@ -70,7 +86,27 @@ fun EventContentLayout(
             },
             senderName = {
                 if (!isSameAsPreviousSender) {
-                    SenderName(senderId, senderProfile)
+                    // Render threaded message indicator in the same row as the sender name if
+                    if (LocalMessageRenderContext.current == MessageRenderContext.THREADED_IN_REPLY_TO) {
+                        Row(
+                            modifier.width(IntrinsicSize.Max),
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            SenderName(senderId, senderProfile)
+                            // Threaded message indicator
+                            WithTooltip(stringResource(Res.string.message_thread)) {
+                                Icon(
+                                    Icons.Default.Gesture,
+                                    stringResource(Res.string.message_thread),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(12.dp),
+                                )
+                            }
+                        }
+                    } else {
+                        SenderName(senderId, senderProfile)
+                    }
                 }
             },
             messageContent = messageContent,
@@ -82,7 +118,7 @@ fun EventContentLayout(
     @Composable
     fun EventMessageFallback(text: String) {
         EventMessageLayout {
-            MessageFallback(text, isOwn, timestamp, inReplyTo)
+            MessageFallback(text, isOwn, timestamp, inReplyTo, threadInfo)
         }
     }
     // TODO make sure every item also renders timestamps in some form
@@ -97,36 +133,38 @@ fun EventContentLayout(
                             isOwn,
                             timestamp,
                             inReplyTo,
+                            threadInfo,
                             interactionState = formatInteractionState,
                         )
                     }
                     is ImageLikeMessageType -> {
-                        ImageMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo)
+                        ImageMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
                     }
                     is LocationMessageType -> {
                         // TODO
-                        MessageFallback("LOCATION", isOwn, timestamp, inReplyTo)
+                        MessageFallback("LOCATION", isOwn, timestamp, inReplyTo, threadInfo)
                     }
                     is AudioMessageType -> {
                         // TODO audio-message specific rendering
-                        FileMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo)
+                        FileMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
                     }
                     is FileMessageType -> {
-                        FileMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo)
+                        FileMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
                     }
                     is VideoMessageType -> {
-                        VideoMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo)
+                        VideoMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
                     }
                     is VoiceMessageType -> {
                         // TODO voice-message specific rendering
-                        FileMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo)
+                        FileMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
                     }
                     is OtherMessageType -> {
                         MessageFallback(
                             stringResource(Res.string.message_placeholder_unknown),
                             isOwn,
                             timestamp,
-                            inReplyTo
+                            inReplyTo,
+                            threadInfo,
                         )
                     }
                 }
@@ -142,6 +180,7 @@ fun EventContentLayout(
                 isOwn = isOwn,
                 timestamp = timestamp,
                 inReplyTo = inReplyTo,
+                threadInfo = threadInfo,
                 isSticker = true,
             )
         }
@@ -171,7 +210,7 @@ fun EventContentLayout(
                 UnableToDecryptContent.Data.Unknown -> stringResource(Res.string.message_placeholder_unable_to_decrypt)
             }
             EventMessageLayout {
-                MessageFallback(message, isOwn, timestamp, inReplyTo, textColor = MaterialTheme.colorScheme.error)
+                MessageFallback(message, isOwn, timestamp, inReplyTo, threadInfo, textColor = MaterialTheme.colorScheme.error)
             }
         }
     }

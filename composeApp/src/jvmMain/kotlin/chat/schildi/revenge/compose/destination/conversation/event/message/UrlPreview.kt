@@ -54,7 +54,7 @@ val LocalUrlPreviewStateProvider = staticCompositionLocalOf<UrlPreviewStateProvi
 
 @Composable
 fun resolveUrlPreview(body: MatrixBodyParseResult): UrlPreviewInfo? {
-    if (LocalMessageRenderContext.current == MessageRenderContext.IN_REPLY_TO) {
+    if (LocalMessageRenderContext.current.isReply()) {
         return null
     }
     // This will be null when url previews are disabled for this room
@@ -89,7 +89,7 @@ fun UrlPreviewView(
     onLongCLick: (() -> Unit)? = null,
     onClick: () -> Unit,
 ) {
-    if (LocalMessageRenderContext.current == MessageRenderContext.IN_REPLY_TO) {
+    if (LocalMessageRenderContext.current.isReply()) {
         return
     }
     Column(

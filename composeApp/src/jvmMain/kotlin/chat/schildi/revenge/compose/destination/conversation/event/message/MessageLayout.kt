@@ -34,6 +34,7 @@ fun MessageLayout(
                 reactions = reactions,
             )
         }
+        MessageRenderContext.THREADED_IN_REPLY_TO,
         MessageRenderContext.IN_REPLY_TO -> {
             MessageLayoutInReplyTo(
                 senderName = senderName,

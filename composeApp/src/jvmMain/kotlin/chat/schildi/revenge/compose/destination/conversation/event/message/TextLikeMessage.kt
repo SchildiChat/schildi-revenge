@@ -55,6 +55,7 @@ import com.beeper.android.messageformat.MatrixStyledFormattedText
 import com.beeper.android.messageformat.rememberMatrixFormatInteractionState
 import com.beeper.android.messageformat.toInlineContent
 import io.element.android.libraries.matrix.api.media.MediaSource
+import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.EmoteMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 import io.element.android.libraries.matrix.api.timeline.item.event.NoticeMessageType
@@ -75,6 +76,7 @@ fun TextLikeMessage(
     isOwn: Boolean,
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
+    threadInfo: EventThreadInfo?,
     modifier: Modifier = Modifier,
     allowBigEmojiOnly: Boolean = true,
     interactionState: MatrixFormatInteractionState? = null,
@@ -90,6 +92,7 @@ fun TextLikeMessage(
         isOwn = isOwn,
         timestamp = timestamp,
         inReplyTo = inReplyTo,
+        threadInfo = threadInfo,
         modifier = modifier.alpha(alpha),
         urlPreview = resolveUrlPreview(text),
         allowBigEmojiOnly = allowBigEmojiOnly,
@@ -104,6 +107,7 @@ fun TextLikeMessage(
     isOwn: Boolean,
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
+    threadInfo: EventThreadInfo?,
     modifier: Modifier = Modifier,
     urlPreview: UrlPreviewInfo? = null,
     allowBigEmojiOnly: Boolean = true,
@@ -119,7 +123,7 @@ fun TextLikeMessage(
         outlined = outlined,
         contentTextLayoutResult = textLayoutResult.value,
     ) {
-        inReplyTo?.let { ReplyContent(it) }
+        inReplyTo?.let { ReplyContent(it, threadInfo) }
         urlPreview?.let {
             val keyHandler = LocalKeyboardActionHandler.current
             UrlPreviewView(urlPreview.preview) {
@@ -181,7 +185,7 @@ fun TextLikeMessageContent(
         drawStyle = LocalMatrixBodyDrawStyle.current,
         interactionState = interactionState,
         onTextLayout = onTextLayout,
-        maxLines = if (LocalMessageRenderContext.current == MessageRenderContext.IN_REPLY_TO) {
+        maxLines = if (LocalMessageRenderContext.current.isReply()) {
             20
         } else {
             Integer.MAX_VALUE

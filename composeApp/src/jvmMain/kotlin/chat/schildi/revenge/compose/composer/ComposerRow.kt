@@ -101,7 +101,7 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
         )
         if (draftState.inReplyTo != null) {
             Row(Modifier.padding(horizontal = Dimens.windowPadding), verticalAlignment = Alignment.CenterVertically) {
-                ReplyContent(draftState.inReplyTo, Modifier.weight(1f))
+                ReplyContent(draftState.inReplyTo, null, Modifier.weight(1f))
                 ClearReplyButton(Modifier.padding(start = Dimens.horizontalItemPadding)) {
                     viewModel.onComposerUpdate(draftState.copy(inReplyTo = null))
                 }

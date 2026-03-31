@@ -104,6 +104,7 @@ fun EventRow(
                 },
                 isSameAsPreviousSender = isSameAsPreviousSender,
                 inReplyTo = event.inReplyTo(),
+                threadInfo = event.threadInfo(),
             )
             ReactionsRow(
                 viewModel = viewModel,

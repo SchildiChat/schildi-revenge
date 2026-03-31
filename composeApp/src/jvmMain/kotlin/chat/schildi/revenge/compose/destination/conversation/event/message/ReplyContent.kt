@@ -2,7 +2,9 @@ package chat.schildi.revenge.compose.destination.conversation.event.message
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -17,14 +19,17 @@ import chat.schildi.revenge.compose.components.LocalSessionId
 import chat.schildi.revenge.compose.destination.conversation.event.EventContentLayout
 import chat.schildi.revenge.model.conversation.messageMetadata
 import chat.schildi.theme.scExposures
+import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.message_thread
 import shire.composeapp.generated.resources.reply_failed_to_load
 
 @Composable
 fun ReplyContent(
     inReplyTo: InReplyTo,
+    threadInfo: EventThreadInfo?,
     modifier: Modifier = Modifier
 ) {
     // TODO jump to message action
@@ -46,8 +51,13 @@ fun ReplyContent(
                 CircularProgressIndicator()
             }
             is InReplyTo.Ready -> {
+                val renderContext = if (threadInfo is EventThreadInfo.ThreadResponse) {
+                    MessageRenderContext.THREADED_IN_REPLY_TO
+                } else {
+                    MessageRenderContext.IN_REPLY_TO
+                }
                 CompositionLocalProvider(
-                    LocalMessageRenderContext provides MessageRenderContext.IN_REPLY_TO
+                    LocalMessageRenderContext provides renderContext
                 ) {
                     EventContentLayout(
                         content = inReplyTo.content,
@@ -55,6 +65,7 @@ fun ReplyContent(
                         senderId = inReplyTo.senderId,
                         senderProfile = inReplyTo.senderProfile,
                         inReplyTo = null, // No recursive reply lookups please
+                        threadInfo = null, // Again no recursion here
                         isOwn = inReplyTo.senderId.value == LocalSessionId.current?.value,
                         timestamp = null,
                         isSameAsPreviousSender = false,

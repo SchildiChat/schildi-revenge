@@ -11,6 +11,7 @@ import androidx.compose.ui.text.withStyle
 import chat.schildi.revenge.compose.destination.conversation.event.message.TextLikeMessage
 import chat.schildi.revenge.compose.destination.conversation.event.message.TimestampOverlayContent
 import com.beeper.android.messageformat.MatrixBodyParseResult
+import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 
 @Composable
@@ -19,6 +20,7 @@ fun MessageFallback(
     isOwn: Boolean,
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
+    threadInfo: EventThreadInfo?,
     modifier: Modifier = Modifier,
     textColor: Color = MaterialTheme.colorScheme.secondary,
 ) {
@@ -33,6 +35,7 @@ fun MessageFallback(
         isOwn,
         timestamp,
         inReplyTo,
+        threadInfo,
         modifier,
         textColor = textColor,
     )

@@ -23,6 +23,7 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.model.conversation.MessageMetadata
 import com.beeper.android.messageformat.MatrixBodyParseResult
 import io.element.android.libraries.matrix.api.media.MediaSource
+import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 import io.element.android.libraries.matrix.api.timeline.item.event.VideoMessageType
 import io.element.android.libraries.matrix.ui.media.MediaRequestData
@@ -34,6 +35,7 @@ fun VideoMessage(
     isOwn: Boolean,
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
+    threadInfo: EventThreadInfo?,
     modifier: Modifier = Modifier,
 ) {
     VideoMessage(
@@ -43,6 +45,7 @@ fun VideoMessage(
         isOwn = isOwn,
         timestamp = timestamp,
         inReplyTo = inReplyTo,
+        threadInfo = threadInfo,
         modifier = modifier,
     )
 }
@@ -55,6 +58,7 @@ fun VideoMessage(
     isOwn: Boolean,
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
+    threadInfo: EventThreadInfo?,
     modifier: Modifier = Modifier,
 ) {
     val captionLayoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
@@ -69,6 +73,7 @@ fun VideoMessage(
         inReplyTo?.let {
             ReplyContent(
                 it,
+                threadInfo,
                 Modifier.padding(Dimens.Conversation.messageBubbleInnerPadding),
             )
         }
@@ -90,6 +95,7 @@ fun VideoMessage(
             maxWidth = Dimens.Conversation.imageMaxWidth,
             maxHeight = when (LocalMessageRenderContext.current) {
                 MessageRenderContext.NORMAL -> Dimens.Conversation.imageMaxHeight
+                MessageRenderContext.THREADED_IN_REPLY_TO,
                 MessageRenderContext.IN_REPLY_TO -> Dimens.Conversation.imageRepliedToMaxHeight
             },
             caption = caption?.let { messageMetadata?.preFormattedContent ?: MatrixBodyParseResult(it) },

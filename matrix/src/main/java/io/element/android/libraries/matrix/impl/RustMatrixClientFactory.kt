@@ -163,7 +163,7 @@ class RustMatrixClientFactory(
                 )
             )
             .enableShareHistoryOnInvite(featureFlagService.isFeatureEnabled(FeatureFlags.EnableKeyShareOnInvite))
-            .threadsEnabled(featureFlagService.isFeatureEnabled(FeatureFlags.Threads), threadSubscriptions = false)
+            .threadsEnabled(true /*featureFlagService.isFeatureEnabled(FeatureFlags.Threads)*/, threadSubscriptions = false)
             .requestConfig(
                 RequestConfig(
                     timeout = 30_000uL,

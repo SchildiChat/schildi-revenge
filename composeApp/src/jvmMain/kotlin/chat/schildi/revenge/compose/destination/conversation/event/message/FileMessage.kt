@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.model.conversation.MessageMetadata
 import com.beeper.android.messageformat.MatrixBodyParseResult
+import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.AudioMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.FileMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.ImageMessageType
@@ -53,6 +54,7 @@ fun FileMessage(
     isOwn: Boolean,
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
+    threadInfo: EventThreadInfo?,
     modifier: Modifier = Modifier,
 ) {
     FileMessage(
@@ -70,6 +72,7 @@ fun FileMessage(
         isOwn = isOwn,
         timestamp = timestamp,
         inReplyTo = inReplyTo,
+        threadInfo = threadInfo,
         modifier = modifier,
     )
 }
@@ -83,6 +86,7 @@ fun FileMessage(
     isOwn: Boolean,
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
+    threadInfo: EventThreadInfo?,
     modifier: Modifier = Modifier,
 ) {
     val captionLayoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
@@ -96,7 +100,7 @@ fun FileMessage(
         nonTextWidth = if (caption == null) Dimens.Conversation.fileIconSize + Dimens.horizontalItemPadding else 0.dp,
     ) {
         inReplyTo?.let {
-            ReplyContent(it)
+            ReplyContent(it, threadInfo)
         }
         FileMessageContent(
             type = type,
