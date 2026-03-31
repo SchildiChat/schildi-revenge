@@ -53,12 +53,6 @@ object NotificationProcessor {
                 log.i { "Ignore notification $id with actions [${notification.actions.joinToString()}]" }
                 return@onEach
             }
-            if (notification.roomAppearedUnreadAfterSync == null) {
-                log.w { "Unclear whether room is unread for notification $id" }
-            } else if (notification.roomAppearedUnreadAfterSync == false) {
-                log.i { "Ignore notification for $id, appears already read" }
-                return@onEach
-            }
             log.d { "Notifying for $id" }
             Notifier.notify(
                 id = id,

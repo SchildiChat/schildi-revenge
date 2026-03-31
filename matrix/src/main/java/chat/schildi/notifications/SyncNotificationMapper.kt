@@ -54,7 +54,6 @@ class SyncNotificationMapper(
                         ),
                     isNoisy = item.isNoisy.orFalse(),
                     hasMention = item.hasMention.orFalse(),
-                    roomAppearedUnreadAfterSync = item.roomAppearedUnreadAfterSync,
                     actions = item.actions.orEmpty().map(Action::map),
                 )
             }
