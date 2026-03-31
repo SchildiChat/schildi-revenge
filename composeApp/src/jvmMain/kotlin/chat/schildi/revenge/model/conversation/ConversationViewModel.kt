@@ -1176,10 +1176,10 @@ class ConversationViewModel(
                     ActionResult.Success(async = true)
                 }
 
-                Action.Conversation.MarkRead -> {
+                Action.Conversation.MarkTimelineRead -> {
                     val timeline = activeTimeline.value ?: return@run ActionResult.Failure("Timeline not ready")
                     launchActionAsync(
-                        "markRead",
+                        "markTimelineRead",
                         GlobalActionsScope,
                         Dispatchers.IO
                     ) {
@@ -1187,10 +1187,10 @@ class ConversationViewModel(
                     }
                 }
 
-                Action.Conversation.MarkReadPrivate -> {
+                Action.Conversation.MarkTimelineReadPrivate -> {
                     val timeline = activeTimeline.value ?: return@run ActionResult.Failure("Timeline not ready")
                     launchActionAsync(
-                        "markReadPrivate",
+                        "markTimelineReadPrivate",
                         GlobalActionsScope,
                         Dispatchers.IO
                     ) {
@@ -1198,10 +1198,10 @@ class ConversationViewModel(
                     }
                 }
 
-                Action.Conversation.MarkFullyRead -> {
+                Action.Conversation.MarkTimelineFullyRead -> {
                     val timeline = activeTimeline.value ?: return@run ActionResult.Failure("Timeline not ready")
                     launchActionAsync(
-                        "markFullyRead",
+                        "markTimelineFullyRead",
                         GlobalActionsScope,
                         Dispatchers.IO
                     ) {
@@ -1629,13 +1629,13 @@ class ConversationViewModel(
                 args: List<String>
             ): ActionResult = context.run {
                 when (action) {
-                    Action.Event.MarkRead -> eventId?.let {
+                    Action.Event.MarkEventRead -> eventId?.let {
                         markEventAsRead(eventId, ReceiptType.READ)
                     } ?: ActionResult.Inapplicable
-                    Action.Event.MarkReadPrivate -> eventId?.let {
+                    Action.Event.MarkEventReadPrivate -> eventId?.let {
                         markEventAsRead(eventId, ReceiptType.READ_PRIVATE)
                     } ?: ActionResult.Inapplicable
-                    Action.Event.MarkFullyRead -> eventId?.let {
+                    Action.Event.MarkEventFullyRead -> eventId?.let {
                         markEventAsRead(eventId, ReceiptType.FULLY_READ).also {
                             if (it is ActionResult.Success) {
                                 _cachedFullyRead.value = eventId
