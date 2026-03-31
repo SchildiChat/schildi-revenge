@@ -7,6 +7,7 @@ import androidx.compose.ui.unit.Dp
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.InteractionAction
+import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.LocalSessionId
@@ -30,6 +31,7 @@ fun SenderAvatar(
         else -> null
     }
     val sessionId = LocalSessionId.current
+    val roomId = LocalRoomContextSuggestionsProvider.current?.roomId
     AvatarImage(
         source = avatarUrl?.let { MediaSource(it) },
         size = size,
@@ -43,7 +45,7 @@ fun SenderAvatar(
                     actionProvider = actionProvider(
                         primaryAction = InteractionAction.Navigate(
                             initialTitle = { HardcodedStringHolder(senderProfile.getDisplayName() ?: senderId.value) },
-                            buildDestination = { Destination.UserDetails(sessionId, senderId) }
+                            buildDestination = { Destination.UserDetails(sessionId, senderId, roomId) }
                         )
                     )
                 )

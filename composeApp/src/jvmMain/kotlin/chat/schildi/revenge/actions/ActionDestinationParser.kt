@@ -116,7 +116,8 @@ private inline fun String.toDestinationOrNull(
             tryOrNull {
                 val sessionId = args.getOrNull(0)?.let(::SessionId) ?: context!!.ensureSessionId()
                 val userId = args.getOrNull(1)?.let(::UserId) ?: context!!.ensureUserId()
-                Destination.UserDetails(sessionId, userId)
+                val roomId = context?.getParameter(ActionArgumentPrimitive.RoomId)?.let(::RoomId)
+                Destination.UserDetails(sessionId, userId, roomId)
             }
         }
         DestinationEnum.Settings -> Destination.Settings()

@@ -340,6 +340,7 @@ class ConversationViewModel(
 
     val roomContextSuggestionsProvider = RoomContextSuggestionsProvider(
         sessionId = sessionId,
+        roomId = roomId,
         peekRoom = { baseRoom.value },
     )
 

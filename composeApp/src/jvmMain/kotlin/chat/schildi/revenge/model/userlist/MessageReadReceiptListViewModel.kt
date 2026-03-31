@@ -109,6 +109,7 @@ class MessageReadReceiptListViewModel(
 
     val roomContextSuggestionsProvider = RoomContextSuggestionsProvider(
         sessionId = sessionId,
+        roomId = roomId,
         peekRoom = { roomFlow.value },
     )
 

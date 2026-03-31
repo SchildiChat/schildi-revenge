@@ -1,9 +1,13 @@
 package chat.schildi.revenge.compose.destination.conversation
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -50,6 +54,7 @@ fun UserDetailsScreen(
                 UserDetailsViewModel.factory(
                     destination.sessionId,
                     destination.userId,
+                    destination.roomId,
                 ),
         )
 
@@ -61,8 +66,9 @@ fun UserDetailsScreen(
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
         modifier = modifier.fillMaxSize(),
     ) {
-        val info = viewModel.info.collectAsState().value
-        Column(contentModifier.fillMaxSize()) {
+        val info = viewModel.globalUserInfo.collectAsState().value
+        val roomMemberInfo = viewModel.roomMember.collectAsState().value
+        Column(contentModifier.fillMaxSize().padding(Dimens.windowPadding)) {
             ConversationDetailsTopNavigation(info?.displayName ?: viewModel.userId.value)
             if (info == null) {
                 EmptyListScreen(
@@ -82,26 +88,47 @@ fun UserDetailsScreen(
                         verticalArrangement = Dimens.verticalArrangement,
                     ) {
                         item {
-                            Box(
+                            FlowRow(
                                 Modifier.fillMaxWidth().keyFocusable(),
-                                contentAlignment = Alignment.Center,
+                                horizontalArrangement = Arrangement.spacedBy(Dimens.horizontalItemPaddingBig, Alignment.CenterHorizontally),
+                                verticalArrangement = Arrangement.spacedBy(Dimens.horizontalItemPaddingBig, Alignment.CenterVertically),
                             ) {
+                                val primaryAvatar = roomMemberInfo?.avatarUrl ?: info.avatarUrl
+                                val secondaryAvatar = info.avatarUrl?.takeIf { it != primaryAvatar }
                                 AvatarImage(
-                                    source = info.avatarUrl?.let { MediaSource(it) },
+                                    source = primaryAvatar?.let { MediaSource(it) },
                                     size = 128.dp,
-                                    displayName = info.displayName ?: info.userId.value,
+                                    displayName = roomMemberInfo?.displayName ?: info.displayName ?: info.userId.value,
                                 )
+                                if (secondaryAvatar != null) {
+                                    AvatarImage(
+                                        source = MediaSource(secondaryAvatar),
+                                        size = 128.dp,
+                                        displayName = info.displayName ?: roomMemberInfo?.displayName ?: info.userId.value,
+                                    )
+                                }
                             }
                         }
-                        if (info.displayName != null) {
+                        if (info.displayName != null || roomMemberInfo?.displayName != null) {
                             item {
                                 Box(
                                     Modifier.fillMaxWidth().keyFocusable(),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     SelectionContainer {
+                                        val primaryName = roomMemberInfo?.displayName ?: info.displayName
+                                        val secondaryName = info.displayName?.takeIf { it != primaryName }
+                                        val text = buildString {
+                                            primaryName?.let {
+                                                append(it)
+                                            }
+                                            if (secondaryName != null) {
+                                                append(" / ")
+                                                append(secondaryName)
+                                            }
+                                        }
                                         Text(
-                                            info.displayName ?: "",
+                                            text,
                                             color = MaterialTheme.colorScheme.onSurface,
                                             style = MaterialTheme.typography.bodyLarge,
                                         )

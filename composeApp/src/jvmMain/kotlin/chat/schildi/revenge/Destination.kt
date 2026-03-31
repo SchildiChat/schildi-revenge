@@ -104,6 +104,7 @@ sealed interface Destination {
     data class UserDetails(
         override val sessionId: SessionId,
         val userId: UserId,
+        val roomId: RoomId?,
     ) : WithSession {
         override val type = DestinationEnum.UserDetails
         override val title = null
