@@ -3,6 +3,7 @@ package chat.schildi.revenge.compose.destination.split
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import chat.schildi.preferences.ScPrefs
@@ -24,6 +25,7 @@ fun InboxConversationMultiPaneScreen(
         val collapseSinglePane = maxWidth < minSplitWidth
         val hasConversation =
             destination.conversation.state.collectAsState().value.destination !is Destination.MultiPaneConversationPlaceholder
+        val shouldHidePlaceholders = ScPrefs.HIDE_EMPTY_INBOX_PANE.value()
         MultiPaneLayout(
             outerDestination = destination.type,
             innerDestinations = listOfNotNull(
@@ -31,7 +33,7 @@ fun InboxConversationMultiPaneScreen(
                     null
                 else
                     destination.inbox.wrapped(destination, isDetails = false),
-                if (!hasConversation && (collapseSinglePane || ScPrefs.HIDE_EMPTY_INBOX_PANE.value()))
+                if (!hasConversation && (collapseSinglePane || shouldHidePlaceholders))
                     null
                 else
                     destination.conversation.wrapped(destination, isDetails = true),
@@ -46,13 +48,15 @@ private fun DestinationStateHolder.wrapped(
     destination: Destination.InboxConversationMultiPane,
     isDetails: Boolean,
     parent: DestinationStateHolder? = LocalDestinationState.current,
-) = buildMultiPaneDestinationStateHolderWrapper(
-    parent = parent,
-    inner = this,
-    isDetails = isDetails,
-    accessDetails = { destination.conversation },
-    createPlaceholder = { Destination.MultiPaneConversationPlaceholder },
-    mainDestination = DestinationEnum.Inbox,
-    allowedDetailsDestinations = listOf(DestinationEnum.Conversation, DestinationEnum.ConversationDetailsSplit, DestinationEnum.SplitConversationPlaceholder),
-    allowedDetailsCategories = listOf(DestinationCategory.CONVERSATION),
-)
+) = remember(destination, isDetails, parent) {
+    buildMultiPaneDestinationStateHolderWrapper(
+        parent = parent,
+        inner = this,
+        isDetails = isDetails,
+        accessDetails = { destination.conversation },
+        createPlaceholder = { Destination.MultiPaneConversationPlaceholder },
+        mainDestination = DestinationEnum.Inbox,
+        allowedDetailsDestinations = listOf(DestinationEnum.Conversation, DestinationEnum.ConversationDetailsSplit, DestinationEnum.SplitConversationPlaceholder),
+        allowedDetailsCategories = listOf(DestinationCategory.CONVERSATION),
+    )
+}

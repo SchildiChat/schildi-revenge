@@ -3,6 +3,7 @@ package chat.schildi.revenge.compose.destination.split
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.DestinationCategory
@@ -30,21 +31,7 @@ fun MultiPaneLayout(
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
 ) {
-    val targets = innerDestinations.mapIndexed { index, holder ->
-        key(holder.state.value.holderId) {
-            MultiPaneLayoutTarget(
-                destinationHolder = holder,
-                focusId = rememberFocusId(),
-                role = when {
-                    innerDestinations.size == 1 -> SplitRole.Singular
-                    index == 0 -> SplitRole.Start
-                    index == innerDestinations.size - 1 -> SplitRole.End
-                    else -> SplitRole.Horizontal
-                }
-            )
-        }
-    }
-    val (outerModifier, innerContentModifier) = if (targets.size == 1) {
+    val (outerModifier, innerContentModifier) = if (innerDestinations.size == 1) {
         Pair(modifier, contentModifier)
     } else {
         Pair(modifier.then(contentModifier), Modifier)
@@ -52,15 +39,30 @@ fun MultiPaneLayout(
     AdaptiveRow(
         outerModifier.fillMaxSize(),
     ) {
-        targets.forEach { target ->
-            SplitScreenDestination(
-                focusId = target.focusId,
-                splitRole = target.role,
-                splitType = outerDestination,
-                destinationHolder = target.destinationHolder,
-                contentModifier = innerContentModifier,
-                actionProvider = multiPaneKeyboardActionProvider(target.destinationHolder)
-            )
+        innerDestinations.forEachIndexed { index, destinationHolder ->
+            key(destinationHolder.state.value.holderId) {
+                val focusId = rememberFocusId()
+                val target = remember(destinationHolder, focusId, index, innerDestinations.size) {
+                    MultiPaneLayoutTarget(
+                        destinationHolder = destinationHolder,
+                        focusId = focusId,
+                        role = when {
+                            innerDestinations.size == 1 -> SplitRole.Singular
+                            index == 0 -> SplitRole.Start
+                            index == innerDestinations.size - 1 -> SplitRole.End
+                            else -> SplitRole.Horizontal
+                        }
+                    )
+                }
+                SplitScreenDestination(
+                    focusId = target.focusId,
+                    splitRole = target.role,
+                    splitType = outerDestination,
+                    destinationHolder = target.destinationHolder,
+                    contentModifier = innerContentModifier,
+                    actionProvider = multiPaneKeyboardActionProvider(target.destinationHolder)
+                )
+            }
         }
     }
 }

@@ -3,6 +3,7 @@ package chat.schildi.revenge.compose.destination.split
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import chat.schildi.preferences.ScPrefs
@@ -24,6 +25,7 @@ fun ConversationDetailsMultiPaneScreen(
         val collapseSinglePane = maxWidth < minSplitWidth
         val hasDetails =
             destination.details.state.collectAsState().value.destination !is Destination.MultiPaneRoomInfoPlaceholder
+        val shouldHidePlaceholders = ScPrefs.HIDE_EMPTY_CONVERSATION_DETAILS_PANE.value()
         MultiPaneLayout(
             outerDestination = destination.type,
             innerDestinations =
@@ -36,7 +38,7 @@ fun ConversationDetailsMultiPaneScreen(
                             isDetails = false,
                         )
                     },
-                    if (!hasDetails && (collapseSinglePane || ScPrefs.HIDE_EMPTY_CONVERSATION_DETAILS_PANE.value())) {
+                    if (!hasDetails && (collapseSinglePane || shouldHidePlaceholders)) {
                         null
                     } else {
                         destination.details.wrapped(
@@ -55,18 +57,20 @@ private fun DestinationStateHolder.wrapped(
     destination: Destination.ConversationDetailsMultiPane,
     isDetails: Boolean,
     parent: DestinationStateHolder? = LocalDestinationState.current,
-) = buildMultiPaneDestinationStateHolderWrapper(
-    parent = parent,
-    inner = this,
-    isDetails = isDetails,
-    accessDetails = { destination.details },
-    createPlaceholder = { Destination.MultiPaneRoomInfoPlaceholder },
-    mainDestination = DestinationEnum.Conversation,
-    allowedDetailsDestinations = listOf(
-        DestinationEnum.RoomMembers,
-        DestinationEnum.MessageReactions,
-        DestinationEnum.MessageReadReceipts,
-        DestinationEnum.UserDetails,
-    ),
-    allowedDetailsCategories = listOf(DestinationCategory.CONVERSATION_DETAILS),
-)
+) = remember(destination, isDetails, parent) {
+    buildMultiPaneDestinationStateHolderWrapper(
+        parent = parent,
+        inner = this,
+        isDetails = isDetails,
+        accessDetails = { destination.details },
+        createPlaceholder = { Destination.MultiPaneRoomInfoPlaceholder },
+        mainDestination = DestinationEnum.Conversation,
+        allowedDetailsDestinations = listOf(
+            DestinationEnum.RoomMembers,
+            DestinationEnum.MessageReactions,
+            DestinationEnum.MessageReadReceipts,
+            DestinationEnum.UserDetails,
+        ),
+        allowedDetailsCategories = listOf(DestinationCategory.CONVERSATION_DETAILS),
+    )
+}

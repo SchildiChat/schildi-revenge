@@ -28,7 +28,6 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Destination
-import chat.schildi.revenge.DestinationCategory
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
@@ -192,13 +191,15 @@ private fun DestinationStateHolder.wrapped(
     destination: Destination.Settings,
     isDetails: Boolean,
     parent: DestinationStateHolder? = LocalDestinationState.current,
-) = buildMultiPaneDestinationStateHolderWrapper(
-    parent = parent,
-    inner = this,
-    isDetails = isDetails,
-    accessDetails = { destination.details },
-    createPlaceholder = { Destination.MultiPaneSettingsPlaceholder },
-    mainDestination = DestinationEnum.SettingsRoot,
-    allowedDetailsDestinations = listOf(DestinationEnum.SettingsDetails, DestinationEnum.SplitSettingsDetailsPlaceholder),
-    allowedDetailsCategories = listOf(),
-)
+) = remember(destination, isDetails, parent) {
+    buildMultiPaneDestinationStateHolderWrapper(
+        parent = parent,
+        inner = this,
+        isDetails = isDetails,
+        accessDetails = { destination.details },
+        createPlaceholder = { Destination.MultiPaneSettingsPlaceholder },
+        mainDestination = DestinationEnum.SettingsRoot,
+        allowedDetailsDestinations = listOf(DestinationEnum.SettingsDetails, DestinationEnum.SplitSettingsDetailsPlaceholder),
+        allowedDetailsCategories = listOf(),
+    )
+}
