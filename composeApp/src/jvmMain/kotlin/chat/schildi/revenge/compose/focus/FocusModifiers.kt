@@ -1,6 +1,5 @@
 package chat.schildi.revenge.compose.focus
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.PointerMatcher
 import androidx.compose.foundation.border
@@ -29,7 +28,6 @@ import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.DestinationStateHolder
-import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.ActionProvider
 import chat.schildi.revenge.actions.FocusRole
@@ -173,16 +171,13 @@ private fun Modifier.focusableItemBackground(
     keyHandler: KeyboardActionHandler
 ): Modifier {
     val state = keyHandler.currentFocusState.collectAsState().value
-    val color = animateColorAsState(
-        when {
-            customHighlight -> MaterialTheme.scExposures.accentColor
-            state.commandFocus == id -> MaterialTheme.scExposures.commandHint
-            !state.windowFocused -> Color.Transparent
-            state.keyboardFocus == id -> MaterialTheme.colorScheme.onSurfaceVariant
-            else -> Color.Transparent
-        },
-        animationSpec = Dimens.tween(),
-    ).value
+    val color = when {
+        customHighlight -> MaterialTheme.scExposures.accentColor
+        state.commandFocus == id -> MaterialTheme.scExposures.commandHint
+        !state.windowFocused -> Color.Transparent
+        state.keyboardFocus == id -> MaterialTheme.colorScheme.onSurfaceVariant
+        else -> Color.Transparent
+    }
     return border(
         1.dp,
         color,
