@@ -39,6 +39,7 @@ import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.util.formatBytes
 import chat.schildi.revenge.viewModelKey
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.skiko.SkikoProperties
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.diagnostics
 import shire.composeapp.generated.resources.diagnostics_committed
@@ -48,6 +49,8 @@ import shire.composeapp.generated.resources.diagnostics_jvm_non_heap
 import shire.composeapp.generated.resources.diagnostics_max
 import shire.composeapp.generated.resources.diagnostics_native_estimated
 import shire.composeapp.generated.resources.diagnostics_process_rss
+import shire.composeapp.generated.resources.diagnostics_render_api
+import shire.composeapp.generated.resources.diagnostics_system_info
 import shire.composeapp.generated.resources.diagnostics_unavailable
 import java.util.Locale
 
@@ -57,6 +60,7 @@ fun DiagnosticsScreen(
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
 ) {
+    val renderApi = remember { SkikoProperties.renderApi.toString() }
     val viewModel: DiagnosticsViewModel =
         viewModel(
             key = viewModelKey(destination),
@@ -82,6 +86,16 @@ fun DiagnosticsScreen(
                     verticalArrangement = Dimens.verticalArrangement,
                     state = listState,
                 ) {
+                    item(key = "systemInfo") {
+                        MetricCard(
+                            title = stringResource(Res.string.diagnostics_system_info),
+                        ) {
+                            MetricLine(
+                                label = stringResource(Res.string.diagnostics_render_api),
+                                value = renderApi,
+                            )
+                        }
+                    }
                     item(key = "jvm") {
                         MemorySection(
                             title = stringResource(Res.string.diagnostics_jvm_heap),
