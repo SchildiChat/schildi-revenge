@@ -1,6 +1,7 @@
 package chat.schildi.revenge
 
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.key
@@ -32,6 +33,8 @@ import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.painterResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.ic_launcher
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 
 @OptIn(ExperimentalComposeUiApi::class)
 object ComposeApp {
@@ -111,6 +114,24 @@ object ComposeApp {
                                     )
                                 }
 
+                                DisposableEffect(window) {
+                                    val listener = object : WindowAdapter() {
+                                        override fun windowGainedFocus(e: WindowEvent) {
+                                            keyHandler.onWindowFocusChanged(true)
+                                        }
+
+                                        override fun windowLostFocus(e: WindowEvent) {
+                                            keyHandler.onWindowFocusChanged(false)
+                                        }
+                                    }
+
+                                    window.addWindowFocusListener(listener)
+
+                                    onDispose {
+                                        window.removeWindowFocusListener(listener)
+                                        keyHandler.onWindowFocusChanged(false)
+                                    }
+                                }
                                 LaunchedEffect(keyHandler, composeWindowState.size) {
                                     keyHandler.windowCoordinates = rootDensity.run {
                                         composeWindowState.size.toSize().toRect()

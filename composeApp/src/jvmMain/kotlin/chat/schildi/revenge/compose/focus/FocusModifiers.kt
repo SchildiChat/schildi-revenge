@@ -177,6 +177,7 @@ private fun Modifier.focusableItemBackground(
         when {
             customHighlight -> MaterialTheme.scExposures.accentColor
             state.commandFocus == id -> MaterialTheme.scExposures.commandHint
+            !state.windowFocused -> Color.Transparent
             state.keyboardFocus == id -> MaterialTheme.colorScheme.onSurfaceVariant
             else -> Color.Transparent
         },

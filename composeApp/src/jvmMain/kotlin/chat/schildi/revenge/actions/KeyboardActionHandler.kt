@@ -241,6 +241,7 @@ const val MESSAGE_EXPIRY_DURATION = 5000L
 private const val COMMAND_MESSAGE_ID = "cmd"
 
 data class FocusState(
+    val windowFocused: Boolean,
     val keyboardFocus: UUID? = null,
     val commandFocus: UUID? = null,
 )
@@ -277,6 +278,9 @@ class KeyboardActionHandler(
     val lastPointerPosition: Offset
         get() = _lastPointerPosition
     private val currentFocus = MutableStateFlow<UUID?>(null)
+
+    private val _isWindowFocused = MutableStateFlow(false)
+    val isWindowsFocused = _isWindowFocused.asStateFlow()
 
     private val lastFocusedDestination = MutableStateFlow<UUID?>(null)
     private val lastFocusByDestination = MutableStateFlow<Map<UUID, UUID>>(emptyMap())
@@ -318,14 +322,16 @@ class KeyboardActionHandler(
 
     val currentFocusState = combine(
         currentFocus,
+        isWindowsFocused,
         mode,
         keyboardPrimary,
-    ) { focused, currentMode, keyboardEnabled ->
+    ) { focused, windowFocused, currentMode, keyboardEnabled ->
         FocusState(
+            windowFocused = windowFocused,
             keyboardFocus = focused.takeIf { keyboardEnabled },
             commandFocus = (currentMode as? KeyboardActionMode.Command)?.focused,
         )
-    }.stateIn(scope, SharingStarted.Eagerly, FocusState())
+    }.stateIn(scope, SharingStarted.Eagerly, FocusState(isWindowsFocused.value))
 
     /** Use for UI components that aren't destination-specific, otherwise use [searchQueryForDestination]. */
     val globalSearchQuery = mode.map {
@@ -2166,6 +2172,10 @@ class KeyboardActionHandler(
     }
 
     private fun FocusTarget.destination() = findFirstInParentHierarchy { it.role == FocusRole.DESTINATION_ROOT_CONTAINER }
+
+    fun onWindowFocusChanged(isFocused: Boolean) {
+        _isWindowFocused.value = isFocused
+    }
 }
 
 private fun KeyEvent.toTrigger(): KeyTrigger? {
