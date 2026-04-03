@@ -119,6 +119,14 @@ object UiState {
             RevengePrefs.getCachedOrDefaultValue(ScPrefs.PREFER_DUAL_PANE_INBOX),
         )
 
+    private val preferMultiPaneConversation = RevengePrefs
+        .settingFlow(ScPrefs.PREFER_CONVERSATION_DETAILS_SPLIT)
+        .stateIn(
+            scope,
+            SharingStarted.Eagerly,
+            RevengePrefs.getCachedOrDefaultValue(ScPrefs.PREFER_CONVERSATION_DETAILS_SPLIT),
+        )
+
     fun getInboxDestination(
         preferMultiPane: Boolean = preferMultiPaneInbox.value
     ): Destination = if (preferMultiPane) {
@@ -353,7 +361,12 @@ object UiState {
     }
 
     fun openWindow(destination: Destination, initialTitle: ComposableStringHolder? = null) {
-        val newWindow = createWindow(destination, initialTitle)
+        val effectiveDestination = if (destination is Destination.Conversation && preferMultiPaneConversation.value) {
+            Destination.ConversationDetailsMultiPane(destination)
+        } else {
+            destination
+        }
+        val newWindow = createWindow(effectiveDestination, initialTitle)
         val wasMinimized = minimizedToTray.value
         _windows.update {
             // New window replaces old state when launched via IPC while minimized

@@ -14,6 +14,7 @@ class ScThemeExposures(
     accentColor: Color,
     colorOnAccent: Color,
     linkColor: Color,
+    threadHint: Color,
     bubbleBgIncoming: Color,
     bubbleBgOutgoing: Color,
     mentionBadgeColor: Color,
@@ -52,6 +53,8 @@ class ScThemeExposures(
     var colorOnAccent by mutableStateOf(colorOnAccent)
         private set
     var linkColor by mutableStateOf(linkColor)
+        private set
+    var threadHint by mutableStateOf(threadHint)
         private set
     var bubbleBgIncoming by mutableStateOf(bubbleBgIncoming)
         private set
@@ -116,6 +119,7 @@ class ScThemeExposures(
         accentColor: Color = this.accentColor,
         colorOnAccent: Color = this.colorOnAccent,
         linkColor: Color = this.linkColor,
+        threadHint: Color = this.threadHint,
         bubbleBgIncoming: Color = this.bubbleBgIncoming,
         bubbleBgOutgoing: Color = this.bubbleBgOutgoing,
         mentionBadgeColor: Color = this.mentionBadgeColor,
@@ -150,6 +154,7 @@ class ScThemeExposures(
         accentColor = accentColor,
         colorOnAccent = colorOnAccent,
         linkColor = linkColor,
+        threadHint = threadHint,
         bubbleBgIncoming = bubbleBgIncoming,
         bubbleBgOutgoing = bubbleBgOutgoing,
         mentionBadgeColor = mentionBadgeColor,
@@ -186,6 +191,7 @@ class ScThemeExposures(
         accentColor = other.accentColor
         colorOnAccent = other.colorOnAccent
         linkColor = other.linkColor
+        threadHint = other.threadHint
         bubbleBgIncoming = other.bubbleBgIncoming
         bubbleBgOutgoing = other.bubbleBgOutgoing
         mentionBadgeColor = other.mentionBadgeColor

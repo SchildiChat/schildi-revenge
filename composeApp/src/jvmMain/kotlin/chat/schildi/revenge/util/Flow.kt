@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.conflate
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.io.IOException
-import java.io.Closeable
 
 @Suppress("UNCHECKED_CAST")
 fun <T1, T2, T3, T4, T5, T6, R>combine(
@@ -39,7 +38,7 @@ fun <T>Flow<T>.throttleLatest(period: Long) = flow {
     }
 }
 
-fun <T : Closeable>Flow<T?>.flowClosable(): Flow<T?> = flow {
+fun <T : AutoCloseable>Flow<T?>.flowClosable(): Flow<T?> = flow {
     var current: T? = null
     try {
         collect { value ->

@@ -21,7 +21,6 @@ fun MessageLayout(
     senderAvatar: @Composable () -> Unit,
     senderName: @Composable () -> Unit,
     messageContent: @Composable () -> Unit,
-    reactions: @Composable () -> Unit,
 ) {
     when (LocalMessageRenderContext.current) {
         MessageRenderContext.NORMAL -> {
@@ -31,10 +30,8 @@ fun MessageLayout(
                 senderAvatar = senderAvatar,
                 senderName = senderName,
                 messageContent = messageContent,
-                reactions = reactions,
             )
         }
-        MessageRenderContext.THREADED_IN_REPLY_TO,
         MessageRenderContext.IN_REPLY_TO -> {
             MessageLayoutInReplyTo(
                 senderName = senderName,
@@ -52,7 +49,6 @@ fun MessageLayoutNormal(
     senderAvatar: @Composable () -> Unit,
     senderName: @Composable () -> Unit,
     messageContent: @Composable () -> Unit,
-    reactions: @Composable () -> Unit,
 ) {
     val mainLayoutDirection = LocalLayoutDirection.current
     val thisLayoutDirection = if (isOwn) {
@@ -91,9 +87,6 @@ fun MessageLayoutNormal(
                     }
                     BoxWithDirection(mainLayoutDirection) {
                         messageContent()
-                    }
-                    BoxWithDirection(mainLayoutDirection) {
-                        reactions()
                     }
                 }
             }

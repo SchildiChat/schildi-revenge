@@ -61,6 +61,7 @@ internal val sclExposures = ScThemeExposures(
     accentColor = scl_accent,
     colorOnAccent = ScColors.colorWhite,
     linkColor = ScColors.colorAccentBlue,
+    threadHint = ScColors.colorAccentOrange,
     bubbleBgIncoming = ScColors.colorWhite_ee,
     bubbleBgOutgoing = scl_accent.fakeAlpha(0.12f),
     mentionBadgeColor = Color(0xffd51928),

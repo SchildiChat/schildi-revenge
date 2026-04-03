@@ -13,17 +13,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import chat.schildi.revenge.Destination
+import chat.schildi.revenge.actions.buildNavigationActionProvider
 import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.revenge.compose.destination.conversation.event.message.FileMessage
 import chat.schildi.revenge.compose.destination.conversation.event.message.MessageLayout
 import chat.schildi.revenge.compose.destination.conversation.event.message.ImageMessage
-import chat.schildi.revenge.compose.destination.conversation.event.message.LocalMessageRenderContext
-import chat.schildi.revenge.compose.destination.conversation.event.message.MessageRenderContext
+import chat.schildi.revenge.compose.destination.conversation.event.message.LocalThreadReplyContext
 import chat.schildi.revenge.compose.destination.conversation.event.message.TextLikeMessage
 import chat.schildi.revenge.compose.destination.conversation.event.message.TimestampOverlayContent
 import chat.schildi.revenge.compose.destination.conversation.event.message.VideoMessage
 import chat.schildi.revenge.compose.destination.conversation.event.sender.SenderAvatar
 import chat.schildi.revenge.compose.destination.conversation.event.sender.SenderName
+import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.conversation.MessageMetadata
 import com.beeper.android.messageformat.MatrixFormatInteractionState
 import io.element.android.libraries.matrix.api.core.UserId
@@ -88,7 +90,8 @@ fun EventContentLayout(
             senderName = {
                 if (!isSameAsPreviousSender) {
                     // Render threaded message indicator in the same row as the sender name if
-                    if (LocalMessageRenderContext.current == MessageRenderContext.THREADED_IN_REPLY_TO) {
+                    val threadReplyContext = LocalThreadReplyContext.current
+                    if (threadReplyContext != null) {
                         Row(
                             modifier.width(IntrinsicSize.Max),
                             horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -101,7 +104,15 @@ fun EventContentLayout(
                                     Icons.Default.Gesture,
                                     stringResource(Res.string.message_thread),
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(12.dp),
+                                    modifier = Modifier.size(12.dp).keyFocusable(
+                                        actionProvider = buildNavigationActionProvider {
+                                            Destination.Conversation(
+                                                sessionId = threadReplyContext.sessionId,
+                                                roomId = threadReplyContext.roomId,
+                                                threadId = threadReplyContext.threadId ,
+                                            )
+                                        }
+                                    ),
                                 )
                             }
                         }
@@ -111,9 +122,6 @@ fun EventContentLayout(
                 }
             },
             messageContent = messageContent,
-            reactions = {
-                // TODO
-            }
         )
     }
     @Composable

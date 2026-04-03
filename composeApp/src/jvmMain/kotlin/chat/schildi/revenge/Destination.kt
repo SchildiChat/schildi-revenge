@@ -6,6 +6,7 @@ import chat.schildi.revenge.config.keybindings.DestinationEnum
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.core.ThreadId
 import io.element.android.libraries.matrix.api.core.UserId
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.about
@@ -26,6 +27,7 @@ enum class DestinationCategory {
     INBOX,
     CONVERSATION,
     CONVERSATION_DETAILS,
+    CONVERSATION_THREAD,
     SETTINGS,
     ABOUT,
     // Wildcard can be anything (wrapper or tmp loading destination resolving to sth else later)
@@ -66,10 +68,17 @@ sealed interface Destination {
     data class Conversation(
         override val sessionId: SessionId,
         val roomId: RoomId,
+        val threadId: ThreadId? = null,
     ) : WithSession {
-        override val type = DestinationEnum.Conversation
         override val title = null
-        override val category = DestinationCategory.CONVERSATION
+        override val type = if (threadId == null)
+            DestinationEnum.Conversation
+        else
+            DestinationEnum.ConversationThread
+        override val category = if (threadId == null)
+            DestinationCategory.CONVERSATION
+        else
+            DestinationCategory.CONVERSATION_THREAD
     }
 
     data class RoomMembers(

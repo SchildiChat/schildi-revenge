@@ -2367,6 +2367,7 @@ fun checkArgument(
                 null
             }
         }
+        ActionArgumentPrimitive.ThreadId,
         ActionArgumentPrimitive.EventId -> {
             if (!MatrixPatterns.isEventId(argVal)) {
                 ActionResult.Malformed(

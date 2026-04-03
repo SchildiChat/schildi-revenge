@@ -74,11 +74,11 @@ class TimelineController(
         }
     }
 
-    suspend fun focusOnEvent(eventId: EventId, threadRootId: ThreadId?): Result<EventFocusResult> {
+    suspend fun focusOnEvent(eventId: EventId, threadRootId: ThreadId?, /* SC */ hideThreadedEvents: Boolean): Result<EventFocusResult> {
         return if (threadRootId != null) {
             Result.success(EventFocusResult.IsInThread(threadRootId))
         } else {
-            room.createTimeline(CreateTimelineParams.Focused(eventId))
+            room.createTimeline(CreateTimelineParams.Focused(eventId), hideThreadedEvents)
                 .onFailure {
                     if (it is CancellationException) {
                         throw it

@@ -178,11 +178,11 @@ fun buildMultiPaneDestinationStateHolderWrapper(
             true
         }
         navDestination.type in allowedDetailsDestinations -> {
-            accessDetails().navigate(navDestination)
+            accessDetails().navigate(navDestination, NavigationPreference.REPLACE)
             true
         }
         navDestination.category in allowedDetailsCategories -> {
-            accessDetails().navigate(navDestination)
+            accessDetails().navigate(navDestination, NavigationPreference.REPLACE)
             true
         }
         else -> {

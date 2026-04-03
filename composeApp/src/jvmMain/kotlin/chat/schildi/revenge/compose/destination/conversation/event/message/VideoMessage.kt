@@ -95,7 +95,6 @@ fun VideoMessage(
             maxWidth = Dimens.Conversation.imageMaxWidth,
             maxHeight = when (LocalMessageRenderContext.current) {
                 MessageRenderContext.NORMAL -> Dimens.Conversation.imageMaxHeight
-                MessageRenderContext.THREADED_IN_REPLY_TO,
                 MessageRenderContext.IN_REPLY_TO -> Dimens.Conversation.imageRepliedToMaxHeight
             },
             caption = caption?.let { messageMetadata?.preFormattedContent ?: MatrixBodyParseResult(it) },

@@ -106,7 +106,7 @@ class RustRoomFactory(
         sessionCoroutineScope = sessionCoroutineScope,
     )
 
-    suspend fun getJoinedRoomOrPreview(roomId: RoomId, serverNames: List<String>, scTimelineFilterSettings: ScTimelineFilterSettings): GetRoomResult? = withContext(dispatcher) {
+    suspend fun getJoinedRoomOrPreview(roomId: RoomId, serverNames: List<String>, /* SC */ scTimelineFilterSettings: ScTimelineFilterSettings): GetRoomResult? = withContext(dispatcher) {
         mutex.withLock {
             if (isDestroyed.get()) {
                 Timber.d("Room factory is destroyed, returning null for $roomId")
@@ -124,7 +124,7 @@ class RustRoomFactory(
                     operation = "RustRoomFactory.getJoinedRoomOrPreview",
                     parentTransaction = parentTransaction,
                 ) { transaction ->
-                    val hideThreadedEvents = featureFlagService.isFeatureEnabled(FeatureFlags.Threads)
+                    val hideThreadedEvents = scTimelineFilterSettings.preferHideThreadedEvents ?: featureFlagService.isFeatureEnabled(FeatureFlags.Threads)
                     // Init the live timeline in the SDK from the Room
                     val timeline = transaction.recordChildTransaction(
                         operation = "sdkRoom.timelineWithConfiguration",

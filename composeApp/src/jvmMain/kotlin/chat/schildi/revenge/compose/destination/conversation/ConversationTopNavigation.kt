@@ -12,7 +12,6 @@ import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
-import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.TopNavigation
@@ -28,6 +27,7 @@ import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_jump_to_unread
 import shire.composeapp.generated.resources.action_mark_as_read
 import shire.composeapp.generated.resources.action_show_room_members
+import shire.composeapp.generated.resources.thread
 
 @Composable
 fun ConversationTopNavigation(viewModel: ConversationViewModel) {
@@ -38,48 +38,52 @@ fun ConversationTopNavigation(viewModel: ConversationViewModel) {
     val focusParent = LocalFocusParent.current
     val destinationState = LocalDestinationState.current
     TopNavigation {
-        if (avatar != null) {
-            AvatarImage(
-                source = avatar,
-                size = 36.dp,
-                displayName = title,
-                modifier = Modifier.padding(
-                    start = Dimens.windowPadding,
-                    top = Dimens.listPadding,
-                    bottom = Dimens.listPadding,
-                ),
-            )
-        }
-        TopNavigationSearchOrTitle(title)
-        if (focusParent != null) {
-            TopNavigationIcon(
-                Icons.Default.Group,
-                stringResource(Res.string.action_show_room_members),
-            ) {
-                destinationState?.navigate(Destination.RoomMembers(viewModel.sessionId, viewModel.roomId))
-            }
-            TopNavigationIcon(
-                Icons.Default.Update,
-                stringResource(Res.string.action_jump_to_unread),
-            ) {
-                keyHandler.handleAction(
-                    focusItem = focusParent.uuid,
-                    action = Action.Conversation.JumpToFullyRead,
+        if (viewModel.threadId == null) {
+            if (avatar != null) {
+                AvatarImage(
+                    source = avatar,
+                    size = 36.dp,
+                    displayName = title,
+                    modifier = Modifier.padding(
+                        start = Dimens.windowPadding,
+                        top = Dimens.listPadding,
+                        bottom = Dimens.listPadding,
+                    ),
                 )
             }
-            TopNavigationIcon(
-                Icons.Default.Visibility,
-                stringResource(Res.string.action_mark_as_read),
-            ) {
-                keyHandler.handleAction(
-                    focusItem = focusParent.uuid,
-                    action = Action.Room.MarkRoomRead,
-                )
-                keyHandler.handleAction(
-                    focusItem = focusParent.uuid,
-                    action = Action.Room.MarkRoomFullyRead,
-                )
+            TopNavigationSearchOrTitle(title)
+            if (focusParent != null) {
+                TopNavigationIcon(
+                    Icons.Default.Group,
+                    stringResource(Res.string.action_show_room_members),
+                ) {
+                    destinationState?.navigate(Destination.RoomMembers(viewModel.sessionId, viewModel.roomId))
+                }
+                TopNavigationIcon(
+                    Icons.Default.Update,
+                    stringResource(Res.string.action_jump_to_unread),
+                ) {
+                    keyHandler.handleAction(
+                        focusItem = focusParent.uuid,
+                        action = Action.Conversation.JumpToFullyRead,
+                    )
+                }
+                TopNavigationIcon(
+                    Icons.Default.Visibility,
+                    stringResource(Res.string.action_mark_as_read),
+                ) {
+                    keyHandler.handleAction(
+                        focusItem = focusParent.uuid,
+                        action = Action.Room.MarkRoomRead,
+                    )
+                    keyHandler.handleAction(
+                        focusItem = focusParent.uuid,
+                        action = Action.Room.MarkRoomFullyRead,
+                    )
+                }
             }
+        } else {
+            TopNavigationSearchOrTitle(stringResource(Res.string.thread))
         }
         TopNavigationCloseOrNavigateToInboxIcon()
     }

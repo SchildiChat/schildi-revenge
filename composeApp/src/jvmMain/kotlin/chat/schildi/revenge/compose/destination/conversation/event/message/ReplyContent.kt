@@ -2,9 +2,7 @@ package chat.schildi.revenge.compose.destination.conversation.event.message
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -15,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
 import chat.schildi.revenge.compose.components.LocalSessionId
 import chat.schildi.revenge.compose.destination.conversation.event.EventContentLayout
 import chat.schildi.revenge.model.conversation.messageMetadata
@@ -23,7 +22,6 @@ import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.message_thread
 import shire.composeapp.generated.resources.reply_failed_to_load
 
 @Composable
@@ -51,13 +49,21 @@ fun ReplyContent(
                 CircularProgressIndicator()
             }
             is InReplyTo.Ready -> {
-                val renderContext = if (threadInfo is EventThreadInfo.ThreadResponse) {
-                    MessageRenderContext.THREADED_IN_REPLY_TO
-                } else {
-                    MessageRenderContext.IN_REPLY_TO
-                }
+                val roomContext = LocalRoomContextSuggestionsProvider.current
                 CompositionLocalProvider(
-                    LocalMessageRenderContext provides renderContext
+                    LocalMessageRenderContext provides MessageRenderContext.IN_REPLY_TO,
+                    LocalThreadReplyContext provides
+                            (threadInfo as? EventThreadInfo.ThreadResponse)
+                                ?.threadRootId
+                                ?.takeIf { it != roomContext?.threadId }
+                                ?.let { threadId ->
+                                    roomContext ?: return@let null
+                                    ThreadReplyContext(
+                                        sessionId = roomContext.sessionId,
+                                        roomId = roomContext.roomId,
+                                        threadId = threadId,
+                                    )
+                                }
                 ) {
                     EventContentLayout(
                         content = inReplyTo.content,

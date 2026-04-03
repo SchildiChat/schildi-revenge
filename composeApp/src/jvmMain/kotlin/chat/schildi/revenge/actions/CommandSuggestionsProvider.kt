@@ -428,6 +428,7 @@ class CommandSuggestionsProvider(
                 ActionArgumentPrimitive.Index,
                 ActionArgumentPrimitive.SessionIndex,
                 ActionArgumentPrimitive.EventId,
+                ActionArgumentPrimitive.ThreadId,
                 ActionArgumentPrimitive.SpaceSelectionId,
                 ActionArgumentPrimitive.SpaceIndex,
                 ActionArgumentPrimitive.UserName,

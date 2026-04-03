@@ -61,6 +61,7 @@ internal val scdExposures = ScThemeExposures(
     accentColor = scd_accent,
     colorOnAccent = ScColors.colorWhite,
     linkColor = ScColors.colorAccentBlueLight,
+    threadHint = ScColors.colorAccentLime,
     bubbleBgIncoming = scd_bgFloating,
     bubbleBgOutgoing = scd_bg,
     mentionBadgeColor = Color(0xffd51928),

@@ -53,6 +53,7 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     RoomId,
     RoomAlias,
     EventId,
+    ThreadId,
     Mxc,
     SettingKey,
     SettingValue,

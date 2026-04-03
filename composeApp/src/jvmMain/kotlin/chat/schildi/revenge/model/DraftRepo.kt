@@ -5,6 +5,9 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import chat.schildi.theme.ScColors
+import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.core.ThreadId
 import io.element.android.libraries.matrix.api.media.AudioInfo
 import io.element.android.libraries.matrix.api.media.FileInfo
 import io.element.android.libraries.matrix.api.media.ImageInfo
@@ -19,13 +22,18 @@ import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import java.io.File
 
-typealias DraftKey = ScopedRoomKey
+data class DraftKey(
+    val sessionId: SessionId,
+    val roomId: RoomId,
+    val threadId: ThreadId?,
+)
 
 enum class DraftType {
     TEXT,
@@ -159,7 +167,7 @@ object DraftRepo {
     private val drafts = MutableStateFlow<ImmutableMap<DraftKey, DraftValue>>(persistentMapOf())
 
     val roomsWithDrafts = drafts.map {
-        it.filter { (k, v) -> !v.isEmpty() }.keys
+        it.filter { (k, v) -> !v.isEmpty() }.keys.map { ScopedRoomKey(it.sessionId, it.roomId) }.toSet()
     }
 
     fun update(draftKey: DraftKey, draftValue: DraftValue, allowWhileSendInProgress: Boolean = false) {

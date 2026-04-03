@@ -8,6 +8,7 @@ enum class DestinationEnum(
     AccountManagement("AccountManagement", listOf("accounts", "accountmanagement")),
     Inbox("Inbox", listOf("inbox")),
     Conversation("Conversation", listOf("room", "conversation", "chat")),
+    ConversationThread("ConversationThread", listOf("thread")),
     RoomMembers("RoomMembers", listOf("members")),
     MessageReactions("MessageReactions", listOf("reactions")),
     MessageReadReceipts("MessageReadReceipts", listOf("readReceipts", "receipts")),

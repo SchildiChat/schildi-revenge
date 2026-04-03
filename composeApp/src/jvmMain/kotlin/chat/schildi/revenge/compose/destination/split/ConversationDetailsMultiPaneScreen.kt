@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import chat.schildi.preferences.ScPrefs
+import chat.schildi.preferences.ScPrefs.ALLOW_THREADS_IN_DETAILS_PANE
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.DestinationCategory
@@ -57,20 +58,32 @@ private fun DestinationStateHolder.wrapped(
     destination: Destination.ConversationDetailsMultiPane,
     isDetails: Boolean,
     parent: DestinationStateHolder? = LocalDestinationState.current,
-) = remember(destination, isDetails, parent) {
-    buildMultiPaneDestinationStateHolderWrapper(
-        parent = parent,
-        inner = this,
-        isDetails = isDetails,
-        accessDetails = { destination.details },
-        createPlaceholder = { Destination.MultiPaneRoomInfoPlaceholder },
-        mainDestination = DestinationEnum.Conversation,
-        allowedDetailsDestinations = listOf(
-            DestinationEnum.RoomMembers,
-            DestinationEnum.MessageReactions,
-            DestinationEnum.MessageReadReceipts,
-            DestinationEnum.UserDetails,
-        ),
-        allowedDetailsCategories = listOf(DestinationCategory.CONVERSATION_DETAILS),
-    )
+): MultiPaneLayoutDestinationStateHolderWrapper {
+    val primaryDestinationIsThread = (destination.conversation.state.value.destination as? Destination.Conversation)?.threadId != null
+    val allowThreadsInDetails = ALLOW_THREADS_IN_DETAILS_PANE.value() && !primaryDestinationIsThread
+    return remember(destination, isDetails, parent, primaryDestinationIsThread, allowThreadsInDetails) {
+        buildMultiPaneDestinationStateHolderWrapper(
+            parent = parent,
+            inner = this,
+            isDetails = isDetails,
+            accessDetails = { destination.details },
+            createPlaceholder = { Destination.MultiPaneRoomInfoPlaceholder },
+            mainDestination = if (primaryDestinationIsThread) {
+                DestinationEnum.ConversationThread
+            } else {
+                DestinationEnum.Conversation
+            },
+            allowedDetailsDestinations = listOfNotNull(
+                DestinationEnum.RoomMembers,
+                DestinationEnum.MessageReactions,
+                DestinationEnum.MessageReadReceipts,
+                DestinationEnum.UserDetails,
+                DestinationEnum.ConversationThread.takeIf { allowThreadsInDetails },
+            ),
+            allowedDetailsCategories = listOfNotNull(
+                DestinationCategory.CONVERSATION_DETAILS,
+                DestinationCategory.CONVERSATION_THREAD.takeIf { allowThreadsInDetails },
+            ),
+        )
+    }
 }

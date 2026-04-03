@@ -21,7 +21,6 @@ import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.media.rememberAnimatedImageTransform
 import chat.schildi.revenge.compose.media.imageLoader
-import chat.schildi.revenge.compose.media.onAsyncImageError
 import chat.schildi.revenge.compose.media.onAsyncImageState
 import chat.schildi.revenge.model.conversation.MessageMetadata
 import coil3.compose.AsyncImage
@@ -104,7 +103,6 @@ fun ImageMessage(
             maxWidth = Dimens.Conversation.imageMaxWidth,
             maxHeight = when (LocalMessageRenderContext.current) {
                 MessageRenderContext.NORMAL -> Dimens.Conversation.imageMaxHeight
-                MessageRenderContext.THREADED_IN_REPLY_TO,
                 MessageRenderContext.IN_REPLY_TO -> Dimens.Conversation.imageRepliedToMaxHeight
             },
             caption = caption?.let { messageMetadata?.preFormattedContent ?: MatrixBodyParseResult(it) },

@@ -102,6 +102,9 @@ object Dimens {
         val receiptPaddingHorizontal = (-4).dp
         val receiptPaddingVertical = 4.dp
 
+        val threadInfoPaddingVertical = 4.dp
+        val threadInfoPaddingHorizontal = messageBubbleInnerPadding
+
         val newMessagesLineHeight = 2.dp
 
         val fileIconSize = 36.dp

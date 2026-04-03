@@ -15,6 +15,7 @@ import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.InteractionAction
+import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
 import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
@@ -31,6 +32,7 @@ import com.beeper.android.messageformat.MatrixFormatInteractionState
 import com.beeper.android.messageformat.rememberMatrixFormatInteractionState
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.RoomMember
+import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
@@ -92,6 +94,7 @@ fun EventRow(
                 // TODO revise design once there's a better idea
                 ConversationDividerLine(MaterialTheme.colorScheme.error)
             }
+            val threadInfo = event.threadInfo()
             EventContentLayout(
                 content = event.content,
                 messageMetadata = messageMetadata,
@@ -104,7 +107,7 @@ fun EventRow(
                 },
                 isSameAsPreviousSender = isSameAsPreviousSender,
                 inReplyTo = event.inReplyTo(),
-                threadInfo = event.threadInfo(),
+                threadInfo = threadInfo,
             )
             ReactionsRow(
                 viewModel = viewModel,
@@ -113,6 +116,16 @@ fun EventRow(
                 roomMembersById = roomMembersById,
                 messageIsOwn = event.isOwn,
             )
+            if (threadInfo is EventThreadInfo.ThreadRoot &&
+                event.eventId?.value != LocalRoomContextSuggestionsProvider.current?.threadId?.value) {
+                ThreadRootInfoRow(
+                    threadInfo = threadInfo,
+                    sessionId = viewModel.sessionId,
+                    roomId = viewModel.roomId,
+                    eventId = event.eventId,
+                    messageIsOwn = event.isOwn,
+                )
+            }
             ReadReceiptsRow(
                 receipts = event.receipts,
                 roomMembersById = roomMembersById,

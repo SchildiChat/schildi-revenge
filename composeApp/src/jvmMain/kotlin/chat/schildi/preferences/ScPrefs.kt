@@ -133,6 +133,10 @@ import shire.composeapp.generated.resources.pref_space_unread_counts_mode_chats
 import shire.composeapp.generated.resources.pref_space_unread_counts_mode_hide
 import shire.composeapp.generated.resources.pref_space_unread_counts_mode_messages
 import shire.composeapp.generated.resources.pref_space_unread_counts_mode_title
+import shire.composeapp.generated.resources.pref_threaded_replies_in_main_timeline_summary
+import shire.composeapp.generated.resources.pref_threaded_replies_in_main_timeline_title
+import shire.composeapp.generated.resources.pref_threads_as_details_summary
+import shire.composeapp.generated.resources.pref_threads_as_details_title
 import shire.composeapp.generated.resources.pref_url_previews_in_e2ee_rooms_summary
 import shire.composeapp.generated.resources.pref_url_previews_in_e2ee_rooms_title
 import shire.composeapp.generated.resources.pref_url_previews_require_explicit_links_summary
@@ -219,6 +223,7 @@ object ScPrefs {
     val DUAL_MENTION_UNREAD_COUNTS = ScBoolPref("DUAL_MENTION_UNREAD_COUNTS", false, Res.string.pref_dual_mention_unread_counts_title, Res.string.pref_dual_mention_unread_counts_summary)
     val PREFER_DUAL_PANE_INBOX = ScBoolPref("PREFER_DUAL_PANE_INBOX", true, Res.string.pref_prefer_dual_pane_inbox_title, Res.string.pref_prefer_dual_pane_inbox_summary)
     val PREFER_CONVERSATION_DETAILS_SPLIT = ScBoolPref("PREFER_CONVERSATION_DETAILS_SPLIT", true, Res.string.pref_conversation_details_split_title, Res.string.pref_conversation_details_split_summary)
+    val ALLOW_THREADS_IN_DETAILS_PANE = ScBoolPref("ALLOW_THREADS_IN_DETAILS_PANE", true, Res.string.pref_threads_as_details_title, Res.string.pref_threads_as_details_summary)
     val HIDE_EMPTY_INBOX_PANE = ScBoolPref("HIDE_EMPTY_INBOX_PANE", false, Res.string.pref_hide_empty_inbox_pane_title, Res.string.pref_hide_empty_inbox_pane_summary)
     val HIDE_EMPTY_CONVERSATION_DETAILS_PANE = ScBoolPref("HIDE_EMPTY_CONVERSATION_DETAILS_PANE", true, Res.string.pref_hide_empty_conversation_details_pane_title, Res.string.pref_hide_empty_conversation_details_pane_summary)
     val INBOX_CONVERSATION_SPLIT_MIN_WIDTH = ScIntPref("INBOX_CONVERSATION_SPLIT_MIN_WIDTH", 1000, Res.string.pref_inbox_conversation_dual_pane_min_width_title, minValue = 400, maxValue = 2000)
@@ -252,6 +257,7 @@ object ScPrefs {
     ))
 
     // Timeline
+    val THREAD_REPLIES_IN_MAIN_TIMELINE = ScBoolPref("THREAD_REPLIES_IN_MAIN_TIMELINE", true, Res.string.pref_threaded_replies_in_main_timeline_title, Res.string.pref_threaded_replies_in_main_timeline_summary)
     val HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS = ScBoolPref("HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS", false, Res.string.pref_hide_message_authenticity_warnings_in_bridged_chats_title, Res.string.pref_hide_message_authenticity_warnings_in_bridged_chats_summary)
     val HIDE_AUTHENTICITY_NOT_GUARANTEED = ScBoolPref("HIDE_AUTHENTICITY_NOT_GUARANTEED", false, Res.string.pref_hide_message_authenticity_not_guaranteed_title, Res.string.pref_hide_message_authenticity_not_guaranteed_summary)
     val VIEW_HIDDEN_EVENTS = ScBoolPref("VIEW_HIDDEN_EVENTS", false, Res.string.pref_view_hidden_events_title) // TODO
@@ -317,6 +323,7 @@ object ScPrefs {
             )),
         )),
         ScPrefScreen("CONVERSATION", Res.string.pref_category_conversation, Res.string.pref_category_conversation_summary, listOf(
+            THREAD_REPLIES_IN_MAIN_TIMELINE,
             VIEW_REDACTIONS,
             HIDE_AUTHENTICITY_NOT_GUARANTEED,
             HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS,
@@ -354,6 +361,7 @@ object ScPrefs {
         ScPrefScreen("SPLIT", Res.string.pref_category_split_screen, Res.string.pref_category_split_screen_summary, listOf(
             PREFER_DUAL_PANE_INBOX,
             PREFER_CONVERSATION_DETAILS_SPLIT,
+            ALLOW_THREADS_IN_DETAILS_PANE,
             HIDE_EMPTY_INBOX_PANE,
             HIDE_EMPTY_CONVERSATION_DETAILS_PANE,
             ScPrefCategory("SPLIT_LIMITS", Res.string.pref_category_split_limits, null, listOf(

@@ -104,6 +104,10 @@ private fun DestinationEnum.measureInfo(): DestinationMeasure = when (this) {
     DestinationEnum.MessageReadReceipts,
     DestinationEnum.RoomMembers,
     DestinationEnum.UserDetails -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_ROOM_DETAILS, ScPrefs.LAYOUT_WEIGHT_ROOM_DETAILS)
+    DestinationEnum.ConversationThread -> DestinationMeasure.from(
+        ScPrefs.MAX_WIDTH_CONVERSATION,
+        if (ScPrefs.ALLOW_THREADS_IN_DETAILS_PANE.value()) ScPrefs.LAYOUT_WEIGHT_ROOM_DETAILS else ScPrefs.LAYOUT_WEIGHT_CONVERSATION
+    )
     DestinationEnum.AccountManagement,
     DestinationEnum.Diagnostics,
     DestinationEnum.About -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_SETTINGS, ScPrefs.LAYOUT_WEIGHT_SETTINGS)

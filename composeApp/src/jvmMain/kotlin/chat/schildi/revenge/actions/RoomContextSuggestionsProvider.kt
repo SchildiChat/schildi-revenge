@@ -5,6 +5,7 @@ import chat.schildi.revenge.PrettyJson
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.core.ThreadId
 import io.element.android.libraries.matrix.api.room.BaseRoom
 import io.element.android.libraries.matrix.api.room.RoomInfo
 import kotlinx.coroutines.CoroutineScope
@@ -28,6 +29,7 @@ data class StateEventCompletionSnapshot(
 class RoomContextSuggestionsProvider(
     val sessionId: SessionId,
     val roomId: RoomId,
+    val threadId: ThreadId? = null,
     private val peekRoom: () -> BaseRoom?,
 ) {
     private val log = Logger.withTag("RoomContextSuggestions")

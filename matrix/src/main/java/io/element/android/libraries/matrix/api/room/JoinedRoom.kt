@@ -50,6 +50,7 @@ interface JoinedRoom : BaseRoom {
      */
     suspend fun createTimeline(
         createTimelineParams: CreateTimelineParams,
+        preferHideThreadedEvents: Boolean? = null, // SC
     ): Result<Timeline>
 
     suspend fun editMessage(eventId: EventId, body: String, htmlBody: String?, intentionalMentions: List<IntentionalMention>): Result<Unit>

@@ -78,7 +78,7 @@ fun ConversationScreen(
         val keyHandler = LocalKeyboardActionHandler.current
         val viewModel: ConversationViewModel = viewModel(
             key = viewModelKey(destination),
-            factory = ConversationViewModel.factory(destination.sessionId, destination.roomId)
+            factory = ConversationViewModel.factory(destination.sessionId, destination.roomId, destination.threadId)
         )
         val timelineItems = viewModel.timelineItems.collectAsState().value
         val forwardPaginationStatus = viewModel.forwardPaginationStatus.collectAsState(null).value

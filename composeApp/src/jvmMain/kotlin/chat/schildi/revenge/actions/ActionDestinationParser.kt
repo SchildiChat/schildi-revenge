@@ -13,6 +13,7 @@ import io.element.android.libraries.matrix.api.core.MatrixPatterns
 import io.element.android.libraries.matrix.api.core.RoomAlias
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.core.ThreadId
 import io.element.android.libraries.matrix.api.core.UserId
 import kotlin.jvm.optionals.getOrNull
 
@@ -79,7 +80,15 @@ private inline fun String.toDestinationOrNull(
             tryOrNull {
                 val sessionId = args.getOrNull(0)?.let(::SessionId) ?: context!!.ensureSessionId()
                 val roomId = args.getOrNull(1)?.let { resolveRoomId(sessionId, it) } ?: context!!.ensureRoomId()
-                Destination.Conversation(sessionId, roomId)
+                Destination.Conversation(sessionId, roomId, null)
+            }
+        }
+        DestinationEnum.ConversationThread -> {
+            tryOrNull {
+                val sessionId = args.getOrNull(0)?.let(::SessionId) ?: context!!.ensureSessionId()
+                val roomId = args.getOrNull(1)?.let { resolveRoomId(sessionId, it) } ?: context!!.ensureRoomId()
+                val threadId = args.getOrNull(2)?.let(::ThreadId) ?: context!!.ensureThreadId()
+                Destination.Conversation(sessionId, roomId, threadId)
             }
         }
         DestinationEnum.ConversationDetailsSplit -> {
@@ -151,5 +160,7 @@ private fun CommandArgContext.ensureRoomId() =
     RoomId(getParameter(ActionArgumentPrimitive.RoomId)!!)
 private fun CommandArgContext.ensureEventId() =
     EventId(getParameter(ActionArgumentPrimitive.EventId)!!)
+private fun CommandArgContext.ensureThreadId() =
+    ThreadId(getParameter(ActionArgumentPrimitive.ThreadId)!!)
 private fun CommandArgContext.ensureUserId() =
     UserId(getParameter(ActionArgumentPrimitive.UserId)!!)

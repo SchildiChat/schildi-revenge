@@ -57,12 +57,12 @@ import chat.schildi.revenge.model.ComposerSuggestionsProvider
 import chat.schildi.revenge.model.ComposerSuggestionsState
 import chat.schildi.revenge.model.ComposerUserMentionSuggestion
 import chat.schildi.revenge.model.ComposerViewModel
+import chat.schildi.revenge.model.DraftKey
 import chat.schildi.revenge.model.DraftMention
 import chat.schildi.revenge.model.DraftRepo
 import chat.schildi.revenge.model.DraftType
 import chat.schildi.revenge.model.DraftValue
 import chat.schildi.revenge.model.RoomActionProvider
-import chat.schildi.revenge.model.ScopedRoomKey
 import chat.schildi.revenge.model.UserActionProvider
 import chat.schildi.revenge.model.getCurrentCompletionEntity
 import chat.schildi.revenge.model.shouldSendTypingIndicator
@@ -80,6 +80,7 @@ import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.core.ThreadId
 import io.element.android.libraries.matrix.api.core.UniqueId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.encryption.identity.IdentityState
@@ -90,12 +91,14 @@ import io.element.android.libraries.matrix.api.media.FileInfo
 import io.element.android.libraries.matrix.api.media.ImageInfo
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.media.VideoInfo
+import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import io.element.android.libraries.matrix.api.room.IntentionalMention
 import io.element.android.libraries.matrix.api.room.RoomInfo
 import io.element.android.libraries.matrix.api.room.roomMembers
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
+import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.AudioMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
@@ -221,12 +224,14 @@ sealed interface EventJumpTarget {
 private fun buildScTimelineFilterSettings(lookup: (ScPref<*>) -> Any?) = ScTimelineFilterSettings(
     showHiddenEvents = ScPrefs.VIEW_HIDDEN_EVENTS.safeLookup(lookup),
     showRedactions = ScPrefs.VIEW_REDACTIONS.safeLookup(lookup),
+    preferHideThreadedEvents = !ScPrefs.THREAD_REPLIES_IN_MAIN_TIMELINE.safeLookup(lookup),
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConversationViewModel(
     val sessionId: SessionId,
     val roomId: RoomId,
+    val threadId: ThreadId?,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
 ) : ViewModel(), TitleProvider, SearchProvider, UserIdSuggestionsProvider, ComposerViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
@@ -341,12 +346,34 @@ class ConversationViewModel(
     val roomContextSuggestionsProvider = RoomContextSuggestionsProvider(
         sessionId = sessionId,
         roomId = roomId,
+        threadId = threadId,
         peekRoom = { baseRoom.value },
     )
 
-    private val timelineController = joinedRoom.map {
-        it?.let {
-            TimelineController(it)
+    private val threadedTimeline = if (threadId == null) flowOf(null) else joinedRoom.map { room ->
+        room ?: return@map null
+        val timeline = room.createTimeline(
+            CreateTimelineParams.Threaded(threadId)
+        )
+        if (timeline.isFailure) {
+            log.e("Failed to get threaded timeline", timeline.exceptionOrNull())
+        }
+        timeline.getOrNull()
+    }.flowClosable()
+
+    private val timelineController = if (threadId == null) {
+        joinedRoom.map { room ->
+            room ?: return@map null
+            TimelineController(room)
+        }
+    } else {
+        combine(
+            threadedTimeline,
+            joinedRoom
+        ) { timeline, room ->
+            timeline ?: return@combine null
+            room ?: return@combine null
+            TimelineController(room, timeline)
         }
     }
         .flowClosable()
@@ -458,7 +485,7 @@ class ConversationViewModel(
         }
     }
 
-    private val draftKey = ScopedRoomKey(sessionId, roomId)
+    private val draftKey = DraftKey(sessionId, roomId, threadId)
 
     private val preferredComposerFormat = scPreferencesStore.settingFlow(ScPrefs.PREFERRED_MESSAGE_FORMAT).map {
         tryOrNull { ComposerFormat.valueOf(it) }
@@ -1519,7 +1546,7 @@ class ConversationViewModel(
         }
         val timelineItems = timelineItems.value
         if (timelineItems != null) {
-            if (timelineItems.any { item -> (item as? MatrixTimelineItem.Event)?.eventId == eventId }) {
+            if (timelineItems.any { item -> (item.item as? MatrixTimelineItem.Event)?.eventId == eventId }) {
                 log.d { "Skip rebuilding timeline, focus item is already in current timeline" }
                 _targetEvent.update {
                     EventJumpTarget.Event(eventId).navigateFrom(it)
@@ -1527,7 +1554,13 @@ class ConversationViewModel(
                 return Result.success(EventFocusResult.FocusedOnLive) // TODO the other variant would be threaded??
             }
         }
-        return controller.focusOnEvent(eventId, null)
+        return controller.focusOnEvent(
+            eventId,
+            threadId,
+            timelineFilterSettings.value.preferHideThreadedEvents
+                // Shouldn't happen
+                ?: ScPrefs.THREAD_REPLIES_IN_MAIN_TIMELINE.defaultValue
+        )
             .onFailure { log.e("Failed to focus on event $eventId", it) }
             .onSuccess {
                 _targetEvent.update {
@@ -1905,6 +1938,9 @@ class ConversationViewModel(
                 ActionArgumentPrimitive.SessionId to sessionId.value,
                 ActionArgumentPrimitive.RoomId to roomId.value,
                 eventId?.value?.let { ActionArgumentPrimitive.EventId to it },
+                ((threadId ?: (event.threadInfo() as? EventThreadInfo.ThreadResponse)?.threadRootId)?.value ?: event.eventId?.value)?.let {
+                    ActionArgumentPrimitive.ThreadId to it
+                },
             )
         }
     }
@@ -2024,9 +2060,10 @@ class ConversationViewModel(
         fun factory(
             sessionId: SessionId,
             roomId: RoomId,
+            threadId: ThreadId?,
         ) = viewModelFactory {
             initializer {
-                ConversationViewModel(sessionId, roomId)
+                ConversationViewModel(sessionId, roomId, threadId)
             }
         }
 

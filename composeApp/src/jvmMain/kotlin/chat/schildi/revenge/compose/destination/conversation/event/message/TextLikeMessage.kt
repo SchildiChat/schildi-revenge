@@ -187,7 +187,7 @@ fun TextLikeMessageContent(
         drawStyle = LocalMatrixBodyDrawStyle.current,
         interactionState = interactionState,
         onTextLayout = onTextLayout,
-        maxLines = if (LocalMessageRenderContext.current.isReply()) {
+        maxLines = if (LocalMessageRenderContext.current == MessageRenderContext.IN_REPLY_TO) {
             20
         } else {
             Integer.MAX_VALUE

@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EmojiPeople
+import androidx.compose.material.icons.filled.Gesture
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.OpenWith
 import androidx.compose.material.icons.filled.Visibility
@@ -17,6 +18,7 @@ import androidx.compose.ui.input.key.Key
 import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
+import chat.schildi.revenge.config.keybindings.DestinationEnum
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
@@ -34,6 +36,7 @@ import shire.composeapp.generated.resources.action_jump_to_replied_to_message
 import shire.composeapp.generated.resources.action_react
 import shire.composeapp.generated.resources.action_redact
 import shire.composeapp.generated.resources.action_reply
+import shire.composeapp.generated.resources.action_thread
 import shire.composeapp.generated.resources.action_view_reactions
 import shire.composeapp.generated.resources.action_view_read_receipts
 
@@ -72,6 +75,13 @@ fun EventTimelineItem.contextMenu(
             keyboardShortcut = Key.R,
         ).takeIf { canSendMessages },
         ContextMenuEntry(
+            Res.string.action_thread.toStringHolder(),
+            rememberVectorPainter(Icons.Default.Gesture),
+            Action.Navigation.NavigateAuto,
+            actionArgs = persistentListOf(DestinationEnum.ConversationThread.destName, sessionId.value, roomId.value, eventId?.value ?: ""),
+            keyboardShortcut = Key.T,
+        ).takeIf { eventId != null },
+        ContextMenuEntry(
             Res.string.action_edit.toStringHolder(),
             rememberVectorPainter(Icons.Default.Edit),
             Action.Event.ComposeEdit,
@@ -87,14 +97,14 @@ fun EventTimelineItem.contextMenu(
             Res.string.action_view_reactions.toStringHolder(),
             rememberVectorPainter(Icons.Default.EmojiPeople),
             Action.Navigation.NavigateAuto,
-            actionArgs = persistentListOf("reactions", sessionId.value, roomId.value, eventId?.value ?: ""),
+            actionArgs = persistentListOf(DestinationEnum.MessageReactions.destName, sessionId.value, roomId.value, eventId?.value ?: ""),
             keyboardShortcut = Key.V,
         ).takeIf { reactions.isNotEmpty() && eventId != null },
         ContextMenuEntry(
             Res.string.action_view_read_receipts.toStringHolder(),
             rememberVectorPainter(Icons.Default.Visibility),
             Action.Navigation.NavigateAuto,
-            actionArgs = persistentListOf("readReceipts", sessionId.value, roomId.value, eventId?.value ?: ""),
+            actionArgs = persistentListOf(DestinationEnum.MessageReadReceipts.destName, sessionId.value, roomId.value, eventId?.value ?: ""),
             keyboardShortcut = Key.P,
         ).takeIf { receipts.isNotEmpty() && eventId != null },
         ContextMenuEntry(
