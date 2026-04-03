@@ -8,7 +8,11 @@
 
 package io.element.android.libraries.matrix.api.media
 
+import java.io.File
+
 interface MatrixMediaLoader {
+    val baseCacheDirectory: File // SC
+
     /**
      * @param source to fetch the content for.
      * @return a [Result] of ByteArray. It contains the binary data for the media.

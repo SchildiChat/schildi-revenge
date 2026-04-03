@@ -25,7 +25,7 @@ internal class AvatarDataFetcherFactory(
     ): Fetcher? {
         return when {
             data.url == null -> null
-            data.url?.startsWith("mxc") == true -> CoilMediaFetcher(
+            data.url?.startsWith("mxc") == true -> RevengeCoilMediaFetcher(
                 mediaLoader = matrixMediaLoader,
                 mediaData = data.toMediaRequestData(),
             )

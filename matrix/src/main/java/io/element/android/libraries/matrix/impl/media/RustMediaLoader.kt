@@ -21,7 +21,7 @@ import java.io.File
 import org.matrix.rustcomponents.sdk.MediaSource as RustMediaSource
 
 class RustMediaLoader(
-    private val baseCacheDirectory: File,
+    override val baseCacheDirectory: File,
     dispatchers: CoroutineDispatchers,
     private val innerClient: Client,
 ) : MatrixMediaLoader {
