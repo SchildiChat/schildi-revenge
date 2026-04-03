@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -28,6 +30,9 @@ import io.element.android.libraries.matrix.api.timeline.item.event.Receipt
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.toImmutableList
+import kotlin.math.absoluteValue
+
+private const val MAX_RECEIPTS = 50
 
 @Composable
 fun ColumnScope.ReadReceiptsRow(
@@ -75,11 +80,17 @@ fun ColumnScope.ReadReceiptsRow(
                 Alignment.Start,
             ),
         ) {
-            receipts.forEachIndexed { index, receipt ->
+            receipts.take(MAX_RECEIPTS).forEachIndexed { index, receipt ->
                 ReadReceiptItem(
                     receipt = receipt,
                     member = roomMembersById[receipt.userId],
                     modifier = Modifier.zIndex(-index.toFloat())
+                )
+            }
+            if (receipts.size > MAX_RECEIPTS) {
+                ReadReceiptOverflowItem(
+                    receipts.size - MAX_RECEIPTS,
+                    Modifier.padding(start = Dimens.Conversation.receiptPaddingHorizontal.value.absoluteValue.dp)
                 )
             }
         }
@@ -98,6 +109,19 @@ fun ReadReceiptItem(
         size = Dimens.Conversation.receiptSize,
         contentDescription = senderName,
         displayName = senderName,
+        modifier = modifier,
+    )
+}
+
+@Composable
+fun ReadReceiptOverflowItem(
+    overflowSize: Int,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        "+$overflowSize",
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        style = MaterialTheme.typography.labelSmall,
         modifier = modifier,
     )
 }

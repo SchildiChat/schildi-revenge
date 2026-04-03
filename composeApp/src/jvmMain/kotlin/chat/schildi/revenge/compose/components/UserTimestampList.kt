@@ -26,9 +26,19 @@ data class UserTimestampItem<T>(
     val extra: T? = null,
 )
 
-private fun <T>List<UserTimestampItem<T>>.tooltipTextFunction(prefix: String = ""): @Composable () -> String = {
+private const val MAX_TOOLTIP_USERS = 20
+
+private fun <T>List<UserTimestampItem<T>>.tooltipTextFunction(
+    prefix: String = "",
+): @Composable () -> String = {
     remember(this) {
-        joinToString(prefix = prefix) { it.displayName ?: it.userId.value }
+        val overflowSize = size - MAX_TOOLTIP_USERS
+        take(MAX_TOOLTIP_USERS).joinToString(
+            prefix = prefix,
+            postfix = if (overflowSize > 0) ", ..." else "",
+        ) {
+            it.displayName ?: it.userId.value
+        }
     }
 }
 
