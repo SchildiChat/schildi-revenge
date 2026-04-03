@@ -38,6 +38,7 @@ import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.components.thenIf
+import chat.schildi.revenge.compose.media.rememberAnimatedImageTransform
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.revenge.model.conversation.extractUrls
 import coil3.compose.AsyncImagePainter
@@ -110,6 +111,7 @@ fun UrlPreviewView(
                     modifier = Modifier.align(Alignment.Top),
                     imageLoader = imageLoader(),
                     model = MediaRequestData(MediaSource(imageUrl), MediaRequestData.Kind.Content),
+                    transform = rememberAnimatedImageTransform(),
                     contentScale = ContentScale.Fit,
                     alignment = Alignment.Center,
                     contentDescription = null,

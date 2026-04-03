@@ -23,10 +23,12 @@ import androidx.compose.ui.unit.Dp
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Dimens
-import chat.schildi.revenge.compose.media.ScSubcomposeAsyncImage
+import chat.schildi.revenge.compose.media.rememberAnimatedImageTransform
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.theme.ScColors
 import coil3.compose.AsyncImagePainter
+import coil3.compose.SubcomposeAsyncImage
+import coil3.compose.SubcomposeAsyncImageContent
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.ui.media.MediaRequestData
@@ -45,10 +47,11 @@ fun AvatarImage(
         AvatarFallback(displayName, shape, size)
         return
     }
-    ScSubcomposeAsyncImage(
+    SubcomposeAsyncImage(
         modifier = modifier.size(size).clip(shape),
         imageLoader = imageLoader(sessionId),
         model = MediaRequestData(source, MediaRequestData.Kind.Content),
+        transform = rememberAnimatedImageTransform(),
         contentScale = ContentScale.Crop,
         alignment = Alignment.Center,
         contentDescription = contentDescription,

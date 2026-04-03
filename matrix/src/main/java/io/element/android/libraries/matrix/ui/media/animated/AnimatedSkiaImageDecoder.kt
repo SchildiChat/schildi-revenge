@@ -14,40 +14,38 @@ import coil3.decode.Decoder
 import coil3.decode.ImageSource
 import coil3.fetch.SourceFetchResult
 import coil3.request.Options
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.plus
 import okio.use
+import kotlin.coroutines.CoroutineContext
+import org.jetbrains.skia.Bitmap
 import org.jetbrains.skia.Codec
 import org.jetbrains.skia.Data
-import kotlin.time.TimeSource
 
 internal class AnimatedSkiaImageDecoder(
     private val source: ImageSource,
-    private val coroutineScope: CoroutineScope,
     private val bufferedFramesCount: Int,
-    private val timeSource: TimeSource,
+    private val decoderCoroutineContext: CoroutineContext,
 ) : Decoder {
-    override suspend fun decode(): DecodeResult =
-        coroutineScope {
-            val bytes = source.source().use { it.readByteArray() }
-            val codec = Codec.makeFromData(Data.makeFromBytes(bytes))
-            DecodeResult(
-                image =
-                    AnimatedSkiaImage(
-                        codec = codec,
-                        coroutineScope = coroutineScope + Job(),
-                        bufferedFramesCount = bufferedFramesCount,
-                        timeSource = timeSource,
-                    ),
-                isSampled = false,
-            )
-        }
+    override suspend fun decode(): DecodeResult {
+        val bytes = source.source().use { it.readByteArray() }
+        val codec = Codec.makeFromData(Data.makeFromBytes(bytes))
+        val firstFrame = decodeFrame(codec, 0)
+        val imageInfo = codec.imageInfo
+        codec.close()
+        return DecodeResult(
+            image =
+                AnimatedSkiaImage(
+                    encodedBytes = bytes,
+                    imageInfo = imageInfo,
+                    firstFrame = firstFrame,
+                    bufferedFramesCount = bufferedFramesCount,
+                    decoderCoroutineContext = decoderCoroutineContext,
+                ),
+            isSampled = false,
+        )
+    }
 
     internal class Factory(
         private val bufferedFramesCount: Int = DefaultBufferedFramesCount,
-        private val timeSource: TimeSource = TimeSource.Monotonic,
     ) : Decoder.Factory {
         init {
             require(bufferedFramesCount >= 0) { "bufferedFramesCount must be >= 0." }
@@ -61,11 +59,23 @@ internal class AnimatedSkiaImageDecoder(
             if (!result.source.source().isAnimatedImage()) return null
             return AnimatedSkiaImageDecoder(
                 source = result.source,
-                coroutineScope = CoroutineScope(imageLoader.defaults.decoderCoroutineContext),
                 bufferedFramesCount = bufferedFramesCount,
-                timeSource = timeSource,
+                decoderCoroutineContext = imageLoader.defaults.decoderCoroutineContext,
             )
         }
+    }
+}
+
+private fun decodeFrame(codec: Codec, frameIndex: Int): ByteArray {
+    val tempBitmap = Bitmap().apply { allocPixels(codec.imageInfo) }
+    return try {
+        codec.readPixels(tempBitmap, frameIndex)
+        tempBitmap.readPixels(
+            dstInfo = codec.imageInfo,
+            dstRowBytes = codec.imageInfo.minRowBytes,
+        ) ?: error("Failed to read pixels for frame $frameIndex.")
+    } finally {
+        tempBitmap.close()
     }
 }
 

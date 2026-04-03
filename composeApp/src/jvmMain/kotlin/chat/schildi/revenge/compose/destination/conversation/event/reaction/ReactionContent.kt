@@ -12,11 +12,13 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import chat.schildi.revenge.Dimens
-import chat.schildi.revenge.compose.media.ScSubcomposeAsyncImage
+import chat.schildi.revenge.compose.media.rememberAnimatedImageTransform
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.revenge.compose.util.containsOnlyEmojis
 import chat.schildi.theme.rememberEmojiFontFamily
 import coil3.compose.AsyncImagePainter
+import coil3.compose.SubcomposeAsyncImage
+import coil3.compose.SubcomposeAsyncImageContent
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.ui.media.MediaRequestData
 
@@ -36,7 +38,7 @@ fun ReactionContent(
         baseStyle
     }
     if (reaction.startsWith("mxc://")) {
-        ScSubcomposeAsyncImage(
+        SubcomposeAsyncImage(
             model = MediaRequestData(MediaSource(reaction), MediaRequestData.Kind.Content),
             modifier = modifier.height(
                 LocalDensity.current.run {
@@ -44,6 +46,7 @@ fun ReactionContent(
                 }
             ),
             imageLoader = imageLoader(),
+            transform = rememberAnimatedImageTransform(),
             contentScale = ContentScale.Fit,
             alignment = Alignment.Center,
             contentDescription = reactionShortcode ?: reaction,

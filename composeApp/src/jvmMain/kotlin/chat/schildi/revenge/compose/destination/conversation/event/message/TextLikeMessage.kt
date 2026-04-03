@@ -38,12 +38,14 @@ import chat.schildi.revenge.LocalMatrixBodyDrawStyle
 import chat.schildi.revenge.LocalMatrixBodyFormatter
 import chat.schildi.revenge.MessageFormatDefaults
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
-import chat.schildi.revenge.compose.media.ScSubcomposeAsyncImage
+import chat.schildi.revenge.compose.media.rememberAnimatedImageTransform
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.revenge.compose.util.containsOnlyEmojis
 import chat.schildi.revenge.model.conversation.MessageMetadata
 import coil3.PlatformContext
 import coil3.compose.AsyncImagePainter
+import coil3.compose.SubcomposeAsyncImage
+import coil3.compose.SubcomposeAsyncImageContent
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import coil3.request.maxBitmapSize
@@ -269,7 +271,7 @@ private fun InlineImage(
     onPainterSuccess: (SuccessResult) -> Unit = {},
 ) {
     val density = LocalDensity.current
-    ScSubcomposeAsyncImage(
+    SubcomposeAsyncImage(
         modifier = modifier,
         imageLoader = imageLoader(),
         model = ImageRequest
@@ -283,6 +285,7 @@ private fun InlineImage(
                 )
             )
             .build(),
+        transform = rememberAnimatedImageTransform(),
         contentScale = ContentScale.Crop,
         alignment = Alignment.Center,
         contentDescription = info.alt ?: info.title,
