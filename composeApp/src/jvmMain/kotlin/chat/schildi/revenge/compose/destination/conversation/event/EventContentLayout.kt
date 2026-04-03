@@ -37,6 +37,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.FileMessageTy
 import io.element.android.libraries.matrix.api.timeline.item.event.ImageLikeMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 import io.element.android.libraries.matrix.api.timeline.item.event.LegacyCallInviteContent
+import io.element.android.libraries.matrix.api.timeline.item.event.LiveLocationContent
 import io.element.android.libraries.matrix.api.timeline.item.event.LocationMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.event.OtherMessageType
@@ -196,6 +197,7 @@ fun EventContentLayout(
         is FailedToParseMessageLikeContent -> EventMessageFallback(stringResource(Res.string.message_placeholder_message_failed_to_parse))
         LegacyCallInviteContent -> EventMessageFallback("LEGACY CALL INVITE")
         is PollContent -> EventMessageFallback("POLL")
+        is LiveLocationContent -> EventMessageFallback("LIVE LOCATION")
         RedactedContent -> EventMessageFallback(stringResource(Res.string.message_placeholder_message_redacted)) // TODO can I tell if user deleted themselves or someone else?
         is UnableToDecryptContent -> {
             val message = when (val data = content.data) {

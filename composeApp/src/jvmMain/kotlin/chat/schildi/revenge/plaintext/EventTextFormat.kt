@@ -36,12 +36,14 @@ import io.element.android.libraries.matrix.api.timeline.item.event.getDisambigua
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisplayName
 import io.element.android.libraries.matrix.api.room.join.JoinRule
 import io.element.android.libraries.matrix.api.timeline.item.event.FormattedBody
+import io.element.android.libraries.matrix.api.timeline.item.event.LiveLocationContent
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageFormat
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
 import io.element.android.libraries.matrix.api.timeline.item.event.TextLikeMessageType
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.join_rule_invite
@@ -68,6 +70,7 @@ import shire.composeapp.generated.resources.membership_change_not_implemented
 import shire.composeapp.generated.resources.membership_change_unbanned
 import shire.composeapp.generated.resources.membership_reason
 import shire.composeapp.generated.resources.message_placeholder_call
+import shire.composeapp.generated.resources.message_placeholder_live_location
 import shire.composeapp.generated.resources.message_placeholder_message_failed_to_parse
 import shire.composeapp.generated.resources.message_placeholder_message_redacted
 import shire.composeapp.generated.resources.message_placeholder_state_event
@@ -142,6 +145,7 @@ object EventTextFormat {
             is StickerContent -> content.bestDescription
             CallNotifyContent,
             LegacyCallInviteContent -> getString(Res.string.message_placeholder_call)
+            is LiveLocationContent -> getString(Res.string.message_placeholder_live_location)
             is FailedToParseMessageLikeContent,
             is FailedToParseStateContent -> getString(Res.string.message_placeholder_message_failed_to_parse)
             is PollContent -> content.question
