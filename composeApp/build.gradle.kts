@@ -9,10 +9,13 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import java.io.File
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import javax.xml.XMLConstants
+import javax.xml.parsers.DocumentBuilderFactory
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -173,6 +176,7 @@ abstract class GenerateAvailableLocalesTask : DefaultTask() {
             .orEmpty()
             .asSequence()
             .filter { it.isDirectory }
+            .filter(::hasNonEmptyStringsXml)
             .mapNotNull { directory ->
                 directory.name.removePrefix("values-")
                     .takeIf { directory.name.startsWith("values-") }
@@ -220,6 +224,23 @@ abstract class GenerateAvailableLocalesTask : DefaultTask() {
                 }
             }
             .joinToString("-")
+    }
+
+    private fun hasNonEmptyStringsXml(directory: File): Boolean {
+        val stringsFile = File(directory, "strings.xml")
+        if (!stringsFile.isFile) {
+            return false
+        }
+
+        val documentBuilderFactory = DocumentBuilderFactory.newInstance().apply {
+            setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true)
+        }
+        val document = documentBuilderFactory.newDocumentBuilder().parse(stringsFile)
+        val resources = document.documentElement ?: return false
+
+        return (0 until resources.childNodes.length).any { index ->
+            resources.childNodes.item(index).nodeType == org.w3c.dom.Node.ELEMENT_NODE
+        }
     }
 }
 
