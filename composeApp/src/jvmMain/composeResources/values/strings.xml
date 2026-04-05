@@ -377,6 +377,8 @@
     <string name="pref_threaded_replies_in_main_timeline_summary">Whether to show threaded replies the main timeline</string>
     <string name="pref_threads_as_details_title">Threads as details</string>
     <string name="pref_threads_as_details_summary">Allow opening threads in the details pane of a conversation, instead of opening a new window</string>
+    <string name="pref_indicate_unread_count_underestimates_title">Indicate unread count underestimates</string>
+    <string name="pref_indicate_unread_count_underestimates_summary">Render question mark and plus indicators for incomplete unread count calculations</string>
 
     <string name="pref_dual_mention_unread_counts_title">Combined mention/unread count</string>
     <string name="pref_dual_mention_unread_counts_summary">When a highlighted chat's mention count differs from unread count, show both</string>

@@ -106,6 +106,8 @@ import shire.composeapp.generated.resources.pref_client_side_sort_by_unread_summ
 import shire.composeapp.generated.resources.pref_client_side_sort_by_unread_title
 import shire.composeapp.generated.resources.pref_dual_mention_unread_counts_summary
 import shire.composeapp.generated.resources.pref_dual_mention_unread_counts_title
+import shire.composeapp.generated.resources.pref_indicate_unread_count_underestimates_summary
+import shire.composeapp.generated.resources.pref_indicate_unread_count_underestimates_title
 import shire.composeapp.generated.resources.pref_locale
 import shire.composeapp.generated.resources.pref_locale_follow_system
 import shire.composeapp.generated.resources.pref_pin_favorites_summary
@@ -206,6 +208,7 @@ object ScPrefs {
 
     val CLIENT_GENERATED_UNREAD_COUNTS = ScBoolPref("CLIENT_GENERATED_UNREAD_COUNTS", true, Res.string.pref_client_generated_unread_counts_title, Res.string.pref_client_generated_unread_counts_summary, disabledValue = true)
     val RENDER_SILENT_UNREAD = ScBoolPref("RENDER_SILENT_UNREAD", true, Res.string.pref_render_silent_unread_title, Res.string.pref_render_silent_unread_summary, disabledValue = false)
+    val INDICATE_UNREAD_COUNT_UNDERESTIMATES = ScBoolPref("INDICATE_UNREAD_COUNT_UNDERESTIMATES", true, Res.string.pref_indicate_unread_count_underestimates_title, Res.string.pref_indicate_unread_count_underestimates_summary, disabledValue = false, dependencies = RENDER_SILENT_UNREAD.asDependencies())
     val PIN_FAVORITES = ScBoolPref("PIN_FAVORITES", false, Res.string.pref_pin_favorites_title, Res.string.pref_pin_favorites_summary)
     val BURY_LOW_PRIORITY = ScBoolPref("BURY_LOW_PRIORITY", false, Res.string.pref_bury_low_priority_title, Res.string.pref_bury_low_priority_summary)
     val SORT_BY_UNREAD = ScBoolPref("SORT_BY_UNREAD", false, Res.string.pref_client_side_sort_by_unread_title, Res.string.pref_client_side_sort_by_unread_summary)
@@ -319,6 +322,7 @@ object ScPrefs {
             )),
             ScPrefCategory("INBOX_UNREADS", Res.string.pref_category_unread_counts, null, listOf(
                 RENDER_SILENT_UNREAD,
+                INDICATE_UNREAD_COUNT_UNDERESTIMATES,
                 DUAL_MENTION_UNREAD_COUNTS,
             )),
         )),

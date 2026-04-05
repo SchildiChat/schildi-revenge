@@ -77,6 +77,7 @@ class RoomInfoMapper {
             canUserManageSpaces = it.canUserManageSpaces,
             unreadCount = it.unreadCount.toLong(),
             bridgeState = it.bridgeStates.map(::mapRustBridgeState),
+            unreadCountUnderestimate = it.hasIncompleteUnreadCount,
             // SC end
             historyVisibility = it.historyVisibility.map(),
             successorRoom = it.successorRoom?.map(),

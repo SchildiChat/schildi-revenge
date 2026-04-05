@@ -27,7 +27,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
@@ -335,8 +334,9 @@ data class RoomUnreadCounts(
     val notificationCount: Long,
     val unreadCount: Long,
     val markedUnread: Boolean,
+    val unreadUnderestimate: Boolean,
 ) {
-    fun hasUnread() = markedUnread || notificationCount > 0L || highlightCount > 0L || unreadCount > 0L
+    fun hasUnread() = markedUnread || notificationCount > 0L || highlightCount > 0L || unreadCount > 0L || unreadUnderestimate
     fun canMarkUnread() = !markedUnread && notificationCount == 0L && highlightCount == 0L
 }
 
@@ -344,11 +344,13 @@ data class RoomUnreadCounts(
 fun RoomSummary.unreadCounts(): RoomUnreadCounts {
     val allowSilentUnreadCount = ScPrefs.RENDER_SILENT_UNREAD.value()
     return if (ScPrefs.CLIENT_GENERATED_UNREAD_COUNTS.value()) {
+        val renderUnderestimates = ScPrefs.INDICATE_UNREAD_COUNT_UNDERESTIMATES.value()
         RoomUnreadCounts(
             highlightCount = info.numUnreadMentions,
             notificationCount = info.numUnreadNotifications,
             unreadCount = if (allowSilentUnreadCount) info.numUnreadMessages else 0,
             markedUnread = info.isMarkedUnread,
+            unreadUnderestimate = renderUnderestimates && info.unreadCountUnderestimate,
         )
     } else {
         RoomUnreadCounts(
@@ -356,13 +358,14 @@ fun RoomSummary.unreadCounts(): RoomUnreadCounts {
             notificationCount = info.notificationCount,
             unreadCount = if (allowSilentUnreadCount) info.unreadCount else 0,
             markedUnread = info.isMarkedUnread,
+            unreadUnderestimate = false,
         )
     }
 }
 
 @Composable
 private fun ScUnreadCounter(room: RoomSummary) {
-    val (highlightCount, notificationCount, unreadCount, markedUnread) = room.unreadCounts()
+    val (highlightCount, notificationCount, unreadCount, markedUnread, underestimate) = room.unreadCounts()
     val count: String
     val badgeColor: Color
     var outlinedBadge = false
@@ -373,27 +376,31 @@ private fun ScUnreadCounter(room: RoomSummary) {
         }
         ScPrefs.DUAL_MENTION_UNREAD_COUNTS.value() && highlightCount > 0 && (notificationCount > highlightCount || unreadCount > highlightCount) -> {
             val fullUnreadToUse = max(unreadCount, notificationCount)
-            count = "${formatUnreadCount(highlightCount)}/${formatUnreadCount(fullUnreadToUse)}"
+            count = "${formatUnreadCount(highlightCount)}/${formatUnreadCount(fullUnreadToUse, underestimate)}"
             badgeColor = MaterialTheme.scExposures.mentionBadgeColor
         }
         notificationCount > 0 -> {
-            count = formatUnreadCount(notificationCount)
+            count = formatUnreadCount(notificationCount, underestimate)
             badgeColor = if (highlightCount > 0)
                 MaterialTheme.scExposures.mentionBadgeColor
             else
                 MaterialTheme.scExposures.notificationBadgeColor
         }
         highlightCount > 0 -> {
-            count = formatUnreadCount(highlightCount)
+            count = formatUnreadCount(highlightCount, underestimate)
             badgeColor = MaterialTheme.scExposures.mentionBadgeColor
         }
-        room.info.isMarkedUnread -> {
+        markedUnread -> {
             count = "!"
             badgeColor = MaterialTheme.scExposures.notificationBadgeColor
             outlinedBadge = true
         }
         unreadCount > 0 -> {
-            count = formatUnreadCount(unreadCount)
+            count = formatUnreadCount(unreadCount, underestimate)
+            badgeColor = MaterialTheme.scExposures.unreadBadgeColor
+        }
+        underestimate -> {
+            count = "?"
             badgeColor = MaterialTheme.scExposures.unreadBadgeColor
         }
         else -> {

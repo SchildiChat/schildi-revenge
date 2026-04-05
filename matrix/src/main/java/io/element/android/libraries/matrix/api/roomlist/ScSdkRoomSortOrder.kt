@@ -13,6 +13,7 @@ data class ScSdkRoomSortOrder(
     val buryLowPriority: Boolean = false,
     val clientSideUnreadCounts: Boolean = false,
     val withSilentUnread: Boolean = false,
+    val withInaccurateSilentUnread: Boolean = false,
 ) {
     fun <T>toComparator(map: (T) -> RoomSummary) = Comparator<T> { ua, ub ->
         val a = map(ua)
@@ -29,6 +30,9 @@ data class ScSdkRoomSortOrder(
             selectFor(a, b) { it.info.isMarkedUnread || it.info.numUnreadNotifications > 0 }?.let { return@Comparator it }
             if (withSilentUnread) {
                 selectFor(a, b) { it.info.numUnreadMessages > 0 }?.let { return@Comparator it }
+                if (withInaccurateSilentUnread) {
+                    selectFor(a, b) { it.info.unreadCountUnderestimate }?.let { return@Comparator it }
+                }
             }
         }
         selectFor(a, b) { it.latestEventTimestamp != null }?.let { return@Comparator it }
