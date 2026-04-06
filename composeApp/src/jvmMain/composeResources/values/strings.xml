@@ -3,6 +3,7 @@
     <string name="inbox">Inbox</string>
     <string name="inbox_search">Inbox search</string>
     <string name="thread">Thread</string>
+    <string name="room_details_title">Room details</string>
     <string name="room_members_title_loading">Loading room members</string>
     <plurals name="room_members_title_loaded">
         <item quantity="one">%1$s members</item>
@@ -155,7 +156,15 @@
     <string name="hint_send_error">Send error</string>
     <string name="hint_app_icon">App icon</string>
     <string name="hint_public_room">Public room</string>
+    <string name="hint_private_room">Private room</string>
+    <string name="hint_direct_chat">Direct chat</string>
+    <string name="hint_group_chat">Group chat</string>
     <string name="hint_not_encrypted">Not encrypted</string>
+    <string name="hint_encrypted">Encrypted</string>
+    <string name="hint_topic">Topic</string>
+    <string name="hint_room_id">Room ID</string>
+    <string name="hint_canonical_room_alias">Room address</string>
+    <string name="hint_other_room_aliases">Alternative room addresses</string>
 
     <string name="reply_failed_to_load">Failed to load replied-to message</string>
 
@@ -214,8 +223,8 @@
     <string name="message_placeholder_state_event_room_user_power_levels">%1$s changed user power levels</string>
     <string name="message_placeholder_state_event_space_child">%1$s changed the space children</string>
     <string name="message_placeholder_state_event_space_parent">%1$s changed the space parents</string>
-    <string name="event_placeholder_room_beginning">Room beginning</string>
     <string name="message_placeholder_live_location">Live location</string>
+    <string name="event_placeholder_room_beginning">Room beginning</string>
 
     <!-- Join rules mapping -->
     <string name="join_rule_public">Public</string>

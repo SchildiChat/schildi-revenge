@@ -74,6 +74,7 @@ private fun DestinationStateHolder.wrapped(
                 DestinationEnum.Conversation
             },
             allowedDetailsDestinations = listOfNotNull(
+                DestinationEnum.RoomDetails,
                 DestinationEnum.RoomMembers,
                 DestinationEnum.MessageReactions,
                 DestinationEnum.MessageReadReceipts,

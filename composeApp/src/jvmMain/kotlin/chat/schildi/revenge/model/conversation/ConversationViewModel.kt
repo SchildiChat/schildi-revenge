@@ -275,7 +275,7 @@ class ConversationViewModel(
         joined ?: notJoined
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val roomInfo: Flow<RoomInfo?> = baseRoom.flatMapLatest {
+    val roomInfo = baseRoom.flatMapLatest {
         it?.roomInfoFlow ?: flowOf(null)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 

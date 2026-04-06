@@ -20,6 +20,7 @@ import chat.schildi.revenge.compose.destination.AccountManagementScreen
 import chat.schildi.revenge.compose.destination.DiagnosticsScreen
 import chat.schildi.revenge.compose.destination.SplashScreen
 import chat.schildi.revenge.compose.destination.conversation.ConversationScreen
+import chat.schildi.revenge.compose.destination.conversation.RoomDetailsScreen
 import chat.schildi.revenge.compose.destination.conversation.UserDetailsScreen
 import chat.schildi.revenge.compose.destination.conversation.userlist.MessageReactionsScreen
 import chat.schildi.revenge.compose.destination.conversation.userlist.MessageReadReceiptsScreen
@@ -52,6 +53,7 @@ fun DestinationContent(
                 is Destination.Inbox -> InboxScreen(destination, baseModifier, contentModifier)
                 is Destination.Splash -> SplashScreen(baseModifier, contentModifier)
                 is Destination.Conversation -> ConversationScreen(destination, baseModifier, contentModifier)
+                is Destination.RoomDetails -> RoomDetailsScreen(destination, baseModifier, contentModifier)
                 is Destination.RoomMembers -> RoomMembersScreen(destination, baseModifier, contentModifier)
                 is Destination.MessageReactions -> MessageReactionsScreen(destination, baseModifier, contentModifier)
                 is Destination.MessageReadReceipts -> MessageReadReceiptsScreen(destination, baseModifier, contentModifier)
@@ -100,6 +102,7 @@ private fun DestinationEnum.measureInfo(): DestinationMeasure = when (this) {
     DestinationEnum.Inbox -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_INBOX, ScPrefs.LAYOUT_WEIGHT_INBOX)
     DestinationEnum.Conversation -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_CONVERSATION, ScPrefs.LAYOUT_WEIGHT_CONVERSATION)
     DestinationEnum.SplitRoomDetailsPlaceholder,
+    DestinationEnum.RoomDetails,
     DestinationEnum.MessageReactions,
     DestinationEnum.MessageReadReceipts,
     DestinationEnum.RoomMembers,

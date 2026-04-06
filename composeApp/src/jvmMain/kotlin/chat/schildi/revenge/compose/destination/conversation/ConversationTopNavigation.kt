@@ -3,6 +3,7 @@ package chat.schildi.revenge.compose.destination.conversation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.runtime.Composable
@@ -27,6 +28,7 @@ import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_jump_to_unread
 import shire.composeapp.generated.resources.action_mark_as_read
 import shire.composeapp.generated.resources.action_show_room_members
+import shire.composeapp.generated.resources.room_details_title
 import shire.composeapp.generated.resources.thread
 
 @Composable
@@ -53,6 +55,12 @@ fun ConversationTopNavigation(viewModel: ConversationViewModel) {
             }
             TopNavigationSearchOrTitle(title)
             if (focusParent != null) {
+                TopNavigationIcon(
+                    Icons.Default.Info,
+                    stringResource(Res.string.room_details_title),
+                ) {
+                    destinationState?.navigate(Destination.RoomDetails(viewModel.sessionId, viewModel.roomId))
+                }
                 TopNavigationIcon(
                     Icons.Default.Group,
                     stringResource(Res.string.action_show_room_members),

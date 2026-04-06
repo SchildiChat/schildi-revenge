@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -68,7 +67,7 @@ fun UserDetailsScreen(
     ) {
         val info = viewModel.globalUserInfo.collectAsState().value
         val roomMemberInfo = viewModel.roomMember.collectAsState().value
-        Column(contentModifier.fillMaxSize().padding(Dimens.windowPadding)) {
+        Column(contentModifier.fillMaxSize()) {
             ConversationDetailsTopNavigation(info?.displayName ?: viewModel.userId.value)
             if (info == null) {
                 EmptyListScreen(
@@ -76,11 +75,11 @@ fun UserDetailsScreen(
                     icon = rememberVectorPainter(Icons.Default.Person),
                     isSearching = false,
                     isLoading = true,
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier.fillMaxWidth().padding(Dimens.windowPadding).weight(1f),
                 )
             } else {
                 Box(
-                    Modifier.fillMaxWidth().weight(1f),
+                    Modifier.fillMaxWidth().padding(Dimens.windowPadding).weight(1f),
                     contentAlignment = Alignment.Center,
                 ) {
                     LazyColumn(

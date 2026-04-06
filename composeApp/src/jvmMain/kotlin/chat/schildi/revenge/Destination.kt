@@ -17,6 +17,7 @@ import shire.composeapp.generated.resources.inbox
 import shire.composeapp.generated.resources.manage_accounts
 import shire.composeapp.generated.resources.message_reactions_title
 import shire.composeapp.generated.resources.message_read_receipts_title
+import shire.composeapp.generated.resources.room_details_title
 
 val DEFAULT_WINDOW_APP_TITLE = StringResourceHolder(Res.string.app_title_short)
 
@@ -87,6 +88,15 @@ sealed interface Destination {
     ) : WithSession {
         override val type = DestinationEnum.RoomMembers
         override val title = null
+        override val category = DestinationCategory.CONVERSATION_DETAILS
+    }
+
+    data class RoomDetails(
+        override val sessionId: SessionId,
+        val roomId: RoomId,
+    ) : WithSession {
+        override val type = DestinationEnum.RoomDetails
+        override val title = StringResourceHolder(Res.string.room_details_title)
         override val category = DestinationCategory.CONVERSATION_DETAILS
     }
 

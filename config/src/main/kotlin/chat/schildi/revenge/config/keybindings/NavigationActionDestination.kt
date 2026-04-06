@@ -9,6 +9,7 @@ enum class DestinationEnum(
     Inbox("Inbox", listOf("inbox")),
     Conversation("Conversation", listOf("room", "conversation", "chat")),
     ConversationThread("ConversationThread", listOf("thread")),
+    RoomDetails("RoomDetails", listOf("roomDetails", "roomInfo")),
     RoomMembers("RoomMembers", listOf("members")),
     MessageReactions("MessageReactions", listOf("reactions")),
     MessageReadReceipts("MessageReadReceipts", listOf("readReceipts", "receipts")),
@@ -42,6 +43,7 @@ val SUGGESTED_DESTINATION_STRINGS = listOf(
     DestinationEnum.Settings.aliases[0],
     DestinationEnum.InboxConversationSplit.aliases[0],
     DestinationEnum.ConversationDetailsSplit.aliases[0],
+    DestinationEnum.RoomDetails.aliases[0],
 )
 
 val ALLOWED_DESTINATION_STRINGS = listOf(
@@ -51,6 +53,7 @@ val ALLOWED_DESTINATION_STRINGS = listOf(
     DestinationEnum.About.allDestinationNames(),
     DestinationEnum.Diagnostics.allDestinationNames(),
     DestinationEnum.Settings.allDestinationNames(),
+    DestinationEnum.RoomDetails.allDestinationNames(),
     DestinationEnum.RoomMembers.allDestinationNames(),
     DestinationEnum.MessageReactions.allDestinationNames(),
     DestinationEnum.MessageReadReceipts.allDestinationNames(),
@@ -58,8 +61,8 @@ val ALLOWED_DESTINATION_STRINGS = listOf(
     DestinationEnum.ConversationDetailsSplit.allDestinationNames(),
 ).flatten()
 
-fun String.destinationRequiresSessionId() = this in listOf("chat", "conversation", "room", "members", "reactions", "chatDetails", "conversationDetails")
-fun String.destinationRequiresResolvableRoom() = this in listOf("chat", "conversation", "room", "members", "reactions", "chatDetails", "conversationDetails")
+fun String.destinationRequiresSessionId() = this in listOf("chat", "conversation", "room", "roomDetails", "members", "reactions", "chatDetails", "conversationDetails")
+fun String.destinationRequiresResolvableRoom() = this in listOf("chat", "conversation", "room", "roomDetails", "members", "reactions", "chatDetails", "conversationDetails")
 fun String.destinationRequiresEventId() = this in listOf("reactions")
 
 data object NavigationDestinationSessionId : ActionArgumentContextBased {
