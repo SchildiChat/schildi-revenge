@@ -165,6 +165,8 @@
     <string name="hint_room_id">Room ID</string>
     <string name="hint_canonical_room_alias">Room address</string>
     <string name="hint_other_room_aliases">Alternative room addresses</string>
+    <string name="hint_room_version">Room version</string>
+    <string name="hint_connected_bridges">Connected bridges</string>
 
     <string name="reply_failed_to_load">Failed to load replied-to message</string>
 

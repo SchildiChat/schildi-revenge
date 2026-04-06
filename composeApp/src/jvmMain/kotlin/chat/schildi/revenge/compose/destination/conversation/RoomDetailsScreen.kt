@@ -52,6 +52,7 @@ import chat.schildi.revenge.compose.destination.conversation.event.message.TextL
 import chat.schildi.revenge.compose.destination.conversation.userlist.ConversationDetailsTopNavigation
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
+import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.matrixBodyDrawStyle
 import chat.schildi.revenge.matrixBodyFormatter
@@ -66,6 +67,7 @@ import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.empty_screen_placeholder_unexpected
 import shire.composeapp.generated.resources.hint_canonical_room_alias
+import shire.composeapp.generated.resources.hint_connected_bridges
 import shire.composeapp.generated.resources.hint_direct_chat
 import shire.composeapp.generated.resources.hint_encrypted
 import shire.composeapp.generated.resources.hint_group_chat
@@ -74,6 +76,7 @@ import shire.composeapp.generated.resources.hint_other_room_aliases
 import shire.composeapp.generated.resources.hint_private_room
 import shire.composeapp.generated.resources.hint_public_room
 import shire.composeapp.generated.resources.hint_room_id
+import shire.composeapp.generated.resources.hint_room_version
 import shire.composeapp.generated.resources.hint_topic
 import shire.composeapp.generated.resources.room_details_title
 
@@ -171,7 +174,7 @@ fun RoomDetailsScreen(
                                 }
                             }
                         }
-                        val otherAliases = info.aliases.filter { it != info.canonicalAlias }.distinct()
+                        val otherAliases = info.alternativeAliases.filter { it != info.canonicalAlias }.distinct()
                         if (otherAliases.isNotEmpty()) {
                             item {
                                 RoomDetailsSection(stringResource(Res.string.hint_other_room_aliases)) {
@@ -182,15 +185,43 @@ fun RoomDetailsScreen(
                             }
                         }
                         item {
-                            RoomDetailsSection(
+                            RoomInfoAdvancedInfoField(
                                 stringResource(Res.string.hint_room_id),
-                                color = MaterialTheme.colorScheme.tertiary,
-                            ) {
-                                SectionText(
-                                    viewModel.roomId.value,
-                                    style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                viewModel.roomId.value,
+                                monospace = true,
+                            )
+                        }
+                        info.roomVersion?.let { roomVersion ->
+                            item {
+                                RoomInfoAdvancedInfoField(
+                                    stringResource(Res.string.hint_room_version),
+                                    roomVersion,
                                 )
+                            }
+                        }
+                        val bridges = info.bridgeState.mapNotNull { bridge ->
+                            if (bridge.protocol?.displayName != null) {
+                                if (bridge.protocol?.id != null && bridge.protocol?.displayName?.lowercase() != bridge.protocol?.id) {
+                                    buildString {
+                                        append(bridge.protocol?.displayName)
+                                        append(" (")
+                                        append(bridge.protocol?.id)
+                                        append(")")
+                                    }
+                                } else {
+                                    bridge.protocol?.displayName
+                                }
+                            } else {
+                                bridge.protocol?.id
+                            }
+                        }.distinct()
+                        if (bridges.isNotEmpty()) {
+                            item {
+                                RoomDetailsSection(stringResource(Res.string.hint_connected_bridges)) {
+                                    bridges.forEach { bridge ->
+                                        SectionText(bridge)
+                                    }
+                                }
                             }
                         }
                     }
@@ -250,7 +281,7 @@ private fun SectionText(
     text: String,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.primary,
-    style: TextStyle = Dimens.Conversation.textMessageStyle,
+    style: TextStyle = MaterialTheme.typography.bodyMedium,
 ) {
     Text(
         text,
@@ -315,6 +346,32 @@ private fun RoomInfoBadge(
             text,
             color = MaterialTheme.colorScheme.onSurface,
             style = MaterialTheme.typography.bodySmall,
+        )
+    }
+}
+
+@Composable
+private fun RoomInfoAdvancedInfoField(
+    title: String,
+    content: String,
+    modifier: Modifier = Modifier,
+    monospace: Boolean = false,
+) {
+    RoomDetailsSection(
+        title,
+        color = MaterialTheme.colorScheme.tertiary,
+        modifier = modifier,
+    ) {
+        SectionText(
+            content,
+            style = MaterialTheme.typography.bodySmall.let {
+                if (monospace) {
+                    it.copy(fontFamily = FontFamily.Monospace)
+                } else {
+                    it
+                }
+            },
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
     }
 }
