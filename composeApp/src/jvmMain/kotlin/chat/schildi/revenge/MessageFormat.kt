@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
@@ -19,6 +20,9 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.sp
+import chat.schildi.revenge.actions.InteractionAction
+import chat.schildi.revenge.actions.LocalKeyboardActionHandler
+import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
 import chat.schildi.revenge.compose.components.LocalSessionId
 import chat.schildi.theme.scExposures
 import com.beeper.android.messageformat.DefaultMatrixBodyStyledFormatter
@@ -29,6 +33,7 @@ import com.beeper.android.messageformat.MatrixBodyStyledFormatter
 import com.beeper.android.messageformat.MatrixHtmlParser
 import com.beeper.android.messageformat.MatrixToLink
 import com.beeper.android.messageformat.SpanAttributes
+import io.element.android.libraries.matrix.api.core.UserId
 
 object MessageFormatDefaults {
     val blockIndention = 16.sp
@@ -86,7 +91,10 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
     val mentionColor = MaterialTheme.scExposures.mentionFg
     val mentionHighlightColor = MaterialTheme.scExposures.mentionFgHighlight
     val sessionId = LocalSessionId.current
+    val roomId = LocalRoomContextSuggestionsProvider.current?.roomId
     val urlHandler = LocalUriHandler.current
+    val keyHandler = LocalKeyboardActionHandler.current
+    val destinationStateHolder = LocalDestinationState.current
     return remember(
         density,
         textMeasurer,
@@ -95,7 +103,10 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
         mentionColor,
         mentionHighlightColor,
         sessionId,
+        roomId,
         urlHandler,
+        keyHandler,
+        destinationStateHolder,
     ) {
         object : DefaultMatrixBodyStyledFormatter(
             density,
@@ -105,13 +116,25 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
             blockIndention = MessageFormatDefaults.blockIndention,
             handleWebLinkClick = urlHandler::openUri,
         ) {
-            override fun formatUserMention(mention: MatrixToLink.UserMention, context: FormatContext): List<AnnotatedString.Annotation>? {
-                return if (sessionId?.value == mention.userId) {
-                    listOf(SpanStyle(color = mentionHighlightColor, fontWeight = FontWeight.Bold))
+            override fun formatUserMention(
+                mention: MatrixToLink.UserMention,
+                context: FormatContext,
+            ) = listOf(
+                LinkAnnotation.Clickable("user_mention_click", TextLinkStyles()) {
+                    sessionId ?: return@Clickable
+                    keyHandler.executeAction(
+                        InteractionAction.Navigate {
+                            Destination.UserDetails(sessionId, UserId(mention.userId), roomId)
+                        },
+                        destinationStateHolder,
+                    )
+                },
+                if (sessionId?.value == mention.userId) {
+                    SpanStyle(color = mentionHighlightColor, fontWeight = FontWeight.Bold)
                 } else {
-                    listOf(SpanStyle(color = mentionColor, fontWeight = FontWeight.Bold))
+                    SpanStyle(color = mentionColor, fontWeight = FontWeight.Bold)
                 }
-            }
+            )
             override fun formatRoomMention(context: FormatContext) = listOf(
                 SpanStyle(color = mentionHighlightColor, fontWeight = FontWeight.Bold)
             )
