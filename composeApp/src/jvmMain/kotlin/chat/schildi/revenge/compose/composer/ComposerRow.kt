@@ -86,8 +86,6 @@ import shire.composeapp.generated.resources.hint_composer_video
 import shire.composeapp.generated.resources.hint_not_encrypted
 import shire.composeapp.generated.resources.hint_public_room
 
-// TODO
-//  formatted messages: markdown toggle + rendered preview
 @Composable
 fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
     val draftState = viewModel.composerState.collectAsState().value
@@ -157,7 +155,6 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
                 onValueChange = {
                     viewModel.onComposerUpdate(draftState.copy(textFieldValue = it))
                 },
-                enabled = !draftState.isSendInProgress,
                 label = {
                     val hint = when (draftState.type) {
                         DraftType.TEXT -> stringResource(Res.string.hint_composer_text).appendComposerFormat(draftState)
