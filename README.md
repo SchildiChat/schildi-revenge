@@ -159,7 +159,7 @@ Schildi Revenge has highly customizable keyboard actions (that I still need to p
 To customize them, copy either
 [`keybindings-default.toml`](https://github.com/SchildiChat/schildi-revenge/blob/main/composeApp/src/jvmMain/composeResources/files/keybindings-default.toml)
 (the default config if not customized) or
-[the more opinionated example config](https://github.com/SchildiChat/schildi-revenge/blob/main/example-config/keybindings.toml)
+[the more opinionated example config](https://github.com/SchildiChat/schildi-revenge/blob/main/example-config/keybindings-advanced.toml)
 to `~/.config/SchildiChatRevenge/keybindings.toml` (on typical Linux systems)
 or `AppData/Local/SchildiChatRevenge/keybindings.toml` (on Windows).
 
