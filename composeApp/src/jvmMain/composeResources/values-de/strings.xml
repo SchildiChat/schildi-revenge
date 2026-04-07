@@ -179,4 +179,9 @@
     <string name="action_open_inbox">Gehe zum Posteingng</string>
     <string name="inbox">Posteingang</string>
     <string name="inbox_search">Posteingangssuche</string>
+    <string name="thread">Thread</string>
+    <string name="room_details_title">Raumdetails</string>
+    <string name="diagnostics_system_info">Systeminformation</string>
+    <string name="action_thread">Thread öffnen</string>
+    <string name="command_success">Erfolgreich: %1$s</string>
 </resources>
