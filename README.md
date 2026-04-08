@@ -253,7 +253,7 @@ For Linux releases:
 For Windows releases:
 
 ```
-./gradlew packageMsi
+./gradlew packageReleaseMsi
 ```
 
 

@@ -5,14 +5,14 @@
 
 set -e
 
-appimage_src="composeApp/build/compose/binaries/main/app/SchildiChatRevenge"
+appimage_src="composeApp/build/compose/binaries/main-release/app/SchildiChatRevenge"
 
 app_version=`date -u +%y.%m.%d`
 outfile="SchildiChatRevenge-x86_64-$app_version.AppImage"
 echo "Building $outfile"
 
 ./gradlew clean
-./gradlew packageAppImage
+./gradlew packageReleaseAppImage
 cp "launcher/SchildiChatRevenge.desktop" "$appimage_src/"
 cp "composeApp/src/jvmMain/composeResources/drawable-hdpi/ic_launcher.png" "$appimage_src/"
 ln -s -r "$appimage_src/bin/SchildiChatRevenge" "$appimage_src/AppRun"
