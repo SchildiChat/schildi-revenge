@@ -33,7 +33,6 @@ import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_leave
 import shire.composeapp.generated.resources.action_leave_room_prompt
 import shire.composeapp.generated.resources.action_leave_unnamed_room_prompt
-import shire.composeapp.generated.resources.command_copy_name_event_id
 import shire.composeapp.generated.resources.command_copy_name_full_account_data
 import shire.composeapp.generated.resources.toast_added_to_space
 import shire.composeapp.generated.resources.toast_adding_to_space
@@ -143,10 +142,7 @@ class RoomActionProvider(
                room.leave().toActionResult(async = true)
             }
             Action.Room.CopyRoomId -> {
-                context.copyToClipboard(
-                    room.roomId.value,
-                    Res.string.command_copy_name_event_id.toStringHolder()
-                )
+                context.copyToClipboard(room.roomId.value)
             }
             Action.Room.ClearEventCache -> {
                 room.clearEventCacheStorage().toActionResult()

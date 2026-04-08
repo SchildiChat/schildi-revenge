@@ -50,6 +50,7 @@ inbox = [
 room = [
     { key = "M", ctrl = true, action = "MarkRoomRead", destinations = ["Inbox"] },
     { key = "R", alt = true, action = "ClearEventCache" },
+    { key = "Y", action = "CopyRoomId" },
 ]
 conversation = [
     { key = "G", shift = true, action = "JumpToBottom", chain = true },
@@ -127,7 +128,7 @@ navigationItem = [
 ]
 copyAble = [
     { key = "Y", alt = true, action = "CopyUserId" },
-    { key = "Y", action = "CopyPlaintext" },
+    { key = "Y", action = "CopyPlaintext", notDestinations = ["inbox"] },
     { key = "Y", action = "CopyUserId" },
     { key = "Y", action = "CopyMxcUrl" },
 ]
@@ -156,7 +157,8 @@ focus = [
     { key = "G", shift = true, action = "FocusVisibleListBottom", chain = true },
 ]
 list = [
-    { key = "G", action = "ScrollToStart", chain = true },
+    { key = "G", action = "ScrollToStart", chain = true, notDestinations = ["ConversationThread"] },
+    { key = "G", action = "ScrollToTop", chain = true, destinations = ["ConversationThread"] },
     { key = "G", shift = true, action = "ScrollToBottom", chain = true },
 ]
 split = [

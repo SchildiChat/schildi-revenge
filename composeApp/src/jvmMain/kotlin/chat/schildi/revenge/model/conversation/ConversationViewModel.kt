@@ -1787,7 +1787,7 @@ class ConversationViewModel(
 
                     Action.Event.CopyEventId -> {
                         (eventId?.value ?: event.transactionId?.value)?.let {
-                            copyToClipboard(it, Res.string.command_copy_name_event_id.toStringHolder())
+                            copyToClipboard(it)
                         } ?: ActionResult.Inapplicable
                     }
 
