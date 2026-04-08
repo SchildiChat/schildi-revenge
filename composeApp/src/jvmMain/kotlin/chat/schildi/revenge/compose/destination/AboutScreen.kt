@@ -29,10 +29,11 @@ import chat.schildi.revenge.MatrixSdkMetadata
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
-import chat.schildi.revenge.actions.ListAction
+import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.actionProvider
+import chat.schildi.revenge.actions.plainTextCopyAction
 import chat.schildi.revenge.compose.components.TopNavigation
 import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInboxIcon
 import chat.schildi.revenge.compose.components.TopNavigationTitle
@@ -42,7 +43,6 @@ import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.appendUrlText
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.theme.scLinkStyle
-import io.element.android.libraries.matrix.api.SdkMetadata
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
@@ -155,8 +155,7 @@ fun AboutScreen(
     contentModifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
-    val listAction = remember(listState) { ListAction(listState, isReverseList = true) }
-    val keyHandler = LocalKeyboardActionHandler.current
+    val listAction = remember(listState) { ListActions(listState, isReverseList = true) }
     FocusContainer(
         LocalListActionProvider provides listAction,
         modifier = modifier,
@@ -188,13 +187,6 @@ fun AboutScreen(
                             AppLinks.forEach { item ->
                                 AppLinkItem(
                                     item,
-                                    Modifier.keyFocusable(
-                                        actionProvider = actionProvider(
-                                            primaryAction = InteractionAction.Invoke {
-                                                keyHandler.openLinkInExternalBrowser(item.url) is ActionResult.Success
-                                            }
-                                        )
-                                    )
                                 )
                             }
                         }
@@ -205,13 +197,6 @@ fun AboutScreen(
                     items(ThirdPartyAcknowledgements, key = { it.name }) { item ->
                         AcknowledgementItem(
                             item,
-                            Modifier.keyFocusable(
-                                actionProvider = actionProvider(
-                                    primaryAction = InteractionAction.Invoke {
-                                        keyHandler.openLinkInExternalBrowser(item.url) is ActionResult.Success
-                                    }
-                                )
-                            )
                         )
                     }
                     item(key = "build_info") {
@@ -298,6 +283,7 @@ fun AboutCard(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
 
 @Composable
 private fun AcknowledgementItem(item: ThirdPartyAcknowledgement, modifier: Modifier = Modifier) {
+    val keyHandler = LocalKeyboardActionHandler.current
     val linkStyle = scLinkStyle()
     val text = remember(item) {
         buildAnnotatedString {
@@ -312,7 +298,16 @@ private fun AcknowledgementItem(item: ThirdPartyAcknowledgement, modifier: Modif
             appendUrlText(item.licenseUrl, item.license, linkStyle)
         }
     }
-    AboutCard(modifier.fillMaxWidth()) {
+    AboutCard(
+        modifier.keyFocusable(
+            actionProvider = actionProvider(
+                primaryAction = InteractionAction.Invoke {
+                    keyHandler.openLinkInExternalBrowser(item.url) is ActionResult.Success
+                },
+                copyActions = plainTextCopyAction { text.toString() },
+            ),
+        ).fillMaxWidth()
+    ) {
         SelectionContainer {
             Text(
                 text,
@@ -332,12 +327,23 @@ private fun AppLinkItem(item: AppLink, modifier: Modifier = Modifier) {
             appendUrlText(item.url, itemText, linkStyle)
         }
     }
-    AboutCard(modifier) {
+    val keyHandler = LocalKeyboardActionHandler.current
+    AboutCard(
+        modifier.keyFocusable(
+            actionProvider = actionProvider(
+                primaryAction = InteractionAction.Invoke {
+                    keyHandler.openLinkInExternalBrowser(item.url) is ActionResult.Success
+                },
+                copyActions = plainTextCopyAction { text.toString() },
+            )
+        )
+    ) {
         SelectionContainer {
             Text(
                 text,
                 style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(16.dp)
+                modifier = Modifier
+                    .padding(16.dp)
             )
         }
     }
@@ -360,7 +366,8 @@ private fun LazyListScope.buildInfoItem(
                         actionProvider = actionProvider(
                             primaryAction = action ?: copyAction,
                             secondaryAction = copyAction,
-                        )
+                            copyActions = plainTextCopyAction { text },
+                        ),
                     ),
                 )
             }

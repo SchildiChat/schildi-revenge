@@ -35,6 +35,7 @@ import chat.schildi.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.actionProvider
+import chat.schildi.revenge.actions.plainTextCopyActionWithUserId
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.revenge.compose.components.WithContextMenu
@@ -149,6 +150,7 @@ fun AccountButton(
                                 true
                             },
                             secondaryAction = openContextMenu,
+                            copyActions = plainTextCopyActionWithUserId(account.user.userId) { account.user.displayName },
                         )
                     )
                     .background(backgroundColor, RoundedCornerShape(50))

@@ -6,9 +6,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-val LocalListActionProvider = compositionLocalOf<ListAction?> { null }
+val LocalListActionProvider = compositionLocalOf<ListActions?> { null }
 
-data class ListAction(
+data class ListActions(
     val state: LazyListState,
     val isReverseList: Boolean = false,
 ) {

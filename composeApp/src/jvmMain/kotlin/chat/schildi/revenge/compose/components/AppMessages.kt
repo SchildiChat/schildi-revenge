@@ -25,6 +25,7 @@ import chat.schildi.revenge.actions.ConfirmActionAppMessage
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.actionProvider
+import chat.schildi.revenge.actions.toCopyAction
 import chat.schildi.revenge.compose.focus.keyFocusable
 import kotlinx.collections.immutable.ImmutableList
 
@@ -60,7 +61,8 @@ fun AppMessages(messages: ImmutableList<AbstractAppMessage>, modifier: Modifier 
                                     primaryAction = InteractionAction.Invoke {
                                         message.action()
                                         true
-                                    }
+                                    },
+                                    copyActions = message.message.render().toCopyAction(),
                                 )
                             ),
                         ) {
@@ -75,7 +77,8 @@ fun AppMessages(messages: ImmutableList<AbstractAppMessage>, modifier: Modifier 
                                     primaryAction = InteractionAction.Invoke {
                                         keyHandler.dismissMessage(message.uniqueId)
                                         true
-                                    }
+                                    },
+                                    copyActions = message.message.render().toCopyAction(),
                                 )
                             ),
                         ) {

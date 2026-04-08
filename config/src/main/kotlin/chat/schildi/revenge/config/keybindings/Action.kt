@@ -171,6 +171,15 @@ sealed interface Action {
         NavigateCurrent(aliases = listOf("navigate", "nav")),
         NavigateInNewWindow(aliases = listOf("open", "window")),
     }
+    enum class CopyAble(
+        override val aliases: kotlin.collections.List<String> = emptyList(),
+        override val args: kotlin.collections.List<ActionArgument> = emptyList()
+    ) : Action {
+        CopyPlaintext(aliases = listOf("copy")),
+        CopyUserId(aliases = listOf("copyUserId", "copyMXID")),
+        CopyMxcUrl(aliases = listOf("copyMxc")),
+        CopyFilePath(aliases = listOf("copyPath")),
+    }
     enum class Focus(
         override val aliases: kotlin.collections.List<String> = emptyList(),
         override val args: kotlin.collections.List<ActionArgument> = emptyList()
@@ -324,6 +333,6 @@ sealed interface Action {
         override val aliases: kotlin.collections.List<String> = emptyList(),
         override val args: kotlin.collections.List<ActionArgument> = emptyList()
     ) : Action {
-        CopyMxId,
+        // For future use? Copying MXIDs moved to CopyAble
     }
 }

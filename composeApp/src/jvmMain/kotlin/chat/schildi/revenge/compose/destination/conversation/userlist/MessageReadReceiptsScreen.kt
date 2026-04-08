@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.actions.FocusRole
-import chat.schildi.revenge.actions.ListAction
+import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
 import chat.schildi.revenge.actions.LocalUserIdSuggestionsProvider
@@ -49,7 +49,7 @@ fun MessageReadReceiptsScreen(
         )
 
     val listState = rememberLazyListState()
-    val listAction = remember(listState) { ListAction(listState) }
+    val listAction = remember(listState) { ListActions(listState) }
     FocusContainer(
         LocalSearchProvider provides viewModel,
         LocalUserIdSuggestionsProvider provides viewModel,

@@ -25,9 +25,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
-import chat.schildi.revenge.actions.ListAction
+import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.LocalUserIdSuggestionsProvider
+import chat.schildi.revenge.actions.actionProvider
+import chat.schildi.revenge.actions.plainTextCopyAction
+import chat.schildi.revenge.actions.plainTextCopyActionWithMxcUrl
+import chat.schildi.revenge.actions.plainTextCopyActionWithUserId
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.EmptyListScreen
 import chat.schildi.revenge.compose.destination.conversation.userlist.ConversationDetailsTopNavigation
@@ -58,7 +62,7 @@ fun UserDetailsScreen(
         )
 
     val listState = rememberLazyListState()
-    val listAction = remember(listState) { ListAction(listState) }
+    val listAction = remember(listState) { ListActions(listState) }
     FocusContainer(
         LocalUserIdSuggestionsProvider provides viewModel,
         LocalListActionProvider provides listAction,
@@ -87,45 +91,67 @@ fun UserDetailsScreen(
                         verticalArrangement = Dimens.verticalArrangement,
                     ) {
                         item {
+                            val primaryAvatar = roomMemberInfo?.avatarUrl ?: info.avatarUrl
                             FlowRow(
-                                Modifier.fillMaxWidth().keyFocusable(),
+                                Modifier.fillMaxWidth().keyFocusable(
+                                    role = FocusRole.LIST_ITEM,
+                                    actionProvider = actionProvider(
+                                        copyActions = plainTextCopyActionWithMxcUrl(primaryAvatar),
+                                    )
+                                ),
                                 horizontalArrangement = Arrangement.spacedBy(Dimens.horizontalItemPaddingBig, Alignment.CenterHorizontally),
                                 verticalArrangement = Arrangement.spacedBy(Dimens.horizontalItemPaddingBig, Alignment.CenterVertically),
                             ) {
-                                val primaryAvatar = roomMemberInfo?.avatarUrl ?: info.avatarUrl
                                 val secondaryAvatar = info.avatarUrl?.takeIf { it != primaryAvatar }
                                 AvatarImage(
                                     source = primaryAvatar?.let { MediaSource(it) },
                                     size = 128.dp,
                                     displayName = roomMemberInfo?.displayName ?: info.displayName ?: info.userId.value,
+                                    modifier = Modifier.keyFocusable(
+                                        role = FocusRole.NESTED_AUX_ITEM,
+                                        actionProvider = actionProvider(
+                                            copyActions = plainTextCopyActionWithMxcUrl(primaryAvatar),
+                                        )
+                                    ),
                                 )
                                 if (secondaryAvatar != null) {
                                     AvatarImage(
                                         source = MediaSource(secondaryAvatar),
                                         size = 128.dp,
                                         displayName = info.displayName ?: roomMemberInfo?.displayName ?: info.userId.value,
+                                        modifier = Modifier.keyFocusable(
+                                            role = FocusRole.NESTED_AUX_ITEM,
+                                            actionProvider = actionProvider(
+                                                copyActions = plainTextCopyActionWithMxcUrl(secondaryAvatar),
+                                            )
+                                        ),
                                     )
                                 }
                             }
                         }
                         if (info.displayName != null || roomMemberInfo?.displayName != null) {
+                            val primaryName = roomMemberInfo?.displayName ?: info.displayName
+                            val secondaryName = info.displayName?.takeIf { it != primaryName }
+                            val text = buildString {
+                                primaryName?.let {
+                                    append(it)
+                                }
+                                if (secondaryName != null) {
+                                    append(" / ")
+                                    append(secondaryName)
+                                }
+                            }
                             item {
                                 Box(
-                                    Modifier.fillMaxWidth().keyFocusable(),
+                                    Modifier.fillMaxWidth().keyFocusable(
+                                        role = FocusRole.LIST_ITEM,
+                                        actionProvider = actionProvider(
+                                            copyActions = plainTextCopyAction { text },
+                                        )
+                                    ),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     SelectionContainer {
-                                        val primaryName = roomMemberInfo?.displayName ?: info.displayName
-                                        val secondaryName = info.displayName?.takeIf { it != primaryName }
-                                        val text = buildString {
-                                            primaryName?.let {
-                                                append(it)
-                                            }
-                                            if (secondaryName != null) {
-                                                append(" / ")
-                                                append(secondaryName)
-                                            }
-                                        }
                                         Text(
                                             text,
                                             color = MaterialTheme.colorScheme.onSurface,
@@ -138,7 +164,14 @@ fun UserDetailsScreen(
                         item {
                             SelectionContainer {
                                 Box(
-                                    Modifier.fillMaxWidth().keyFocusable(),
+                                    Modifier.fillMaxWidth().keyFocusable(
+                                        role = FocusRole.LIST_ITEM,
+                                        actionProvider = actionProvider(
+                                            copyActions = plainTextCopyActionWithUserId(viewModel.userId) {
+                                                viewModel.userId.value
+                                            },
+                                        )
+                                    ),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Text(

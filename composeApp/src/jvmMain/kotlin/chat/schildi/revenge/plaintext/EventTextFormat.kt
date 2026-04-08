@@ -128,6 +128,22 @@ object EventTextFormat {
         getFormatString = { res, args -> stringResource(res, *args) },
     )
 
+    suspend fun eventToTextSuspend(
+        content: EventContent,
+        messageMetadata: MessageMetadata?,
+        senderProfile: ProfileDetails,
+        senderId: UserId,
+        stripNewlines: Boolean = true,
+    ): String = eventToText(
+        content = content,
+        messageMetadata = messageMetadata,
+        senderProfile = senderProfile,
+        senderId = senderId,
+        stripNewlines = stripNewlines,
+        getString = { res -> getString(res) },
+        getFormatString = { res, args -> getString(res, *args) },
+    )
+
     private inline fun eventToText(
         content: EventContent,
         messageMetadata: MessageMetadata?,

@@ -34,7 +34,7 @@ import chat.schildi.revenge.Anim
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
-import chat.schildi.revenge.actions.ListAction
+import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
@@ -97,7 +97,7 @@ fun InboxScreen(
     FocusContainer(
         LocalSearchProvider provides viewModel,
         LocalKeyboardActionProvider provides viewModel.hierarchicalKeyboardActionProvider(),
-        LocalListActionProvider provides remember(listState) { ListAction(listState) },
+        LocalListActionProvider provides remember(listState) { ListActions(listState) },
         modifier = modifier,
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
     ) {

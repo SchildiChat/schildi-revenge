@@ -23,6 +23,7 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.actionProvider
+import chat.schildi.revenge.actions.plainTextCopyAction
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import org.jetbrains.compose.resources.stringResource
@@ -49,6 +50,7 @@ fun <T> ScPref<T>.ScPrefLayout(
             id = focusId,
             actionProvider = actionProvider(
                 primaryAction = if (enabled) clickAction(currentValue) else null,
+                copyActions = plainTextCopyAction { sKey },
             ),
             enableClicks = enabled,
         ),
@@ -97,6 +99,7 @@ fun ScPrefLayout(
             id = focusId,
             actionProvider = actionProvider(
                 primaryAction = if (enabled) clickAction() else null,
+                copyActions = plainTextCopyAction { title },
             ),
             enableClicks = enabled,
         ),

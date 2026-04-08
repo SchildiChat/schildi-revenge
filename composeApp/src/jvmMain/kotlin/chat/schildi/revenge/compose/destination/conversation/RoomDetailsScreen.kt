@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.NoEncryption
 import androidx.compose.material.icons.filled.Person
@@ -39,20 +38,24 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalMatrixBodyDrawStyle
 import chat.schildi.revenge.LocalMatrixBodyFormatter
+import chat.schildi.revenge.actions.CopyActions
 import chat.schildi.revenge.actions.FocusRole
-import chat.schildi.revenge.actions.ListAction
+import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
 import chat.schildi.revenge.actions.LocalUserIdSuggestionsProvider
+import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
+import chat.schildi.revenge.actions.plainTextCopyAction
+import chat.schildi.revenge.actions.plainTextCopyActionWithMxcUrl
+import chat.schildi.revenge.actions.toCopyAction
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.EmptyListScreen
 import chat.schildi.revenge.compose.destination.conversation.event.message.TextLikeMessageContent
 import chat.schildi.revenge.compose.destination.conversation.userlist.ConversationDetailsTopNavigation
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
-import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.matrixBodyDrawStyle
 import chat.schildi.revenge.matrixBodyFormatter
@@ -70,7 +73,6 @@ import shire.composeapp.generated.resources.hint_canonical_room_alias
 import shire.composeapp.generated.resources.hint_connected_bridges
 import shire.composeapp.generated.resources.hint_direct_chat
 import shire.composeapp.generated.resources.hint_encrypted
-import shire.composeapp.generated.resources.hint_group_chat
 import shire.composeapp.generated.resources.hint_not_encrypted
 import shire.composeapp.generated.resources.hint_other_room_aliases
 import shire.composeapp.generated.resources.hint_private_room
@@ -93,7 +95,7 @@ fun RoomDetailsScreen(
     publishTitle(viewModel)
 
     val listState = rememberLazyListState()
-    val listAction = remember(listState) { ListAction(listState) }
+    val listAction = remember(listState) { ListActions(listState) }
     FocusContainer(
         LocalKeyboardActionProvider provides
                 viewModel.actionProvider.hierarchicalKeyboardActionProvider(),
@@ -128,7 +130,12 @@ fun RoomDetailsScreen(
                     ) {
                         item {
                             Box(
-                                Modifier.fillMaxWidth().keyFocusable(),
+                                Modifier.fillMaxWidth().keyFocusable(
+                                    FocusRole.LIST_ITEM,
+                                    actionProvider = actionProvider(
+                                        copyActions = plainTextCopyActionWithMxcUrl(info.avatarUrl),
+                                    ),
+                                ),
                                 contentAlignment = Alignment.Center,
                             ) {
                                 AvatarImage(
@@ -141,7 +148,12 @@ fun RoomDetailsScreen(
                         info.name?.let { displayName ->
                             item {
                                 Box(
-                                    Modifier.fillMaxWidth().keyFocusable(),
+                                    Modifier.fillMaxWidth().keyFocusable(
+                                        role = FocusRole.LIST_ITEM,
+                                        actionProvider = actionProvider(
+                                            copyActions = plainTextCopyAction { info.name },
+                                        ),
+                                    ),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     SelectionContainer {
@@ -157,19 +169,25 @@ fun RoomDetailsScreen(
                         item {
                             RoomInfoBadgeRow(
                                 info,
-                                Modifier.fillMaxWidth().keyFocusable(),
+                                Modifier.fillMaxWidth().keyFocusable(FocusRole.LIST_ITEM),
                             )
                         }
                         topic?.let {
                             item {
-                                RoomDetailsSection(stringResource(Res.string.hint_topic)) {
+                                RoomDetailsSection(
+                                    stringResource(Res.string.hint_topic),
+                                    plainTextCopyAction { info.topic },
+                                ) {
                                     RenderedTopic(topic)
                                 }
                             }
                         }
                         info.canonicalAlias?.let { alias ->
                             item {
-                                RoomDetailsSection(stringResource(Res.string.hint_canonical_room_alias)) {
+                                RoomDetailsSection(
+                                    stringResource(Res.string.hint_canonical_room_alias),
+                                    plainTextCopyAction { alias.value },
+                                ) {
                                     SectionText(alias.value)
                                 }
                             }
@@ -177,7 +195,10 @@ fun RoomDetailsScreen(
                         val otherAliases = info.alternativeAliases.filter { it != info.canonicalAlias }.distinct()
                         if (otherAliases.isNotEmpty()) {
                             item {
-                                RoomDetailsSection(stringResource(Res.string.hint_other_room_aliases)) {
+                                RoomDetailsSection(
+                                    stringResource(Res.string.hint_other_room_aliases),
+                                    plainTextCopyAction { otherAliases.joinToString() },
+                                ) {
                                     otherAliases.forEach { alias ->
                                         SectionText(alias.value)
                                     }
@@ -217,7 +238,10 @@ fun RoomDetailsScreen(
                         }.distinct()
                         if (bridges.isNotEmpty()) {
                             item {
-                                RoomDetailsSection(stringResource(Res.string.hint_connected_bridges)) {
+                                RoomDetailsSection(
+                                    stringResource(Res.string.hint_connected_bridges),
+                                    plainTextCopyAction { bridges.joinToString() },
+                                ) {
                                     bridges.forEach { bridge ->
                                         SectionText(bridge)
                                     }
@@ -249,6 +273,7 @@ private fun RoomDetailsSectionHeader(
 @Composable
 private fun RoomDetailsSection(
     headerText: String,
+    copyActions: CopyActions?,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     style: TextStyle = MaterialTheme.typography.titleSmall,
@@ -256,7 +281,12 @@ private fun RoomDetailsSection(
 ) {
     SelectionContainer(modifier) {
         Column(
-            Modifier.fillMaxWidth().keyFocusable(),
+            Modifier.fillMaxWidth().keyFocusable(
+                role = FocusRole.LIST_ITEM,
+                actionProvider = actionProvider(
+                    copyActions = copyActions,
+                ),
+            ),
             verticalArrangement = Dimens.verticalArrangementSmall,
         ) {
         RoomDetailsSectionHeader(headerText, Modifier, color, style)
@@ -359,6 +389,7 @@ private fun RoomInfoAdvancedInfoField(
 ) {
     RoomDetailsSection(
         title,
+        copyActions = content.toCopyAction(),
         color = MaterialTheme.colorScheme.tertiary,
         modifier = modifier,
     ) {

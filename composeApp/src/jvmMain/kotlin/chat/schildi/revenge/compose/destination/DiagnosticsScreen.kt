@@ -26,7 +26,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
-import chat.schildi.revenge.actions.ListAction
+import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.compose.components.TopNavigation
 import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInboxIcon
@@ -52,7 +52,6 @@ import shire.composeapp.generated.resources.diagnostics_process_rss
 import shire.composeapp.generated.resources.diagnostics_render_api
 import shire.composeapp.generated.resources.diagnostics_system_info
 import shire.composeapp.generated.resources.diagnostics_unavailable
-import java.util.Locale
 
 @Composable
 fun DiagnosticsScreen(
@@ -69,7 +68,7 @@ fun DiagnosticsScreen(
     publishTitle(viewModel)
     val state = viewModel.state.collectAsState().value
     val listState = rememberLazyListState()
-    val listAction = remember(listState) { ListAction(listState) }
+    val listAction = remember(listState) { ListActions(listState) }
     FocusContainer(
         LocalListActionProvider provides listAction,
         modifier = modifier,

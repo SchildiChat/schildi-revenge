@@ -112,6 +112,7 @@ import shire.composeapp.generated.resources.action_processing
 import shire.composeapp.generated.resources.action_processing_done
 import shire.composeapp.generated.resources.command_ambiguous
 import shire.composeapp.generated.resources.command_ambiguous_none_valid
+import shire.composeapp.generated.resources.command_copied_content_to_clipboard
 import shire.composeapp.generated.resources.command_copied_to_clipboard
 import shire.composeapp.generated.resources.command_copy_name_full_account_data
 import shire.composeapp.generated.resources.command_not_applicable
@@ -1021,7 +1022,7 @@ class KeyboardActionHandler(
             this@KeyboardActionHandler.publishMessage(message)
         override fun dismissMessage(uniqueId: String) =
             this@KeyboardActionHandler.dismissMessage(uniqueId)
-        override fun copyToClipboard(content: String, description: ComposableStringHolder) =
+        override fun copyToClipboard(content: String, description: ComposableStringHolder?) =
             this@KeyboardActionHandler.copyToClipboard(this, content, description)
         override fun getFilesFromClipboard() = this@KeyboardActionHandler.getFilesFromClipboard()
         override fun getStringFromClipboard() = this@KeyboardActionHandler.getStringFromClipboard()
@@ -1111,6 +1112,62 @@ class KeyboardActionHandler(
                 }
             }
         }
+
+    private fun copyAbleActionHandler(
+        copyActions: CopyActions,
+    ) = object : KeyboardActionProvider<Action.CopyAble> {
+        override fun getPossibleActions(): Set<Action.CopyAble> = setOfNotNull(
+            Action.CopyAble.CopyPlaintext.takeIf {
+                copyActions.accessPlaintext != null || copyActions.accessPlaintextSuspend != null
+            },
+            Action.CopyAble.CopyUserId.takeIf { copyActions.accessUserId != null },
+            Action.CopyAble.CopyFilePath.takeIf { copyActions.accessFilePath != null },
+        )
+        override fun ensureActionType(action: Action) = action as? Action.CopyAble
+
+
+        override fun handleNavigationModeEvent(
+            context: ActionContext,
+            key: KeyTrigger
+        ): ActionResult {
+            val keyConfig = context.keybindingConfig ?: return ActionResult.NoMatch
+            return keyConfig.copyAble.execute(context, key, ::handleAction)
+        }
+
+        override fun handleAction(
+            context: ActionContext,
+            action: Action.CopyAble,
+            args: List<String>
+        ): ActionResult {
+            return when (action) {
+                Action.CopyAble.CopyPlaintext -> {
+                    val content = copyActions.accessPlaintext?.invoke()
+                        ?: copyActions.accessPlaintextSuspend?.let { plaintext ->
+                            return context.launchActionAsync(
+                                "copyPlaintext",
+                                scope,
+                            ) {
+                                val content = plaintext() ?: return@launchActionAsync ActionResult.Inapplicable
+                                context.copyToClipboard(content)
+                            }
+                        } ?: return ActionResult.Inapplicable
+                    context.copyToClipboard(content)
+                }
+                Action.CopyAble.CopyUserId -> {
+                    val content = copyActions.accessUserId?.invoke() ?: return ActionResult.Inapplicable
+                    context.copyToClipboard(content)
+                }
+                Action.CopyAble.CopyMxcUrl -> {
+                    val content = copyActions.accessMxcUrl?.invoke() ?: return ActionResult.Inapplicable
+                    context.copyToClipboard(content)
+                }
+                Action.CopyAble.CopyFilePath -> {
+                    val content = copyActions.accessFilePath?.invoke() ?: return ActionResult.Inapplicable
+                    context.copyToClipboard(content)
+                }
+            }
+        }
+    }
 
     private val listActionHandler = object : KeyboardActionProvider<Action.List> {
         override fun getPossibleActions() = Action.List.entries.toSet()
@@ -1620,6 +1677,9 @@ class KeyboardActionHandler(
             (focused?.actions?.primaryAction as? InteractionAction.NavigationAction)?.let {
                 navigationItemActionHandler(focused, it)
             },
+            (focused?.actions?.copyActions)?.let {
+                copyAbleActionHandler(it)
+            },
             (focused?.actions?.listActions)?.let {
                 listActionHandler
             },
@@ -2088,16 +2148,19 @@ class KeyboardActionHandler(
     }
 
     @OptIn(ExperimentalComposeUiApi::class)
-    fun copyToClipboard(context: ActionContext, content: String, description: ComposableStringHolder): ActionResult {
+    fun copyToClipboard(context: ActionContext, content: String, description: ComposableStringHolder?): ActionResult {
         val localClipboard = clipboard ?: return ActionResult.Failure("No clipboard found")
         context.launchActionAsync("copyToClipboard", scope) {
             localClipboard.setClipEntry(
                 ClipEntry(StringSelection(content))
             )
-            // TODO how to do string resources here
             publishMessage(
                 AppMessage(
-                    StringResourceHolder(Res.string.command_copied_to_clipboard, description),
+                    if (description == null) {
+                        StringResourceHolder(Res.string.command_copied_content_to_clipboard, content.toStringHolder())
+                    } else {
+                        StringResourceHolder(Res.string.command_copied_to_clipboard, description)
+                    },
                     uniqueId = "clipboard",
                 )
             )
@@ -2543,7 +2606,7 @@ fun checkArguments(
 interface ActionContext {
     fun publishMessage(message: AbstractAppMessage)
     fun dismissMessage(uniqueId: String)
-    fun copyToClipboard(content: String, description: ComposableStringHolder): ActionResult
+    fun copyToClipboard(content: String, description: ComposableStringHolder? = null): ActionResult
     fun getFilesFromClipboard(): List<File>
     fun getStringFromClipboard(): String?
     fun openLinkInExternalBrowser(uri: String): ActionResult

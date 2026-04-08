@@ -50,6 +50,7 @@ import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
+import chat.schildi.revenge.actions.plainTextCopyAction
 import chat.schildi.revenge.compose.components.WithContextMenu
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.model.conversation.ConversationViewModel
@@ -99,6 +100,7 @@ fun InboxRow(
                             actionProvider(
                                 keyActions = inboxRowKeyboardActionProvider(viewModel, room.key, isInvite = true),
                                 secondaryAction = openContextMenu,
+                                copyActions = plainTextCopyAction { room.summary.info.name },
                             )
                         } else {
                             buildNavigationActionProvider(
@@ -112,6 +114,7 @@ fun InboxRow(
                                 },
                                 keyActions = inboxRowKeyboardActionProvider(viewModel, room.key, isInvite = false),
                                 secondaryAction = openContextMenu,
+                                copyActions = plainTextCopyAction { room.summary.info.name },
                             ) {
                                 UiState.getConversationDestinationFromInbox(room.sessionId, room.summary.roomId)
                             }

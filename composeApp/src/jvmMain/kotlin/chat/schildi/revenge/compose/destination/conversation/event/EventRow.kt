@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
+import chat.schildi.revenge.actions.CopyActions
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.InteractionAction
@@ -28,6 +29,7 @@ import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.model.conversation.MessageMetadata
 import chat.schildi.revenge.model.conversation.TimestampSettings
+import chat.schildi.revenge.plaintext.EventTextFormat
 import com.beeper.android.messageformat.MatrixFormatInteractionState
 import com.beeper.android.messageformat.rememberMatrixFormatInteractionState
 import io.element.android.libraries.matrix.api.core.UserId
@@ -85,6 +87,7 @@ fun EventRow(
                         ),
                         primaryAction = eventClickAction(viewModel, currentActionContext(), event),
                         secondaryAction = openContextMenu,
+                        copyActions = eventCopyActions(event, messageMetadata),
                     ),
                 )
                 .background(backgroundHighlightColor, Dimens.Conversation.messageBubbleShape)
@@ -147,12 +150,13 @@ private fun eventRowKeyboardActionProvider(
     return ownHandler.hierarchicalKeyboardActionProvider()
 }
 
+@Composable
 private fun eventClickAction(
     viewModel: ConversationViewModel,
     context: ActionContext,
     event: EventTimelineItem,
-): InteractionAction? {
-    return when (val content = event.content) {
+): InteractionAction? = remember(viewModel, context, event) {
+    when (val content = event.content) {
         is MessageContent -> {
             when (content.type) {
                 is MessageTypeWithAttachment -> InteractionAction.Invoke {
@@ -163,4 +167,22 @@ private fun eventClickAction(
         }
         else -> null
     }
+}
+
+@Composable
+private fun eventCopyActions(
+    event: EventTimelineItem,
+    messageMetadata: MessageMetadata?,
+) = remember(event, messageMetadata) {
+    CopyActions(
+        accessPlaintextSuspend = {
+            EventTextFormat.eventToTextSuspend(
+                content = event.content,
+                messageMetadata = messageMetadata,
+                senderProfile = event.senderProfile,
+                senderId = event.sender,
+            )
+        },
+        accessUserId = { event.sender.value },
+    )
 }

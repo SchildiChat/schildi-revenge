@@ -40,7 +40,7 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.LocalMatrixBodyDrawStyle
 import chat.schildi.revenge.LocalMatrixBodyFormatter
 import chat.schildi.revenge.actions.FocusRole
-import chat.schildi.revenge.actions.ListAction
+import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
@@ -181,7 +181,7 @@ fun ConversationScreen(
                 }
         }
 
-        val listAction = remember(listState) { ListAction(listState, isReverseList = true) }
+        val listAction = remember(listState) { ListActions(listState, isReverseList = true) }
         FocusContainer(
             LocalSearchProvider provides viewModel,
             LocalKeyboardActionProvider provides

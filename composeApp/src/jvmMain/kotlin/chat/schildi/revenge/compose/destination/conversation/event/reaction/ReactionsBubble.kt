@@ -22,6 +22,7 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.actionProvider
+import chat.schildi.revenge.actions.plainTextCopyAction
 import chat.schildi.revenge.compose.components.LocalSessionId
 import chat.schildi.revenge.compose.components.UserTimestampItem
 import chat.schildi.revenge.compose.components.WithUserTimestampListPopup
@@ -96,6 +97,7 @@ fun ReactionsBubble(
                             viewModel.toggleReaction(eventOrTransactionId, reaction.key)
                         },
                         secondaryAction = InteractionAction.ContextMenu(focusId, null),
+                        copyActions = plainTextCopyAction { reaction.key },
                     ),
                 )
                 .padding(
