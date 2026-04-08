@@ -69,7 +69,7 @@ class RoomDetailsViewModel(
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val topic = roomInfo.mapLatest { info ->
-        val topic = info?.topic ?: return@mapLatest null
+        val topic = info?.topic?.takeIf(String::isNotEmpty) ?: return@mapLatest null
         MessageFormatDefaults.parser.parsePlaintext(
             topic,
             MessageFormatDefaults.parseStyle,
