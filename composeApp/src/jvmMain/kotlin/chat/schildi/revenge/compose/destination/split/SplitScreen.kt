@@ -158,7 +158,8 @@ private fun Modifier.splitContainerDecoration(
         SplitRole.Vertical -> PaddingValues(horizontal = padding, vertical = halfPadding)
     }
     val keyHandler = LocalKeyboardActionHandler.current
-    val renderActive = keyHandler.keyboardPrimary.collectAsState().value || ScPrefs.FOCUS_FOLLOWS_MOUSE.value()
+    val renderActive = (keyHandler.keyboardPrimary.collectAsState().value || ScPrefs.FOCUS_FOLLOWS_MOUSE.value()) &&
+            keyHandler.isWindowsFocused.collectAsState().value
     val outline = animateColorAsState(
         if (isActive && renderActive) {
             MaterialTheme.colorScheme.onSurfaceVariant
