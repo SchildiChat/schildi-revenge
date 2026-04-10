@@ -16,12 +16,13 @@ object Dimens {
     val windowPadding = 16.dp
     val listPadding = 8.dp
     val listPaddingBig = 16.dp
+    val listPaddingSmall = 4.dp
     val horizontalItemPadding = 8.dp
     val horizontalItemPaddingBig = 16.dp
     val horizontalArrangement = Arrangement.spacedBy(horizontalItemPadding)
     val horizontalArrangementSmall = Arrangement.spacedBy(4.dp)
     val verticalArrangement = Arrangement.spacedBy(listPadding)
-    val verticalArrangementSmall = Arrangement.spacedBy(4.dp)
+    val verticalArrangementSmall = Arrangement.spacedBy(listPaddingSmall)
 
     val avatarShape = RoundedCornerShape(12.dp)
     val ownAccountAvatarShape = CircleShape

@@ -82,7 +82,9 @@ internal fun Modifier.keyFocusableContainer(
 
 fun FocusRole.allowsFocusable() = when (this) {
     FocusRole.LIST_ITEM,
+    FocusRole.LIST_ITEM_EDITABLE,
     FocusRole.AUX_ITEM,
+    FocusRole.AUX_ITEM_EDITABLE,
     FocusRole.NESTED_AUX_ITEM,
     FocusRole.CONTAINER_ITEM,
     FocusRole.DESTINATION_ROOT_CONTAINER,
@@ -101,7 +103,9 @@ fun FocusRole.preferFocusChildren() = when (this) {
     FocusRole.CONTAINER -> true
     FocusRole.CONTAINER_ITEM,
     FocusRole.LIST_ITEM,
+    FocusRole.LIST_ITEM_EDITABLE,
     FocusRole.AUX_ITEM,
+    FocusRole.AUX_ITEM_EDITABLE,
     FocusRole.NESTED_AUX_ITEM,
     FocusRole.TEXT_FIELD_SINGLE_LINE,
     FocusRole.TEXT_FIELD_MULTI_LINE,

@@ -9,18 +9,12 @@ import chat.schildi.revenge.MessageFormatDefaults
 import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.RoomContextSuggestionsProvider
-import chat.schildi.revenge.actions.UserIdSuggestion
-import chat.schildi.revenge.actions.UserIdSuggestionsProvider
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.util.flowClosable
+import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
-import io.element.android.libraries.matrix.api.room.roomMembers
-import kotlinx.collections.immutable.persistentHashMapOf
-import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
-import kotlinx.collections.immutable.toPersistentHashMap
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -31,12 +25,19 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
-import kotlin.collections.map
+
+data class RoomSettingsPermissions(
+    val canEditName: Boolean = false,
+    val canEditTopic: Boolean = false,
+    val canEditAvatar: Boolean = false,
+)
 
 class RoomDetailsViewModel(
     val sessionId: SessionId,
     val roomId: RoomId,
-) : ViewModel(), TitleProvider, UserIdSuggestionsProvider {
+) : ViewModel(), TitleProvider {
+
+    private val log = Logger.withTag("RoomDetails")
 
     private val client = UiState.selectClient(sessionId, viewModelScope)
 
@@ -78,26 +79,38 @@ class RoomDetailsViewModel(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    private val roomMembersState = joinedRoom.flatMapLatest { joined ->
-        joined?.membersStateFlow ?: flowOf()
-    }
-
-    val roomMembers = roomMembersState.map {
-        it.roomMembers()?.toImmutableList() ?: persistentListOf()
-    }.stateIn(viewModelScope, SharingStarted.Lazily, persistentListOf())
-
-    val roomMembersById = roomMembers.map {
-        it.associateBy { it.userId }.toPersistentHashMap()
-    }.stateIn(viewModelScope, SharingStarted.Lazily, persistentHashMapOf())
-
-    override val userIdInRoomSuggestions: Flow<List<UserIdSuggestion>> = roomMembers.map {
-        it.map {
-            UserIdSuggestion(it.userId, it.displayName)
-        }
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
     val userProfile = client.flatMapLatest { it?.userProfile ?: flowOf(null) }
+
+    private val ownUserRole = joinedRoom.map { room ->
+        room?.userRole(sessionId)
+            ?.onFailure { log.e("Failed to get own user role", it) }
+            ?.getOrNull()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val ownUser = joinedRoom.map { room ->
+        room?.getUpdatedMember(sessionId)
+            ?.onFailure { log.e("Failed to get own room user", it) }
+            ?.getOrNull()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    private val powerLevels = joinedRoom.map { room ->
+        room?.powerLevels()
+            ?.onFailure { log.e("Failed to get room power levels", it) }
+            ?.getOrNull()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val roomSettingsPermissions = combine(
+        powerLevels,
+        ownUserRole,
+    ) { pls, ownRole ->
+        pls ?: return@combine null
+        ownRole ?: return@combine null
+        RoomSettingsPermissions(
+            canEditName = ownRole.powerLevel >= pls.roomName,
+            canEditTopic = ownRole.powerLevel >= pls.roomTopic,
+            canEditAvatar = ownRole.powerLevel >= pls.roomAvatar,
+        )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val actionProvider = RoomActionProvider(
         sessionId = sessionId,
@@ -117,15 +130,25 @@ class RoomDetailsViewModel(
     override val windowTitle: Flow<ComposableStringHolder?> = combine(
         roomInfo,
         userProfile,
-        roomMembersById,
-    ) { info, user, roomMembers ->
+        ownUser,
+    ) { info, user, roomUser ->
         ConversationViewModel.windowTitle(
             roomInfo = info,
             accountUserDisplayName = user?.displayName,
-            roomUserDisplayName = roomMembers[sessionId]?.displayName,
+            roomUserDisplayName = roomUser?.displayName,
             sessionId = sessionId,
         )
     }.filterNotNull()
+
+    suspend fun setRoomName(name: String): Result<Unit> {
+        val room = joinedRoom.value ?: return Result.failure(IllegalStateException("Room not joined"))
+        return room.setName(name)
+    }
+
+    suspend fun setRoomTopic(topic: String): Result<Unit> {
+        val room = joinedRoom.value ?: return Result.failure(IllegalStateException("Room not joined"))
+        return room.setTopic(topic)
+    }
 
     companion object {
         fun factory(

@@ -144,6 +144,7 @@ sealed interface Action {
         CreateUnencryptedRoom(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.RoomName), aliases = listOf("createUnencryptedRoom", "createRoomUnencrypted")),
         CreateDm(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.UserId), aliases = listOf("createDm", "startDm")),
         AutoSubscribeNotifiableRooms, // Experimental feature
+        InspectFocusable(aliases = listOf("inspect")),
     }
     enum class AppMessage(
         override val aliases: kotlin.collections.List<String> = emptyList(),
@@ -179,6 +180,14 @@ sealed interface Action {
         CopyUserId(aliases = listOf("copyUserId", "copyMXID")),
         CopyMxcUrl(aliases = listOf("copyMxc")),
         CopyFilePath(aliases = listOf("copyPath")),
+    }
+    enum class PlaintextEditAble(
+        override val aliases: kotlin.collections.List<String> = emptyList(),
+        override val args: kotlin.collections.List<ActionArgument> = emptyList()
+    ) : Action {
+        LaunchEdit(aliases = listOf("edit")),
+        DiscardEdit(aliases = listOf("discard")),
+        SaveEdit(aliases = listOf("save")),
     }
     enum class Focus(
         override val aliases: kotlin.collections.List<String> = emptyList(),

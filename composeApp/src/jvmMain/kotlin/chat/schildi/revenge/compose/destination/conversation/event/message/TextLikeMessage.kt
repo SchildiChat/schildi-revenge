@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
@@ -155,14 +156,34 @@ fun TextLikeMessageContent(
     onTextLayout: (TextLayoutResult) -> Unit = {},
 ) {
     val isEmojiOnly = allowBigEmojiOnly && LocalMessageRenderContext.current == MessageRenderContext.NORMAL &&
-         remember(text) {
-            text.toString().containsOnlyEmojis()
-        }
+            remember(text) {
+                text.toString().containsOnlyEmojis()
+            }
     val textStyle = if (isEmojiOnly) {
         Dimens.Conversation.emojiOnlyMessageStyle
     } else {
         Dimens.Conversation.textMessageStyle
     }
+    TextLikeMessageContent(
+        text = text,
+        modifier = modifier,
+        textColor = textColor,
+        textStyle = textStyle,
+        interactionState = interactionState,
+        onTextLayout = onTextLayout,
+    )
+}
+
+@Composable
+fun TextLikeMessageContent(
+    text: MatrixBodyParseResult,
+    textStyle: TextStyle,
+    modifier: Modifier = Modifier,
+    textColor: Color = MaterialTheme.colorScheme.primary,
+    textAlign: TextAlign? = null,
+    interactionState: MatrixFormatInteractionState = rememberMatrixFormatInteractionState(text),
+    onTextLayout: (TextLayoutResult) -> Unit = {},
+) {
     val blockQuotes = remember(text) {
         text.text.getStringAnnotations("mx:BLOCK_QUOTE", 0, text.text.length)
     }
@@ -175,6 +196,7 @@ fun TextLikeMessageContent(
             modifier = modifier,
             textColor = textColor,
             onTextLayout = onTextLayout,
+            textAlign = textAlign,
         )
         return
     }
@@ -194,6 +216,7 @@ fun TextLikeMessageContent(
         },
         overflow = TextOverflow.Ellipsis,
         inlineContent = text.inlineImages.toInlineContent(textStyle, textColor),
+        textAlign = textAlign,
     )
 }
 
@@ -204,6 +227,7 @@ fun IndentionHackFormattedText(
     textStyle: TextStyle,
     modifier: Modifier = Modifier,
     textColor: Color = MaterialTheme.colorScheme.primary,
+    textAlign: TextAlign? = null,
     onTextLayout: (TextLayoutResult) -> Unit,
 ) {
     BoxWithConstraints(modifier) {
@@ -237,6 +261,7 @@ fun IndentionHackFormattedText(
                 }
             },
             inlineContent = text.inlineImages.toInlineContent(textStyle, textColor),
+            textAlign = textAlign,
         )
     }
 }

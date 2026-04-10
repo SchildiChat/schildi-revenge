@@ -50,7 +50,7 @@ inbox = [
 room = [
     { key = "M", ctrl = true, action = "MarkRoomRead", destinations = ["Inbox"] },
     { key = "R", alt = true, action = "ClearEventCache" },
-    { key = "Y", action = "CopyRoomId" },
+    { key = "Y", ctrl = true, alt = true, action = "CopyRoomId" },
 ]
 conversation = [
     { key = "G", shift = true, action = "JumpToBottom", chain = true },
@@ -131,6 +131,11 @@ copyAble = [
     { key = "Y", action = "CopyPlaintext", notDestinations = ["inbox"] },
     { key = "Y", action = "CopyUserId" },
     { key = "Y", action = "CopyMxcUrl" },
+]
+editAble = [
+    { key = "J", action = "LaunchEdit" },
+    { key = "Escape", action = "DiscardEdit" },
+    { key = "Enter", ctrl = true, action = "SaveEdit" },
 ]
 focus = [
     { key = "A", action = "OpenContextMenu" },

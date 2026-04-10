@@ -84,8 +84,11 @@ import io.element.android.libraries.matrix.api.createroom.CreateRoomParameters
 import io.element.android.libraries.matrix.api.createroom.RoomPreset
 import io.element.android.libraries.matrix.api.roomdirectory.RoomVisibility
 import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.collections.immutable.toImmutableList
+import kotlinx.collections.immutable.toPersistentHashSet
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -100,6 +103,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.getAndUpdate
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -149,9 +153,15 @@ private data class FocusTarget(
     val actions: ActionProvider?,
 )
 
-enum class FocusRole(val consumesKeyWhitelist: List<Key>? = null, val autoRequestFocus: Boolean = false) {
+enum class FocusRole(
+    val consumesKeyWhitelist: List<Key>? = null,
+    val consumesKeyWhitelistDuringEdit: List<Key>? = null,
+    val autoRequestFocus: Boolean = false,
+) {
     LIST_ITEM,
+    LIST_ITEM_EDITABLE(consumesKeyWhitelistDuringEdit = AllowedTextFieldBindingKeys),
     AUX_ITEM,
+    AUX_ITEM_EDITABLE(consumesKeyWhitelistDuringEdit = AllowedTextFieldBindingKeys),
     NESTED_AUX_ITEM,
     DESTINATION_ROOT_CONTAINER,
     NESTING_DESTINATION_ROOT_CONTAINER,
@@ -296,6 +306,14 @@ class KeyboardActionHandler(
 
     private val _mode = MutableStateFlow<KeyboardActionMode>(KeyboardActionMode.Navigation)
     val mode = _mode.asStateFlow()
+
+    private val _activeEditAble = MutableStateFlow<EditActions?>(null)
+    val activeEditAbleId = _activeEditAble.map {
+        it?.editId
+    }.stateIn(scope, SharingStarted.Lazily, null)
+
+    private val _editPersistInProgress = MutableStateFlow<ImmutableSet<Any>>(persistentSetOf())
+    val editPersistInProgress = _editPersistInProgress.asStateFlow()
 
     private val _keyboardPrimary = MutableStateFlow(true)
     val keyboardPrimary = combine(
@@ -653,8 +671,12 @@ class KeyboardActionHandler(
             }
         }
         // Disallow plain keybindings of keys handled by text fields
-        if (!event.isCtrlPressed && contextMenu == null &&
-            focused?.role?.consumesKeyWhitelist?.let { event.key in it } == false
+        if (!event.isCtrlPressed && contextMenu == null && (
+                focused?.role?.consumesKeyWhitelist?.let { event.key in it } == false ||
+                        focused?.role?.consumesKeyWhitelistDuringEdit
+                            ?.takeIf { focused.actions?.editActions?.editId?.let { it == activeEditAbleId.value } == true }
+                            ?.let { event.key in it } == false
+            )
         ) {
             return false
         }
@@ -1141,13 +1163,13 @@ class KeyboardActionHandler(
         ): ActionResult {
             return when (action) {
                 Action.CopyAble.CopyPlaintext -> {
-                    val content = copyActions.accessPlaintext?.invoke()
+                    val content = copyActions.accessPlaintext?.invoke()?.takeIf(String::isNotEmpty)
                         ?: copyActions.accessPlaintextSuspend?.let { plaintext ->
                             return context.launchActionAsync(
                                 "copyPlaintext",
                                 scope,
                             ) {
-                                val content = plaintext() ?: return@launchActionAsync ActionResult.Inapplicable
+                                val content = plaintext()?.takeIf(String::isNotEmpty) ?: return@launchActionAsync ActionResult.Inapplicable
                                 context.copyToClipboard(content)
                             }
                         } ?: return ActionResult.Inapplicable
@@ -1167,6 +1189,85 @@ class KeyboardActionHandler(
                 }
             }
         }
+    }
+
+    private fun editableActionHandler(editActions: EditActions) = when (editActions) {
+        is PlaintextEditActions -> plaintextEditAbleActionHandler(editActions)
+    }
+
+    private fun plaintextEditAbleActionHandler(
+        editActions: PlaintextEditActions,
+    ) = object : KeyboardActionProvider<Action.PlaintextEditAble> {
+        override fun getPossibleActions(): Set<Action.PlaintextEditAble> = Action.PlaintextEditAble.values().toSet()
+        override fun ensureActionType(action: Action) = action as? Action.PlaintextEditAble
+
+        override fun handleNavigationModeEvent(
+            context: ActionContext,
+            key: KeyTrigger
+        ): ActionResult {
+            val keyConfig = context.keybindingConfig ?: return ActionResult.NoMatch
+            return keyConfig.editAble.execute(context, key, ::handleAction)
+        }
+
+        override fun handleAction(
+            context: ActionContext,
+            action: Action.PlaintextEditAble,
+            args: List<String>
+        ): ActionResult {
+            return when (action) {
+                Action.PlaintextEditAble.LaunchEdit -> {
+                    setEditable(editActions)
+                    ActionResult.Success()
+                }
+                Action.PlaintextEditAble.DiscardEdit -> {
+                    if (setEditableExpecting(null, editActions.editId)) {
+                        ActionResult.Success()
+                    } else {
+                        ActionResult.Inapplicable
+                    }
+                }
+                Action.PlaintextEditAble.SaveEdit -> {
+                    val editId = editActions.editId
+                    val appMessageId = "saveEdit/$editId"
+                    context.launchActionAsync(
+                        "saveEdit/$editId",
+                        GlobalActionsScope,
+                        Dispatchers.IO,
+                        appMessageId,
+                    ) {
+                        _editPersistInProgress.update { (it + editId).toPersistentHashSet() }
+                        try {
+                            editActions.persistEdit()?.toActionResult() ?: ActionResult.Inapplicable
+                        } finally {
+                            _editPersistInProgress.update { (it - editId).toPersistentHashSet() }
+                            setEditableExpecting(null, editId)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun setEditable(editActions: EditActions?) {
+        val previous = _activeEditAble.getAndUpdate { editActions }
+        previous?.discardEdit()
+    }
+
+    private fun setEditableExpecting(editActions: EditActions?, expectEditId: Any?): Boolean {
+        var matched = false
+        val previous = _activeEditAble.getAndUpdate {
+            if (it?.editId == expectEditId) {
+                matched = true
+                editActions
+            } else {
+                matched = false
+                it
+            }
+        }
+        if (matched) {
+            previous?.discardEdit()
+        }
+        return matched
     }
 
     private val listActionHandler = object : KeyboardActionProvider<Action.List> {
@@ -1638,6 +1739,9 @@ class KeyboardActionHandler(
                     NotifiableRoomSubscriber.launch()
                     ActionResult.Success()
                 }
+                Action.Global.InspectFocusable -> {
+                    context.copyToClipboard(context.focused().toString())
+                }
             }
         }
     }
@@ -1676,6 +1780,9 @@ class KeyboardActionHandler(
             focused?.actions?.keyActions,
             (focused?.actions?.primaryAction as? InteractionAction.NavigationAction)?.let {
                 navigationItemActionHandler(focused, it)
+            },
+            (focused?.actions?.editActions ?: _activeEditAble.value)?.let {
+                editableActionHandler(it)
             },
             (focused?.actions?.copyActions)?.let {
                 copyAbleActionHandler(it)

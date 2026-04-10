@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.revenge.Destination
@@ -44,13 +45,14 @@ import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
-import chat.schildi.revenge.actions.LocalUserIdSuggestionsProvider
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.plainTextCopyAction
 import chat.schildi.revenge.actions.plainTextCopyActionWithMxcUrl
 import chat.schildi.revenge.actions.toCopyAction
 import chat.schildi.revenge.compose.components.AvatarImage
+import chat.schildi.revenge.compose.components.EditTextValue
+import chat.schildi.revenge.compose.components.EditableText
 import chat.schildi.revenge.compose.components.EmptyListScreen
 import chat.schildi.revenge.compose.destination.conversation.event.message.TextLikeMessageContent
 import chat.schildi.revenge.compose.destination.conversation.userlist.ConversationDetailsTopNavigation
@@ -60,6 +62,7 @@ import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.matrixBodyDrawStyle
 import chat.schildi.revenge.matrixBodyFormatter
 import chat.schildi.revenge.model.RoomDetailsViewModel
+import chat.schildi.revenge.model.RoomSettingsPermissions
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
 import chat.schildi.theme.scExposures
@@ -73,6 +76,7 @@ import shire.composeapp.generated.resources.hint_canonical_room_alias
 import shire.composeapp.generated.resources.hint_connected_bridges
 import shire.composeapp.generated.resources.hint_direct_chat
 import shire.composeapp.generated.resources.hint_encrypted
+import shire.composeapp.generated.resources.hint_no_room_name
 import shire.composeapp.generated.resources.hint_not_encrypted
 import shire.composeapp.generated.resources.hint_other_room_aliases
 import shire.composeapp.generated.resources.hint_private_room
@@ -88,8 +92,9 @@ fun RoomDetailsScreen(
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
 ) {
+    val viewModelKey = viewModelKey(destination)
     val viewModel = viewModel<RoomDetailsViewModel>(
-        key = viewModelKey(destination),
+        key = viewModelKey,
         factory = RoomDetailsViewModel.factory(destination.sessionId, destination.roomId),
     )
     publishTitle(viewModel)
@@ -99,7 +104,6 @@ fun RoomDetailsScreen(
     FocusContainer(
         LocalKeyboardActionProvider provides
                 viewModel.actionProvider.hierarchicalKeyboardActionProvider(),
-        LocalUserIdSuggestionsProvider provides viewModel,
         LocalRoomContextSuggestionsProvider provides viewModel.roomContextSuggestionsProvider,
         LocalListActionProvider provides listAction,
         LocalMatrixBodyFormatter provides matrixBodyFormatter(),
@@ -109,6 +113,7 @@ fun RoomDetailsScreen(
     ) {
         val info = viewModel.roomInfo.collectAsState().value
         val topic = viewModel.topic.collectAsState().value
+        val permissions = viewModel.roomSettingsPermissions.collectAsState().value ?: RoomSettingsPermissions()
         Column(contentModifier.fillMaxSize().padding(Dimens.windowPadding)) {
             ConversationDetailsTopNavigation(stringResource(Res.string.room_details_title))
             if (info == null) {
@@ -145,25 +150,33 @@ fun RoomDetailsScreen(
                                 )
                             }
                         }
-                        info.name?.let { displayName ->
-                            item {
-                                Box(
-                                    Modifier.fillMaxWidth().keyFocusable(
-                                        role = FocusRole.LIST_ITEM,
-                                        actionProvider = actionProvider(
-                                            copyActions = plainTextCopyAction { info.name },
-                                        ),
-                                    ),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    SelectionContainer {
-                                        Text(
-                                            displayName,
-                                            color = MaterialTheme.colorScheme.onSurface,
-                                            style = MaterialTheme.typography.bodyLarge,
-                                        )
+                        if (info.rawName != null || !info.isDirect) {
+                            // Generated name, if differs from raw name
+                            if (info.rawName != info.name) {
+                                info.name?.let { displayName ->
+                                    item {
+                                        RoomDetailsSection(
+                                            copyActions = plainTextCopyAction { displayName },
+                                        ) {
+                                            SectionText(displayName)
+                                        }
                                     }
                                 }
+                            }
+                            // Editable room name
+                            item {
+                                EditableText(
+                                    "$viewModelKey/roomName",
+                                    currentValue = info.rawName?.let(EditTextValue::Plain),
+                                    role = FocusRole.LIST_ITEM_EDITABLE,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    renderColor = MaterialTheme.colorScheme.onSurface,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    persist = viewModel::setRoomName,
+                                    textAlign = TextAlign.Center,
+                                    emptyFallbackText = stringResource(Res.string.hint_no_room_name),
+                                    canEdit = permissions.canEditName,
+                                )
                             }
                         }
                         item {
@@ -172,14 +185,25 @@ fun RoomDetailsScreen(
                                 Modifier.fillMaxWidth().keyFocusable(FocusRole.LIST_ITEM),
                             )
                         }
-                        topic?.let {
+                        if (topic != null || permissions.canEditTopic) {
                             item {
-                                RoomDetailsSection(
-                                    stringResource(Res.string.hint_topic),
-                                    plainTextCopyAction { info.topic },
-                                ) {
-                                    RenderedTopic(topic)
-                                }
+                                EditableText(
+                                    "$viewModelKey/roomTopic",
+                                    currentValue = topic?.let {
+                                        EditTextValue.AutoFormatted(info.topic ?: topic.text.text, topic)
+                                    } ?: info.topic?.let(EditTextValue::Plain),
+                                    role = FocusRole.LIST_ITEM_EDITABLE,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    renderColor = MaterialTheme.colorScheme.onSurface,
+                                    persist = viewModel::setRoomTopic,
+                                    canEdit = permissions.canEditTopic,
+                                    header = {
+                                        RoomDetailsSectionHeader(
+                                            stringResource(Res.string.hint_topic),
+                                            modifier = Modifier.padding(bottom = Dimens.listPaddingSmall),
+                                        )
+                                    }
+                                )
                             }
                         }
                         info.canonicalAlias?.let { alias ->
@@ -272,7 +296,7 @@ private fun RoomDetailsSectionHeader(
 
 @Composable
 private fun RoomDetailsSection(
-    headerText: String,
+    headerText: String? = null,
     copyActions: CopyActions?,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -289,21 +313,12 @@ private fun RoomDetailsSection(
             ),
             verticalArrangement = Dimens.verticalArrangementSmall,
         ) {
-        RoomDetailsSectionHeader(headerText, Modifier, color, style)
+            if (headerText != null) {
+                RoomDetailsSectionHeader(headerText, Modifier, color, style)
+            }
             content()
         }
     }
-}
-
-@Composable
-private fun RenderedTopic(
-    topic: MatrixBodyParseResult,
-    modifier: Modifier = Modifier,
-) {
-    TextLikeMessageContent(
-        topic,
-        modifier,
-    )
 }
 
 @Composable
