@@ -244,7 +244,7 @@ object UiState {
     val currentLocale = RevengePrefs.settingFlow(ScPrefs.LOCALE).onEach {
         val localeToSet = when (it) {
             "" -> ScPrefs.initialLocale
-            else -> Locale.of(it)
+            else -> Locale.forLanguageTag(it)
         }
         if (localeToSet != Locale.getDefault()) {
             Locale.setDefault(localeToSet)

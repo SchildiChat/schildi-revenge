@@ -154,7 +154,7 @@ object ScPrefs {
     val availableLocaleSettings = (
         listOf(ScListPrefEntry("", Res.string.pref_locale_follow_system.toStringHolder())) +
         (listOf(LOCALE_DEFAULT) + AvailableLocales.codes).map {
-            ScListPrefEntry(it, Locale.of(it).displayName.toStringHolder())
+            ScListPrefEntry(it, Locale.forLanguageTag(it).displayName.toStringHolder())
         }
     ).toPersistentList()
 
