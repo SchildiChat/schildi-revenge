@@ -286,7 +286,7 @@ private fun InlineImage(
             )
             .build(),
         transform = rememberAnimatedImageTransform(),
-        contentScale = ContentScale.Crop,
+        contentScale = ContentScale.Fit,
         alignment = Alignment.Center,
         contentDescription = info.alt ?: info.title,
     ) {
