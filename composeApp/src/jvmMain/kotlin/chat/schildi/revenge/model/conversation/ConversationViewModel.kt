@@ -481,7 +481,7 @@ class ConversationViewModel(
 
     override val userIdInRoomSuggestions: Flow<List<UserIdSuggestion>> = roomMembers.map {
         it.map {
-            UserIdSuggestion(it.userId, it.displayName)
+            UserIdSuggestion(it.userId, it.displayName, it.membership)
         }
     }
 

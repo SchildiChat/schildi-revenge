@@ -30,6 +30,7 @@ import chat.schildi.revenge.model.spaces.RevengeSpaceListDataSource
 import chat.schildi.revenge.model.spaces.SpaceBuilderRoom
 import chat.schildi.revenge.model.spaces.SpaceListDataSource
 import co.touchlab.kermit.Logger
+import io.element.android.libraries.matrix.api.room.RoomMembershipState
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
@@ -328,12 +329,27 @@ class CommandSuggestionsProvider(
                         globalUserIdSuggestions.value
                     }
                 }
-                ActionArgumentPrimitive.UserIdInRoom -> userIdInRoomSuggestions?.value?.map {
-                    it.toCommandSuggestion()
+                ActionArgumentPrimitive.UserIdInRoom -> userIdInRoomSuggestions?.value?.mapNotNull { suggestion ->
+                    // Depending on the command, "invite" or "knock" states may also be considered as "in the room";
+                    // though leave and ban usually aren't.
+                    if (suggestion.membership in listOf(RoomMembershipState.LEAVE, RoomMembershipState.BAN)) {
+                        null
+                    } else {
+                        suggestion.toCommandSuggestion()
+                    }
                 } ?: emptyList()
                 ActionArgumentPrimitive.UserIdNotInRoom -> {
                     val inRoom = userIdInRoomSuggestions?.value?.map { it.userId.value }.orEmpty().toSet()
-                    globalUserIdSuggestions.value.filter { it.value !in inRoom }
+                    // Global suggestions
+                    globalUserIdSuggestions.value.filter { it.value !in inRoom } +
+                            // Users that were historically in the room but left are also worth suggesting
+                            userIdInRoomSuggestions?.value?.mapNotNull { suggestion ->
+                                if (suggestion.membership != RoomMembershipState.JOIN) {
+                                    suggestion.toCommandSuggestion()
+                                } else {
+                                    null
+                                }
+                            }.orEmpty()
                 }
                 ActionArgumentPrimitive.ExistingDmUserId -> {
                     val sessionIds = context.findAll(ActionArgumentPrimitive.SessionId)

@@ -45,6 +45,8 @@ data class RoomMemberItem(
         get() = value.displayName
     override val avatarUrl: String?
         get() = value.avatarUrl
+    override val membership: RoomMembershipState
+        get() = value.membership
 }
 
 class RoomMemberListViewModel(

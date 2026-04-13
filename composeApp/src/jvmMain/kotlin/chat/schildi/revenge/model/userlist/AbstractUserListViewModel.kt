@@ -9,6 +9,7 @@ import chat.schildi.revenge.model.UserActionProvider
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.room.RoomMembershipState
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +25,7 @@ interface UserListItem {
     val userId: UserId
     val displayName: String?
     val avatarUrl: String?
+    val membership: RoomMembershipState?
 }
 
 data class FilteredUserList<T : UserListItem>(
@@ -81,7 +83,7 @@ abstract class AbstractUserListViewModel<T: UserListItem>: ViewModel(), SearchPr
 
     fun userIdInRoomSuggestionsFlow(): Flow<List<UserIdSuggestion>> = allEntries.map {
         it?.map {
-            UserIdSuggestion(it.userId, it.displayName)
+            UserIdSuggestion(it.userId, it.displayName, it.membership)
         }.orEmpty()
     }
 }

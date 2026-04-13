@@ -41,7 +41,7 @@ class UserDetailsViewModel(
         roomMember,
     ) { info, member ->
         listOf(
-            UserIdSuggestion(userId, info?.displayName ?: member?.displayName)
+            UserIdSuggestion(userId, info?.displayName ?: member?.displayName, member?.membership)
         )
     }
 

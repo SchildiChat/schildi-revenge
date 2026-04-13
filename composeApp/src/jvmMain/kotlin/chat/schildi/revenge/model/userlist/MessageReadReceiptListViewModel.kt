@@ -13,6 +13,7 @@ import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.RoomMember
+import io.element.android.libraries.matrix.api.room.RoomMembershipState
 import io.element.android.libraries.matrix.api.room.roomMembers
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.Receipt
@@ -42,6 +43,8 @@ data class ReadReceiptListItem(
         get() = senderProfile?.displayName
     override val avatarUrl: String?
         get() = senderProfile?.avatarUrl
+    override val membership: RoomMembershipState?
+        get() = senderProfile?.membership
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
