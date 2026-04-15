@@ -202,7 +202,11 @@ fun EventContentLayout(
 
         // TODO
         CallNotifyContent -> EventMessageFallback("CALL")
-        is FailedToParseMessageLikeContent -> EventMessageFallback(stringResource(Res.string.message_placeholder_message_failed_to_parse))
+        is FailedToParseMessageLikeContent -> {
+            EventMessageLayout {
+                MessageFallback(stringResource(Res.string.message_placeholder_message_failed_to_parse), isOwn, timestamp, inReplyTo, threadInfo, textColor = MaterialTheme.colorScheme.error)
+            }
+        }
         LegacyCallInviteContent -> EventMessageFallback("LEGACY CALL INVITE")
         is PollContent -> EventMessageFallback("POLL")
         is LiveLocationContent -> EventMessageFallback("LIVE LOCATION")
