@@ -19,6 +19,7 @@ import io.element.android.libraries.core.data.tryOrNull
 import io.element.android.libraries.core.extensions.mapFailure
 import io.element.android.libraries.core.extensions.runCatchingExceptions
 import io.element.android.libraries.featureflag.api.FeatureFlagService
+import io.element.android.libraries.matrix.api.HomeserverCapabilitiesProvider
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.analytics.SdkStoreSizes
 import io.element.android.libraries.matrix.api.core.DeviceId
@@ -876,6 +877,10 @@ class RustMatrixClient(
         Timber.i("Scheduling periodic database vacuuming for session $sessionId")
         val request = PerformDatabaseVacuumRequestBuilder(sessionId)
         sessionCoroutineScope.launch { workManagerScheduler.submit(request) }
+    }
+
+    override fun homeserverCapabilities(): HomeserverCapabilitiesProvider {
+        return RustHomeserverCapabilitiesProvider(innerClient.homeserverCapabilities())
     }
 }
 
