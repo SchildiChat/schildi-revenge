@@ -227,7 +227,6 @@ object EventTextFormat {
             OtherState.PolicyRuleRoom -> getFormatString(Res.string.message_placeholder_state_event_policy_rule_room, arrayOf(senderName))
             OtherState.PolicyRuleServer -> getFormatString(Res.string.message_placeholder_state_event_policy_rule_server, arrayOf(senderName))
             OtherState.PolicyRuleUser -> getFormatString(Res.string.message_placeholder_state_event_policy_rule_user, arrayOf(senderName))
-            OtherState.RoomAliases -> getFormatString(Res.string.message_placeholder_state_event_room_aliases, arrayOf(senderName))
             is OtherState.RoomAvatar -> when (content.url) {
                 null -> getFormatString(Res.string.message_placeholder_state_event_room_avatar_cleared, arrayOf(senderName))
                 else -> getFormatString(Res.string.message_placeholder_state_event_room_avatar_set, arrayOf(senderName))

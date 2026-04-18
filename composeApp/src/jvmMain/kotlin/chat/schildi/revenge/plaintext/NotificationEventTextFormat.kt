@@ -122,11 +122,6 @@ object NotificationEventTextFormat {
                     Res.string.message_placeholder_state_event_policy_rule_user,
                     senderName,
                 )
-            NotificationContent.StateEvent.RoomAliases ->
-                getString(
-                    Res.string.message_placeholder_state_event_room_aliases,
-                    senderName,
-                )
             NotificationContent.StateEvent.RoomAvatar ->
                 getString(
                     Res.string.message_placeholder_state_event_room_avatar_changed,

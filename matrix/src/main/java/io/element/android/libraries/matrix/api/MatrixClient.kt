@@ -233,6 +233,8 @@ interface MatrixClient {
      * Resets the cached client `well-known` config by the SDK.
      */
     suspend fun resetWellKnownConfig(): Result<Unit>
+
+    fun homeserverCapabilities(): HomeserverCapabilitiesProvider
 }
 
 /**

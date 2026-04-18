@@ -628,7 +628,7 @@ class ConversationViewModel(
                             currentTimeline.sendMessage(
                                 body = draft.body,
                                 htmlBody = draft.htmlBody,
-                                plaintext = draft.shouldSendAsPlaintext,
+                                asPlainText = draft.shouldSendAsPlaintext,
                                 intentionalMentions = draft.intentionalMentions,
                             )
                         }
