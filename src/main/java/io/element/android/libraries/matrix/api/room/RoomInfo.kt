@@ -74,6 +74,7 @@ data class RoomInfo(
     val canUserManageSpaces: Boolean = false,
     val unreadCount: Long = 0,
     val bridgeState: List<BridgeState> = emptyList(),
+    val unreadCountUnderestimate: Boolean = false,
     // SC end
     val heroes: ImmutableList<MatrixUser>,
     val pinnedEventIds: ImmutableList<EventId>,

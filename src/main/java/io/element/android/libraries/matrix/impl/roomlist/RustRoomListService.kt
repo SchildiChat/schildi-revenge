@@ -74,6 +74,7 @@ internal class RustRoomListService(
                 buryLowPriority = scPreferencesStore.getCachedOrDefaultValue(ScPrefs.BURY_LOW_PRIORITY),
                 clientSideUnreadCounts = scPreferencesStore.getCachedOrDefaultValue(ScPrefs.CLIENT_GENERATED_UNREAD_COUNTS),
                 withSilentUnread = scPreferencesStore.getCachedOrDefaultValue(ScPrefs.SORT_WITH_SILENT_UNREAD),
+                withInaccurateSilentUnread = scPreferencesStore.getCachedOrDefaultValue(ScPrefs.INDICATE_UNREAD_COUNT_UNDERESTIMATES),
             )
         ),
     ) {
