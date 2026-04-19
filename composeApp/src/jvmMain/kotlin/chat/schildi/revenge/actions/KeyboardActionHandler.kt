@@ -1735,6 +1735,20 @@ class KeyboardActionHandler(
                         }
                     }
                 }
+                Action.Global.CreateSpace -> {
+                    val sessionId = SessionId(args.firstOrNull().orActionValidationError())
+                    val name = args.getOrNull(1)
+                    val client = UiState.currentClientFor(sessionId) ?: return ActionResult.Failure("Client not ready")
+                    val parameters = CreateRoomParameters(
+                        name = name,
+                        isEncrypted = false,
+                        visibility = RoomVisibility.Private,
+                        isDirect = false,
+                        preset = RoomPreset.PRIVATE_CHAT,
+                        isSpace = true,
+                    )
+                    context.launchCreateRoomAction("createSpace", client, parameters)
+                }
                 Action.Global.AutoSubscribeNotifiableRooms -> {
                     NotifiableRoomSubscriber.launch()
                     ActionResult.Success()

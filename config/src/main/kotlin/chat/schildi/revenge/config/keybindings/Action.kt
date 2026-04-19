@@ -143,6 +143,7 @@ sealed interface Action {
         CreateRoom(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.RoomName), aliases = listOf("createRoom")),
         CreateUnencryptedRoom(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.RoomName), aliases = listOf("createUnencryptedRoom", "createRoomUnencrypted")),
         CreateDm(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.UserId), aliases = listOf("createDm", "startDm")),
+        CreateSpace(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.RoomName), aliases = listOf("createSpace")),
         AutoSubscribeNotifiableRooms, // Experimental feature
         InspectFocusable(aliases = listOf("inspect")),
     }
