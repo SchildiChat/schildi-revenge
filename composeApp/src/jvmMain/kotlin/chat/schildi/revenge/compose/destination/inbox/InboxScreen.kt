@@ -124,6 +124,7 @@ fun InboxScreen(
                         spaceSelectionHierarchy = spaceSelection,
                         onSpaceSelected = viewModel::setSpaceSelection,
                         modifier = Modifier,
+                        getSpaceActionProvider = viewModel::getKeyboardActionProviderForSpace,
                     )
                 }
             }

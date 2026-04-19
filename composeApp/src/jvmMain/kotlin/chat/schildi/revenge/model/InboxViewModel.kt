@@ -14,6 +14,7 @@ import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
+import chat.schildi.revenge.actions.FlatMergedKeyboardActionProvider
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.actions.launchActionAsync
@@ -693,4 +694,19 @@ class InboxViewModel(
             peekRoom = null,
         )
     }
+
+    fun getKeyboardActionProviderForSpace(
+        sessionId: SessionId,
+        roomId: RoomId,
+        isInvite: Boolean,
+    ) = FlatMergedKeyboardActionProvider(
+        listOf(
+            getKeyboardActionProviderForRoom(
+                sessionId = sessionId,
+                roomId = roomId,
+                isInvite = isInvite,
+            ),
+            // TODO add space-only actions
+        )
+    )
 }

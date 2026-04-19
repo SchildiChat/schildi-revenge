@@ -28,6 +28,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -47,14 +48,23 @@ import chat.schildi.lib.util.formatUnreadCount
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.actions.FocusRole
+import chat.schildi.revenge.actions.InteractionAction
+import chat.schildi.revenge.actions.KeyboardActionProvider
+import chat.schildi.revenge.actions.LocalKeyboardActionProvider
+import chat.schildi.revenge.actions.actionProvider
+import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.ScrollableTabRow
 import chat.schildi.revenge.compose.components.TabRowDefaults.tabIndicatorOffset
 import chat.schildi.revenge.compose.components.WithTooltip
+import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.spaces.SpaceListDataSource
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
 import chat.schildi.theme.scExposures
 import co.touchlab.kermit.Logger
+import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.media.MediaSource
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -71,6 +81,7 @@ fun SpaceSelectorRow(
     spaceSelectionHierarchy: ImmutableList<String>,
     onSpaceSelected: (List<String>) -> Unit,
     modifier: Modifier = Modifier,
+    getSpaceActionProvider: (SessionId, RoomId, isInvite: Boolean) -> KeyboardActionProvider<*>,
 ) {
     Column(modifier) {
         SpaceSelector(
@@ -88,6 +99,7 @@ fun SpaceSelectorRow(
                 }
             },
             compactTabs = ScPrefs.COMPACT_ROOT_SPACES.value(),
+            getSpaceActionProvider = getSpaceActionProvider,
         )
     }
 }
@@ -103,6 +115,7 @@ private fun ColumnScope.SpaceSelector(
     parentSelection: ImmutableList<String>,
     selectSpace: (SpaceListDataSource.AbstractSpaceHierarchyItem?, ImmutableList<String>) -> Unit,
     compactTabs: Boolean,
+    getSpaceActionProvider: (SessionId, RoomId, isInvite: Boolean) -> KeyboardActionProvider<*>,
 ) {
     val selectedSpaceIndex = if (spaceSelection.isEmpty()) {
         -1
@@ -153,7 +166,7 @@ private fun ColumnScope.SpaceSelector(
     ) {
         if (allowAllRooms) {
             if (defaultSpace != null) {
-                SpaceTab(defaultSpace, selectedTab == 0, expandSpaceChildren, false, compactTabs) {
+                SpaceTab(defaultSpace, selectedTab == 0, expandSpaceChildren, false, compactTabs, getSpaceActionProvider) {
                     expandSpaceChildren = false
                     if (selectedTab != 0) {
                         selectSpace(null, parentSelection)
@@ -177,6 +190,7 @@ private fun ColumnScope.SpaceSelector(
                     expandSpaceChildren,
                     renderExpandableIndicatorInTabs && space.spaces.isNotEmpty(),
                     compactTabs,
+                    getSpaceActionProvider,
                 ) {
                     if (selectedSpaceIndex == index) {
                         if (expandSpaceChildren) {
@@ -210,6 +224,7 @@ private fun ColumnScope.SpaceSelector(
                 defaultSpace = spacesList[selectedSpaceIndex],
                 parentSelection = (parentSelection + listOf(spacesList[selectedSpaceIndex].selectionId)).toImmutableList(),
                 compactTabs = false,
+                getSpaceActionProvider = getSpaceActionProvider,
             )
         }
     }
@@ -286,6 +301,7 @@ private fun AbstractSpaceTab(
         WithTooltip(text) {
             Box(
                 Modifier
+                    .spaceTabModifier(onClick)
                     .clickable(onClick = onClick)
                     .padding(vertical = 8.dp, horizontal = 16.dp)
             ) {
@@ -306,9 +322,22 @@ private fun AbstractSpaceTab(
             icon = icon.takeIf { !collapsed },
             selected = selected,
             onClick = onClick,
+            modifier = Modifier.spaceTabModifier(onClick),
         )
     }
 }
+
+@Composable
+fun Modifier.spaceTabModifier(onClick: () -> Unit) = keyFocusable(
+    role = FocusRole.AUX_ITEM,
+    actionProvider = actionProvider(
+        primaryAction = InteractionAction.Invoke {
+            onClick()
+            true
+        },
+    ),
+    addClickListener = false,
+)
 
 @Composable
 private fun SpaceTab(
@@ -317,18 +346,32 @@ private fun SpaceTab(
     collapsed: Boolean,
     expandable: Boolean,
     compact: Boolean,
+    getSpaceActionProvider: (SessionId, RoomId, isInvite: Boolean) -> KeyboardActionProvider<*>,
     onClick: () -> Unit
 ) {
-    AbstractSpaceTab(
-        text = space.name.render(),
-        selected = selected,
-        collapsed = collapsed,
-        expandable = expandable,
-        compact = compact,
-        onClick = onClick,
+    CompositionLocalProvider(
+        LocalKeyboardActionProvider provides when (space) {
+            is SpaceListDataSource.SpaceHierarchyItem -> {
+                getSpaceActionProvider(
+                    space.room.sessionId,
+                    space.room.summary.roomId,
+                    space.room.summary.isInvite()
+                ).hierarchicalKeyboardActionProvider()
+            }
+            else -> LocalKeyboardActionProvider.current
+        }
     ) {
-        SpaceUnreadCountBox(space.unreadCounts, spaceTabUnreadBadgeOffset(compact)) {
-            AbstractSpaceIcon(space = space, size = spaceTabIconSize(compact), shape = spaceTabIconShape(compact))
+        AbstractSpaceTab(
+            text = space.name.render(),
+            selected = selected,
+            collapsed = collapsed,
+            expandable = expandable,
+            compact = compact,
+            onClick = onClick,
+        ) {
+            SpaceUnreadCountBox(space.unreadCounts, spaceTabUnreadBadgeOffset(compact)) {
+                AbstractSpaceIcon(space = space, size = spaceTabIconSize(compact), shape = spaceTabIconShape(compact))
+            }
         }
     }
 }
