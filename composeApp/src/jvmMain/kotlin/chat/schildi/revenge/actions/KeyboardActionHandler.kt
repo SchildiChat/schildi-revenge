@@ -2474,6 +2474,7 @@ fun checkArgument(
                 null
             }
         }
+        ActionArgumentPrimitive.PowerLevel,
         ActionArgumentPrimitive.Integer -> {
             if (argVal.toIntOrNull() == null) {
                 ActionResult.Malformed(

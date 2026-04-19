@@ -43,6 +43,7 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     Reason,
     Boolean,
     Integer,
+    PowerLevel,
     Index,
     UserId,
     UserIdInRoom,
@@ -310,6 +311,7 @@ sealed interface Action {
         CopyFullRoomAccountData(aliases = listOf("roomAccountData", "copyRoomAccountData")),
         ConvertToDm,
         ConvertToGroup,
+        SetPowerLevel(args = listOf(ActionArgumentPrimitive.UserIdInRoom, ActionArgumentPrimitive.PowerLevel)),
     }
     enum class Event(
         override val aliases: kotlin.collections.List<String> = emptyList(),

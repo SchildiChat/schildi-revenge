@@ -441,6 +441,7 @@ class CommandSuggestionsProvider(
                 ActionArgumentPrimitive.Text,
                 ActionArgumentPrimitive.Reason,
                 ActionArgumentPrimitive.Integer,
+                ActionArgumentPrimitive.PowerLevel,
                 ActionArgumentPrimitive.Index,
                 ActionArgumentPrimitive.SessionIndex,
                 ActionArgumentPrimitive.EventId,

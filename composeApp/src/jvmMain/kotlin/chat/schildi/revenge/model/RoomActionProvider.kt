@@ -19,9 +19,12 @@ import chat.schildi.revenge.util.matrix.updateAccountData
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.BaseRoom
 import io.element.android.libraries.matrix.api.room.JoinedRoom
+import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.room.RoomNotificationMode
+import io.element.android.libraries.matrix.api.room.powerlevels.UserRoleChange
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.JsonArray
@@ -229,6 +232,19 @@ class RoomActionProvider(
             }
             Action.Room.ConvertToGroup -> {
                 room.convertToGroup()
+            }
+            Action.Room.SetPowerLevel -> {
+                if (room !is JoinedRoom) {
+                    return ActionResult.Inapplicable
+                }
+                val userId = UserId(args.firstOrNull().orActionValidationError())
+                val powerLevel = args.getOrNull(1)?.toLongOrNull().orActionValidationError()
+                room.updateUsersRoles(
+                    listOf(UserRoleChange(
+                        userId,
+                        RoomMember.Role.forPowerLevel(powerLevel),
+                    ))
+                ).toActionResult()
             }
         }
     }
