@@ -79,6 +79,7 @@ fun UserDetailsScreen(
                     icon = rememberVectorPainter(Icons.Default.Person),
                     isSearching = false,
                     isLoading = true,
+                    loadState = viewModel.loadState,
                     modifier = Modifier.fillMaxWidth().padding(Dimens.windowPadding).weight(1f),
                 )
             } else {

@@ -1,0 +1,51 @@
+package chat.schildi.revenge.compose.components
+
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import chat.schildi.preferences.ScPrefs
+import chat.schildi.preferences.value
+import chat.schildi.revenge.model.CheckpointLoadState
+import chat.schildi.revenge.model.LoadState
+import chat.schildi.revenge.model.LoadStateEntry
+
+@Composable
+fun ScreenLoadProgressDetails(
+    state: LoadState,
+    modifier: Modifier = Modifier,
+) {
+    if (ScPrefs.SHOW_DEV_INFOS.value() && state.isNotEmpty()) {
+        LazyColumn(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+            items(state, key = { it.checkpoint }) { item ->
+                ScreenLoadingProgressRow(item)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ScreenLoadingProgressRow(
+    item: LoadStateEntry,
+    modifier: Modifier = Modifier,
+) {
+    val statusIcon = when (item.state) {
+        CheckpointLoadState.PENDING -> "⏳"
+        CheckpointLoadState.LOADED -> "✅"
+        CheckpointLoadState.FAILED -> "❌"
+    }
+    val text = buildString {
+        append(statusIcon)
+        append(" ")
+        append(item.checkpoint.name.render())
+    }
+    Text(
+        text,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        style = MaterialTheme.typography.bodySmall,
+        modifier = modifier,
+    )
+}

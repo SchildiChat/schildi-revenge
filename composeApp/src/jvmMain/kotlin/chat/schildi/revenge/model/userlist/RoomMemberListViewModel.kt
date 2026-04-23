@@ -9,6 +9,10 @@ import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.RoomContextSuggestionsProvider
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.revenge.model.LoadCheckPoint
+import chat.schildi.revenge.model.LoadStateHolder
+import chat.schildi.revenge.model.asCheckpointLoadState
+import chat.schildi.revenge.model.asCheckpointLoadedOrFailed
 import chat.schildi.revenge.util.flowClosable
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -54,10 +58,20 @@ class RoomMemberListViewModel(
     override val roomId: RoomId,
 ) : AbstractUserListViewModel<RoomMemberItem>(), TitleProvider {
 
-    private val clientFlow = UiState.selectClient(sessionId, viewModelScope)
+    private val loadStateHolder = LoadStateHolder(
+        LoadCheckPoint.Client(sessionId),
+        LoadCheckPoint.Room,
+        LoadCheckPoint.RoomMembers,
+    )
+    val loadState = loadStateHolder.state
+
+    private val clientFlow = UiState.selectClient(sessionId, viewModelScope, loadStateHolder)
 
     private val roomFlow = clientFlow.map { client ->
-        client?.getRoom(roomId)
+        client ?: return@map null
+        client.getRoom(roomId).also {
+            loadStateHolder.set(LoadCheckPoint.Room, it.asCheckpointLoadedOrFailed())
+        }
     }.flowClosable().stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -68,6 +82,8 @@ class RoomMemberListViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     private val roomMembersState = roomFlow.flatMapLatest { room ->
         room?.membersStateFlow ?: flowOf()
+    }.onEach {
+        loadStateHolder.set(LoadCheckPoint.RoomMembers, it.asCheckpointLoadState())
     }
 
     override val allEntries: StateFlow<ImmutableList<RoomMemberItem>?> = roomMembersState.map { state ->

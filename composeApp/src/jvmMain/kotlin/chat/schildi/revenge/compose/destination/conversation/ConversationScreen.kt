@@ -86,7 +86,7 @@ fun ConversationScreen(
         val timestampSettings = viewModel.timestampSettings.collectAsState().value
 
         if (timelineItems == null) {
-            SplashScreenContent(contentModifier)
+            SplashScreenContent(contentModifier, viewModel.loadState)
             return@BoxWithConstraints
         }
 

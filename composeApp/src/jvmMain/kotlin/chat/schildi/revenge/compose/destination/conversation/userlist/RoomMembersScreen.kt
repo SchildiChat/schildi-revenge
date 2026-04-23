@@ -72,6 +72,7 @@ fun RoomMembersScreen(
                     icon = rememberVectorPainter(Icons.Default.Groups),
                     renderedSearchTerm = membersState?.searchTerm,
                     isLoading = members == null,
+                    loadState = viewModel.loadState,
                     modifier = Modifier.fillMaxWidth().weight(1f),
                 )
             } else {

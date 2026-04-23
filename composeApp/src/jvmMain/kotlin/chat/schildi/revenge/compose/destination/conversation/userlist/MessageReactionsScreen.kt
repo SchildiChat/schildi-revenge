@@ -68,6 +68,7 @@ fun MessageReactionsScreen(
                     icon = rememberVectorPainter(Icons.Default.EmojiPeople),
                     renderedSearchTerm = reactionsState?.searchTerm,
                     isLoading = reactions == null,
+                    loadState = viewModel.loadState,
                     modifier = Modifier.fillMaxWidth().weight(1f),
                 )
             } else {

@@ -39,17 +39,29 @@ class RoomDetailsViewModel(
 
     private val log = Logger.withTag("RoomDetails")
 
-    private val client = UiState.selectClient(sessionId, viewModelScope)
+    private val loadStateHolder = LoadStateHolder(
+        LoadCheckPoint.Client(sessionId),
+        LoadCheckPoint.Room,
+    )
+    val loadState = loadStateHolder.state
+
+    private val client = UiState.selectClient(sessionId, viewModelScope, loadStateHolder)
 
     private val joinedRoom = client.map {
-        it?.getJoinedRoom(roomId)
+        it ?: return@map null
+        it.getJoinedRoom(roomId).also { room ->
+            loadStateHolder.set(LoadCheckPoint.Room, room.asCheckpointLoadedOrFailed())
+        }
     }
         .flowClosable()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val notJoinedRoom = combine(client, joinedRoom) { client, joined ->
         if (joined == null) {
-            client?.getRoom(roomId)
+            client ?: return@combine null
+            client.getRoom(roomId).also {
+                loadStateHolder.set(LoadCheckPoint.Room, it.asCheckpointLoadedOrFailed())
+            }
         } else {
             // Unnecessary
             null

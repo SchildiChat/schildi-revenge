@@ -22,6 +22,8 @@ import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.revenge.model.LoadState
+import kotlinx.coroutines.flow.StateFlow
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.empty_screen_placeholder_search
 import shire.composeapp.generated.resources.empty_screen_placeholder_search_in_progress
@@ -36,6 +38,7 @@ fun EmptyListScreen(
         throw IllegalStateException("No search provider for EmptyListScreen with rendered search term detection")
     },
     modifier: Modifier = Modifier,
+    loadState: StateFlow<LoadState>? = null,
 ) {
     val currentSearchTerm = LocalKeyboardActionHandler.current
         .searchQueryForDestination(searchProvider).collectAsState(null).value
@@ -48,6 +51,7 @@ fun EmptyListScreen(
         isSearchInProgress = isSearchInProgress,
         isLoading = isLoading,
         modifier = modifier,
+        loadState = loadState,
     )
 }
 
@@ -59,6 +63,7 @@ fun EmptyListScreen(
     isSearchInProgress: Boolean = false,
     isLoading: Boolean = false,
     modifier: Modifier = Modifier,
+    loadState: StateFlow<LoadState>? = null,
 ) {
     if (isSearching) {
         EmptySearchListScreen(
@@ -67,7 +72,7 @@ fun EmptyListScreen(
         )
     } else if (isLoading) {
         Box(modifier, contentAlignment = Alignment.Center) {
-            SplashScreenContent()
+            SplashScreenContent(loadState = loadState)
         }
     } else {
         EmptyListScreen(

@@ -68,6 +68,7 @@ fun MessageReadReceiptsScreen(
                     icon = rememberVectorPainter(Icons.Default.Visibility),
                     renderedSearchTerm = state?.searchTerm,
                     isLoading = items == null,
+                    loadState = viewModel.loadState,
                     modifier = Modifier.fillMaxWidth().weight(1f),
                 )
             } else {

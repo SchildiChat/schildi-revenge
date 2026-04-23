@@ -22,18 +22,35 @@ class UserDetailsViewModel(
     val userId: UserId,
     val roomId: RoomId?,
 ) : ViewModel(), UserIdSuggestionsProvider {
-    private val client = UiState.selectClient(sessionId, viewModelScope)
+    private val loadStateHolder = LoadStateHolder(
+        listOfNotNull(
+            LoadCheckPoint.Client(sessionId),
+            LoadCheckPoint.Room.takeIf { roomId != null },
+            LoadCheckPoint.MemberProfile.takeIf { roomId != null },
+            LoadCheckPoint.UserProfile,
+        )
+    )
+    val loadState = loadStateHolder.state
+
+    private val client = UiState.selectClient(sessionId, viewModelScope, loadStateHolder)
 
     val globalUserInfo = client.map {
-        it?.getProfile(userId)?.getOrNull()
+        it?.getProfile(userId)
+            .also { loadStateHolder.handleResult(LoadCheckPoint.UserProfile, it) }
+            ?.getOrNull()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val room = if (roomId == null) flowOf(null) else client.map { client ->
-        client?.getRoom(roomId)
+        client ?: return@map null
+        client.getRoom(roomId).also {
+            loadStateHolder.set(LoadCheckPoint.Room, it.asCheckpointLoadedOrFailed())
+        }
     }
 
     val roomMember = room.map { room ->
-        room?.getUpdatedMember(userId)?.getOrNull()
+        room?.getUpdatedMember(userId)
+            .also { loadStateHolder.handleResult(LoadCheckPoint.MemberProfile, it) }
+            ?.getOrNull()
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     override val userIdInRoomSuggestions: Flow<List<UserIdSuggestion>> = combine(

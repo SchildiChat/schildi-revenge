@@ -49,6 +49,7 @@ import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.media.MediaDownloadRepo
 import chat.schildi.revenge.model.Attachment
+import chat.schildi.revenge.model.CheckpointLoadState
 import chat.schildi.revenge.model.ComposerFormat
 import chat.schildi.revenge.model.ComposerRoomInfo
 import chat.schildi.revenge.model.ComposerRoomMentionSuggestion
@@ -62,8 +63,12 @@ import chat.schildi.revenge.model.DraftMention
 import chat.schildi.revenge.model.DraftRepo
 import chat.schildi.revenge.model.DraftType
 import chat.schildi.revenge.model.DraftValue
+import chat.schildi.revenge.model.LoadCheckPoint
+import chat.schildi.revenge.model.LoadStateHolder
 import chat.schildi.revenge.model.RoomActionProvider
 import chat.schildi.revenge.model.UserActionProvider
+import chat.schildi.revenge.model.asCheckpointLoadedOrFailed
+import chat.schildi.revenge.model.asCheckpointLoadedOrPending
 import chat.schildi.revenge.model.getCurrentCompletionEntity
 import chat.schildi.revenge.model.shouldSendTypingIndicator
 import chat.schildi.revenge.toPrettyJson
@@ -155,7 +160,6 @@ import shire.composeapp.generated.resources.action_redact_event_by_sender_prompt
 import shire.composeapp.generated.resources.action_redact_event_prompt
 import shire.composeapp.generated.resources.action_redact_message_by_sender_prompt
 import shire.composeapp.generated.resources.action_redact_message_prompt
-import shire.composeapp.generated.resources.command_copy_name_event_id
 import shire.composeapp.generated.resources.command_copy_name_event_source
 import shire.composeapp.generated.resources.command_copy_name_formatted_message_content
 import shire.composeapp.generated.resources.command_copy_name_full_room_state
@@ -235,10 +239,17 @@ class ConversationViewModel(
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
 ) : ViewModel(), TitleProvider, SearchProvider, UserIdSuggestionsProvider, ComposerViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
+    private val loadStateHolder = LoadStateHolder(
+        LoadCheckPoint.Client(sessionId),
+        LoadCheckPoint.Room,
+        LoadCheckPoint.Timeline,
+        LoadCheckPoint.TimelineItems,
+    )
+    val loadState = loadStateHolder.state
 
     private val searchQuery = MutableStateFlow<String?>(null)
 
-    private val clientFlow = UiState.selectClient(sessionId, viewModelScope)
+    private val clientFlow = UiState.selectClient(sessionId, viewModelScope, loadStateHolder)
 
     private val _targetEvent = MutableStateFlow<EventJumpTarget?>(EventJumpTarget.Index(0))
     val targetEvent = _targetEvent.asStateFlow()
@@ -254,7 +265,11 @@ class ConversationViewModel(
         clientFlow,
         timelineFilterSettings,
     ) { client, settings ->
-        client?.getJoinedRoom(roomId, settings)
+        client?.let {
+            val room = it.getJoinedRoom(roomId, settings)
+            loadStateHolder.set(LoadCheckPoint.Room, room.asCheckpointLoadedOrFailed())
+            room
+        }
     }
         .flowClosable()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -396,6 +411,7 @@ class ConversationViewModel(
     val activeTimeline = timelineController.flatMapLatest {
         it?.activeTimelineFlow() ?: flowOf(null)
     }.onEach { timeline ->
+        loadStateHolder.set(LoadCheckPoint.Timeline, timeline.asCheckpointLoadedOrPending())
         if (timeline != null) {
             viewModelScope.launch(Dispatchers.IO) {
                 refetchFullyRead(timeline)
@@ -404,7 +420,11 @@ class ConversationViewModel(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val rawTimelineItems = activeTimeline.flatMapLatest {
-        it?.timelineItems ?: flowOf(null)
+        it?.timelineItems?.onEach {
+            loadStateHolder.set(LoadCheckPoint.TimelineItems, it.asCheckpointLoadedOrPending())
+        } ?: flowOf(null).also {
+            loadStateHolder.set(LoadCheckPoint.TimelineItems, CheckpointLoadState.PENDING)
+        }
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     private val _cachedFullyRead = MutableStateFlow<EventId?>(null)

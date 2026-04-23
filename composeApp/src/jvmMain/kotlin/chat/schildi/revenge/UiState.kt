@@ -10,6 +10,11 @@ import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.ConfigWatchers
+import chat.schildi.revenge.model.CheckpointLoadState
+import chat.schildi.revenge.model.LoadCheckPoint
+import chat.schildi.revenge.model.LoadStateHolder
+import chat.schildi.revenge.model.asCheckpointLoadedOrFailed
+import chat.schildi.revenge.model.asCheckpointLoadedOrPending
 import chat.schildi.revenge.store.AppStateStore
 import chat.schildi.revenge.util.throttleLatest
 import co.touchlab.kermit.Logger
@@ -89,6 +94,8 @@ object UiState {
 
     private val _globalMessageBoard = MutableSharedFlow<AbstractAppMessage>(3)
     val globalMessageBoard = _globalMessageBoard.asSharedFlow()
+
+    val globalLoadState = LoadStateHolder()
 
     private val closeToTray = RevengePrefs
         .settingFlow(ScPrefs.CLOSE_TO_TRAY)
@@ -195,14 +202,23 @@ object UiState {
         appGraph.sessionStore.sessionsFlow()
     ) { disabled, allSessions ->
         val persistedSessions = allSessions.filter { SessionId(it.userId) !in disabled }
+        globalLoadState.addExpected(
+            *persistedSessions.map { LoadCheckPoint.Client(SessionId(it.userId)) }.toTypedArray()
+        )
         val startTs = System.currentTimeMillis()
         log.i("Restoring ${persistedSessions.size} sessions")
         val sessions = appGraph.sessionCache.runBatchRestore {
             val sessionJobs = persistedSessions.map { sessionData ->
                 scope.async {
-                    log.i("Restoring session for ${sessionData.userId}")
-                    getOrRestoreInBatch(UserId(sessionData.userId))
-                        .onFailure { log.e("Failed to restore session for ${sessionData.userId}", it) }
+                    val sessionId = SessionId(sessionData.userId)
+                    log.i("Restoring session for $sessionId")
+                    getOrRestoreInBatch(sessionId)
+                        .onFailure {
+                            log.e("Failed to restore session for $sessionId", it)
+                        }
+                        .also {
+                            globalLoadState.handleResult(LoadCheckPoint.Client(sessionId), it)
+                        }
                         .getOrNull()
                 }
             }
@@ -325,8 +341,17 @@ object UiState {
         }
     }
 
-    fun selectClient(sessionId: SessionId, scope: CoroutineScope) = matrixClients.map {
-        it[sessionId]
+    fun selectClient(
+        sessionId: SessionId,
+        scope: CoroutineScope,
+        loadStateHolder: LoadStateHolder? = null,
+    ) = matrixClients.map {
+        val client = it[sessionId]
+        loadStateHolder?.set(
+            LoadCheckPoint.Client(sessionId),
+            client.asCheckpointLoadedOrPending(),
+        )
+        client
     }.stateIn(scope, SharingStarted.Eagerly, null)
 
     fun currentClientFor(sessionId: SessionId) = matrixClients.value[sessionId]

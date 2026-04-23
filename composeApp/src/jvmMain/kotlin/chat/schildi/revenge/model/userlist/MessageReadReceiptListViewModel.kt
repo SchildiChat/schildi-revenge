@@ -5,6 +5,12 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.RoomContextSuggestionsProvider
+import chat.schildi.revenge.model.CheckpointLoadState
+import chat.schildi.revenge.model.LoadCheckPoint
+import chat.schildi.revenge.model.LoadStateHolder
+import chat.schildi.revenge.model.asCheckpointLoadState
+import chat.schildi.revenge.model.asCheckpointLoadedOrFailed
+import chat.schildi.revenge.model.asCheckpointLoadedOrPending
 import chat.schildi.revenge.util.flowClosable
 import co.touchlab.kermit.Logger
 import io.element.android.features.messages.impl.timeline.TimelineController
@@ -56,10 +62,22 @@ class MessageReadReceiptListViewModel(
 
     private val log = Logger.withTag("ReadReceiptViewModel")
 
-    private val clientFlow = UiState.selectClient(sessionId, viewModelScope)
+    private val loadStateHolder = LoadStateHolder(
+        LoadCheckPoint.Client(sessionId),
+        LoadCheckPoint.Room,
+        LoadCheckPoint.RoomMembers,
+        LoadCheckPoint.Timeline,
+        LoadCheckPoint.TimelineItems,
+    )
+    val loadState = loadStateHolder.state
+
+    private val clientFlow = UiState.selectClient(sessionId, viewModelScope, loadStateHolder)
 
     private val roomFlow = clientFlow.map { client ->
-        client?.getJoinedRoom(roomId)
+        client ?: return@map null
+        client.getJoinedRoom(roomId).also {
+            loadStateHolder.set(LoadCheckPoint.Room, it.asCheckpointLoadedOrFailed())
+        }
     }.flowClosable().stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val timelineController = roomFlow.map {
@@ -72,14 +90,22 @@ class MessageReadReceiptListViewModel(
 
     private val roomMembersState = roomFlow.flatMapLatest { room ->
         room?.membersStateFlow ?: flowOf()
+    }.onEach {
+        loadStateHolder.set(LoadCheckPoint.RoomMembers, it.asCheckpointLoadState())
     }
 
     val activeTimeline = timelineController.flatMapLatest {
         it?.activeTimelineFlow() ?: flowOf(null)
+    }.onEach {
+        loadStateHolder.set(LoadCheckPoint.Timeline, it.asCheckpointLoadedOrPending())
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val rawTimelineItems = activeTimeline.flatMapLatest {
-        it?.timelineItems ?: flowOf(null)
+        it?.timelineItems?.onEach {
+            loadStateHolder.set(LoadCheckPoint.TimelineItems, it.asCheckpointLoadedOrPending())
+        } ?: flowOf(null).also {
+            loadStateHolder.set(LoadCheckPoint.TimelineItems, CheckpointLoadState.PENDING)
+        }
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     override val allEntries: StateFlow<ImmutableList<ReadReceiptListItem>?> = combine(

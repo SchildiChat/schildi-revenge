@@ -54,7 +54,6 @@ import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.EditTextValue
 import chat.schildi.revenge.compose.components.EditableText
 import chat.schildi.revenge.compose.components.EmptyListScreen
-import chat.schildi.revenge.compose.destination.conversation.event.message.TextLikeMessageContent
 import chat.schildi.revenge.compose.destination.conversation.userlist.ConversationDetailsTopNavigation
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
@@ -66,7 +65,6 @@ import chat.schildi.revenge.model.RoomSettingsPermissions
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
 import chat.schildi.theme.scExposures
-import com.beeper.android.messageformat.MatrixBodyParseResult
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.RoomInfo
 import org.jetbrains.compose.resources.stringResource
@@ -122,6 +120,7 @@ fun RoomDetailsScreen(
                     icon = rememberVectorPainter(Icons.Default.Person),
                     isSearching = false,
                     isLoading = true,
+                    loadState = viewModel.loadState,
                     modifier = Modifier.fillMaxWidth().weight(1f),
                 )
             } else {
