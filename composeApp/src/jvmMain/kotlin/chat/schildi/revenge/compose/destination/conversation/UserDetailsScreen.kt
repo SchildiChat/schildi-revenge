@@ -73,7 +73,7 @@ fun UserDetailsScreen(
         val roomMemberInfo = viewModel.roomMember.collectAsState().value
         Column(contentModifier.fillMaxSize()) {
             ConversationDetailsTopNavigation(info?.displayName ?: viewModel.userId.value)
-            if (info == null) {
+            if (info == null && roomMemberInfo == null) {
                 EmptyListScreen(
                     title = Res.string.empty_screen_placeholder_unexpected.toStringHolder(),
                     icon = rememberVectorPainter(Icons.Default.Person),
@@ -92,7 +92,7 @@ fun UserDetailsScreen(
                         verticalArrangement = Dimens.verticalArrangement,
                     ) {
                         item {
-                            val primaryAvatar = roomMemberInfo?.avatarUrl ?: info.avatarUrl
+                            val primaryAvatar = roomMemberInfo?.avatarUrl ?: info?.avatarUrl
                             FlowRow(
                                 Modifier.fillMaxWidth().keyFocusable(
                                     role = FocusRole.LIST_ITEM,
@@ -103,11 +103,11 @@ fun UserDetailsScreen(
                                 horizontalArrangement = Arrangement.spacedBy(Dimens.horizontalItemPaddingBig, Alignment.CenterHorizontally),
                                 verticalArrangement = Arrangement.spacedBy(Dimens.horizontalItemPaddingBig, Alignment.CenterVertically),
                             ) {
-                                val secondaryAvatar = info.avatarUrl?.takeIf { it != primaryAvatar }
+                                val secondaryAvatar = info?.avatarUrl?.takeIf { it != primaryAvatar }
                                 AvatarImage(
                                     source = primaryAvatar?.let { MediaSource(it) },
                                     size = 128.dp,
-                                    displayName = roomMemberInfo?.displayName ?: info.displayName ?: info.userId.value,
+                                    displayName = roomMemberInfo?.displayName ?: info?.displayName ?: viewModel.userId.value,
                                     modifier = Modifier.keyFocusable(
                                         role = FocusRole.NESTED_AUX_ITEM,
                                         actionProvider = actionProvider(
@@ -130,9 +130,9 @@ fun UserDetailsScreen(
                                 }
                             }
                         }
-                        if (info.displayName != null || roomMemberInfo?.displayName != null) {
-                            val primaryName = roomMemberInfo?.displayName ?: info.displayName
-                            val secondaryName = info.displayName?.takeIf { it != primaryName }
+                        if (info?.displayName != null || roomMemberInfo?.displayName != null) {
+                            val primaryName = roomMemberInfo?.displayName ?: info?.displayName
+                            val secondaryName = info?.displayName?.takeIf { it != primaryName }
                             val text = buildString {
                                 primaryName?.let {
                                     append(it)
