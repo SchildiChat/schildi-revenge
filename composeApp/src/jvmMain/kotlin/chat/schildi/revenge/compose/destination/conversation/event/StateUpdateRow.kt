@@ -41,6 +41,7 @@ fun StateUpdateRow(
             text = text,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.weight(1f, fill = false),
         )
         timestamp?.let {
             Spacer(Modifier.width(Dimens.horizontalItemPadding))
