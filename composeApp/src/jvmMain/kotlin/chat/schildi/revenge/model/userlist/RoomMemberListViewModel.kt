@@ -19,6 +19,7 @@ import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.RoomInfo
 import io.element.android.libraries.matrix.api.room.RoomMember
+import io.element.android.libraries.matrix.api.room.RoomMembersState
 import io.element.android.libraries.matrix.api.room.RoomMembershipState
 import io.element.android.libraries.matrix.api.room.roomMembers
 import kotlinx.collections.immutable.ImmutableList
@@ -87,7 +88,12 @@ class RoomMemberListViewModel(
     }
 
     override val allEntries: StateFlow<ImmutableList<RoomMemberItem>?> = roomMembersState.map { state ->
-        val members = state.roomMembers() ?: return@map null
+        val members = when (state) {
+            is RoomMembersState.Ready -> state.roomMembers
+            is RoomMembersState.Pending -> state.prevRoomMembers?.takeIf { it.isNotEmpty() }
+            is RoomMembersState.Error -> state.prevRoomMembers
+            is RoomMembersState.Unknown -> null
+        } ?: return@map null
         members
             .filter {
                 it.membership == RoomMembershipState.JOIN ||
