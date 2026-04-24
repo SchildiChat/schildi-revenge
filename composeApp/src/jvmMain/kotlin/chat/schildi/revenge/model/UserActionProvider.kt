@@ -47,5 +47,6 @@ class UserActionProvider(
         ActionArgumentPrimitive.SessionId to sessionId.value,
         ActionArgumentPrimitive.UserId to userId.value,
         roomId?.value?.let { ActionArgumentPrimitive.RoomId to it },
+        roomId?.value?.let { ActionArgumentPrimitive.UserIdInRoom to userId.value },
     )
 }
