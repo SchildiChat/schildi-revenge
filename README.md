@@ -66,7 +66,7 @@ This list is not sufficient to consider the client feature-complete in any way.
     - [x] Render read receipts
     - [ ] Render media thumbnails & placeholders (+ open with external applications for advanced playback)
         - [x] Images
-        - [x] Video thumbnails
+        - [x] Video thumbnails if provided in the message event
         - [ ] Audio
         - [x] Files
     - [x] Render reactions
@@ -97,7 +97,7 @@ This list is not sufficient to consider the client feature-complete in any way.
         - [x] Identity resets
     - [ ] Failed message send retries: `EventTimelineHandler.sendHandleProvider()`
 - [x] Room member list
-- [ ] Commands
+- [x] Commands
     - [x] Create room
     - [x] Start DM
     - [x] Invite user
@@ -106,13 +106,12 @@ This list is not sufficient to consider the client feature-complete in any way.
     - [x] Copy room ID, room link
     - [x] Set favorite / low priority
     - [x] Copy account state to clipboard
-    - [ ] Send account state
-    - [ ] Send room account state
+- [ ] Account data devtools
 - [ ] Account management screen polish
 - [ ] Notifications
     - [x] Show desktop notifications
     - [x] Allow muting individual accounts
-    - [ ] Include room avatar in notification
+    - [x] Include sender avatar in notification
     - [ ] Cancel notifications / test behavior on various OSes
     - [ ] Allow clicking notifications to open the room
     - [ ] Improve notification reliability for sliding sync?
@@ -127,16 +126,16 @@ This list is not sufficient to consider the client feature-complete in any way.
 
 ### Feature-wishlist post-MVP
 
-- [ ] Split layouts
+- [x] Split layouts
     - [x] Vim-style splits for arbitrary destination splitting
     - [x] Multi-pane inbox & conversation
-    - [ ] Multi-pane conversation & conversation details
+    - [x] Multi-pane conversation & conversation details
 - [ ] Mark as read automatically while you scroll
 - [ ] Verify other devices via emoji
 - [ ] MAS + rotating token support (need to re-persist session data)
 - [ ] MAS: support generating QR for quick sign in of mobile devices
-- [ ] Threads (optional thread view, will want to show threaded messages in the main timeline by default as well)
-- [ ] Expose command line message interface to e.g. "open list for account X with filters Y"
+- [x] Threads (optional thread view, will want to show threaded messages in the main timeline by default as well)
+- [x] Expose command line message interface
 - [ ] More UI for "advanced" features
     - [ ] Account settings
         - [ ] Own user profile settings
@@ -148,7 +147,7 @@ This list is not sufficient to consider the client feature-complete in any way.
     - [ ] Media viewer
     - [ ] ...
 - [ ] Custom theming
-- [ ] Send / render blurhashes
+- [x] Send / render blurhashes
 - [ ] Generate & send media thumbnails
 - [ ] Send custom emotes & stickers
 

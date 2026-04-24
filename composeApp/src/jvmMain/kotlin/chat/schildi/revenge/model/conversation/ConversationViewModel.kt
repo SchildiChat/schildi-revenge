@@ -1421,6 +1421,7 @@ class ConversationViewModel(
         val attachment = when (attachmentType) {
             MimeUtil.AttachmentKind.IMAGE -> {
                 val measures = MediaInfoUtil.probeImage(file)
+                val blurhash = MediaInfoUtil.generateImageBlurHash(file) ?: ""
                 Attachment.Image(
                     file = file,
                     thumbnailFile = null, // TODO?
@@ -1431,7 +1432,7 @@ class ConversationViewModel(
                         size = fileSize,
                         thumbnailInfo = null,
                         thumbnailSource = null,
-                        blurhash = "", // TODO why is SDK/FFI refusing to send without blurhash
+                        blurhash = blurhash,
                     ),
                 )
             }
