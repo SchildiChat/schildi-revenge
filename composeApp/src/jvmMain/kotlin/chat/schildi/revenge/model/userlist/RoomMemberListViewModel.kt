@@ -11,6 +11,7 @@ import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.LoadStateHolder
+import chat.schildi.revenge.model.RoomActionProvider
 import chat.schildi.revenge.model.asCheckpointLoadState
 import chat.schildi.revenge.model.asCheckpointLoadedOrFailed
 import chat.schildi.revenge.util.flowClosable
@@ -21,7 +22,6 @@ import io.element.android.libraries.matrix.api.room.RoomInfo
 import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.room.RoomMembersState
 import io.element.android.libraries.matrix.api.room.RoomMembershipState
-import io.element.android.libraries.matrix.api.room.roomMembers
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
@@ -70,7 +70,7 @@ class RoomMemberListViewModel(
 
     private val roomFlow = clientFlow.map { client ->
         client ?: return@map null
-        client.getRoom(roomId).also {
+        (client.getJoinedRoom(roomId) ?: client.getRoom(roomId)).also {
             loadStateHolder.set(LoadCheckPoint.Room, it.asCheckpointLoadedOrFailed())
         }
     }.flowClosable().stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -129,6 +129,14 @@ class RoomMemberListViewModel(
     )
 
     override val userIdInRoomSuggestions = userIdInRoomSuggestionsFlow()
+
+    val actionProvider = RoomActionProvider(
+        sessionId = sessionId,
+        roomId = roomId,
+        isInvite = false,
+        peekClient = { clientFlow.value },
+        peekRoom = { roomFlow.value },
+    )
 
     val roomContextSuggestionsProvider = RoomContextSuggestionsProvider(
         sessionId = sessionId,

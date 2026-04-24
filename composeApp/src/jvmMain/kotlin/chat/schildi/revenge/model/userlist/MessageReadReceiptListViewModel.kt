@@ -8,6 +8,7 @@ import chat.schildi.revenge.actions.RoomContextSuggestionsProvider
 import chat.schildi.revenge.model.CheckpointLoadState
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.LoadStateHolder
+import chat.schildi.revenge.model.RoomActionProvider
 import chat.schildi.revenge.model.asCheckpointLoadState
 import chat.schildi.revenge.model.asCheckpointLoadedOrFailed
 import chat.schildi.revenge.model.asCheckpointLoadedOrPending
@@ -135,6 +136,14 @@ class MessageReadReceiptListViewModel(
     )
 
     override val userIdInRoomSuggestions = userIdInRoomSuggestionsFlow()
+
+    val actionProvider = RoomActionProvider(
+        sessionId = sessionId,
+        roomId = roomId,
+        isInvite = false,
+        peekClient = { clientFlow.value },
+        peekRoom = { roomFlow.value },
+    )
 
     val roomContextSuggestionsProvider = RoomContextSuggestionsProvider(
         sessionId = sessionId,

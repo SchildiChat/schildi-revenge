@@ -17,9 +17,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.ListActions
+import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
 import chat.schildi.revenge.actions.LocalUserIdSuggestionsProvider
+import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.components.EmptyListScreen
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
@@ -54,6 +56,7 @@ fun MessageReadReceiptsScreen(
         LocalSearchProvider provides viewModel,
         LocalUserIdSuggestionsProvider provides viewModel,
         LocalRoomContextSuggestionsProvider provides viewModel.roomContextSuggestionsProvider,
+        LocalKeyboardActionProvider provides viewModel.actionProvider.hierarchicalKeyboardActionProvider(),
         LocalListActionProvider provides listAction,
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
         modifier = modifier.fillMaxSize(),

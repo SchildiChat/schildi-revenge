@@ -5,6 +5,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.RoomContextSuggestionsProvider
+import chat.schildi.revenge.model.RoomActionProvider
 import chat.schildi.revenge.model.CheckpointLoadState
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.LoadStateHolder
@@ -140,6 +141,14 @@ class MessageReactionListViewModel(
     )
 
     override val userIdInRoomSuggestions = userIdInRoomSuggestionsFlow()
+
+    val actionProvider = RoomActionProvider(
+        sessionId = sessionId,
+        roomId = roomId,
+        isInvite = false,
+        peekClient = { clientFlow.value },
+        peekRoom = { roomFlow.value },
+    )
 
     val roomContextSuggestionsProvider = RoomContextSuggestionsProvider(
         sessionId = sessionId,
