@@ -25,6 +25,7 @@ beeperMessageFormat = "f09b5646f9df0f1ef37d6a557a6bef03cd33906f"
 dbusJava = "5.2.0"
 skiko = "0.9.37.4"
 clikt = "5.1.0"
+blurhash = "0.3.0"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -70,6 +71,7 @@ dbus-java-core = { module = "com.github.hypfvieh:dbus-java-core", version.ref = 
 dbus-java-transport-native-unixsocket = { module = "com.github.hypfvieh:dbus-java-transport-native-unixsocket", version.ref = "dbusJava" }
 skiko = { module = "org.jetbrains.skiko:skiko", version.ref = "skiko" }
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
+vanniktech-blurhash = { module = "com.vanniktech:blurhash", version.ref = "blurhash" }
 
 [plugins]
 versions = { id = "com.github.ben-manes.versions", version.ref = "versionsPlugin" }

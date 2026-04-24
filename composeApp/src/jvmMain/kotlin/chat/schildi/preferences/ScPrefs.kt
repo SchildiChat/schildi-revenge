@@ -106,6 +106,8 @@ import shire.composeapp.generated.resources.pref_client_side_sort_by_unread_summ
 import shire.composeapp.generated.resources.pref_client_side_sort_by_unread_title
 import shire.composeapp.generated.resources.pref_dual_mention_unread_counts_summary
 import shire.composeapp.generated.resources.pref_dual_mention_unread_counts_title
+import shire.composeapp.generated.resources.pref_force_render_blurhash_summary
+import shire.composeapp.generated.resources.pref_force_render_blurhash_title
 import shire.composeapp.generated.resources.pref_indicate_unread_count_underestimates_summary
 import shire.composeapp.generated.resources.pref_indicate_unread_count_underestimates_title
 import shire.composeapp.generated.resources.pref_locale
@@ -194,6 +196,7 @@ object ScPrefs {
     // Developer options
     val RENDER_AVATAR_STATES = ScBoolPref("RENDER_AVATAR_STATES", false, Res.string.pref_debug_avatar_render_states_title)
     val SHOW_DEV_INFOS = ScBoolPref("SHOW_DEV_INFOS", false, Res.string.pref_show_dev_infos_title, Res.string.pref_show_dev_infos_summary)
+    val FORCE_RENDER_BLURHASH = ScBoolPref("FORCE_RENDER_BLURHASH", false, Res.string.pref_force_render_blurhash_title, Res.string.pref_force_render_blurhash_summary)
     val FRAME_DROP_SPINNER = ScBoolPref("FRAME_DROP_SPINNER", false, Res.string.pref_framed_rop_spinner_title, Res.string.pref_framed_rop_spinner_summary)
 
     // Appearance
@@ -392,6 +395,7 @@ object ScPrefs {
             RENDER_AVATAR_STATES,
             VIEW_HIDDEN_EVENTS,
             SHOW_DEV_INFOS,
+            FORCE_RENDER_BLURHASH,
             FRAME_DROP_SPINNER,
         )),
     ))

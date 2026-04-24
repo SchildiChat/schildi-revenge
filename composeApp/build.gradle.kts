@@ -57,6 +57,7 @@ kotlin {
             implementation(libs.ktor.core)
             implementation(libs.jsoup)
             implementation(libs.beeper.messageformat)
+            implementation(libs.vanniktech.blurhash)
 
             implementation(projects.matrix)
             implementation(projects.config)

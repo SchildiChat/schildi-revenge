@@ -40,6 +40,9 @@ fun VideoMessage(
 ) {
     VideoMessage(
         source = video.info?.thumbnailSource ?: video.source,
+        blurhash = video.info?.blurhash,
+        width = video.info?.width,
+        height = video.info?.height,
         messageMetadata = messageMetadata,
         caption = video.caption,
         isOwn = isOwn,
@@ -53,6 +56,9 @@ fun VideoMessage(
 @Composable
 fun VideoMessage(
     source: MediaSource,
+    blurhash: String? = null,
+    width: Long? = null,
+    height: Long? = null,
     messageMetadata: MessageMetadata?,
     caption: String?,
     isOwn: Boolean,
@@ -90,6 +96,9 @@ fun VideoMessage(
         )
         VideoMessageContent(
             model = MediaRequestData(source, MediaRequestData.Kind.Thumbnail(1000)),
+            blurhash = blurhash,
+            width = width,
+            height = height,
             minWidth = Dimens.Conversation.imageMinWidth,
             minHeight = Dimens.Conversation.imageMinHeight,
             maxWidth = Dimens.Conversation.imageMaxWidth,
@@ -107,6 +116,9 @@ fun VideoMessage(
 @Composable
 fun ColumnScope.VideoMessageContent(
     model: Any,
+    blurhash: String? = null,
+    width: Long? = null,
+    height: Long? = null,
     minWidth: Dp,
     minHeight: Dp,
     maxWidth: Dp,
@@ -117,6 +129,9 @@ fun ColumnScope.VideoMessageContent(
 ) {
     ImageMessageContent(
         model = model,
+        blurhash = blurhash,
+        width = width,
+        height = height,
         minWidth = minWidth,
         minHeight = minHeight,
         maxWidth = maxWidth,
