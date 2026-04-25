@@ -50,7 +50,7 @@ fun ComposerAttachment(
                 }
                 is Attachment.Video -> {
                     VideoMessageContent(
-                        model = attachment.file,
+                        model = attachment.thumbnail?.data ?: attachment.file,
                         minWidth = Dimens.Conversation.imageMinWidth,
                         minHeight = Dimens.Conversation.imageMinHeight,
                         maxWidth = Dimens.Conversation.imageMaxWidth,

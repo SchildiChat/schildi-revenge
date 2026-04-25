@@ -64,7 +64,7 @@ This list is not sufficient to consider the client feature-complete in any way.
     - [x] Render formatted text and notices
     - [x] Send text messages
     - [x] Render read receipts
-    - [ ] Render media thumbnails & placeholders (+ open with external applications for advanced playback)
+    - [x] Render media thumbnails & placeholders (+ open with external applications for advanced playback)
         - [x] Images
         - [x] Video thumbnails if provided in the message event
         - [ ] Audio
@@ -148,7 +148,7 @@ This list is not sufficient to consider the client feature-complete in any way.
     - [ ] ...
 - [ ] Custom theming
 - [x] Send / render blurhashes
-- [ ] Generate & send media thumbnails
+- [x] Generate & send media thumbnails (requires ffmpeg installed for video thumbnails)
 - [ ] Send custom emotes & stickers
 
 

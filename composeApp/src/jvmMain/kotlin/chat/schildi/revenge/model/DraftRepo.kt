@@ -13,6 +13,7 @@ import io.element.android.libraries.matrix.api.media.FileInfo
 import io.element.android.libraries.matrix.api.media.ImageInfo
 import io.element.android.libraries.matrix.api.media.VideoInfo
 import io.element.android.libraries.matrix.api.room.IntentionalMention
+import io.element.android.libraries.matrix.api.timeline.InMemoryMediaThumbnail
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 import kotlinx.collections.immutable.ImmutableList
@@ -22,7 +23,6 @@ import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.serialization.SerializationException
@@ -69,7 +69,7 @@ sealed interface Attachment {
     val file: File
 
     sealed interface VisualAttachment : Attachment {
-        val thumbnailFile: File?
+        val thumbnail: InMemoryMediaThumbnail?
     }
 
     // TODO metadata as appropriate?
@@ -77,12 +77,12 @@ sealed interface Attachment {
     data class Generic(override val file: File, val fileInfo: FileInfo) : Attachment // Not called "File" to make it less confusing with java File
     data class Image(
         override val file: File,
-        override val thumbnailFile: File?,
+        override val thumbnail: InMemoryMediaThumbnail?,
         val imageInfo: ImageInfo,
     ) : VisualAttachment
     data class Video(
         override val file: File,
-        override val thumbnailFile: File?,
+        override val thumbnail: InMemoryMediaThumbnail?,
         val videoInfo: VideoInfo,
     ) : VisualAttachment
 }

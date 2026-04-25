@@ -95,6 +95,7 @@ import io.element.android.libraries.matrix.api.media.AudioInfo
 import io.element.android.libraries.matrix.api.media.FileInfo
 import io.element.android.libraries.matrix.api.media.ImageInfo
 import io.element.android.libraries.matrix.api.media.MediaSource
+import io.element.android.libraries.matrix.api.media.ThumbnailInfo
 import io.element.android.libraries.matrix.api.media.VideoInfo
 import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import io.element.android.libraries.matrix.api.room.IntentionalMention
@@ -179,6 +180,7 @@ import java.lang.IllegalArgumentException
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.io.path.toPath
 import kotlin.math.max
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val TYPING_NOTICE_REPEAT_INTERVAL = 5000L
 
@@ -744,7 +746,7 @@ class ConversationViewModel(
                             is Attachment.Image -> {
                                 currentTimeline.sendImage(
                                     file = attachment.file,
-                                    thumbnailFile = attachment.thumbnailFile,
+                                    thumbnailFile = null, // TODO?
                                     imageInfo = attachment.imageInfo,
                                     caption = caption,
                                     formattedCaption = formattedCaption,
@@ -754,9 +756,9 @@ class ConversationViewModel(
                             }
 
                             is Attachment.Video -> {
-                                currentTimeline.sendVideo(
+                                currentTimeline.sendVideoWithInMemoryThumbnail(
                                     file = attachment.file,
-                                    thumbnailFile = attachment.thumbnailFile,
+                                    thumbnail = attachment.thumbnail,
                                     videoInfo = attachment.videoInfo,
                                     caption = caption,
                                     formattedCaption = formattedCaption,
@@ -1424,7 +1426,7 @@ class ConversationViewModel(
                 val blurhash = MediaInfoUtil.generateImageBlurHash(file) ?: ""
                 Attachment.Image(
                     file = file,
-                    thumbnailFile = null, // TODO?
+                    thumbnail = null, // TODO?
                     imageInfo = ImageInfo(
                         height = measures.height?.toLong(),
                         width = measures.width?.toLong(),
@@ -1437,18 +1439,28 @@ class ConversationViewModel(
                 )
             }
             MimeUtil.AttachmentKind.VIDEO -> {
+                val thumbnail = MediaInfoUtil.generateVideoThumbnail(file)
+                val blurhash = thumbnail?.let { MediaInfoUtil.generateImageBlurHash(it.thumbnail.data) } ?: ""
+                val thumbnailSize = thumbnail?.thumbnail?.data?.size?.toLong()
                 Attachment.Video(
                     file = file,
-                    thumbnailFile = null, // TODO?
+                    thumbnail = thumbnail?.thumbnail,
                     videoInfo = VideoInfo(
-                        duration = null,
-                        height = null,
-                        width = null,
+                        duration = thumbnail?.videoMeasures?.durationMs?.milliseconds,
+                        height = thumbnail?.videoMeasures?.height?.toLong(),
+                        width = thumbnail?.videoMeasures?.width?.toLong(),
                         mimetype = mimetype,
                         size = fileSize,
-                        thumbnailInfo = null,
+                        thumbnailInfo = thumbnail?.thumbnailMeasures?.let {
+                            ThumbnailInfo(
+                                height = it.height?.toLong(),
+                                width = it.width?.toLong(),
+                                mimetype = "image/jpeg",
+                                size = thumbnailSize,
+                            )
+                        },
                         thumbnailSource = null,
-                        blurhash = "", // TODO why is SDK/FFI refusing to send without blurhash
+                        blurhash = blurhash,
                     ),
                 )
             }

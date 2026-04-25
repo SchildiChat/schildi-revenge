@@ -134,6 +134,17 @@ interface Timeline : AutoCloseable {
         inReplyToEventId: EventId?,
     ): Result<MediaUploadHandler>
 
+    // SC
+    suspend fun sendVideoWithInMemoryThumbnail(
+        file: File,
+        thumbnail: InMemoryMediaThumbnail?,
+        videoInfo: VideoInfo,
+        caption: String?,
+        formattedCaption: String?,
+        plaintext: Boolean = false,
+        inReplyToEventId: EventId?,
+    ): Result<MediaUploadHandler>
+
     suspend fun sendAudio(
         file: File,
         audioInfo: AudioInfo,

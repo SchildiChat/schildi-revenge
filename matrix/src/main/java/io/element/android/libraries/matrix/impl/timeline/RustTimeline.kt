@@ -23,6 +23,7 @@ import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.room.isDm
 import io.element.android.libraries.matrix.api.room.location.AssetType
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
+import io.element.android.libraries.matrix.api.timeline.InMemoryMediaThumbnail
 import io.element.android.libraries.matrix.api.timeline.MsgType
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
@@ -460,6 +461,39 @@ class RustTimeline(
                     inReplyTo = inReplyToEventId?.value,
                 ),
                 thumbnailSource = thumbnailFile?.path?.let(UploadSource::File),
+                videoInfo = videoInfo.map(),
+            )
+        }
+    }
+
+    // SC
+    override suspend fun sendVideoWithInMemoryThumbnail(
+        file: File,
+        thumbnail: InMemoryMediaThumbnail?,
+        videoInfo: VideoInfo,
+        caption: String?,
+        formattedCaption: String?,
+        plaintext: Boolean,
+        inReplyToEventId: EventId?,
+    ): Result<MediaUploadHandler> {
+        Timber.tag(loggerTag).d("Sending video ${file.path.hash()}")
+        return sendAttachment(listOf(file)) {
+            inner.sendVideo(
+                params = UploadParameters(
+                    source = UploadSource.File(file.path),
+                    caption = caption,
+                    formattedCaption = formattedCaption?.let {
+                        FormattedBody(body = it, format = MessageFormat.Html)
+                    },
+                    mentions = null,
+                    inReplyTo = inReplyToEventId?.value,
+                ),
+                thumbnailSource = thumbnail?.let {
+                    UploadSource.Data(
+                        bytes = thumbnail.data,
+                        filename = thumbnail.filename,
+                    )
+                },
                 videoInfo = videoInfo.map(),
             )
         }
