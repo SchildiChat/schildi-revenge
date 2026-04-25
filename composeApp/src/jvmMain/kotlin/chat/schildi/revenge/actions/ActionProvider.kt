@@ -2,6 +2,7 @@ package chat.schildi.revenge.actions
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.compose.util.ComposableStringHolder
@@ -41,8 +42,19 @@ fun actionProvider(
     keyActions: KeyboardActionProvider<*>? = LocalKeyboardActionProvider.current,
     userIdSuggestionsProvider: UserIdSuggestionsProvider? = LocalUserIdSuggestionsProvider.current,
     roomContextSuggestionsProvider: RoomContextSuggestionsProvider? = LocalRoomContextSuggestionsProvider.current,
-): ActionProvider {
-    return ActionProvider(
+): ActionProvider = remember(
+    searchProvider,
+    primaryAction,
+    secondaryAction,
+    tertiaryAction,
+    copyActions,
+    editActions,
+    listActions,
+    keyActions,
+    userIdSuggestionsProvider,
+    roomContextSuggestionsProvider,
+) {
+    ActionProvider(
         searchProvider = searchProvider,
         primaryAction = primaryAction,
         secondaryAction = secondaryAction,

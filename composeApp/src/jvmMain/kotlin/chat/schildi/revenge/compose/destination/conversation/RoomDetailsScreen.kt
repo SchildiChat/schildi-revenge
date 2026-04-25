@@ -172,6 +172,7 @@ fun RoomDetailsScreen(
                                     renderColor = MaterialTheme.colorScheme.onSurface,
                                     style = MaterialTheme.typography.bodyLarge,
                                     persist = viewModel::setRoomName,
+                                    horizontalAlignment = Alignment.CenterHorizontally,
                                     textAlign = TextAlign.Center,
                                     emptyFallbackText = stringResource(Res.string.hint_no_room_name),
                                     canEdit = permissions.canEditName,

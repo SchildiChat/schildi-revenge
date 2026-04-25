@@ -550,6 +550,7 @@ class KeyboardActionHandler(
             }
 
             is InteractionAction.Invoke -> action.invoke()
+            is InteractionAction.HandleAction -> handleAction(action.focusId, action.action, action.args) is ActionResult.Success
             is InteractionAction.CopyToClipboard -> {
                 val context = getActionContext(destinationStateHolder?.state?.value?.destination)
                 copyToClipboard(context, action.text, action.text.toStringHolder()) is ActionResult.Success
@@ -1224,6 +1225,10 @@ class KeyboardActionHandler(
                 }
                 Action.PlaintextEditAble.DiscardEdit -> {
                     if (setEditableExpecting(null, editActions.editId)) {
+                        // Collapsing an editable can move the current focus out of composition
+                        editActions.stableFocusId?.let {
+                            focusableTargets[it]?.focusRequester?.requestFocus()
+                        }
                         ActionResult.Success()
                     } else {
                         ActionResult.Inapplicable
@@ -1232,6 +1237,10 @@ class KeyboardActionHandler(
                 Action.PlaintextEditAble.SaveEdit -> {
                     val editId = editActions.editId
                     val appMessageId = "saveEdit/$editId"
+                    // Collapsing an editable can move the current focus out of composition
+                    editActions.stableFocusId?.let {
+                        focusableTargets[it]?.focusRequester?.requestFocus()
+                    }
                     context.launchActionAsync(
                         "saveEdit/$editId",
                         GlobalActionsScope,

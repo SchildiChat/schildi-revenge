@@ -24,6 +24,7 @@ object Dimens {
     val verticalArrangement = Arrangement.spacedBy(listPadding)
     val verticalArrangementSmall = Arrangement.spacedBy(listPaddingSmall)
 
+    val squareButtonClip = RoundedCornerShape(4.dp)
     val avatarShape = RoundedCornerShape(12.dp)
     val ownAccountAvatarShape = CircleShape
 

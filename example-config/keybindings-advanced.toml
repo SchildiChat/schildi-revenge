@@ -7,12 +7,12 @@ global = [
     { key = "T", ctrl = true, shift = true, action = "ToggleSetting", args = ["THREAD_REPLIES_IN_MAIN_TIMELINE"] },
     { key = "S", ctrl = true, action = "ToggleSetting", args = ["RENDER_SCALE", "1.8", "1.0"] },
     { key = "U", ctrl = true, action = "ToggleSetting", args = ["SORT_BY_UNREAD"], destinations = ["Inbox"] },
-    { key = "L", ctrl = true, action = "ToggleSetting", args = ["BURY_LOW_PRIORITY"], destinations = ["Inbox"] },
-    { key = "F", ctrl = true, action = "ToggleSetting", args = ["PIN_FAVORITES"], destinations = ["Inbox"] },
     { key = "H", ctrl = true, action = "ToggleSetting", args = ["VIEW_HIDDEN_EVENTS"], destinations = ["Conversation", "ConversationThread"] },
+    { key = "D", ctrl = true, shift = true, action = "ToggleSetting", args = ["VIEW_REDACTIONS"], destinations = ["Conversation", "ConversationThread"] },
     { key = "K", ctrl = true, action = "ToggleSetting", args = ["MINIMAL_MODE"] },
     { key = "F", ctrl = true, action = "ToggleSetting", args = ["PREFERRED_MESSAGE_FORMAT", "MARKDOWN", "HTML", "PLAIN"], destinations = ["Conversation", "ConversationThread"] },
     { key = "F", ctrl = true, shift = true, action = "ToggleSetting", args = ["FORMATTED_COMPOSER_PREVIEW"], destinations = ["Conversation", "ConversationThread"] },
+    { key = "B", ctrl = true, shift = true, action = "ToggleSetting", args = ["FORCE_RENDER_BLURHASH"], destinations = ["Conversation", "ConversationThread"] },
     { key = "X", ctrl = true, shift = true, action = "Exit" },
     { key = "R", ctrl = true, action = "RecreateWindow" },
     { key = "R", ctrl = true, shift = true, action = "RecreateUi" },
@@ -43,9 +43,10 @@ inbox = [
     { key = "H", action = "NavigateSpaceRelative", args = ["-1"] },
     { key = "I", action = "NavigateSpaceRelative", args = ["1"] },
     { key = "Zero", action = "SelectSpace", args = ["0"] },
-    { key = "Equals", shift = true, action = "SelectSpaceIfNotHidden", args = ["p:notif"] },
-    { key = "Equals", shift = true, action = "SelectSpace", args = ["p:unread"] },
-    { key = "Equals", shift = true, action = "SelectSpace", args = ["p:notif"] },
+    { key = "Equals", shift = true, action = "SelectSpaceIfNotHidden", args = ["notif"] },
+    { key = "Equals", shift = true, action = "SelectSpace", args = ["unread"] },
+    { key = "Equals", shift = true, action = "SelectSpace", args = ["notif"] },
+    { key = "D", action = "SelectSpace", args = ["dm"] },
 ]
 room = [
     { key = "M", ctrl = true, action = "MarkRoomRead", destinations = ["Inbox"] },
@@ -120,7 +121,8 @@ navigation = [
     { key = "U", ctrl = true, action = "NavigateAuto", args = ["user"], destinations = ["Conversation", "ConversationThread", "RoomMembers", "MessageReactions", "MessageReadReceipts"] },
     { key = "T", shift = true, action = "NavigateAuto", args = ["thread"], destinations = ["Conversation", "ConversationThread"] },
     { key = "X", action = "CloseWindowUnlessLast" },
-    { key = "F", alt = true, action = "CloseWindowUnlessLast", destinations = ["Conversation"] },
+    { key = "X", action = "NavigateCurrent", args = ["InboxConversationSplit"], notDestinations = ["InboxConversationSplit", "Inbox"] },
+    { key = "F", alt = true, action = "CloseWindowUnlessLast", destinations = ["Conversation", "ConversationThread"] },
 ]
 navigationItem = [
     { key = "Enter", action = "NavigateCurrent" },
@@ -134,7 +136,7 @@ copyAble = [
 ]
 editAble = [
     { key = "J", action = "LaunchEdit" },
-    { key = "Escape", action = "DiscardEdit" },
+    { key = "Escape", shift = true, action = "DiscardEdit" },
     { key = "Enter", ctrl = true, action = "SaveEdit" },
 ]
 focus = [
@@ -144,6 +146,10 @@ focus = [
     { key = "DirectionDown", action = "FocusDown" },
     { key = "DirectionLeft", action = "FocusLeft" },
     { key = "DirectionRight", action = "FocusRight" },
+    { key = "DirectionUp", ctrl = true, action = "FocusUp" },
+    { key = "DirectionDown", ctrl = true, action = "FocusDown" },
+    { key = "DirectionLeft", ctrl = true, action = "FocusLeft" },
+    { key = "DirectionRight", ctrl = true, action = "FocusRight" },
     { key = "E", action = "FocusUp" },
     { key = "N", action = "FocusDown" },
     { key = "H", shift = true, action = "FocusVisibleListTop" },
@@ -162,8 +168,8 @@ focus = [
     { key = "G", shift = true, action = "FocusVisibleListBottom", chain = true },
 ]
 list = [
-    { key = "G", action = "ScrollToStart", chain = true, notDestinations = ["ConversationThread"] },
-    { key = "G", action = "ScrollToTop", chain = true, destinations = ["ConversationThread"] },
+    { key = "G", action = "ScrollToStart", chain = true },
+    { key = "G", ctrl = true, action = "ScrollToTop", chain = true },
     { key = "G", shift = true, action = "ScrollToBottom", chain = true },
 ]
 split = [
