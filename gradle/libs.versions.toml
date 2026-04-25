@@ -1,29 +1,28 @@
 [versions]
-versionsPlugin = "0.53.0"
-androidx-lifecycle = "2.9.6"
+versionsPlugin = "0.54.0"
+androidx-lifecycle = "2.10.0"
 androidx-datastore = "1.2.1"
 composeHotReload = "1.0.0"
-composeMultiplatform = "1.10.2"
+composeMultiplatform = "1.10.3"
 composeMaterial3 = "1.9.0"
 composeMaterialIconsExtended = "1.7.3"
 junit = "4.13.2"
-kotlin = "2.3.10"
+kotlin = "2.3.21"
 kotlinx-coroutines = "1.10.2"
 kotlinx-datetime = "0.7.1"
-jetbrainsKotlinJvm = "2.3.10"
+jetbrainsKotlinJvm = "2.3.21"
 jna = "5.18.1"
-kotlinxSerialization = "1.10.0"
-metro = "0.11.2"
+kotlinxSerialization = "1.11.0"
+metro = "0.13.2"
 coil = "3.4.0"
 kdroidfilterPlatformtools = "0.7.5"
-kdroidfilterComposeNativeTray = "1.1.0"
+kdroidfilterComposeNativeTray = "1.3.0"
 kdroidfilterKnotify = "0.4.3"
 ktoml = "0.7.1"
-ktor = "3.4.1"
-jsoup = "1.22.1"
-beeperMessageFormat = "f09b5646f9df0f1ef37d6a557a6bef03cd33906f"
+ktor = "3.4.3"
+jsoup = "1.22.2"
+beeperMessageFormat = "10242add9dbeefe02c8d63e8392ffe5343becf93"
 dbusJava = "5.2.0"
-skiko = "0.9.37.4"
 clikt = "5.1.0"
 blurhash = "0.3.0"
 
@@ -69,7 +68,6 @@ beeper-messageformat = { module = "com.github.beeper.matrix-messageformat-compos
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 dbus-java-core = { module = "com.github.hypfvieh:dbus-java-core", version.ref = "dbusJava" }
 dbus-java-transport-native-unixsocket = { module = "com.github.hypfvieh:dbus-java-transport-native-unixsocket", version.ref = "dbusJava" }
-skiko = { module = "org.jetbrains.skiko:skiko", version.ref = "skiko" }
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 vanniktech-blurhash = { module = "com.vanniktech:blurhash", version.ref = "blurhash" }
 
