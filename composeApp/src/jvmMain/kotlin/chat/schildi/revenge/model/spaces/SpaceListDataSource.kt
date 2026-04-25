@@ -46,6 +46,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -81,6 +82,16 @@ data class SpaceBuilderRoom(
         client.sessionId,
         summary,
         latestEventMessageMetadata = null, // We're not going to render message previews for spaces
+    )
+}
+
+data class SpaceOrphanCatcher(
+    val excludedRooms: ImmutableSet<String>,
+    val instances: ImmutableList<PerSession>,
+) {
+    data class PerSession(
+        val sessionId: SessionId,
+        val filterIsDirect: Boolean?,
     )
 }
 
@@ -180,19 +191,19 @@ class SpaceListDataSource(
                 pseudoSpaceSettings.groups,
             )
         )
-        val spacelessRooms = spaceSummaries.flatMap { it.summary.info.spaceChildren.map { it.roomId } }.toImmutableList()
+        val spacedRooms = spaceSummaries.flatMap { it.summary.info.spaceChildren.map { it.roomId } }.toImmutableSet()
         pseudoSpaces.add(
             SpacelessGroupsPseudoSpaceItem(
                 StringResourceHolder(Res.string.pseudo_space_spaceless_groups_short),
                 pseudoSpaceSettings.spacelessGroups,
-                spacelessRooms,
+                spacedRooms,
             )
         )
         pseudoSpaces.add(
             SpacelessPseudoSpaceItem(
                 StringResourceHolder(Res.string.pseudo_space_spaceless_short),
                 pseudoSpaceSettings.spaceless,
-                spacelessRooms,
+                spacedRooms,
                 pseudoSpaceSettings.spacelessGroups
             )
         )
@@ -231,7 +242,7 @@ class SpaceListDataSource(
                 )
             }
         )
-        return pseudoSpaces + buildSpaceHierarchy(spaceSummaries, spaceComparator)
+        return pseudoSpaces + buildSpaceHierarchy(spaceSummaries, spaceComparator, spacedRooms)
     }
 
     // Force rebuilding a space filter. Only a workaround until we can do proper listener to m.space.child state events...
@@ -245,6 +256,7 @@ class SpaceListDataSource(
     private suspend fun buildSpaceHierarchy(
         spaceSummaries: List<SpaceBuilderRoom>,
         spaceComparator: SpaceComparator,
+        spacedRooms: ImmutableSet<String>,
     ): List<AbstractSpaceHierarchyItem> {
         // Map spaceId -> list of child spaces
         val spaceHierarchyMap = HashMap<ScopedSpaceId, MutableList<Pair<MatrixSpaceChildInfo, SpaceBuilderRoom>>>()
@@ -277,7 +289,8 @@ class SpaceListDataSource(
                 order,
                 spaceComparator,
                 spaceHierarchyMap,
-                regularChildren
+                regularChildren,
+                spacedRooms = spacedRooms,
             )
         }.sortedWith(spaceComparator)
     }
@@ -289,6 +302,7 @@ class SpaceListDataSource(
         hierarchy: HashMap<ScopedSpaceId, MutableList<Pair<MatrixSpaceChildInfo, SpaceBuilderRoom>>>,
         regularChildren: HashMap<ScopedSpaceId, MutableList<MatrixSpaceChildInfo>>,
         forbiddenChildren: List<ScopedSpaceId> = emptyList(),
+        spacedRooms: ImmutableSet<String>,
     ): SpaceHierarchyItem {
         // Space children
         val children = hierarchy[spaceSummary.id]?.mapNotNull { (spaceChildInfo, child) ->
@@ -303,6 +317,7 @@ class SpaceListDataSource(
                     hierarchy,
                     regularChildren,
                     forbiddenChildren + listOf(spaceSummary.id),
+                    spacedRooms,
                 )
             }
         }?.sortedWith(spaceComparator)?.toImmutableList() ?: persistentListOf()
@@ -310,6 +325,18 @@ class SpaceListDataSource(
         // Room children
         val directChildrenRooms = regularChildren[spaceSummary.id].orEmpty().map {
             ScopedRoomKey(spaceSummary.client.sessionId, RoomId(it.roomId))
+        }
+
+        val directOrphanCatcher = spaceSummary.summary.info.spaceCatchAll?.takeIf { it.includeOrphans }?.let {
+            SpaceOrphanCatcher(
+                excludedRooms = spacedRooms,
+                instances = persistentListOf(
+                    SpaceOrphanCatcher.PerSession(
+                        sessionId = spaceSummary.id.sessionId,
+                        filterIsDirect = it.filterIsDirect,
+                    )
+                )
+            )
         }
 
         return SpaceHierarchyItem(
@@ -320,7 +347,9 @@ class SpaceListDataSource(
             flattenedRooms = (
                 // All direct + indirect children rooms
                 directChildrenRooms + children.flatMap { it.flattenedRooms }
-                ).toImmutableSet(),
+            ).toImmutableSet(),
+            orphanCatcher = (listOfNotNull(directOrphanCatcher) + children.mapNotNull { it.orphanCatcher })
+                .flatten()
         )
     }
 
@@ -347,6 +376,7 @@ class SpaceListDataSource(
         override val spaces: ImmutableList<SpaceHierarchyItem>,
         val directChildren: ImmutableSet<ScopedRoomKey>,
         val flattenedRooms: ImmutableSet<ScopedRoomKey>,
+        val orphanCatcher: SpaceOrphanCatcher?,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
         val mergedRooms: ImmutableList<ScopedRoomSummary> = persistentListOf(),
         val mergedOrders: ImmutableMap<SessionId, String?> = persistentMapOf(),
@@ -367,7 +397,14 @@ class SpaceListDataSource(
             spaces = spaces.map { it.enrich(getUnreadCounts) as SpaceHierarchyItem }.toImmutableList(),
         )
         override fun applyFilter(rooms: List<ScopedRoomSummary>) =
-            rooms.filter { flattenedRooms.contains(it.key) }.toImmutableList()
+            rooms.filter { room ->
+                flattenedRooms.contains(room.key) || orphanCatcher?.let { catcher ->
+                    catcher.instances.any {
+                        it.sessionId == room.sessionId &&
+                                (it.filterIsDirect == null || it.filterIsDirect == room.summary.info.isDirect)
+                    } && !catcher.excludedRooms.contains(room.summary.roomId.value)
+                } == true
+            }.toImmutableList()
     }
 
     sealed interface PseudoSpaceIconSource {
@@ -446,7 +483,7 @@ class SpaceListDataSource(
     data class SpacelessGroupsPseudoSpaceItem(
         override val name: StringResourceHolder,
         override val enabled: Boolean,
-        val excludedRooms: ImmutableList<String>,
+        val excludedRooms: ImmutableSet<String>,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
     ) : PseudoSpaceItem(
         ID,
@@ -466,7 +503,7 @@ class SpaceListDataSource(
     data class SpacelessPseudoSpaceItem(
         override val name: StringResourceHolder,
         override val enabled: Boolean,
-        val excludedRooms: ImmutableList<String>,
+        val excludedRooms: ImmutableSet<String>,
         val conflictsWithSpacelessGroups: Boolean,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
     ) : PseudoSpaceItem(
@@ -711,4 +748,18 @@ fun <T: SpaceListDataSource.AbstractSpaceHierarchyItem>List<T>.filterHierarchica
             it
         }
     }
+}
+
+fun List<SpaceOrphanCatcher>.flatten(): SpaceOrphanCatcher? {
+    var catcher: SpaceOrphanCatcher? = null
+    forEach { item ->
+        catcher = catcher?.let {
+            SpaceOrphanCatcher(
+                // Supposedly identical which rooms are not space orphans, so no need to merge excludedRooms
+                excludedRooms = item.excludedRooms,
+                instances = (it.instances + item.instances).toPersistentList(),
+            )
+        } ?: item
+    }
+    return catcher
 }

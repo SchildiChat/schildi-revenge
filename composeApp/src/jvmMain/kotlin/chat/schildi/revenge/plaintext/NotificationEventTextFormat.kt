@@ -200,6 +200,7 @@ object NotificationEventTextFormat {
                     getString(Res.string.message_placeholder_state_event_room_topic_set, senderName)
                 }
             }
+            NotificationContent.StateEvent.SpaceCatchAll,
             NotificationContent.StateEvent.SpaceChild ->
                 getString(
                     Res.string.message_placeholder_state_event_space_child,

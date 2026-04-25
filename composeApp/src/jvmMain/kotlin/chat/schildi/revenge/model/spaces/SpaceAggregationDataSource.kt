@@ -15,6 +15,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.collections.immutable.toImmutableSet
+import kotlinx.collections.immutable.toPersistentSet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -175,6 +176,7 @@ private fun List<SpaceListDataSource.SpaceHierarchyItem>.mergeSpaceSessionDuplic
                 unreadCounts = unreadCount,
                 mergedRooms = mergedRooms.map { it.room }.toImmutableList(),
                 mergedOrders = duplicates.associate { it.room.sessionId to it.order }.toImmutableMap(),
+                orphanCatcher = duplicates.mapNotNull { it.orphanCatcher }.flatten()
             )
         }
     }.sortedWith(SpaceComparator(sessionIdComparator))
