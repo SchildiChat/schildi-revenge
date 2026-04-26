@@ -16,6 +16,7 @@ import chat.schildi.revenge.config.keybindings.ActionArgumentAnyOf
 import chat.schildi.revenge.config.keybindings.ActionArgumentContextBased
 import chat.schildi.revenge.config.keybindings.ActionArgumentOptional
 import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
+import chat.schildi.revenge.config.keybindings.ActionArgumentRepeatable
 import chat.schildi.revenge.config.keybindings.ActionRoomNotificationSetting
 import chat.schildi.revenge.config.keybindings.CommandArgContext
 import chat.schildi.revenge.config.keybindings.SUGGESTED_DESTINATION_STRINGS
@@ -455,6 +456,9 @@ class CommandSuggestionsProvider(
                 ActionArgumentPrimitive.SpaceIndex,
                 ActionArgumentPrimitive.UserName,
                 ActionArgumentPrimitive.Mxc,
+                ActionArgumentPrimitive.RoomIdNotJoined,
+                ActionArgumentPrimitive.RoomAliasNotJoined,
+                ActionArgumentPrimitive.ServerName,
                 ActionArgumentPrimitive.Empty -> emptyList()
                 ActionArgumentPrimitive.RoomName -> roomContextSuggestionsProvider?.roomInfo?.value?.name.toSuggestionsWithoutHint()
                 ActionArgumentPrimitive.RoomTopic -> roomContextSuggestionsProvider?.roomInfo?.value?.topic.toSuggestionsWithoutHint()
@@ -469,6 +473,7 @@ class CommandSuggestionsProvider(
         }
         is ActionArgumentAnyOf -> arg.arguments.flatMap { suggestPrimaryFor(it, context, query) }
         is ActionArgumentOptional -> suggestPrimaryFor(arg.argument, context, query)
+        is ActionArgumentRepeatable -> suggestPrimaryFor(arg.argument, context, query)
         is ActionArgumentContextBased -> suggestPrimaryFor(arg.getFor(context), context, query)
     }
 
@@ -500,6 +505,7 @@ class CommandSuggestionsProvider(
         }
         is ActionArgumentAnyOf -> arg.arguments.flatMap { suggestSecondaryFor(it, context, query) }
         is ActionArgumentOptional -> suggestSecondaryFor(arg.argument, context, query)
+        is ActionArgumentRepeatable -> suggestSecondaryFor(arg.argument, context, query)
         is ActionArgumentContextBased -> suggestSecondaryFor(arg.getFor(context), context, query)
     }
 

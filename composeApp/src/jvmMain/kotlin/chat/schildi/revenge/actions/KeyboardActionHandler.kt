@@ -57,6 +57,7 @@ import chat.schildi.revenge.config.keybindings.ActionArgumentAnyOf
 import chat.schildi.revenge.config.keybindings.ActionArgumentContextBased
 import chat.schildi.revenge.config.keybindings.ActionArgumentOptional
 import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
+import chat.schildi.revenge.config.keybindings.ActionArgumentRepeatable
 import chat.schildi.revenge.config.keybindings.ActionRoomNotificationSetting
 import chat.schildi.revenge.config.keybindings.AllowedComposerTextFieldBindingKeys
 import chat.schildi.revenge.config.keybindings.AllowedSingleLineTextFieldBindingKeys
@@ -79,6 +80,7 @@ import co.touchlab.kermit.Logger
 import io.element.android.libraries.core.coroutine.childScope
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.MatrixPatterns
+import io.element.android.libraries.matrix.api.core.RoomIdOrAlias
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.createroom.CreateRoomParameters
@@ -1757,6 +1759,24 @@ class KeyboardActionHandler(
                 Action.Global.InspectFocusable -> {
                     context.copyToClipboard(context.focused().toString())
                 }
+                Action.Global.Join -> {
+                    val sessionId = SessionId(args.firstOrNull().orActionValidationError())
+                    val roomAddress = args.getOrNull(1)
+                        ?.let { RoomIdOrAlias.from(it) }
+                        .orActionValidationError()
+                    val via = args.getOrNull(2)?.let { CommandParser.parseSplittable(it) }.orEmpty()
+                    val client = UiState.currentClientFor(sessionId) ?: return ActionResult.Failure("Client not ready")
+                    val actionId = "joinRoom/$sessionId/$roomAddress"
+                    context.launchActionAsync(
+                        actionId,
+                        GlobalActionsScope,
+                        Dispatchers.IO,
+                        actionId,
+                        notifyProcessing = true,
+                    ) {
+                        client.joinRoomByIdOrAlias(roomAddress, via).toActionResult()
+                    }
+                }
             }
         }
     }
@@ -2488,6 +2508,9 @@ fun checkArgument(
         is ActionArgumentOptional -> {
             checkArgument(actionName, argDef.argument, argVal, context, lookahead, validSessionIds)
         }
+        is ActionArgumentRepeatable -> {
+            checkArgument(actionName, argDef.argument, argVal, context, lookahead, validSessionIds)
+        }
         is ActionArgumentContextBased -> {
             checkArgument(actionName, argDef.getFor(context), argVal, context, lookahead, validSessionIds)
         }
@@ -2498,6 +2521,7 @@ fun checkArgument(
         ActionArgumentPrimitive.UserName,
         ActionArgumentPrimitive.RoomName,
         ActionArgumentPrimitive.RoomTopic,
+        ActionArgumentPrimitive.ServerName,
         ActionArgumentPrimitive.Text -> null
         ActionArgumentPrimitive.SettingValue -> {
             val settingKeys = context.findAll(ActionArgumentPrimitive.SettingKey)
@@ -2589,6 +2613,7 @@ fun checkArgument(
         ActionArgumentPrimitive.SpaceId,
         ActionArgumentPrimitive.ParentSpaceId,
         ActionArgumentPrimitive.NonParentSpaceId,
+        ActionArgumentPrimitive.RoomIdNotJoined,
         ActionArgumentPrimitive.RoomId -> {
             if (!MatrixPatterns.isRoomId(argVal)) {
                 ActionResult.Malformed(
@@ -2598,6 +2623,7 @@ fun checkArgument(
                 null
             }
         }
+        ActionArgumentPrimitive.RoomAliasNotJoined,
         ActionArgumentPrimitive.RoomAlias -> {
             if (!MatrixPatterns.isRoomAlias(argVal)) {
                 ActionResult.Malformed(

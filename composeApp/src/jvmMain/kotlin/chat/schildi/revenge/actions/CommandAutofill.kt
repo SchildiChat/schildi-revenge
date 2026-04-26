@@ -6,6 +6,7 @@ import chat.schildi.revenge.config.keybindings.ActionArgumentAnyOf
 import chat.schildi.revenge.config.keybindings.ActionArgumentContextBased
 import chat.schildi.revenge.config.keybindings.ActionArgumentOptional
 import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
+import chat.schildi.revenge.config.keybindings.ActionArgumentRepeatable
 import chat.schildi.revenge.config.keybindings.CommandArgContext
 import chat.schildi.revenge.config.keybindings.getParameter
 
@@ -58,5 +59,6 @@ private fun ActionArgument.resolveUniqueImpliedValue(context: CommandArgContext)
     is ActionArgumentPrimitive -> context.getParameter(this)
     is ActionArgumentAnyOf -> arguments.mapNotNull { context.getParameter(it) }.distinct().singleOrNull()
     is ActionArgumentOptional -> argument.resolveUniqueImpliedValue(context)
+    is ActionArgumentRepeatable -> argument.resolveUniqueImpliedValue(context)
     is ActionArgumentContextBased -> getFor(context).resolveUniqueImpliedValue(context)
 }

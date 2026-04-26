@@ -20,7 +20,7 @@ class CommandParser(
         if (command.isBlank()) {
             return null
         }
-        val commandParsed = command.trim().split(Regex("\\s+"))
+        val commandParsed = parseSplittable(command)
         val mainCommand = commandParsed.firstOrNull() ?: return null
         val args = commandParsed.subList(1, commandParsed.size)
         return Pair(mainCommand, args)
@@ -43,5 +43,9 @@ class CommandParser(
         } else {
             args
         }
+    }
+
+    companion object {
+        fun parseSplittable(splittable: String) = splittable.trim().split(Regex("\\s+"))
     }
 }

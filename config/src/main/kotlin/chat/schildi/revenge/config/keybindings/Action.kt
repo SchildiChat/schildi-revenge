@@ -12,6 +12,14 @@ data class ActionArgumentOptional(val argument: ActionArgument) : ActionArgument
     override val consumesTrailingArgsWithSpace = argument.consumesTrailingArgsWithSpace
     override fun canHold(primitive: ActionArgumentPrimitive) = argument.canHold(primitive)
 }
+
+data class ActionArgumentRepeatable(val argument: ActionArgument) : ActionArgument {
+    override val name: String
+        get() = "[$argument...]"
+    override val consumesTrailingArgsWithSpace = true
+    override fun canHold(primitive: ActionArgumentPrimitive) = argument.canHold(primitive)
+}
+
 data class ActionArgumentAnyOf(val arguments: List<ActionArgumentPrimitive>) : ActionArgument {
     constructor(vararg arguments: ActionArgumentPrimitive) : this(arguments.toList())
     override val name: String
@@ -19,6 +27,7 @@ data class ActionArgumentAnyOf(val arguments: List<ActionArgumentPrimitive>) : A
     override val consumesTrailingArgsWithSpace = arguments.any { it.consumesTrailingArgsWithSpace }
     override fun canHold(primitive: ActionArgumentPrimitive) = arguments.any { it.canHold(primitive) }
 }
+
 sealed interface ActionArgumentContextBased : ActionArgument {
     fun getFor(context: CommandArgContext): ActionArgument
 }
@@ -52,10 +61,13 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     SessionId,
     SessionIndex,
     RoomId,
+    RoomIdNotJoined,
     RoomAlias,
+    RoomAliasNotJoined,
     EventId,
     ThreadId,
     Mxc,
+    ServerName,
     SettingKey,
     SettingValue,
     SettingCategory,
@@ -93,10 +105,15 @@ internal val ResolvableRoom = ActionArgumentAnyOf(
     ActionArgumentPrimitive.RoomAlias,
     ActionArgumentPrimitive.ExistingDmUserId,
 )
+internal val UnjoinedRoom = ActionArgumentAnyOf(
+    ActionArgumentPrimitive.RoomIdNotJoined,
+    ActionArgumentPrimitive.RoomAliasNotJoined,
+)
 private val OptionalBoolean = ActionArgumentOptional(ActionArgumentPrimitive.Boolean)
 private val OptionalSettingValue = ActionArgumentOptional(ActionArgumentPrimitive.SettingValue)
 private val OptionalReason = ActionArgumentOptional(ActionArgumentPrimitive.Reason)
 private val StateKey = ActionArgumentOptional(ActionArgumentPrimitive.NonEmptyStateKey)
+private val ViaServerVararg = ActionArgumentRepeatable(ActionArgumentPrimitive.ServerName)
 
 private val navigationDestinationArgs = listOf(
     ActionArgumentOptional(NavigationDestinationSessionId),
@@ -117,7 +134,7 @@ fun Action.handlesCommand(command: String): Boolean {
     return lowerCommand == name.lowercase() || lowerCommand in aliases.map { it.lowercase() }
 }
 
-fun Action.minArgsSize() = args.count { it !is ActionArgumentOptional }
+fun Action.minArgsSize() = args.count { it !is ActionArgumentOptional && it !is ActionArgumentRepeatable }
 fun Action.maxArgsSize() = if (args.lastOrNull()?.consumesTrailingArgsWithSpace == true) Int.MAX_VALUE else args.size
 
 sealed interface Action {
@@ -147,6 +164,7 @@ sealed interface Action {
         CreateSpace(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.RoomName), aliases = listOf("createSpace")),
         AutoSubscribeNotifiableRooms, // Experimental feature
         InspectFocusable(aliases = listOf("inspect")),
+        Join(args = listOf(ActionArgumentPrimitive.SessionId, UnjoinedRoom, ViaServerVararg)),
     }
     enum class AppMessage(
         override val aliases: kotlin.collections.List<String> = emptyList(),
