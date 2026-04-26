@@ -202,6 +202,7 @@
     <string name="message_placeholder_key_verification">Verification event</string>
     <string name="message_placeholder_unknown">Unknown event</string>
     <string name="message_placeholder_state_event">%1$s sent a %2$s state event</string>
+    <string name="message_placeholder_hidden_event">%1$s: %2$s</string>
     <string name="message_placeholder_state_event_policy_rule_room">%1$s changed the policy rule room</string>
     <string name="message_placeholder_state_event_policy_rule_server">%1$s changed the policy rule server</string>
     <string name="message_placeholder_state_event_policy_rule_user">%1$s changed the policy rule user</string>

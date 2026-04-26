@@ -13,6 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import chat.schildi.preferences.ScPrefs
+import chat.schildi.preferences.value
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.actions.buildNavigationActionProvider
 import chat.schildi.revenge.compose.components.WithTooltip
@@ -51,6 +53,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.RoomMembershi
 import io.element.android.libraries.matrix.api.timeline.item.event.StateContent
 import io.element.android.libraries.matrix.api.timeline.item.event.StickerContent
 import io.element.android.libraries.matrix.api.timeline.item.event.TextLikeMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.TimelineItemDebugInfoProvider
 import io.element.android.libraries.matrix.api.timeline.item.event.UnableToDecryptContent
 import io.element.android.libraries.matrix.api.timeline.item.event.UnknownContent
 import io.element.android.libraries.matrix.api.timeline.item.event.VideoMessageType
@@ -76,6 +79,7 @@ fun EventContentLayout(
     threadInfo: EventThreadInfo?,
     modifier: Modifier = Modifier,
     formatInteractionState: MatrixFormatInteractionState? = null,
+    timelineItemDebugInfoProvider: TimelineItemDebugInfoProvider? = null,
 ) {
     @Composable
     fun EventMessageLayout(messageContent: @Composable () -> Unit) {
@@ -198,7 +202,13 @@ fun EventContentLayout(
         is ProfileChangeContent -> ProfileChangeRow(content, senderId, senderProfile, timestamp, modifier)
         is StateContent -> StateEventRow(content, senderId, senderProfile, timestamp, modifier)
         is FailedToParseStateContent -> StateEventFallbackRow(content.eventType, senderId, senderProfile, timestamp, modifier)
-        UnknownContent -> EventMessageFallback(stringResource(Res.string.message_placeholder_unknown))
+        is UnknownContent -> {
+            if (ScPrefs.VIEW_HIDDEN_EVENTS.value()) {
+                HiddenEventRow(timelineItemDebugInfoProvider, senderId, senderProfile, timestamp, modifier)
+            } else {
+                EventMessageFallback(stringResource(Res.string.message_placeholder_unknown))
+            }
+        }
 
         // TODO
         CallNotifyContent -> EventMessageFallback("CALL")

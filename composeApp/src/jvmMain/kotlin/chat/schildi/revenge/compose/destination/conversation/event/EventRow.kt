@@ -35,10 +35,12 @@ import com.beeper.android.messageformat.rememberMatrixFormatInteractionState
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
+import io.element.android.libraries.matrix.api.timeline.item.event.EventContent
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
+import io.element.android.libraries.matrix.api.timeline.item.event.UnknownContent
 import kotlinx.collections.immutable.ImmutableMap
 
 enum class EventHighlight {
@@ -111,6 +113,7 @@ fun EventRow(
                 isSameAsPreviousSender = isSameAsPreviousSender,
                 inReplyTo = event.inReplyTo(),
                 threadInfo = threadInfo,
+                timelineItemDebugInfoProvider = event.timelineItemDebugInfoProvider,
             )
             ReactionsRow(
                 viewModel = viewModel,
@@ -176,13 +179,20 @@ private fun eventCopyActions(
 ) = remember(event, messageMetadata) {
     CopyActions(
         accessPlaintextSuspend = {
-            EventTextFormat.eventToTextSuspend(
-                content = event.content,
-                messageMetadata = messageMetadata,
-                senderProfile = event.senderProfile,
-                senderId = event.sender,
-            )
+            if (event.content.isPlaintextCopyable()) {
+                event.timelineItemDebugInfoProvider().let {
+                    it.originalJson ?: it.model
+                }
+            } else {
+                null
+            }
         },
         accessUserId = { event.sender.value },
     )
+}
+
+private fun EventContent.isPlaintextCopyable() = when (this) {
+    // There's literally no content attached to UnknownContent right now, copying doesn't make much sense.
+    UnknownContent -> false
+    else -> true
 }
