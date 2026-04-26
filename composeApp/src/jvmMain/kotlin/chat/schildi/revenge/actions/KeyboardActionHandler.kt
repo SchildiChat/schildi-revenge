@@ -19,6 +19,7 @@ import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.ClipEntry
@@ -1930,12 +1931,38 @@ class KeyboardActionHandler(
         focusableTargets.remove(target)
     }
 
-    fun handlePointer(position: Offset) {
+    fun handlePointer(position: Offset, type: PointerEventType) {
         val previous = _lastPointerPosition
         // Don't action if nothing changed
         if (_lastPointerPosition == position) {
             return
         }
+
+        if (type != PointerEventType.Move) {
+            // Still need to track the updated position so we don't trigger focus changes that we don't want,
+            // particularly while focusing composer / search / command bar
+            log.e { "Not updating focus on $type via $previous -> $position" }
+            _lastPointerPosition = position
+            return
+        }
+
+        // For some text fields (command bar, search, composer) it can be pretty annoying losing focus by accident,
+        // when the mouse just moved a little bit.
+        // We need to do this check before persisting the new position so eventually moving the cursor enough still
+        // triggers focus updates even if moved slowly.
+        val currentFocusable = currentFocus.value?.let { focusableTargets[it] }
+        if (currentFocusable?.role?.autoRequestFocus == true) {
+            // Squared distance is cheaper than raw distance and sufficient for our needs
+            val distanceSquared = (position - previous).getDistanceSquared()
+            // These error logs shouldn't really be errors, but I want to ensure I see them
+            if (distanceSquared < 20) {
+                log.e { "Not losing focus on ${currentFocusable.role} from moving pointer $previous -> $position [distanceSquare: $distanceSquared]" }
+                return
+            } else {
+                log.e { "Losing focus on ${currentFocusable.role} from moving pointer $previous -> $position [distanceSquare: $distanceSquared]" }
+            }
+        }
+
         // Remember pointer position
         _lastPointerPosition = position
         _keyboardPrimary.value = false
@@ -1946,7 +1973,7 @@ class KeyboardActionHandler(
         }
 
         // Find element to focus and request focus
-        val focusable = focusableTargets.values.firstNotNullOfOrNull { target ->
+        val newFocusable = focusableTargets.values.firstNotNullOfOrNull { target ->
             target.takeIf {
                 it.isFullyVisible &&
                         it.role != FocusRole.CONTAINER &&
@@ -1956,11 +1983,7 @@ class KeyboardActionHandler(
                         it.coordinates.contains(position)
             }
         }
-        focusable?.let {
-            val current = currentFocus.value?.let { focusableTargets[it] }
-            if (current != null && (current.role == FocusRole.SEARCH_BAR || current.role == FocusRole.COMMAND_BAR || current.role == FocusRole.MESSAGE_COMPOSER)) {
-                log.e { "Losing focus from moving pointer $previous -> $position" }
-            }
+        newFocusable?.let {
             mouseFocusRequests.tryEmit(it)
         }
     }

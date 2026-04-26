@@ -47,15 +47,10 @@ fun Modifier.windowFocusContainer(): Modifier {
             var lastPos: Offset? = null
             while (true) {
                 val event = awaitPointerEvent()
-                // Only react to actual mouse movement within the window. Do not trigger
-                // on focus changes, clicks, or other pointer events that may occur when
-                // the window gains/loses focus.
-                if (event.type == PointerEventType.Move) {
-                    val pos = event.changes.firstOrNull()?.position ?: continue
-                    if (pos != lastPos) {
-                        keyHandler.handlePointer(pos)
-                        lastPos = pos
-                    }
+                val pos = event.changes.firstOrNull()?.position ?: continue
+                if (pos != lastPos) {
+                    keyHandler.handlePointer(pos, event.type)
+                    lastPos = pos
                 }
             }
         }
