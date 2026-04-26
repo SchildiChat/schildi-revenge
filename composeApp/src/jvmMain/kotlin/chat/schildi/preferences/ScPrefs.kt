@@ -266,8 +266,8 @@ object ScPrefs {
     val THREAD_REPLIES_IN_MAIN_TIMELINE = ScBoolPref("THREAD_REPLIES_IN_MAIN_TIMELINE", true, Res.string.pref_threaded_replies_in_main_timeline_title, Res.string.pref_threaded_replies_in_main_timeline_summary)
     val HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS = ScBoolPref("HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS", false, Res.string.pref_hide_message_authenticity_warnings_in_bridged_chats_title, Res.string.pref_hide_message_authenticity_warnings_in_bridged_chats_summary)
     val HIDE_AUTHENTICITY_NOT_GUARANTEED = ScBoolPref("HIDE_AUTHENTICITY_NOT_GUARANTEED", false, Res.string.pref_hide_message_authenticity_not_guaranteed_title, Res.string.pref_hide_message_authenticity_not_guaranteed_summary)
-    val VIEW_HIDDEN_EVENTS = ScBoolPref("VIEW_HIDDEN_EVENTS", false, Res.string.pref_view_hidden_events_title) // TODO
-    val VIEW_REDACTIONS = ScBoolPref("VIEW_REDACTIONS", false, Res.string.pref_view_redactions_title, /*dependencies = listOf(VIEW_HIDDEN_EVENTS.toDependency(expect = false)),*/ disabledValue = true)
+    val VIEW_HIDDEN_EVENTS = ScBoolPref("VIEW_HIDDEN_EVENTS", false, Res.string.pref_view_hidden_events_title)
+    val VIEW_REDACTIONS = ScBoolPref("VIEW_REDACTIONS", false, Res.string.pref_view_redactions_title, dependencies = listOf(VIEW_HIDDEN_EVENTS.toDependency(expect = false)), disabledValue = true)
     val PREFERRED_MESSAGE_FORMAT = ScStringListPref(
         "PREFERRED_MESSAGE_FORMAT",
         defaultValue = ComposerFormat.MARKDOWN.toString(),
