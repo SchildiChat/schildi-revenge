@@ -6,12 +6,14 @@ import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
@@ -26,6 +28,7 @@ import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
 import chat.schildi.revenge.compose.components.LocalSessionId
 import chat.schildi.theme.scExposures
 import com.beeper.android.messageformat.DefaultMatrixBodyStyledFormatter
+import com.beeper.android.messageformat.DrawPosition
 import com.beeper.android.messageformat.MENTION_ROOM
 import com.beeper.android.messageformat.MatrixBodyDrawStyle
 import com.beeper.android.messageformat.MatrixBodyPreFormatStyle
@@ -158,11 +161,11 @@ fun matrixBodyDrawStyle(): MatrixBodyDrawStyle {
         MatrixBodyDrawStyle(
             defaultForegroundColor = onSurface,
             drawBehindRoomMention = { position ->
-                drawRoundRect(
-                    mentionHighlightColor,
-                    topLeft = position.rect.topLeft,
-                    size = position.rect.size,
-                    cornerRadius = mentionBgRadius(),
+                drawInlineRoundRect(
+                    position = position,
+                    color = mentionHighlightColor,
+                    cornerRadius = Dimens.Conversation.mentionBgRadius,
+                    cornerRadiusOnLineBreak = Dimens.Conversation.mentionBgRadiusOnLineBreak,
                 )
             },
             drawBehindUserMention = { mention, position ->
@@ -171,11 +174,11 @@ fun matrixBodyDrawStyle(): MatrixBodyDrawStyle {
                 } else {
                     mentionColor
                 }
-                drawRoundRect(
-                    color,
-                    topLeft = position.rect.topLeft,
-                    size = position.rect.size,
-                    cornerRadius = mentionBgRadius(),
+                drawInlineRoundRect(
+                    position = position,
+                    color = color,
+                    cornerRadius = Dimens.Conversation.mentionBgRadius,
+                    cornerRadiusOnLineBreak = Dimens.Conversation.mentionBgRadiusOnLineBreak,
                 )
             },
             drawBehindBlockQuote = { depth, position ->
@@ -226,7 +229,35 @@ fun matrixBodyDrawStyle(): MatrixBodyDrawStyle {
     }
 }
 
-private fun DrawScope.mentionBgRadius(): CornerRadius {
-    val radius = Dimens.Conversation.mentionBgRadius * density
-    return CornerRadius(radius, radius)
+fun DrawScope.drawInlineRoundRect(
+    position: DrawPosition.InLine,
+    color: Color,
+    cornerRadius: Float,
+    cornerRadiusOnLineBreak: Float,
+) {
+    val rect = position.rect
+    val leftRadius = this.density * if (position.leftHasContinuation) {
+        cornerRadiusOnLineBreak
+    } else {
+        cornerRadius
+    }
+    val rightRadius = this.density * if (position.rightHasContinuation) {
+        cornerRadiusOnLineBreak
+    } else {
+        cornerRadius
+    }
+    drawIntoCanvas {
+        val path = Path().apply {
+            addRoundRect(
+                RoundRect(
+                    rect = rect,
+                    topLeft = CornerRadius(leftRadius, leftRadius),
+                    bottomLeft = CornerRadius(leftRadius, leftRadius),
+                    topRight = CornerRadius(rightRadius, rightRadius),
+                    bottomRight = CornerRadius(rightRadius, rightRadius),
+                ),
+            )
+        }
+        drawPath(path, color = color)
+    }
 }

@@ -77,6 +77,7 @@ object Dimens {
         )
 
         const val mentionBgRadius = 8f
+        const val mentionBgRadiusOnLineBreak = 2f
 
         val textMessageStyle
             @Composable get() = MaterialTheme.typography.bodyLarge.copy(textDirection = TextDirection.Content)
