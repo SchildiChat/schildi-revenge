@@ -180,9 +180,12 @@ private fun eventCopyActions(
     CopyActions(
         accessPlaintextSuspend = {
             if (event.content.isPlaintextCopyable()) {
-                event.timelineItemDebugInfoProvider().let {
-                    it.originalJson ?: it.model
-                }
+                EventTextFormat.eventToTextSuspend(
+                    content = event.content,
+                    messageMetadata = messageMetadata,
+                    senderProfile = event.senderProfile,
+                    senderId = event.sender,
+                )
             } else {
                 null
             }
