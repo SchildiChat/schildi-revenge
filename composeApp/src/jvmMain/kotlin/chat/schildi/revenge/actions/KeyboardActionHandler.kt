@@ -1961,7 +1961,7 @@ class KeyboardActionHandler(
         if (type != PointerEventType.Move) {
             // Still need to track the updated position so we don't trigger focus changes that we don't want,
             // particularly while focusing composer / search / command bar
-            log.e { "Not updating focus on $type via $previous -> $position" }
+            log.d { "Not updating focus on $type via $previous -> $position" }
             _lastPointerPosition = position
             return
         }
@@ -1974,12 +1974,11 @@ class KeyboardActionHandler(
         if (currentFocusable?.role?.autoRequestFocus == true) {
             // Squared distance is cheaper than raw distance and sufficient for our needs
             val distanceSquared = (position - previous).getDistanceSquared()
-            // These error logs shouldn't really be errors, but I want to ensure I see them
             if (distanceSquared < 20) {
-                log.e { "Not losing focus on ${currentFocusable.role} from moving pointer $previous -> $position [distanceSquare: $distanceSquared]" }
+                log.d { "Not losing focus on ${currentFocusable.role} from moving pointer $previous -> $position [distanceSquare: $distanceSquared]" }
                 return
             } else {
-                log.e { "Losing focus on ${currentFocusable.role} from moving pointer $previous -> $position [distanceSquare: $distanceSquared]" }
+                log.d { "Losing focus on ${currentFocusable.role} from moving pointer $previous -> $position [distanceSquare: $distanceSquared]" }
             }
         }
 
@@ -1993,14 +1992,20 @@ class KeyboardActionHandler(
         }
 
         // Find element to focus and request focus
-        val newFocusable = focusableTargets.values.firstNotNullOfOrNull { target ->
+        val focusCandidates = focusableTargets.values.filter {
+            it.isFullyVisible && it.coordinates.contains(position)
+        }
+        val newFocusable = focusCandidates.firstNotNullOfOrNull { target ->
             target.takeIf {
-                it.isFullyVisible &&
-                        it.role != FocusRole.CONTAINER &&
+                it.role != FocusRole.CONTAINER &&
                         it.role != FocusRole.NESTING_DESTINATION_ROOT_CONTAINER &&
                         it.role != FocusRole.DESTINATION_ROOT_CONTAINER &&
-                        it.role != FocusRole.NESTED_AUX_ITEM &&
-                        it.coordinates.contains(position)
+                        it.role != FocusRole.NESTED_AUX_ITEM
+            }
+        } ?: focusCandidates.firstNotNullOfOrNull { target ->
+            target.takeIf {
+                it.role == FocusRole.DESTINATION_ROOT_CONTAINER &&
+                        (currentFocusable == null || !it.coordinates.contains(currentFocusable.coordinates.center))
             }
         }
         newFocusable?.let {
