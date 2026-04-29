@@ -6,9 +6,9 @@
  * Please see LICENSE files in the repository root for full details.
  */
 
-package io.element.android.libraries.matrix.impl.oidc
+package io.element.android.libraries.matrix.impl.oauth
 
-import io.element.android.libraries.matrix.api.oidc.AccountManagementAction
+import io.element.android.libraries.matrix.api.oauth.AccountManagementAction
 import org.matrix.rustcomponents.sdk.AccountManagementAction as RustAccountManagementAction
 
 fun AccountManagementAction.toRustAction(): RustAccountManagementAction {

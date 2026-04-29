@@ -10,22 +10,22 @@ package io.element.android.libraries.matrix.impl.auth
 
 import dev.zacsweers.metro.Inject
 import io.element.android.libraries.core.meta.BuildMeta
-import io.element.android.libraries.matrix.api.auth.OidcConfig
-import io.element.android.libraries.matrix.api.auth.OidcRedirectUrlProvider
+import io.element.android.libraries.matrix.api.auth.OAuthConfig
+import io.element.android.libraries.matrix.api.auth.OAuthRedirectUrlProvider
 import org.matrix.rustcomponents.sdk.OAuthConfiguration
 
 @Inject
-class OidcConfigurationProvider(
+class OAuthConfigurationProvider(
     private val buildMeta: BuildMeta,
-    private val oidcRedirectUrlProvider: OidcRedirectUrlProvider,
+    private val oAuthRedirectUrlProvider: OAuthRedirectUrlProvider,
 ) {
     fun get(): OAuthConfiguration = OAuthConfiguration(
         clientName = buildMeta.applicationName,
-        redirectUri = oidcRedirectUrlProvider.provide(),
-        clientUri = OidcConfig.CLIENT_URI,
-        logoUri = OidcConfig.LOGO_URI,
-        tosUri = OidcConfig.TOS_URI,
-        policyUri = OidcConfig.POLICY_URI,
-        staticRegistrations = OidcConfig.STATIC_REGISTRATIONS,
+        redirectUri = oAuthRedirectUrlProvider.provide(),
+        clientUri = OAuthConfig.CLIENT_URI,
+        logoUri = OAuthConfig.LOGO_URI,
+        tosUri = OAuthConfig.TOS_URI,
+        policyUri = OAuthConfig.POLICY_URI,
+        staticRegistrations = OAuthConfig.STATIC_REGISTRATIONS,
     )
 }
