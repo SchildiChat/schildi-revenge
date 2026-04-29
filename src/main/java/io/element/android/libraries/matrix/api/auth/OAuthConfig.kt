@@ -10,7 +10,7 @@ package io.element.android.libraries.matrix.api.auth
 
 import io.element.android.libraries.matrix.api.BuildConfig
 
-object OidcConfig {
+object OAuthConfig {
     const val CLIENT_URI = BuildConfig.CLIENT_URI
 
     // Note: host must match with the host of CLIENT_URI
