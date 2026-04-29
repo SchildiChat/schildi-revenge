@@ -1,3 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="manage_accounts">Konta</string>
+    <string name="inbox">Skrzynka odbiorcza</string>
+    <string name="inbox_search">Przeszukiwanie skrzynki odbiorczej</string>
+    <string name="thread">Wątek</string>
+    <string name="room_details_title">Szczegóły pokoju</string>
+    <string name="room_members_title_loading">Ładowanie członków pokoju</string>
+    <plurals name="room_members_title_loaded">
+        <item quantity="one">%1$s członek</item>
+        <item quantity="few">%1$s członków</item>
+        <item quantity="many">%1$s członków</item>
+        <item quantity="other">%1$s członków</item>
+    </plurals>
 </resources>
