@@ -69,6 +69,7 @@ fun RoomMembersState.asCheckpointLoadState() = when (this) {
 data class LoadStateEntry(
     val checkpoint: LoadCheckPoint,
     val state: CheckpointLoadState,
+    val extraInfo: String? = null,
 )
 
 typealias LoadState = ImmutableList<LoadStateEntry>
@@ -109,25 +110,25 @@ class LoadStateHolder(
         }
     }
 
-    fun set(checkpoint: LoadCheckPoint, state: CheckpointLoadState) {
+    fun set(checkpoint: LoadCheckPoint, state: CheckpointLoadState, extraInfo: String? = null) {
         _state.update {
             val index = it.indexOfFirst { it.checkpoint == checkpoint }
             if (index != -1) {
                 it.toMutableList().apply {
-                    set(index, LoadStateEntry(checkpoint, state))
+                    set(index, LoadStateEntry(checkpoint, state, extraInfo))
                 }
             } else {
-                it + LoadStateEntry(checkpoint, state)
+                it + LoadStateEntry(checkpoint, state, extraInfo)
             }.toImmutableList()
         }
     }
 
-    fun handleResult(checkpoint: LoadCheckPoint, result: Result<*>?) {
+    fun <T>handleResult(checkpoint: LoadCheckPoint, result: Result<T>?, extraInfo: ((T) -> String?)? = null) {
         val state = when {
             result == null -> CheckpointLoadState.PENDING
             result.isSuccess -> CheckpointLoadState.LOADED
             else -> CheckpointLoadState.FAILED
         }
-        set(checkpoint, state)
+        set(checkpoint, state, extraInfo?.let { result?.getOrNull()?.let { extraInfo(it)} })
     }
 }

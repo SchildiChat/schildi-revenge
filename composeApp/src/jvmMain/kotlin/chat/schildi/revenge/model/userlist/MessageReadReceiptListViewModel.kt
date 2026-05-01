@@ -3,6 +3,7 @@ package chat.schildi.revenge.model.userlist
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import chat.schildi.matrixsdk.ScTimelineFilterSettings
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.RoomContextSuggestionsProvider
 import chat.schildi.revenge.model.CheckpointLoadState
@@ -32,7 +33,6 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
@@ -76,14 +76,16 @@ class MessageReadReceiptListViewModel(
 
     private val roomFlow = clientFlow.map { client ->
         client ?: return@map null
-        client.getJoinedRoom(roomId).also {
+        client.getJoinedRoom(roomId, ScTimelineFilterSettings.IncludeAll).also {
             loadStateHolder.set(LoadCheckPoint.Room, it.asCheckpointLoadedOrFailed())
         }
     }.flowClosable().stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val timelineController = roomFlow.map {
         it?.let {
-            TimelineController(it)
+            TimelineController(it).apply {
+                focusOnEvent(eventId, null, hideThreadedEvents = false)
+            }
         }
     }
         .flowClosable()
@@ -92,7 +94,7 @@ class MessageReadReceiptListViewModel(
     private val roomMembersState = roomFlow.flatMapLatest { room ->
         room?.membersStateFlow ?: flowOf()
     }.onEach {
-        loadStateHolder.set(LoadCheckPoint.RoomMembers, it.asCheckpointLoadState())
+        loadStateHolder.set(LoadCheckPoint.RoomMembers, it.asCheckpointLoadState(), it.roomMembers()?.size?.toString() ?: "0")
     }
 
     val activeTimeline = timelineController.flatMapLatest {
@@ -103,7 +105,7 @@ class MessageReadReceiptListViewModel(
 
     private val rawTimelineItems = activeTimeline.flatMapLatest {
         it?.timelineItems?.onEach {
-            loadStateHolder.set(LoadCheckPoint.TimelineItems, it.asCheckpointLoadedOrPending())
+            loadStateHolder.set(LoadCheckPoint.TimelineItems, it.asCheckpointLoadedOrPending(), it.size.toString())
         } ?: flowOf(null).also {
             loadStateHolder.set(LoadCheckPoint.TimelineItems, CheckpointLoadState.PENDING)
         }

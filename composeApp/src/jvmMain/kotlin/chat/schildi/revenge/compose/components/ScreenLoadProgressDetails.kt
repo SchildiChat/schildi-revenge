@@ -41,6 +41,10 @@ private fun ScreenLoadingProgressRow(
         append(statusIcon)
         append(" ")
         append(item.checkpoint.name.render())
+        if (item.extraInfo != null) {
+            append(": ")
+            append(item.extraInfo)
+        }
     }
     Text(
         text,
