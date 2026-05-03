@@ -1423,7 +1423,7 @@ class ConversationViewModel(
         val attachment = when (attachmentType) {
             MimeUtil.AttachmentKind.IMAGE -> {
                 val measures = MediaInfoUtil.probeImage(file)
-                val blurhash = MediaInfoUtil.generateImageBlurHash(file) ?: ""
+                val blurhash = MediaInfoUtil.generateImageBlurHash(file)
                 Attachment.Image(
                     file = file,
                     thumbnail = null, // TODO?
@@ -1440,7 +1440,7 @@ class ConversationViewModel(
             }
             MimeUtil.AttachmentKind.VIDEO -> {
                 val thumbnail = MediaInfoUtil.generateVideoThumbnail(file)
-                val blurhash = thumbnail?.let { MediaInfoUtil.generateImageBlurHash(it.thumbnail.data) } ?: ""
+                val blurhash = thumbnail?.let { MediaInfoUtil.generateImageBlurHash(it.thumbnail.data) }
                 val thumbnailSize = thumbnail?.thumbnail?.data?.size?.toLong()
                 Attachment.Video(
                     file = file,
