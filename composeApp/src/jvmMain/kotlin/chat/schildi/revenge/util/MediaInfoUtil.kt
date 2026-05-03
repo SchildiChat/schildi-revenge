@@ -99,6 +99,11 @@ object MediaInfoUtil {
         )
     }
 
+    fun probeAudio(file: File): MediaMeasures {
+        val durationMs = probeMediaDuration(file)
+        return MediaMeasures(width = null, height = null, durationMs = durationMs)
+    }
+
     private fun probeVideo(file: File): MediaMeasures? {
         val output = runCommand(
             listOf(
@@ -117,14 +122,32 @@ object MediaInfoUtil {
         return MediaMeasures(
             width = stream?.get("width")?.jsonPrimitive?.content?.toIntOrNull(),
             height = stream?.get("height")?.jsonPrimitive?.content?.toIntOrNull(),
-            durationMs = format
-                ?.get("duration")
-                ?.jsonPrimitive
-                ?.content
-                ?.toDoubleOrNull()
-                ?.times(1000)
-                ?.roundToLong(),
+            durationMs = format?.durationMs(),
         )
+    }
+
+    private fun probeMediaDuration(file: File): Long? {
+        val output = runCommand(
+            listOf(
+                ffprobeExecutable(),
+                "-v", "error",
+                "-show_entries", "format=duration",
+                "-of", "json",
+                file.absolutePath,
+            )
+        )?.decodeToString()?.trim().orEmpty()
+        if (output.isBlank()) return null
+        val root = runCatching { json.parseToJsonElement(output).jsonObject }.getOrNull() ?: return null
+        return root["format"]?.jsonObject?.durationMs()
+    }
+
+    private fun kotlinx.serialization.json.JsonObject.durationMs(): Long? {
+        return get("duration")
+            ?.jsonPrimitive
+            ?.content
+            ?.toDoubleOrNull()
+            ?.times(1000)
+            ?.roundToLong()
     }
 
     private fun runCommand(command: List<String>): ByteArray? {

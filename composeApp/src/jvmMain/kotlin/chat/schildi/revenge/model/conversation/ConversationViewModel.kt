@@ -1465,10 +1465,11 @@ class ConversationViewModel(
                 )
             }
             MimeUtil.AttachmentKind.AUDIO -> {
+                val measures = MediaInfoUtil.probeAudio(file)
                 Attachment.Audio(
                     file,
                     AudioInfo(
-                        duration = null, // TODO
+                        duration = measures.durationMs?.milliseconds,
                         size = fileSize,
                         mimetype = mimetype,
                     )
