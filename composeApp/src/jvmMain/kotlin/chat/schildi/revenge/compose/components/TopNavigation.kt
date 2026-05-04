@@ -91,7 +91,7 @@ fun TopNavigationCloseOrNavigateToInboxIcon(modifier: Modifier = Modifier) {
                 stringResource(Res.string.action_open_inbox),
                 modifier,
             ) {
-                destinationState?.navigate(Destination.Inbox, NavigationPreference.REPLACE)
+                destinationState?.navigate(UiState.getInboxDestination(), NavigationPreference.REPLACE)
             }
         } else {
             TopNavigationIcon(
