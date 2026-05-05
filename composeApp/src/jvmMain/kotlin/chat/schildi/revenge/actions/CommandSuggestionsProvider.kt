@@ -283,19 +283,14 @@ class CommandSuggestionsProvider(
                     if (validity == CurrentCommandValidity.INVALID) {
                         Pair(validity, emptyList())
                     } else {
+                        val currentArgIndex = if (query.endsWith(" ")) args.size else args.size - 1
                         val argSuggestions = possibleActions.flatMap {
-                            val target = it.first.resolveSuggestionTarget(
-                                rawArgs = args,
-                                queryEndsWithSpace = query.endsWith(" "),
-                                impliedContext = impliedContext,
-                            )
-                            val argDef = it.first.args.getOrNull(target.currentArgIndex)
+                            val argDef = it.first.args.getOrNull(currentArgIndex)
                             if (argDef == null) {
                                 emptyList()
                             } else {
-                                val argContext = it.first.args.take(target.currentArgIndex)
-                                    .zip(target.resolvedStableArgs) + impliedContext
-                                suggestFor(argDef, argContext, target.prefix)
+                                val argContext = it.first.args.take(currentArgIndex).zip(args) + impliedContext
+                                suggestFor(argDef, argContext, args.getOrNull(currentArgIndex) ?: "")
                             }
                         }.distinct()
                         Pair(validity, argSuggestions)

@@ -2107,47 +2107,15 @@ class KeyboardActionHandler(
                 return
             }
         val newQuery = if (args.isEmpty() && !state.query.text.endsWith(" ")) {
-            val completedQueries = state.suggestionsProvider.commandParser.getPossibleActions(suggestion)
-                .map { it.first }
-                .distinct()
-                .map { action ->
-                    val autoFilledArgs = action.autoFillImpliedArgs(emptyList(), state.impliedArguments)
-                    if (autoFilledArgs.isEmpty()) {
-                        "$suggestion "
-                    } else {
-                        "$suggestion ${autoFilledArgs.joinToString(separator = " ", postfix = " ")}"
-                    }
-                }
-                .distinct()
-            completedQueries.singleOrNull() ?: "$suggestion "
+            "$suggestion "
         } else {
-            val completedQueries = state.suggestionsProvider.commandParser.getPossibleActions(cmd)
-                .map { it.first }
-                .distinct()
-                .mapNotNull { action ->
-                    val target = action.resolveSuggestionTarget(
-                        rawArgs = args,
-                        queryEndsWithSpace = state.query.text.endsWith(" "),
-                        impliedContext = state.impliedArguments,
-                    )
-                    action.args.getOrNull(target.currentArgIndex)?.let {
-                        val newArgs = action.autoFillImpliedArgs(
-                            target.stableExplicitArgs + suggestion,
-                            state.impliedArguments,
-                        )
-                        "$cmd ${newArgs.joinToString(separator = " ", postfix = " ")}"
-                    }
-                }
-                .distinct()
-            completedQueries.singleOrNull() ?: run {
-                val stableArgs = if (state.query.text.endsWith(" ") || args.isEmpty()) {
-                    args
-                } else {
-                    args.subList(0, args.size - 1)
-                }
-                val newArgs = stableArgs + suggestion
-                "$cmd ${newArgs.joinToString(separator = " ", postfix = " ")}"
+            val stableArgs = if (state.query.text.endsWith(" ") || args.isEmpty()) {
+                args
+            } else {
+                args.subList(0, args.size - 1)
             }
+            val newArgs = stableArgs + suggestion
+            "$cmd ${newArgs.joinToString(separator = " ", postfix = " ")}"
         }
         updateMode {
             state.copy(
