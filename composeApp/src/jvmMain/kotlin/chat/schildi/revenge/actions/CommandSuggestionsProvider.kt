@@ -310,8 +310,15 @@ class CommandSuggestionsProvider(
         context: CommandArgContext,
         prefix: String,
     ): List<CommandSuggestion> {
-        return suggestPrimaryFor(arg, context, prefix).takeIf { it.isNotEmpty() }
+        val impliedValues = arg.possiblePrimitives(context).flatMap {
+            context.findAll(it)
+        }.distinct()
+        val suggestionList = suggestPrimaryFor(arg, context, prefix).takeIf { it.isNotEmpty() }
             ?: suggestSecondaryFor(arg, context, prefix)
+        val impliedSuggestions = impliedValues.map { implied ->
+            suggestionList.find { it.value == implied } ?: CommandSuggestion(implied)
+        }
+        return impliedSuggestions + suggestionList.filter { it.value !in impliedValues }
     }
 
     private fun suggestPrimaryFor(

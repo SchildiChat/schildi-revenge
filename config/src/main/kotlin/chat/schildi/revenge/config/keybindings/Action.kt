@@ -3,6 +3,7 @@ package chat.schildi.revenge.config.keybindings
 sealed interface ActionArgument {
     val name: String
     val consumesTrailingArgsWithSpace: Boolean
+    fun possiblePrimitives(context: CommandArgContext): List<ActionArgumentPrimitive>
     fun canHold(primitive: ActionArgumentPrimitive): Boolean
 }
 
@@ -10,6 +11,7 @@ data class ActionArgumentOptional(val argument: ActionArgument) : ActionArgument
     override val name: String
         get() = "[$argument]"
     override val consumesTrailingArgsWithSpace = argument.consumesTrailingArgsWithSpace
+    override fun possiblePrimitives(context: CommandArgContext) = argument.possiblePrimitives(context)
     override fun canHold(primitive: ActionArgumentPrimitive) = argument.canHold(primitive)
 }
 
@@ -17,6 +19,7 @@ data class ActionArgumentRepeatable(val argument: ActionArgument) : ActionArgume
     override val name: String
         get() = "[$argument...]"
     override val consumesTrailingArgsWithSpace = true
+    override fun possiblePrimitives(context: CommandArgContext) = argument.possiblePrimitives(context)
     override fun canHold(primitive: ActionArgumentPrimitive) = argument.canHold(primitive)
 }
 
@@ -25,11 +28,13 @@ data class ActionArgumentAnyOf(val arguments: List<ActionArgumentPrimitive>) : A
     override val name: String
         get() = "(${arguments.joinToString("|") { it.name }})"
     override val consumesTrailingArgsWithSpace = arguments.any { it.consumesTrailingArgsWithSpace }
+    override fun possiblePrimitives(context: CommandArgContext) = arguments.flatMap { it.possiblePrimitives(context) }.distinct()
     override fun canHold(primitive: ActionArgumentPrimitive) = arguments.any { it.canHold(primitive) }
 }
 
 sealed interface ActionArgumentContextBased : ActionArgument {
     fun getFor(context: CommandArgContext): ActionArgument
+    override fun possiblePrimitives(context: CommandArgContext) = getFor(context).possiblePrimitives(context)
 }
 
 enum class ActionRoomNotificationSetting(val aliases: List<String> = emptyList()) {
@@ -88,6 +93,7 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     RoomNotificationSetting,
     FocusRole,
     Empty;
+    override fun possiblePrimitives(context: CommandArgContext) = listOf(this)
     override fun canHold(primitive: ActionArgumentPrimitive) = primitive == this
 }
 
