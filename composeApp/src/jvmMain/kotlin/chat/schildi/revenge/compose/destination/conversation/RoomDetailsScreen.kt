@@ -80,6 +80,7 @@ import shire.composeapp.generated.resources.hint_other_room_aliases
 import shire.composeapp.generated.resources.hint_private_room
 import shire.composeapp.generated.resources.hint_public_room
 import shire.composeapp.generated.resources.hint_room_id
+import shire.composeapp.generated.resources.hint_room_name_private
 import shire.composeapp.generated.resources.hint_room_version
 import shire.composeapp.generated.resources.hint_topic
 import shire.composeapp.generated.resources.room_details_title
@@ -205,6 +206,24 @@ fun RoomDetailsScreen(
                                     }
                                 )
                             }
+                        }
+                        // Editable private room name override
+                        item {
+                            EditableText(
+                                "$viewModelKey/roomNamePrivate",
+                                currentValue = info.privateRoomName?.let(EditTextValue::Plain),
+                                role = FocusRole.LIST_ITEM_EDITABLE,
+                                modifier = Modifier.fillMaxWidth(),
+                                renderColor = MaterialTheme.colorScheme.onSurface,
+                                style = MaterialTheme.typography.bodyLarge,
+                                persist = viewModel::setPrivateRoomName,
+                                header = {
+                                    RoomDetailsSectionHeader(
+                                        stringResource(Res.string.hint_room_name_private),
+                                        modifier = Modifier.padding(bottom = Dimens.listPaddingSmall),
+                                    )
+                                }
+                            )
                         }
                         info.canonicalAlias?.let { alias ->
                             item {

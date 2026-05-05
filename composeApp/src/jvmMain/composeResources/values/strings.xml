@@ -163,6 +163,7 @@
     <string name="hint_group_chat">Group chat</string>
     <string name="hint_not_encrypted">Not encrypted</string>
     <string name="hint_encrypted">Encrypted</string>
+    <string name="hint_room_name_private">Personal room name override</string>
     <string name="hint_topic">Topic</string>
     <string name="hint_room_id">Room ID</string>
     <string name="hint_canonical_room_alias">Room address</string>

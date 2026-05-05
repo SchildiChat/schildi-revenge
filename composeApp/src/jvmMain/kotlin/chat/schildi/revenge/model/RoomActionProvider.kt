@@ -1,5 +1,7 @@
 package chat.schildi.revenge.model
 
+import chat.schildi.matrixsdk.ROOM_ACCOUNT_DATA_PERSONAL_ROOM_NAME
+import chat.schildi.matrixsdk.RoomNamePrivateContent
 import chat.schildi.revenge.GlobalActionsScope
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
@@ -27,6 +29,7 @@ import io.element.android.libraries.matrix.api.room.RoomNotificationMode
 import io.element.android.libraries.matrix.api.room.powerlevels.UserRoleChange
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import kotlinx.coroutines.Dispatchers
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -197,6 +200,20 @@ class RoomActionProvider(
                 val joinedRoom = (room as? JoinedRoom) ?: return ActionResult.Inapplicable
                 val name = args.firstOrNull() ?: ""
                 joinedRoom.setName(name).toActionResult()
+            }
+            Action.Room.SetPrivateRoomName -> {
+                val name = args.firstOrNull() ?: ""
+                val client = peekClient() ?: return ActionResult.Failure("Client not ready")
+                val content = if (name.isBlank()) {
+                    "{}"
+                } else {
+                    Json.encodeToString(RoomNamePrivateContent(name))
+                }
+                client.setRoomAccountData(
+                    roomId,
+                    ROOM_ACCOUNT_DATA_PERSONAL_ROOM_NAME,
+                    content,
+                ).toActionResult()
             }
             Action.Room.SetRoomTopic -> {
                 val joinedRoom = (room as? JoinedRoom) ?: return ActionResult.Inapplicable

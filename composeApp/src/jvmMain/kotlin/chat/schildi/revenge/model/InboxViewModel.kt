@@ -234,7 +234,8 @@ class InboxViewModel(
         } else {
             val lowercaseSearch = searchTerm.lowercase()
             val searchedRooms = rooms.filter {
-                it.summary.info.name?.lowercase()?.contains(lowercaseSearch) == true
+                it.summary.info.name?.lowercase()?.contains(lowercaseSearch) == true ||
+                        it.summary.info.privateRoomName?.lowercase()?.contains(lowercaseSearch) == true
             }.sortedWith(compareBy(
                 { it.summary.info.name?.lowercase()?.indexOf(lowercaseSearch)?.takeIf { it >= 0 } ?: Integer.MAX_VALUE },
                 { it.summary.latestEventTimestamp == null },

@@ -52,6 +52,7 @@ import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.plainTextCopyAction
 import chat.schildi.revenge.compose.components.WithContextMenu
+import chat.schildi.revenge.compose.components.thenIf
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.model.InboxViewModel
@@ -176,17 +177,39 @@ fun InboxRow(
 @Composable
 private fun RowScope.ScNameAndTimestampRow(room: RoomSummary, hasDraft: Boolean) {
     // Name
+    val primaryName = room.info.privateRoomName ?: room.info.name ?: room.roomId.value
+    val secondaryName = if (room.info.privateRoomName != null && room.info.name != null) {
+        room.info.name
+    } else {
+        null
+    }
     Text(
         modifier = Modifier
-            .weight(1f)
-            .padding(end = Dimens.horizontalItemPaddingBig),
+            .thenIf(secondaryName == null) {
+                weight(1f)
+            },
         style = MaterialTheme.typography.titleMedium,
-        text = room.info.name ?: room.roomId.value,
+        text = primaryName,
         color = MaterialTheme.colorScheme.onSurface,
         maxLines = 1,
         overflow = TextOverflow.Ellipsis
     )
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    if (secondaryName != null) {
+        Text(
+            modifier = Modifier
+                .padding(start = Dimens.horizontalItemPadding)
+                .weight(1f),
+            style = MaterialTheme.typography.titleMedium,
+            text = secondaryName,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.padding(start = Dimens.horizontalItemPaddingBig),
+    ) {
         if (hasDraft) {
             Icon(
                 imageVector = Icons.Default.Edit,

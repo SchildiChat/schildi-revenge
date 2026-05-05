@@ -330,6 +330,7 @@ sealed interface Action {
         ConvertToDm,
         ConvertToGroup,
         SetPowerLevel(args = listOf(ActionArgumentPrimitive.UserIdInRoom, ActionArgumentPrimitive.PowerLevel)),
+        SetPrivateRoomName(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.RoomName))),
     }
     enum class Event(
         override val aliases: kotlin.collections.List<String> = emptyList(),

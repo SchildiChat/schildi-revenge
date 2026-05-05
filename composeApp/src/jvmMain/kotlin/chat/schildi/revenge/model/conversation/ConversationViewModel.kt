@@ -2107,9 +2107,16 @@ class ConversationViewModel(
             roomUserDisplayName: String?,
             sessionId: SessionId
         ): ComposableStringHolder? {
-            return roomInfo?.name?.let {
+            return (roomInfo?.privateRoomName ?: roomInfo?.name)?.let {
                 buildString {
                     append(it)
+                    if (roomInfo?.privateRoomName != null &&
+                        roomInfo.name != null &&
+                        roomInfo.privateRoomName != roomInfo.name) {
+                        append(" (")
+                        append(roomInfo.name)
+                        append(")")
+                    }
                     append(" - ")
                     val userName = roomUserDisplayName ?: accountUserDisplayName
                     if (userName != null) {

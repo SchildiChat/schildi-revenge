@@ -12,7 +12,6 @@ import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomAlias
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.UserId
-import io.element.android.libraries.matrix.api.room.BridgeState
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import io.element.android.libraries.matrix.api.room.RoomInfo
 import io.element.android.libraries.matrix.api.room.RoomNotificationMode
@@ -74,6 +73,7 @@ class RoomInfoMapper {
             numUnreadMentions = it.numUnreadMentions.toLong(),
             numUnreadNotifications = it.numUnreadNotifications.toLong(),
             // SC start
+            privateRoomName = it.privateRoomName,
             spaceChildren = it.spaceChildren.map(MatrixSpaceChildInfoMapper::map),
             spaceCatchAll = it.spaceCatchAll?.let(::mapRustSpaceCatchAll),
             canUserManageSpaces = it.canUserManageSpaces,

@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import chat.schildi.matrixsdk.ROOM_ACCOUNT_DATA_PERSONAL_ROOM_NAME
+import chat.schildi.matrixsdk.RoomNamePrivateContent
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.MessageFormatDefaults
 import chat.schildi.revenge.TitleProvider
@@ -25,6 +27,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.serialization.json.Json
 
 data class RoomSettingsPermissions(
     val canEditName: Boolean = false,
@@ -155,6 +158,20 @@ class RoomDetailsViewModel(
     suspend fun setRoomName(name: String): Result<Unit> {
         val room = joinedRoom.value ?: return Result.failure(IllegalStateException("Room not joined"))
         return room.setName(name)
+    }
+
+    suspend fun setPrivateRoomName(name: String): Result<Unit> {
+        val client = client.value ?: return Result.failure(IllegalStateException("Client not ready"))
+        val content = if (name.isBlank()) {
+            "{}"
+        } else {
+            Json.encodeToString(RoomNamePrivateContent(name))
+        }
+        return client.setRoomAccountData(
+            roomId,
+            ROOM_ACCOUNT_DATA_PERSONAL_ROOM_NAME,
+            content,
+        )
     }
 
     suspend fun setRoomTopic(topic: String): Result<Unit> {
