@@ -77,6 +77,7 @@
     <string name="action_copy_body">Copy text</string>
     <string name="action_navigate_in_current">Open in current window</string>
     <string name="action_navigate_in_new_window">Open in new window</string>
+    <string name="action_navigate_debug_timeline">Open debug timeline</string>
     <string name="action_context_account_select">Select</string>
     <string name="action_context_account_hide">Hide</string>
     <string name="action_mute">Mute</string>

@@ -21,6 +21,8 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.MeetingRoom
+import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +42,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -55,10 +59,16 @@ import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.components.AvatarImage
+import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.revenge.compose.components.ScrollableTabRow
 import chat.schildi.revenge.compose.components.TabRowDefaults.tabIndicatorOffset
+import chat.schildi.revenge.compose.components.WithContextMenu
 import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.revenge.compose.focus.keyFocusable
+import chat.schildi.revenge.compose.focus.rememberFocusId
+import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.revenge.config.keybindings.Action
+import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.model.spaces.SpaceListDataSource
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
 import chat.schildi.theme.scExposures
@@ -71,7 +81,10 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.action_leave
+import shire.composeapp.generated.resources.action_navigate_debug_timeline
 import shire.composeapp.generated.resources.pref_space_all_rooms_title
+import java.util.UUID
 
 @Composable
 fun SpaceSelectorRow(
@@ -295,48 +308,60 @@ private fun AbstractSpaceTab(
     expandable: Boolean,
     compact: Boolean,
     onClick: () -> Unit,
+    contextMenu: ImmutableList<ContextMenuEntry> = persistentListOf(),
     icon: @Composable () -> Unit,
 ) {
-    if (compact) {
-        WithTooltip(text) {
-            Box(
-                Modifier
-                    .spaceTabModifier(onClick)
-                    .clickable(onClick = onClick)
-                    .padding(vertical = 8.dp, horizontal = 16.dp)
-            ) {
-                icon()
-                /*
-                if (expandable) {
-                    ExpandableIndicator(
-                        selected && !collapsed,
-                        Modifier.align(Alignment.CenterEnd).offset(14.dp, 0.dp)
-                    )
+    val focusId = rememberFocusId()
+    WithContextMenu(
+        focusId = focusId,
+        entries = contextMenu,
+    ) { openContextMenu ->
+        if (compact) {
+            WithTooltip(text) {
+                Box(
+                    Modifier
+                        .spaceTabModifier(focusId, openContextMenu, onClick)
+                        .clickable(onClick = onClick)
+                        .padding(vertical = 8.dp, horizontal = 16.dp)
+                ) {
+                    icon()
+                    /*
+                    if (expandable) {
+                        ExpandableIndicator(
+                            selected && !collapsed,
+                            Modifier.align(Alignment.CenterEnd).offset(14.dp, 0.dp)
+                        )
+                    }
+                     */
                 }
-                 */
             }
+        } else {
+            Tab(
+                text = { SpaceTabText(text, selected, expandable) },
+                icon = icon.takeIf { !collapsed },
+                selected = selected,
+                onClick = onClick,
+                modifier = Modifier.spaceTabModifier(focusId, openContextMenu, onClick),
+            )
         }
-    } else {
-        Tab(
-            text = { SpaceTabText(text, selected, expandable) },
-            icon = icon.takeIf { !collapsed },
-            selected = selected,
-            onClick = onClick,
-            modifier = Modifier.spaceTabModifier(onClick),
-        )
     }
 }
 
 @Composable
-fun Modifier.spaceTabModifier(onClick: () -> Unit) = keyFocusable(
+fun Modifier.spaceTabModifier(
+    focusId: UUID,
+    openContextMenu: InteractionAction.ContextMenu? = null,
+    onClick: () -> Unit,
+) = keyFocusable(
+    id = focusId,
     role = FocusRole.AUX_ITEM,
     actionProvider = actionProvider(
         primaryAction = InteractionAction.Invoke {
             onClick()
             true
         },
+        secondaryAction = openContextMenu,
     ),
-    addClickListener = false,
 )
 
 @Composable
@@ -368,6 +393,7 @@ private fun SpaceTab(
             expandable = expandable,
             compact = compact,
             onClick = onClick,
+            contextMenu = space.spaceContextMenu(),
         ) {
             SpaceUnreadCountBox(space.unreadCounts, spaceTabUnreadBadgeOffset(compact)) {
                 AbstractSpaceIcon(space = space, size = spaceTabIconSize(compact), shape = spaceTabIconShape(compact))
@@ -533,3 +559,29 @@ fun SpaceUnreadCountBox(unreadCounts: SpaceAggregationDataSource.SpaceUnreadCoun
 private fun spaceTabIconSize(compact: Boolean) = Dimens.Inbox.spaceAvatar
 private fun spaceTabIconShape(compact: Boolean) = Dimens.Inbox.spaceShape
 private fun spaceTabUnreadBadgeOffset(compact: Boolean) = 6.dp
+
+@Composable
+fun SpaceListDataSource.AbstractSpaceHierarchyItem.spaceContextMenu(): ImmutableList<ContextMenuEntry> {
+    val showDebugOptions = ScPrefs.SHOW_DEV_INFOS.value()
+    return when (this) {
+        is SpaceListDataSource.SpaceHierarchyItem -> {
+            listOfNotNull(
+                ContextMenuEntry(
+                    Res.string.action_navigate_debug_timeline.toStringHolder(),
+                    rememberVectorPainter(Icons.Default.Navigation),
+                    Action.Navigation.NavigateInNewWindow,
+                    actionArgs = persistentListOf(DestinationEnum.Conversation.destName, room.sessionId.value, room.summary.roomId.value),
+                    keyboardShortcut = Key.O,
+                ).takeIf { showDebugOptions },
+                ContextMenuEntry(
+                    Res.string.action_leave.toStringHolder(),
+                    rememberVectorPainter(Icons.Default.MeetingRoom),
+                    Action.Room.Leave,
+                    critical = true,
+                    keyboardShortcut = Key.V,
+                ),
+            ).toImmutableList()
+        }
+        else -> persistentListOf()
+    }
+}
