@@ -204,7 +204,7 @@ class AnimatedSkiaPainter(
                     dstInfo = codec.imageInfo,
                     dstRowBytes = codec.imageInfo.minRowBytes,
                 )
-            } catch (_: IllegalStateException) {
+            } catch (_: Exception) {
                 null
             }
         }
