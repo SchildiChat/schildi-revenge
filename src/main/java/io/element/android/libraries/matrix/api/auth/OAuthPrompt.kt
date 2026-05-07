@@ -8,12 +8,12 @@
 
 package io.element.android.libraries.matrix.api.auth
 
-sealed interface OidcPrompt {
+sealed interface OAuthPrompt {
     /**
      * The Authorization Server should prompt the End-User for
      * reauthentication.
      */
-    data object Login : OidcPrompt
+    data object Login : OAuthPrompt
 
     /**
      * The Authorization Server should prompt the End-User to create a user
@@ -21,10 +21,10 @@ sealed interface OidcPrompt {
      *
      * Defined in [Initiating User Registration via OpenID Connect](https://openid.net/specs/openid-connect-prompt-create-1_0.html).
      */
-    data object Create : OidcPrompt
+    data object Create : OAuthPrompt
 
     /**
      * An unknown value.
      */
-    data class Unknown(val value: String) : OidcPrompt
+    data class Unknown(val value: String) : OAuthPrompt
 }
