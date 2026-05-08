@@ -59,6 +59,7 @@ import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.components.AvatarImage
+import chat.schildi.revenge.compose.components.ContextMenuActionEntry
 import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.revenge.compose.components.ScrollableTabRow
 import chat.schildi.revenge.compose.components.TabRowDefaults.tabIndicatorOffset
@@ -566,14 +567,18 @@ fun SpaceListDataSource.AbstractSpaceHierarchyItem.spaceContextMenu(): Immutable
     return when (this) {
         is SpaceListDataSource.SpaceHierarchyItem -> {
             listOfNotNull(
-                ContextMenuEntry(
+                ContextMenuActionEntry(
                     Res.string.action_navigate_debug_timeline.toStringHolder(),
                     rememberVectorPainter(Icons.Default.Navigation),
                     Action.Navigation.NavigateInNewWindow,
-                    actionArgs = persistentListOf(DestinationEnum.Conversation.destName, room.sessionId.value, room.summary.roomId.value),
+                    actionArgs = persistentListOf(
+                        DestinationEnum.Conversation.destName,
+                        room.sessionId.value,
+                        room.summary.roomId.value
+                    ),
                     keyboardShortcut = Key.O,
                 ).takeIf { showDebugOptions },
-                ContextMenuEntry(
+                ContextMenuActionEntry(
                     Res.string.action_leave.toStringHolder(),
                     rememberVectorPainter(Icons.Default.MeetingRoom),
                     Action.Room.Leave,

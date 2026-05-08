@@ -10,6 +10,8 @@ import androidx.compose.material.icons.filled.Window
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.key.Key
+import chat.schildi.revenge.compose.components.ContextMenuActionEntry
+import chat.schildi.revenge.compose.components.ContextMenuDecoration
 import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
@@ -32,7 +34,7 @@ fun ScopedRoomSummary.contextMenu(): ImmutableList<ContextMenuEntry> {
     return if (summary.isInvite()) {
         // TODO reject invite, reject and ignore
         persistentListOf(
-            ContextMenuEntry(
+            ContextMenuActionEntry(
                 Res.string.action_join.toStringHolder(),
                 rememberVectorPainter(Icons.Default.MeetingRoom),
                 Action.Room.Join,
@@ -42,47 +44,47 @@ fun ScopedRoomSummary.contextMenu(): ImmutableList<ContextMenuEntry> {
     } else {
         val unreadCounts = summary.unreadCounts()
         listOfNotNull(
-            ContextMenuEntry(
+            ContextMenuActionEntry(
                 Res.string.action_mark_as_read.toStringHolder(),
                 rememberVectorPainter(Icons.Default.Visibility),
                 Action.Room.MarkRoomRead,
                 keyboardShortcut = Key.R,
             ).takeIf { unreadCounts.hasUnread() },
-            ContextMenuEntry(
+            ContextMenuActionEntry(
                 Res.string.action_mark_as_unread.toStringHolder(),
                 rememberVectorPainter(Icons.Default.Visibility),
                 Action.Room.MarkRoomUnread,
                 keyboardShortcut = Key.U,
             ).takeIf { unreadCounts.canMarkUnread() },
-            ContextMenuEntry(
+            ContextMenuActionEntry(
                 Res.string.action_context_favorite_toggle.toStringHolder(),
                 rememberVectorPainter(Icons.Default.Favorite),
                 Action.Room.MarkFavorite,
                 persistentListOf((!summary.info.isFavorite).toString()),
-                toggleState = summary.info.isFavorite,
+                decoration = ContextMenuDecoration.Toggle(summary.info.isFavorite),
                 keyboardShortcut = Key.F,
             ),
-            ContextMenuEntry(
+            ContextMenuActionEntry(
                 Res.string.action_context_low_priority_toggle.toStringHolder(),
                 rememberVectorPainter(Icons.Default.LowPriority),
                 Action.Room.MarkLowPriority,
                 persistentListOf((!summary.info.isLowPriority).toString()),
-                toggleState = summary.info.isLowPriority,
+                decoration = ContextMenuDecoration.Toggle(summary.info.isLowPriority),
                 keyboardShortcut = Key.L,
             ),
-            ContextMenuEntry(
+            ContextMenuActionEntry(
                 Res.string.action_navigate_in_current.toStringHolder(),
                 rememberVectorPainter(Icons.Default.Navigation),
                 Action.NavigationItem.NavigateCurrent,
                 keyboardShortcut = Key.O,
             ),
-            ContextMenuEntry(
+            ContextMenuActionEntry(
                 Res.string.action_navigate_in_new_window.toStringHolder(),
                 rememberVectorPainter(Icons.Default.Window),
                 Action.NavigationItem.NavigateInNewWindow,
                 keyboardShortcut = Key.W,
             ),
-            ContextMenuEntry(
+            ContextMenuActionEntry(
                 Res.string.action_leave.toStringHolder(),
                 rememberVectorPainter(Icons.Default.MeetingRoom),
                 Action.Room.Leave,

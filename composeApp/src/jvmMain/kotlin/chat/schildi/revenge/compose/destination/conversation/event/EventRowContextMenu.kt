@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.key.Key
+import chat.schildi.revenge.compose.components.ContextMenuActionEntry
 import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
@@ -50,70 +51,70 @@ fun EventTimelineItem.contextMenu(
     val canSendReactions = true // TODO from permissions
     val canRedact = isOwn // TODO from power levels
     return listOfNotNull(
-        ContextMenuEntry(
+        ContextMenuActionEntry(
             Res.string.action_download_and_open.toStringHolder(),
             rememberVectorPainter(Icons.Default.OpenWith),
             Action.Event.DownloadFileAndOpen,
             keyboardShortcut = Key.O,
         ).takeIf { messageContent.type is MessageTypeWithAttachment },
-        ContextMenuEntry(
+        ContextMenuActionEntry(
             Res.string.action_download.toStringHolder(),
             rememberVectorPainter(Icons.Default.Download),
             Action.Event.DownloadFile,
             keyboardShortcut = Key.L,
         ).takeIf { messageContent.type is MessageTypeWithAttachment },
-        ContextMenuEntry(
+        ContextMenuActionEntry(
             Res.string.action_jump_to_replied_to_message.toStringHolder(),
             rememberVectorPainter(Icons.Default.Navigation),
             Action.Event.JumpToRepliedTo,
             keyboardShortcut = Key.J,
         ).takeIf { messageContent.inReplyTo != null },
-        ContextMenuEntry(
+        ContextMenuActionEntry(
             Res.string.action_reply.toStringHolder(),
             rememberVectorPainter(Icons.AutoMirrored.Default.Reply),
             Action.Event.ComposeReply,
             keyboardShortcut = Key.R,
         ).takeIf { canSendMessages },
-        ContextMenuEntry(
+        ContextMenuActionEntry(
             Res.string.action_thread.toStringHolder(),
             rememberVectorPainter(Icons.Default.Gesture),
             Action.Navigation.NavigateAuto,
             actionArgs = persistentListOf(DestinationEnum.ConversationThread.destName, sessionId.value, roomId.value, eventId?.value ?: ""),
             keyboardShortcut = Key.T,
         ).takeIf { eventId != null },
-        ContextMenuEntry(
+        ContextMenuActionEntry(
             Res.string.action_edit.toStringHolder(),
             rememberVectorPainter(Icons.Default.Edit),
             Action.Event.ComposeEdit,
             keyboardShortcut = Key.E,
         ).takeIf { isOwn && canSendMessages },
-        ContextMenuEntry(
+        ContextMenuActionEntry(
             Res.string.action_react.toStringHolder(),
             rememberVectorPainter(Icons.Default.AddReaction),
             Action.Event.ComposeReaction,
             keyboardShortcut = Key.C,
         ).takeIf { canSendReactions },
-        ContextMenuEntry(
+        ContextMenuActionEntry(
             Res.string.action_view_reactions.toStringHolder(),
             rememberVectorPainter(Icons.Default.EmojiPeople),
             Action.Navigation.NavigateAuto,
             actionArgs = persistentListOf(DestinationEnum.MessageReactions.destName, sessionId.value, roomId.value, eventId?.value ?: ""),
             keyboardShortcut = Key.V,
         ).takeIf { reactions.isNotEmpty() && eventId != null },
-        ContextMenuEntry(
+        ContextMenuActionEntry(
             Res.string.action_view_read_receipts.toStringHolder(),
             rememberVectorPainter(Icons.Default.Visibility),
             Action.Navigation.NavigateAuto,
             actionArgs = persistentListOf(DestinationEnum.MessageReadReceipts.destName, sessionId.value, roomId.value, eventId?.value ?: ""),
             keyboardShortcut = Key.P,
         ).takeIf { receipts.isNotEmpty() && eventId != null },
-        ContextMenuEntry(
+        ContextMenuActionEntry(
             Res.string.action_copy_body.toStringHolder(),
             rememberVectorPainter(Icons.Default.ContentCopy),
             Action.Event.CopyContent,
             keyboardShortcut = Key.Y,
         ).takeIf { messageContent.body.isNotBlank() },
-        ContextMenuEntry(
+        ContextMenuActionEntry(
             Res.string.action_redact.toStringHolder(),
             rememberVectorPainter(Icons.Default.Delete),
             Action.Event.Redact,

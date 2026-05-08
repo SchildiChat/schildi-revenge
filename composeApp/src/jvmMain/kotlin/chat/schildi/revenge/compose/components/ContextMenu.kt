@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.LocalTextContextMenu
 import androidx.compose.foundation.text.TextContextMenu
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -47,17 +49,32 @@ import kotlinx.collections.immutable.persistentListOf
 import java.awt.event.KeyEvent
 import java.util.UUID
 
-data class ContextMenuEntry(
-    val title: ComposableStringHolder,
-    val icon: Painter? = null,
+sealed interface ContextMenuEntry {
+    val title: ComposableStringHolder
+    val icon: Painter?
+    val decoration: ContextMenuDecoration?
+    val keyboardShortcut: Key?
+    val critical: Boolean
+    val enabled: Boolean
+    val autoCloseMenu: Boolean
+}
+
+sealed interface ContextMenuDecoration {
+    data class Toggle(val checked: Boolean) : ContextMenuDecoration
+    data object CheckMark : ContextMenuDecoration
+}
+
+data class ContextMenuActionEntry(
+    override val title: ComposableStringHolder,
+    override val icon: Painter? = null,
     val action: Action,
     val actionArgs: ImmutableList<String> = persistentListOf(),
-    val toggleState: Boolean? = null,
-    val keyboardShortcut: Key? = null,
-    val critical: Boolean = false,
-    val enabled: Boolean = true,
-    val autoCloseMenu: Boolean = toggleState == null,
-)
+    override val decoration: ContextMenuDecoration? = null,
+    override val keyboardShortcut: Key? = null,
+    override val critical: Boolean = false,
+    override val enabled: Boolean = true,
+    override val autoCloseMenu: Boolean = decoration == null,
+) : ContextMenuEntry
 
 @OptIn(ExperimentalFoundationApi::class)
 object EmptyTextContextMenu : TextContextMenu {
@@ -163,35 +180,41 @@ fun WithContextMenu(
                         disabledLeadingIconColor = MaterialTheme.colorScheme.tertiary,
                         disabledTrailingIconColor = MaterialTheme.colorScheme.tertiary,
                     ),
-                    leadingIcon = entry.icon?.let {{
+                    leadingIcon = entry.icon?.let { icon -> {
                         Icon(
-                            entry.icon,
+                            icon,
                             null,
                             Modifier.size(24.dp)
                         )
                     }},
-                    trailingIcon = if (entry.toggleState == null) null else {{
-                        Switch(
-                            enabled = entry.enabled,
-                            checked = entry.toggleState,
-                            onCheckedChange = {
-                                if (!entry.enabled) {
-                                    return@Switch
-                                }
-                                keyHandler.handleAction(focusId, entry.action, entry.actionArgs)
-                                if (entry.autoCloseMenu) {
-                                    keyHandler.dismissContextMenu(focusId)
-                                }
+                    trailingIcon = when (val decoration = entry.decoration) {
+                        is ContextMenuDecoration.Toggle -> {
+                            {
+                                Switch(
+                                    enabled = entry.enabled,
+                                    checked = decoration.checked,
+                                    onCheckedChange = null,
+                                )
                             }
-                        )
-                    }},
+                        }
+                        is ContextMenuDecoration.CheckMark -> {
+                            {
+                                Icon(
+                                    Icons.Default.Check,
+                                    null,
+                                )
+                            }
+                        }
+                        null -> {{}}
+                    },
                     text = {
                         val title = entry.title.render()
                         val text = remember(entry, title) {
-                            if (entry.keyboardShortcut == null) {
+                            val keyboardShortcut = entry.keyboardShortcut
+                            if (keyboardShortcut == null) {
                                 AnnotatedString(title)
                             } else {
-                                val keyText = KeyEvent.getKeyText(entry.keyboardShortcut.nativeKeyCode).lowercase()
+                                val keyText = KeyEvent.getKeyText(keyboardShortcut.nativeKeyCode).lowercase()
                                 val keyIndex = title.lowercase().indexOf(keyText)
                                 buildAnnotatedString {
                                     append(title)
@@ -214,13 +237,7 @@ fun WithContextMenu(
                         Text(text)
                     },
                     onClick = {
-                        if (!entry.enabled) {
-                            return@DropdownMenuItem
-                        }
-                        keyHandler.handleAction(focusId, entry.action, entry.actionArgs)
-                        if (entry.autoCloseMenu) {
-                            keyHandler.dismissContextMenu(focusId)
-                        }
+                        keyHandler.handleContextMenuEntry(focusId, entry)
                     }
                 )
             }

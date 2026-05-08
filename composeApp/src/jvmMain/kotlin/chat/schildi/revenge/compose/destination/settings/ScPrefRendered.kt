@@ -32,10 +32,13 @@ import chat.schildi.preferences.ScPrefCollection
 import chat.schildi.preferences.ScPrefContainer
 import chat.schildi.preferences.ScPrefScreen
 import chat.schildi.preferences.ScStringListPref
+import chat.schildi.preferences.value
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
+import chat.schildi.revenge.compose.components.ContextMenuActionEntry
+import chat.schildi.revenge.compose.components.ContextMenuDecoration
 import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.revenge.compose.components.WithContextMenu
 import chat.schildi.revenge.compose.components.keyboardShortcutFromIndex
@@ -256,14 +259,16 @@ fun ScFloatPref.Rendered() {
 @Composable
 fun <T> ScListPref<T>.Rendered() {
     val focusId = rememberFocusId()
+    val currentValue = value()
     WithContextMenu(
         focusId = focusId,
         entries = remember(items) {
             items.mapIndexed { index, item ->
-                ContextMenuEntry(
+                ContextMenuActionEntry(
                     title = item.name,
                     action = Action.Global.SetSetting,
                     actionArgs = persistentListOf(sKey, item.value.toString()),
+                    decoration = if (currentValue == item.value) ContextMenuDecoration.CheckMark else null,
                     keyboardShortcut = index.keyboardShortcutFromIndex(),
                 )
             }.toPersistentList()

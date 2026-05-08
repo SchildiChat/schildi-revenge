@@ -37,6 +37,8 @@ import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.plainTextCopyActionWithUserId
 import chat.schildi.revenge.compose.components.AvatarImage
+import chat.schildi.revenge.compose.components.ContextMenuActionEntry
+import chat.schildi.revenge.compose.components.ContextMenuDecoration
 import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.revenge.compose.components.WithContextMenu
 import chat.schildi.revenge.compose.components.WithTooltip
@@ -110,31 +112,31 @@ fun AccountButton(
         WithContextMenu(
             focusId,
             persistentListOf(
-                ContextMenuEntry(
+                ContextMenuActionEntry(
                     Res.string.action_context_account_select.toStringHolder(),
                     rememberVectorPainter(Icons.Default.Visibility),
                     Action.Inbox.SetAccountSelected,
                     persistentListOf(account.user.userId.value, (!account.isSelected).toString()),
                     keyboardShortcut = Key.S,
-                    toggleState = account.isSelected,
+                    decoration = ContextMenuDecoration.Toggle(account.isSelected),
                     autoCloseMenu = false,
                 ),
-                ContextMenuEntry(
+                ContextMenuActionEntry(
                     Res.string.action_context_account_hide.toStringHolder(),
                     rememberVectorPainter(Icons.Default.VisibilityOff),
                     Action.Inbox.SetAccountHidden,
                     persistentListOf(account.user.userId.value, (!account.isHidden).toString()),
-                    toggleState = account.isHidden && !account.isSelected,
+                    decoration = ContextMenuDecoration.Toggle(account.isHidden && !account.isSelected),
                     keyboardShortcut = Key.H,
                     enabled = !account.isSelected,
                     autoCloseMenu = false,
                 ),
-                ContextMenuEntry(
+                ContextMenuActionEntry(
                     Res.string.action_mute.toStringHolder(),
                     rememberVectorPainter(Icons.Default.NotificationsOff),
                     Action.Inbox.SetAccountMuted,
                     persistentListOf(account.user.userId.value, (!account.isMuted).toString()),
-                    toggleState = account.isMuted,
+                    decoration = ContextMenuDecoration.Toggle(account.isMuted),
                     keyboardShortcut = Key.M,
                     autoCloseMenu = false,
                 ),

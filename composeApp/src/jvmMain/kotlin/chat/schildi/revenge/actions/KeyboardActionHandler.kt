@@ -44,6 +44,8 @@ import chat.schildi.revenge.DestinationState
 import chat.schildi.revenge.GlobalActionsScope
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.NavigationPreference
+import chat.schildi.revenge.compose.components.ContextMenuActionEntry
+import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
 import chat.schildi.revenge.compose.focus.FakeFocusRequester
 import chat.schildi.revenge.compose.focus.preferFocusChildren
@@ -848,16 +850,27 @@ class KeyboardActionHandler(
             Key.Escape -> dismissContextMenu(contextMenu.focusId)
             else -> {
                 val action = contextMenu.entries?.find { it.keyboardShortcut == event.key }
-                if (action != null && action.enabled) {
-                    handleAction(contextMenu.focusId, action.action, action.actionArgs)
-                    if (action.autoCloseMenu) {
-                        dismissContextMenu(contextMenu.focusId)
-                    }
+                if (action != null) {
+                    handleContextMenuEntry(contextMenu.focusId, action)
                 }
             }
         }
         // Consume everything while open
         return true
+    }
+
+    fun handleContextMenuEntry(menuFocusId: UUID, entry: ContextMenuEntry) {
+        if (!entry.enabled) {
+            return
+        }
+        when (entry) {
+            is ContextMenuActionEntry -> {
+                handleAction(menuFocusId, entry.action, entry.actionArgs)
+                if (entry.autoCloseMenu) {
+                    dismissContextMenu(menuFocusId)
+                }
+            }
+        }
     }
 
     private fun focusSearchResults(parentId: UUID?) {
