@@ -6,7 +6,7 @@
  * Please see LICENSE files in the repository root for full details.
  */
 
-package io.element.android.libraries.matrix.api.oidc
+package io.element.android.libraries.matrix.api.oauth
 
 import io.element.android.libraries.matrix.api.core.DeviceId
 
