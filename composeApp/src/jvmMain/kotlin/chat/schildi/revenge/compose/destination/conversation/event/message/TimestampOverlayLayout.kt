@@ -12,8 +12,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlin.math.ceil
 import kotlin.math.max
-import kotlin.math.roundToInt
 
 @Composable
 fun TimestampOverlayLayout(
@@ -134,7 +134,7 @@ fun TimestampOverlayLayout(
         val textPlaceable = textMeasurable.measure(constraints)
         val overlayPlaceable = overlayMeasurable.measure(constraints)
 
-        val lastLineWidth = textLayoutResult.getLineRight(textLayoutResult.lineCount-1).roundToInt()
+        val lastLineWidth = textLayoutResult.lastLineRightIncludingPlaceholders()
         val maxAvailableWidth = constraints.maxWidth
 
         val lastLineWidthWithHorizontalOverlay = lastLineWidth + overlayPlaceable.width + horizontalPaddingPx
@@ -163,4 +163,20 @@ fun TimestampOverlayLayout(
             }
         }
     }
+}
+
+private fun TextLayoutResult.lastLineRightIncludingPlaceholders(): Int {
+    if (lineCount == 0) return 0
+
+    val lastLine = lineCount - 1
+    val lineTop = getLineTop(lastLine)
+    val lineBottom = getLineBottom(lastLine)
+    val textRight = getLineRight(lastLine)
+    val placeholderRight = placeholderRects.maxOfOrNull { rect ->
+        rect?.takeIf {
+            it.bottom > lineTop && it.top < lineBottom
+        }?.right ?: 0f
+    } ?: 0f
+
+    return ceil(max(textRight, placeholderRight)).toInt()
 }
