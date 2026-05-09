@@ -7,6 +7,7 @@ import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.safeLookup
 import chat.schildi.revenge.CombinedSessions
 import chat.schildi.revenge.UiState
+import chat.schildi.revenge.flatMerge
 import chat.schildi.revenge.flatMergeCombinedWith
 import chat.schildi.revenge.model.conversation.messageMetadata
 import chat.schildi.revenge.util.mergeLists
@@ -16,10 +17,16 @@ import io.element.android.libraries.matrix.api.roomlist.LatestEventValue
 import io.element.android.libraries.matrix.api.roomlist.RoomListFilter
 import io.element.android.libraries.matrix.api.roomlist.ScSdkInboxSettings
 import io.element.android.libraries.matrix.api.roomlist.ScSdkRoomSortOrder
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.onStart
 
 private fun buildScSdkInboxSettings(lookup: (ScPref<*>) -> Any?) = ScSdkInboxSettings(
     sortOrder = ScSdkRoomSortOrder(
@@ -44,6 +51,29 @@ class RoomListDataSource(
 
     val sdkSettings = scPreferencesStore.combinedSettingFlow { lookup ->
         buildScSdkInboxSettings(lookup)
+    }
+
+    @OptIn(FlowPreview::class)
+    fun observeInvalidationSignals(scope: CoroutineScope) {
+        // Room summaries need manual invalidation for notification settings changes
+        combinedSessions.flatMerge(
+            map = { session ->
+                session.client.notificationSettingsService.notificationSettingsChangeFlow
+                    .debounce(500)
+                    .onEach { session.client.roomListService.allRooms.rebuildSummaries() }
+            },
+            merge = { },
+            onEmpty = { },
+        )
+            .onStart {
+                // Rebuild once to account for lost updates, which is a real problem for some reason,
+                // initial room lists are emitted without settings?
+                combinedSessions.value.forEach {
+                    it.client.roomListService.allRooms.rebuildSummaries()
+                }
+            }
+            .flowOn(Dispatchers.Default)
+            .launchIn(scope)
     }
 
     /**

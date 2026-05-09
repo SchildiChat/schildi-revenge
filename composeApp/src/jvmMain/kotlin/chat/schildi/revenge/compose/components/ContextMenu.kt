@@ -1,5 +1,6 @@
 package chat.schildi.revenge.compose.components
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.ContextMenuState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
@@ -40,6 +41,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalDensity
+import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.util.ComposableStringHolder
@@ -62,6 +64,7 @@ sealed interface ContextMenuEntry {
 sealed interface ContextMenuDecoration {
     data class Toggle(val checked: Boolean) : ContextMenuDecoration
     data object CheckMark : ContextMenuDecoration
+    data object DisabledCheckMark : ContextMenuDecoration
 }
 
 data class ContextMenuActionEntry(
@@ -76,6 +79,20 @@ data class ContextMenuActionEntry(
     override val autoCloseMenu: Boolean = decoration == null,
 ) : ContextMenuEntry
 
+
+data class ContextMenuSubmenuEntry(
+    override val title: ComposableStringHolder,
+    override val icon: Painter? = null,
+    val submenuId: UUID,
+    val submenu: ImmutableList<ContextMenuEntry>,
+    override val decoration: ContextMenuDecoration? = null,
+    override val keyboardShortcut: Key? = null,
+    override val critical: Boolean = false,
+    override val enabled: Boolean = true,
+) : ContextMenuEntry {
+    override val autoCloseMenu = false
+}
+
 @OptIn(ExperimentalFoundationApi::class)
 object EmptyTextContextMenu : TextContextMenu {
     @OptIn(ExperimentalFoundationApi::class)
@@ -89,19 +106,34 @@ object EmptyTextContextMenu : TextContextMenu {
     }
 }
 
+/**
+ * @param focusId: The focus ID of the keyFocusable to operate the action on.
+ * @param menuId: The ID of the menu, should be equal to [focusId] except for submenus.
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WithContextMenu(
     focusId: UUID,
     popupContent: @Composable ColumnScope.() -> Unit,
     modifier: Modifier = Modifier,
+    menuId: UUID = focusId,
     content: @Composable () -> Unit,
 ) {
     val keyHandler = LocalKeyboardActionHandler.current
-    val expanded = keyHandler.currentOpenContextMenu.collectAsState().value == focusId
+    val currentMenu = keyHandler.currentOpenContextMenu.collectAsState().value
+    val expanded = currentMenu?.hasMenu(menuId) == true
+    val hasChild = expanded && currentMenu.menuId != menuId
     var anchorBounds by remember { mutableStateOf<Rect?>(null) }
     var pointerPositionOnOpen by remember { mutableStateOf<Offset?>(null) }
     val density = LocalDensity.current
+
+    val containerColor = animateColorAsState(
+        if (hasChild) {
+            MaterialTheme.colorScheme.surfaceContainerLow
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHighest
+        }
+    ).value
 
     LaunchedEffect(expanded) {
         if (expanded) {
@@ -134,8 +166,8 @@ fun WithContextMenu(
         ) {
             DropdownMenu(
                 expanded = expanded,
-                onDismissRequest = { keyHandler.dismissContextMenu(focusId) },
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                onDismissRequest = { keyHandler.dismissContextMenu(menuId) },
+                containerColor = containerColor,
                 offset = offset,
                 content = popupContent,
             )
@@ -144,104 +176,166 @@ fun WithContextMenu(
     }
 }
 
+/**
+ * @param focusId: The focus ID of the keyFocusable to operate the action on.
+ * @param menuId: The ID of the menu, should be equal to [focusId] except for submenus.
+ * @param parentMenuId: the menuId of the parent menu in case of submenus.
+ */
 @Composable
 fun WithContextMenu(
     focusId: UUID,
     entries: ImmutableList<ContextMenuEntry>,
     modifier: Modifier = Modifier,
+    menuId: UUID = focusId,
+    parentMenuId: UUID? = null,
     content: @Composable (InteractionAction.ContextMenu?) -> Unit,
 ) {
     val keyHandler = LocalKeyboardActionHandler.current
     WithContextMenu(
         focusId = focusId,
+        menuId = menuId,
         modifier = modifier,
         content = {
             content(
                 if (entries.isEmpty())
                     null
                 else
-                    InteractionAction.ContextMenu(focusId, entries)
+                    InteractionAction.ContextMenu(focusId, entries, menuId, parentMenuId)
             )
         },
         popupContent = {
             entries.forEach { entry ->
-                val primaryColor = if (entry.critical) {
-                    MaterialTheme.colorScheme.error
-                } else {
-                    MaterialTheme.colorScheme.primary
-                }
-                DropdownMenuItem(
-                    enabled = entry.enabled,
-                    colors = MenuItemColors(
-                        textColor = primaryColor,
-                        leadingIconColor = primaryColor,
-                        trailingIconColor = primaryColor,
-                        disabledTextColor = MaterialTheme.colorScheme.tertiary,
-                        disabledLeadingIconColor = MaterialTheme.colorScheme.tertiary,
-                        disabledTrailingIconColor = MaterialTheme.colorScheme.tertiary,
-                    ),
-                    leadingIcon = entry.icon?.let { icon -> {
-                        Icon(
-                            icon,
-                            null,
-                            Modifier.size(24.dp)
-                        )
-                    }},
-                    trailingIcon = when (val decoration = entry.decoration) {
-                        is ContextMenuDecoration.Toggle -> {
-                            {
-                                Switch(
-                                    enabled = entry.enabled,
-                                    checked = decoration.checked,
-                                    onCheckedChange = null,
-                                )
-                            }
-                        }
-                        is ContextMenuDecoration.CheckMark -> {
-                            {
-                                Icon(
-                                    Icons.Default.Check,
-                                    null,
-                                )
-                            }
-                        }
-                        null -> {{}}
-                    },
-                    text = {
-                        val title = entry.title.render()
-                        val text = remember(entry, title) {
-                            val keyboardShortcut = entry.keyboardShortcut
-                            if (keyboardShortcut == null) {
-                                AnnotatedString(title)
-                            } else {
-                                val keyText = KeyEvent.getKeyText(keyboardShortcut.nativeKeyCode).lowercase()
-                                val keyIndex = title.lowercase().indexOf(keyText)
-                                buildAnnotatedString {
-                                    append(title)
-                                    if (keyIndex >= 0) {
-                                        addStyle(
-                                            SpanStyle(textDecoration = TextDecoration.Underline),
-                                            keyIndex,
-                                            keyIndex + 1,
-                                        )
-                                    } else {
-                                        append(" (")
-                                        withStyle(SpanStyle(textDecoration = TextDecoration.Underline)) {
-                                            append(keyText)
-                                        }
-                                        append(")")
-                                    }
-                                }
-                            }
-                        }
-                        Text(text)
-                    },
+                ContextMenuDropdownMenuItem(
+                    entry = entry,
+                    focusId = focusId,
+                    menuId = menuId,
                     onClick = {
-                        keyHandler.handleContextMenuEntry(focusId, entry)
+                        keyHandler.handleContextMenuEntry(focusId, menuId, entry)
                     }
                 )
             }
         }
+    )
+}
+
+@Composable
+private fun ContextMenuDropdownMenuItem(
+    entry: ContextMenuEntry,
+    focusId: UUID,
+    menuId: UUID,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    if (entry is ContextMenuSubmenuEntry) {
+        WithContextMenu(
+            focusId = focusId,
+            menuId = entry.submenuId,
+            parentMenuId = menuId,
+            entries = entry.submenu,
+            modifier = modifier,
+        ) {
+            ContextMenuDropdownMenuItemContent(
+                entry = entry,
+                onClick = onClick,
+            )
+        }
+    } else {
+        ContextMenuDropdownMenuItemContent(
+            entry = entry,
+            onClick = onClick,
+            modifier = modifier,
+        )
+    }
+}
+
+@Composable
+private fun ContextMenuDropdownMenuItemContent(
+    entry: ContextMenuEntry,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val primaryColor = if (entry.critical) {
+        MaterialTheme.colorScheme.error
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
+    DropdownMenuItem(
+        modifier = modifier,
+        enabled = entry.enabled,
+        colors = MenuItemColors(
+            textColor = primaryColor,
+            leadingIconColor = primaryColor,
+            trailingIconColor = primaryColor,
+            disabledTextColor = MaterialTheme.colorScheme.tertiary,
+            disabledLeadingIconColor = MaterialTheme.colorScheme.tertiary,
+            disabledTrailingIconColor = MaterialTheme.colorScheme.tertiary,
+        ),
+        leadingIcon = entry.icon?.let { icon -> {
+            Icon(
+                icon,
+                null,
+                Modifier.size(24.dp)
+            )
+        }},
+        trailingIcon = when (val decoration = entry.decoration) {
+            is ContextMenuDecoration.Toggle -> {
+                {
+                    Switch(
+                        enabled = entry.enabled,
+                        checked = decoration.checked,
+                        onCheckedChange = null,
+                    )
+                }
+            }
+            is ContextMenuDecoration.CheckMark -> {
+                {
+                    Icon(
+                        Icons.Default.Check,
+                        null,
+                    )
+                }
+            }
+            is ContextMenuDecoration.DisabledCheckMark -> {
+                {
+                    Icon(
+                        Icons.Default.Check,
+                        null,
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = Dimens.fgDisabledAlpha),
+                    )
+                }
+            }
+            null -> {{}}
+        },
+        text = {
+            val title = entry.title.render()
+            val text = remember(entry, title) {
+                val keyboardShortcut = entry.keyboardShortcut
+                if (keyboardShortcut == null) {
+                    AnnotatedString(title)
+                } else {
+                    val keyText = KeyEvent.getKeyText(keyboardShortcut.nativeKeyCode).lowercase()
+                    val keyIndex = title.lowercase().indexOf(keyText)
+                    buildAnnotatedString {
+                        append(title)
+                        if (keyIndex >= 0) {
+                            addStyle(
+                                SpanStyle(textDecoration = TextDecoration.Underline),
+                                keyIndex,
+                                keyIndex + 1,
+                            )
+                        } else {
+                            append(" (")
+                            withStyle(SpanStyle(textDecoration = TextDecoration.Underline)) {
+                                append(keyText)
+                            }
+                            append(")")
+                        }
+                    }
+                }
+            }
+            Text(text)
+        },
+        onClick = onClick,
     )
 }
 

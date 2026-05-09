@@ -88,7 +88,7 @@ fun InboxRow(
         val focusId = rememberFocusId()
         WithContextMenu(
             focusId = focusId,
-            entries = room.contextMenu(),
+            entries = room.contextMenu(viewModel, focusId),
         ) { openContextMenu ->
             Row(
                 modifier = modifier

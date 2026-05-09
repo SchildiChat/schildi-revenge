@@ -93,6 +93,11 @@
     <string name="action_show_room_members">Room members</string>
     <string name="action_thread">Open thread</string>
     <string name="action_save">Save</string>
+    <string name="action_notifications">Notifications</string>
+    <string name="action_notifications_default">Default</string>
+    <string name="action_notifications_all">All messages</string>
+    <string name="action_notifications_mentions">Mentions only</string>
+    <string name="action_notifications_none">None</string>
 
     <string name="command_success">Success: %1$s</string>
     <string name="command_loading_event">Loading %1$s</string>

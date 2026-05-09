@@ -28,6 +28,8 @@ object Dimens {
     val avatarShape = RoundedCornerShape(12.dp)
     val ownAccountAvatarShape = CircleShape
 
+    val fgDisabledAlpha = 0.38f
+
     object Inbox {
         val avatar = 48.dp
         val accountAvatar = 16.dp

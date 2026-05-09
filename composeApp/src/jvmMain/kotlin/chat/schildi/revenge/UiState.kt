@@ -13,6 +13,7 @@ import chat.schildi.revenge.config.ConfigWatchers
 import chat.schildi.revenge.model.CheckpointLoadState
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.LoadStateHolder
+import chat.schildi.revenge.model.RevengeRoomListDataSource
 import chat.schildi.revenge.model.asCheckpointLoadedOrFailed
 import chat.schildi.revenge.model.asCheckpointLoadedOrPending
 import chat.schildi.revenge.store.AppStateStore
@@ -306,6 +307,9 @@ object UiState {
                 appStateStore.persistMutedAccounts(it.orEmpty().map(SessionId::value))
             }.launchIn(scope)
         }
+
+        // Global room list needs just one observing scope for notification settings
+        RevengeRoomListDataSource.observeInvalidationSignals(scope)
     }
 
     fun initializeWith(applicationScope: ApplicationScope, startInTray: Boolean) {

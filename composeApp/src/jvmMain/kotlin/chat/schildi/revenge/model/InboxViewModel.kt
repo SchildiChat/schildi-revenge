@@ -2,7 +2,6 @@ package chat.schildi.revenge.model
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import chat.schildi.matrixsdk.ScTimelineFilterSettings
 import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPreferencesStore
 import chat.schildi.preferences.ScPrefs
@@ -39,8 +38,10 @@ import chat.schildi.revenge.store.PersistentInboxState
 import chat.schildi.revenge.util.combine
 import chat.schildi.revenge.util.throttleLatest
 import co.touchlab.kermit.Logger
+import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.room.RoomNotificationSettings
 import io.element.android.libraries.matrix.api.roomlist.RoomListService
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
 import io.element.android.libraries.matrix.api.sync.SyncState
@@ -56,11 +57,14 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -369,6 +373,32 @@ class InboxViewModel(
             .launchIn(viewModelScope)
     }
 
+    fun followNotificationSettings(
+        room: ScopedRoomSummary,
+    ): Flow<RoomNotificationSettings?> {
+        // Not following client refreshes should be fine for calling sites
+        val client = UiState.currentClientFor(room.sessionId) ?: return flowOf(null)
+        return flow {
+            emit(getRoomNotificationSettings(client, room))
+            client
+                .notificationSettingsService
+                .notificationSettingsChangeFlow.collect {
+                    emit(getRoomNotificationSettings(client, room))
+                }
+        }
+    }
+
+    private suspend fun getRoomNotificationSettings(client: MatrixClient, room: ScopedRoomSummary): RoomNotificationSettings? {
+        val result = client.notificationSettingsService.getRoomNotificationSettings(
+            room.summary.roomId,
+            room.summary.info.isEncrypted == true,
+            room.summary.isOneToOne,
+        )
+        if (result.isFailure) {
+            log.e("Failed to read notification settings for ${room.summary.roomId} via ${room.sessionId}")
+        }
+        return result.getOrNull()
+    }
 
     fun onVisibleRoomsChanged(visibleRooms: List<ScopedRoomSummary>) {
         val roomsBySession = visibleRooms.groupBy { it.sessionId }

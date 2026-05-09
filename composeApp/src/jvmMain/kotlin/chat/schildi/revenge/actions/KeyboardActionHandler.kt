@@ -46,6 +46,7 @@ import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.NavigationPreference
 import chat.schildi.revenge.compose.components.ContextMenuActionEntry
 import chat.schildi.revenge.compose.components.ContextMenuEntry
+import chat.schildi.revenge.compose.components.ContextMenuSubmenuEntry
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
 import chat.schildi.revenge.compose.focus.FakeFocusRequester
 import chat.schildi.revenge.compose.focus.preferFocusChildren
@@ -173,6 +174,7 @@ enum class FocusRole(
     AUX_ITEM,
     AUX_ITEM_EDITABLE(consumesKeyWhitelistDuringEdit = AllowedTextFieldBindingKeys),
     NESTED_AUX_ITEM,
+    CONTEXT_MENU_ENTRY_WITH_SUBMENU,
     DESTINATION_ROOT_CONTAINER,
     NESTING_DESTINATION_ROOT_CONTAINER,
     CONTAINER,
@@ -279,6 +281,27 @@ private data class KeyboardActionHandlerSettings(
     }
 }
 
+data class ContextMenuFocus(
+    val focusId: UUID,
+    val menuId: UUID,
+    val parentMenu: ContextMenuFocus?,
+) {
+    fun hasMenu(menuId: UUID): Boolean =
+        menuId == this.menuId || parentMenu?.hasMenu(menuId) == true
+    fun find(menuId: UUID): ContextMenuFocus? =
+        this.takeIf { menuId == this.menuId } ?: parentMenu?.find(menuId)
+    fun dismiss(menuId: UUID): ContextMenuFocus? {
+        val toDismiss = find(menuId)
+        return if (toDismiss == null) {
+            // Not found, not dismissing self
+            this
+        } else {
+            // Dismiss up to parent menu if exists
+            toDismiss.parentMenu
+        }
+    }
+}
+
 @OptIn(FlowPreview::class)
 class KeyboardActionHandler(
     private val scope: CoroutineScope,
@@ -346,7 +369,7 @@ class KeyboardActionHandler(
         onBufferOverflow = BufferOverflow.DROP_OLDEST,
     )
 
-    private val _currentOpenContextMenu = MutableStateFlow<UUID?>(null)
+    private val _currentOpenContextMenu = MutableStateFlow<ContextMenuFocus?>(null)
     val currentOpenContextMenu = _currentOpenContextMenu.asStateFlow()
 
     val currentFocusState = combine(
@@ -567,7 +590,7 @@ class KeyboardActionHandler(
                 openLinkInExternalBrowser(action.url) is ActionResult.Success
             }
 
-            is InteractionAction.ContextMenu -> openContextMenu(action.focusId)
+            is InteractionAction.ContextMenu -> openContextMenu(action.focusId, action.menuId, action.parentMenuId)
         }
     }
 
@@ -676,11 +699,10 @@ class KeyboardActionHandler(
     fun onPreviewKeyEvent(event: KeyEvent): Boolean {
         val trigger = event.toTrigger() ?: return false
         val focused = currentFocused()
-        val contextMenu = _currentOpenContextMenu.value?.let {
-            focusableTargets[it]?.actions?.findInteractionAction<InteractionAction.ContextMenu>()?.takeIf {
-                it.entries == null || it.entries.isNotEmpty()
-            }
-        }
+        val contextMenu = _currentOpenContextMenu.value
+        val contextMenuEntries = contextMenu?.let {
+            it.resolveMenuEntries(focusableTargets[it.focusId])
+        }?.takeIf { it.isNotEmpty() }
         // Disallow plain keybindings of keys handled by text fields
         if (!event.isCtrlPressed && contextMenu == null && (
                 focused?.role?.consumesKeyWhitelist?.let { event.key in it } == false ||
@@ -694,7 +716,7 @@ class KeyboardActionHandler(
         return when (event.type) {
             KeyDown -> {
                 val consumed = if (contextMenu != null) {
-                    handleContextMenuEvent(event, contextMenu)
+                    handleContextMenuEvent(event, contextMenuEntries, contextMenu.focusId, contextMenu.menuId)
                 } else when (val mode = mode.value) {
                     is KeyboardActionMode.Navigation -> {
                         val result = handleNavigationEvent(trigger, focused)
@@ -850,13 +872,18 @@ class KeyboardActionHandler(
         }
     }
 
-    private fun handleContextMenuEvent(event: KeyEvent, contextMenu: InteractionAction.ContextMenu): Boolean {
+    private fun handleContextMenuEvent(
+        event: KeyEvent,
+        contextMenuEntries: List<ContextMenuEntry>?,
+        focusId: UUID,
+        menuId: UUID,
+    ): Boolean {
         when (event.key) {
-            Key.Escape -> dismissContextMenu(contextMenu.focusId)
+            Key.Escape -> dismissContextMenu(menuId)
             else -> {
-                val action = contextMenu.entries?.find { it.keyboardShortcut == event.key }
+                val action = contextMenuEntries?.find { it.keyboardShortcut == event.key }
                 if (action != null) {
-                    handleContextMenuEntry(contextMenu.focusId, action)
+                    handleContextMenuEntry(focusId, menuId, action)
                 }
             }
         }
@@ -864,16 +891,23 @@ class KeyboardActionHandler(
         return true
     }
 
-    fun handleContextMenuEntry(menuFocusId: UUID, entry: ContextMenuEntry) {
+    fun handleContextMenuEntry(
+        focusId: UUID,
+        menuId: UUID,
+        entry: ContextMenuEntry,
+    ) {
         if (!entry.enabled) {
             return
         }
         when (entry) {
             is ContextMenuActionEntry -> {
-                handleAction(menuFocusId, entry.action, entry.actionArgs)
+                handleAction(focusId, entry.action, entry.actionArgs)
                 if (entry.autoCloseMenu) {
-                    dismissContextMenu(menuFocusId)
+                    dismissContextMenu(menuId)
                 }
+            }
+            is ContextMenuSubmenuEntry -> {
+                openContextMenu(focusId, entry.submenuId, parentMenuId = menuId)
             }
         }
     }
@@ -2170,26 +2204,38 @@ class KeyboardActionHandler(
 
     fun dismissContextMenu(id: UUID): Boolean {
         var dismissed = false
-        _currentOpenContextMenu.update {
-            it?.takeIf {
-                val wasOpen = it == id
-                dismissed = wasOpen
-                !wasOpen
+        _currentOpenContextMenu.update { current ->
+            current?.dismiss(id).also {
+                dismissed = it != current
             }
         }
         return dismissed
     }
 
-    fun openContextMenu(id: UUID): Boolean {
-        val focusTarget = focusableTargets[id]
+    fun openContextMenu(focusId: UUID, menuId: UUID = focusId, parentMenuId: UUID? = null): Boolean {
+        val focusTarget = focusableTargets[focusId]
         if (focusTarget == null) {
-            log.e("Tried to open context menu on unregistered target $id")
+            log.e("Tried to open context menu on unregistered target $focusId")
             return false
         }
         focusTarget.actions?.findInteractionAction<InteractionAction.ContextMenu>()?.takeIf {
             it.entries == null || it.entries.isNotEmpty()
         } ?: return false
-        _currentOpenContextMenu.value = id
+        if (parentMenuId != null) {
+            _currentOpenContextMenu.update { current ->
+                val parent = current?.find(parentMenuId)
+                if (parent == null) {
+                    log.e("Tried to open context menu on unexpected parent $parentMenuId via $focusId, opening as orphan")
+                }
+                ContextMenuFocus(
+                    focusId = focusId,
+                    menuId = menuId,
+                    parentMenu = parent,
+                )
+            }
+        } else {
+            _currentOpenContextMenu.value = ContextMenuFocus(focusId, menuId, null)
+        }
         return true
     }
 
@@ -2484,6 +2530,45 @@ class KeyboardActionHandler(
 
     fun onWindowFocusChanged(isFocused: Boolean) {
         _isWindowFocused.value = isFocused
+    }
+
+    private fun ContextMenuFocus.resolveMenuEntries(target: FocusTarget?): List<ContextMenuEntry>? {
+        target ?: return null
+        val action = target.actions?.findInteractionAction<InteractionAction.ContextMenu>() ?: return null
+        if (parentMenu == null) {
+            return action.entries
+        }
+        val resolution = buildList {
+            var current = this@resolveMenuEntries
+            while (true) {
+                add(current.menuId)
+                current = current.parentMenu ?: break
+            }
+        }.toMutableList()
+        if (resolution.last() != action.menuId) {
+            log.e { "Unexpected menu ID: ${action.menuId} via ${resolution.joinToString()}" }
+            // Unexpected root menu ID
+            return null
+        }
+        resolution.removeLastOrNull()
+        var entries = action.entries ?: return null
+        while (true) {
+            val menuId = resolution.removeLastOrNull() ?: run {
+                log.e { "Failed to look up submenu in iteration" }
+                return null
+            }
+            entries = entries.mapNotNull {
+                it as? ContextMenuSubmenuEntry
+            }.find {
+                it.submenuId == menuId
+            }?.submenu ?: return run {
+                log.e { "Failed to look up submenu $menuId via ${this.menuId}, remaining=${resolution.size}; ${entries.size}" }
+                null
+            }
+            if (menuId == this.menuId) {
+                return entries
+            }
+        }
     }
 }
 
