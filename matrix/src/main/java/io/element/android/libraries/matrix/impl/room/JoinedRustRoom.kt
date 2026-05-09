@@ -44,6 +44,8 @@ import io.element.android.libraries.matrix.impl.mapper.map
 import io.element.android.libraries.matrix.impl.room.history.map
 import io.element.android.libraries.matrix.impl.room.join.map
 import io.element.android.libraries.matrix.impl.room.knock.RustKnockRequest
+import io.element.android.libraries.matrix.impl.room.location.liveLocationSharesFlow
+import io.element.android.libraries.matrix.impl.room.location.timedByExpiry
 import io.element.android.libraries.matrix.impl.room.member.RoomMemberListFetcher
 import io.element.android.libraries.matrix.impl.room.threads.RustThreadsListService
 import io.element.android.libraries.matrix.impl.roomdirectory.map
@@ -518,13 +520,13 @@ class JoinedRustRoom(
     }
 
     override fun subscribeToLiveLocationShares(): Flow<List<LiveLocationShare>> {
-        TODO("Not implemented yet")
+        return innerRoom.liveLocationSharesFlow().timedByExpiry(systemClock::epochMillis)
     }
 
-    override suspend fun startLiveLocationShare(durationMillis: Long): Result<Unit> = withContext(roomDispatcher) {
+    override suspend fun startLiveLocationShare(durationMillis: Long): Result<EventId> = withContext(roomDispatcher) {
         runCatchingExceptions {
             innerRoom.startLiveLocationShare(durationMillis.toULong())
-        }
+        }.map(::EventId)
     }
 
     override suspend fun stopLiveLocationShare(): Result<Unit> = withContext(roomDispatcher) {
@@ -543,7 +545,7 @@ class JoinedRustRoom(
 
     override fun destroy() {
         baseRoom.destroy()
-        liveInnerTimeline.destroy()
+        liveTimeline.close()
         threadsListService.destroy()
         Timber.d("Room $roomId destroyed")
     }

@@ -12,6 +12,6 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 
 @Parcelize
-data class OidcDetails(
+data class OAuthDetails(
     val url: String,
 ) : Parcelable

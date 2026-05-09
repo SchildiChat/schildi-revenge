@@ -13,6 +13,7 @@ import com.beeper.android.messageformat.MatrixBodyParseResult
 import com.beeper.android.messageformat.MatrixFormatInteractionState
 import com.beeper.android.messageformat.SpanAttributes
 import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.notification.CallIntent
 import io.element.android.libraries.matrix.api.timeline.item.event.CallNotifyContent
 import io.element.android.libraries.matrix.api.timeline.item.event.EventContent
 import io.element.android.libraries.matrix.api.timeline.item.event.FailedToParseMessageLikeContent
@@ -102,6 +103,8 @@ import shire.composeapp.generated.resources.message_placeholder_state_event_spac
 import shire.composeapp.generated.resources.message_placeholder_state_event_space_parent
 import shire.composeapp.generated.resources.message_placeholder_unable_to_decrypt
 import shire.composeapp.generated.resources.message_placeholder_unknown
+import shire.composeapp.generated.resources.message_placeholder_video_call
+import shire.composeapp.generated.resources.message_placeholder_voice_call
 import shire.composeapp.generated.resources.profile_update_avatar
 import shire.composeapp.generated.resources.profile_update_cleared_name
 import shire.composeapp.generated.resources.profile_update_name
@@ -159,7 +162,7 @@ object EventTextFormat {
         return when (content) {
             is MessageContent -> messageTypeToText(content.type, stripNewlines)
             is StickerContent -> content.bestDescription
-            CallNotifyContent,
+            is CallNotifyContent -> callContentToText(content, getFormatString)
             LegacyCallInviteContent -> getString(Res.string.message_placeholder_call)
             is LiveLocationContent -> getString(Res.string.message_placeholder_live_location)
             is FailedToParseMessageLikeContent,
@@ -383,6 +386,16 @@ object EventTextFormat {
                 append(". ")
                 append(getFormatString(Res.string.membership_reason, arrayOf(content.reason ?: "")))
             }
+        }
+    }
+
+    private inline fun callContentToText(
+        content: CallNotifyContent,
+        getFormatString: (StringResource, formatArgs: Array<Any>) -> String,
+    ): String {
+        return when (content.callIntent) {
+            CallIntent.AUDIO -> getFormatString(Res.string.message_placeholder_voice_call, emptyArray())
+            CallIntent.VIDEO -> getFormatString(Res.string.message_placeholder_video_call, emptyArray())
         }
     }
 

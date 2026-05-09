@@ -211,7 +211,7 @@ fun EventContentLayout(
         }
 
         // TODO
-        CallNotifyContent -> EventMessageFallback("CALL")
+        is CallNotifyContent -> EventMessageFallback("CALL")
         is FailedToParseMessageLikeContent -> {
             EventMessageLayout {
                 MessageFallback(stringResource(Res.string.message_placeholder_message_failed_to_parse), isOwn, timestamp, inReplyTo, threadInfo, textColor = MaterialTheme.colorScheme.error)

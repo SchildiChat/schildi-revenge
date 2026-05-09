@@ -8,6 +8,6 @@
 
 package io.element.android.libraries.matrix.api.auth
 
-interface OidcRedirectUrlProvider {
+interface OAuthRedirectUrlProvider {
     fun provide(): String
 }

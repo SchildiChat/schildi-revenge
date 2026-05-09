@@ -200,6 +200,8 @@
     <string name="message_placeholder_message_redacted_with_reason">Message redacted: %1$s</string>
     <string name="message_placeholder_message_failed_to_parse">Message failed to parse</string>
     <string name="message_placeholder_call">Call</string>
+    <string name="message_placeholder_voice_call">Voice call</string>
+    <string name="message_placeholder_video_call">Voice call</string>
     <string name="message_placeholder_sticker">Sticker</string>
     <string name="message_placeholder_reaction">Reacted to a message</string>
     <string name="message_placeholder_encrypted_message">Encrypted message</string>

@@ -2,9 +2,9 @@ package chat.schildi.revenge.glue
 
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
-import io.element.android.libraries.matrix.api.auth.OidcRedirectUrlProvider
+import io.element.android.libraries.matrix.api.auth.OAuthRedirectUrlProvider
 
 @ContributesBinding(AppScope::class)
-object DefaultOidcRedirectUrlProvider : OidcRedirectUrlProvider {
+object DefaultOAuthRedirectUrlProvider : OAuthRedirectUrlProvider {
     override fun provide() = "chat.schildi.revenge:/"
 }
