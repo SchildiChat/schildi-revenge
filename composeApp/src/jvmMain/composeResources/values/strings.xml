@@ -98,6 +98,7 @@
     <string name="command_loading_event">Loading %1$s</string>
     <string name="command_loading_timeline_at">Loading timeline at %1$s</string>
     <string name="command_event_not_found">Could not find %1$s</string>
+    <string name="command_external_application_launched">Launched external application</string>
     <string name="command_copied_to_clipboard">Copied %1$s to clipboard</string>
     <string name="command_copied_content_to_clipboard">Copied: %1$s</string>
     <string name="command_event_name_own_read_receipt">own read receipt</string>

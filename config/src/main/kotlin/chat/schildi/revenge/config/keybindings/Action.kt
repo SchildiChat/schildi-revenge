@@ -163,6 +163,7 @@ sealed interface Action {
         RecreateWindow,
         ClearSessionCache(args = listOf(ActionArgumentPrimitive.SessionId)),
         CopyGlobalAccountData(args = listOf(ActionArgumentPrimitive.SessionId), aliases = listOf("accountData", "copyAccountData", "globalAccountData")),
+        ViewGlobalAccountData(args = listOf(ActionArgumentPrimitive.SessionId), aliases = listOf("viewAccountData", "viewGlobalAccountData")),
         VacuumDatabase(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.SessionId))),
         CreateRoom(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.RoomName), aliases = listOf("createRoom")),
         CreateUnencryptedRoom(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.RoomName), aliases = listOf("createUnencryptedRoom", "createRoomUnencrypted")),
@@ -203,6 +204,7 @@ sealed interface Action {
         override val args: kotlin.collections.List<ActionArgument> = emptyList()
     ) : Action {
         CopyPlaintext(aliases = listOf("copy")),
+        ViewPlaintext(aliases = listOf("viewPlaintext")),
         CopyUserId(aliases = listOf("copyUserId", "copyMXID")),
         CopyMxcUrl(aliases = listOf("copyMxc")),
         CopyFilePath(aliases = listOf("copyPath")),
@@ -306,6 +308,7 @@ sealed interface Action {
         BanUser(aliases = listOf("ban"), args = listOf(ActionArgumentPrimitive.UserIdInRoom, OptionalReason)),
         UnbanUser(aliases = listOf("unban"), args = listOf(ActionArgumentPrimitive.UserIdNotInRoom, OptionalReason)),
         CopyFullRoomState(aliases = listOf("roomState", "copyRoomState")),
+        ViewFullRoomState(aliases = listOf("viewRoomState")),
     }
     enum class Room(
         override val aliases: kotlin.collections.List<String> = emptyList(),
@@ -333,6 +336,7 @@ sealed interface Action {
         SetRoomTopic(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.RoomTopic))),
         SetRoomAvatar(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.Mxc))),
         CopyFullRoomAccountData(aliases = listOf("roomAccountData", "copyRoomAccountData")),
+        ViewFullRoomAccountData(aliases = listOf("viewRoomAccountData")),
         ConvertToDm,
         ConvertToGroup,
         SetPowerLevel(args = listOf(ActionArgumentPrimitive.UserIdInRoom, ActionArgumentPrimitive.PowerLevel)),
@@ -351,6 +355,7 @@ sealed interface Action {
         CopyContent,
         CopyFormattedBody,
         CopyEventSource,
+        ViewEventSource(aliases = listOf("viewEventSource")),
         CopyEventId,
         CopyMxc,
         CopyContentLink,

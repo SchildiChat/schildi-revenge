@@ -34,6 +34,7 @@ import chat.schildi.revenge.actions.RoomContextSuggestionsProvider
 import chat.schildi.revenge.actions.UserIdSuggestion
 import chat.schildi.revenge.actions.UserIdSuggestionsProvider
 import chat.schildi.revenge.actions.execute
+import chat.schildi.revenge.actions.formatEventContentDump
 import chat.schildi.revenge.actions.launchActionAsync
 import chat.schildi.revenge.actions.orActionInapplicable
 import chat.schildi.revenge.actions.orActionValidationError
@@ -1329,35 +1330,43 @@ class ConversationViewModel(
                     }
                 }
 
-                Action.Conversation.CopyFullRoomState -> {
+                Action.Conversation.CopyFullRoomState,
+                Action.Conversation.ViewFullRoomState -> {
                     val room = baseRoom.value ?: return@run ActionResult.Failure("Room not ready")
+                    val appMessageId = if (action == Action.Conversation.CopyFullRoomState) {
+                        "copyFullRemoteState"
+                    } else {
+                        "viewFullRemoteState"
+                    }
                     publishMessage(
                         AppMessage(
                             Res.string.command_fetching_state.toStringHolder(),
-                            uniqueId = "copyFullRemoteState"
+                            uniqueId = appMessageId
                         )
                     )
                     launchActionAsync(
-                        "copyFullRoomState",
+                        if (action == Action.Conversation.CopyFullRoomState) "copyFullRoomState" else "viewFullRoomState",
                         GlobalActionsScope,
                         Dispatchers.IO,
                         notifyProcessing = true,
-                        appMessageId = "copyFullRemoteState",
+                        appMessageId = appMessageId,
                     ) {
                         val result = room.fetchFullRoomState()
-                        dismissMessage("copyFullRemoteState")
+                        dismissMessage(appMessageId)
                         if (result.isSuccess) {
-                            val joined = result.getOrNull()?.parseRoomStateSnapshot(log)?.joinToString(",\n\n") {
-                                if (it.stateKey.isEmpty()) {
-                                    "# ${it.eventType}\n${it.content}"
-                                } else {
-                                    "# ${it.eventType} / ${it.stateKey}\n${it.content}"
-                                }
-                            } ?: "{}"
-                            context.copyToClipboard(
-                                joined,
-                                Res.string.command_copy_name_full_room_state.toStringHolder()
+                            val joined = result.getOrNull()?.parseRoomStateSnapshot(log).formatEventContentDump(
+                                eventType = { it.eventType },
+                                content = { it.content },
+                                stateKey = { it.stateKey.ifEmpty { null } },
                             )
+                            if (action == Action.Conversation.CopyFullRoomState) {
+                                context.copyToClipboard(
+                                    joined,
+                                    Res.string.command_copy_name_full_room_state.toStringHolder()
+                                )
+                            } else {
+                                context.viewInExternalApp(joined, ".md")
+                            }
                         } else {
                             result.toActionResult(async = true)
                         }
@@ -1813,9 +1822,14 @@ class ConversationViewModel(
                         } ?: ActionResult.Inapplicable
                     }
 
-                    Action.Event.CopyEventSource -> {
+                    Action.Event.CopyEventSource,
+                    Action.Event.ViewEventSource -> {
                         event.timelineItemDebugInfoProvider().originalJson?.toPrettyJson()?.let { eventSource ->
-                            copyToClipboard(eventSource, Res.string.command_copy_name_event_source.toStringHolder())
+                            if (action == Action.Event.CopyEventSource) {
+                                copyToClipboard(eventSource, Res.string.command_copy_name_event_source.toStringHolder())
+                            } else {
+                                viewInExternalApp(eventSource, ".json")
+                            }
                         } ?: ActionResult.Inapplicable
                     }
 

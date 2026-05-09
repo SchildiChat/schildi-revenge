@@ -77,6 +77,7 @@ import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.REAL_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.RevengeSpaceListDataSource
 import chat.schildi.revenge.notification.NotifiableRoomSubscriber
+import chat.schildi.revenge.toPrettyJson
 import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.core.coroutine.childScope
@@ -124,13 +125,17 @@ import shire.composeapp.generated.resources.command_ambiguous_none_valid
 import shire.composeapp.generated.resources.command_copied_content_to_clipboard
 import shire.composeapp.generated.resources.command_copied_to_clipboard
 import shire.composeapp.generated.resources.command_copy_name_full_account_data
+import shire.composeapp.generated.resources.command_external_application_launched
 import shire.composeapp.generated.resources.command_not_applicable
 import shire.composeapp.generated.resources.command_not_found
 import shire.composeapp.generated.resources.toast_room_created
+import java.awt.Desktop
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.io.File
+import java.nio.charset.StandardCharsets
+import java.nio.file.Files
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.map
@@ -1063,6 +1068,8 @@ class KeyboardActionHandler(
             this@KeyboardActionHandler.dismissMessage(uniqueId)
         override fun copyToClipboard(content: String, description: ComposableStringHolder?) =
             this@KeyboardActionHandler.copyToClipboard(this, content, description)
+        override fun viewInExternalApp(content: String, fileExtension: String) =
+            this@KeyboardActionHandler.viewInExternalApp(this, content, fileExtension)
         override fun getFilesFromClipboard() = this@KeyboardActionHandler.getFilesFromClipboard()
         override fun getStringFromClipboard() = this@KeyboardActionHandler.getStringFromClipboard()
         override fun openLinkInExternalBrowser(uri: String): ActionResult =
@@ -1159,6 +1166,9 @@ class KeyboardActionHandler(
             Action.CopyAble.CopyPlaintext.takeIf {
                 copyActions.accessPlaintext != null || copyActions.accessPlaintextSuspend != null
             },
+            Action.CopyAble.ViewPlaintext.takeIf {
+                copyActions.accessPlaintext != null || copyActions.accessPlaintextSuspend != null
+            },
             Action.CopyAble.CopyUserId.takeIf { copyActions.accessUserId != null },
             Action.CopyAble.CopyFilePath.takeIf { copyActions.accessFilePath != null },
         )
@@ -1179,18 +1189,27 @@ class KeyboardActionHandler(
             args: List<String>
         ): ActionResult {
             return when (action) {
-                Action.CopyAble.CopyPlaintext -> {
+                Action.CopyAble.CopyPlaintext,
+                Action.CopyAble.ViewPlaintext -> {
                     val content = copyActions.accessPlaintext?.invoke()?.takeIf(String::isNotEmpty)
                         ?: copyActions.accessPlaintextSuspend?.let { plaintext ->
                             return context.launchActionAsync(
-                                "copyPlaintext",
+                                if (action == Action.CopyAble.CopyPlaintext) "copyPlaintext" else "viewPlaintext",
                                 scope,
                             ) {
                                 val content = plaintext()?.takeIf(String::isNotEmpty) ?: return@launchActionAsync ActionResult.Inapplicable
-                                context.copyToClipboard(content)
+                                if (action == Action.CopyAble.CopyPlaintext) {
+                                    context.copyToClipboard(content)
+                                } else {
+                                    context.viewInExternalApp(content)
+                                }
                             }
                         } ?: return ActionResult.Inapplicable
-                    context.copyToClipboard(content)
+                    if (action == Action.CopyAble.CopyPlaintext) {
+                        context.copyToClipboard(content)
+                    } else {
+                        context.viewInExternalApp(content)
+                    }
                 }
                 Action.CopyAble.CopyUserId -> {
                     val content = copyActions.accessUserId?.invoke() ?: return ActionResult.Inapplicable
@@ -1684,25 +1703,28 @@ class KeyboardActionHandler(
                             }
                     }
                 }
-                Action.Global.CopyGlobalAccountData -> {
+                Action.Global.CopyGlobalAccountData,
+                Action.Global.ViewGlobalAccountData -> {
                     val sessionId = SessionId(args.firstOrNull().orActionValidationError())
                     val client = UiState.currentClientFor(sessionId) ?: return ActionResult.Failure("Client not ready")
                     context.launchActionAsync(
-                        "copyGlobalAccountData",
+                        if (action == Action.Global.CopyGlobalAccountData) "copyGlobalAccountData" else "viewGlobalAccountData",
                         GlobalActionsScope,
                         Dispatchers.IO,
-                        "copyGlobalAccountData",
+                        if (action == Action.Global.CopyGlobalAccountData) "copyGlobalAccountData" else "viewGlobalAccountData",
                         notifyProcessing = true,
                     ) {
                         val result = client.getGlobalAccountData()
                         if (result.isSuccess) {
-                            val joined = result.getOrNull()?.joinToString(",\n\n") {
-                                "# ${it.eventType}\n${it.content}"
-                            } ?: "{}"
-                            context.copyToClipboard(
-                                joined,
-                                Res.string.command_copy_name_full_account_data.toStringHolder()
-                            )
+                            val joined = result.getOrNull().formatEventContentDump({ it.eventType }, { it.content.toPrettyJson() })
+                            if (action == Action.Global.CopyGlobalAccountData) {
+                                context.copyToClipboard(
+                                    joined,
+                                    Res.string.command_copy_name_full_account_data.toStringHolder()
+                                )
+                            } else {
+                                context.viewInExternalApp(joined, ".md")
+                            }
                         } else {
                             result.toActionResult(async = true)
                         }
@@ -2360,6 +2382,39 @@ class KeyboardActionHandler(
         return ActionResult.Success()
     }
 
+    fun viewInExternalApp(context: ActionContext, content: String, fileExtension: String = ".txt"): ActionResult {
+        if (!Desktop.isDesktopSupported()) {
+            return ActionResult.Failure("Desktop integration is not available")
+        }
+        val desktop = Desktop.getDesktop()
+        if (!desktop.isSupported(Desktop.Action.OPEN)) {
+            return ActionResult.Failure("Opening files is not supported")
+        }
+        return context.launchActionAsync(
+            "viewInExternalApp",
+            scope,
+            Dispatchers.IO,
+        ) {
+            try {
+                val tempFile = Files.createTempFile("schildi-revenge-", fileExtension).toFile().apply {
+                    deleteOnExit()
+                }
+                Files.writeString(tempFile.toPath(), content, StandardCharsets.UTF_8)
+                desktop.open(tempFile)
+                publishMessage(
+                    AppMessage(
+                        Res.string.command_external_application_launched.toStringHolder(),
+                        uniqueId = "external-app",
+                    )
+                )
+                ActionResult.Success()
+            } catch (t: Throwable) {
+                log.e("Failed to open plaintext content", t)
+                ActionResult.Failure(t.message ?: "Failed to open external viewer")
+            }
+        }
+    }
+
     fun getStringFromClipboard(): String? {
         val systemClipboard = Toolkit.getDefaultToolkit().systemClipboard
         val contents = systemClipboard.getContents(null) ?: return null
@@ -2805,6 +2860,7 @@ interface ActionContext {
     fun publishMessage(message: AbstractAppMessage)
     fun dismissMessage(uniqueId: String)
     fun copyToClipboard(content: String, description: ComposableStringHolder? = null): ActionResult
+    fun viewInExternalApp(content: String, fileExtension: String = ".txt"): ActionResult
     fun getFilesFromClipboard(): List<File>
     fun getStringFromClipboard(): String?
     fun openLinkInExternalBrowser(uri: String): ActionResult

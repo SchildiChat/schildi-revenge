@@ -5,6 +5,7 @@ import chat.schildi.matrixsdk.RoomNamePrivateContent
 import chat.schildi.revenge.GlobalActionsScope
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
+import chat.schildi.revenge.actions.formatEventContentDump
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.actions.launchActionAsync
@@ -17,6 +18,7 @@ import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
 import chat.schildi.revenge.config.keybindings.ActionRoomNotificationSetting
 import chat.schildi.revenge.config.keybindings.KeyTrigger
+import chat.schildi.revenge.toPrettyJson
 import chat.schildi.revenge.util.matrix.updateAccountData
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.RoomId
@@ -229,17 +231,20 @@ class RoomActionProvider(
                     joinedRoom.setAvatarUrl(avatarUrl).toActionResult()
                 }
             }
-            Action.Room.CopyFullRoomAccountData -> {
+            Action.Room.CopyFullRoomAccountData,
+            Action.Room.ViewFullRoomAccountData -> {
                 val client = peekClient() ?: return ActionResult.Failure("Client not ready")
                 val result = client.getRoomAccountData(room.roomId)
                 if (result.isSuccess) {
-                    val joined = result.getOrNull()?.joinToString(",\n\n") {
-                        "# ${it.eventType}\n${it.content}"
-                    } ?: "{}"
-                    context.copyToClipboard(
-                        joined,
-                        Res.string.command_copy_name_full_account_data.toStringHolder()
-                    )
+                    val joined = result.getOrNull().formatEventContentDump({ it.eventType }, { it.content.toPrettyJson() })
+                    if (action == Action.Room.CopyFullRoomAccountData) {
+                        context.copyToClipboard(
+                            joined,
+                            Res.string.command_copy_name_full_account_data.toStringHolder()
+                        )
+                    } else {
+                        context.viewInExternalApp(joined, ".md")
+                    }
                 } else {
                     result.toActionResult(async = true)
                 }
