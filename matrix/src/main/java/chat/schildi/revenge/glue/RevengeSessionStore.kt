@@ -21,13 +21,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
 import java.io.File
-
-@Serializable
-private data class RevengeSessionStoreData(
-    val sessions: List<SessionData> = emptyList(),
-)
 
 sealed interface SessionUpdate {
     data class OnSessionCreated(val userId: String) : SessionUpdate
@@ -56,7 +50,7 @@ object RevengeSessionStore : SessionStore {
         if (sessionsFile.exists()) {
             log.d("Loading sessions from config")
             sessionsFile.inputStream().use {
-                ScJson.decodeFromString<RevengeSessionStoreData>(it.readAllBytes().decodeToString())
+                RevengeSessionStoreData.fromSerializedWithMigration(it.readAllBytes().decodeToString())
             }.also {
                 log.i("Found ${it.sessions.size} sessions in config")
             }
