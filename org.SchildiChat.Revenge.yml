@@ -27,7 +27,7 @@ modules:
     build-commands:
       - mkdir -p /app/share/applications 
       - cp SchildiChatRevenge.desktop /app/share/applications/org.SchildiChat.Revenge.desktop
-      - sed -i s/Icon=.*/Icon=org.SchildiChat.Revenge/ /app/share/applications/org.SchildiChat.Revenge.desktop
+      - sed -i 's/^Icon=.*$/Icon=org.SchildiChat.Revenge/' /app/share/applications/org.SchildiChat.Revenge.desktop
   - name: install-icon
     sources:
       - type: dir
@@ -42,10 +42,16 @@ finish-args:
   - --share=ipc
   - --socket=x11
   - --socket=wayland
-  # GPU acceleration if needed
+  # GPU acceleration
   - --device=dri
   # Needs to talk to the network:
   - --share=network
-  # Config and sessions
-  - --filesystem=xdg-config/SchildiChatRevenge
-  - --filesystem=xdg-data/SchildiChatRevenge
+  # File manager integration (open downloaded files in file manager)
+  - --talk-name=org.freedesktop.FileManager1
+  # System tray / StatusNotifierWatcher (KDE/SNI on Wayland)
+  - --talk-name=org.kde.StatusNotifierWatcher
+  # Config, sessions, downloads, and cache (rw for saving attachments, keys, cached media, etc.)
+  - --filesystem=xdg-config/SchildiChatRevenge:rw
+  - --filesystem=xdg-data/SchildiChatRevenge:rw
+  - --filesystem=xdg-cache/SchildiChatRevenge:rw
+  - --filesystem=xdg-download:rw

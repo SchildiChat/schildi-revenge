@@ -4,7 +4,7 @@ set -e
 
 if ! which magick &> /dev/null; then
   echo "Please install magick"
-  exit
+  exit 1
 fi
 
 echo "[+] Building bundle"
