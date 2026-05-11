@@ -326,6 +326,7 @@
     <string name="pref_category_theme_light">Light theme</string>
     <string name="pref_category_theme_dark">Dark theme</string>
     <string name="pref_debug_avatar_render_states_title">Render avatar states</string>
+    <string name="pref_render_space_order_keys_title">Render space order keys</string>
     <string name="pref_theme_follow_system_title">Follow system theme</string>
     <string name="pref_theme_follow_system_summary">Choose dark or light theme based on system settings</string>
     <string name="pref_dark_theme_title">Dark theme</string>

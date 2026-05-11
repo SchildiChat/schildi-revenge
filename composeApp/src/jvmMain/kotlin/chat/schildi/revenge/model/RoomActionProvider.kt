@@ -308,7 +308,7 @@ class RoomActionProvider(
 
     private suspend fun updateGlobalAccountData(eventType: String, update: (JsonObject?) -> JsonObject?): ActionResult {
         val client = peekClient() ?: return ActionResult.Failure("Client not ready")
-        return updateAccountData(client, eventType, update)
+        return client.updateAccountData(eventType, update)
     }
 
     private suspend fun addRoomToSpace(context: ActionContext, space: BaseRoom, room: BaseRoom): ActionResult {

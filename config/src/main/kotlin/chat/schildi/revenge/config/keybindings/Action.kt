@@ -91,6 +91,7 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     RoomName(consumesTrailingArgsWithSpace = true),
     RoomTopic(consumesTrailingArgsWithSpace = true),
     RoomNotificationSetting,
+    SpaceOrder,
     FocusRole,
     Empty;
     override fun possiblePrimitives(context: CommandArgContext) = listOf(this)
@@ -341,6 +342,13 @@ sealed interface Action {
         ConvertToGroup,
         SetPowerLevel(args = listOf(ActionArgumentPrimitive.UserIdInRoom, ActionArgumentPrimitive.PowerLevel)),
         SetPrivateRoomName(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.RoomName))),
+    }
+    enum class Space(
+        override val aliases: kotlin.collections.List<String> = emptyList(),
+        override val args: kotlin.collections.List<ActionArgument> = emptyList()
+    ) : Action {
+        CopySortOrder(aliases = listOf("CopySpaceOrder")),
+        SetSortOrder(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.SpaceOrder))),
     }
     enum class Event(
         override val aliases: kotlin.collections.List<String> = emptyList(),

@@ -2657,6 +2657,7 @@ fun checkArgument(
         ActionArgumentPrimitive.RoomName,
         ActionArgumentPrimitive.RoomTopic,
         ActionArgumentPrimitive.ServerName,
+        ActionArgumentPrimitive.SpaceOrder,
         ActionArgumentPrimitive.Text -> null
         ActionArgumentPrimitive.SettingValue -> {
             val settingKeys = context.findAll(ActionArgumentPrimitive.SettingKey)

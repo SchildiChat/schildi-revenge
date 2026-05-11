@@ -15,7 +15,6 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableMap
 import kotlinx.collections.immutable.toImmutableSet
-import kotlinx.collections.immutable.toPersistentSet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -166,10 +165,9 @@ private fun List<SpaceListDataSource.SpaceHierarchyItem>.mergeSpaceSessionDuplic
             prioritized.forEach { other ->
                 unreadCount = unreadCount.add(other.unreadCounts)
             }
-            val sortOrder = duplicates.minWith(nullsLast(compareBy { it.order.order })).order
             SpaceListDataSource.SpaceHierarchyItem(
                 room = mainSpace.room,
-                order = sortOrder,
+                order = mainSpace.order,
                 spaces = prioritized.flatMap { it.spaces }.mergeSpaceSessionDuplicates(sessionIdComparator).toImmutableList(),
                 directChildren = prioritized.flatMap { it.directChildren }.toImmutableSet(),
                 flattenedRooms = prioritized.flatMap { it.flattenedRooms }.toImmutableSet(),

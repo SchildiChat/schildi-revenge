@@ -72,10 +72,9 @@ import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.model.spaces.SpaceListDataSource
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
+import chat.schildi.revenge.model.spaces.SpaceOrder
 import chat.schildi.theme.scExposures
 import co.touchlab.kermit.Logger
-import io.element.android.libraries.matrix.api.core.RoomId
-import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.media.MediaSource
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -95,7 +94,7 @@ fun SpaceSelectorRow(
     spaceSelectionHierarchy: ImmutableList<String>,
     onSpaceSelected: (List<String>) -> Unit,
     modifier: Modifier = Modifier,
-    getSpaceActionProvider: (SessionId, RoomId, isInvite: Boolean) -> KeyboardActionProvider<*>,
+    getSpaceActionProvider: (SpaceListDataSource.SpaceHierarchyItem) -> KeyboardActionProvider<*>,
 ) {
     Column(modifier) {
         SpaceSelector(
@@ -129,7 +128,7 @@ private fun ColumnScope.SpaceSelector(
     parentSelection: ImmutableList<String>,
     selectSpace: (SpaceListDataSource.AbstractSpaceHierarchyItem?, ImmutableList<String>) -> Unit,
     compactTabs: Boolean,
-    getSpaceActionProvider: (SessionId, RoomId, isInvite: Boolean) -> KeyboardActionProvider<*>,
+    getSpaceActionProvider: (SpaceListDataSource.SpaceHierarchyItem) -> KeyboardActionProvider<*>,
 ) {
     val selectedSpaceIndex = if (spaceSelection.isEmpty()) {
         -1
@@ -372,17 +371,13 @@ private fun SpaceTab(
     collapsed: Boolean,
     expandable: Boolean,
     compact: Boolean,
-    getSpaceActionProvider: (SessionId, RoomId, isInvite: Boolean) -> KeyboardActionProvider<*>,
+    getSpaceActionProvider: (SpaceListDataSource.SpaceHierarchyItem) -> KeyboardActionProvider<*>,
     onClick: () -> Unit
 ) {
     CompositionLocalProvider(
         LocalKeyboardActionProvider provides when (space) {
             is SpaceListDataSource.SpaceHierarchyItem -> {
-                getSpaceActionProvider(
-                    space.room.sessionId,
-                    space.room.summary.roomId,
-                    space.room.summary.isInvite()
-                ).hierarchicalKeyboardActionProvider()
+                getSpaceActionProvider(space).hierarchicalKeyboardActionProvider()
             }
             else -> LocalKeyboardActionProvider.current
         }
@@ -396,7 +391,11 @@ private fun SpaceTab(
             onClick = onClick,
             contextMenu = space.spaceContextMenu(),
         ) {
-            SpaceUnreadCountBox(space.unreadCounts, spaceTabUnreadBadgeOffset(compact)) {
+            SpaceUnreadCountBox(
+                space.unreadCounts,
+                spaceTabUnreadBadgeOffset(compact),
+                (space as? SpaceListDataSource.SpaceHierarchyItem)?.order,
+            ) {
                 AbstractSpaceIcon(space = space, size = spaceTabIconSize(compact), shape = spaceTabIconShape(compact))
             }
         }
@@ -411,7 +410,7 @@ private fun AbstractSpaceIcon(
     color: Color = MaterialTheme.colorScheme.primary,
     shape: Shape = Dimens.Inbox.spaceShape,
 ) {
-    when(space) {
+    when (space) {
         is SpaceListDataSource.SpaceHierarchyItem -> AvatarImage(
             space.room.summary.info.avatarUrl?.let { MediaSource(it) },
             size = size,
@@ -487,42 +486,69 @@ private fun ShowAllTab(
 }
 
 @Composable
-fun SpaceUnreadCountBox(unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts?, offset: Dp, content: @Composable () -> Unit) {
-    val mode = ScPrefs.SPACE_UNREAD_COUNTS.value()
-    if (unreadCounts == null || mode == ScPrefs.SpaceUnreadCountMode.HIDE) {
-        content()
-        return
-    }
-    val countChats = mode == ScPrefs.SpaceUnreadCountMode.CHATS
-    val count: Long
-    val badgeColor: Color
-    var outlinedBadge = false
-    when {
-        unreadCounts.notifiedMessages > 0 -> {
-            count = if (countChats) unreadCounts.notifiedChats else unreadCounts.notifiedMessages
-            badgeColor = if (unreadCounts.mentionedMessages > 0) MaterialTheme.scExposures.mentionBadgeColor else MaterialTheme.scExposures.notificationBadgeColor
-        }
-        unreadCounts.mentionedMessages > 0 -> {
-            count = if (countChats) unreadCounts.mentionedChats else unreadCounts.mentionedMessages
-            badgeColor = MaterialTheme.scExposures.mentionBadgeColor
-        }
-        unreadCounts.markedUnreadChats > 0 -> {
-            count = unreadCounts.markedUnreadChats
-            badgeColor = MaterialTheme.scExposures.notificationBadgeColor
-            outlinedBadge = true
-        }
-        unreadCounts.unreadMessages > 0 && ScPrefs.RENDER_SILENT_UNREAD.value() -> {
-            count = if (countChats) unreadCounts.unreadChats else unreadCounts.unreadMessages
-            badgeColor = MaterialTheme.scExposures.unreadBadgeColor
-        }
-        else -> {
-            // No badge to show
+private fun SortOrderOverlay(order: SpaceOrder?, modifier: Modifier = Modifier) {
+    val orderKey = order?.order ?: return
+    Text(
+        orderKey,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        style = MaterialTheme.typography.labelSmall,
+        modifier = modifier.background(MaterialTheme.colorScheme.surfaceContainerLowest),
+    )
+}
+
+@Composable
+fun SpaceUnreadCountBox(
+    unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts?,
+    offset: Dp,
+    order: SpaceOrder? = null,
+    content: @Composable () -> Unit
+) {
+    Box {
+        val debugSortOrder = order != null && ScPrefs.RENDER_SPACE_ORDER_KEYS.value()
+
+        val mode = ScPrefs.SPACE_UNREAD_COUNTS.value()
+        if (unreadCounts == null || mode == ScPrefs.SpaceUnreadCountMode.HIDE) {
             content()
+            if (debugSortOrder) {
+                SortOrderOverlay(order, Modifier.align(Alignment.BottomStart))
+            }
             return
         }
-    }
-    Box {
+
+        val countChats = mode == ScPrefs.SpaceUnreadCountMode.CHATS
+        val count: Long
+        val badgeColor: Color
+        var outlinedBadge = false
+        when {
+            unreadCounts.notifiedMessages > 0 -> {
+                count = if (countChats) unreadCounts.notifiedChats else unreadCounts.notifiedMessages
+                badgeColor = if (unreadCounts.mentionedMessages > 0) MaterialTheme.scExposures.mentionBadgeColor else MaterialTheme.scExposures.notificationBadgeColor
+            }
+            unreadCounts.mentionedMessages > 0 -> {
+                count = if (countChats) unreadCounts.mentionedChats else unreadCounts.mentionedMessages
+                badgeColor = MaterialTheme.scExposures.mentionBadgeColor
+            }
+            unreadCounts.markedUnreadChats > 0 -> {
+                count = unreadCounts.markedUnreadChats
+                badgeColor = MaterialTheme.scExposures.notificationBadgeColor
+                outlinedBadge = true
+            }
+            unreadCounts.unreadMessages > 0 && ScPrefs.RENDER_SILENT_UNREAD.value() -> {
+                count = if (countChats) unreadCounts.unreadChats else unreadCounts.unreadMessages
+                badgeColor = MaterialTheme.scExposures.unreadBadgeColor
+            }
+            else -> {
+                // No badge to show
+                content()
+                if (debugSortOrder) {
+                    SortOrderOverlay(order, Modifier.align(Alignment.BottomStart))
+                }
+                return
+            }
+        }
+
         content()
+
         Box(
             modifier = Modifier
                 .offset(offset, -offset)
@@ -554,6 +580,10 @@ fun SpaceUnreadCountBox(unreadCounts: SpaceAggregationDataSource.SpaceUnreadCoun
                 .width(offset)
                 .offset(-offset, -offset)
                 .align(Alignment.TopStart))
+
+        if (debugSortOrder) {
+            SortOrderOverlay(order, Modifier.align(Alignment.BottomStart))
+        }
     }
 }
 

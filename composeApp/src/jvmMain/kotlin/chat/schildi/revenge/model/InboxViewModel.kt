@@ -19,6 +19,7 @@ import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.actions.launchActionAsync
 import chat.schildi.revenge.actions.orActionValidationError
 import chat.schildi.revenge.actions.toActionResult
+import chat.schildi.revenge.compose.destination.inbox.isInvite
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
@@ -732,17 +733,15 @@ class InboxViewModel(
     }
 
     fun getKeyboardActionProviderForSpace(
-        sessionId: SessionId,
-        roomId: RoomId,
-        isInvite: Boolean,
+        space: SpaceListDataSource.SpaceHierarchyItem,
     ) = FlatMergedKeyboardActionProvider(
         listOf(
             getKeyboardActionProviderForRoom(
-                sessionId = sessionId,
-                roomId = roomId,
-                isInvite = isInvite,
+                sessionId = space.room.sessionId,
+                roomId = space.room.summary.roomId,
+                isInvite = space.room.summary.isInvite(),
             ),
-            // TODO add space-only actions
+            SpaceActionProvider(space, UiState::currentClientFor)
         )
     )
 }

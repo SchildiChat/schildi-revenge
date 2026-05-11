@@ -131,6 +131,7 @@ import shire.composeapp.generated.resources.pseudo_space_spaceless_groups
 import shire.composeapp.generated.resources.pseudo_space_unread
 import shire.composeapp.generated.resources.pref_pseudo_spaces_summary
 import shire.composeapp.generated.resources.pref_pseudo_spaces_title
+import shire.composeapp.generated.resources.pref_render_space_order_keys_title
 import shire.composeapp.generated.resources.pref_space_all_rooms_summary
 import shire.composeapp.generated.resources.pref_space_all_rooms_title
 import shire.composeapp.generated.resources.pref_space_unread_counts_mode_chats
@@ -195,6 +196,7 @@ object ScPrefs {
 
     // Developer options
     val RENDER_AVATAR_STATES = ScBoolPref("RENDER_AVATAR_STATES", false, Res.string.pref_debug_avatar_render_states_title)
+    val RENDER_SPACE_ORDER_KEYS = ScBoolPref("RENDER_SPACE_ORDER_KEYS", false, Res.string.pref_render_space_order_keys_title)
     val SHOW_DEV_INFOS = ScBoolPref("SHOW_DEV_INFOS", false, Res.string.pref_show_dev_infos_title, Res.string.pref_show_dev_infos_summary)
     val FORCE_RENDER_BLURHASH = ScBoolPref("FORCE_RENDER_BLURHASH", false, Res.string.pref_force_render_blurhash_title, Res.string.pref_force_render_blurhash_summary)
     val FRAME_DROP_SPINNER = ScBoolPref("FRAME_DROP_SPINNER", false, Res.string.pref_framed_rop_spinner_title, Res.string.pref_framed_rop_spinner_summary)
@@ -394,6 +396,7 @@ object ScPrefs {
         ScPrefScreen("DEVELOPER", Res.string.pref_category_developer_options, null, prefs = listOf(
             RENDER_AVATAR_STATES,
             VIEW_HIDDEN_EVENTS,
+            RENDER_SPACE_ORDER_KEYS,
             SHOW_DEV_INFOS,
             FORCE_RENDER_BLURHASH,
             FRAME_DROP_SPINNER,
