@@ -27,8 +27,8 @@ class SpaceComparator(
         val leftSessionId = left.sessionIds.minWith(sessionIdComparator)
         val rightSessionId = right.sessionIds.minWith(sessionIdComparator)
         return sessionIdComparator.compare(leftSessionId, rightSessionId).orCompare {
-            val leftOrder = left.orderFor(leftSessionId)
-            val rightOrder = right.orderFor(rightSessionId)
+            val leftOrder = left.orderFor(leftSessionId)?.order
+            val rightOrder = right.orderFor(rightSessionId)?.order
             if (leftOrder != null && rightOrder != null) {
                 leftOrder.compareTo(rightOrder)
             } else {

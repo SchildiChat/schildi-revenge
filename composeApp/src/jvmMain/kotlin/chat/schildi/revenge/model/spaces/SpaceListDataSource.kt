@@ -95,6 +95,18 @@ data class SpaceOrphanCatcher(
     )
 }
 
+sealed interface SpaceOrder {
+    val order: String?
+    data class AccountData(
+        override val order: String?,
+        val sessionId: SessionId,
+    ) : SpaceOrder
+    data class SpaceChild(
+        override val order: String?,
+        val parentSpaceId: RoomId,
+    ) : SpaceOrder
+}
+
 val RevengeSpaceListDataSource = SpaceListDataSource()
 
 @Inject
@@ -281,11 +293,12 @@ class SpaceListDataSource(
         }
 
         // Build the actual immutable recursive data structures that replicate the hierarchy
-        return rootSpaces.map {
-            val order = it.client.getRoomAccountData(it.summary.roomId, ROOM_ACCOUNT_DATA_SPACE_ORDER)
+        return rootSpaces.map { space ->
+            val order = space.client.getRoomAccountData(space.summary.roomId, ROOM_ACCOUNT_DATA_SPACE_ORDER)
                 ?.let { SpaceOrderSerializer.deserializeContent(it) }?.getOrNull()?.order
+                .let { SpaceOrder.AccountData(it, space.client.sessionId) }
             createSpaceHierarchyItem(
-                it,
+                space,
                 order,
                 spaceComparator,
                 spaceHierarchyMap,
@@ -297,7 +310,7 @@ class SpaceListDataSource(
 
     private fun createSpaceHierarchyItem(
         spaceSummary: SpaceBuilderRoom,
-        order: String?,
+        order: SpaceOrder,
         spaceComparator: SpaceComparator,
         hierarchy: HashMap<ScopedSpaceId, MutableList<Pair<MatrixSpaceChildInfo, SpaceBuilderRoom>>>,
         regularChildren: HashMap<ScopedSpaceId, MutableList<MatrixSpaceChildInfo>>,
@@ -312,7 +325,7 @@ class SpaceListDataSource(
             } else {
                 createSpaceHierarchyItem(
                     child,
-                    spaceChildInfo.order,
+                    SpaceOrder.SpaceChild(spaceChildInfo.order, spaceSummary.id.roomId),
                     spaceComparator,
                     hierarchy,
                     regularChildren,
@@ -372,14 +385,14 @@ class SpaceListDataSource(
     @Immutable
     data class SpaceHierarchyItem(
         val room: ScopedRoomSummary,
-        val order: String?,
+        val order: SpaceOrder,
         override val spaces: ImmutableList<SpaceHierarchyItem>,
         val directChildren: ImmutableSet<ScopedRoomKey>,
         val flattenedRooms: ImmutableSet<ScopedRoomKey>,
         val orphanCatcher: SpaceOrphanCatcher?,
         override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
         val mergedRooms: ImmutableList<ScopedRoomSummary> = persistentListOf(),
-        val mergedOrders: ImmutableMap<SessionId, String?> = persistentMapOf(),
+        val mergedOrders: ImmutableMap<SessionId, SpaceOrder> = persistentMapOf(),
     ) : AbstractSpaceHierarchyItem {
         override val name = room.summary.info.name?.toStringHolder() ?: StringResourceHolder(Res.string.nameless_space_fallback_title)
         override val selectionId = "$REAL_SPACE_ID_PREFIX{${sessionIds.sortedBy(SessionId::value).joinToString(separator = ";")}}:${room.summary.roomId.value}"

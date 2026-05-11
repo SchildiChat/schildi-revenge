@@ -166,7 +166,7 @@ private fun List<SpaceListDataSource.SpaceHierarchyItem>.mergeSpaceSessionDuplic
             prioritized.forEach { other ->
                 unreadCount = unreadCount.add(other.unreadCounts)
             }
-            val sortOrder = duplicates.mapNotNull { it.order }.takeIf { it.isNotEmpty() }?.min()
+            val sortOrder = duplicates.minWith(nullsLast(compareBy { it.order.order })).order
             SpaceListDataSource.SpaceHierarchyItem(
                 room = mainSpace.room,
                 order = sortOrder,
