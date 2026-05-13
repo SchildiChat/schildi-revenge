@@ -320,7 +320,7 @@ class InboxViewModel(
         .stateIn(viewModelScope, SharingStarted.Lazily, persistentHashMapOf())
 
     val dmsByHeroes = allRooms.map {
-        it.filter { it.summary.isOneToOne }.groupBy { it.summary.info.heroes }.toPersistentHashMap()
+        it.filter { it.summary.isDm }.groupBy { it.summary.info.heroes }.toPersistentHashMap()
     }
         .flowOn(Dispatchers.IO)
         .stateIn(viewModelScope, SharingStarted.Lazily, persistentHashMapOf())
@@ -393,7 +393,7 @@ class InboxViewModel(
         val result = client.notificationSettingsService.getRoomNotificationSettings(
             room.summary.roomId,
             room.summary.info.isEncrypted == true,
-            room.summary.isOneToOne,
+            room.summary.isDm,
         )
         if (result.isFailure) {
             log.e("Failed to read notification settings for ${room.summary.roomId} via ${room.sessionId}")

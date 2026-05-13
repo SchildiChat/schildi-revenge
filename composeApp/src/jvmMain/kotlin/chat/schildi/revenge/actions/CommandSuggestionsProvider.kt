@@ -131,7 +131,7 @@ class CommandSuggestionsProvider(
 
     private val scopedUserIdDmsSuggestions = roomListDataSource.allRooms.map {
         it.mapNotNull { room ->
-            if (room.summary.isOneToOne) {
+            if (room.summary.isDm) {
                 room.summary.info.heroes
                     .filter { it.userId != room.sessionId }
                     .takeIf { it.size == 1 }

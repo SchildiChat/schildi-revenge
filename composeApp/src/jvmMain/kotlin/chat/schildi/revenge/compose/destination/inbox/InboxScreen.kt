@@ -201,7 +201,7 @@ fun InboxScreen(
                                 (
                                         room.summary.isInvite() ||
                                                 (roomsByRoomId[room.summary.roomId]?.size ?: 0) > 1 ||
-                                                room.summary.isOneToOne && (dmsByHeroes[room.summary.info.heroes]?.size
+                                                room.summary.isDm && (dmsByHeroes[room.summary.info.heroes]?.size
                                             ?: 0) > 1
                                         )
                         InboxRow(

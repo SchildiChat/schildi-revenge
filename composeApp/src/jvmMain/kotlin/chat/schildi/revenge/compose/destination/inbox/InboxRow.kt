@@ -281,7 +281,7 @@ private fun RowScope.ScLastMessageAndIndicatorRow(
                     event.senderProfile,
                     event.senderId,
                 )
-                if (event.isOwn || room.isOneToOne) {
+                if (event.isOwn || room.isDm) {
                     eventText
                 } else {
                     "${event.senderProfile.getDisambiguatedDisplayName(event.senderId)}: $eventText"
