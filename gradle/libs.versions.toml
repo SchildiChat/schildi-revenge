@@ -2,14 +2,14 @@
 versionsPlugin = "0.54.0"
 androidx-lifecycle = "2.10.0"
 androidx-datastore = "1.2.1"
-composeHotReload = "1.0.0"
-composeMultiplatform = "1.10.3"
+composeHotReload = "1.1.1"
+composeMultiplatform = "1.11.0"
 composeMaterial3 = "1.9.0"
 composeMaterialIconsExtended = "1.7.3"
 junit = "4.13.2"
 kotlin = "2.3.21"
-kotlinx-coroutines = "1.10.2"
-kotlinx-datetime = "0.7.1"
+kotlinx-coroutines = "1.11.0"
+kotlinx-datetime = "0.8.0"
 jetbrainsKotlinJvm = "2.3.21"
 jna = "5.18.1"
 kotlinxSerialization = "1.11.0"
@@ -61,7 +61,7 @@ kdroidfilter_platformtools_darkmodedetector = { group = "io.github.kdroidfilter"
 kdroidfilter_composenativetray = { group = "io.github.kdroidfilter", name = "composenativetray", version.ref = "kdroidfilterComposeNativeTray" }
 kdroidfilter_knotify = { group = "io.github.kdroidfilter", name = "knotify", version.ref = "kdroidfilterKnotify" }
 kdroidfilter_knotify_compose = { group = "io.github.kdroidfilter", name = "knotify-compose", version.ref = "kdroidfilterKnotify" }
-kodein-emojiKt = { group = "org.kodein.emoji", name = "emoji-kt", version = "2.3.0" }
+kodein-emojiKt = { group = "org.kodein.emoji", name = "emoji-kt", version = "2.4.0" }
 ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 #beeper-messageformat = { module = "com.beeper.android.messageformat:messageformat-jvm", version = "1.0" }
 beeper-messageformat = { module = "com.github.beeper.matrix-messageformat-compose:messageformat-jvm", version.ref = "beeperMessageFormat" }
