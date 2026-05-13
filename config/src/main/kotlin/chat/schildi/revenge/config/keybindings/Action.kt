@@ -92,6 +92,7 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     RoomTopic(consumesTrailingArgsWithSpace = true),
     RoomNotificationSetting,
     SpaceOrder,
+    SpaceCatchAllMode,
     FocusRole,
     Empty;
     override fun possiblePrimitives(context: CommandArgContext) = listOf(this)
@@ -349,6 +350,7 @@ sealed interface Action {
     ) : Action {
         CopySortOrder(aliases = listOf("CopySpaceOrder")),
         SetSortOrder(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.SpaceOrder))),
+        SetCatchAll(args = listOf(ActionArgumentOptional(ActionArgumentAnyOf(ActionArgumentPrimitive.SpaceCatchAllMode, ActionArgumentPrimitive.Boolean)))),
     }
     enum class Event(
         override val aliases: kotlin.collections.List<String> = emptyList(),

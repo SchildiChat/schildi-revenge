@@ -71,6 +71,7 @@ import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.config.keybindings.KeyMapped
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.config.keybindings.KeybindingConfig
+import chat.schildi.revenge.config.keybindings.SpaceCatchAllMode
 import chat.schildi.revenge.config.keybindings.findAll
 import chat.schildi.revenge.config.keybindings.maxArgsSize
 import chat.schildi.revenge.config.keybindings.minArgsSize
@@ -2865,6 +2866,15 @@ fun checkArgument(
                 ActionResult.Malformed(
                     "Invalid parameter for $actionName, expected non-negative integer got $argVal"
                 )
+            }
+        }
+        ActionArgumentPrimitive.SpaceCatchAllMode -> {
+            if (tryOrNull { SpaceCatchAllMode.valueOf(argVal) } == null) {
+                ActionResult.Malformed(
+                    "Invalid parameter for $actionName, expected valid SpaceCatchAllMode, got $argVal"
+                )
+            } else {
+                null
             }
         }
         ActionArgumentPrimitive.FocusRole -> {

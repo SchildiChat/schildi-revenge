@@ -9,10 +9,12 @@ import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.actions.launchActionAsync
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
+import chat.schildi.revenge.config.keybindings.SpaceCatchAllMode
 import chat.schildi.revenge.model.spaces.SpaceListDataSource
 import chat.schildi.revenge.model.spaces.SpaceOrder
 import chat.schildi.revenge.util.matrix.updateRoomAccountData
 import chat.schildi.revenge.util.matrix.updateRoomState
+import chat.schildi.revenge.util.tryOrNull
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -63,6 +65,33 @@ class SpaceActionProvider(
                     when (space.order) {
                         is SpaceOrder.AccountData -> setSortOrderAccountData(client, order)
                         is SpaceOrder.SpaceChild -> setSortOrderParentSpace(client, space.order.parentSpaceId, order)
+                    }
+                }
+                Action.Space.SetCatchAll -> client.withJoinedRoom { room ->
+                    val rawMode = args.firstOrNull()
+                    val rawModeAsBoolean = rawMode?.toBooleanStrictOrNull()
+                    val mode = if (rawMode == null) null else tryOrNull { SpaceCatchAllMode.valueOf(rawMode) }
+                    room.updateRoomState("de.spiritcroc.space.catch_all", "") {
+                        if (rawModeAsBoolean == false || mode == SpaceCatchAllMode.None) {
+                            JsonObject(emptyMap())
+                        } else {
+                            it.orEmpty().toMutableMap().apply {
+                                set("include_orphans", JsonPrimitive(true))
+                                when (mode) {
+                                    SpaceCatchAllMode.All -> {
+                                        remove("filter_is_dm")
+                                    }
+                                    SpaceCatchAllMode.Dms -> {
+                                        set("filter_is_dm", JsonPrimitive(true))
+                                    }
+                                    SpaceCatchAllMode.Groups -> {
+                                        set("filter_is_dm", JsonPrimitive(false))
+                                    }
+                                    // Keep setting
+                                    null -> {}
+                                }
+                            }.let(::JsonObject)
+                        }
                     }
                 }
             }

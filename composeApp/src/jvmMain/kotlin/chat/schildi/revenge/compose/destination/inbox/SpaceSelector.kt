@@ -20,9 +20,12 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CatchingPokemon
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MeetingRoom
 import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -60,6 +63,7 @@ import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.ContextMenuActionEntry
+import chat.schildi.revenge.compose.components.ContextMenuDecoration
 import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.revenge.compose.components.ScrollableTabRow
 import chat.schildi.revenge.compose.components.TabRowDefaults.tabIndicatorOffset
@@ -70,17 +74,23 @@ import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.DestinationEnum
+import chat.schildi.revenge.config.keybindings.SpaceCatchAllMode
 import chat.schildi.revenge.model.spaces.SpaceListDataSource
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
 import chat.schildi.revenge.model.spaces.SpaceOrder
+import chat.schildi.revenge.model.spaces.toSpaceCatchAllMode
 import chat.schildi.theme.scExposures
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.media.MediaSource
+import io.element.android.libraries.matrix.api.room.SpaceCatchAllInfo
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.action_catch_dms_only
+import shire.composeapp.generated.resources.action_catch_groups_only
+import shire.composeapp.generated.resources.action_catch_space_orphans
 import shire.composeapp.generated.resources.action_leave
 import shire.composeapp.generated.resources.action_navigate_debug_timeline
 import shire.composeapp.generated.resources.pref_space_all_rooms_title
@@ -596,6 +606,8 @@ fun SpaceListDataSource.AbstractSpaceHierarchyItem.spaceContextMenu(): Immutable
     val showDebugOptions = ScPrefs.SHOW_DEV_INFOS.value()
     return when (this) {
         is SpaceListDataSource.SpaceHierarchyItem -> {
+            val allowCatchAll = room.summary.info.canUserManageSpaces && room.summary.info.isPublic == false
+            val catchAllMode = room.summary.info.spaceCatchAll.toSpaceCatchAllMode()
             listOfNotNull(
                 ContextMenuActionEntry(
                     Res.string.action_navigate_debug_timeline.toStringHolder(),
@@ -608,6 +620,47 @@ fun SpaceListDataSource.AbstractSpaceHierarchyItem.spaceContextMenu(): Immutable
                     ),
                     keyboardShortcut = Key.O,
                 ).takeIf { showDebugOptions },
+                ContextMenuActionEntry(
+                    Res.string.action_catch_space_orphans.toStringHolder(),
+                    rememberVectorPainter(Icons.Default.CatchingPokemon),
+                    Action.Space.SetCatchAll,
+                    actionArgs = persistentListOf(
+                        // Pass boolean to keep other settings intact
+                        (catchAllMode == SpaceCatchAllMode.None).toString()
+                    ),
+                    keyboardShortcut = Key.C,
+                    decoration = ContextMenuDecoration.Toggle(catchAllMode != SpaceCatchAllMode.None),
+                ).takeIf { allowCatchAll },
+                ContextMenuActionEntry(
+                    Res.string.action_catch_dms_only.toStringHolder(),
+                    rememberVectorPainter(Icons.Default.Person),
+                    Action.Space.SetCatchAll,
+                    actionArgs = persistentListOf(
+                        if (catchAllMode == SpaceCatchAllMode.Dms) {
+                            SpaceCatchAllMode.All.name
+                        } else {
+                            SpaceCatchAllMode.Dms.name
+                        }
+                    ),
+                    enabled = catchAllMode != SpaceCatchAllMode.None,
+                    keyboardShortcut = Key.D,
+                    decoration = ContextMenuDecoration.Toggle(catchAllMode == SpaceCatchAllMode.Dms),
+                ).takeIf { allowCatchAll },
+                ContextMenuActionEntry(
+                    Res.string.action_catch_groups_only.toStringHolder(),
+                    rememberVectorPainter(Icons.Default.Group),
+                    Action.Space.SetCatchAll,
+                    actionArgs = persistentListOf(
+                        if (catchAllMode == SpaceCatchAllMode.Groups) {
+                            SpaceCatchAllMode.All.name
+                        } else {
+                            SpaceCatchAllMode.Groups.name
+                        }
+                    ),
+                    enabled = catchAllMode != SpaceCatchAllMode.None,
+                    keyboardShortcut = Key.G,
+                    decoration = ContextMenuDecoration.Toggle(catchAllMode == SpaceCatchAllMode.Groups),
+                ).takeIf { allowCatchAll },
                 ContextMenuActionEntry(
                     Res.string.action_leave.toStringHolder(),
                     rememberVectorPainter(Icons.Default.MeetingRoom),

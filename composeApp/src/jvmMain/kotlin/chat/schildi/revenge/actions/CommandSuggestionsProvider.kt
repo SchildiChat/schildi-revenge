@@ -20,6 +20,7 @@ import chat.schildi.revenge.config.keybindings.ActionArgumentRepeatable
 import chat.schildi.revenge.config.keybindings.ActionRoomNotificationSetting
 import chat.schildi.revenge.config.keybindings.CommandArgContext
 import chat.schildi.revenge.config.keybindings.SUGGESTED_DESTINATION_STRINGS
+import chat.schildi.revenge.config.keybindings.SpaceCatchAllMode
 import chat.schildi.revenge.config.keybindings.findAll
 import chat.schildi.revenge.config.keybindings.maxArgsSize
 import chat.schildi.revenge.config.keybindings.minArgsSize
@@ -471,6 +472,7 @@ class CommandSuggestionsProvider(
                     val eventTypes = context.findAll(ActionArgumentPrimitive.StateEventType)
                     roomStateEventSuggestions?.value?.toStateEventKeySuggestions(eventTypes).orEmpty()
                 }
+                ActionArgumentPrimitive.SpaceCatchAllMode -> SpaceCatchAllMode.entries.map { it.name }.toSuggestionsWithoutHint()
                 ActionArgumentPrimitive.FocusRole -> FocusRole.entries.map { it.name }.toSuggestionsWithoutHint()
             }.filterValidSuggestionsFor(query, arg).distinct()
         }
