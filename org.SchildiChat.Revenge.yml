@@ -50,6 +50,7 @@ finish-args:
   - --talk-name=org.freedesktop.FileManager1
   # System tray / StatusNotifierWatcher (KDE/SNI on Wayland)
   - --talk-name=org.kde.StatusNotifierWatcher
+  - --own-name=org.kde.StatusNotifierItem-2-1
   # Config, sessions, downloads, and cache (rw for saving attachments, keys, cached media, etc.)
   - --filesystem=xdg-config/SchildiChatRevenge:rw
   - --filesystem=xdg-data/SchildiChatRevenge:rw
