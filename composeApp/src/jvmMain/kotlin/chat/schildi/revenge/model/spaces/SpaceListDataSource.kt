@@ -97,13 +97,17 @@ data class SpaceOrphanCatcher(
 
 sealed interface SpaceOrder {
     val order: String?
+    val canEdit: Boolean
     data class AccountData(
         override val order: String?,
         val sessionId: SessionId,
-    ) : SpaceOrder
+    ) : SpaceOrder {
+        override val canEdit = true
+    }
     data class SpaceChild(
         override val order: String?,
         val parentSpaceId: RoomId,
+        override val canEdit: Boolean,
     ) : SpaceOrder
 }
 
@@ -325,7 +329,7 @@ class SpaceListDataSource(
             } else {
                 createSpaceHierarchyItem(
                     child,
-                    SpaceOrder.SpaceChild(spaceChildInfo.order, spaceSummary.id.roomId),
+                    SpaceOrder.SpaceChild(spaceChildInfo.order, spaceSummary.id.roomId, spaceSummary.summary.info.canUserManageSpaces),
                     spaceComparator,
                     hierarchy,
                     regularChildren,

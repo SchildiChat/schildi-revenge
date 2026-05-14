@@ -28,7 +28,7 @@ class SpaceActionProvider(
     val peekClient: suspend (SessionId) -> MatrixClient?,
 ) : KeyboardActionProvider<Action.Space> {
     override fun getPossibleActions() = Action.Space.entries.toSet().let {
-        if (space.room.summary.info.canUserManageSpaces) {
+        if (space.order.canEdit) {
             it
         } else {
             it - Action.Space.SetSortOrder
