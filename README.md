@@ -106,7 +106,7 @@ This list is not sufficient to consider the client feature-complete in any way.
     - [x] Copy room ID, room link
     - [x] Set favorite / low priority
     - [x] Copy account state to clipboard
-- [ ] Account data devtools
+- [x] Account data devtools
 - [ ] Account management screen polish
 - [ ] Notifications
     - [x] Show desktop notifications

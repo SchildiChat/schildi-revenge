@@ -49,6 +49,7 @@ import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.config.keybindings.Action
 import com.beeper.android.messageformat.MatrixBodyParseResult
+import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_cancel
@@ -97,6 +98,19 @@ fun EditableText(
         canEdit = canEdit,
     ) {
         currentValue?.rawText
+    }
+    val error = when (currentValue) {
+        is EditTextValue.Json -> {
+            remember(isEditing, editState.value?.text) {
+                try {
+                    editState.value?.text?.takeIf { isEditing }?.let(Json::parseToJsonElement)
+                    null
+                } catch (e: Exception) {
+                    e.message ?: e.toString()
+                }
+            }
+        }
+        else -> null
     }
     Column(
         modifier.keyFocusable(
@@ -175,7 +189,22 @@ fun EditableText(
                 }
             }
         }
+        if (error != null) {
+            EditableErrorText(error)
+        }
     }
+}
+
+@Composable
+fun EditableErrorText(
+    error: String,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        error,
+        color = MaterialTheme.colorScheme.error,
+        modifier = modifier,
+    )
 }
 
 @Composable
