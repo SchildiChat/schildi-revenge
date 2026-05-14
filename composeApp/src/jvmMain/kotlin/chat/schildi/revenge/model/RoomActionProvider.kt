@@ -3,6 +3,7 @@ package chat.schildi.revenge.model
 import chat.schildi.matrixsdk.ROOM_ACCOUNT_DATA_PERSONAL_ROOM_NAME
 import chat.schildi.matrixsdk.RoomNamePrivateContent
 import chat.schildi.revenge.GlobalActionsScope
+import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.formatEventContentDump
@@ -247,6 +248,20 @@ class RoomActionProvider(
                     }
                 } else {
                     result.toActionResult(async = true)
+                }
+            }
+            Action.Room.SetRoomAccountData -> {
+                val eventType = args.firstOrNull().orActionValidationError()
+                val content = args.getOrNull(1) ?: "{}"
+                val client = peekClient() ?: return ActionResult.Failure("Client not ready")
+                context.launchActionAsync(
+                    "setRoomAccountData",
+                    GlobalActionsScope,
+                    Dispatchers.IO,
+                    "setRoomAccountData/$roomId/$sessionId/$eventType",
+                    notifyProcessing = true,
+                ) {
+                    client.setRoomAccountData(roomId, eventType, content).toActionResult(async = true)
                 }
             }
             Action.Room.ConvertToDm -> {

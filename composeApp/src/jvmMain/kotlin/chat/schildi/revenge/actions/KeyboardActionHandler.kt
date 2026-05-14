@@ -118,6 +118,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_cancel
 import shire.composeapp.generated.resources.action_processing
@@ -1767,6 +1768,21 @@ class KeyboardActionHandler(
                         }
                     }
                 }
+                Action.Global.SetGlobalAccountData -> {
+                    val sessionId = SessionId(args.firstOrNull().orActionValidationError())
+                    val eventType = args.getOrNull(1).orActionValidationError()
+                    val content = args.getOrNull(2) ?: "{}"
+                    val client = UiState.currentClientFor(sessionId) ?: return ActionResult.Failure("Client not ready")
+                    context.launchActionAsync(
+                        "setAccountData",
+                        GlobalActionsScope,
+                        Dispatchers.IO,
+                        "setAccountData/$sessionId/$eventType",
+                        notifyProcessing = true,
+                    ) {
+                        client.setAccountData(eventType, content).toActionResult(async = true)
+                    }
+                }
                 Action.Global.CreateRoom -> {
                     val sessionId = SessionId(args.firstOrNull().orActionValidationError())
                     val name = args.getOrNull(1)
@@ -2656,12 +2672,22 @@ fun checkArgument(
         ActionArgumentPrimitive.EventType,
         ActionArgumentPrimitive.StateEventType,
         ActionArgumentPrimitive.NonEmptyStateKey,
+        ActionArgumentPrimitive.AccountDataType,
+        ActionArgumentPrimitive.RoomAccountDataType,
         ActionArgumentPrimitive.UserName,
         ActionArgumentPrimitive.RoomName,
         ActionArgumentPrimitive.RoomTopic,
         ActionArgumentPrimitive.ServerName,
         ActionArgumentPrimitive.SpaceOrder,
         ActionArgumentPrimitive.Text -> null
+        ActionArgumentPrimitive.Json -> {
+            try {
+                Json.parseToJsonElement(argVal)
+                null
+            } catch (e: Exception) {
+                ActionResult.Malformed(e.message ?: e.toString())
+            }
+        }
         ActionArgumentPrimitive.SettingValue -> {
             val settingKeys = context.findAll(ActionArgumentPrimitive.SettingKey)
             if (settingKeys.isEmpty()) {

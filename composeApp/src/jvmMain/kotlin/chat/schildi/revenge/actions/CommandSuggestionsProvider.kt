@@ -463,6 +463,9 @@ class CommandSuggestionsProvider(
                 ActionArgumentPrimitive.RoomAliasNotJoined,
                 ActionArgumentPrimitive.ServerName,
                 ActionArgumentPrimitive.SpaceOrder,
+                ActionArgumentPrimitive.Json,
+                ActionArgumentPrimitive.AccountDataType,
+                ActionArgumentPrimitive.RoomAccountDataType,
                 ActionArgumentPrimitive.Empty -> emptyList()
                 ActionArgumentPrimitive.RoomName -> roomContextSuggestionsProvider?.roomInfo?.value?.name.toSuggestionsWithoutHint()
                 ActionArgumentPrimitive.RoomTopic -> roomContextSuggestionsProvider?.roomInfo?.value?.topic.toSuggestionsWithoutHint()
