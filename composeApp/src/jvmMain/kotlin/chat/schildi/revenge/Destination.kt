@@ -10,6 +10,7 @@ import io.element.android.libraries.matrix.api.core.ThreadId
 import io.element.android.libraries.matrix.api.core.UserId
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.about
+import shire.composeapp.generated.resources.account_dev_tools_title
 import shire.composeapp.generated.resources.app_title_short
 import shire.composeapp.generated.resources.diagnostics
 import shire.composeapp.generated.resources.hint_settings
@@ -17,6 +18,7 @@ import shire.composeapp.generated.resources.inbox
 import shire.composeapp.generated.resources.manage_accounts
 import shire.composeapp.generated.resources.message_reactions_title
 import shire.composeapp.generated.resources.message_read_receipts_title
+import shire.composeapp.generated.resources.room_dev_tools_title
 import shire.composeapp.generated.resources.room_details_title
 
 val DEFAULT_WINDOW_APP_TITLE = StringResourceHolder(Res.string.app_title_short)
@@ -31,6 +33,7 @@ enum class DestinationCategory {
     CONVERSATION_THREAD,
     SETTINGS,
     ABOUT,
+    DEV_TOOLS,
     // Wildcard can be anything (wrapper or tmp loading destination resolving to sth else later)
     WILDCARD,
 }
@@ -162,6 +165,23 @@ sealed interface Destination {
         override val type = DestinationEnum.Diagnostics
         override val title = StringResourceHolder(Res.string.diagnostics)
         override val category = DestinationCategory.SETTINGS
+    }
+
+    data class AccountDevTools(
+        override val sessionId: SessionId,
+    ) : WithSession {
+        override val type = DestinationEnum.AccountDevTools
+        override val title = StringResourceHolder(Res.string.account_dev_tools_title)
+        override val category = DestinationCategory.DEV_TOOLS
+    }
+
+    data class RoomDevTools(
+        override val sessionId: SessionId,
+        val roomId: RoomId,
+    ) : WithSession {
+        override val type = DestinationEnum.RoomDevTools
+        override val title = StringResourceHolder(Res.string.room_dev_tools_title)
+        override val category = DestinationCategory.DEV_TOOLS
     }
 
     sealed interface Split : Destination {

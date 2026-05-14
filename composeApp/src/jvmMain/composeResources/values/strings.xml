@@ -15,6 +15,8 @@
     </plurals>
     <string name="message_reactions_title">Message reactions</string>
     <string name="message_read_receipts_title">Message read receipts</string>
+    <string name="account_dev_tools_title">Account dev tools</string>
+    <string name="room_dev_tools_title">Room dev tools</string>
 
     <string name="about">About</string>
     <string name="about_credits">Credits</string>
@@ -186,6 +188,9 @@
     <string name="hint_timeline">Timeline</string>
     <string name="hint_user_profile">User profile</string>
     <string name="hint_member_profile">Member profile</string>
+    <string name="hint_account_data">Account data</string>
+    <string name="hint_room_account_data">Room account data</string>
+    <string name="hint_room_state">Room state</string>
 
     <string name="reply_failed_to_load">Failed to load replied-to message</string>
 

@@ -182,6 +182,8 @@ fun TextLikeMessageContent(
     textColor: Color = MaterialTheme.colorScheme.primary,
     textAlign: TextAlign? = null,
     interactionState: MatrixFormatInteractionState = rememberMatrixFormatInteractionState(text),
+    maxLines: Int = if (LocalMessageRenderContext.current == MessageRenderContext.IN_REPLY_TO) 20 else Int.MAX_VALUE,
+    overflow: TextOverflow = TextOverflow.Ellipsis,
     onTextLayout: (TextLayoutResult) -> Unit = {},
 ) {
     val blockQuotes = remember(text) {
@@ -197,6 +199,8 @@ fun TextLikeMessageContent(
             textColor = textColor,
             onTextLayout = onTextLayout,
             textAlign = textAlign,
+            maxLines = maxLines,
+            overflow = overflow,
         )
         return
     }
@@ -209,12 +213,8 @@ fun TextLikeMessageContent(
         drawStyle = LocalMatrixBodyDrawStyle.current,
         interactionState = interactionState,
         onTextLayout = onTextLayout,
-        maxLines = if (LocalMessageRenderContext.current == MessageRenderContext.IN_REPLY_TO) {
-            20
-        } else {
-            Integer.MAX_VALUE
-        },
-        overflow = TextOverflow.Ellipsis,
+        maxLines = maxLines,
+        overflow = overflow,
         inlineContent = text.inlineImages.toInlineContent(textStyle, textColor),
         textAlign = textAlign,
     )
@@ -228,6 +228,8 @@ fun IndentionHackFormattedText(
     modifier: Modifier = Modifier,
     textColor: Color = MaterialTheme.colorScheme.primary,
     textAlign: TextAlign? = null,
+    maxLines: Int = Int.MAX_VALUE,
+    overflow: TextOverflow = TextOverflow.Clip,
     onTextLayout: (TextLayoutResult) -> Unit,
 ) {
     BoxWithConstraints(modifier) {
@@ -262,6 +264,8 @@ fun IndentionHackFormattedText(
             },
             inlineContent = text.inlineImages.toInlineContent(textStyle, textColor),
             textAlign = textAlign,
+            maxLines = maxLines,
+            overflow = overflow,
         )
     }
 }

@@ -19,6 +19,8 @@ enum class DestinationEnum(
     SettingsDetails("SettingsDetails"),
     Diagnostics("Diagnostics", listOf("diagnostics")),
     About("About", listOf("about")),
+    AccountDevTools("AccountDevTools", listOf("accountDevTools")),
+    RoomDevTools("RoomDevTools", listOf("roomDevTools")),
     SplitHorizontal("SplitHorizontal"),
     SplitVertical("SplitVertical"),
     SplitConversationPlaceholder("SplitConversationPlaceholder"),
@@ -41,6 +43,8 @@ val SUGGESTED_DESTINATION_STRINGS = listOf(
     DestinationEnum.About.aliases[0],
     DestinationEnum.Diagnostics.aliases[0],
     DestinationEnum.Settings.aliases[0],
+    DestinationEnum.AccountDevTools.aliases[0],
+    DestinationEnum.RoomDevTools.aliases[0],
     DestinationEnum.InboxConversationSplit.aliases[0],
     DestinationEnum.ConversationDetailsSplit.aliases[0],
     DestinationEnum.RoomDetails.aliases[0],
@@ -57,12 +61,14 @@ val ALLOWED_DESTINATION_STRINGS = listOf(
     DestinationEnum.RoomMembers.allDestinationNames(),
     DestinationEnum.MessageReactions.allDestinationNames(),
     DestinationEnum.MessageReadReceipts.allDestinationNames(),
+    DestinationEnum.AccountDevTools.allDestinationNames(),
+    DestinationEnum.RoomDevTools.allDestinationNames(),
     DestinationEnum.InboxConversationSplit.allDestinationNames(),
     DestinationEnum.ConversationDetailsSplit.allDestinationNames(),
 ).flatten()
 
-fun String.destinationRequiresSessionId() = this in listOf("chat", "conversation", "room", "roomDetails", "members", "reactions", "chatDetails", "conversationDetails")
-fun String.destinationRequiresResolvableRoom() = this in listOf("chat", "conversation", "room", "roomDetails", "members", "reactions", "chatDetails", "conversationDetails")
+fun String.destinationRequiresSessionId() = this in listOf("chat", "conversation", "room", "roomDetails", "members", "reactions", "chatDetails", "conversationDetails", "accountDevTools", "roomDevTools")
+fun String.destinationRequiresResolvableRoom() = this in listOf("chat", "conversation", "room", "roomDetails", "members", "reactions", "chatDetails", "conversationDetails", "roomDevTools")
 fun String.destinationRequiresEventId() = this in listOf("reactions")
 
 data object NavigationDestinationSessionId : ActionArgumentContextBased {

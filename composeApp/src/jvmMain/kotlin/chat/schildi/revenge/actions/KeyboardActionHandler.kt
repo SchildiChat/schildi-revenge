@@ -187,6 +187,8 @@ enum class FocusRole(
     COMMAND_BAR(autoRequestFocus = true), // Does not need to consume plain keys, key handler has a special mode for that
 }
 
+val FOCUSABLE_LIST_ITEMS = arrayOf(FocusRole.LIST_ITEM, FocusRole.LIST_ITEM_EDITABLE)
+
 sealed interface CommandHolder {
     val command: String
     val focused: UUID?
@@ -479,14 +481,14 @@ class KeyboardActionHandler(
         position: Offset,
         allowPartial: Boolean,
         parentId: UUID? = null,
-        role: FocusRole? = null,
+        vararg roles: FocusRole,
     ): Boolean {
         _keyboardPrimary.value = true
-        val filtered = if (parentId == null && role == null) {
+        val filtered = if (parentId == null && roles.isEmpty()) {
             focusableTargets.values
         } else {
             focusableTargets.values.filter {
-                (role == null || it.role == role) &&
+                (roles.isEmpty() || it.role in roles) &&
                         (allowPartial || it.isFullyVisible) &&
                         (parentId == null || it.parent?.uuid == parentId)
             }
@@ -786,7 +788,7 @@ class KeyboardActionHandler(
             KeyMapped.Enter -> {
                 updateMode { mode.copy(navigating = true) }
                 windowCoordinates?.let {
-                    focusClosestTo(it.topCenter, allowPartial = true, role = FocusRole.LIST_ITEM)
+                    focusClosestTo(it.topCenter, allowPartial = true, roles = FOCUSABLE_LIST_ITEMS)
                 }
                 true
             }
@@ -914,22 +916,22 @@ class KeyboardActionHandler(
     }
 
     private fun focusSearchResults(parentId: UUID?) {
-        focusClosestTo(Offset.Zero, allowPartial = true, role = FocusRole.LIST_ITEM, parentId = parentId)
+        focusClosestTo(Offset.Zero, allowPartial = true, roles = FOCUSABLE_LIST_ITEMS, parentId = parentId)
     }
 
     private fun focusCurrentContainerRelative(
         currentFocus: FocusTarget?,
-        role: FocusRole? = null,
+        vararg roles: FocusRole,
         select: (Rect) -> Offset,
-    ) = focusCurrentContainerRelative(parentId = currentFocus?.parent?.uuid, select = select, role = role)
+    ) = focusCurrentContainerRelative(parentId = currentFocus?.parent?.uuid, select = select, roles = roles)
 
     private fun focusCurrentContainerRelative(
         parentId: UUID? = currentFocused()?.parent?.uuid,
-        role: FocusRole? = null,
+        vararg roles: FocusRole,
         select: (Rect) -> Offset,
     ): Boolean {
         return windowCoordinates?.let { coordinates ->
-            focusClosestTo(select(coordinates), allowPartial = false, parentId = parentId, role = role)
+            focusClosestTo(select(coordinates), allowPartial = false, parentId = parentId, roles = roles)
         } ?: false
     }
 
@@ -978,11 +980,11 @@ class KeyboardActionHandler(
 
     private fun findFocusableListItems(parentId: UUID?) = if (parentId == null) {
         focusableTargets.values.filter {
-            it.role == FocusRole.LIST_ITEM
+            it.role in FOCUSABLE_LIST_ITEMS
         }
     } else {
         findAllChildren(parentId) {
-            it.role == FocusRole.LIST_ITEM
+            it.role in FOCUSABLE_LIST_ITEMS
         }
     }
 
@@ -1027,7 +1029,7 @@ class KeyboardActionHandler(
         focused: FocusTarget? = currentFocused(),
     ): Boolean {
         return focused?.actions?.listActions?.scrollToTop(scope) {
-            focusCurrentContainerRelative(focused, FocusRole.LIST_ITEM) { it.topCenter }
+            focusCurrentContainerRelative(focused, *FOCUSABLE_LIST_ITEMS) { it.topCenter }
         } ?: false
     }
 
@@ -1035,7 +1037,7 @@ class KeyboardActionHandler(
         focused: FocusTarget? = currentFocused(),
     ): Boolean {
         return focused?.actions?.listActions?.scrollToBottom(scope) {
-            focusCurrentContainerRelative(focused, FocusRole.LIST_ITEM) { it.bottomCenter }
+            focusCurrentContainerRelative(focused, *FOCUSABLE_LIST_ITEMS) { it.bottomCenter }
         } ?: false
     }
 
@@ -1044,9 +1046,9 @@ class KeyboardActionHandler(
     ): Boolean {
         return focused?.actions?.listActions?.scrollToStart(scope) {
             if (focused.actions.listActions.isReverseList) {
-                focusCurrentContainerRelative(focused, FocusRole.LIST_ITEM) { it.bottomCenter }
+                focusCurrentContainerRelative(focused, *FOCUSABLE_LIST_ITEMS) { it.bottomCenter }
             } else {
-                focusCurrentContainerRelative(focused, FocusRole.LIST_ITEM) { it.topCenter }
+                focusCurrentContainerRelative(focused, *FOCUSABLE_LIST_ITEMS) { it.topCenter }
             }
         } ?: false
     }
@@ -1056,9 +1058,9 @@ class KeyboardActionHandler(
     ): Boolean {
         return focused?.actions?.listActions?.scrollToEnd(scope) {
             if (focused.actions.listActions.isReverseList) {
-                focusCurrentContainerRelative(focused, FocusRole.LIST_ITEM) { it.topCenter }
+                focusCurrentContainerRelative(focused, *FOCUSABLE_LIST_ITEMS) { it.topCenter }
             } else {
-                focusCurrentContainerRelative(focused, FocusRole.LIST_ITEM) { it.bottomCenter }
+                focusCurrentContainerRelative(focused, *FOCUSABLE_LIST_ITEMS) { it.bottomCenter }
             }
         } ?: false
     }

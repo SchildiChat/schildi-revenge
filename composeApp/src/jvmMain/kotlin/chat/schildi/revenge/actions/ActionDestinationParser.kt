@@ -150,6 +150,19 @@ private inline fun String.toDestinationOrNull(
         }
         DestinationEnum.Diagnostics -> Destination.Diagnostics
         DestinationEnum.About -> Destination.About
+        DestinationEnum.AccountDevTools -> {
+            tryOrNull {
+                val sessionId = args.getOrNull(0)?.let(::SessionId) ?: context!!.ensureSessionId()
+                Destination.AccountDevTools(sessionId)
+            }
+        }
+        DestinationEnum.RoomDevTools -> {
+            tryOrNull {
+                val sessionId = args.getOrNull(0)?.let(::SessionId) ?: context!!.ensureSessionId()
+                val roomId = args.getOrNull(1)?.let { resolveRoomId(sessionId, it) } ?: context!!.ensureRoomId()
+                Destination.RoomDevTools(sessionId, roomId)
+            }
+        }
         DestinationEnum.InboxConversationSplit -> Destination.InboxConversationMultiPane()
         // Destinations not reachable via "navigate" action
         DestinationEnum.SplitConversationPlaceholder,

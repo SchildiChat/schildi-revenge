@@ -10,12 +10,13 @@ val PrettyJson = Json {
     prettyPrintIndent = "  "
 }
 
-fun String.toPrettyJson(): String {
+fun String.toPrettyJson(onException: (SerializationException) -> Unit = {}): String {
     return try {
         PrettyJson.encodeToString(
             PrettyJson.parseToJsonElement(this)
         )
-    } catch (_: SerializationException) {
+    } catch (e: SerializationException) {
+        onException(e)
         this
     }
 }

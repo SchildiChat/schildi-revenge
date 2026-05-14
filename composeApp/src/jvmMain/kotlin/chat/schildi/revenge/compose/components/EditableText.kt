@@ -2,9 +2,9 @@ package chat.schildi.revenge.compose.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
@@ -35,6 +35,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
@@ -59,6 +60,7 @@ import java.util.UUID
 sealed interface EditTextValue {
     val rawText: String
     data class Plain(override val rawText: String) : EditTextValue
+    data class Json(override val rawText: String) : EditTextValue
     data class AutoFormatted(override val rawText: String, val parsed: MatrixBodyParseResult) : EditTextValue
 }
 
@@ -78,6 +80,8 @@ fun EditableText(
     emptyFallbackRenderColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     emptyFallbackText: String = stringResource(Res.string.hint_not_set),
     emptyFallbackFontStyle: FontStyle = FontStyle.Italic,
+    previewMaxLines: Int = Integer.MAX_VALUE,
+    editMaxHeight: Dp? = null,
     header: @Composable () -> Unit = {},
 ) {
     val keyboardActionHandler = LocalKeyboardActionHandler.current
@@ -118,7 +122,13 @@ fun EditableText(
                     style = style,
                     modifier = Modifier.weight(1f).keyFocusable(
                         role = FocusRole.AUX_ITEM_EDITABLE,
-                    ),
+                    ).let {
+                        if (editMaxHeight == null) {
+                            it
+                        } else {
+                            it.heightIn(max = editMaxHeight)
+                        }
+                    },
                 )
                 EditableActionIcon(
                     InteractionAction.HandleAction(stableFocusId, Action.PlaintextEditAble.DiscardEdit),
@@ -151,6 +161,7 @@ fun EditableText(
                             color = renderColor,
                             style = style,
                             textAlign = textAlign,
+                            maxLines = previewMaxLines,
                         )
                     }
                 }
@@ -242,6 +253,7 @@ private fun EditableTextDisplay(
     color: Color = Color.Unspecified,
     style: TextStyle = LocalTextStyle.current,
     textAlign: TextAlign? = null,
+    maxLines: Int = Int.MAX_VALUE,
 ) {
     when (value) {
         is EditTextValue.AutoFormatted -> {
@@ -251,8 +263,10 @@ private fun EditableTextDisplay(
                 textColor = color,
                 textStyle = style,
                 textAlign = textAlign,
+                maxLines = maxLines,
             )
         }
+        is EditTextValue.Json,
         is EditTextValue.Plain -> {
             Text(
                 value.rawText,
@@ -260,6 +274,7 @@ private fun EditableTextDisplay(
                 color = color,
                 style = style,
                 textAlign = textAlign,
+                maxLines = maxLines,
             )
         }
     }

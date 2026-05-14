@@ -16,10 +16,12 @@ import chat.schildi.revenge.compose.components.ComposeSessionScope
 import chat.schildi.revenge.compose.components.WEIGHT_DEFAULT
 import chat.schildi.revenge.compose.components.prefWidthModifiers
 import chat.schildi.revenge.compose.destination.AboutScreen
+import chat.schildi.revenge.compose.destination.devtools.AccountDevToolsScreen
 import chat.schildi.revenge.compose.destination.AccountManagementScreen
 import chat.schildi.revenge.compose.destination.DiagnosticsScreen
 import chat.schildi.revenge.compose.destination.SplashScreen
 import chat.schildi.revenge.compose.destination.conversation.ConversationScreen
+import chat.schildi.revenge.compose.destination.devtools.RoomDevToolsScreen
 import chat.schildi.revenge.compose.destination.conversation.RoomDetailsScreen
 import chat.schildi.revenge.compose.destination.conversation.UserDetailsScreen
 import chat.schildi.revenge.compose.destination.conversation.userlist.MessageReactionsScreen
@@ -58,6 +60,8 @@ fun DestinationContent(
                 is Destination.MessageReactions -> MessageReactionsScreen(destination, baseModifier, contentModifier)
                 is Destination.MessageReadReceipts -> MessageReadReceiptsScreen(destination, baseModifier, contentModifier)
                 is Destination.UserDetails -> UserDetailsScreen(destination, baseModifier, contentModifier)
+                is Destination.AccountDevTools -> AccountDevToolsScreen(destination, baseModifier, contentModifier)
+                is Destination.RoomDevTools -> RoomDevToolsScreen(destination, baseModifier, contentModifier)
                 is Destination.SplitHorizontal -> SplitHorizontal(destination, baseModifier, contentModifier)
                 is Destination.SplitVertical -> SplitVertical(destination, baseModifier, contentModifier)
                 is Destination.About -> AboutScreen(baseModifier, contentModifier)
@@ -127,6 +131,8 @@ private fun DestinationEnum.measureInfo(): DestinationMeasure = when (this) {
     DestinationEnum.ConversationDetailsSplit -> DestinationEnum.Conversation.measureInfo() + DestinationEnum.SplitRoomDetailsPlaceholder.measureInfo()
     DestinationEnum.SplitHorizontal,
     DestinationEnum.SplitVertical,
+    DestinationEnum.AccountDevTools,
+    DestinationEnum.RoomDevTools,
     DestinationEnum.Splash -> DestinationMeasure.from(null, WEIGHT_DEFAULT)
 }
 

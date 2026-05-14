@@ -49,6 +49,18 @@ interface LoadCheckPoint {
     data object TimelineItems : LoadCheckPoint {
         override val name = "Timeline items".toStringHolder()
     }
+
+    data object AccountData : LoadCheckPoint {
+        override val name = "Account data".toStringHolder()
+    }
+
+    data object RoomAccountData : LoadCheckPoint {
+        override val name = "Room account data".toStringHolder()
+    }
+
+    data object RoomState : LoadCheckPoint {
+        override val name = "Room state".toStringHolder()
+    }
 }
 
 enum class CheckpointLoadState {
