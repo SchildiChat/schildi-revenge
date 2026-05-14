@@ -22,12 +22,17 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.AbstractAppMessage
 import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.actions.ConfirmActionAppMessage
-import chat.schildi.revenge.actions.InteractionAction
+import chat.schildi.revenge.actions.InteractionAction.*
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
+import chat.schildi.revenge.actions.VerificationRequestAppMessage
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.toCopyAction
 import chat.schildi.revenge.compose.focus.keyFocusable
 import kotlinx.collections.immutable.ImmutableList
+import org.jetbrains.compose.resources.stringResource
+import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.action_dismiss
+import shire.composeapp.generated.resources.action_view
 
 @Composable
 fun AppMessages(messages: ImmutableList<AbstractAppMessage>, modifier: Modifier = Modifier) {
@@ -52,37 +57,78 @@ fun AppMessages(messages: ImmutableList<AbstractAppMessage>, modifier: Modifier 
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.weight(1f),
                     )
-                    if (message is ConfirmActionAppMessage) {
-                        val keyHandler = LocalKeyboardActionHandler.current
-                        Button(
-                            onClick = message.action,
-                            modifier = Modifier.keyFocusable(
-                                actionProvider = actionProvider(
-                                    primaryAction = InteractionAction.Invoke {
-                                        message.action()
-                                        true
-                                    },
-                                    copyActions = message.message.render().toCopyAction(),
-                                )
-                            ),
-                        ) {
-                            Text(message.confirmText.render())
+                    // Decoration
+                    when (message) {
+                        is AppMessage -> {}
+                        is ConfirmActionAppMessage -> {
+                            val keyHandler = LocalKeyboardActionHandler.current
+                            Button(
+                                onClick = message.action,
+                                modifier = Modifier.keyFocusable(
+                                    actionProvider = actionProvider(
+                                        primaryAction = Invoke {
+                                            message.action()
+                                            true
+                                        },
+                                        copyActions = message.message.render().toCopyAction(),
+                                    )
+                                ),
+                            ) {
+                                Text(message.confirmText.render())
+                            }
+                            Button(
+                                onClick = {
+                                    keyHandler.dismissMessage(message.uniqueId)
+                                },
+                                modifier = Modifier.keyFocusable(
+                                    actionProvider = actionProvider(
+                                        primaryAction = Invoke {
+                                            keyHandler.dismissMessage(message.uniqueId)
+                                            true
+                                        },
+                                        copyActions = message.message.render().toCopyAction(),
+                                    )
+                                ),
+                            ) {
+                                Text(message.cancelText.render())
+                            }
                         }
-                        Button(
-                            onClick = {
-                                keyHandler.dismissMessage(message.uniqueId)
-                            },
-                            modifier = Modifier.keyFocusable(
-                                actionProvider = actionProvider(
-                                    primaryAction = InteractionAction.Invoke {
-                                        keyHandler.dismissMessage(message.uniqueId)
-                                        true
-                                    },
-                                    copyActions = message.message.render().toCopyAction(),
-                                )
-                            ),
-                        ) {
-                            Text(message.cancelText.render())
+                        is VerificationRequestAppMessage -> {
+                            val keyHandler = LocalKeyboardActionHandler.current
+                            /* TODO
+                            Button(
+                                onClick = {
+                                    // TODO navigate somewhere
+                                },
+                                modifier = Modifier.keyFocusable(
+                                    actionProvider = actionProvider(
+                                        primaryAction = Invoke {
+                                            // TODO navigate somewhere
+                                            true
+                                        },
+                                        copyActions = message.message.render().toCopyAction(),
+                                    )
+                                ),
+                            ) {
+                                Text(stringResource(Res.string.action_view))
+                            }
+                             */
+                            Button(
+                                onClick = {
+                                    keyHandler.dismissMessage(message.uniqueId)
+                                },
+                                modifier = Modifier.keyFocusable(
+                                    actionProvider = actionProvider(
+                                        primaryAction = Invoke {
+                                            keyHandler.dismissMessage(message.uniqueId)
+                                            true
+                                        },
+                                        copyActions = message.message.render().toCopyAction(),
+                                    )
+                                ),
+                            ) {
+                                Text(stringResource(Res.string.action_dismiss))
+                            }
                         }
                     }
                 }

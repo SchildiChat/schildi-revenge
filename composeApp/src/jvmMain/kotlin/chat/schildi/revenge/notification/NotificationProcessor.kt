@@ -4,6 +4,7 @@ import chat.schildi.notifications.SyncNotification
 import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.revenge.UiState
+import chat.schildi.revenge.model.account.ScIncomingVerificationRequest
 import chat.schildi.revenge.plaintext.NotificationEventTextFormat
 import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
@@ -18,6 +19,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -85,6 +87,18 @@ object NotificationProcessor {
             )
         }.launchIn(scope)
     }
+
+    fun notifyIncomingVerificationRequest(request: ScIncomingVerificationRequest) {
+        scope.launch {
+            val id = request.toNotificationId()
+            log.d { "Notifying for $id" }
+            Notifier.notify(
+                id = id,
+                title = request.title.renderSuspend(),
+                message = request.summary.renderSuspend(),
+            )
+        }
+    }
 }
 
 fun SyncNotification.toNotificationId() = eventId?.let { eventId ->
@@ -96,4 +110,9 @@ fun SyncNotification.toNotificationId() = eventId?.let { eventId ->
 } ?: NotificationId.Room(
     sessionId = sessionId,
     roomId = roomId,
+)
+
+fun ScIncomingVerificationRequest.toNotificationId() = NotificationId.VerificationRequest(
+    sessionId = sessionId,
+    flowId = request.details.flowId,
 )

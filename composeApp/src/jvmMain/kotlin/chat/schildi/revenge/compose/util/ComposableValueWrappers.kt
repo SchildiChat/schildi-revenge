@@ -6,12 +6,15 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import org.jetbrains.compose.resources.PluralStringResource
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.getPluralString
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 
 sealed interface ComposableStringHolder {
     @Composable
     fun render(): String
+    suspend fun renderSuspend(): String
 }
 
 data class HardcodedStringHolder(
@@ -19,6 +22,7 @@ data class HardcodedStringHolder(
 ) : ComposableStringHolder {
     @Composable
     override fun render() = value
+    override suspend fun renderSuspend() = value
 }
 
 data class StringResourceHolder(
@@ -28,6 +32,7 @@ data class StringResourceHolder(
     constructor(res: StringResource, vararg formatArgs: ComposableStringHolder) : this(res, formatArgs.toPersistentList())
     @Composable
     override fun render() = stringResource(res, *formatArgs.map { it.render() }.toTypedArray())
+    override suspend fun renderSuspend() = getString(res, *formatArgs.map { it.renderSuspend() }.toTypedArray())
 }
 
 data class PluralsResourceHolder(
@@ -38,6 +43,7 @@ data class PluralsResourceHolder(
     constructor(res: PluralStringResource, quantity: Int, vararg formatArgs: ComposableStringHolder) : this(res, quantity, formatArgs.toPersistentList())
     @Composable
     override fun render() = pluralStringResource(res, quantity, *formatArgs.map { it.render() }.toTypedArray())
+    override suspend fun renderSuspend() = getPluralString(res, quantity, *formatArgs.map { it.renderSuspend() }.toTypedArray())
 }
 
 fun String.toStringHolder() = HardcodedStringHolder(this)

@@ -45,6 +45,7 @@
 
     <string name="action_login">Login</string>
     <string name="action_verify">Verify</string>
+    <string name="action_dismiss">Dismiss</string>
     <string name="action_send">Send</string>
     <string name="action_clear_reply">Clear reply</string>
     <string name="action_hide">Hide</string>
@@ -74,6 +75,7 @@
     <string name="action_reply">Reply</string>
     <string name="action_edit">Edit</string>
     <string name="action_react">React</string>
+    <string name="action_view">View</string>
     <string name="action_view_reactions">View reactions</string>
     <string name="action_view_read_receipts">View read receipts</string>
     <string name="action_copy_body">Copy text</string>
@@ -498,5 +500,9 @@
         <item quantity="one">%1$d thread reply</item>
         <item quantity="other">%1$d thread replies</item>
     </plurals>
+
+    <string name="verification_incoming_request_prompt">Verification request: %1$s wants to verify %2$s</string>
+    <string name="verification_incoming_request_title">Verification request</string>
+    <string name="verification_incoming_request_summary">%1$s wants to verify %2$s</string>
 
 </resources>

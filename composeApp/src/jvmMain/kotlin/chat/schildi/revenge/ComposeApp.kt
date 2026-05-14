@@ -27,6 +27,7 @@ import chat.schildi.revenge.actions.KeyboardActionHandler
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.WindowContent
 import chat.schildi.revenge.compose.media.LocalImageLoaderHolder
+import chat.schildi.revenge.model.account.RevengeDeviceVerificationProvider
 import chat.schildi.revenge.notification.NotificationProcessor
 import chat.schildi.revenge.notification.Notifier
 import kotlinx.coroutines.runBlocking
@@ -42,6 +43,7 @@ object ComposeApp {
         SdkLoader.ensureLoaded()
         TrayWatcher.start()
         NotificationProcessor.observeNotifications()
+        RevengeDeviceVerificationProvider.observe()
         application(exitProcessOnExit = false) {
             LaunchedEffect(Unit) {
                 UiState.initializeWith(this@application, startInTray)

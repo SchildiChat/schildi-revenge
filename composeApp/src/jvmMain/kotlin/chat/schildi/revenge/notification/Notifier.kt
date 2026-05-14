@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import chat.schildi.revenge.UiState
 import io.element.android.libraries.matrix.api.core.EventId
+import io.element.android.libraries.matrix.api.core.FlowId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.media.MediaSource
@@ -30,6 +31,10 @@ sealed interface NotificationId {
     data class Room(
         override val sessionId: SessionId,
         val roomId: RoomId,
+    ) : NotificationId
+    data class VerificationRequest(
+        override val sessionId: SessionId,
+        val flowId: FlowId,
     ) : NotificationId
 }
 

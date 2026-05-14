@@ -3,18 +3,19 @@ package chat.schildi.revenge
 import androidx.compose.ui.window.ApplicationScope
 import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPrefs
+import chat.schildi.revenge.UiState._globalMessageBoard
 import chat.schildi.revenge.actions.AbstractAppMessage
 import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.actions.KeyboardActionHandler
+import chat.schildi.revenge.actions.VerificationRequestAppMessage
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.ConfigWatchers
-import chat.schildi.revenge.model.CheckpointLoadState
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.LoadStateHolder
 import chat.schildi.revenge.model.RevengeRoomListDataSource
-import chat.schildi.revenge.model.asCheckpointLoadedOrFailed
+import chat.schildi.revenge.model.account.ScIncomingVerificationRequest
 import chat.schildi.revenge.model.asCheckpointLoadedOrPending
 import chat.schildi.revenge.store.AppStateStore
 import chat.schildi.revenge.util.throttleLatest
@@ -22,7 +23,6 @@ import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.createGraphFactory
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
-import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.x.di.AppGraph
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentHashMapOf
@@ -188,7 +188,7 @@ object UiState {
                     ),
                     uniqueId = MESSAGE_ID_KEY_CONFIG,
                     isError = true,
-                    canAutoDismiss = false,
+                    autoDismissDuration = null,
                 )
             )
         },
@@ -486,5 +486,11 @@ object UiState {
 
     fun enableSession(sessionId: SessionId) {
         disabledSessions.update { it - sessionId }
+    }
+
+    fun postIncomingVerificationRequest(request: ScIncomingVerificationRequest): Boolean {
+        return _globalMessageBoard.tryEmit(
+            VerificationRequestAppMessage(request)
+        )
     }
 }

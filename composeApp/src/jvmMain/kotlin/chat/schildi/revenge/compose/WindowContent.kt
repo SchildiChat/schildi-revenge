@@ -55,7 +55,7 @@ fun WindowContent(destinationHolder: DestinationStateHolder) {
                 // App messages
                 val publishedMessages = keyboardActionHandler.messageBoard.collectAsState().value
                 rememberInvalidating(
-                    500L.takeIf { publishedMessages.any { it.dismissedTimestamp == null && it.canAutoDismiss } },
+                    500L.takeIf { publishedMessages.any { it.dismissedTimestamp == null && it.autoDismissDuration != null } },
                     publishedMessages
                 ) {
                     keyboardActionHandler.cleanUpMessageBoard()

@@ -75,6 +75,7 @@ import chat.schildi.revenge.config.keybindings.SpaceCatchAllMode
 import chat.schildi.revenge.config.keybindings.findAll
 import chat.schildi.revenge.config.keybindings.maxArgsSize
 import chat.schildi.revenge.config.keybindings.minArgsSize
+import chat.schildi.revenge.model.account.ScIncomingVerificationRequest
 import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.REAL_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.RevengeSpaceListDataSource
@@ -91,6 +92,7 @@ import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.createroom.CreateRoomParameters
 import io.element.android.libraries.matrix.api.createroom.RoomPreset
 import io.element.android.libraries.matrix.api.roomdirectory.RoomVisibility
+import io.element.android.libraries.matrix.api.verification.VerificationRequest
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
@@ -132,6 +134,7 @@ import shire.composeapp.generated.resources.command_external_application_launche
 import shire.composeapp.generated.resources.command_not_applicable
 import shire.composeapp.generated.resources.command_not_found
 import shire.composeapp.generated.resources.toast_room_created
+import shire.composeapp.generated.resources.verification_incoming_request_prompt
 import java.awt.Desktop
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
@@ -224,11 +227,14 @@ sealed interface KeyboardActionMode {
     }
 }
 
+// TODO config or something
+const val DEFAULT_MESSAGE_EXPIRY_DURATION = 5000L
+
 sealed interface AbstractAppMessage {
     val message: ComposableStringHolder
     val timestamp: Long
     val uniqueId: String?
-    val canAutoDismiss: Boolean
+    val autoDismissDuration: Long?
     val dismissedTimestamp: Long?
     fun copyDismissed(dismissedTimestamp: Long): AbstractAppMessage
 }
@@ -238,7 +244,7 @@ data class AppMessage(
     val isError: Boolean = false,
     override val timestamp: Long = System.currentTimeMillis(),
     override val uniqueId: String? = null,
-    override val canAutoDismiss: Boolean = true,
+    override val autoDismissDuration: Long? = DEFAULT_MESSAGE_EXPIRY_DURATION,
     override val dismissedTimestamp: Long? = null,
 ) : AbstractAppMessage {
     override fun copyDismissed(dismissedTimestamp: Long) = copy(dismissedTimestamp = dismissedTimestamp)
@@ -254,7 +260,7 @@ data class ConfirmActionAppMessage(
     val action: () -> Unit,
 ) : AbstractAppMessage {
     override val uniqueId = MESSAGE_ID
-    override val canAutoDismiss = false
+    override val autoDismissDuration: Long? = null
     override fun copyDismissed(dismissedTimestamp: Long) = copy(dismissedTimestamp = dismissedTimestamp).also {
         onDismiss()
     }
@@ -263,8 +269,18 @@ data class ConfirmActionAppMessage(
     }
 }
 
-// TODO config or something
-const val MESSAGE_EXPIRY_DURATION = 5000L
+data class VerificationRequestAppMessage(
+    val request: ScIncomingVerificationRequest,
+    override val dismissedTimestamp: Long? = null,
+) : AbstractAppMessage {
+    override val message = request.message
+    override val timestamp: Long = request.ts
+    override val uniqueId = "verificationRequest/${request.sessionId}/${request.request.details.flowId}"
+    // 2 minutes as upstream does it for verification requests
+    override val autoDismissDuration = 120_000L
+    override fun copyDismissed(dismissedTimestamp: Long) = copy(dismissedTimestamp = dismissedTimestamp)
+}
+
 private const val COMMAND_MESSAGE_ID = "cmd"
 
 data class FocusState(
@@ -688,9 +704,9 @@ class KeyboardActionHandler(
                 it
             } else {
                 it.mapNotNull {
-                    if (it.dismissedTimestamp?.let { now > it + MESSAGE_EXPIRY_DURATION * 2 } == true) {
+                    if (it.dismissedTimestamp?.let { now > it + DEFAULT_MESSAGE_EXPIRY_DURATION * 2 } == true) {
                         null
-                    } else if (it.canAutoDismiss && now > it.timestamp + MESSAGE_EXPIRY_DURATION) {
+                    } else if (it.autoDismissDuration?.let { duration -> now > it.timestamp + duration } == true) {
                         it.copyDismissed(dismissedTimestamp = now)
                     } else {
                         it
@@ -1717,7 +1733,7 @@ class KeyboardActionHandler(
                                 AppMessage(
                                     "Vacuuming $it".toStringHolder(),
                                     uniqueId = "vacuumDb",
-                                    canAutoDismiss = false,
+                                    autoDismissDuration = null,
                                 )
                             )
                             val sessionId = SessionId(it)
@@ -1826,7 +1842,7 @@ class KeyboardActionHandler(
                                 AppMessage(
                                     StringResourceHolder(Res.string.toast_room_created, result.getOrNull().toString().toStringHolder()),
                                     uniqueId = "createDm",
-                                    canAutoDismiss = false,
+                                    autoDismissDuration = null,
                                 )
                             )
                             ActionResult.Success()
@@ -1896,7 +1912,7 @@ class KeyboardActionHandler(
                     AppMessage(
                         StringResourceHolder(Res.string.toast_room_created, result.getOrNull().toString().toStringHolder()),
                         uniqueId = actionName,
-                        canAutoDismiss = false,
+                        autoDismissDuration = null,
                     )
                 )
                 ActionResult.Success()
@@ -3024,7 +3040,7 @@ inline fun ActionContext.runWithMessage(
         AppMessage(
             message = start,
             uniqueId = messageId,
-            canAutoDismiss = false,
+            autoDismissDuration = null,
         )
     )
     var result: ActionResult? = null
@@ -3072,7 +3088,7 @@ fun ActionContext.launchActionAsync(
                 AppMessage(
                     message = Res.string.action_processing.toStringHolder(),
                     uniqueId = appMessageId,
-                    canAutoDismiss = appMessageId == null,
+                    autoDismissDuration = DEFAULT_MESSAGE_EXPIRY_DURATION.takeIf { appMessageId == null },
                 )
             )
         }

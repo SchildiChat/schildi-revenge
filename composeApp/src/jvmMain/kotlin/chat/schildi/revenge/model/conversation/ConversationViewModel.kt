@@ -1097,7 +1097,7 @@ class ConversationViewModel(
                         AppMessage(
                             message = Res.string.command_fetching_state.toStringHolder(),
                             uniqueId = "fetchState",
-                            canAutoDismiss = false
+                            autoDismissDuration = null,
                         )
                     )
                     launchActionAsync(
@@ -1524,7 +1524,7 @@ class ConversationViewModel(
             AppMessage(
                 StringResourceHolder(Res.string.command_loading_event, eventName),
                 uniqueId = appMessageId,
-                canAutoDismiss = false,
+                autoDismissDuration = null,
             )
         )
         getEventId()?.let { eventId ->
@@ -1532,7 +1532,7 @@ class ConversationViewModel(
                 AppMessage(
                     StringResourceHolder(Res.string.command_loading_timeline_at, eventName),
                     uniqueId = appMessageId,
-                    canAutoDismiss = false
+                    autoDismissDuration = null,
                 )
             )
             focusOnEvent(eventId).toActionResult().also {
