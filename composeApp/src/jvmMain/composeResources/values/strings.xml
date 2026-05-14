@@ -45,6 +45,7 @@
 
     <string name="action_login">Login</string>
     <string name="action_verify">Verify</string>
+    <string name="action_start_emoji_verification">Start emoji verification</string>
     <string name="action_dismiss">Dismiss</string>
     <string name="action_send">Send</string>
     <string name="action_clear_reply">Clear reply</string>
@@ -63,6 +64,7 @@
 
     <string name="action_redact">Delete</string>
     <string name="action_processing">Processing</string>
+    <string name="action_done">Done</string>
     <string name="action_processing_done">Done</string>
     <string name="action_add_attachment">Add attachment</string>
     <string name="action_clear_attachment">Remove attachment</string>
@@ -105,6 +107,10 @@
     <string name="action_catch_space_orphans">Catch space-orphans</string>
     <string name="action_catch_dms_only">Only catch DMs</string>
     <string name="action_catch_groups_only">Only catch groups</string>
+    <string name="action_accept">Accept</string>
+    <string name="action_decline">Decline</string>
+    <string name="action_verification_match">They match</string>
+    <string name="action_verification_mismatch">They do not match</string>
 
     <string name="command_success">Success: %1$s</string>
     <string name="command_loading_event">Loading %1$s</string>
@@ -504,5 +510,19 @@
     <string name="verification_incoming_request_prompt">Verification request: %1$s wants to verify %2$s</string>
     <string name="verification_incoming_request_title">Verification request</string>
     <string name="verification_incoming_request_summary">%1$s wants to verify %2$s</string>
+    <string name="verification_device_details_device_name">Device name</string>
+    <string name="verification_device_details_device_id">Device ID</string>
+    <string name="verification_device_details_user_id">User ID</string>
+    <string name="verification_device_details_flow_id">Flow ID</string>
+    <string name="verification_device_details_user_name">User name</string>
+    <string name="verification_device_first_seen">Device first seen</string>
+    <string name="verification_device_header_type_self">Self-verification details:</string>
+    <string name="verification_device_header_type_other_user">User to verify:</string>
+    <string name="verification_compare_emoji_match">Compare emojis:</string>
+    <string name="verification_compare_decimals_match">Compare numbers:</string>
+    <string name="verification_successful">Verification successful</string>
+    <string name="verification_cancelled">Verification cancelled</string>
+    <string name="verification_failed">Verification failed</string>
+    <string name="verification_init_prompt">Start verification?</string>
 
 </resources>

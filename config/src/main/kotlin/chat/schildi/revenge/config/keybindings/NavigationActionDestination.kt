@@ -19,6 +19,7 @@ enum class DestinationEnum(
     SettingsDetails("SettingsDetails"),
     Diagnostics("Diagnostics", listOf("diagnostics")),
     About("About", listOf("about")),
+    IncomingVerificationRequest("IncomingVerificationRequest"),
     AccountDevTools("AccountDevTools", listOf("accountDevTools")),
     RoomDevTools("RoomDevTools", listOf("roomDevTools")),
     SplitHorizontal("SplitHorizontal"),

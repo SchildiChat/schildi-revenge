@@ -60,7 +60,7 @@ fun WindowContent(destinationHolder: DestinationStateHolder) {
                 ) {
                     keyboardActionHandler.cleanUpMessageBoard()
                 }
-                AppMessages(publishedMessages)
+                AppMessages(publishedMessages, destinationHolder)
 
                 // Search bar
                 AnimatedVisibility(

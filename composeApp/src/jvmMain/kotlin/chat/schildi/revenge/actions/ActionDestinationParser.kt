@@ -150,6 +150,7 @@ private inline fun String.toDestinationOrNull(
         }
         DestinationEnum.Diagnostics -> Destination.Diagnostics
         DestinationEnum.About -> Destination.About
+        DestinationEnum.IncomingVerificationRequest -> null
         DestinationEnum.AccountDevTools -> {
             tryOrNull {
                 val sessionId = args.getOrNull(0)?.let(::SessionId) ?: context!!.ensureSessionId()

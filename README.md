@@ -131,7 +131,8 @@ This list is not sufficient to consider the client feature-complete in any way.
     - [x] Multi-pane inbox & conversation
     - [x] Multi-pane conversation & conversation details
 - [ ] Mark as read automatically while you scroll
-- [ ] Verify other devices via emoji
+- [x] Verify other devices via emoji
+- [ ] Verify self via emoji
 - [ ] MAS + rotating token support (need to re-persist session data)
 - [ ] MAS: support generating QR for quick sign in of mobile devices
 - [x] Threads (optional thread view, will want to show threaded messages in the main timeline by default as well)

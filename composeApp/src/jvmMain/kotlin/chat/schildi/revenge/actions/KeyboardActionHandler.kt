@@ -430,8 +430,12 @@ class KeyboardActionHandler(
     private val pendingKeyTriggersInAction = ConcurrentHashMap<KeyTrigger, Unit>()
 
     init {
+        val creationTs = System.currentTimeMillis()
         UiState.globalMessageBoard.onEach {
-            publishMessage(it)
+            // Ignore replay of messages before this window was created.
+            if (it.timestamp > creationTs) {
+                publishMessage(it)
+            }
         }.launchIn(scope)
 
         mouseFocusRequests.distinctUntilChanged().onEach {

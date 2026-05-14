@@ -18,7 +18,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import chat.schildi.revenge.Anim
+import chat.schildi.revenge.Destination
+import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.NavigationPreference
 import chat.schildi.revenge.actions.AbstractAppMessage
 import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.actions.ConfirmActionAppMessage
@@ -35,7 +38,11 @@ import shire.composeapp.generated.resources.action_dismiss
 import shire.composeapp.generated.resources.action_view
 
 @Composable
-fun AppMessages(messages: ImmutableList<AbstractAppMessage>, modifier: Modifier = Modifier) {
+fun AppMessages(
+    messages: ImmutableList<AbstractAppMessage>,
+    destinationHolder: DestinationStateHolder,
+    modifier: Modifier = Modifier,
+) {
     LazyColumn(modifier.fillMaxWidth()) {
         items(messages, key = { it.uniqueId ?: it.timestamp }) { message ->
             AnimatedVisibility(
@@ -95,15 +102,19 @@ fun AppMessages(messages: ImmutableList<AbstractAppMessage>, modifier: Modifier 
                         }
                         is VerificationRequestAppMessage -> {
                             val keyHandler = LocalKeyboardActionHandler.current
-                            /* TODO
+                            fun viewRequest() {
+                                destinationHolder.navigate(
+                                    Destination.IncomingVerificationRequest(message.request),
+                                    NavigationPreference.NEW_WINDOW,
+                                )
+                                keyHandler.dismissMessage(message.uniqueId)
+                            }
                             Button(
-                                onClick = {
-                                    // TODO navigate somewhere
-                                },
+                                onClick = ::viewRequest,
                                 modifier = Modifier.keyFocusable(
                                     actionProvider = actionProvider(
                                         primaryAction = Invoke {
-                                            // TODO navigate somewhere
+                                            viewRequest()
                                             true
                                         },
                                         copyActions = message.message.render().toCopyAction(),
@@ -112,7 +123,6 @@ fun AppMessages(messages: ImmutableList<AbstractAppMessage>, modifier: Modifier 
                             ) {
                                 Text(stringResource(Res.string.action_view))
                             }
-                             */
                             Button(
                                 onClick = {
                                     keyHandler.dismissMessage(message.uniqueId)
