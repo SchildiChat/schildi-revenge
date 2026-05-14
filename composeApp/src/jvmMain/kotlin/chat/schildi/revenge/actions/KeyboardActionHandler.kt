@@ -2063,6 +2063,11 @@ class KeyboardActionHandler(
             return
         }
 
+        // Don't follow mouse focus on editing
+        if (activeEditAbleId.value != null) {
+            return
+        }
+
         // For some text fields (command bar, search, composer) it can be pretty annoying losing focus by accident,
         // when the mouse just moved a little bit.
         // We need to do this check before persisting the new position so eventually moving the cursor enough still
