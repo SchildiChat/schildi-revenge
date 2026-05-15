@@ -23,6 +23,7 @@ import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.room.BaseRoom
+import io.element.android.libraries.matrix.api.room.StateEventType
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
@@ -177,6 +178,9 @@ class RoomDevToolsViewModel(
             }.onFailure {
                 log.e("Failed to fetch account data", it)
             }.getOrNull()?.let { accountDataRawEvents ->
+                val permissions = room.roomPermissions().onFailure {
+                    log.e("Failed to fetch room permissions", it)
+                }.getOrNull()
                 roomStateList.value = accountDataRawEvents.mapNotNull { rawEvent ->
                     try {
                         val parsed = Json.parseToJsonElement(rawEvent).jsonObject
@@ -186,6 +190,7 @@ class RoomDevToolsViewModel(
                         DevToolsStateLikeEventContent(
                             type = StateLikeType.RoomState(roomId, type, stateKey),
                             content = content,
+                            canEdit = permissions?.canOwnUserSendState(StateEventType.Custom(type)) == true,
                         )
                     } catch (e: Exception) {
                         log.e("Failed to parse state event $rawEvent", e)
