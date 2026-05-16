@@ -10,9 +10,13 @@ import chat.schildi.revenge.actions.UserIdSuggestionsProvider
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.room.JoinedRoom
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -42,7 +46,7 @@ class UserDetailsViewModel(
 
     private val room = if (roomId == null) flowOf(null) else client.map { client ->
         client ?: return@map null
-        client.getRoom(roomId).also {
+        (client.getJoinedRoom(roomId) ?: client.getRoom(roomId)).also {
             loadStateHolder.set(LoadCheckPoint.Room, it.asCheckpointLoadedOrFailed())
         }
     }
@@ -51,6 +55,24 @@ class UserDetailsViewModel(
         room?.getUpdatedMember(userId)
             .also { loadStateHolder.handleResult(LoadCheckPoint.MemberProfile, it) }
             ?.getOrNull()
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val identityChanges = room.flatMapLatest {
+        (it as? JoinedRoom)?.identityStateChangesFlow ?: flowOf(null)
+    }.map {
+        it?.find { it.userId == userId }
+    }
+
+    val userIdentity = client.combine(identityChanges) { client, identityChange ->
+        if (identityChange != null) {
+            loadStateHolder.set(LoadCheckPoint.UserIdentity, CheckpointLoadState.LOADED)
+            identityChange.identityState
+        } else {
+            client?.encryptionService?.getUserIdentity(userId)
+                ?.also { loadStateHolder.handleResult(LoadCheckPoint.UserIdentity, it) }
+                ?.getOrNull()
+        }
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     override val userIdInRoomSuggestions: Flow<List<UserIdSuggestion>> = combine(

@@ -4,14 +4,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,6 +23,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -34,15 +40,23 @@ import chat.schildi.revenge.actions.plainTextCopyActionWithMxcUrl
 import chat.schildi.revenge.actions.plainTextCopyActionWithUserId
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.EmptyListScreen
+import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.revenge.compose.destination.conversation.userlist.ConversationDetailsTopNavigation
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.model.UserDetailsViewModel
 import chat.schildi.revenge.viewModelKey
+import chat.schildi.theme.scExposures
+import io.element.android.libraries.matrix.api.encryption.identity.IdentityState
 import io.element.android.libraries.matrix.api.media.MediaSource
+import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.empty_screen_placeholder_unexpected
+import shire.composeapp.generated.resources.verification_status_not_verified
+import shire.composeapp.generated.resources.verification_status_verified
+import shire.composeapp.generated.resources.verified_off_24px
 
 @Composable
 fun UserDetailsScreen(
@@ -71,6 +85,7 @@ fun UserDetailsScreen(
     ) {
         val info = viewModel.globalUserInfo.collectAsState().value
         val roomMemberInfo = viewModel.roomMember.collectAsState().value
+        val userIdentity = viewModel.userIdentity.collectAsState().value
         Column(contentModifier.fillMaxSize()) {
             ConversationDetailsTopNavigation(info?.displayName ?: viewModel.userId.value)
             if (info == null && roomMemberInfo == null) {
@@ -143,14 +158,18 @@ fun UserDetailsScreen(
                                 }
                             }
                             item {
-                                Box(
+                                Row(
                                     Modifier.fillMaxWidth().keyFocusable(
                                         role = FocusRole.LIST_ITEM,
                                         actionProvider = actionProvider(
                                             copyActions = plainTextCopyAction { text },
                                         )
                                     ),
-                                    contentAlignment = Alignment.Center,
+                                    horizontalArrangement = Arrangement.spacedBy(
+                                        Dimens.horizontalItemPadding,
+                                        Alignment.CenterHorizontally,
+                                    ),
+                                    verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     SelectionContainer {
                                         Text(
@@ -158,6 +177,25 @@ fun UserDetailsScreen(
                                             color = MaterialTheme.colorScheme.onSurface,
                                             style = MaterialTheme.typography.bodyLarge,
                                         )
+                                    }
+                                    when (userIdentity) {
+                                        IdentityState.Verified -> UserIdentityIcon(
+                                            rememberVectorPainter(Icons.Default.Verified),
+                                            stringResource(Res.string.verification_status_verified),
+                                            MaterialTheme.scExposures.accentColor,
+                                        )
+                                        IdentityState.PinViolation -> UserIdentityIcon(
+                                            painterResource(Res.drawable.verified_off_24px),
+                                            stringResource(Res.string.verification_status_not_verified),
+                                            MaterialTheme.colorScheme.onSurface,
+                                        )
+                                        IdentityState.VerificationViolation -> UserIdentityIcon(
+                                            painterResource(Res.drawable.verified_off_24px),
+                                            stringResource(Res.string.verification_status_not_verified),
+                                            MaterialTheme.colorScheme.error,
+                                        )
+                                        IdentityState.Pinned,
+                                        null -> {}
                                     }
                                 }
                             }
@@ -187,5 +225,22 @@ fun UserDetailsScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun UserIdentityIcon(
+    icon: Painter,
+    hint: String,
+    tint: Color,
+    modifier: Modifier = Modifier,
+) {
+    WithTooltip(hint, modifier) {
+        Icon(
+            icon,
+            hint,
+            Modifier.size(16.dp),
+            tint = tint,
+        )
     }
 }

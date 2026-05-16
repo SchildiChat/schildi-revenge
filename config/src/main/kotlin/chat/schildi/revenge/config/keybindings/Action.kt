@@ -178,6 +178,7 @@ sealed interface Action {
         AutoSubscribeNotifiableRooms, // Experimental feature
         InspectFocusable(aliases = listOf("inspect")),
         Join(args = listOf(ActionArgumentPrimitive.SessionId, UnjoinedRoom, ViaServerVararg)),
+        VerifyUser(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.UserId)),
     }
     enum class AppMessage(
         override val aliases: kotlin.collections.List<String> = emptyList(),

@@ -35,6 +35,10 @@ interface LoadCheckPoint {
         override val name = Res.string.hint_user_profile.toStringHolder()
     }
 
+    data object UserIdentity : LoadCheckPoint {
+        override val name = Res.string.hint_user_profile.toStringHolder()
+    }
+
     data object MemberProfile : LoadCheckPoint {
         override val name = Res.string.hint_member_profile.toStringHolder()
     }

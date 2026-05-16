@@ -75,7 +75,9 @@ import chat.schildi.revenge.config.keybindings.SpaceCatchAllMode
 import chat.schildi.revenge.config.keybindings.findAll
 import chat.schildi.revenge.config.keybindings.maxArgsSize
 import chat.schildi.revenge.config.keybindings.minArgsSize
+import chat.schildi.revenge.model.account.RevengeDeviceVerificationProvider
 import chat.schildi.revenge.model.account.ScIncomingVerificationRequest
+import chat.schildi.revenge.model.account.ScOutgoingVerificationRequest
 import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.REAL_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.RevengeSpaceListDataSource
@@ -92,6 +94,7 @@ import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.createroom.CreateRoomParameters
 import io.element.android.libraries.matrix.api.createroom.RoomPreset
 import io.element.android.libraries.matrix.api.roomdirectory.RoomVisibility
+import io.element.android.libraries.matrix.api.verification.VerificationRequest
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
@@ -1890,6 +1893,34 @@ class KeyboardActionHandler(
                         notifyProcessing = true,
                     ) {
                         client.joinRoomByIdOrAlias(roomAddress, via).toActionResult()
+                    }
+                }
+                Action.Global.VerifyUser -> {
+                    val sessionId = SessionId(args.firstOrNull().orActionValidationError())
+                    val userId = UserId(args.getOrNull(1).orActionValidationError())
+                    val client = UiState.currentClientFor(sessionId) ?: return ActionResult.Failure("Client not ready")
+                    val actionId = "verifyUser/$sessionId/$userId"
+                    context.launchActionAsync(
+                        actionId,
+                        GlobalActionsScope,
+                        Dispatchers.IO,
+                        actionId,
+                        notifyProcessing = true,
+                    ) {
+                        if (RevengeDeviceVerificationProvider.setActiveRequest(
+                                ScOutgoingVerificationRequest(
+                                    sessionId = sessionId,
+                                    ts = System.currentTimeMillis(),
+                                    request = VerificationRequest.Outgoing.User(userId),
+                                )
+                            )
+                        ) {
+                            client.sessionVerificationService.requestUserVerification(userId)
+                            UiState.openWindow(Destination.VerificationRequest(sessionId))
+                            ActionResult.Success()
+                        } else {
+                            ActionResult.Failure("Failed to initiate request")
+                        }
                     }
                 }
             }

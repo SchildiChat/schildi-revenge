@@ -197,6 +197,7 @@
     <string name="hint_timeline">Timeline</string>
     <string name="hint_user_profile">User profile</string>
     <string name="hint_member_profile">Member profile</string>
+    <string name="hint_user_identity">User identity</string>
     <string name="hint_account_data">Account data</string>
     <string name="hint_room_account_data">Room account data</string>
     <string name="hint_room_state">Room state</string>

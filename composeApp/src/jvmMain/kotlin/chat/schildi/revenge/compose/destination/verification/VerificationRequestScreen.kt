@@ -213,10 +213,6 @@ private fun ColumnScope.IncomingVerificationMetadataInfo(
                     ),
                 )
             }
-            VerificationMetadataInfoRow(
-                stringResource(Res.string.verification_device_details_user_id),
-                details.senderProfile.userId.value,
-            )
         }
         VerificationMetadataInfoRow(
             stringResource(Res.string.verification_device_details_user_id),
