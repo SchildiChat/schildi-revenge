@@ -53,6 +53,11 @@ class ComposerSuggestionsProvider(
                 // Emojis
                 val shortcodePrefix = currentCompletionEntity.substring(1)
                 val suggestions = Emoji.list().filter { it.details.aliases.any { it.contains(shortcodePrefix) } }
+                    .sortedBy {
+                        it.details.aliases.minOf {
+                            it.indexOf(shortcodePrefix).takeIf { it >= 0 } ?: Int.MAX_VALUE
+                        }
+                    }
                     .map { ComposerEmojiSuggestion(it.details.string, it.details.description) }
                 ComposerSuggestionsState(suggestions.toImmutableList())
             }
