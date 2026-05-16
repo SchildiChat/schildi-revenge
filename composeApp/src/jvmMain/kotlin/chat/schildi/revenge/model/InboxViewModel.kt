@@ -47,6 +47,7 @@ import io.element.android.libraries.matrix.api.roomlist.RoomListService
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
 import io.element.android.libraries.matrix.api.sync.SyncState
 import io.element.android.libraries.matrix.api.user.MatrixUser
+import io.element.android.libraries.matrix.api.verification.SessionVerifiedStatus
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentHashMapOf
 import kotlinx.collections.immutable.persistentListOf
@@ -58,7 +59,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -95,6 +95,7 @@ data class InboxAccount(
     val user: MatrixUser,
     val roomListState: RoomListService.State,
     val syncState: SyncState,
+    val sessionVerifiedStatus: SessionVerifiedStatus?,
     val isHidden: Boolean,
     val isSelected: Boolean,
     val isCurrentlyVisible: Boolean,
@@ -267,10 +268,11 @@ class InboxViewModel(
                 it.client.userProfile,
                 it.client.roomListService.state,
                 it.client.syncService.syncState,
+                it.client.sessionVerificationService.sessionVerifiedStatus,
                 hiddenAccounts,
                 selectedAccounts,
                 UiState.mutedAccounts,
-            ) { user, roomListState, syncState, hiddenAccounts, selectedAccounts, mutedAccounts ->
+            ) { user, roomListState, syncState, verifiedStatus, hiddenAccounts, selectedAccounts, mutedAccounts ->
                 val isHidden = user.userId in hiddenAccounts
                 val isSelected = user.userId in selectedAccounts
                 val isMuted = user.userId in mutedAccounts.orEmpty()
@@ -278,6 +280,7 @@ class InboxViewModel(
                     user = user,
                     roomListState = roomListState,
                     syncState = syncState,
+                    sessionVerifiedStatus = verifiedStatus,
                     isHidden = isHidden,
                     isSelected = isSelected,
                     isCurrentlyVisible = if (selectedAccounts.isEmpty()) !isHidden else isSelected,

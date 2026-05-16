@@ -39,13 +39,13 @@ import chat.schildi.revenge.actions.plainTextCopyActionWithUserId
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.ContextMenuActionEntry
 import chat.schildi.revenge.compose.components.ContextMenuDecoration
-import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.revenge.compose.components.WithContextMenu
 import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
+import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.model.InboxAccount
 import chat.schildi.revenge.model.InboxViewModel
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
@@ -57,6 +57,8 @@ import io.element.android.libraries.matrix.api.sync.SyncState
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toPersistentList
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_context_account_hide
@@ -67,6 +69,8 @@ import shire.composeapp.generated.resources.hint_sync_state_idle
 import shire.composeapp.generated.resources.hint_sync_state_offline
 import shire.composeapp.generated.resources.hint_sync_state_running
 import shire.composeapp.generated.resources.hint_sync_state_terminated
+import shire.composeapp.generated.resources.verification_status_not_verified
+import shire.composeapp.generated.resources.verified_off_24px
 import kotlin.math.max
 
 @Composable
@@ -111,7 +115,7 @@ fun AccountButton(
         val focusId = rememberFocusId()
         WithContextMenu(
             focusId,
-            persistentListOf(
+            listOfNotNull(
                 ContextMenuActionEntry(
                     Res.string.action_context_account_select.toStringHolder(),
                     rememberVectorPainter(Icons.Default.Visibility),
@@ -140,7 +144,15 @@ fun AccountButton(
                     keyboardShortcut = Key.M,
                     autoCloseMenu = false,
                 ),
-            ),
+                ContextMenuActionEntry(
+                    Res.string.verification_status_not_verified.toStringHolder(),
+                    painterResource(Res.drawable.verified_off_24px),
+                    Action.Navigation.NavigateAuto,
+                    persistentListOf(DestinationEnum.AccountManagement.destName),
+                    keyboardShortcut = Key.V,
+                    critical = true,
+                ).takeIf { account.sessionVerifiedStatus?.isVerified() != true },
+            ).toPersistentList(),
         ) { openContextMenu ->
             Row(
                 modifier
@@ -249,6 +261,14 @@ fun AccountButton(
                             MaterialTheme.colorScheme.onSurfaceVariant
                         else
                             MaterialTheme.colorScheme.error,
+                    )
+                }
+                if (account.sessionVerifiedStatus?.isVerified() != true && !account.shouldHideErrors) {
+                    Icon(
+                        painterResource(Res.drawable.verified_off_24px),
+                        stringResource(Res.string.verification_status_not_verified),
+                        Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.error,
                     )
                 }
             }
