@@ -93,10 +93,15 @@ class AccountManagementViewModel(
             .onFailure { log.w("Failed to verify ${session.userId}", it) }
     }
 
-    suspend fun logout(session: SessionData): Result<Unit> {
-        sessionCache.getOrRestore(SessionId(session.userId))
-            .getOrElse { return Result.failure(it) }
-            .logout(userInitiated = true, ignoreSdkError = false)
+    suspend fun logout(session: SessionData, isTokenValid: Boolean): Result<Unit> {
+        val sessionId = SessionId(session.userId)
+        val restoreFailed = sessionCache.getOrRestore(sessionId)
+            .getOrElse { if (isTokenValid) return Result.failure(it) else null }
+            ?.logout(userInitiated = true, ignoreSdkError = !isTokenValid) == null
+        if (restoreFailed && !isTokenValid) {
+            log.e { "Failed to logout session for $sessionId, deleting anyway" }
+            sessionStore.removeSession(session.userId)
+        }
         return Result.success(Unit)
     }
 }

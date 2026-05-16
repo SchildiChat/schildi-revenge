@@ -7,12 +7,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -28,6 +31,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
@@ -47,14 +52,21 @@ import chat.schildi.revenge.compose.components.IconButtonWithConfirmation
 import chat.schildi.revenge.compose.components.TopNavigation
 import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInboxIcon
 import chat.schildi.revenge.compose.components.TopNavigationTitle
+import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.AccountManagementData
 import chat.schildi.revenge.model.AccountManagementViewModel
 import chat.schildi.revenge.viewModelKey
+import io.element.android.libraries.matrix.api.encryption.BackupState
+import io.element.android.libraries.matrix.api.encryption.RecoveryState
+import io.element.android.libraries.matrix.api.verification.SessionVerifiedStatus
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.imageResource
+import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.account_status_invalid_token
 import shire.composeapp.generated.resources.action_hide
 import shire.composeapp.generated.resources.action_login
 import shire.composeapp.generated.resources.action_logout
@@ -66,6 +78,9 @@ import shire.composeapp.generated.resources.hint_recovery_key
 import shire.composeapp.generated.resources.hint_username
 import shire.composeapp.generated.resources.manage_accounts
 import shire.composeapp.generated.resources.title_login_account
+import shire.composeapp.generated.resources.verification_status_not_verified
+import shire.composeapp.generated.resources.verification_status_verified
+import shire.composeapp.generated.resources.verified_off_24px
 
 @Composable
 fun AccountManagementScreen(
@@ -142,14 +157,7 @@ private fun ExistingLogin(account: AccountManagementData, viewModel: AccountMana
                     horizontalArrangement = Dimens.horizontalArrangement,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    if (!account.session.isTokenValid) {
-                        Text(
-                            "❌",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.alignByBaseline(),
-                        )
-                    }
+                    AccountStatusRow(account)
                     Text(
                         account.session.userId,
                         color = MaterialTheme.colorScheme.onSurface,
@@ -163,7 +171,7 @@ private fun ExistingLogin(account: AccountManagementData, viewModel: AccountMana
                 ) {
                     // TODO view progress, and move all the scope.launch into the viewModel with state tracked in there
                     scope.launch {
-                        viewModel.logout(account.session)
+                        viewModel.logout(account.session, account.session.isTokenValid)
                     }
                 }
             }
@@ -215,6 +223,78 @@ private fun ExistingLogin(account: AccountManagementData, viewModel: AccountMana
                 Text("Recovery state: ${account.recoveryState}")
             }
         }
+    }
+}
+
+@Composable
+private fun AccountStatusRow(
+    account: AccountManagementData,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier,
+        horizontalArrangement = Dimens.horizontalArrangementSmall,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        if (!account.session.isTokenValid) {
+            AccountStatusIcon(
+                rememberVectorPainter(Icons.Default.Warning),
+                stringResource(Res.string.account_status_invalid_token),
+                critical = true,
+            )
+            return
+        }
+        when (account.sessionVerifiedStatus) {
+            SessionVerifiedStatus.NotVerified -> AccountStatusIcon(
+                painterResource(Res.drawable.verified_off_24px),
+                stringResource(Res.string.verification_status_not_verified),
+                critical = true,
+            )
+            SessionVerifiedStatus.Verified -> AccountStatusIcon(
+                rememberVectorPainter(Icons.Default.Verified),
+                stringResource(Res.string.verification_status_verified),
+            )
+            SessionVerifiedStatus.Unknown,
+            null -> {}
+        }
+        /*
+        when (account.recoveryState) {
+            RecoveryState.WAITING_FOR_SYNC -> TODO()
+            RecoveryState.UNKNOWN -> TODO()
+            RecoveryState.ENABLED -> TODO()
+            RecoveryState.DISABLED -> TODO()
+            RecoveryState.INCOMPLETE -> TODO()
+            null -> TODO()
+        }
+        when (account.backupState) {
+            BackupState.WAITING_FOR_SYNC -> TODO()
+            BackupState.UNKNOWN -> TODO()
+            BackupState.CREATING -> TODO()
+            BackupState.ENABLING -> TODO()
+            BackupState.RESUMING -> TODO()
+            BackupState.ENABLED -> TODO()
+            BackupState.DOWNLOADING -> TODO()
+            BackupState.DISABLING -> TODO()
+            null -> TODO()
+        }
+         */
+    }
+}
+
+@Composable
+private fun AccountStatusIcon(
+    icon: Painter,
+    hint: String,
+    modifier: Modifier = Modifier,
+    critical: Boolean = false,
+) {
+    WithTooltip(hint, modifier) {
+        Icon(
+            icon,
+            hint,
+            Modifier.size(16.dp),
+            tint = if (critical) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+        )
     }
 }
 

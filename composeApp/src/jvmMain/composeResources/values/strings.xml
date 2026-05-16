@@ -526,6 +526,9 @@
     <string name="verification_failed">Verification failed</string>
     <string name="verification_init_prompt">Start verification?</string>
     <string name="verification_no_active_request">No active verification request for %1$s</string>
+
+    <string name="account_status_invalid_token">Login token invalid</string>
+    <string name="verification_status_verified">Verified</string>
     <string name="verification_status_not_verified">Not verified</string>
 
 </resources>

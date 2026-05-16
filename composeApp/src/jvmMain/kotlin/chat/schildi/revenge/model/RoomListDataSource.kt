@@ -69,7 +69,11 @@ class RoomListDataSource(
                 // Rebuild once to account for lost updates, which is a real problem for some reason,
                 // initial room lists are emitted without settings?
                 combinedSessions.value.forEach {
-                    it.client.roomListService.allRooms.rebuildSummaries()
+                    try {
+                        it.client.roomListService.allRooms.rebuildSummaries()
+                    } catch (e: Exception) {
+                        log.e("Failed to rebuild summaries for ${it.client.sessionId}", e)
+                    }
                 }
             }
             .flowOn(Dispatchers.Default)
@@ -99,7 +103,11 @@ class RoomListDataSource(
         },
         onUpdatedInput = { it, settings ->
             it.forEach {
-                it.client.roomListService.allRooms.updateSettings(RoomListFilter.All(emptyList()), settings)
+                try {
+                    it.client.roomListService.allRooms.updateSettings(RoomListFilter.All(emptyList()), settings)
+                } catch (e: Exception) {
+                    log.e("Failed to update settings for ${it.client.sessionId}", e)
+                }
             }
         },
         merge = { it, settings ->
