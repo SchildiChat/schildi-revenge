@@ -3,7 +3,6 @@ package chat.schildi.revenge
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.config.keybindings.DestinationEnum
-import chat.schildi.revenge.model.account.ScIncomingVerificationRequest
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -21,7 +20,7 @@ import shire.composeapp.generated.resources.message_reactions_title
 import shire.composeapp.generated.resources.message_read_receipts_title
 import shire.composeapp.generated.resources.room_dev_tools_title
 import shire.composeapp.generated.resources.room_details_title
-import shire.composeapp.generated.resources.verification_incoming_request_title
+import shire.composeapp.generated.resources.verification_request_title
 
 val DEFAULT_WINDOW_APP_TITLE = StringResourceHolder(Res.string.app_title_short)
 
@@ -170,15 +169,14 @@ sealed interface Destination {
         override val category = DestinationCategory.SETTINGS
     }
 
-    data class IncomingVerificationRequest(
-        val request: ScIncomingVerificationRequest,
+    data class VerificationRequest(
+        override val sessionId: SessionId,
     ) : WithSession {
-        override val sessionId = request.sessionId
-        override val type = DestinationEnum.IncomingVerificationRequest
-        override val title = StringResourceHolder(Res.string.verification_incoming_request_title)
+        override val type = DestinationEnum.VerificationRequest
+        override val title = StringResourceHolder(Res.string.verification_request_title)
         override val category = DestinationCategory.VERIFICATION
 
-        override fun key() = "IncomingVerificationRequest($sessionId,${request.request.details.flowId})"
+        override fun key() = "VerificationRequest($sessionId)"
     }
 
     data class AccountDevTools(

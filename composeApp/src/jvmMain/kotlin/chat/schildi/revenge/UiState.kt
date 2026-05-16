@@ -3,7 +3,6 @@ package chat.schildi.revenge
 import androidx.compose.ui.window.ApplicationScope
 import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPrefs
-import chat.schildi.revenge.UiState._globalMessageBoard
 import chat.schildi.revenge.actions.AbstractAppMessage
 import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.actions.KeyboardActionHandler

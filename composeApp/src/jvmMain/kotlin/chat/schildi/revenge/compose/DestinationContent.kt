@@ -34,7 +34,7 @@ import chat.schildi.revenge.compose.destination.split.EmptyPaneScreen
 import chat.schildi.revenge.compose.destination.split.InboxConversationMultiPaneScreen
 import chat.schildi.revenge.compose.destination.split.SplitHorizontal
 import chat.schildi.revenge.compose.destination.split.SplitVertical
-import chat.schildi.revenge.compose.destination.verification.IncomingVerificationRequestScreen
+import chat.schildi.revenge.compose.destination.verification.VerificationRequestScreen
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 
 val LocalDestinationDepth = compositionLocalOf { 0 }
@@ -67,7 +67,7 @@ fun DestinationContent(
                 is Destination.SplitVertical -> SplitVertical(destination, baseModifier, contentModifier)
                 is Destination.About -> AboutScreen(baseModifier, contentModifier)
                 is Destination.Diagnostics -> DiagnosticsScreen(destination, baseModifier, contentModifier)
-                is Destination.IncomingVerificationRequest -> IncomingVerificationRequestScreen(destination, baseModifier, contentModifier)
+                is Destination.VerificationRequest -> VerificationRequestScreen(destination, baseModifier, contentModifier)
                 is Destination.Settings -> SettingsScreen(destination, baseModifier, contentModifier)
                 is Destination.SettingsPane -> SettingsScreen(destination, baseModifier, contentModifier)
                 is Destination.InboxConversationMultiPane -> InboxConversationMultiPaneScreen(destination, baseModifier, contentModifier)
@@ -119,7 +119,7 @@ private fun DestinationEnum.measureInfo(): DestinationMeasure = when (this) {
     )
     DestinationEnum.AccountManagement,
     DestinationEnum.Diagnostics,
-    DestinationEnum.IncomingVerificationRequest,
+    DestinationEnum.VerificationRequest,
     DestinationEnum.About -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_SETTINGS, ScPrefs.LAYOUT_WEIGHT_SETTINGS)
     DestinationEnum.Settings -> DestinationEnum.SettingsRoot.measureInfo() + DestinationEnum.SplitSettingsDetailsPlaceholder.measureInfo()
     DestinationEnum.SettingsRoot -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_SETTINGS, ScPrefs.LAYOUT_WEIGHT_SETTINGS_ROOT)

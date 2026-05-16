@@ -507,11 +507,12 @@
         <item quantity="other">%1$d thread replies</item>
     </plurals>
 
+    <string name="verification_request_title">Verification request</string>
     <string name="verification_incoming_request_prompt">Verification request: %1$s wants to verify %2$s</string>
-    <string name="verification_incoming_request_title">Verification request</string>
     <string name="verification_incoming_request_summary">%1$s wants to verify %2$s</string>
     <string name="verification_device_details_device_name">Device name</string>
     <string name="verification_device_details_device_id">Device ID</string>
+    <string name="verification_device_details_own_device_id">Own device ID</string>
     <string name="verification_device_details_user_id">User ID</string>
     <string name="verification_device_details_flow_id">Flow ID</string>
     <string name="verification_device_details_user_name">User name</string>
@@ -524,5 +525,6 @@
     <string name="verification_cancelled">Verification cancelled</string>
     <string name="verification_failed">Verification failed</string>
     <string name="verification_init_prompt">Start verification?</string>
+    <string name="verification_no_active_request">No active verification request for %1$s</string>
 
 </resources>

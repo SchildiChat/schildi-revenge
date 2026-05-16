@@ -92,7 +92,6 @@ import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.createroom.CreateRoomParameters
 import io.element.android.libraries.matrix.api.createroom.RoomPreset
 import io.element.android.libraries.matrix.api.roomdirectory.RoomVisibility
-import io.element.android.libraries.matrix.api.verification.VerificationRequest
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
@@ -134,7 +133,6 @@ import shire.composeapp.generated.resources.command_external_application_launche
 import shire.composeapp.generated.resources.command_not_applicable
 import shire.composeapp.generated.resources.command_not_found
 import shire.composeapp.generated.resources.toast_room_created
-import shire.composeapp.generated.resources.verification_incoming_request_prompt
 import java.awt.Desktop
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor

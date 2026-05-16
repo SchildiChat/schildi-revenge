@@ -19,7 +19,7 @@ enum class DestinationEnum(
     SettingsDetails("SettingsDetails"),
     Diagnostics("Diagnostics", listOf("diagnostics")),
     About("About", listOf("about")),
-    IncomingVerificationRequest("IncomingVerificationRequest"),
+    VerificationRequest("VerificationRequest"),
     AccountDevTools("AccountDevTools", listOf("accountDevTools")),
     RoomDevTools("RoomDevTools", listOf("roomDevTools")),
     SplitHorizontal("SplitHorizontal"),
@@ -64,11 +64,12 @@ val ALLOWED_DESTINATION_STRINGS = listOf(
     DestinationEnum.MessageReadReceipts.allDestinationNames(),
     DestinationEnum.AccountDevTools.allDestinationNames(),
     DestinationEnum.RoomDevTools.allDestinationNames(),
+    //DestinationEnum.VerificationRequest.allDestinationNames(), // Sometimes useful for testing, but most of the time not
     DestinationEnum.InboxConversationSplit.allDestinationNames(),
     DestinationEnum.ConversationDetailsSplit.allDestinationNames(),
 ).flatten()
 
-fun String.destinationRequiresSessionId() = this in listOf("chat", "conversation", "room", "roomDetails", "members", "reactions", "chatDetails", "conversationDetails", "accountDevTools", "roomDevTools")
+fun String.destinationRequiresSessionId() = this in listOf("chat", "conversation", "room", "roomDetails", "members", "reactions", "chatDetails", "conversationDetails", "accountDevTools", "roomDevTools", "verificationRequest")
 fun String.destinationRequiresResolvableRoom() = this in listOf("chat", "conversation", "room", "roomDetails", "members", "reactions", "chatDetails", "conversationDetails", "roomDevTools")
 fun String.destinationRequiresEventId() = this in listOf("reactions")
 

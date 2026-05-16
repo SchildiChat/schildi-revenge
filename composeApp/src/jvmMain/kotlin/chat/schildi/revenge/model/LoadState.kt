@@ -16,6 +16,7 @@ import shire.composeapp.generated.resources.hint_member_profile
 import shire.composeapp.generated.resources.hint_room
 import shire.composeapp.generated.resources.hint_timeline
 import shire.composeapp.generated.resources.hint_user_profile
+import shire.composeapp.generated.resources.verification_request_title
 
 interface LoadCheckPoint {
     val name: ComposableStringHolder
@@ -60,6 +61,10 @@ interface LoadCheckPoint {
 
     data object RoomState : LoadCheckPoint {
         override val name = "Room state".toStringHolder()
+    }
+
+    data object VerificationRequest : LoadCheckPoint {
+        override val name = Res.string.verification_request_title.toStringHolder()
     }
 }
 

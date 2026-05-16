@@ -26,6 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import chat.schildi.preferences.ScPrefs
+import chat.schildi.preferences.value
 import chat.schildi.revenge.DateTimeFormat
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
@@ -43,7 +45,9 @@ import chat.schildi.revenge.compose.components.TopNavigationTitle
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.account.ScIncomingVerificationRequest
-import chat.schildi.revenge.model.verification.IncomingVerificationRequestViewModel
+import chat.schildi.revenge.model.account.ScOutgoingVerificationRequest
+import chat.schildi.revenge.model.account.ScVerificationRequest
+import chat.schildi.revenge.model.verification.VerificationRequestViewModel
 import chat.schildi.revenge.model.verification.toEmojiResource
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
@@ -68,29 +72,32 @@ import shire.composeapp.generated.resources.verification_compare_emoji_match
 import shire.composeapp.generated.resources.verification_device_details_device_id
 import shire.composeapp.generated.resources.verification_device_details_device_name
 import shire.composeapp.generated.resources.verification_device_details_flow_id
+import shire.composeapp.generated.resources.verification_device_details_own_device_id
 import shire.composeapp.generated.resources.verification_device_details_user_id
 import shire.composeapp.generated.resources.verification_device_first_seen
 import shire.composeapp.generated.resources.verification_device_header_type_other_user
 import shire.composeapp.generated.resources.verification_device_header_type_self
 import shire.composeapp.generated.resources.verification_failed
-import shire.composeapp.generated.resources.verification_incoming_request_title
+import shire.composeapp.generated.resources.verification_no_active_request
+import shire.composeapp.generated.resources.verification_request_title
 import shire.composeapp.generated.resources.verification_successful
 
 @Composable
-fun IncomingVerificationRequestScreen(
-    destination: Destination.IncomingVerificationRequest,
+fun VerificationRequestScreen(
+    destination: Destination.VerificationRequest,
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
 ) {
-    val viewModel: IncomingVerificationRequestViewModel = viewModel(
-        key = viewModelKey(destination),
-        factory = viewModelFactory { initializer { IncomingVerificationRequestViewModel(destination.request) } },
+    val viewModel: VerificationRequestViewModel = viewModel(
+        key = viewModelKey(destination, allowShare = true),
+        factory = viewModelFactory { initializer { VerificationRequestViewModel(destination.sessionId) } },
     )
     publishTitle(viewModel)
 
     DisposableEffect(viewModel) {
+        viewModel.registerRenderer()
         onDispose {
-            viewModel.resetOnDispose()
+            viewModel.unregisterRenderer()
         }
     }
 
@@ -101,7 +108,7 @@ fun IncomingVerificationRequestScreen(
     ) {
         Column {
             TopNavigation {
-                TopNavigationTitle(stringResource(Res.string.verification_incoming_request_title))
+                TopNavigationTitle(stringResource(Res.string.verification_request_title))
                 TopNavigationCloseOrNavigateToInboxIcon()
             }
             Box(contentModifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -109,15 +116,20 @@ fun IncomingVerificationRequestScreen(
                     Modifier.padding(Dimens.windowPadding),
                     verticalArrangement = Dimens.verticalArrangementBig,
                 ) {
-                    val request = destination.request
-                    when (verificationFlowState) {
-                        VerificationFlowState.Initial -> VerificationInitialContent(request, viewModel)
-                        VerificationFlowState.DidAcceptVerificationRequest -> VerificationAcceptedContent(request, viewModel)
-                        VerificationFlowState.DidStartSasVerification -> VerificationSasStartedContent(request, viewModel)
-                        is VerificationFlowState.DidReceiveVerificationData -> VerificationDataContent(verificationFlowState, request, viewModel)
-                        VerificationFlowState.DidFinish -> VerificationFinishedContent(request)
-                        VerificationFlowState.DidCancel -> VerificationCancelledContent(request)
-                        VerificationFlowState.DidFail -> VerificationFailedContent(request)
+                    val request = viewModel.activeVerificationRequest.collectAsState().value
+                    if (request == null) {
+                        VerificationNoActiveRequestContent(viewModel)
+                    } else {
+                        when (verificationFlowState) {
+                            VerificationFlowState.Initial -> VerificationInitialContent(request, viewModel)
+                            VerificationFlowState.DidAcceptVerificationRequest -> VerificationAcceptedContent(request, viewModel)
+                            VerificationFlowState.DidStartSasVerification -> VerificationSasStartedContent(request, viewModel)
+                            is VerificationFlowState.DidReceiveVerificationData -> VerificationDataContent(verificationFlowState, request, viewModel)
+                            VerificationFlowState.DidFinish -> VerificationFinishedContent(request, viewModel)
+                            VerificationFlowState.DidCancel -> VerificationCancelledContent(request, viewModel)
+                            VerificationFlowState.DidFail -> VerificationFailedContent(request, viewModel)
+                            null -> VerificationNoActiveRequestContent(viewModel)
+                        }
                     }
                 }
             }
@@ -127,7 +139,53 @@ fun IncomingVerificationRequestScreen(
 
 @Composable
 private fun ColumnScope.VerificationMetadataInfo(
+    request: ScVerificationRequest,
+    viewModel: VerificationRequestViewModel,
+    modifier: Modifier = Modifier,
+) {
+    when (request) {
+        is ScIncomingVerificationRequest -> IncomingVerificationMetadataInfo(request, viewModel, modifier)
+        is ScOutgoingVerificationRequest -> OutgoingVerificationMetadataInfo(request, viewModel, modifier)
+    }
+}
+
+@Composable
+private fun ColumnScope.OutgoingVerificationMetadataInfo(
+    request: ScOutgoingVerificationRequest,
+    viewModel: VerificationRequestViewModel,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier.align(Alignment.CenterHorizontally), verticalArrangement = Dimens.verticalArrangement) {
+        Text(
+            when (request.request) {
+                is VerificationRequest.Outgoing.CurrentSession -> stringResource(Res.string.verification_device_header_type_self)
+                is VerificationRequest.Outgoing.User -> stringResource(Res.string.verification_device_header_type_other_user)
+            },
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodySmall,
+        )
+
+        val userId = when (request.request) {
+            is VerificationRequest.Outgoing.CurrentSession -> request.sessionId
+            is VerificationRequest.Outgoing.User -> request.request.userId
+        }
+        VerificationMetadataInfoRow(
+            stringResource(Res.string.verification_device_details_user_id),
+            userId.value,
+        )
+        if (ScPrefs.SHOW_DEV_INFOS.value()) {
+            VerificationMetadataInfoRow(
+                stringResource(Res.string.verification_device_details_own_device_id),
+                viewModel.ownDeviceId.collectAsState().value?.value.toString(),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ColumnScope.IncomingVerificationMetadataInfo(
     request: ScIncomingVerificationRequest,
+    viewModel: VerificationRequestViewModel,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier.align(Alignment.CenterHorizontally), verticalArrangement = Dimens.verticalArrangement) {
@@ -168,14 +226,20 @@ private fun ColumnScope.VerificationMetadataInfo(
             stringResource(Res.string.verification_device_details_device_name),
             details.deviceDisplayName,
         )
-        VerificationMetadataInfoRow(
-            stringResource(Res.string.verification_device_details_device_id),
-            details.deviceId.value,
-        )
-        VerificationMetadataInfoRow(
-            stringResource(Res.string.verification_device_details_flow_id),
-            details.flowId.value,
-        )
+        if (ScPrefs.SHOW_DEV_INFOS.value()) {
+            VerificationMetadataInfoRow(
+                stringResource(Res.string.verification_device_details_device_id),
+                details.deviceId.value,
+            )
+            VerificationMetadataInfoRow(
+                stringResource(Res.string.verification_device_details_own_device_id),
+                viewModel.ownDeviceId.collectAsState().value?.value.toString(),
+            )
+            VerificationMetadataInfoRow(
+                stringResource(Res.string.verification_device_details_flow_id),
+                details.flowId.value,
+            )
+        }
         VerificationMetadataInfoRow(
             stringResource(Res.string.verification_device_first_seen),
             DateTimeFormat.formatTimeOrDateTime(details.firstSeenTimestamp),
@@ -284,11 +348,25 @@ private fun VerificationButtonSection(
 }
 
 @Composable
-private fun ColumnScope.VerificationInitialContent(
-    request: ScIncomingVerificationRequest,
-    viewModel: IncomingVerificationRequestViewModel,
+private fun ColumnScope.VerificationNoActiveRequestContent(
+    viewModel: VerificationRequestViewModel,
 ) {
-    VerificationMetadataInfo(request)
+    val keyHandler = LocalKeyboardActionHandler.current
+    val destinationState = LocalDestinationState.current
+    VerificationStateText(stringResource(Res.string.verification_no_active_request, viewModel.sessionId))
+    VerificationButtonSection {
+        VerificationButton(stringResource(Res.string.action_done)) {
+            destinationState?.closeScreen(keyHandler)
+        }
+    }
+}
+
+@Composable
+private fun ColumnScope.VerificationInitialContent(
+    request: ScVerificationRequest,
+    viewModel: VerificationRequestViewModel,
+) {
+    VerificationMetadataInfo(request, viewModel)
     VerificationButtonSection {
         VerificationButton(stringResource(Res.string.action_accept)) {
             viewModel.acceptVerificationRequest()
@@ -301,10 +379,10 @@ private fun ColumnScope.VerificationInitialContent(
 
 @Composable
 private fun ColumnScope.VerificationAcceptedContent(
-    request: ScIncomingVerificationRequest,
-    viewModel: IncomingVerificationRequestViewModel,
+    request: ScVerificationRequest,
+    viewModel: VerificationRequestViewModel,
 ) {
-    VerificationMetadataInfo(request)
+    VerificationMetadataInfo(request, viewModel)
     VerificationButtonSection {
         VerificationButton(stringResource(Res.string.action_start_emoji_verification)) {
             viewModel.startSasVerification()
@@ -317,10 +395,10 @@ private fun ColumnScope.VerificationAcceptedContent(
 
 @Composable
 private fun ColumnScope.VerificationSasStartedContent(
-    request: ScIncomingVerificationRequest,
-    viewModel: IncomingVerificationRequestViewModel,
+    request: ScVerificationRequest,
+    viewModel: VerificationRequestViewModel,
 ) {
-    VerificationMetadataInfo(request)
+    VerificationMetadataInfo(request, viewModel)
     VerificationLoadingIndicator()
     VerificationButtonSection {
         VerificationButton(stringResource(Res.string.action_cancel)) {
@@ -332,10 +410,10 @@ private fun ColumnScope.VerificationSasStartedContent(
 @Composable
 private fun ColumnScope.VerificationDataContent(
     state: VerificationFlowState.DidReceiveVerificationData,
-    request: ScIncomingVerificationRequest,
-    viewModel: IncomingVerificationRequestViewModel,
+    request: ScVerificationRequest,
+    viewModel: VerificationRequestViewModel,
 ) {
-    VerificationMetadataInfo(request)
+    VerificationMetadataInfo(request, viewModel)
     val stateText = when (state.data) {
         is SessionVerificationData.Emojis -> stringResource(Res.string.verification_compare_emoji_match)
         is SessionVerificationData.Decimals -> stringResource(Res.string.verification_compare_decimals_match)
@@ -404,12 +482,13 @@ private fun VerificationEmojiContent(
 
 @Composable
 private fun ColumnScope.VerificationFinishedContent(
-    request: ScIncomingVerificationRequest,
+    request: ScVerificationRequest,
+    viewModel: VerificationRequestViewModel,
 ) {
     val keyHandler = LocalKeyboardActionHandler.current
     val destinationState = LocalDestinationState.current
     VerificationStateText(stringResource(Res.string.verification_successful))
-    VerificationMetadataInfo(request)
+    VerificationMetadataInfo(request, viewModel)
     VerificationButtonSection {
         VerificationButton(stringResource(Res.string.action_done)) {
             destinationState?.closeScreen(keyHandler)
@@ -419,12 +498,13 @@ private fun ColumnScope.VerificationFinishedContent(
 
 @Composable
 private fun ColumnScope.VerificationCancelledContent(
-    request: ScIncomingVerificationRequest,
+    request: ScVerificationRequest,
+    viewModel: VerificationRequestViewModel,
 ) {
     val keyHandler = LocalKeyboardActionHandler.current
     val destinationState = LocalDestinationState.current
     VerificationStateText(stringResource(Res.string.verification_cancelled), critical = true)
-    VerificationMetadataInfo(request)
+    VerificationMetadataInfo(request, viewModel)
     VerificationButtonSection {
         VerificationButton(stringResource(Res.string.action_done)) {
             destinationState?.closeScreen(keyHandler)
@@ -434,12 +514,13 @@ private fun ColumnScope.VerificationCancelledContent(
 
 @Composable
 private fun ColumnScope.VerificationFailedContent(
-    request: ScIncomingVerificationRequest,
+    request: ScVerificationRequest,
+    viewModel: VerificationRequestViewModel,
 ) {
     val keyHandler = LocalKeyboardActionHandler.current
     val destinationState = LocalDestinationState.current
     VerificationStateText(stringResource(Res.string.verification_failed), critical = true)
-    VerificationMetadataInfo(request)
+    VerificationMetadataInfo(request, viewModel)
     VerificationButtonSection {
         VerificationButton(stringResource(Res.string.action_done)) {
             destinationState?.closeScreen(keyHandler)
