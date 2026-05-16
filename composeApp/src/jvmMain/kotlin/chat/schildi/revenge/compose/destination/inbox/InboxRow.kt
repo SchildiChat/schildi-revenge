@@ -36,8 +36,11 @@ import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.lib.util.formatUnreadCount
 import chat.schildi.revenge.DateTimeFormat
+import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.UiState
+import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.buildNavigationActionProvider
 import chat.schildi.revenge.compose.components.AvatarImage
@@ -97,28 +100,20 @@ fun InboxRow(
                     .keyFocusable(
                         FocusRole.LIST_ITEM,
                         focusId,
-                        actionProvider = if (room.summary.isInvite()) {
-                            actionProvider(
-                                keyActions = inboxRowKeyboardActionProvider(viewModel, room.key, isInvite = true),
-                                secondaryAction = openContextMenu,
-                                copyActions = plainTextCopyAction { room.summary.info.name },
-                            )
-                        } else {
-                            buildNavigationActionProvider(
-                                initialTitle = {
-                                    ConversationViewModel.windowTitle(
-                                        room.summary.info,
-                                        user?.displayName,
-                                        null,
-                                        room.sessionId
-                                    )
-                                },
-                                keyActions = inboxRowKeyboardActionProvider(viewModel, room.key, isInvite = false),
-                                secondaryAction = openContextMenu,
-                                copyActions = plainTextCopyAction { room.summary.info.name },
-                            ) {
-                                UiState.getConversationDestinationFromInbox(room.sessionId, room.summary.roomId)
-                            }
+                        actionProvider = buildNavigationActionProvider(
+                            initialTitle = {
+                                ConversationViewModel.windowTitle(
+                                    room.summary.info,
+                                    user?.displayName,
+                                    null,
+                                    room.sessionId
+                                )
+                            },
+                            keyActions = inboxRowKeyboardActionProvider(viewModel, room.key, isInvite = room.summary.isInvite()),
+                            secondaryAction = openContextMenu,
+                            copyActions = plainTextCopyAction { room.summary.info.name },
+                        ) {
+                            UiState.getConversationDestinationFromInbox(room.sessionId, room.summary.roomId)
                         },
                     )
                     .padding(
@@ -331,22 +326,24 @@ private fun RowScope.ScLastMessageAndIndicatorRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         if (room.isInvite()) {
-            // TODO needs work for user feedback on click and allowing keyboard actions
             val actionContext = currentActionContext()
+            val destinationStateHolder = LocalDestinationState.current
+            fun join(): Boolean {
+                val result = viewModel.joinRoom(actionContext, scopedRoom.sessionId, room.roomId)
+                if (result is ActionResult.Success) {
+                    destinationStateHolder?.navigate(Destination.Conversation(scopedRoom.sessionId, scopedRoom.summary.roomId))
+                }
+                return result is ActionResult.Actioned
+            }
             Button(
                 modifier = Modifier.keyFocusable(
                     actionProvider = actionProvider(
-                        primaryAction = InteractionAction.Invoke {
-                            viewModel.joinRoom(actionContext, scopedRoom.sessionId, room.roomId)
-                            true
-                        },
+                        primaryAction = InteractionAction.Invoke(::join)
                     ),
                     addMouseFocusable = false,
                     addClickListener = false,
                 ),
-                onClick = {
-                    viewModel.joinRoom(actionContext, scopedRoom.sessionId, room.roomId)
-                },
+                onClick = { join() },
             ) {
                 Text(stringResource(Res.string.action_join))
             }

@@ -19,9 +19,10 @@ import chat.schildi.revenge.compose.components.TopNavigation
 import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInboxIcon
 import chat.schildi.revenge.compose.components.TopNavigationIcon
 import chat.schildi.revenge.compose.components.TopNavigationSearchOrTitle
+import chat.schildi.revenge.compose.components.TopNavigationTitle
 import chat.schildi.revenge.compose.focus.LocalFocusParent
 import chat.schildi.revenge.config.keybindings.Action
-import chat.schildi.revenge.model.conversation.ConversationViewModel
+import chat.schildi.revenge.model.conversation.RoomPreviewViewModel
 import io.element.android.libraries.matrix.api.media.MediaSource
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
@@ -32,7 +33,10 @@ import shire.composeapp.generated.resources.room_details_title
 import shire.composeapp.generated.resources.thread
 
 @Composable
-fun ConversationTopNavigation(viewModel: ConversationViewModel) {
+fun ConversationTopNavigation(
+    viewModel: RoomPreviewViewModel,
+    hasTimeline: Boolean,
+) {
     val roomInfo = viewModel.roomInfo.collectAsState(null).value
     val title = roomInfo?.name ?: ""
     val avatar = roomInfo?.avatarUrl?.let { MediaSource(it) }
@@ -53,7 +57,11 @@ fun ConversationTopNavigation(viewModel: ConversationViewModel) {
                     ),
                 )
             }
-            TopNavigationSearchOrTitle(title)
+            if (hasTimeline) {
+                TopNavigationSearchOrTitle(title)
+            } else {
+                TopNavigationTitle(title)
+            }
             if (focusParent != null) {
                 TopNavigationIcon(
                     Icons.Default.Info,
@@ -67,27 +75,29 @@ fun ConversationTopNavigation(viewModel: ConversationViewModel) {
                 ) {
                     destinationState?.navigate(Destination.RoomMembers(viewModel.sessionId, viewModel.roomId))
                 }
-                TopNavigationIcon(
-                    Icons.Default.Update,
-                    stringResource(Res.string.action_jump_to_unread),
-                ) {
-                    keyHandler.handleAction(
-                        focusItem = focusParent.uuid,
-                        action = Action.Conversation.JumpToFullyRead,
-                    )
-                }
-                TopNavigationIcon(
-                    Icons.Default.Visibility,
-                    stringResource(Res.string.action_mark_as_read),
-                ) {
-                    keyHandler.handleAction(
-                        focusItem = focusParent.uuid,
-                        action = Action.Room.MarkRoomRead,
-                    )
-                    keyHandler.handleAction(
-                        focusItem = focusParent.uuid,
-                        action = Action.Room.MarkRoomFullyRead,
-                    )
+                if (hasTimeline) {
+                    TopNavigationIcon(
+                        Icons.Default.Update,
+                        stringResource(Res.string.action_jump_to_unread),
+                    ) {
+                        keyHandler.handleAction(
+                            focusItem = focusParent.uuid,
+                            action = Action.Conversation.JumpToFullyRead,
+                        )
+                    }
+                    TopNavigationIcon(
+                        Icons.Default.Visibility,
+                        stringResource(Res.string.action_mark_as_read),
+                    ) {
+                        keyHandler.handleAction(
+                            focusItem = focusParent.uuid,
+                            action = Action.Room.MarkRoomRead,
+                        )
+                        keyHandler.handleAction(
+                            focusItem = focusParent.uuid,
+                            action = Action.Room.MarkRoomFullyRead,
+                        )
+                    }
                 }
             }
         } else {

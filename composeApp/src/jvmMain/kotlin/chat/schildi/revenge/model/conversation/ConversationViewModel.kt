@@ -68,7 +68,6 @@ import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.LoadStateHolder
 import chat.schildi.revenge.model.RoomActionProvider
 import chat.schildi.revenge.model.UserActionProvider
-import chat.schildi.revenge.model.asCheckpointLoadedOrFailed
 import chat.schildi.revenge.model.asCheckpointLoadedOrPending
 import chat.schildi.revenge.model.getCurrentCompletionEntity
 import chat.schildi.revenge.model.shouldSendTypingIndicator
@@ -99,6 +98,7 @@ import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.media.ThumbnailInfo
 import io.element.android.libraries.matrix.api.media.VideoInfo
 import io.element.android.libraries.matrix.api.room.CreateTimelineParams
+import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import io.element.android.libraries.matrix.api.room.IntentionalMention
 import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.room.RoomInfo
@@ -235,13 +235,22 @@ private fun buildScTimelineFilterSettings(lookup: (ScPref<*>) -> Any?) = ScTimel
     preferHideThreadedEvents = !ScPrefs.THREAD_REPLIES_IN_MAIN_TIMELINE.safeLookup(lookup),
 )
 
+interface RoomPreviewViewModel {
+    val sessionId: SessionId
+    val roomId: RoomId
+    val threadId: ThreadId?
+    val roomInfo: StateFlow<RoomInfo?>
+    val roomContextSuggestionsProvider: RoomContextSuggestionsProvider
+    val roomActionProvider: RoomActionProvider
+}
+
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConversationViewModel(
-    val sessionId: SessionId,
-    val roomId: RoomId,
-    val threadId: ThreadId?,
+    override val sessionId: SessionId,
+    override val roomId: RoomId,
+    override val threadId: ThreadId?,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
-) : ViewModel(), TitleProvider, SearchProvider, UserIdSuggestionsProvider, ComposerViewModel {
+) : ViewModel(), TitleProvider, SearchProvider, UserIdSuggestionsProvider, ComposerViewModel, RoomPreviewViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
     private val loadStateHolder = LoadStateHolder(
         LoadCheckPoint.Client(sessionId),
@@ -265,10 +274,13 @@ class ConversationViewModel(
         buildScTimelineFilterSettings { scPreferencesStore.getCachedOrDefaultValue(it) }
     )
 
+    private val roomInvalidationFlow = MutableStateFlow(0)
+
     private val baseRoom = combine(
         clientFlow,
         timelineFilterSettings,
-    ) { client, settings ->
+        roomInvalidationFlow,
+    ) { client, settings, _ ->
         if (client == null) return@combine null
         client.getJoinedRoom(roomId, settings)?.let {
             loadStateHolder.set(LoadCheckPoint.Room, CheckpointLoadState.LOADED)
@@ -289,7 +301,7 @@ class ConversationViewModel(
         .map { it as? JoinedRoom }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    val roomInfo = baseRoom.flatMapLatest {
+    override val roomInfo = baseRoom.flatMapLatest {
         it?.roomInfoFlow ?: flowOf(null)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -357,7 +369,7 @@ class ConversationViewModel(
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val roomContextSuggestionsProvider = RoomContextSuggestionsProvider(
+    override val roomContextSuggestionsProvider = RoomContextSuggestionsProvider(
         sessionId = sessionId,
         roomId = roomId,
         threadId = threadId,
@@ -946,6 +958,18 @@ class ConversationViewModel(
                 wasTyping = isTyping
             }
         }.flowOn(Dispatchers.IO).launchIn(viewModelScope)
+
+        // Invalidate fetched room on own membership changed
+        var isFirstMembership = true
+        roomInfo.filterNotNull().map { info ->
+            info.currentUserMembership == CurrentUserMembership.JOINED
+        }.distinctUntilChanged().onEach {
+            if (isFirstMembership) {
+                isFirstMembership = false
+            } else {
+                roomInvalidationFlow.update { it + 1 }
+            }
+        }.launchIn(viewModelScope)
     }
 
     override fun verifyDestination(destination: Destination): Boolean {
@@ -970,7 +994,7 @@ class ConversationViewModel(
         }
     }
 
-    private val roomActionProvider = RoomActionProvider(
+    override val roomActionProvider = RoomActionProvider(
         sessionId = sessionId,
         roomId = roomId,
         isInvite = false,

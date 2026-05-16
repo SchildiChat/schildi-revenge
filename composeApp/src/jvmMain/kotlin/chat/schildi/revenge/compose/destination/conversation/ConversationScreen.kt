@@ -60,6 +60,7 @@ import chat.schildi.revenge.model.conversation.EventJumpTarget
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
 import co.touchlab.kermit.Logger
+import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import kotlinx.collections.immutable.persistentListOf
@@ -85,8 +86,15 @@ fun ConversationScreen(
         val backwardPaginationStatus = viewModel.backwardPaginationStatus.collectAsState(null).value
         val timestampSettings = viewModel.timestampSettings.collectAsState().value
 
+        val roomInfo = viewModel.roomInfo.collectAsState().value
+
         if (timelineItems == null) {
-            SplashScreenContent(contentModifier, viewModel.loadState)
+            val isRoomPreview = roomInfo != null && roomInfo.currentUserMembership != CurrentUserMembership.JOINED
+            if (isRoomPreview) {
+                RoomPreviewScreen(roomInfo, viewModel, Modifier.fillMaxSize(), contentModifier)
+            } else {
+                SplashScreenContent(contentModifier, viewModel.loadState)
+            }
             return@BoxWithConstraints
         }
 
@@ -214,7 +222,7 @@ fun ConversationScreen(
                     target = fileDragTarget,
                 ),
             ) {
-                ConversationTopNavigation(viewModel)
+                ConversationTopNavigation(viewModel, hasTimeline = true)
                 // Double reverse helps with stick-to-bottom while paging backwards or receiving messages
                 LazyColumn(
                     Modifier.fillMaxWidth().weight(1f),

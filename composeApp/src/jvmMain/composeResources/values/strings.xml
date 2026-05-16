@@ -540,4 +540,11 @@
     <string name="history_visibility_world_readable">Public</string>
     <string name="history_visibility_custom">Custom: %1$s</string>
 
+    <string name="room_preview_membership_invited">You have been invited to this room.</string>
+    <string name="room_preview_membership_joined">You joined this room.</string>
+    <string name="room_preview_membership_kicked">You have been kicked from this room.</string>
+    <string name="room_preview_membership_banned">You have been banned from this room.</string>
+    <string name="room_preview_membership_left">You have left this room.</string>
+    <string name="room_preview_membership_knocked">You have knocked on this room.</string>
+
 </resources>
