@@ -223,8 +223,8 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
     val inProgress = remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val error = remember { mutableStateOf<String?>(null) }
-    var username by remember { mutableStateOf(TextFieldValue()) }
     var homeserver by remember { mutableStateOf(TextFieldValue()) }
+    var username by remember { mutableStateOf(TextFieldValue()) }
     var password by remember { mutableStateOf(TextFieldValue()) }
     Column(
         modifier = Modifier
@@ -241,16 +241,16 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
             )
         }
         OutlinedTextField(
-            value = username,
-            onValueChange = { username = it },
-            label = { Text(stringResource(Res.string.hint_username)) },
+            value = homeserver,
+            onValueChange = { homeserver = it },
+            label = { Text(stringResource(Res.string.hint_homeserver)) },
             maxLines = 1,
             modifier = Modifier.fillMaxWidth().keyFocusable(FocusRole.TEXT_FIELD_SINGLE_LINE),
         )
         OutlinedTextField(
-            value = homeserver,
-            onValueChange = { homeserver = it },
-            label = { Text(stringResource(Res.string.hint_homeserver)) },
+            value = username,
+            onValueChange = { username = it },
+            label = { Text(stringResource(Res.string.hint_username)) },
             maxLines = 1,
             modifier = Modifier.fillMaxWidth().keyFocusable(FocusRole.TEXT_FIELD_SINGLE_LINE),
         )
