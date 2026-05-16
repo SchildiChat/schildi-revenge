@@ -2,14 +2,19 @@ package chat.schildi.revenge.model
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import chat.schildi.revenge.Destination
+import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.flatMergeCombinedWith
 import chat.schildi.revenge.model.account.AccountComparator
+import chat.schildi.revenge.model.account.RevengeDeviceVerificationProvider
+import chat.schildi.revenge.model.account.ScOutgoingVerificationRequest
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.encryption.BackupState
 import io.element.android.libraries.matrix.api.encryption.RecoveryState
 import io.element.android.libraries.matrix.api.verification.SessionVerifiedStatus
+import io.element.android.libraries.matrix.api.verification.VerificationRequest
 import io.element.android.libraries.sessionstorage.api.SessionData
 import io.element.android.x.di.AppGraph
 import kotlinx.collections.immutable.persistentListOf
@@ -18,6 +23,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 data class AccountManagementData(
     val session: SessionData,
@@ -27,6 +33,8 @@ data class AccountManagementData(
 ) {
     val needsVerification: Boolean
         get() = sessionVerifiedStatus == SessionVerifiedStatus.NotVerified
+    val sessionId: SessionId
+        get() = SessionId(session.userId)
 }
 
 class AccountManagementViewModel(
@@ -91,6 +99,25 @@ class AccountManagementViewModel(
             .recover(recoveryKey)
             .onSuccess { log.i { "Verified ${session.userId}" } }
             .onFailure { log.w("Failed to verify ${session.userId}", it) }
+    }
+
+    fun launchDeviceVerification(
+        sessionId: SessionId,
+        destinationStateHolder: DestinationStateHolder,
+    ): Result<Unit> {
+        val client = UiState.currentClientFor(sessionId) ?: return Result.failure(IllegalStateException("Client not ready"))
+        viewModelScope.launch {
+            client.sessionVerificationService.requestDeviceVerification()
+            RevengeDeviceVerificationProvider.setActiveRequest(
+                ScOutgoingVerificationRequest(
+                    sessionId = sessionId,
+                    ts = System.currentTimeMillis(),
+                    request = VerificationRequest.Outgoing.CurrentSession,
+                )
+            )
+            destinationStateHolder.navigate(Destination.VerificationRequest(sessionId))
+        }
+        return Result.success(Unit)
     }
 
     suspend fun logout(session: SessionData, isTokenValid: Boolean): Result<Unit> {

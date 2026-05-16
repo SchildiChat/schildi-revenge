@@ -72,6 +72,7 @@ import shire.composeapp.generated.resources.action_login
 import shire.composeapp.generated.resources.action_logout
 import shire.composeapp.generated.resources.action_show
 import shire.composeapp.generated.resources.action_verify
+import shire.composeapp.generated.resources.action_verify_with_another_device
 import shire.composeapp.generated.resources.hint_homeserver
 import shire.composeapp.generated.resources.hint_password
 import shire.composeapp.generated.resources.hint_recovery_key
@@ -164,6 +165,26 @@ private fun ExistingLogin(account: AccountManagementData, viewModel: AccountMana
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.alignByBaseline(),
                     )
+                }
+                if (account.sessionVerifiedStatus?.isVerified() == false) {
+                    val destinationStateHolder = LocalDestinationState.current
+                    Button(
+                        onClick = {
+                            viewModel.launchDeviceVerification(account.sessionId, destinationStateHolder!!)
+                        },
+                        modifier = Modifier
+                            .keyFocusable(
+                                role = FocusRole.NESTED_AUX_ITEM,
+                                actionProvider = actionProvider(
+                                    primaryAction = InteractionAction.Invoke {
+                                        viewModel.launchDeviceVerification(account.sessionId, destinationStateHolder!!).isSuccess
+                                    },
+                                ),
+                                addClickListener = false,
+                            ),
+                    ) {
+                        Text(stringResource(Res.string.action_verify_with_another_device))
+                    }
                 }
                 IconButtonWithConfirmation(
                     icon = Icons.AutoMirrored.Default.Logout,

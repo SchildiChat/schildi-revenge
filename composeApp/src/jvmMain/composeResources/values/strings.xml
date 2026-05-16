@@ -45,6 +45,7 @@
 
     <string name="action_login">Login</string>
     <string name="action_verify">Verify</string>
+    <string name="action_verify_with_another_device">Verify with another device</string>
     <string name="action_start_emoji_verification">Start emoji verification</string>
     <string name="action_dismiss">Dismiss</string>
     <string name="action_send">Send</string>

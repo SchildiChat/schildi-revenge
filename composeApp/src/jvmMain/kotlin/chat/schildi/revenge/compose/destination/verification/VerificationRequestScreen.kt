@@ -368,11 +368,20 @@ private fun ColumnScope.VerificationInitialContent(
 ) {
     VerificationMetadataInfo(request, viewModel)
     VerificationButtonSection {
-        VerificationButton(stringResource(Res.string.action_accept)) {
-            viewModel.acceptVerificationRequest()
-        }
-        VerificationButton(stringResource(Res.string.action_decline)) {
-            viewModel.cancelVerification()
+        when (request.request) {
+            is VerificationRequest.Incoming -> {
+                VerificationButton(stringResource(Res.string.action_accept)) {
+                    viewModel.acceptVerificationRequest()
+                }
+                VerificationButton(stringResource(Res.string.action_decline)) {
+                    viewModel.cancelVerification()
+                }
+            }
+            is VerificationRequest.Outgoing -> {
+                VerificationButton(stringResource(Res.string.action_cancel)) {
+                    viewModel.cancelVerification()
+                }
+            }
         }
     }
 }
