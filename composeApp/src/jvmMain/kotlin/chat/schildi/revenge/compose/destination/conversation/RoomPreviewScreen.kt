@@ -44,6 +44,8 @@ import io.element.android.libraries.matrix.api.room.RoomInfo
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_join
+import shire.composeapp.generated.resources.action_reject_invite
+import shire.composeapp.generated.resources.message_placeholder_invite_by
 import shire.composeapp.generated.resources.message_placeholder_invite_by_disambiguated
 import shire.composeapp.generated.resources.room_preview_membership_banned
 import shire.composeapp.generated.resources.room_preview_membership_invited
@@ -167,7 +169,7 @@ fun RoomPreviewScreen(
                             val invitedBy = if (inviter.displayName != null) {
                                 stringResource(Res.string.message_placeholder_invite_by_disambiguated, inviter.displayName ?: "", inviter.userId.value)
                             } else {
-                                stringResource(Res.string.message_placeholder_invite_by_disambiguated, inviter.userId.value)
+                                stringResource(Res.string.message_placeholder_invite_by, inviter.userId.value)
                             }
                             Row(
                                 Modifier.fillMaxWidth().keyFocusable(
@@ -230,6 +232,33 @@ fun RoomPreviewScreen(
                                 onClick = { join() },
                             ) {
                                 Text(stringResource(Res.string.action_join))
+                            }
+                        }
+                    }
+                    if (roomInfo.currentUserMembership == CurrentUserMembership.INVITED) {
+                        item {
+                            val actionContext = currentActionContext()
+                            fun leave(): Boolean {
+                                return viewModel.roomActionProvider.handleAction(
+                                    actionContext,
+                                    Action.Room.Leave,
+                                    emptyList(),
+                                ) is ActionResult.Actioned
+                            }
+                            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                                Button(
+                                    modifier = Modifier.keyFocusable(
+                                        role = FocusRole.LIST_ITEM,
+                                        actionProvider = actionProvider(
+                                            primaryAction = InteractionAction.Invoke(::leave),
+                                        ),
+                                        addMouseFocusable = false,
+                                        addClickListener = false,
+                                    ),
+                                    onClick = { leave() },
+                                ) {
+                                    Text(stringResource(Res.string.action_reject_invite))
+                                }
                             }
                         }
                     }

@@ -3,7 +3,6 @@ package chat.schildi.revenge.model
 import chat.schildi.matrixsdk.ROOM_ACCOUNT_DATA_PERSONAL_ROOM_NAME
 import chat.schildi.matrixsdk.RoomNamePrivateContent
 import chat.schildi.revenge.GlobalActionsScope
-import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.formatEventContentDump
@@ -26,6 +25,7 @@ import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.BaseRoom
+import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.room.RoomNotificationMode
@@ -42,6 +42,8 @@ import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_leave
 import shire.composeapp.generated.resources.action_leave_room_prompt
 import shire.composeapp.generated.resources.action_leave_unnamed_room_prompt
+import shire.composeapp.generated.resources.action_reject
+import shire.composeapp.generated.resources.action_reject_room_invite_prompt
 import shire.composeapp.generated.resources.command_copy_name_full_account_data
 import shire.composeapp.generated.resources.toast_added_to_space
 import shire.composeapp.generated.resources.toast_adding_to_space
@@ -50,19 +52,24 @@ import shire.composeapp.generated.resources.toast_removing_from_space
 import kotlin.collections.map
 import kotlin.collections.orEmpty
 
-private val RoomInviteActions = setOf(Action.Room.Join)
+// Rejecting an invite is leaving
+private val RoomInviteActions = setOf(Action.Room.Join, Action.Room.Leave)
+private val RoomNotJoinedActions = setOf(Action.Room.Join)
 
 class RoomActionProvider(
     val sessionId: SessionId,
     val roomId: RoomId,
     val isInvite: Boolean,
+    val isJoined: Boolean = !isInvite,
     val peekClient: suspend () -> MatrixClient?,
     val peekRoom: (suspend () -> BaseRoom?)?,
 ) : KeyboardActionProvider<Action.Room> {
     override fun getPossibleActions() = if (isInvite)
         RoomInviteActions
+    else if (!isJoined)
+        RoomNotJoinedActions
     else
-        Action.Room.entries.toSet() - RoomInviteActions
+        Action.Room.entries.toSet() - RoomNotJoinedActions
 
     override fun ensureActionType(action: Action) = action as? Action.Room
 
@@ -88,11 +95,11 @@ class RoomActionProvider(
                 val client = peekClient() ?: return@launchActionAsync ActionResult.Failure("Client not ready")
                 val room = client.getJoinedRoom(roomId) ?: client.getRoom(roomId) ?: return@launchActionAsync ActionResult.Failure("Room not ready")
                 room.use {
-                    handleActionWithRoom(context, action, args, room)
+                    handleActionWithRoom(context, action, args, room, isPeekedRoom = false)
                 }
             } else {
                 val room = peekRoom() ?: return@launchActionAsync ActionResult.Failure("Room not ready")
-                handleActionWithRoom(context, action, args, room)
+                handleActionWithRoom(context, action, args, room, isPeekedRoom = true)
             }
         }
     }
@@ -102,6 +109,7 @@ class RoomActionProvider(
         action: Action.Room,
         args: List<String>,
         room: BaseRoom,
+        isPeekedRoom: Boolean,
     ): ActionResult {
         return when (action) {
             Action.Room.MarkFavorite -> {
@@ -139,16 +147,36 @@ class RoomActionProvider(
             Action.Room.Join -> {
                 room.join().toActionResult(async = true)
             }
-            Action.Room.Leave -> context.withCriticalActionConfirmationSuspend(
-                prompt = room.info().name?.let {
-                    StringResourceHolder(Res.string.action_leave_room_prompt, it.toStringHolder())
-                } ?: Res.string.action_leave_unnamed_room_prompt.toStringHolder(),
-                confirmText = Res.string.action_leave.toStringHolder(),
-                scope = GlobalActionsScope,
-                coroutineContext = Dispatchers.IO,
-                actionName = action.name,
-            ) {
-               room.leave().toActionResult(async = true)
+            Action.Room.Leave -> {
+                val info = room.info()
+                val isInvite = info.currentUserMembership == CurrentUserMembership.INVITED
+                context.withCriticalActionConfirmationSuspend(
+                    prompt = if (isInvite) {
+                        StringResourceHolder(Res.string.action_reject_room_invite_prompt)
+                    } else {
+                        info.name?.let {
+                            StringResourceHolder(Res.string.action_leave_room_prompt, it.toStringHolder())
+                        } ?: Res.string.action_leave_unnamed_room_prompt.toStringHolder()
+                    },
+                    confirmText = if (isInvite) {
+                        Res.string.action_reject.toStringHolder()
+                    } else {
+                        Res.string.action_leave.toStringHolder()
+                    },
+                    scope = GlobalActionsScope,
+                    coroutineContext = Dispatchers.IO,
+                    actionName = action.name,
+                ) {
+                    if (isPeekedRoom) {
+                        room.leave().toActionResult(async = true)
+                    } else {
+                        // Needs a fresh room, old one already used up
+                        val room = peekClient()?.getRoom(roomId)
+                        room?.use {
+                            it.leave().toActionResult(async = true)
+                        } ?: ActionResult.Failure("Room disappeared")
+                    }
+                }
             }
             Action.Room.CopyRoomId -> {
                 context.copyToClipboard(room.roomId.value)

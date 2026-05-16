@@ -44,6 +44,7 @@ import shire.composeapp.generated.resources.action_notifications_all
 import shire.composeapp.generated.resources.action_notifications_default
 import shire.composeapp.generated.resources.action_notifications_mentions
 import shire.composeapp.generated.resources.action_notifications_none
+import shire.composeapp.generated.resources.action_reject_invite
 import java.util.UUID
 
 @Composable
@@ -56,7 +57,14 @@ fun ScopedRoomSummary.contextMenu(inboxViewModel: InboxViewModel, focusId: UUID)
                 rememberVectorPainter(Icons.Default.MeetingRoom),
                 Action.Room.Join,
                 keyboardShortcut = Key.J,
-            )
+            ),
+            ContextMenuActionEntry(
+                Res.string.action_reject_invite.toStringHolder(),
+                rememberVectorPainter(Icons.Default.MeetingRoom),
+                Action.Room.Leave,
+                critical = true,
+                keyboardShortcut = Key.R,
+            ),
         )
     } else {
         val keyHandler = LocalKeyboardActionHandler.current

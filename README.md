@@ -47,7 +47,7 @@ This list is not sufficient to consider the client feature-complete in any way.
     - [x] Datastore for other app state
     - [x] UI
 - [x] Lock to avoid running multiple instances in parallel, but instead bring to foreground?
-- [ ] Inbox
+- [x] Inbox
     - [x] List all chats
     - [x] Make it look nice
     - [x] Unread counts
@@ -55,10 +55,9 @@ This list is not sufficient to consider the client feature-complete in any way.
     - [x] Filter by spaces
     - [x] Filter by account
     - [x] Search
-    - [ ] Handle invites
+    - [x] Handle invites
         - [x] Join
-        - [ ] Reject
-        - [ ] Reject & Ignore
+        - [x] Reject
 - [ ] Conversation view
     - [x] Render plain text and notices
     - [x] Render formatted text and notices
@@ -134,6 +133,7 @@ This list is not sufficient to consider the client feature-complete in any way.
 - [x] Verify other devices via emoji
 - [x] Verify self via emoji
 - [x] Verify other users via emoji (initiated via command)
+- [ ] Ignore users (including invite reject & ignore)
 - [ ] MAS + rotating token support (need to re-persist session data)
 - [ ] MAS: support generating QR for quick sign in of mobile devices
 - [x] Threads (optional thread view, will want to show threaded messages in the main timeline by default as well)

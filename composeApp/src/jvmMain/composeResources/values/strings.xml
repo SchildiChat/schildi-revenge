@@ -60,6 +60,7 @@
     <string name="action_redact_event_by_sender_prompt">Delete message by %1$s?</string>
     <string name="action_leave_room_prompt">Leave room %1$s?</string>
     <string name="action_leave_unnamed_room_prompt">Leave room?</string>
+    <string name="action_reject_room_invite_prompt">Reject room invite?</string>
     <string name="action_kick_user_prompt">Kick %1$s?</string>
     <string name="action_ban_user_prompt">Ban %1$s?</string>
 
@@ -70,6 +71,8 @@
     <string name="action_add_attachment">Add attachment</string>
     <string name="action_clear_attachment">Remove attachment</string>
     <string name="action_join">Join</string>
+    <string name="action_reject">Reject</string>
+    <string name="action_reject_invite">Reject invite</string>
     <string name="action_context_favorite_toggle">Favorite</string>
     <string name="action_context_low_priority_toggle">Low priority</string>
     <string name="action_mark_as_read">Mark as read</string>
