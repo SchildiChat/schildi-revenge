@@ -52,6 +52,8 @@ import chat.schildi.revenge.actions.plainTextCopyActionWithMxcUrl
 import chat.schildi.revenge.actions.toCopyAction
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.EditTextValue
+import chat.schildi.revenge.compose.components.EditableDropdown
+import chat.schildi.revenge.compose.components.EditableDropdownEntry
 import chat.schildi.revenge.compose.components.EditableText
 import chat.schildi.revenge.compose.components.EmptyListScreen
 import chat.schildi.revenge.compose.destination.conversation.userlist.ConversationDetailsTopNavigation
@@ -67,6 +69,8 @@ import chat.schildi.revenge.viewModelKey
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.RoomInfo
+import io.element.android.libraries.matrix.api.room.history.RoomHistoryVisibility
+import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.empty_screen_placeholder_unexpected
@@ -74,6 +78,7 @@ import shire.composeapp.generated.resources.hint_canonical_room_alias
 import shire.composeapp.generated.resources.hint_connected_bridges
 import shire.composeapp.generated.resources.hint_direct_chat
 import shire.composeapp.generated.resources.hint_encrypted
+import shire.composeapp.generated.resources.hint_history_visibility
 import shire.composeapp.generated.resources.hint_no_room_name
 import shire.composeapp.generated.resources.hint_not_encrypted
 import shire.composeapp.generated.resources.hint_other_room_aliases
@@ -83,7 +88,31 @@ import shire.composeapp.generated.resources.hint_room_id
 import shire.composeapp.generated.resources.hint_room_name_private
 import shire.composeapp.generated.resources.hint_room_version
 import shire.composeapp.generated.resources.hint_topic
+import shire.composeapp.generated.resources.history_visibility_custom
+import shire.composeapp.generated.resources.history_visibility_invited
+import shire.composeapp.generated.resources.history_visibility_joined
+import shire.composeapp.generated.resources.history_visibility_shared
+import shire.composeapp.generated.resources.history_visibility_world_readable
 import shire.composeapp.generated.resources.room_details_title
+
+private val HISTORY_VISIBILITY_ENTRIES = persistentListOf(
+    EditableDropdownEntry(
+        RoomHistoryVisibility.Joined,
+        Res.string.history_visibility_joined.toStringHolder()
+    ),
+    EditableDropdownEntry(
+        RoomHistoryVisibility.Invited,
+        Res.string.history_visibility_invited.toStringHolder()
+    ),
+    EditableDropdownEntry(
+        RoomHistoryVisibility.Shared,
+        Res.string.history_visibility_shared.toStringHolder()
+    ),
+    EditableDropdownEntry(
+        RoomHistoryVisibility.WorldReadable,
+        Res.string.history_visibility_world_readable.toStringHolder()
+    ),
+)
 
 @Composable
 fun RoomDetailsScreen(
@@ -249,6 +278,38 @@ fun RoomDetailsScreen(
                             }
                         }
                         item {
+                            EditableDropdown(
+                                info.historyVisibility,
+                                HISTORY_VISIBILITY_ENTRIES,
+                                FocusRole.LIST_ITEM,
+                                persist = { viewModel.setRoomHistoryVisibility(it) },
+                                enabled = permissions.canSetRoomHistoryVisibility,
+                            ) { modifier, value, entry ->
+                                RoomDetailsSection(
+                                    stringResource(Res.string.hint_history_visibility),
+                                    modifier,
+                                    color = if (permissions.canSetRoomHistoryVisibility) {
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                    } else {
+                                        MaterialTheme.colorScheme.tertiary
+                                    },
+                                ) {
+                                    val text = entry?.title?.render()
+                                        ?: (value as? RoomHistoryVisibility.Custom)?.let {
+                                            stringResource(Res.string.history_visibility_custom, it.value)
+                                        } ?: value.toString()
+                                    SectionText(
+                                        text,
+                                        color = if (permissions.canSetRoomHistoryVisibility) {
+                                            MaterialTheme.colorScheme.onSurface
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                        },
+                                    )
+                                }
+                            }
+                        }
+                        item {
                             RoomInfoAdvancedInfoField(
                                 stringResource(Res.string.hint_room_id),
                                 viewModel.roomId.value,
@@ -337,6 +398,25 @@ private fun RoomDetailsSection(
             }
             content()
         }
+    }
+}
+
+@Composable
+private fun RoomDetailsSection(
+    headerText: String? = null,
+    modifier: Modifier = Modifier,
+    color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    style: TextStyle = MaterialTheme.typography.titleSmall,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Column(
+        modifier.fillMaxWidth(),
+        verticalArrangement = Dimens.verticalArrangementSmall,
+    ) {
+        if (headerText != null) {
+            RoomDetailsSectionHeader(headerText, Modifier, color, style)
+        }
+        content()
     }
 }
 

@@ -42,6 +42,8 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalDensity
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.actions.ActionContext
+import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.util.ComposableStringHolder
@@ -79,6 +81,16 @@ data class ContextMenuActionEntry(
     override val autoCloseMenu: Boolean = decoration == null,
 ) : ContextMenuEntry
 
+data class ContextMenuCallbackEntry(
+    override val title: ComposableStringHolder,
+    override val icon: Painter? = null,
+    val action: suspend (ActionContext) -> ActionResult,
+    override val decoration: ContextMenuDecoration? = null,
+    override val keyboardShortcut: Key? = null,
+    override val critical: Boolean = false,
+    override val enabled: Boolean = true,
+    override val autoCloseMenu: Boolean = decoration == null,
+) : ContextMenuEntry
 
 data class ContextMenuSubmenuEntry(
     override val title: ComposableStringHolder,

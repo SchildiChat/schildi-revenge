@@ -201,6 +201,7 @@
     <string name="hint_account_data">Account data</string>
     <string name="hint_room_account_data">Room account data</string>
     <string name="hint_room_state">Room state</string>
+    <string name="hint_history_visibility">History visibility</string>
 
     <string name="reply_failed_to_load">Failed to load replied-to message</string>
 
@@ -532,5 +533,11 @@
     <string name="account_status_invalid_token">Login token invalid</string>
     <string name="verification_status_verified">Verified</string>
     <string name="verification_status_not_verified">Not verified</string>
+
+    <string name="history_visibility_invited">Room members since invited</string>
+    <string name="history_visibility_joined">Room members since joined</string>
+    <string name="history_visibility_shared">Room members share history</string>
+    <string name="history_visibility_world_readable">Public</string>
+    <string name="history_visibility_custom">Custom: %1$s</string>
 
 </resources>

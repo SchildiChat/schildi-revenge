@@ -45,6 +45,7 @@ import chat.schildi.revenge.GlobalActionsScope
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.NavigationPreference
 import chat.schildi.revenge.compose.components.ContextMenuActionEntry
+import chat.schildi.revenge.compose.components.ContextMenuCallbackEntry
 import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.revenge.compose.components.ContextMenuSubmenuEntry
 import chat.schildi.revenge.compose.focus.AbstractFocusRequester
@@ -927,13 +928,16 @@ class KeyboardActionHandler(
         when (entry) {
             is ContextMenuActionEntry -> {
                 handleAction(focusId, entry.action, entry.actionArgs)
-                if (entry.autoCloseMenu) {
-                    dismissContextMenu(menuId)
-                }
+            }
+            is ContextMenuCallbackEntry -> {
+                handleContextCallbackAction(focusId, entry.action)
             }
             is ContextMenuSubmenuEntry -> {
                 openContextMenu(focusId, entry.submenuId, parentMenuId = menuId)
             }
+        }
+        if (entry.autoCloseMenu) {
+            dismissContextMenu(menuId)
         }
     }
 
@@ -1113,6 +1117,24 @@ class KeyboardActionHandler(
                 it.handleActionOrInapplicable(context, action, args)
             }}.toTypedArray()
         )
+    }
+
+    fun handleContextCallbackAction(
+        focusItem: UUID,
+        block: suspend ActionContext.() -> ActionResult,
+    ): ActionResult {
+        val focused = focusableTargets[focusItem] ?: run {
+            log.e("Invoked handleContextCallbackAction on unregistered focus item")
+            currentFocused()
+        }
+        val context = getInternalActionContext(focused, criticalActionRequiresConfirmation = true)
+
+        return context.launchActionAsync(
+            "callbackAction",
+            GlobalActionsScope,
+        ) {
+            context.block()
+        }
     }
 
     private fun getInternalActionContext(

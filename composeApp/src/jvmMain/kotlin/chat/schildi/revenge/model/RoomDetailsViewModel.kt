@@ -10,13 +10,17 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.MessageFormatDefaults
 import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.UiState
+import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.RoomContextSuggestionsProvider
+import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.util.flowClosable
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.room.StateEventType
+import io.element.android.libraries.matrix.api.room.history.RoomHistoryVisibility
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -33,6 +37,7 @@ data class RoomSettingsPermissions(
     val canEditName: Boolean = false,
     val canEditTopic: Boolean = false,
     val canEditAvatar: Boolean = false,
+    val canSetRoomHistoryVisibility: Boolean = false,
 )
 
 class RoomDetailsViewModel(
@@ -114,16 +119,24 @@ class RoomDetailsViewModel(
             ?.getOrNull()
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    private val roomPermissions = joinedRoom.map { room ->
+        room?.roomPermissions()
+            ?.onFailure { log.e("Failed to get room permissions", it) }
+            ?.getOrNull()
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     val roomSettingsPermissions = combine(
         powerLevels,
         ownUserRole,
-    ) { pls, ownRole ->
+        roomPermissions,
+    ) { pls, ownRole, permissions ->
         pls ?: return@combine null
         ownRole ?: return@combine null
         RoomSettingsPermissions(
             canEditName = ownRole.powerLevel >= pls.roomName,
             canEditTopic = ownRole.powerLevel >= pls.roomTopic,
             canEditAvatar = ownRole.powerLevel >= pls.roomAvatar,
+            canSetRoomHistoryVisibility = permissions?.canOwnUserSendState(StateEventType.Custom("m.room.history_visibility")) == true,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
@@ -177,6 +190,11 @@ class RoomDetailsViewModel(
     suspend fun setRoomTopic(topic: String): Result<Unit> {
         val room = joinedRoom.value ?: return Result.failure(IllegalStateException("Room not joined"))
         return room.setTopic(topic)
+    }
+
+    suspend fun setRoomHistoryVisibility(visibility: RoomHistoryVisibility): ActionResult {
+        val room = joinedRoom.value ?: return ActionResult.Failure("Room not joined")
+        return room.updateHistoryVisibility(visibility).toActionResult()
     }
 
     companion object {
