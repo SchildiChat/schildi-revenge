@@ -18,11 +18,9 @@ fun ScreenLoadProgressDetails(
     state: LoadState,
     modifier: Modifier = Modifier,
 ) {
-    if (ScPrefs.SHOW_DEV_INFOS.value() && state.isNotEmpty()) {
-        LazyColumn(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-            items(state, key = { it.checkpoint }) { item ->
-                ScreenLoadingProgressRow(item)
-            }
+    LazyColumn(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        items(state, key = { it.checkpoint }) { item ->
+            ScreenLoadingProgressRow(item)
         }
     }
 }
@@ -35,6 +33,7 @@ private fun ScreenLoadingProgressRow(
     val statusIcon = when (item.state) {
         CheckpointLoadState.PENDING -> "⏳"
         CheckpointLoadState.LOADED -> "✅"
+        CheckpointLoadState.LOADED_FALLBACK -> "☑"
         CheckpointLoadState.FAILED -> "❌"
     }
     val text = buildString {

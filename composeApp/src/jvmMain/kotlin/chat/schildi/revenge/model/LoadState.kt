@@ -75,6 +75,7 @@ interface LoadCheckPoint {
 enum class CheckpointLoadState {
     PENDING,
     LOADED,
+    LOADED_FALLBACK,
     FAILED,
 }
 

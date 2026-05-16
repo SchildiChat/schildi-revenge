@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.compose.components.ScreenLoadProgressDetails
@@ -32,7 +33,11 @@ fun SplashScreenContent(
     modifier: Modifier = Modifier,
     loadState: StateFlow<LoadState>? = null,
 ) {
-    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Dimens.verticalArrangementBig,
+    ) {
         CircularProgressIndicator()
         if (loadState != null) {
             ScreenLoadProgressDetails(loadState.collectAsState().value)

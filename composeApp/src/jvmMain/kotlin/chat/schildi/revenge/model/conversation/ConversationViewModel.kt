@@ -100,6 +100,7 @@ import io.element.android.libraries.matrix.api.media.ThumbnailInfo
 import io.element.android.libraries.matrix.api.media.VideoInfo
 import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import io.element.android.libraries.matrix.api.room.IntentionalMention
+import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.room.RoomInfo
 import io.element.android.libraries.matrix.api.room.roomMembers
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
@@ -264,34 +265,29 @@ class ConversationViewModel(
         buildScTimelineFilterSettings { scPreferencesStore.getCachedOrDefaultValue(it) }
     )
 
-    private val joinedRoom = combine(
+    private val baseRoom = combine(
         clientFlow,
         timelineFilterSettings,
     ) { client, settings ->
-        client?.let {
-            val room = it.getJoinedRoom(roomId, settings)
-            loadStateHolder.set(LoadCheckPoint.Room, room.asCheckpointLoadedOrFailed())
-            room
+        if (client == null) return@combine null
+        client.getJoinedRoom(roomId, settings)?.let {
+            loadStateHolder.set(LoadCheckPoint.Room, CheckpointLoadState.LOADED)
+            return@combine it
         }
+        // Fallback to show room preview
+        client.getRoom(roomId)?.let {
+            loadStateHolder.set(LoadCheckPoint.Room, CheckpointLoadState.LOADED_FALLBACK)
+            return@combine it
+        }
+        loadStateHolder.set(LoadCheckPoint.Room, CheckpointLoadState.FAILED)
+        null
     }
         .flowClosable()
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val notJoinedRoom = combine(clientFlow, joinedRoom) { client, joined ->
-        if (joined == null) {
-            client?.getRoom(roomId)
-        } else {
-            // Unnecessary
-            null
-        }
-    }.flowClosable()
-
-    private val baseRoom = combine(
-        joinedRoom,
-        notJoinedRoom
-    ) { joined, notJoined ->
-        joined ?: notJoined
-    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    private val joinedRoom = baseRoom
+        .map { it as? JoinedRoom }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     val roomInfo = baseRoom.flatMapLatest {
         it?.roomInfoFlow ?: flowOf(null)
