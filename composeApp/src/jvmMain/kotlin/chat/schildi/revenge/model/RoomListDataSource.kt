@@ -6,6 +6,7 @@ import chat.schildi.preferences.ScPreferencesStore
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.safeLookup
 import chat.schildi.revenge.CombinedSessions
+import chat.schildi.revenge.MessageFormatDefaults
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.flatMerge
 import chat.schildi.revenge.flatMergeCombinedWith
@@ -97,7 +98,9 @@ class RoomListDataSource(
                     ScopedRoomSummary(
                         input.client.sessionId,
                         it,
-                        latestEventContent?.messageMetadata())
+                        latestEventContent?.messageMetadata(
+                            style = MessageFormatDefaults.parseStyleForStrippedFormatting,
+                        ))
                 }
             }
         },

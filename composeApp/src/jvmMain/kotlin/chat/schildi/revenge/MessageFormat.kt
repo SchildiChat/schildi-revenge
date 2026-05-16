@@ -42,6 +42,7 @@ object MessageFormatDefaults {
     val blockIndention = 16.sp
     val parser: MatrixHtmlParser = MatrixHtmlParser()
     const val INLINE_IMAGE_PLACEHOLDER = "\uFFFD"
+    val parseStyleForStrippedFormatting = MatrixBodyPreFormatStyle()
     val parseStyle: MatrixBodyPreFormatStyle = MatrixBodyPreFormatStyle(
         formatRoomMention = {
             // Wrap in non-breakable space to add padding for background

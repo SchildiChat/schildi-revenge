@@ -196,7 +196,7 @@ object EventTextFormat {
                 preformattedContentToString(
                     MessageFormatDefaults.parser.parseHtml(
                         input = it.body,
-                        style = MessageFormatDefaults.parseStyle,
+                        style = MessageFormatDefaults.parseStyleForStrippedFormatting,
                         allowRoomMention = false,
                     ),
                     stripNewlines,
