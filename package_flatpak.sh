@@ -2,10 +2,12 @@
 
 set -e
 
-if ! which magick &> /dev/null; then
-  echo "Please install magick"
-  exit 1
-fi
+for dep in magick flatpak-builder ; do 
+  if ! which ${dep} &> /dev/null; then
+    echo "Please install ${dep}"
+    exit 1
+  fi
+done
 
 echo "[+] Building bundle"
 ./gradlew clean

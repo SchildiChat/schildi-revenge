@@ -245,10 +245,17 @@ build (which is intended).
 
 [For now, no cross-compilation for Windows targets from Linux](https://youtrack.jetbrains.com/issue/CMP-2918).
 
-For Linux releases:
+Linux releases can be built in AppImage or in flatpak format.
 
+To build an AppImage:
 ```
 ./package_appimage.sh
+```
+
+To build and install a flatpak:
+```
+sudo apt install magick flatpak-builder # or your distro equivalent
+./package_flatpak.sh
 ```
 
 For Windows releases:
