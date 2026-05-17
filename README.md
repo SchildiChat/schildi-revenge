@@ -245,17 +245,10 @@ build (which is intended).
 
 [For now, no cross-compilation for Windows targets from Linux](https://youtrack.jetbrains.com/issue/CMP-2918).
 
-Linux releases can be built in AppImage or in flatpak format.
+For Linux releases:
 
-To build an AppImage:
 ```
 ./package_appimage.sh
-```
-
-To build and install a flatpak:
-```
-sudo apt install magick flatpak-builder # or your distro equivalent
-./install_flatpak.sh
 ```
 
 For Windows releases:
@@ -264,6 +257,17 @@ For Windows releases:
 ./gradlew packageReleaseMsi
 ```
 
+## Running as flatpak
+
+While there is no plan to release SchildiChat on flathub for the moment, if you prefer to run it as a flatpak instead
+of an AppImage you can use the appropriate script:
+
+```
+sudo apt install magick flatpak-builder # or your distro equivalent
+./install_flatpak.sh
+```
+
+This will build the flatpak and install it locally.
 
 ## Upstream SDK merges
 
