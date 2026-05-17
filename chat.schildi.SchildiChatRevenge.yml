@@ -1,4 +1,4 @@
-id: org.SchildiChat.Revenge
+id: chat.schildi.SchildiChatRevenge
 runtime: org.freedesktop.Platform
 runtime-version: '25.08'
 sdk: org.freedesktop.Sdk
@@ -26,15 +26,15 @@ modules:
     buildsystem: simple
     build-commands:
       - mkdir -p /app/share/applications 
-      - cp SchildiChatRevenge.desktop /app/share/applications/org.SchildiChat.Revenge.desktop
-      - sed -i 's/^Icon=.*$/Icon=org.SchildiChat.Revenge/' /app/share/applications/org.SchildiChat.Revenge.desktop
+      - cp SchildiChatRevenge.desktop /app/share/applications/chat.schildi.SchildiChatRevenge.desktop
+      - sed -i 's/^Icon=.*$/Icon=chat.schildi.SchildiChatRevenge/' /app/share/applications/chat.schildi.SchildiChatRevenge.desktop
   - name: install-icon
     sources:
       - type: dir
         path: graphics
     buildsystem: simple
     build-commands:
-      - for i in 16 32 64 128 256 ; do mkdir -p /app/share/icons/hicolor/${i}x${i}/apps/; cp ic_launcher_${i}x${i}.png /app/share/icons/hicolor/${i}x${i}/apps/org.SchildiChat.Revenge.png; done
+      - for i in 16 32 64 128 256 ; do mkdir -p /app/share/icons/hicolor/${i}x${i}/apps/; cp ic_launcher_${i}x${i}.png /app/share/icons/hicolor/${i}x${i}/apps/chat.schildi.SchildiChatRevenge.png; done
 finish-args:
   # setup JRE and JDK path
   - --env=PATH=/app/bin:/app/jre/bin:/usr/bin
