@@ -255,7 +255,7 @@ To build an AppImage:
 To build and install a flatpak:
 ```
 sudo apt install magick flatpak-builder # or your distro equivalent
-./package_flatpak.sh
+./install_flatpak.sh
 ```
 
 For Windows releases:
