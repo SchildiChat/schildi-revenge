@@ -13,8 +13,9 @@ echo "[+] Building bundle"
 ./gradlew clean
 ./gradlew packageReleaseAppImage
 echo "[+] Building icons"
+mkdir -p composeApp/build/graphics
 for i in 16 32 64 128 256 ; do
-  magick graphics/ic_launcher.ico -resize ${i}x${i} graphics/ic_launcher_${i}x${i}.png
+  magick graphics/ic_launcher.ico -resize ${i}x${i} composeApp/build/graphics/ic_launcher_${i}x${i}.png
 done
 echo "[+] Building and installing flatpak"
 flatpak-builder flatpak --install --user chat.schildi.SchildiChatRevenge.yml --force-clean

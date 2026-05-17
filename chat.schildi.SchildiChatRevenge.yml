@@ -31,7 +31,7 @@ modules:
   - name: install-icon
     sources:
       - type: dir
-        path: graphics
+        path: composeApp/build/graphics
     buildsystem: simple
     build-commands:
       - for i in 16 32 64 128 256 ; do mkdir -p /app/share/icons/hicolor/${i}x${i}/apps/; cp ic_launcher_${i}x${i}.png /app/share/icons/hicolor/${i}x${i}/apps/chat.schildi.SchildiChatRevenge.png; done
