@@ -257,17 +257,20 @@ For Windows releases:
 ./gradlew packageReleaseMsi
 ```
 
-## Running as flatpak
+## Running as Flatpak
 
-While there is no plan to release SchildiChat on flathub for the moment, if you prefer to run it as a flatpak instead
-of an AppImage you can use the appropriate script:
+While there is no plan to release SchildiChat on Flathub for the moment, if you prefer to run it as a Flatpak instead
+of an AppImage you can use the `install_flatpak.sh` script:
 
 ```
 sudo apt install magick flatpak-builder # or your distro equivalent
+flatpak install flathub org.freedesktop.Sdk//25.08 org.freedesktop.Platform//25.08 org.freedesktop.Sdk.Extension.openjdk//25.08
 ./install_flatpak.sh
 ```
 
-This will build the flatpak and install it locally.
+This will build the Flatpak and install it locally.
+Note this is mode of operation is not officially supported, so when running into issues please check against the AppImage
+first, and include your findings in the bug report.
 
 ## Upstream SDK merges
 
