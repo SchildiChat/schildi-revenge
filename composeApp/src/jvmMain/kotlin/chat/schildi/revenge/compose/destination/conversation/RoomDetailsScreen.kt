@@ -39,6 +39,8 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalMatrixBodyDrawStyle
 import chat.schildi.revenge.LocalMatrixBodyFormatter
+import chat.schildi.revenge.actions.ActionContext
+import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.CopyActions
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.ListActions
@@ -64,12 +66,14 @@ import chat.schildi.revenge.matrixBodyDrawStyle
 import chat.schildi.revenge.matrixBodyFormatter
 import chat.schildi.revenge.model.RoomDetailsViewModel
 import chat.schildi.revenge.model.RoomSettingsPermissions
+import chat.schildi.revenge.plaintext.EventTextFormat
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.RoomInfo
 import io.element.android.libraries.matrix.api.room.history.RoomHistoryVisibility
+import io.element.android.libraries.matrix.api.room.join.JoinRule
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
@@ -79,6 +83,7 @@ import shire.composeapp.generated.resources.hint_connected_bridges
 import shire.composeapp.generated.resources.hint_direct_chat
 import shire.composeapp.generated.resources.hint_encrypted
 import shire.composeapp.generated.resources.hint_history_visibility
+import shire.composeapp.generated.resources.hint_join_rule
 import shire.composeapp.generated.resources.hint_no_room_name
 import shire.composeapp.generated.resources.hint_not_encrypted
 import shire.composeapp.generated.resources.hint_other_room_aliases
@@ -93,7 +98,26 @@ import shire.composeapp.generated.resources.history_visibility_invited
 import shire.composeapp.generated.resources.history_visibility_joined
 import shire.composeapp.generated.resources.history_visibility_shared
 import shire.composeapp.generated.resources.history_visibility_world_readable
+import shire.composeapp.generated.resources.join_rule_invite
+import shire.composeapp.generated.resources.join_rule_knock
+import shire.composeapp.generated.resources.join_rule_public
 import shire.composeapp.generated.resources.room_details_title
+import kotlin.toString
+
+private val JOIN_RULE_ENTRIES = persistentListOf(
+    EditableDropdownEntry(
+        JoinRule.Invite,
+        Res.string.join_rule_invite.toStringHolder()
+    ),
+    EditableDropdownEntry(
+        JoinRule.Knock,
+        Res.string.join_rule_knock.toStringHolder()
+    ),
+    EditableDropdownEntry(
+        JoinRule.Public,
+        Res.string.join_rule_public.toStringHolder()
+    ),
+)
 
 private val HISTORY_VISIBILITY_ENTRIES = persistentListOf(
     EditableDropdownEntry(
@@ -277,37 +301,35 @@ fun RoomDetailsScreen(
                                 }
                             }
                         }
+                        info.joinRule?.let { joinRule ->
+                            item {
+                                val roomNames = viewModel.joinRuleRoomNames.collectAsState().value
+                                RoomDetailsDropDownSetting(
+                                    stringResource(Res.string.hint_join_rule),
+                                    joinRule,
+                                    JOIN_RULE_ENTRIES,
+                                    persist = { viewModel.setJoinRule(it) },
+                                    renderValue = { value, entry ->
+                                        entry?.title?.render() ?: EventTextFormat.joinRuleToText(value, roomNames.orEmpty())
+                                    },
+                                    enabled = permissions.canSetJoinRule,
+                                )
+                            }
+                        }
                         item {
-                            EditableDropdown(
+                            RoomDetailsDropDownSetting(
+                                stringResource(Res.string.hint_history_visibility),
                                 info.historyVisibility,
                                 HISTORY_VISIBILITY_ENTRIES,
-                                FocusRole.LIST_ITEM,
                                 persist = { viewModel.setRoomHistoryVisibility(it) },
-                                enabled = permissions.canSetRoomHistoryVisibility,
-                            ) { modifier, value, entry ->
-                                RoomDetailsSection(
-                                    stringResource(Res.string.hint_history_visibility),
-                                    modifier,
-                                    color = if (permissions.canSetRoomHistoryVisibility) {
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                    } else {
-                                        MaterialTheme.colorScheme.tertiary
-                                    },
-                                ) {
-                                    val text = entry?.title?.render()
+                                renderValue = { value, entry ->
+                                    entry?.title?.render()
                                         ?: (value as? RoomHistoryVisibility.Custom)?.let {
                                             stringResource(Res.string.history_visibility_custom, it.value)
                                         } ?: value.toString()
-                                    SectionText(
-                                        text,
-                                        color = if (permissions.canSetRoomHistoryVisibility) {
-                                            MaterialTheme.colorScheme.onSurface
-                                        } else {
-                                            MaterialTheme.colorScheme.onSurfaceVariant
-                                        },
-                                    )
-                                }
-                            }
+                                },
+                                enabled = permissions.canSetRoomHistoryVisibility,
+                            )
                         }
                         item {
                             RoomInfoAdvancedInfoField(
@@ -518,5 +540,45 @@ private fun RoomInfoAdvancedInfoField(
             },
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+}
+
+@Composable
+fun <T>RoomDetailsDropDownSetting(
+    headerText: String,
+    currentValue: T,
+    items: List<EditableDropdownEntry<out T>>,
+    persist: suspend ActionContext.(T) -> ActionResult,
+    renderValue: @Composable (T, EditableDropdownEntry<out T>?) -> String = { value, entry ->
+        entry?.title?.render() ?: value.toString()
+    },
+    enabled: Boolean = true,
+) {
+    EditableDropdown(
+        currentValue,
+        items,
+        FocusRole.LIST_ITEM,
+        persist = persist,
+        enabled = enabled,
+    ) { modifier, value, entry ->
+        RoomDetailsSection(
+            headerText,
+            modifier,
+            color = if (enabled) {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            } else {
+                MaterialTheme.colorScheme.tertiary
+            },
+        ) {
+            val text = renderValue(value, entry)
+            SectionText(
+                text,
+                color = if (enabled) {
+                    MaterialTheme.colorScheme.onSurface
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+            )
+        }
     }
 }

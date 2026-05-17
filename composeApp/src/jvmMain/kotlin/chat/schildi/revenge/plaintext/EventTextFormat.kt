@@ -12,8 +12,10 @@ import com.beeper.android.messageformat.MatrixBodyAnnotations
 import com.beeper.android.messageformat.MatrixBodyParseResult
 import com.beeper.android.messageformat.MatrixFormatInteractionState
 import com.beeper.android.messageformat.SpanAttributes
+import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.notification.CallIntent
+import io.element.android.libraries.matrix.api.room.join.AllowRule
 import io.element.android.libraries.matrix.api.timeline.item.event.CallNotifyContent
 import io.element.android.libraries.matrix.api.timeline.item.event.EventContent
 import io.element.android.libraries.matrix.api.timeline.item.event.FailedToParseMessageLikeContent
@@ -50,8 +52,10 @@ import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.join_rule_invite
 import shire.composeapp.generated.resources.join_rule_knock
 import shire.composeapp.generated.resources.join_rule_knock_restricted
+import shire.composeapp.generated.resources.join_rule_knock_restricted_to_room_membership
 import shire.composeapp.generated.resources.join_rule_public
 import shire.composeapp.generated.resources.join_rule_restricted
+import shire.composeapp.generated.resources.join_rule_restricted_to_room_membership
 import shire.composeapp.generated.resources.membership_change_banned
 import shire.composeapp.generated.resources.membership_change_error
 import shire.composeapp.generated.resources.membership_change_invitation_accepted
@@ -78,7 +82,6 @@ import shire.composeapp.generated.resources.message_placeholder_state_event
 import shire.composeapp.generated.resources.message_placeholder_state_event_policy_rule_room
 import shire.composeapp.generated.resources.message_placeholder_state_event_policy_rule_server
 import shire.composeapp.generated.resources.message_placeholder_state_event_policy_rule_user
-import shire.composeapp.generated.resources.message_placeholder_state_event_room_aliases
 import shire.composeapp.generated.resources.message_placeholder_state_event_room_avatar_cleared
 import shire.composeapp.generated.resources.message_placeholder_state_event_room_avatar_set
 import shire.composeapp.generated.resources.message_placeholder_state_event_room_canonical_alias
@@ -245,7 +248,7 @@ object EventTextFormat {
                     Res.string.message_placeholder_state_event_room_join_rules_to,
                     arrayOf(
                         senderName,
-                        content.joinRule?.let { joinRuleToText(it, getString) } ?: "",
+                        content.joinRule?.let { joinRuleToText(it, emptyMap(), getString, getFormatString) } ?: "",
                     )
                 )
             }
@@ -277,20 +280,50 @@ object EventTextFormat {
         }
     }
 
+    @Composable
+    fun joinRuleToText(
+        rule: JoinRule,
+        roomNameMap: Map<RoomId, String> = emptyMap(),
+    ): String = joinRuleToText(
+        rule = rule,
+        roomNameMap = roomNameMap,
+        getString = { res -> stringResource(res) },
+        getFormatString = { res, args -> stringResource(res, *args) },
+    )
+
     private inline fun joinRuleToText(
         rule: JoinRule,
+        roomNameMap: Map<RoomId, String>,
         getString: (StringResource) -> String,
+        getFormatString: (StringResource, formatArgs: Array<Any>) -> String,
     ): String {
         return when (rule) {
             JoinRule.Public -> getString(Res.string.join_rule_public)
             JoinRule.Knock -> getString(Res.string.join_rule_knock)
             JoinRule.Invite -> getString(Res.string.join_rule_invite)
-            is JoinRule.Restricted -> getString(Res.string.join_rule_restricted)
-            is JoinRule.KnockRestricted -> getString(Res.string.join_rule_knock_restricted)
+            is JoinRule.Restricted -> if (rule.rules.isNotEmpty() && roomNameMap.isNotEmpty() && rule.rules.all { it is AllowRule.RoomMembership }) {
+                val rooms = rule.rules.joinToString {
+                    (it as? AllowRule.RoomMembership)?.roomId?.let { roomId ->
+                        roomNameMap[roomId] ?: roomId.value
+                    } ?: it.toString()
+                }
+                getFormatString(Res.string.join_rule_restricted_to_room_membership, arrayOf(rooms))
+            } else {
+                getString(Res.string.join_rule_restricted)
+            }
+            is JoinRule.KnockRestricted -> if (rule.rules.isNotEmpty() && roomNameMap.isNotEmpty() && rule.rules.all { it is AllowRule.RoomMembership }) {
+                val rooms = rule.rules.joinToString {
+                    (it as? AllowRule.RoomMembership)?.roomId?.let { roomId ->
+                        roomNameMap[roomId] ?: roomId.value
+                    } ?: it.toString()
+                }
+                getFormatString(Res.string.join_rule_knock_restricted_to_room_membership, arrayOf(rooms))
+            } else {
+                getString(Res.string.join_rule_knock_restricted)
+            }
             is JoinRule.Custom -> rule.value
         }
     }
-
 
     @Composable
     fun profileChangeToText(

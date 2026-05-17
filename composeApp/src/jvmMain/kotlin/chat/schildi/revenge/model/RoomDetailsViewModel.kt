@@ -21,10 +21,13 @@ import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.room.StateEventType
 import io.element.android.libraries.matrix.api.room.history.RoomHistoryVisibility
+import io.element.android.libraries.matrix.api.room.join.AllowRule
+import io.element.android.libraries.matrix.api.room.join.JoinRule
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
@@ -38,6 +41,7 @@ data class RoomSettingsPermissions(
     val canEditTopic: Boolean = false,
     val canEditAvatar: Boolean = false,
     val canSetRoomHistoryVisibility: Boolean = false,
+    val canSetJoinRule: Boolean = false,
 )
 
 class RoomDetailsViewModel(
@@ -137,8 +141,28 @@ class RoomDetailsViewModel(
             canEditTopic = ownRole.powerLevel >= pls.roomTopic,
             canEditAvatar = ownRole.powerLevel >= pls.roomAvatar,
             canSetRoomHistoryVisibility = permissions?.canOwnUserSendState(StateEventType.Custom("m.room.history_visibility")) == true,
+            canSetJoinRule = permissions?.canOwnUserSendState(StateEventType.Custom("m.room.join_rules")) == true,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    val joinRuleRoomNames = combine(
+        client,
+        roomInfo.map { it?.joinRule }.distinctUntilChanged(),
+    ) { client, joinRule ->
+        client ?: return@combine null
+        val roomIds = when (joinRule) {
+            is JoinRule.Restricted -> joinRule.rules.mapNotNull { (it as? AllowRule.RoomMembership)?.roomId }
+            is JoinRule.KnockRestricted -> joinRule.rules.mapNotNull { (it as? AllowRule.RoomMembership)?.roomId }
+            else -> emptyList()
+        }
+        roomIds.associateWith { roomId ->
+            client.getRoom(roomId)?.use { room ->
+                room.info().let {
+                    it.name ?: it.canonicalAlias?.value ?: it.aliases.firstOrNull()?.value
+                }
+            } ?: roomId.value
+        }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val actionProvider = RoomActionProvider(
         sessionId = sessionId,
@@ -195,6 +219,11 @@ class RoomDetailsViewModel(
     suspend fun setRoomHistoryVisibility(visibility: RoomHistoryVisibility): ActionResult {
         val room = joinedRoom.value ?: return ActionResult.Failure("Room not joined")
         return room.updateHistoryVisibility(visibility).toActionResult()
+    }
+
+    suspend fun setJoinRule(joinRule: JoinRule): ActionResult {
+        val room = joinedRoom.value ?: return ActionResult.Failure("Room not joined")
+        return room.updateJoinRule(joinRule).toActionResult()
     }
 
     companion object {

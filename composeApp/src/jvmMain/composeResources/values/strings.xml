@@ -205,6 +205,7 @@
     <string name="hint_room_account_data">Room account data</string>
     <string name="hint_room_state">Room state</string>
     <string name="hint_history_visibility">History visibility</string>
+    <string name="hint_join_rule">Join rule</string>
 
     <string name="reply_failed_to_load">Failed to load replied-to message</string>
 
@@ -270,11 +271,13 @@
     <string name="event_placeholder_room_beginning">Room beginning</string>
 
     <!-- Join rules mapping -->
-    <string name="join_rule_public">Public</string>
-    <string name="join_rule_knock">Knock</string>
-    <string name="join_rule_invite">Invite</string>
+    <string name="join_rule_public">Anyone can join</string>
+    <string name="join_rule_invite">Invite-only</string>
+    <string name="join_rule_knock">Allow knocking</string>
     <string name="join_rule_restricted">Restricted</string>
-    <string name="join_rule_knock_restricted">Knock restricted</string>
+    <string name="join_rule_restricted_to_room_membership">Restricted to members of %1$s</string>
+    <string name="join_rule_knock_restricted">Restricted knocking allowed</string>
+    <string name="join_rule_knock_restricted_to_room_membership">Knocking allowed for members of %1$s</string>
 
     <string name="membership_change_none">%1$s made no changes</string>
     <string name="membership_change_error">%1$s made a suspicious membership change</string>
