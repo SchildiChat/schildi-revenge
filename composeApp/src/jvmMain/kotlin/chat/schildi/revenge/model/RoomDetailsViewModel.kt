@@ -175,7 +175,6 @@ class RoomDetailsViewModel(
     val roomContextSuggestionsProvider = RoomContextSuggestionsProvider(
         sessionId = sessionId,
         roomId = roomId,
-        threadId = null,
         peekRoom = { baseRoom.value },
     )
 

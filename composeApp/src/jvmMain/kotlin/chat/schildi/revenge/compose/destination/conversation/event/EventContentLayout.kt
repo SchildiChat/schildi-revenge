@@ -31,6 +31,7 @@ import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.conversation.MessageMetadata
 import com.beeper.android.messageformat.MatrixFormatInteractionState
 import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.AudioMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.CallNotifyContent
@@ -113,7 +114,7 @@ fun EventContentLayout(
                                             Destination.Conversation(
                                                 sessionId = threadReplyContext.sessionId,
                                                 roomId = threadReplyContext.roomId,
-                                                threadId = threadReplyContext.threadId ,
+                                                timelineParams = CreateTimelineParams.Threaded(threadReplyContext.threadId),
                                             )
                                         }
                                     ),

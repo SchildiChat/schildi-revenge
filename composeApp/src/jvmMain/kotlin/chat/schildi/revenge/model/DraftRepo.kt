@@ -4,6 +4,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
+import chat.schildi.revenge.model.conversation.ConversationPermissions
 import chat.schildi.theme.ScColors
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -22,7 +23,10 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentMap
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.serialization.SerializationException
@@ -98,6 +102,18 @@ data class DraftMention(
         get() = TextRange(start, end)
 }
 
+sealed interface ComposerState {
+    fun isEmpty(): Boolean
+
+    data object ComposerLessTimeline : ComposerState {
+        override fun isEmpty() = true
+    }
+
+    data object NoSendPermission : ComposerState {
+        override fun isEmpty() = true
+    }
+}
+
 data class DraftValue(
     val type: DraftType = DraftType.TEXT,
     val preferredFormat: ComposerFormat = ComposerFormat.MARKDOWN,
@@ -110,7 +126,7 @@ data class DraftValue(
     val attachment: Attachment? = null, // Mandatory for DraftType.ATTACHMENT, otherwise unused
     val customEventType: String? = null, // Only for DraftType.CUSTOM_EVENT and DraftType.CUSTOM_STATE_EVENT
     val stateKey: String? = null, // Only for DraftType.CUSTOM_STATE_EVENT
-) {
+): ComposerState {
     val rawBody: String
         get() = textFieldValue.text.trim()
     val format: ComposerFormat = when (type) {
@@ -142,7 +158,7 @@ data class DraftValue(
     val shouldSendAsPlaintext: Boolean
         get() = format == ComposerFormat.PLAIN
 
-    fun isEmpty() = attachment?.takeIf { type == DraftType.ATTACHMENT } == null &&
+    override fun isEmpty() = attachment?.takeIf { type == DraftType.ATTACHMENT } == null &&
             (textFieldValue.text.isBlank() || textFieldValue.text == initialBody)
     fun canSend() = !isSendInProgress && !isEmpty()
     /** Whether an attachment can be added to the current composer state without dropping state. */
@@ -254,9 +270,31 @@ object DraftRepo {
         }
     }
 
-    fun lookupDraft(draftKey: DraftKey) = drafts.value[draftKey]
+    fun lookupDraft(draftKey: DraftKey?) = draftKey?.let { drafts.value[draftKey] }
 
     fun followDraft(draftKey: DraftKey) = drafts.map {
         it[draftKey]
+    }
+
+    fun followComposerState(draftKey: DraftKey?, permissions: Flow<ConversationPermissions?>): Flow<ComposerState?> {
+        return if (draftKey == null) {
+            flowOf(ComposerState.ComposerLessTimeline)
+        } else {
+            combine(
+                drafts,
+               permissions
+            ) { drafts, permissions ->
+                val draft = drafts[draftKey]
+                val draftAllowed = when (draft?.type) {
+                    DraftType.REACTION -> permissions?.canSendReactions != false
+                    else -> permissions?.canSendMessages != false
+                }
+                if (draftAllowed) {
+                    draft
+                } else {
+                    ComposerState.NoSendPermission
+                }
+            }
+        }
     }
 }

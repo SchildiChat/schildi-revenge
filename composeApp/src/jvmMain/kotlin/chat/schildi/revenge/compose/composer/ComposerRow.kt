@@ -49,6 +49,7 @@ import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.Attachment
 import chat.schildi.revenge.model.ComposerFormat
 import chat.schildi.revenge.model.ComposerRoomInfo
+import chat.schildi.revenge.model.ComposerState
 import chat.schildi.revenge.model.ComposerViewModel
 import chat.schildi.revenge.model.DraftType
 import chat.schildi.revenge.model.DraftValue
@@ -79,6 +80,7 @@ import shire.composeapp.generated.resources.hint_composer_format_html
 import shire.composeapp.generated.resources.hint_composer_format_markdown
 import shire.composeapp.generated.resources.hint_composer_format_plain
 import shire.composeapp.generated.resources.hint_composer_image
+import shire.composeapp.generated.resources.hint_composer_missing_send_permission
 import shire.composeapp.generated.resources.hint_composer_notice
 import shire.composeapp.generated.resources.hint_composer_reaction
 import shire.composeapp.generated.resources.hint_composer_text
@@ -88,7 +90,19 @@ import shire.composeapp.generated.resources.hint_public_room
 
 @Composable
 fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
-    val draftState = viewModel.composerState.collectAsState().value
+    when (val draftState = viewModel.composerState.collectAsState().value) {
+        is DraftValue -> ComposerRow(draftState, viewModel, modifier)
+        is ComposerState.ComposerLessTimeline -> {}
+        is ComposerState.NoSendPermission -> BlockedComposer(stringResource(Res.string.hint_composer_missing_send_permission))
+    }
+}
+
+@Composable
+fun ComposerRow(
+    draftState: DraftValue,
+    viewModel: ComposerViewModel,
+    modifier: Modifier = Modifier
+) {
     val suggestionsState = viewModel.composerSuggestions.collectAsState().value
     val composerInfo = viewModel.composerRoomInfo.collectAsState().value
     Column(modifier) {
@@ -240,6 +254,19 @@ fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun BlockedComposer(reason: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceContainerHigh)
+            .padding(horizontal = Dimens.horizontalItemPaddingBig, vertical = Dimens.listPaddingBig),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(reason)
     }
 }
 

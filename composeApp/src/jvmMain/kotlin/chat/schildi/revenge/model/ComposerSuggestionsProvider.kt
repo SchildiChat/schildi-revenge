@@ -12,7 +12,7 @@ import org.kodein.emoji.Emoji
 import org.kodein.emoji.list
 
 class ComposerSuggestionsProvider(
-    queryFlow: Flow<DraftValue>,
+    queryFlow: Flow<ComposerState>,
     userIdSuggestionsProvider: UserIdSuggestionsProvider,
     canPingRoomFlow: Flow<Boolean>,
 ) {
@@ -21,6 +21,9 @@ class ComposerSuggestionsProvider(
         userIdSuggestionsProvider.userIdInRoomSuggestions,
         canPingRoomFlow,
     ) { query, userIds, canPingRoom ->
+        if (query !is DraftValue) {
+            return@combine ComposerSuggestionsState()
+        }
         val currentCompletionEntity = query.textFieldValue.getCurrentCompletionEntity()?.text
         // Don't suggest completions if we're in a mention already
         val cursorRange = query.textFieldValue.selection

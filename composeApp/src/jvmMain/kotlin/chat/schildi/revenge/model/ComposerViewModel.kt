@@ -54,9 +54,8 @@ data class ComposerRoomInfo(
     val isPublic: Boolean?,
 )
 
-// TODO also expose can-send-message permissions
 interface ComposerViewModel {
-    val composerState: StateFlow<DraftValue>
+    val composerState: StateFlow<ComposerState>
     val composerSuggestions: StateFlow<ComposerSuggestionsState>
     val composerRoomInfo: StateFlow<ComposerRoomInfo?>
     fun onComposerUpdate(value: DraftValue)

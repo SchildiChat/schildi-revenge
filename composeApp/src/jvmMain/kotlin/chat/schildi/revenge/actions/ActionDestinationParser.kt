@@ -15,6 +15,7 @@ import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.ThreadId
 import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import kotlin.jvm.optionals.getOrNull
 
 fun String.toDestinationEnum(): DestinationEnum? {
@@ -88,7 +89,14 @@ private inline fun String.toDestinationOrNull(
                 val sessionId = args.getOrNull(0)?.let(::SessionId) ?: context!!.ensureSessionId()
                 val roomId = args.getOrNull(1)?.let { resolveRoomId(sessionId, it) } ?: context!!.ensureRoomId()
                 val threadId = args.getOrNull(2)?.let(::ThreadId) ?: context!!.ensureThreadId()
-                Destination.Conversation(sessionId, roomId, threadId)
+                Destination.Conversation(sessionId, roomId, CreateTimelineParams.Threaded(threadId))
+            }
+        }
+        DestinationEnum.ConversationPins -> {
+            tryOrNull {
+                val sessionId = args.getOrNull(0)?.let(::SessionId) ?: context!!.ensureSessionId()
+                val roomId = args.getOrNull(1)?.let { resolveRoomId(sessionId, it) } ?: context!!.ensureRoomId()
+                Destination.Conversation(sessionId, roomId, CreateTimelineParams.PinnedOnly)
             }
         }
         DestinationEnum.ConversationDetailsSplit -> {

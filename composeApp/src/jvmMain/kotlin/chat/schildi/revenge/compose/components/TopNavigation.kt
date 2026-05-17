@@ -26,7 +26,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.preferences.value
 import chat.schildi.revenge.Anim
@@ -69,11 +71,21 @@ fun TopNavigationIcon(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    TopNavigationIcon(rememberVectorPainter(imageVector), contentDescription, modifier, onClick)
+}
+
+@Composable
+fun TopNavigationIcon(
+    painter: Painter,
+    contentDescription: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
     WithTooltip(contentDescription, modifier) {
         IconButton(
             onClick = onClick,
         ) {
-            Icon(imageVector, contentDescription)
+            Icon(painter, contentDescription)
         }
     }
 }

@@ -3,6 +3,7 @@
     <string name="inbox">Inbox</string>
     <string name="inbox_search">Inbox search</string>
     <string name="thread">Thread</string>
+    <string name="pinned_messages">Pinned messages</string>
     <string name="room_details_title">Room details</string>
     <string name="room_members_title_loading">Loading room members</string>
     <plurals name="room_members_title_loaded">
@@ -172,6 +173,7 @@
     <string name="hint_composer_format_plain">plaintext</string>
     <string name="hint_composer_format_markdown">Markdown</string>
     <string name="hint_composer_format_html">HTML</string>
+    <string name="hint_composer_missing_send_permission">Sending not allowed</string>
     <string name="hint_sync_state_error">Error</string>
     <string name="hint_sync_state_idle">Idle</string>
     <string name="hint_sync_state_running">Running</string>

@@ -19,6 +19,7 @@ import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.ThreadId
+import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import org.jetbrains.compose.resources.pluralStringResource
 import shire.composeapp.generated.resources.Res
@@ -54,7 +55,9 @@ fun ColumnScope.ThreadRootInfoRow(
                     Destination.Conversation(
                         sessionId = sessionId,
                         roomId = roomId,
-                        threadId = eventId?.value?.let(::ThreadId)
+                        timelineParams = eventId?.value?.let {
+                            CreateTimelineParams.Threaded(ThreadId(it))
+                        },
                     )
                 },
             )

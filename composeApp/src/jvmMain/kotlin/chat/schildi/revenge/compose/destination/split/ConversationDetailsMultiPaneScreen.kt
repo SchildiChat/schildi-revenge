@@ -59,20 +59,17 @@ private fun DestinationStateHolder.wrapped(
     isDetails: Boolean,
     parent: DestinationStateHolder? = LocalDestinationState.current,
 ): MultiPaneLayoutDestinationStateHolderWrapper {
-    val primaryDestinationIsThread = (destination.conversation.state.value.destination as? Destination.Conversation)?.threadId != null
-    val allowThreadsInDetails = ALLOW_THREADS_IN_DETAILS_PANE.value() && !primaryDestinationIsThread
-    return remember(destination, isDetails, parent, primaryDestinationIsThread, allowThreadsInDetails) {
+    val primaryDestination = destination.conversation.state.value.destination as? Destination.Conversation
+    val primaryDestinationPrefersDetails = primaryDestination?.preferDetailsPane == true
+    val allowThreadsInDetails = ALLOW_THREADS_IN_DETAILS_PANE.value() && !primaryDestinationPrefersDetails
+    return remember(destination, isDetails, parent, primaryDestinationPrefersDetails, allowThreadsInDetails) {
         buildMultiPaneDestinationStateHolderWrapper(
             parent = parent,
             inner = this,
             isDetails = isDetails,
             accessDetails = { destination.details },
             createPlaceholder = { Destination.MultiPaneRoomInfoPlaceholder },
-            mainDestination = if (primaryDestinationIsThread) {
-                DestinationEnum.ConversationThread
-            } else {
-                DestinationEnum.Conversation
-            },
+            mainDestination = primaryDestination?.type ?: DestinationEnum.Conversation,
             allowedDetailsDestinations = listOfNotNull(
                 DestinationEnum.RoomDetails,
                 DestinationEnum.RoomMembers,
@@ -80,6 +77,7 @@ private fun DestinationStateHolder.wrapped(
                 DestinationEnum.MessageReadReceipts,
                 DestinationEnum.UserDetails,
                 DestinationEnum.ConversationThread.takeIf { allowThreadsInDetails },
+                DestinationEnum.ConversationPins,
             ),
             allowedDetailsCategories = listOfNotNull(
                 DestinationCategory.CONVERSATION_DETAILS,

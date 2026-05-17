@@ -6,8 +6,8 @@ import chat.schildi.revenge.config.keybindings.DestinationEnum
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
-import io.element.android.libraries.matrix.api.core.ThreadId
 import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.about
 import shire.composeapp.generated.resources.account_dev_tools_title
@@ -74,17 +74,29 @@ sealed interface Destination {
     data class Conversation(
         override val sessionId: SessionId,
         val roomId: RoomId,
-        val threadId: ThreadId? = null,
+        val timelineParams: CreateTimelineParams? = null
     ) : WithSession {
+        val preferDetailsPane = when (timelineParams) {
+            null,
+            is CreateTimelineParams.Focused -> false
+            CreateTimelineParams.MediaOnly,
+            is CreateTimelineParams.MediaOnlyFocused,
+            CreateTimelineParams.PinnedOnly,
+            is CreateTimelineParams.Threaded -> true
+        }
+
         override val title = null
-        override val type = if (threadId == null)
+        override val type = if (preferDetailsPane)
+            when (timelineParams) {
+                CreateTimelineParams.PinnedOnly -> DestinationEnum.ConversationPins
+                else -> DestinationEnum.ConversationThread
+            }
+        else
             DestinationEnum.Conversation
-        else
-            DestinationEnum.ConversationThread
-        override val category = if (threadId == null)
-            DestinationCategory.CONVERSATION
-        else
+        override val category = if (preferDetailsPane)
             DestinationCategory.CONVERSATION_THREAD
+        else
+            DestinationCategory.CONVERSATION
     }
 
     data class RoomMembers(

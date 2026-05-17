@@ -101,7 +101,9 @@ import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import io.element.android.libraries.matrix.api.room.IntentionalMention
 import io.element.android.libraries.matrix.api.room.JoinedRoom
+import io.element.android.libraries.matrix.api.room.MessageEventType
 import io.element.android.libraries.matrix.api.room.RoomInfo
+import io.element.android.libraries.matrix.api.room.powerlevels.permissionsFlow
 import io.element.android.libraries.matrix.api.room.roomMembers
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
@@ -235,10 +237,18 @@ private fun buildScTimelineFilterSettings(lookup: (ScPref<*>) -> Any?) = ScTimel
     preferHideThreadedEvents = !ScPrefs.THREAD_REPLIES_IN_MAIN_TIMELINE.safeLookup(lookup),
 )
 
+data class ConversationPermissions(
+    val canSendMessages: Boolean,
+    val canSendReactions: Boolean,
+    val canRedactOwn: Boolean,
+    val canRedactOther: Boolean,
+    // TODO more
+)
+
 interface RoomPreviewViewModel {
     val sessionId: SessionId
     val roomId: RoomId
-    val threadId: ThreadId?
+    val timelineParams: CreateTimelineParams?
     val roomInfo: StateFlow<RoomInfo?>
     val roomContextSuggestionsProvider: RoomContextSuggestionsProvider
     val roomActionProvider: RoomActionProvider
@@ -248,7 +258,7 @@ interface RoomPreviewViewModel {
 class ConversationViewModel(
     override val sessionId: SessionId,
     override val roomId: RoomId,
-    override val threadId: ThreadId?,
+    override val timelineParams: CreateTimelineParams?,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
 ) : ViewModel(), TitleProvider, SearchProvider, UserIdSuggestionsProvider, ComposerViewModel, RoomPreviewViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
@@ -320,11 +330,15 @@ class ConversationViewModel(
     private val _highlightedActionEventId = MutableStateFlow<EventOrTransactionId?>(null)
     val highlightedActionEventId = _highlightedActionEventId.asStateFlow()
 
-    // TODO?
-    private val powerLevels = joinedRoom.map { room ->
-        room?.powerLevels()
-            ?.onFailure { log.e("Failed to get room power levels", it) }
-            ?.getOrNull()
+    private val roomPermissions = joinedRoom.flatMapLatest { room ->
+        room?.permissionsFlow(null) {
+            ConversationPermissions(
+                canSendMessages = it.canOwnUserSendMessage(MessageEventType.RoomMessage),
+                canSendReactions = it.canOwnUserSendMessage(MessageEventType.Reaction),
+                canRedactOwn = it.canOwnUserRedactOwn(),
+                canRedactOther = it.canOwnUserRedactOther(),
+            )
+        } ?: flowOf(null)
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val composerSettings = scPreferencesStore.combinedSettingFlow { lookup ->
@@ -372,29 +386,28 @@ class ConversationViewModel(
     override val roomContextSuggestionsProvider = RoomContextSuggestionsProvider(
         sessionId = sessionId,
         roomId = roomId,
-        threadId = threadId,
         peekRoom = { baseRoom.value },
     )
 
-    private val threadedTimeline = if (threadId == null) flowOf(null) else joinedRoom.map { room ->
+    private val specialTimeline = if (timelineParams == null) flowOf(null) else joinedRoom.map { room ->
         room ?: return@map null
         val timeline = room.createTimeline(
-            CreateTimelineParams.Threaded(threadId)
+            timelineParams
         )
         if (timeline.isFailure) {
-            log.e("Failed to get threaded timeline", timeline.exceptionOrNull())
+            log.e("Failed to get special timeline via $timelineParams", timeline.exceptionOrNull())
         }
         timeline.getOrNull()
     }.flowClosable()
 
-    private val timelineController = if (threadId == null) {
+    private val timelineController = if (timelineParams == null) {
         joinedRoom.map { room ->
             room ?: return@map null
             TimelineController(room)
         }
     } else {
         combine(
-            threadedTimeline,
+            specialTimeline,
             joinedRoom
         ) { timeline, room ->
             timeline ?: return@combine null
@@ -516,7 +529,13 @@ class ConversationViewModel(
         }
     }
 
-    private val draftKey = DraftKey(sessionId, roomId, threadId)
+    private val draftKey = when (timelineParams) {
+        is CreateTimelineParams.Focused,
+        null -> DraftKey(sessionId, roomId, null)
+        is CreateTimelineParams.Threaded -> DraftKey(sessionId, roomId, timelineParams.threadRootEventId)
+        // No composer allowed
+        else -> null
+    }
 
     private val preferredComposerFormat = scPreferencesStore.settingFlow(ScPrefs.PREFERRED_MESSAGE_FORMAT).map {
         tryOrNull { ComposerFormat.valueOf(it) }
@@ -524,6 +543,7 @@ class ConversationViewModel(
     }
         .distinctUntilChanged()
         .onEach { preferredFormat ->
+            draftKey ?: return@onEach
             DraftRepo.update(draftKey) {
                 it?.copy(
                     preferredFormat = preferredFormat,
@@ -559,7 +579,10 @@ class ConversationViewModel(
     )
 
     // Combined() with preferred composer format to re-trigger createDraftValue() fallback on demand
-    override val composerState = DraftRepo.followDraft(draftKey).combine(preferredComposerFormat) { it, _ ->
+    override val composerState = DraftRepo.followComposerState(
+        draftKey,
+        roomPermissions,
+    ).combine(preferredComposerFormat) { it, _ ->
         it ?: createDraftValue()
     }.stateIn(
         viewModelScope,
@@ -603,10 +626,12 @@ class ConversationViewModel(
     }.stateIn(viewModelScope, SharingStarted.Lazily, TimestampSettings())
 
     override fun onComposerUpdate(value: DraftValue) {
+        draftKey ?: return
         DraftRepo.update(draftKey, value)
     }
 
     override fun sendMessage(context: ActionContext): ActionResult {
+        draftKey ?: return ActionResult.Inapplicable
         val currentTimeline = activeTimeline.value
         if (currentTimeline == null) {
             log.e("Cannot send message on null timeline")
@@ -833,6 +858,7 @@ class ConversationViewModel(
     }
 
     override fun clearAttachment() {
+        draftKey ?: return
         DraftRepo.update(draftKey) {
             it?.copy(
                 attachment = null,
@@ -859,7 +885,8 @@ class ConversationViewModel(
     }
 
     override fun onConfirmSuggestion(suggestion: ComposerSuggestion): Boolean {
-        val draft = composerState.value
+        draftKey ?: return false
+        val draft = composerState.value as? DraftValue ?: return false
         val completionEntity = draft.textFieldValue.getCurrentCompletionEntity() ?: run {
             log.e { "Cannot confirm autosuggestion, mismatch with current composer state" }
             return false
@@ -939,12 +966,18 @@ class ConversationViewModel(
 
         // Typing indicators
         var wasTyping = false
-        var initialDraft = composerState.value.rawBody
+        var initialDraft = (composerState.value as? DraftValue)?.rawBody
         var lastTypingNotice = 0L
         combine(
             shouldSendTypingIndicators,
             joinedRoom,
-            composerState.map { Pair(it.rawBody, it.type) }.distinctUntilChanged(),
+            composerState.map {
+                if (it is DraftValue) {
+                    Pair(it.rawBody, it.type)
+                } else {
+                    Pair("", DraftType.TEXT)
+                }
+            }.distinctUntilChanged(),
         ) { shouldSendTypingIndicators, room, (draftBody, draftType) ->
             val isTyping = shouldSendTypingIndicators &&
                     draftType.shouldSendTypingIndicator() &&
@@ -1024,6 +1057,7 @@ class ConversationViewModel(
                 }
 
                 Action.Conversation.HideComposerIfEmpty -> {
+                    draftKey ?: return@run ActionResult.Inapplicable
                     // Clear draft state (replies etc.) if empty
                     var wasEmpty = false
                     DraftRepo.update(draftKey) {
@@ -1043,6 +1077,7 @@ class ConversationViewModel(
                 }
 
                 Action.Conversation.ClearComposer -> {
+                    draftKey ?: return@run ActionResult.Inapplicable
                     // Discard all draft state
                     var wasEmpty = false
                     DraftRepo.update(draftKey) {
@@ -1058,6 +1093,7 @@ class ConversationViewModel(
                 }
 
                 Action.Conversation.ComposeMessage -> {
+                    draftKey ?: return@run ActionResult.Inapplicable
                     forceShowComposer.value = true
                     DraftRepo.update(draftKey) {
                         it?.copy(type = DraftType.TEXT, editEventId = null, initialBody = "", attachment = null)
@@ -1068,6 +1104,7 @@ class ConversationViewModel(
                 }
 
                 Action.Conversation.ComposeNotice -> {
+                    draftKey ?: return@run ActionResult.Inapplicable
                     forceShowComposer.value = true
                     DraftRepo.update(draftKey) {
                         it?.copy(type = DraftType.NOTICE, editEventId = null, initialBody = "", attachment = null)
@@ -1078,6 +1115,7 @@ class ConversationViewModel(
                 }
 
                 Action.Conversation.ComposeEmote -> {
+                    draftKey ?: return@run ActionResult.Inapplicable
                     forceShowComposer.value = true
                     DraftRepo.update(draftKey) {
                         it?.copy(type = DraftType.EMOTE, editEventId = null, initialBody = "", attachment = null)
@@ -1088,6 +1126,7 @@ class ConversationViewModel(
                 }
 
                 Action.Conversation.ComposeCustomEvent -> {
+                    draftKey ?: return@run ActionResult.Inapplicable
                     val eventType = args.firstOrNull().orActionValidationError()
                     forceShowComposer.value = true
                     DraftRepo.update(draftKey) {
@@ -1110,6 +1149,7 @@ class ConversationViewModel(
                 }
 
                 Action.Conversation.ComposeCustomStateEvent -> {
+                    draftKey ?: return@run ActionResult.Inapplicable
                     val eventType = args.firstOrNull().orActionValidationError()
                     val stateKey = args.getOrNull(1)
                     val room = joinedRoom.value ?: return@run ActionResult.Failure("Room not ready")
@@ -1168,6 +1208,7 @@ class ConversationViewModel(
                 Action.Conversation.ComposerSend -> sendMessage(context)
 
                 Action.Conversation.ComposerInsertAtCursor -> {
+                    draftKey ?: return@run ActionResult.Inapplicable
                     var hasDraft = false
                     DraftRepo.update(draftKey) {
                         hasDraft = it != null
@@ -1179,6 +1220,7 @@ class ConversationViewModel(
                 }
 
                 Action.Conversation.ComposerPasteText -> {
+                    draftKey ?: return@run ActionResult.Inapplicable
                     val content = getStringFromClipboard()
                     if (content.isNullOrBlank()) {
                         ActionResult.Inapplicable
@@ -1443,6 +1485,7 @@ class ConversationViewModel(
     }
 
     suspend fun loadAttachmentFileIntoComposer(file: File): ActionResult = withContext(Dispatchers.IO) {
+        draftKey ?: return@withContext ActionResult.Inapplicable
         if (!file.exists()) {
             return@withContext ActionResult.Failure("File does not exist: ${file.absolutePath}")
         }
@@ -1619,7 +1662,7 @@ class ConversationViewModel(
         }
         return controller.focusOnEvent(
             eventId,
-            threadId,
+            (timelineParams as? CreateTimelineParams.Threaded)?.threadRootEventId,
             timelineFilterSettings.value.preferHideThreadedEvents
                 // Shouldn't happen
                 ?: ScPrefs.THREAD_REPLIES_IN_MAIN_TIMELINE.defaultValue
@@ -1741,6 +1784,7 @@ class ConversationViewModel(
                     } ?: ActionResult.Inapplicable
 
                     Action.Event.ComposeReply -> eventId?.let {
+                        draftKey ?: return@let ActionResult.Inapplicable
                         forceShowComposer.value = true
                         val inReplyTo = InReplyTo.Ready(
                             eventId = eventId,
@@ -1757,7 +1801,7 @@ class ConversationViewModel(
                     } ?: ActionResult.Inapplicable
 
                     Action.Event.ComposeEdit -> eventOrTransactionId?.let {
-                        if (!event.isOwn) {
+                        if (!event.isOwn || draftKey == null) {
                             return@let ActionResult.Inapplicable
                         }
                         val eventContent = event.content
@@ -1801,6 +1845,7 @@ class ConversationViewModel(
                     } ?: ActionResult.Inapplicable
 
                     Action.Event.ComposeReaction -> eventId?.let {
+                        draftKey ?: return@let ActionResult.Inapplicable
                         forceShowComposer.value = true
                         val inReplyTo = InReplyTo.Ready(
                             eventId = eventId,
@@ -2006,7 +2051,7 @@ class ConversationViewModel(
                 ActionArgumentPrimitive.SessionId to sessionId.value,
                 ActionArgumentPrimitive.RoomId to roomId.value,
                 eventId?.value?.let { ActionArgumentPrimitive.EventId to it },
-                ((threadId ?: (event.threadInfo() as? EventThreadInfo.ThreadResponse)?.threadRootId)?.value ?: event.eventId?.value)?.let {
+                (((timelineParams as? CreateTimelineParams.Threaded)?.threadRootEventId ?: (event.threadInfo() as? EventThreadInfo.ThreadResponse)?.threadRootId)?.value ?: event.eventId?.value)?.let {
                     ActionArgumentPrimitive.ThreadId to it
                 },
             )
@@ -2128,10 +2173,10 @@ class ConversationViewModel(
         fun factory(
             sessionId: SessionId,
             roomId: RoomId,
-            threadId: ThreadId?,
+            timelineParams: CreateTimelineParams?,
         ) = viewModelFactory {
             initializer {
-                ConversationViewModel(sessionId, roomId, threadId)
+                ConversationViewModel(sessionId, roomId, timelineParams)
             }
         }
 
