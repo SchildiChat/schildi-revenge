@@ -1677,7 +1677,7 @@ class ConversationViewModel(
 
     private fun ActionContext.markEventAsRead(eventId: EventId, receiptType: ReceiptType): ActionResult {
         val timeline = timelineController.value ?: return ActionResult.Failure("Timeline not ready")
-        return launchActionAsync("MarkEventAsRead", GlobalActionsScope, Dispatchers.IO) {
+        return launchActionAsync("MarkEventAsRead", viewModelScope, Dispatchers.IO) {
             var result: ActionResult? = null
             timeline.invokeOnCurrentTimeline {
                 result = forceSendReadReceipt(eventId, receiptType)
@@ -1687,6 +1687,23 @@ class ConversationViewModel(
                     .toActionResult(async = true)
             }
             result ?: ActionResult.Failure("Failed to send $receiptType")
+        }
+    }
+
+    private fun ActionContext.markEventAsPinned(eventId: EventId, pin: Boolean): ActionResult {
+        val timeline = timelineController.value ?: return ActionResult.Failure("Timeline not ready")
+        return launchActionAsync("MarkEventAsPinned/$eventId", viewModelScope, Dispatchers.IO) {
+            var result: ActionResult? = null
+            timeline.invokeOnCurrentTimeline {
+                result = if (pin) {
+                    pinEvent(eventId)
+                } else {
+                    unpinEvent(eventId)
+                }.onFailure {
+                    log.e("Failed to set pin status", it)
+                }.toActionResult(async = true)
+            }
+            result ?: ActionResult.Failure("Failed to set pin status")
         }
     }
 
@@ -1754,6 +1771,14 @@ class ConversationViewModel(
                         formatInteractionState.expandableItems.size -> it - setOf(Action.Event.ExpandDetails)
                         else -> it
                     }
+                }
+            }.let {
+                if (eventId == null) {
+                    it - setOf(Action.Event.Pin, Action.Event.Unpin)
+                } else if (roomInfo.value?.pinnedEventIds?.contains(eventId) == true) {
+                    it - Action.Event.Pin
+                } else {
+                    it - Action.Event.Unpin
                 }
             }
             override fun ensureActionType(action: Action) = action as? Action.Event
@@ -2043,6 +2068,14 @@ class ConversationViewModel(
                             formatInteractionState.expandedItems.value = emptySet()
                         }
                         ActionResult.Success()
+                    }
+                    Action.Event.Pin -> {
+                        eventId ?: return@run ActionResult.Inapplicable
+                        markEventAsPinned(eventId, true)
+                    }
+                    Action.Event.Unpin -> {
+                        eventId ?: return@run ActionResult.Inapplicable
+                        markEventAsPinned(eventId, false)
                     }
                 }
             }

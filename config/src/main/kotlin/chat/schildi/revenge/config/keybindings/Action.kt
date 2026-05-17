@@ -386,6 +386,8 @@ sealed interface Action {
         ExpandDetails(aliases = listOf("revealDetails", "expand", "revealSpoiler", "showSpoiler")),
         CollapseDetails(aliases = listOf("collapseDetails", "collapse", "hideSpoiler")),
         ToggleDetails(aliases = listOf("toggleDetails", "toggleSpoiler")),
+        Pin,
+        Unpin,
     }
     enum class User(
         override val aliases: kotlin.collections.List<String> = emptyList(),
