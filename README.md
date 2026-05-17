@@ -257,6 +257,17 @@ For Windows releases:
 ./gradlew packageReleaseMsi
 ```
 
+## Running as flatpak
+
+While there is no plan to release SchildiChat on flathub for the moment, if you prefer to run it as a flatpak instead
+of an AppImage you can use the appropriate script:
+
+```
+sudo apt install magick flatpak-builder # or your distro equivalent
+./install_flatpak.sh
+```
+
+This will build the flatpak and install it locally.
 
 ## Upstream SDK merges
 

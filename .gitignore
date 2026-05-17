@@ -20,3 +20,5 @@ captures
 node_modules/
 release/
 vcs.xml
+.flatpak-builder
+flatpak

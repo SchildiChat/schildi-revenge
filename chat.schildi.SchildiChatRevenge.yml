@@ -1,0 +1,58 @@
+id: chat.schildi.SchildiChatRevenge
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.openjdk
+command: /app/bin/SchildiChatRevenge
+modules:
+  - name: install-openjdk
+    buildsystem: simple
+    build-commands:
+      - /usr/lib/sdk/openjdk/install.sh
+  - name: install-bundle
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/{bin,lib}
+      - install -Dm755 bin/SchildiChatRevenge /app/bin/SchildiChatRevenge
+      - cp -a lib/* /app/lib
+    sources:
+      - type: dir
+        path: composeApp/build/compose/binaries/main-release/app/SchildiChatRevenge
+  - name: install-desktop-app
+    sources:
+      - type: dir
+        path: launcher
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/share/applications 
+      - cp SchildiChatRevenge.desktop /app/share/applications/chat.schildi.SchildiChatRevenge.desktop
+      - sed -i 's/^Icon=.*$/Icon=chat.schildi.SchildiChatRevenge/' /app/share/applications/chat.schildi.SchildiChatRevenge.desktop
+  - name: install-icon
+    sources:
+      - type: dir
+        path: composeApp/build/graphics
+    buildsystem: simple
+    build-commands:
+      - for i in 16 32 64 128 256 ; do mkdir -p /app/share/icons/hicolor/${i}x${i}/apps/; cp ic_launcher_${i}x${i}.png /app/share/icons/hicolor/${i}x${i}/apps/chat.schildi.SchildiChatRevenge.png; done
+finish-args:
+  # setup JRE and JDK path
+  - --env=PATH=/app/bin:/app/jre/bin:/usr/bin
+  # X11 + XShm access
+  - --share=ipc
+  - --socket=x11
+  - --socket=wayland
+  # GPU acceleration
+  - --device=dri
+  # Needs to talk to the network:
+  - --share=network
+  # File manager integration (open downloaded files in file manager)
+  - --talk-name=org.freedesktop.FileManager1
+  # System tray / StatusNotifierWatcher (KDE/SNI on Wayland)
+  - --talk-name=org.kde.StatusNotifierWatcher
+  - --own-name=org.kde.StatusNotifierItem-2-1
+  # Config, sessions, downloads, and cache (rw for saving attachments, keys, cached media, etc.)
+  - --filesystem=xdg-config/SchildiChatRevenge:rw
+  - --filesystem=xdg-data/SchildiChatRevenge:rw
+  - --filesystem=xdg-cache/SchildiChatRevenge:rw
+  - --filesystem=xdg-download:rw
