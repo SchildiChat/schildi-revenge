@@ -2,6 +2,7 @@ package chat.schildi.revenge.ipc
 
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.ActionResult
+import chat.schildi.revenge.config.ScAppDirs
 import chat.schildi.revenge.config.keybindings.Action
 import co.touchlab.kermit.Logger
 import kotlinx.serialization.json.Json
@@ -26,13 +27,11 @@ import kotlin.system.exitProcess
 object SingleInstance {
     private val log = Logger.withTag("SingleInstance")
 
-    private val appDir: File by lazy {
-        val dir = File(System.getProperty("user.home"), ".schildi-revenge")
-        dir.mkdirs()
-        dir
+    private val dataDir = File(ScAppDirs.getUserDataDir()).also {
+        it.mkdirs()
     }
-    private val lockFile = File(appDir, "app.lock")
-    private val portFile = File(appDir, "app.port")
+    private val lockFile = File(dataDir, "app.lock")
+    private val portFile = File(dataDir, "app.port")
 
     @Volatile
     private var lockChannel: FileChannel? = null
@@ -98,6 +97,7 @@ object SingleInstance {
         Runtime.getRuntime().addShutdownHook(thread(start = false) {
             runCatching { portFile.delete() }
             runCatching { lockChannel?.close() }
+            runCatching { lockFile.delete() }
         })
     }
 
