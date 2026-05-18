@@ -211,6 +211,7 @@ private fun ColumnScope.IncomingVerificationMetadataInfo(
                             copyActions = plainTextCopyActionWithMxcUrl(avatarUrl),
                         )
                     ),
+                    allowAnimated = true,
                 )
             }
         }

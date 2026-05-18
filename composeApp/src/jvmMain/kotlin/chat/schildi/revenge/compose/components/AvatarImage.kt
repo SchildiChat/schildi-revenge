@@ -12,6 +12,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -26,12 +27,15 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.media.rememberAnimatedImageTransform
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.theme.ScColors
+import coil3.PlatformContext
 import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.SubcomposeAsyncImageContent
+import coil3.request.ImageRequest
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.ui.media.MediaRequestData
+import io.element.android.libraries.matrix.ui.media.animated.allowAnimatedImageDecoding
 
 @Composable
 fun AvatarImage(
@@ -42,42 +46,52 @@ fun AvatarImage(
     modifier: Modifier = Modifier,
     shape: Shape = Dimens.avatarShape,
     contentDescription: String? = null,
+    allowAnimated: Boolean = ScPrefs.ANIMATE_AVATARS.value(),
 ) {
     if (source == null) {
         AvatarFallback(displayName, shape, size)
         return
     }
-    SubcomposeAsyncImage(
-        modifier = modifier.size(size).clip(shape),
-        imageLoader = imageLoader(sessionId),
-        model = MediaRequestData(source, MediaRequestData.Kind.Content),
-        transform = rememberAnimatedImageTransform(),
-        contentScale = ContentScale.Crop,
-        alignment = Alignment.Center,
-        contentDescription = contentDescription,
-    ) {
-        AnimatedContent(
-            painter.state.collectAsState().value,
-            transitionSpec = {
-                fadeIn(
-                    animationSpec = Dimens.tweenSmooth()
-                ) togetherWith fadeOut(
-                    animationSpec = Dimens.tweenSmooth()
-                )
-            },
-        ) { state ->
-            when (state) {
-                is AsyncImagePainter.State.Success -> SubcomposeAsyncImageContent()
-                AsyncImagePainter.State.Empty -> {
-                    AvatarFallback(displayName, shape, size)
-                }
+    // Model doesn't appear different enough from adding the option to invalidate on setting toggle, so key it
+    key(allowAnimated) {
+        val model = remember(source, allowAnimated) {
+            ImageRequest.Builder(PlatformContext.INSTANCE)
+                .data(MediaRequestData(source, MediaRequestData.Kind.Content))
+                .allowAnimatedImageDecoding(allowAnimated)
+                .build()
+        }
+        SubcomposeAsyncImage(
+            modifier = modifier.size(size).clip(shape),
+            imageLoader = imageLoader(sessionId),
+            model = model,
+            transform = rememberAnimatedImageTransform(),
+            contentScale = ContentScale.Crop,
+            alignment = Alignment.Center,
+            contentDescription = contentDescription,
+        ) {
+            AnimatedContent(
+                painter.state.collectAsState().value,
+                transitionSpec = {
+                    fadeIn(
+                        animationSpec = Dimens.tweenSmooth()
+                    ) togetherWith fadeOut(
+                        animationSpec = Dimens.tweenSmooth()
+                    )
+                },
+            ) { state ->
+                when (state) {
+                    is AsyncImagePainter.State.Success -> SubcomposeAsyncImageContent()
+                    AsyncImagePainter.State.Empty -> {
+                        AvatarFallback(displayName, shape, size)
+                    }
 
-                is AsyncImagePainter.State.Error -> {
-                    AvatarFallback(displayName, shape, size, isError = true)
-                }
+                    is AsyncImagePainter.State.Error -> {
+                        AvatarFallback(displayName, shape, size, isError = true)
+                    }
 
-                is AsyncImagePainter.State.Loading -> {
-                    AvatarFallback(displayName, shape, size, isLoading = true)
+                    is AsyncImagePainter.State.Loading -> {
+                        AvatarFallback(displayName, shape, size, isLoading = true)
+                    }
                 }
             }
         }

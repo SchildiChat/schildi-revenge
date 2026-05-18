@@ -20,7 +20,7 @@ internal class AvatarDataKeyer : Keyer<AvatarData> {
 
 internal class MediaRequestDataKeyer : Keyer<MediaRequestData> {
     override fun key(data: MediaRequestData, options: Options): String? {
-        return data.toKey()
+        return data.toKey(options) // SC: "options" added
     }
 }
 

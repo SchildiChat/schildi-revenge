@@ -56,6 +56,7 @@ internal class AnimatedSkiaImageDecoder(
             options: Options,
             imageLoader: ImageLoader,
         ): Decoder? {
+            if (!options.allowAnimatedImageDecoding()) return null
             if (!result.source.source().isAnimatedImage()) return null
             return AnimatedSkiaImageDecoder(
                 source = result.source,

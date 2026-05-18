@@ -129,6 +129,7 @@ fun UserDetailsScreen(
                                             copyActions = plainTextCopyActionWithMxcUrl(primaryAvatar),
                                         )
                                     ),
+                                    allowAnimated = true,
                                 )
                                 if (secondaryAvatar != null) {
                                     AvatarImage(
@@ -141,6 +142,7 @@ fun UserDetailsScreen(
                                                 copyActions = plainTextCopyActionWithMxcUrl(secondaryAvatar),
                                             )
                                         ),
+                                        allowAnimated = true,
                                     )
                                 }
                             }

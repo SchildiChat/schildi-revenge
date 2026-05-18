@@ -200,6 +200,7 @@ fun RoomDetailsScreen(
                                     source = info.avatarUrl?.let { MediaSource(it) },
                                     size = 128.dp,
                                     displayName = info.name ?: viewModel.roomId.value,
+                                    allowAnimated = true,
                                 )
                             }
                         }

@@ -100,6 +100,7 @@ fun RoomPreviewScreen(
                                         copyActions = plainTextCopyActionWithMxcUrl(roomInfo.avatarUrl),
                                     )
                                 ),
+                                allowAnimated = true,
                             )
                         }
                     }
@@ -192,6 +193,7 @@ fun RoomPreviewScreen(
                                                 copyActions = plainTextCopyActionWithMxcUrl(userAvatar),
                                             )
                                         ),
+                                        allowAnimated = true,
                                     )
                                 }
                                 SelectionContainer {
