@@ -18,11 +18,13 @@ import chat.schildi.revenge.compose.components.ContextMenuActionEntry
 import chat.schildi.revenge.compose.components.ContextMenuDecoration
 import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.revenge.compose.components.ContextMenuSubmenuEntry
+import chat.schildi.revenge.compose.components.isAllowed
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.ActionRoomNotificationSetting
 import chat.schildi.revenge.model.InboxViewModel
+import chat.schildi.revenge.model.PendingAction
 import chat.schildi.revenge.model.ScopedRoomSummary
 import io.element.android.libraries.matrix.api.room.RoomNotificationMode
 import io.element.android.libraries.matrix.api.room.RoomNotificationSettings
@@ -56,6 +58,7 @@ fun ScopedRoomSummary.contextMenu(inboxViewModel: InboxViewModel, focusId: UUID)
                 Res.string.action_join.toStringHolder(),
                 rememberVectorPainter(Icons.Default.MeetingRoom),
                 Action.Room.Join,
+                enabled = PendingAction.RoomJoin(summary.roomId).isAllowed(),
                 keyboardShortcut = Key.J,
             ),
             ContextMenuActionEntry(
@@ -63,6 +66,7 @@ fun ScopedRoomSummary.contextMenu(inboxViewModel: InboxViewModel, focusId: UUID)
                 rememberVectorPainter(Icons.Default.MeetingRoom),
                 Action.Room.Leave,
                 critical = true,
+                enabled = PendingAction.RoomLeave(summary.roomId).isAllowed(),
                 keyboardShortcut = Key.R,
             ),
         )
@@ -168,6 +172,7 @@ fun ScopedRoomSummary.contextMenu(inboxViewModel: InboxViewModel, focusId: UUID)
                 rememberVectorPainter(Icons.Default.MeetingRoom),
                 Action.Room.Leave,
                 critical = true,
+                enabled = PendingAction.RoomLeave(summary.roomId).isAllowed(),
                 keyboardShortcut = Key.V,
             ),
         ).toPersistentList()

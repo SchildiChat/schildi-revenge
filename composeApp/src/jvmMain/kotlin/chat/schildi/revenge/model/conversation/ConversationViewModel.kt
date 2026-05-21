@@ -66,6 +66,8 @@ import chat.schildi.revenge.model.DraftType
 import chat.schildi.revenge.model.DraftValue
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.LoadStateHolder
+import chat.schildi.revenge.model.PendingAction
+import chat.schildi.revenge.model.PendingGlobalActions
 import chat.schildi.revenge.model.RoomActionProvider
 import chat.schildi.revenge.model.UserActionProvider
 import chat.schildi.revenge.model.asCheckpointLoadedOrPending
@@ -85,7 +87,6 @@ import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
-import io.element.android.libraries.matrix.api.core.ThreadId
 import io.element.android.libraries.matrix.api.core.UniqueId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.encryption.identity.IdentityState
@@ -996,7 +997,12 @@ class ConversationViewModel(
         var isFirstMembership = true
         roomInfo.filterNotNull().map { info ->
             info.currentUserMembership == CurrentUserMembership.JOINED
-        }.distinctUntilChanged().onEach {
+        }.distinctUntilChanged().onEach { joined ->
+            if (joined) {
+                PendingGlobalActions.onActionEcho(PendingAction.RoomJoin(roomId))
+            } else {
+                PendingGlobalActions.onActionEcho(PendingAction.RoomLeave(roomId))
+            }
             if (isFirstMembership) {
                 isFirstMembership = false
             } else {

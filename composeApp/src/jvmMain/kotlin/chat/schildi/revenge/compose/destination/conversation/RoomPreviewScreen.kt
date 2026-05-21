@@ -14,7 +14,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,9 +33,11 @@ import chat.schildi.revenge.actions.plainTextCopyAction
 import chat.schildi.revenge.actions.plainTextCopyActionWithMxcUrl
 import chat.schildi.revenge.actions.plainTextCopyActionWithUserId
 import chat.schildi.revenge.compose.components.AvatarImage
+import chat.schildi.revenge.compose.components.WithTrackedAction
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.config.keybindings.Action
+import chat.schildi.revenge.model.PendingAction
 import chat.schildi.revenge.model.conversation.RoomPreviewViewModel
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
@@ -208,32 +209,32 @@ fun RoomPreviewScreen(
                     }
                     item {
                         val actionContext = currentActionContext()
-                        val joinClicked = remember { mutableStateOf(false) }
                         fun join(): Boolean {
                             val actioned = viewModel.roomActionProvider.handleAction(
                                 actionContext,
                                 Action.Room.Join,
                                 emptyList(),
                             ) is ActionResult.Actioned
-                            if (actioned) {
-                                joinClicked.value = true
-                            }
                             return actioned
                         }
-                        if (joinClicked.value) return@item
                         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                            Button(
-                                modifier = Modifier.keyFocusable(
-                                    role = FocusRole.LIST_ITEM,
-                                    actionProvider = actionProvider(
-                                        primaryAction = InteractionAction.Invoke(::join),
+                            WithTrackedAction(
+                                PendingAction.RoomJoin(viewModel.roomId)
+                            ) { enabled ->
+                                Button(
+                                    modifier = Modifier.keyFocusable(
+                                        role = FocusRole.LIST_ITEM,
+                                        actionProvider = actionProvider(
+                                            primaryAction = if (enabled) InteractionAction.Invoke(::join) else null,
+                                        ),
+                                        addMouseFocusable = false,
+                                        addClickListener = false,
                                     ),
-                                    addMouseFocusable = false,
-                                    addClickListener = false,
-                                ),
-                                onClick = { join() },
-                            ) {
-                                Text(stringResource(Res.string.action_join))
+                                    enabled = enabled,
+                                    onClick = { join() },
+                                ) {
+                                    Text(stringResource(Res.string.action_join))
+                                }
                             }
                         }
                     }
@@ -248,18 +249,21 @@ fun RoomPreviewScreen(
                                 ) is ActionResult.Actioned
                             }
                             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                                Button(
-                                    modifier = Modifier.keyFocusable(
-                                        role = FocusRole.LIST_ITEM,
-                                        actionProvider = actionProvider(
-                                            primaryAction = InteractionAction.Invoke(::leave),
+                                WithTrackedAction(PendingAction.RoomLeave(viewModel.roomId)) { enabled ->
+                                    Button(
+                                        modifier = Modifier.keyFocusable(
+                                            role = FocusRole.LIST_ITEM,
+                                            actionProvider = actionProvider(
+                                                primaryAction = if (enabled) InteractionAction.Invoke(::leave) else null,
+                                            ),
+                                            addMouseFocusable = false,
+                                            addClickListener = false,
                                         ),
-                                        addMouseFocusable = false,
-                                        addClickListener = false,
-                                    ),
-                                    onClick = { leave() },
-                                ) {
-                                    Text(stringResource(Res.string.action_reject_invite))
+                                        enabled = enabled,
+                                        onClick = { leave() },
+                                    ) {
+                                        Text(stringResource(Res.string.action_reject_invite))
+                                    }
                                 }
                             }
                         }

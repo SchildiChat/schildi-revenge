@@ -79,6 +79,7 @@ import chat.schildi.revenge.config.keybindings.minArgsSize
 import chat.schildi.revenge.model.account.RevengeDeviceVerificationProvider
 import chat.schildi.revenge.model.account.ScIncomingVerificationRequest
 import chat.schildi.revenge.model.account.ScOutgoingVerificationRequest
+import chat.schildi.revenge.model.joinRoomByIdOrAliasTracked
 import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.REAL_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.RevengeSpaceListDataSource
@@ -1914,7 +1915,7 @@ class KeyboardActionHandler(
                         actionId,
                         notifyProcessing = true,
                     ) {
-                        client.joinRoomByIdOrAlias(roomAddress, via).toActionResult()
+                        client.joinRoomByIdOrAliasTracked(roomAddress, via).toActionResult()
                     }
                 }
                 Action.Global.VerifyUser -> {

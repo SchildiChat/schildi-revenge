@@ -55,10 +55,12 @@ import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.plainTextCopyAction
 import chat.schildi.revenge.compose.components.WithContextMenu
+import chat.schildi.revenge.compose.components.WithTrackedAction
 import chat.schildi.revenge.compose.components.thenIf
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.model.InboxViewModel
+import chat.schildi.revenge.model.PendingAction
 import chat.schildi.revenge.model.ScopedRoomKey
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.media.MediaSource
@@ -335,17 +337,20 @@ private fun RowScope.ScLastMessageAndIndicatorRow(
                 }
                 return result is ActionResult.Actioned
             }
-            Button(
-                modifier = Modifier.keyFocusable(
-                    actionProvider = actionProvider(
-                        primaryAction = InteractionAction.Invoke(::join)
+            WithTrackedAction(PendingAction.RoomJoin(room.roomId)) { enabled ->
+                Button(
+                    modifier = Modifier.keyFocusable(
+                        actionProvider = actionProvider(
+                            primaryAction = if (enabled) InteractionAction.Invoke(::join) else null,
+                        ),
+                        addMouseFocusable = false,
+                        addClickListener = false,
                     ),
-                    addMouseFocusable = false,
-                    addClickListener = false,
-                ),
-                onClick = { join() },
-            ) {
-                Text(stringResource(Res.string.action_join))
+                    enabled = enabled,
+                    onClick = { join() },
+                ) {
+                    Text(stringResource(Res.string.action_join))
+                }
             }
         }
         ScUnreadCounter(room)

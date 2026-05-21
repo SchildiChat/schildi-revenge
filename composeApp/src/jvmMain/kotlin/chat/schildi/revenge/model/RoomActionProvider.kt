@@ -145,7 +145,7 @@ class RoomActionProvider(
                 room.markAsRead(ReceiptType.FULLY_READ).toActionResult(async = true)
             }
             Action.Room.Join -> {
-                room.join().toActionResult(async = true)
+                room.joinTracked().toActionResult(async = true)
             }
             Action.Room.Leave -> {
                 val info = room.info()
@@ -168,12 +168,12 @@ class RoomActionProvider(
                     actionName = action.name,
                 ) {
                     if (isPeekedRoom) {
-                        room.leave().toActionResult(async = true)
+                        room.leaveTracked().toActionResult(async = true)
                     } else {
                         // Needs a fresh room, old one already used up
                         val room = peekClient()?.getRoom(roomId)
                         room?.use {
-                            it.leave().toActionResult(async = true)
+                            it.leaveTracked().toActionResult(async = true)
                         } ?: ActionResult.Failure("Room disappeared")
                     }
                 }

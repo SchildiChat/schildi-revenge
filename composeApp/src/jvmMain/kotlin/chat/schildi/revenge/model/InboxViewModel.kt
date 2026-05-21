@@ -717,7 +717,7 @@ class InboxViewModel(
             "joinRoom",
             notifyProcessing = true
         ) {
-            client.joinRoom(roomId).toActionResult(async = true)
+            client.joinRoomTracked(roomId).toActionResult(async = true)
         }
     }
 
