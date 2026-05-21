@@ -2185,10 +2185,10 @@ class ConversationViewModel(
             IdentityState.Verified,
             IdentityState.Pinned -> null
             IdentityState.PinViolation -> {{
-                it.encryptionService.withdrawVerification(change.userId)
+                it.encryptionService.pinUserIdentity(change.userId)
             }}
             IdentityState.VerificationViolation -> {{
-                it.encryptionService.pinUserIdentity(change.userId)
+                it.encryptionService.withdrawVerification(change.userId)
             }}
         } ?: return
         context.launchActionAsync(
