@@ -46,7 +46,7 @@ object NotificationEventTextFormat {
 
     suspend fun notificationToText(notification: SyncNotification, stripNewlines: Boolean = false): String {
         return when (val content = notification.content) {
-            is NotificationContent.Invite -> getString(Res.string.message_placeholder_invite_by)
+            is NotificationContent.Invite -> getString(Res.string.message_placeholder_invite_by, notification.senderName())
             is NotificationContent.MessageLike -> {
                 val textContent = messageLikeToText(content, stripNewlines)
                 val senderName = notification.senderName()

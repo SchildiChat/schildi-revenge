@@ -68,11 +68,7 @@ object NotificationProcessor {
                 parsedNotification?.get("origin_server_ts")?.jsonPrimitive?.longOrNull
             }
 
-            if (notificationServerTs == null) {
-                log.e { "Failed to parse notification timestamp for $id" }
-                return@onEach
-            }
-            if (notificationServerTs < launchTimestamp) {
+            if (notificationServerTs != null && notificationServerTs < launchTimestamp) {
                 log.w { "Skipping past notification by timestamp for $id" }
                 return@onEach
             }
