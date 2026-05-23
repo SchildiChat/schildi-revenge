@@ -14,6 +14,7 @@ import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_show_room_members
 import shire.composeapp.generated.resources.hint_member_profile
 import shire.composeapp.generated.resources.hint_room
+import shire.composeapp.generated.resources.hint_room_preview
 import shire.composeapp.generated.resources.hint_timeline
 import shire.composeapp.generated.resources.hint_user_profile
 import shire.composeapp.generated.resources.verification_request_title
@@ -29,6 +30,10 @@ interface LoadCheckPoint {
 
     data object Room : LoadCheckPoint {
         override val name = Res.string.hint_room.toStringHolder()
+    }
+
+    data object RoomPreview : LoadCheckPoint {
+        override val name = Res.string.hint_room_preview.toStringHolder()
     }
 
     data object UserProfile : LoadCheckPoint {
@@ -129,6 +134,13 @@ class LoadStateHolder(
             } else {
                 (oldState + newCheckpoints).toImmutableList()
             }
+        }
+    }
+
+    fun removeExpected(vararg checkpoints: LoadCheckPoint) {
+        _state.update { oldState ->
+            oldState.filter { it.checkpoint !in checkpoints || it.state != CheckpointLoadState.PENDING }
+                .toImmutableList()
         }
     }
 

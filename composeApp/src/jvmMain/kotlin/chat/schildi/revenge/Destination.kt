@@ -8,6 +8,7 @@ import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.CreateTimelineParams
+import kotlinx.collections.immutable.ImmutableList
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.about
 import shire.composeapp.generated.resources.account_dev_tools_title
@@ -74,7 +75,8 @@ sealed interface Destination {
     data class Conversation(
         override val sessionId: SessionId,
         val roomId: RoomId,
-        val timelineParams: CreateTimelineParams? = null
+        val timelineParams: CreateTimelineParams? = null,
+        val joinServerNames: ImmutableList<String>? = null,
     ) : WithSession {
         val preferDetailsPane = when (timelineParams) {
             null,

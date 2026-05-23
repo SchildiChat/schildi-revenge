@@ -42,10 +42,12 @@ import chat.schildi.revenge.model.conversation.RoomPreviewViewModel
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import io.element.android.libraries.matrix.api.room.RoomInfo
+import io.element.android.libraries.matrix.api.room.preview.RoomPreviewInfo
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_join
 import shire.composeapp.generated.resources.action_reject_invite
+import shire.composeapp.generated.resources.hint_room_via
 import shire.composeapp.generated.resources.message_placeholder_invite_by
 import shire.composeapp.generated.resources.message_placeholder_invite_by_disambiguated
 import shire.composeapp.generated.resources.room_preview_membership_banned
@@ -56,14 +58,21 @@ import shire.composeapp.generated.resources.room_preview_membership_left
 
 @Composable
 fun RoomPreviewScreen(
-    roomInfo: RoomInfo,
+    roomInfo: RoomInfo?,
+    roomPreview: RoomPreviewInfo?,
     viewModel: RoomPreviewViewModel,
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
 ) {
-
     val listState = rememberLazyListState()
     val listAction = remember(listState) { ListActions(listState) }
+
+    val avatarUrl = roomInfo?.avatarUrl ?: roomPreview?.avatarUrl
+    val roomName = roomInfo?.name ?: roomPreview?.name
+    val privateRoomName = roomInfo?.privateRoomName
+    val currentUserMembership = roomInfo?.currentUserMembership ?: roomPreview?.membership
+    val inviter = roomInfo?.inviter
+
     FocusContainer(
         LocalListActionProvider provides listAction,
         LocalRoomContextSuggestionsProvider provides viewModel.roomContextSuggestionsProvider,
@@ -86,31 +95,31 @@ fun RoomPreviewScreen(
                             Modifier.fillMaxWidth().keyFocusable(
                                 role = FocusRole.LIST_ITEM,
                                 actionProvider = actionProvider(
-                                    copyActions = plainTextCopyActionWithMxcUrl(roomInfo.avatarUrl),
+                                    copyActions = plainTextCopyActionWithMxcUrl(avatarUrl),
                                 )
                             ),
                             contentAlignment = Alignment.Center,
                         ) {
                             AvatarImage(
-                                source = roomInfo.avatarUrl?.let { MediaSource(it) },
+                                source = avatarUrl?.let { MediaSource(it) },
                                 size = 128.dp,
-                                displayName = roomInfo.name ?: roomInfo.id.value,
+                                displayName = roomName ?: viewModel.roomId.value,
                                 modifier = Modifier.keyFocusable(
                                     role = FocusRole.NESTED_AUX_ITEM,
                                     actionProvider = actionProvider(
-                                        copyActions = plainTextCopyActionWithMxcUrl(roomInfo.avatarUrl),
+                                        copyActions = plainTextCopyActionWithMxcUrl(avatarUrl),
                                     )
                                 ),
                                 allowAnimated = true,
                             )
                         }
                     }
-                    if (roomInfo.name != null || roomInfo.privateRoomName != null) {
+                    if (roomName != null || privateRoomName != null) {
                         val text = buildString {
-                            append(roomInfo.privateRoomName ?: roomInfo.name)
-                            if (roomInfo.name != null && roomInfo.privateRoomName != null && roomInfo.name != roomInfo.privateRoomName) {
+                            append(privateRoomName ?: roomName)
+                            if (roomName != null && privateRoomName != null && roomName != privateRoomName) {
                                 append(" (")
-                                append(roomInfo.name)
+                                append(roomName)
                                 append(")")
                             }
                         }
@@ -138,9 +147,9 @@ fun RoomPreviewScreen(
                             }
                         }
                     }
-                    if (roomInfo.currentUserMembership != CurrentUserMembership.INVITED || roomInfo.inviter == null) {
+                    if (currentUserMembership != null && (currentUserMembership != CurrentUserMembership.INVITED || inviter == null)) {
                         item {
-                            val membershipText = when (roomInfo.currentUserMembership) {
+                            val membershipText = when (currentUserMembership) {
                                 CurrentUserMembership.INVITED -> stringResource(Res.string.room_preview_membership_invited)
                                 CurrentUserMembership.JOINED -> stringResource(Res.string.room_preview_membership_joined)
                                 CurrentUserMembership.LEFT -> stringResource(Res.string.room_preview_membership_left)
@@ -166,7 +175,7 @@ fun RoomPreviewScreen(
                             }
                         }
                     }
-                    roomInfo.inviter?.let { inviter ->
+                    if (inviter != null) {
                         item {
                             val invitedBy = if (inviter.displayName != null) {
                                 stringResource(Res.string.message_placeholder_invite_by_disambiguated, inviter.displayName ?: "", inviter.userId.value)
@@ -238,7 +247,7 @@ fun RoomPreviewScreen(
                             }
                         }
                     }
-                    if (roomInfo.currentUserMembership == CurrentUserMembership.INVITED) {
+                    if (currentUserMembership == CurrentUserMembership.INVITED) {
                         item {
                             val actionContext = currentActionContext()
                             fun leave(): Boolean {
@@ -264,6 +273,28 @@ fun RoomPreviewScreen(
                                     ) {
                                         Text(stringResource(Res.string.action_reject_invite))
                                     }
+                                }
+                            }
+                        }
+                    }
+                    viewModel.joinServerNames?.takeIf { it.isNotEmpty() }?.let { joinServerNames ->
+                        item {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                SelectionContainer {
+                                    Text(
+                                        stringResource(Res.string.hint_room_via, joinServerNames.joinToString()),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        modifier = Modifier.padding(horizontal = Dimens.horizontalItemPadding).keyFocusable(
+                                            role = FocusRole.LIST_ITEM,
+                                            actionProvider = actionProvider(
+                                                copyActions = plainTextCopyAction { joinServerNames.joinToString() },
+                                            ),
+                                        ),
+                                    )
                                 }
                             }
                         }

@@ -56,9 +56,8 @@ fun RoomUpgradeRow(
             )
             val destinationStateHolder = LocalDestinationState.current
             fun viewSuccessor(): Boolean {
-                timber.log.Timber.e("SC_DBG $destinationStateHolder ${successorRoom.roomId}")
                 return destinationStateHolder?.navigate(
-                    Destination.Conversation(
+                    viewModel.successorRoomDestination.value ?: Destination.Conversation(
                         sessionId = viewModel.sessionId,
                         roomId = successorRoom.roomId,
                     ),

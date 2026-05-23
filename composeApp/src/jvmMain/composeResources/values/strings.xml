@@ -201,6 +201,7 @@
     <string name="hint_not_set">Not set</string>
     <string name="hint_no_room_name">Room name not set</string>
     <string name="hint_room">Room</string>
+    <string name="hint_room_preview">Room preview</string>
     <string name="hint_timeline">Timeline</string>
     <string name="hint_user_profile">User profile</string>
     <string name="hint_member_profile">Member profile</string>
@@ -210,6 +211,7 @@
     <string name="hint_room_state">Room state</string>
     <string name="hint_history_visibility">History visibility</string>
     <string name="hint_join_rule">Join rule</string>
+    <string name="hint_room_via">Via: %1$s</string>
 
     <string name="reply_failed_to_load">Failed to load replied-to message</string>
 

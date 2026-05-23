@@ -24,6 +24,7 @@ import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.core.toRoomIdOrAlias
 import io.element.android.libraries.matrix.api.room.BaseRoom
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import io.element.android.libraries.matrix.api.room.JoinedRoom
@@ -32,6 +33,7 @@ import io.element.android.libraries.matrix.api.room.RoomNotificationMode
 import io.element.android.libraries.matrix.api.room.powerlevels.UserRoleChange
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -52,6 +54,8 @@ import shire.composeapp.generated.resources.toast_removing_from_space
 import kotlin.collections.map
 import kotlin.collections.orEmpty
 
+private val GenericRoomActions = setOf(Action.Room.CopyRoomId)
+
 // Rejecting an invite is leaving
 private val RoomInviteActions = setOf(Action.Room.Join, Action.Room.Leave)
 private val RoomNotJoinedActions = setOf(Action.Room.Join)
@@ -59,15 +63,16 @@ private val RoomNotJoinedActions = setOf(Action.Room.Join)
 class RoomActionProvider(
     val sessionId: SessionId,
     val roomId: RoomId,
+    val joinServerNames: List<String>? = null,
     val isInvite: Boolean,
     val isJoined: Boolean = !isInvite,
     val peekClient: suspend () -> MatrixClient?,
     val peekRoom: (suspend () -> BaseRoom?)?,
 ) : KeyboardActionProvider<Action.Room> {
     override fun getPossibleActions() = if (isInvite)
-        RoomInviteActions
+        RoomInviteActions + GenericRoomActions
     else if (!isJoined)
-        RoomNotJoinedActions
+        RoomNotJoinedActions + GenericRoomActions
     else
         Action.Room.entries.toSet() - RoomNotJoinedActions
 
@@ -93,12 +98,17 @@ class RoomActionProvider(
         ) {
             if (peekRoom == null) {
                 val client = peekClient() ?: return@launchActionAsync ActionResult.Failure("Client not ready")
-                val room = client.getJoinedRoom(roomId) ?: client.getRoom(roomId) ?: return@launchActionAsync ActionResult.Failure("Room not ready")
+                val room = client.getJoinedRoom(roomId)
+                    ?: client.getRoom(roomId)
+                    ?: return@launchActionAsync handleActionWithoutRoom(context, action, args, client)
                 room.use {
                     handleActionWithRoom(context, action, args, room, isPeekedRoom = false)
                 }
             } else {
-                val room = peekRoom() ?: return@launchActionAsync ActionResult.Failure("Room not ready")
+                val room = peekRoom() ?: run {
+                    val client = peekClient() ?: return@launchActionAsync ActionResult.Failure("Client not ready")
+                    return@launchActionAsync handleActionWithoutRoom(context, action, args, client)
+                }
                 handleActionWithRoom(context, action, args, room, isPeekedRoom = true)
             }
         }
@@ -311,6 +321,27 @@ class RoomActionProvider(
                     ))
                 ).toActionResult()
             }
+        }
+    }
+
+    private suspend fun handleActionWithoutRoom(
+        context: ActionContext,
+        action: Action.Room,
+        args: List<String>,
+        client: MatrixClient,
+    ): ActionResult {
+        return when (action) {
+            Action.Room.CopyRoomId -> {
+                context.copyToClipboard(roomId.value)
+            }
+            Action.Room.Join -> {
+                if (joinServerNames.isNullOrEmpty()) {
+                    client.joinRoomTracked(roomId).toActionResult(async = true)
+                } else {
+                    client.joinRoomByIdOrAliasTracked(roomId.toRoomIdOrAlias(), joinServerNames).toActionResult(async = true)
+                }
+            }
+            else -> ActionResult.Failure("Room not ready")
         }
     }
 

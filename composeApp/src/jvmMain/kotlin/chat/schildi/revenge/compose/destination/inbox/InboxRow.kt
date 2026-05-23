@@ -105,10 +105,9 @@ fun InboxRow(
                         actionProvider = buildNavigationActionProvider(
                             initialTitle = {
                                 ConversationViewModel.windowTitle(
-                                    room.summary.info,
-                                    user?.displayName,
-                                    null,
-                                    room.sessionId
+                                    roomInfo = room.summary.info,
+                                    accountUserDisplayName = user?.displayName,
+                                    sessionId = room.sessionId,
                                 )
                             },
                             keyActions = inboxRowKeyboardActionProvider(viewModel, room.key, isInvite = room.summary.isInvite()),

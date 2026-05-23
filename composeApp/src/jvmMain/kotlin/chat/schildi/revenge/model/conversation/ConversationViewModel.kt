@@ -67,6 +67,7 @@ import chat.schildi.revenge.model.DraftValue
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.LoadStateHolder
 import chat.schildi.revenge.model.PendingAction
+import chat.schildi.revenge.model.PendingActionState
 import chat.schildi.revenge.model.PendingGlobalActions
 import chat.schildi.revenge.model.RoomActionProvider
 import chat.schildi.revenge.model.UserActionProvider
@@ -89,6 +90,7 @@ import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UniqueId
 import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.core.toRoomIdOrAlias
 import io.element.android.libraries.matrix.api.encryption.identity.IdentityState
 import io.element.android.libraries.matrix.api.encryption.identity.IdentityStateChange
 import io.element.android.libraries.matrix.api.encryption.identity.isAViolation
@@ -105,6 +107,7 @@ import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.room.MessageEventType
 import io.element.android.libraries.matrix.api.room.RoomInfo
 import io.element.android.libraries.matrix.api.room.powerlevels.permissionsFlow
+import io.element.android.libraries.matrix.api.room.preview.RoomPreviewInfo
 import io.element.android.libraries.matrix.api.room.roomMembers
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
@@ -131,6 +134,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.VoiceMessageT
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisambiguatedDisplayName
 import io.element.android.libraries.matrix.api.timeline.item.event.toEventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.virtual.VirtualTimelineItem
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentHashMapOf
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -157,7 +161,10 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.awt.FileDialog
 import java.awt.Frame
 import shire.composeapp.generated.resources.Res
@@ -250,7 +257,9 @@ interface RoomPreviewViewModel {
     val sessionId: SessionId
     val roomId: RoomId
     val timelineParams: CreateTimelineParams?
+    val joinServerNames: ImmutableList<String>?
     val roomInfo: StateFlow<RoomInfo?>
+    val roomPreview: StateFlow<RoomPreviewInfo?>
     val roomContextSuggestionsProvider: RoomContextSuggestionsProvider
     val roomActionProvider: RoomActionProvider
 }
@@ -260,6 +269,7 @@ class ConversationViewModel(
     override val sessionId: SessionId,
     override val roomId: RoomId,
     override val timelineParams: CreateTimelineParams?,
+    override val joinServerNames: ImmutableList<String>?,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
 ) : ViewModel(), TitleProvider, SearchProvider, UserIdSuggestionsProvider, ComposerViewModel, RoomPreviewViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
@@ -327,6 +337,27 @@ class ConversationViewModel(
     val identityStateViolations = identityStateChanges.map {
         it?.filter { it.identityState.isAViolation() }?.toPersistentList()
     }
+
+    private val notJoinedRoom = loadStateHolder.state.map {
+        it.any { it.checkpoint is LoadCheckPoint.Room && it.state == CheckpointLoadState.FAILED }
+    }.distinctUntilChanged().combine(clientFlow) { needsPreview, client ->
+        client ?: return@combine null
+        if (needsPreview) {
+            loadStateHolder.addExpected(LoadCheckPoint.RoomPreview)
+            loadStateHolder.removeExpected(LoadCheckPoint.Timeline, LoadCheckPoint.TimelineItems)
+            client.getRoomPreview(roomId.toRoomIdOrAlias(), joinServerNames.orEmpty()).also {
+                loadStateHolder.handleResult(LoadCheckPoint.RoomPreview, it)
+            }.getOrNull()
+        } else {
+            null
+        }
+    }
+        .flowClosable()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    override val roomPreview: StateFlow<RoomPreviewInfo?> = notJoinedRoom
+        .map { it?.previewInfo }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val _highlightedActionEventId = MutableStateFlow<EventOrTransactionId?>(null)
     val highlightedActionEventId = _highlightedActionEventId.asStateFlow()
@@ -529,6 +560,49 @@ class ConversationViewModel(
             UserIdSuggestion(it.userId, it.displayName, it.membership)
         }
     }
+
+    private val suggestedRoomVia = roomMembers.map {
+        it.asSequence().mapNotNull {
+            it.userId.domainName
+        }.groupBy { it }
+            .toList()
+            .sortedByDescending { it.second.size }
+            .map { it.first }
+            .take(3).toList()
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    // Collect tombstone event sender for improved via calculation
+    private val tombstoneSender = combine(
+        baseRoom,
+        roomInfo,
+    ) { room, info ->
+        if (room == null || info?.successorRoom == null) {
+            null
+        } else {
+            val rawTombstoneState = room.getRawState("m.room.tombstone", "").getOrNull()?.let {
+                tryOrNull { Json.parseToJsonElement(it) }
+            }
+            rawTombstoneState?.jsonObject?.get("sender")?.jsonPrimitive?.contentOrNull?.let(::UserId)
+        }
+    }
+
+    val successorRoomDestination = combine(
+        baseRoom,
+        roomInfo,
+        suggestedRoomVia,
+        tombstoneSender,
+    ) { room, info, via, tombstoneSender ->
+        room ?: return@combine null
+        val successorRoom = info?.successorRoom ?: return@combine null
+        // Need to figure out some via for joining reliably - try sender server for the tombstone event,
+        // plus some common servers in this room
+        val via = (listOfNotNull(tombstoneSender?.domainName) + via.orEmpty()).distinct().toImmutableList()
+        Destination.Conversation(
+            sessionId = sessionId,
+            roomId = successorRoom.roomId,
+            joinServerNames = via,
+        )
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val draftKey = when (timelineParams) {
         is CreateTimelineParams.Focused,
@@ -949,11 +1023,13 @@ class ConversationViewModel(
 
     override val windowTitle: Flow<ComposableStringHolder?> = combine(
         roomInfo,
+        roomPreview,
         userProfile,
         roomMembersById,
-    ) { info, user, roomMembers ->
+    ) { info, preview, user, roomMembers ->
         windowTitle(
             roomInfo = info,
+            roomPreview = preview,
             accountUserDisplayName = user?.displayName,
             roomUserDisplayName = roomMembers[sessionId]?.displayName,
             sessionId = sessionId,
@@ -1016,6 +1092,15 @@ class ConversationViewModel(
                 roomInvalidationFlow.update { it + 1 }
             }
         }.launchIn(viewModelScope)
+        // Also, in case we don't have any roomInfo to observe, invalidate once we finished join
+        combine(
+            PendingGlobalActions.follow(PendingAction.RoomJoin(roomId)),
+            roomInfo,
+        ) { state, info ->
+            if (state == PendingActionState.AwaitingServerEcho && info == null) {
+                roomInvalidationFlow.update { it + 1 }
+            }
+        }.launchIn(viewModelScope)
     }
 
     override fun verifyDestination(destination: Destination): Boolean {
@@ -1043,6 +1128,7 @@ class ConversationViewModel(
     override val roomActionProvider = RoomActionProvider(
         sessionId = sessionId,
         roomId = roomId,
+        joinServerNames = joinServerNames,
         isInvite = false,
         peekClient = { clientFlow.value },
         peekRoom = { baseRoom.value },
@@ -2220,21 +2306,23 @@ class ConversationViewModel(
             sessionId: SessionId,
             roomId: RoomId,
             timelineParams: CreateTimelineParams?,
+            joinServerNames: ImmutableList<String>?,
         ) = viewModelFactory {
             initializer {
-                ConversationViewModel(sessionId, roomId, timelineParams)
+                ConversationViewModel(sessionId, roomId, timelineParams, joinServerNames)
             }
         }
 
         fun windowTitle(
             roomInfo: RoomInfo?,
-            accountUserDisplayName: String?,
-            roomUserDisplayName: String?,
+            roomPreview: RoomPreviewInfo? = null,
+            accountUserDisplayName: String? = null,
+            roomUserDisplayName: String? = null,
             sessionId: SessionId
         ): ComposableStringHolder? {
-            return (roomInfo?.privateRoomName ?: roomInfo?.name)?.let {
+            return (roomInfo?.privateRoomName ?: roomInfo?.name ?: roomPreview?.name)?.let { roomName ->
                 buildString {
-                    append(it)
+                    append(roomName)
                     if (roomInfo?.privateRoomName != null &&
                         roomInfo.name != null &&
                         roomInfo.privateRoomName != roomInfo.name) {

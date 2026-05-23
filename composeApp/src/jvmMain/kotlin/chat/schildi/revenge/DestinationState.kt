@@ -137,7 +137,7 @@ fun publishTitle(provider: TitleProvider) {
     val title = provider.windowTitle
         .map { StringOverrideState.Override(it) }
         .collectAsState(StringOverrideState.Uninitialized).value
-    LaunchedEffect(title) {
+    LaunchedEffect(title, provider) {
         if (title !is StringOverrideState.Override) return@LaunchedEffect
         destinationState?.publishTitle(title.value, provider::verifyDestination)
     }

@@ -79,19 +79,32 @@ fun ConversationScreen(
         val keyHandler = LocalKeyboardActionHandler.current
         val viewModel: ConversationViewModel = viewModel(
             key = viewModelKey(destination),
-            factory = ConversationViewModel.factory(destination.sessionId, destination.roomId, destination.timelineParams)
+            factory = ConversationViewModel.factory(
+                destination.sessionId,
+                destination.roomId,
+                destination.timelineParams,
+                destination.joinServerNames,
+            )
         )
+
+        publishTitle(viewModel)
+
         val timelineItems = viewModel.timelineItems.collectAsState().value
         val forwardPaginationStatus = viewModel.forwardPaginationStatus.collectAsState(null).value
         val backwardPaginationStatus = viewModel.backwardPaginationStatus.collectAsState(null).value
         val timestampSettings = viewModel.timestampSettings.collectAsState().value
 
         val roomInfo = viewModel.roomInfo.collectAsState().value
+        val roomPreview = viewModel.roomPreview.collectAsState().value
 
         if (timelineItems == null) {
-            val isRoomPreview = roomInfo != null && roomInfo.currentUserMembership != CurrentUserMembership.JOINED
+            val isRoomPreview = when {
+                roomInfo != null -> roomInfo.currentUserMembership != CurrentUserMembership.JOINED
+                roomPreview != null -> roomPreview.membership != CurrentUserMembership.JOINED
+                else -> false
+            }
             if (isRoomPreview) {
-                RoomPreviewScreen(roomInfo, viewModel, Modifier.fillMaxSize(), contentModifier)
+                RoomPreviewScreen(roomInfo, roomPreview, viewModel, Modifier.fillMaxSize(), contentModifier)
             } else {
                 SplashScreenContent(contentModifier, viewModel.loadState)
             }
@@ -165,8 +178,6 @@ fun ConversationScreen(
                 initialFirstVisibleItemScrollOffset = initialListOffset.second,
             )
         }
-
-        publishTitle(viewModel)
 
         LaunchedEffect(listState, backwardPaginationStatus, timelineItems) {
             snapshotFlow {
