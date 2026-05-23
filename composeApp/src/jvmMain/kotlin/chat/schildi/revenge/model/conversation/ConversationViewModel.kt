@@ -605,8 +605,15 @@ class ConversationViewModel(
         composerState,
         forceShowComposer,
         scPreferencesStore.settingFlow(ScPrefs.MINIMAL_MODE),
-    ) { state, force, minimalMode ->
-        force || !minimalMode || !state.isEmpty()
+        roomInfo,
+        roomPermissions,
+    ) { state, force, minimalMode, info, permissions ->
+        if (info?.successorRoom != null && permissions?.canSendMessages != true) {
+            // We're already showing the room upgrade banner
+            false
+        } else {
+            force || !minimalMode || !state.isEmpty()
+        }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, forceShowComposer.value)
 
     private val bridgeInfo = roomInfo.map { info ->

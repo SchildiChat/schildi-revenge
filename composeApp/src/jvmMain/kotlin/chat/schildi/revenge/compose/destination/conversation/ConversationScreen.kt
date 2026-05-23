@@ -263,12 +263,16 @@ fun ConversationScreen(
                         )
                     }
                 }
+
                 val identityStateViolations = viewModel.identityStateViolations.collectAsState(null).value ?: persistentListOf()
                 IdentityStateChangesRow(
                     identityStateViolations,
                     roomMembersById.value,
                     acknowledge = { viewModel.acknowledgeIdentityStateChange(actionContext, it) },
                 )
+
+                RoomUpgradeRow(viewModel)
+
                 val shouldShowComposer = viewModel.shouldShowComposer.collectAsState().value
                 LaunchedEffect(shouldShowComposer) {
                     if (shouldShowComposer) {

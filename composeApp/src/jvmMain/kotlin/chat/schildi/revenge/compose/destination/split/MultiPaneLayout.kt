@@ -171,6 +171,9 @@ fun buildMultiPaneDestinationStateHolderWrapper(
 ) { navDestination ->
     when {
         navDestination.type == mainDestination -> {
+            if (inner.state.value.destination != navDestination) {
+                inner.navigate(navDestination, NavigationPreference.REPLACE)
+            }
             accessDetails().navigate(
                 createPlaceholder(),
                 NavigationPreference.REPLACE
