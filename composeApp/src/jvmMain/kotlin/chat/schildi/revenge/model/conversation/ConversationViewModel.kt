@@ -74,6 +74,7 @@ import chat.schildi.revenge.model.UserActionProvider
 import chat.schildi.revenge.model.asCheckpointLoadedOrPending
 import chat.schildi.revenge.model.getCurrentCompletionEntity
 import chat.schildi.revenge.model.shouldSendTypingIndicator
+import chat.schildi.revenge.toDestination
 import chat.schildi.revenge.toPrettyJson
 import chat.schildi.revenge.util.MimeUtil
 import chat.schildi.revenge.util.tryOrNull
@@ -81,6 +82,7 @@ import chat.schildi.revenge.util.MediaInfoUtil
 import chat.schildi.revenge.util.flowClosable
 import co.touchlab.kermit.Logger
 import com.beeper.android.messageformat.MatrixFormatInteractionState
+import com.beeper.android.messageformat.MatrixToLink
 import io.element.android.features.messages.impl.timeline.EventFocusResult
 import io.element.android.features.messages.impl.timeline.TimelineController
 import io.element.android.libraries.core.coroutine.childScope
@@ -2063,6 +2065,29 @@ class ConversationViewModel(
                                     }
                                 }
                                 ActionResult.Success()
+                            }
+                        } ?: ActionResult.Inapplicable
+                    }
+
+                    Action.Event.FollowMatrixToLink -> {
+                        val offset = args.firstOrNull()?.let {
+                            it.toIntOrNull()?.takeIf { it >= 0 }.orActionValidationError()
+                        } ?: 0
+                        messageMetadata?.preFormattedContent?.let { content ->
+                            val links = content.extractMatrixToLinks()
+                            if (offset >= links.size) {
+                                ActionResult.Inapplicable
+                            } else {
+                                val link = links[offset]
+                                context.destinationStateHolder?.navigate(
+                                    when (link) {
+                                        is MatrixToLink.MessageLink -> link.toDestination(sessionId)
+                                        is MatrixToLink.RoomLink -> link.toDestination(sessionId)
+                                        is MatrixToLink.UserMention -> link.toDestination(sessionId, roomId)
+                                    }
+                                )?.let {
+                                    ActionResult.Success()
+                                } ?: ActionResult.Inapplicable
                             }
                         } ?: ActionResult.Inapplicable
                     }

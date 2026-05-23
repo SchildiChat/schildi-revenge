@@ -450,6 +450,7 @@ class CommandSuggestionsProvider(
                 ActionArgumentPrimitive.Text,
                 ActionArgumentPrimitive.Reason,
                 ActionArgumentPrimitive.Integer,
+                ActionArgumentPrimitive.PositiveOffset,
                 ActionArgumentPrimitive.PowerLevel,
                 ActionArgumentPrimitive.Index,
                 ActionArgumentPrimitive.SessionIndex,

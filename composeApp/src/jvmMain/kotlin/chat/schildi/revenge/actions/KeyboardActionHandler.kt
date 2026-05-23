@@ -1202,6 +1202,7 @@ class KeyboardActionHandler(
         override val criticalActionRequiresConfirmation = criticalActionRequiresConfirmation
         override val keybindingConfig = keybindingConfig
         override val currentDestinationType = currentDestinationType
+        override val destinationStateHolder = focused?.destinationStateHolder
         override val implicitArgs = getCurrentKeyActionHandlers(focused).flatMap { it.impliedArguments() }.distinct()
     }
 
@@ -2796,10 +2797,16 @@ fun checkArgument(
             }
         }
         ActionArgumentPrimitive.PowerLevel,
+        ActionArgumentPrimitive.PositiveOffset,
         ActionArgumentPrimitive.Integer -> {
-            if (argVal.toIntOrNull() == null) {
+            val parsed = argVal.toIntOrNull()
+            if (parsed == null) {
                 ActionResult.Malformed(
                     "Invalid parameter for $actionName, expected int got $argVal"
+                )
+            } else if (argDef == ActionArgumentPrimitive.PositiveOffset && parsed < 0) {
+                ActionResult.Malformed(
+                    "Invalid parameter for $actionName, expected positive offset got $argVal"
                 )
             } else {
                 null
@@ -3082,6 +3089,7 @@ interface ActionContext {
         action: suspend () -> ActionResult,
     ): ActionResult
     val currentDestinationType: DestinationEnum?
+    val destinationStateHolder: DestinationStateHolder?
     val keybindingConfig: KeybindingConfig?
     val implicitArgs: CommandArgContext
 }
