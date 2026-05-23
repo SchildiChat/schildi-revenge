@@ -343,10 +343,12 @@ class ConversationViewModel(
     }.distinctUntilChanged().combine(clientFlow) { needsPreview, client ->
         client ?: return@combine null
         if (needsPreview) {
-            loadStateHolder.addExpected(LoadCheckPoint.RoomPreview)
+            loadStateHolder.addExpected(LoadCheckPoint.RoomPreview(joinServerNames))
             loadStateHolder.removeExpected(LoadCheckPoint.Timeline, LoadCheckPoint.TimelineItems)
             client.getRoomPreview(roomId.toRoomIdOrAlias(), joinServerNames.orEmpty()).also {
-                loadStateHolder.handleResult(LoadCheckPoint.RoomPreview, it)
+                loadStateHolder.handleResult(LoadCheckPoint.RoomPreview(joinServerNames), it)
+            }.onFailure {
+                log.e("Failed to get preview room: $it", it)
             }.getOrNull()
         } else {
             null

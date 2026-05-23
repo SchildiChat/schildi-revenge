@@ -50,6 +50,7 @@ import shire.composeapp.generated.resources.action_reject_invite
 import shire.composeapp.generated.resources.hint_room_via
 import shire.composeapp.generated.resources.message_placeholder_invite_by
 import shire.composeapp.generated.resources.message_placeholder_invite_by_disambiguated
+import shire.composeapp.generated.resources.room_preview_failed
 import shire.composeapp.generated.resources.room_preview_membership_banned
 import shire.composeapp.generated.resources.room_preview_membership_invited
 import shire.composeapp.generated.resources.room_preview_membership_joined
@@ -90,28 +91,46 @@ fun RoomPreviewScreen(
                     state = listState,
                     verticalArrangement = Dimens.verticalArrangement,
                 ) {
-                    item {
-                        Box(
-                            Modifier.fillMaxWidth().keyFocusable(
-                                role = FocusRole.LIST_ITEM,
-                                actionProvider = actionProvider(
-                                    copyActions = plainTextCopyActionWithMxcUrl(avatarUrl),
+                    if (roomInfo == null && roomPreview == null) {
+                        item {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    stringResource(Res.string.room_preview_failed),
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    style = MaterialTheme.typography.headlineMedium,
+                                    modifier = Modifier.padding(horizontal = Dimens.horizontalItemPadding).keyFocusable(
+                                        role = FocusRole.LIST_ITEM,
+                                    ),
                                 )
-                            ),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            AvatarImage(
-                                source = avatarUrl?.let { MediaSource(it) },
-                                size = 128.dp,
-                                displayName = roomName ?: viewModel.roomId.value,
-                                modifier = Modifier.keyFocusable(
-                                    role = FocusRole.NESTED_AUX_ITEM,
+                            }
+                        }
+                    } else {
+                        item {
+                            Box(
+                                Modifier.fillMaxWidth().keyFocusable(
+                                    role = FocusRole.LIST_ITEM,
                                     actionProvider = actionProvider(
                                         copyActions = plainTextCopyActionWithMxcUrl(avatarUrl),
                                     )
                                 ),
-                                allowAnimated = true,
-                            )
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                AvatarImage(
+                                    source = avatarUrl?.let { MediaSource(it) },
+                                    size = 128.dp,
+                                    displayName = roomName ?: viewModel.roomId.value,
+                                    modifier = Modifier.keyFocusable(
+                                        role = FocusRole.NESTED_AUX_ITEM,
+                                        actionProvider = actionProvider(
+                                            copyActions = plainTextCopyActionWithMxcUrl(avatarUrl),
+                                        )
+                                    ),
+                                    allowAnimated = true,
+                                )
+                            }
                         }
                     }
                     if (roomName != null || privateRoomName != null) {

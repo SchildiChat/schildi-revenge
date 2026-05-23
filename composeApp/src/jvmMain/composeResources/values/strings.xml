@@ -561,4 +561,6 @@
     <string name="room_preview_membership_left">You have left this room.</string>
     <string name="room_preview_membership_knocked">You have knocked on this room.</string>
 
+    <string name="room_preview_failed">Failed to fetch room preview</string>
+
 </resources>

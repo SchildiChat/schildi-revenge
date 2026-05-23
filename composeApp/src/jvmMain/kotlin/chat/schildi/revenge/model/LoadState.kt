@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_show_room_members
+import shire.composeapp.generated.resources.dual_title_format
 import shire.composeapp.generated.resources.hint_member_profile
 import shire.composeapp.generated.resources.hint_room
 import shire.composeapp.generated.resources.hint_room_preview
@@ -32,8 +33,15 @@ interface LoadCheckPoint {
         override val name = Res.string.hint_room.toStringHolder()
     }
 
-    data object RoomPreview : LoadCheckPoint {
-        override val name = Res.string.hint_room_preview.toStringHolder()
+    data class RoomPreview(val via: List<String>? = null) : LoadCheckPoint {
+        override val name = if (via.isNullOrEmpty()) {
+            Res.string.hint_room_preview.toStringHolder()
+        } else {
+            Res.string.dual_title_format.toStringHolder(
+                Res.string.hint_room_preview.toStringHolder(),
+                via.joinToString().toStringHolder(),
+            )
+        }
     }
 
     data object UserProfile : LoadCheckPoint {

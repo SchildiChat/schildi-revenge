@@ -56,6 +56,8 @@ import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.matrixBodyDrawStyle
 import chat.schildi.revenge.matrixBodyFormatter
+import chat.schildi.revenge.model.CheckpointLoadState
+import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.conversation.EventJumpTarget
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
@@ -96,11 +98,15 @@ fun ConversationScreen(
 
         val roomInfo = viewModel.roomInfo.collectAsState().value
         val roomPreview = viewModel.roomPreview.collectAsState().value
+        val loadState = viewModel.loadState.collectAsState().value
 
         if (timelineItems == null) {
             val isRoomPreview = when {
                 roomInfo != null -> roomInfo.currentUserMembership != CurrentUserMembership.JOINED
                 roomPreview != null -> roomPreview.membership != CurrentUserMembership.JOINED
+                loadState.any {
+                    it.checkpoint is LoadCheckPoint.RoomPreview && it.state == CheckpointLoadState.FAILED
+                } -> true
                 else -> false
             }
             if (isRoomPreview) {
