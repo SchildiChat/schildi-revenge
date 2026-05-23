@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
@@ -36,7 +37,12 @@ import com.beeper.android.messageformat.MatrixBodyStyledFormatter
 import com.beeper.android.messageformat.MatrixHtmlParser
 import com.beeper.android.messageformat.MatrixToLink
 import com.beeper.android.messageformat.SpanAttributes
+import io.element.android.libraries.matrix.api.core.EventId
+import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.room.CreateTimelineParams
+import kotlinx.collections.immutable.toPersistentList
 
 object MessageFormatDefaults {
     val blockIndention = 16.sp
@@ -112,11 +118,12 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
         keyHandler,
         destinationStateHolder,
     ) {
+        val urlStyle = TextLinkStyles(SpanStyle(color = linkColor))
         object : DefaultMatrixBodyStyledFormatter(
             density,
             textMeasurer,
             textStyle,
-            urlStyle = TextLinkStyles(SpanStyle(color = linkColor)),
+            urlStyle = urlStyle,
             blockIndention = MessageFormatDefaults.blockIndention,
             handleWebLinkClick = urlHandler::openUri,
         ) {
@@ -125,13 +132,11 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
                 context: FormatContext,
             ) = listOf(
                 LinkAnnotation.Clickable("user_mention_click", TextLinkStyles()) {
+                    if (interceptLinkClicks(context)) {
+                        return@Clickable
+                    }
                     sessionId ?: return@Clickable
-                    keyHandler.executeAction(
-                        InteractionAction.Navigate {
-                            Destination.UserDetails(sessionId, UserId(mention.userId), roomId)
-                        },
-                        destinationStateHolder,
-                    )
+                    destinationStateHolder?.navigate(mention.toDestination(sessionId, roomId))
                 },
                 if (sessionId?.value == mention.userId) {
                     SpanStyle(color = mentionHighlightColor, fontWeight = FontWeight.Bold)
@@ -142,9 +147,54 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
             override fun formatRoomMention(context: FormatContext) = listOf(
                 SpanStyle(color = mentionHighlightColor, fontWeight = FontWeight.Bold)
             )
+
+            override fun formatRoomLink(
+                roomLink: MatrixToLink.RoomLink,
+                context: FormatContext
+            ) = listOf(
+                LinkAnnotation.Clickable("room_link_click", urlStyle) {
+                    if (interceptLinkClicks(context)) {
+                        return@Clickable
+                    }
+                    sessionId ?: return@Clickable
+                    destinationStateHolder?.navigate(roomLink.toDestination(sessionId))
+                }
+            )
+
+            override fun formatMessageLink(
+                messageLink: MatrixToLink.MessageLink,
+                context: FormatContext
+            ) = listOf(
+                LinkAnnotation.Clickable("message_link_click", urlStyle) {
+                    if (interceptLinkClicks(context)) {
+                        return@Clickable
+                    }
+                    sessionId ?: return@Clickable
+                    destinationStateHolder?.navigate(messageLink.toDestination(sessionId))
+                }
+            )
         }
     }
 }
+
+fun MatrixToLink.RoomLink.toDestination(sessionId: SessionId) = Destination.Conversation(
+    sessionId = sessionId,
+    roomId = RoomId(roomId),
+    joinServerNames = via?.toPersistentList(),
+)
+
+fun MatrixToLink.MessageLink.toDestination(sessionId: SessionId) = Destination.Conversation(
+    sessionId = sessionId,
+    roomId = RoomId(roomId),
+    timelineParams = CreateTimelineParams.Focused(EventId(messageId)),
+    joinServerNames = via?.toPersistentList(),
+)
+
+fun MatrixToLink.UserMention.toDestination(sessionId: SessionId, roomId: RoomId?) = Destination.UserDetails(
+    sessionId = sessionId,
+    userId = UserId(userId),
+    roomId = roomId,
+)
 
 @Composable
 fun matrixBodyDrawStyle(): MatrixBodyDrawStyle {
