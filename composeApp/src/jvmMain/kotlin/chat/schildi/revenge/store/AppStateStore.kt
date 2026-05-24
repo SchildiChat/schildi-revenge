@@ -27,10 +27,13 @@ data class AppStateStore(
     serializer = PersistentAppState.serializer(),
     default = PersistentAppState(),
 ) {
-    val sessionIdComparator = config.map { currentConfig ->
-        val accountOrders = currentConfig?.sortedAccounts?.mapIndexed { index, account ->
+    val sessionIdOrder = config.map { currentConfig ->
+        currentConfig?.sortedAccounts?.mapIndexed { index, account ->
             Pair(index, account)
         }?.associate { it.second to it.first }.orEmpty()
+    }
+
+    val sessionIdComparator = sessionIdOrder.map { accountOrders ->
         Comparator<SessionId> { left, right ->
             val leftOrder = accountOrders[left.value]
             val rightOrder = accountOrders[right.value]

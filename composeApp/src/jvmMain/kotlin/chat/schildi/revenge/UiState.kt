@@ -253,6 +253,7 @@ object UiState {
 
     val appStateStore = AppStateStore(scope)
     val sessionIdComparator = appStateStore.sessionIdComparator
+    val sessionIdOrder = appStateStore.sessionIdOrder
 
     private val _mutedAccounts = MutableStateFlow<Set<SessionId>?>(null)
     val mutedAccounts = _mutedAccounts.asStateFlow()

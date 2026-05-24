@@ -230,7 +230,8 @@ class InboxViewModel(
         allRooms,
         searchTerm,
         selectedSpace,
-    ) { rooms, searchTerm, selectedSpace ->
+        UiState.sessionIdOrder,
+    ) { rooms, searchTerm, selectedSpace, sessionIdOrder ->
         // Only filter by spaces if search term is empty
         if (searchTerm.isNullOrBlank()) {
             RoomListState(
@@ -251,6 +252,7 @@ class InboxViewModel(
                 },
                 { it.summary.latestEventTimestamp == null },
                 { it.summary.latestEventTimestamp?.let { -it } },
+                { sessionIdOrder[it.sessionId.value] ?: Int.MAX_VALUE },
             ))
             RoomListState(
                 rooms = searchedRooms.toPersistentList(),
