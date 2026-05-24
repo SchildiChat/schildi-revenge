@@ -21,6 +21,7 @@ import shire.composeapp.generated.resources.message_reactions_title
 import shire.composeapp.generated.resources.message_read_receipts_title
 import shire.composeapp.generated.resources.room_dev_tools_title
 import shire.composeapp.generated.resources.room_details_title
+import shire.composeapp.generated.resources.select_account
 import shire.composeapp.generated.resources.verification_request_title
 
 val DEFAULT_WINDOW_APP_TITLE = StringResourceHolder(Res.string.app_title_short)
@@ -191,6 +192,14 @@ sealed interface Destination {
         override val category = DestinationCategory.VERIFICATION
 
         override fun key() = "VerificationRequest($sessionId)"
+    }
+
+    data class SessionSelector(
+        val destinationBuilder: (SessionId) -> Destination,
+    ) : Destination {
+        override val type = DestinationEnum.SessionSelector
+        override val title = StringResourceHolder(Res.string.select_account)
+        override val category = DestinationCategory.WILDCARD
     }
 
     data class AccountDevTools(

@@ -182,6 +182,7 @@ private inline fun String.toDestinationOrNull(
         DestinationEnum.SplitConversationPlaceholder,
         DestinationEnum.SplitRoomDetailsPlaceholder,
         DestinationEnum.SplitSettingsDetailsPlaceholder,
+        DestinationEnum.SessionSelector,
         DestinationEnum.SplitHorizontal,
         DestinationEnum.SplitVertical,
         null -> null
