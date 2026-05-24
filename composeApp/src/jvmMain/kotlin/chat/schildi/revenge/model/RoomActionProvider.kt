@@ -9,9 +9,11 @@ import chat.schildi.revenge.actions.formatEventContentDump
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.actions.launchActionAsync
+import chat.schildi.revenge.actions.mapActionResult
 import chat.schildi.revenge.actions.orActionValidationError
 import chat.schildi.revenge.actions.runWithMessage
 import chat.schildi.revenge.actions.toActionResult
+import chat.schildi.revenge.actions.unwrapActionResult
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
@@ -190,6 +192,11 @@ class RoomActionProvider(
             }
             Action.Room.CopyRoomId -> {
                 context.copyToClipboard(room.roomId.value)
+            }
+            Action.Room.CopyRoomMatrixToLink -> {
+                room.getPermalink().mapActionResult {
+                    context.copyToClipboard(it)
+                }
             }
             Action.Room.ClearEventCache -> {
                 room.clearEventCacheStorage().toActionResult()

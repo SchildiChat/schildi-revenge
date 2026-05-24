@@ -36,10 +36,12 @@ import chat.schildi.revenge.actions.UserIdSuggestionsProvider
 import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.actions.formatEventContentDump
 import chat.schildi.revenge.actions.launchActionAsync
+import chat.schildi.revenge.actions.mapActionResult
 import chat.schildi.revenge.actions.orActionInapplicable
 import chat.schildi.revenge.actions.orActionValidationError
 import chat.schildi.revenge.actions.parseRoomStateSnapshot
 import chat.schildi.revenge.actions.toActionResult
+import chat.schildi.revenge.actions.unwrapActionResult
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.insertAtCursor
@@ -1714,7 +1716,7 @@ class ConversationViewModel(
         isMessage: Boolean,
         redactReason: String? = null,
     ): ActionResult {
-        val timeline = activeTimeline.value ?: return ActionResult.Failure("Room not ready")
+        val timeline = activeTimeline.value ?: return ActionResult.Failure("Timeline not ready")
         val message = when {
             isOwn -> if (isMessage) {
                 Res.string.action_redact_message_prompt.toStringHolder()
@@ -2065,6 +2067,20 @@ class ConversationViewModel(
                                     }
                                 }
                                 ActionResult.Success()
+                            }
+                        } ?: ActionResult.Inapplicable
+                    }
+
+                    Action.Event.CopyEventMatrixToLink -> {
+                        eventId?.let {
+                            val room = baseRoom.value ?: return@let ActionResult.Failure("Room not ready")
+                            launchActionAsync(
+                                "copyEventMatrixTo",
+                                viewModelScope,
+                            ) {
+                                room.getPermalinkFor(eventId).mapActionResult {
+                                    copyToClipboard(it)
+                                }
                             }
                         } ?: ActionResult.Inapplicable
                     }

@@ -82,4 +82,13 @@ fun <T>Result<T>.toActionResult(async: Boolean = false, notifySuccess: Boolean =
 } else {
     ActionResult.Failure(exceptionOrNull()?.message ?: "Unknown failure")
 }
-
+fun Result<ActionResult>.unwrapActionResult(async: Boolean = false, notifySuccess: Boolean = false) = if (isSuccess) {
+    getOrNull() ?: ActionResult.Success(async = async, notifySuccess = notifySuccess)
+} else {
+    ActionResult.Failure(exceptionOrNull()?.message ?: "Unknown failure")
+}
+fun <T>Result<T>.mapActionResult(
+    async: Boolean = false,
+    notifySuccess: Boolean = false,
+    block: (T) -> ActionResult,
+) = map(block).unwrapActionResult(async = async, notifySuccess = notifySuccess)
