@@ -23,6 +23,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.text.style.TextAlign
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -56,7 +57,6 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_processing
-import shire.composeapp.generated.resources.empty_screen_placeholder_unexpected
 import shire.composeapp.generated.resources.failed_to_resolve_room
 import shire.composeapp.generated.resources.select_account
 
@@ -110,6 +110,15 @@ fun SessionSelectorScreen(
             TopNavigation {
                 TopNavigationSearchOrTitle(stringResource(Res.string.select_account))
                 TopNavigationCloseOrNavigateToInboxIcon()
+            }
+            destination.description?.let {
+                Text(
+                    it.render(),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.fillMaxWidth().padding(Dimens.windowPadding),
+                    textAlign = TextAlign.Center,
+                )
             }
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 val renderedAccounts = filteredAccounts?.accounts

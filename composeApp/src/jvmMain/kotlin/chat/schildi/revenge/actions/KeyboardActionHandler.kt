@@ -1952,16 +1952,16 @@ class KeyboardActionHandler(
                     }
                 }
                 Action.Global.ConsumeLink -> {
-                    val link = args.firstOrNull()?.let {
-                        com.beeper.android.messageformat.MatrixPatterns.parseMatrixToUrl(it, true)
-                    }.orActionValidationError()
+                    val rawLink = args.firstOrNull().orActionValidationError()
+                    val link = com.beeper.android.messageformat.MatrixPatterns.parseMatrixToUrl(rawLink, true)
+                        .orActionValidationError()
                     context.launchActionAsync(
                         "consumeLink/$link",
                         GlobalActionsScope,
                         Dispatchers.IO,
                         "consumeLink/$link",
                     ) {
-                        val destination = Destination.SessionSelector { sessionId ->
+                        val destination = Destination.SessionSelector(rawLink.toStringHolder()) { sessionId ->
                             when (link) {
                                 is MatrixToLink.MessageLink -> link.toDestination(sessionId)
                                 is MatrixToLink.RoomLink -> link.toDestination(sessionId)

@@ -1,9 +1,11 @@
 package chat.schildi.revenge
 
 import androidx.compose.ui.ExperimentalComposeUiApi
+import chat.schildi.revenge.config.keybindings.Action
 import co.touchlab.kermit.Logger
 import kotlin.system.exitProcess
 import chat.schildi.revenge.ipc.SingleInstance
+import com.beeper.android.messageformat.MatrixPatterns
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.main
@@ -39,7 +41,13 @@ class MainCommand : CliktCommand("schildi-revenge") {
             SingleInstance.ensureSingleInstanceOrExit(startInTray)
             ComposeApp.main(startInTray)
         } else {
-            val success = SingleInstance.notifyExistingInstance(command.joinToString(separator = " "))
+            val joinedCommand = when {
+                command.size == 1 && MatrixPatterns.parseMatrixToUrl(command.first(), true) != null -> {
+                    "${Action.Global.ConsumeLink.name} ${command.first()}"
+                }
+                else -> command.joinToString(separator = " ")
+            }
+            val success = SingleInstance.notifyExistingInstance(joinedCommand)
             exitProcess(if (success) 0 else 1)
         }
     }

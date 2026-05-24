@@ -195,6 +195,7 @@ sealed interface Destination {
     }
 
     data class SessionSelector(
+        val description: ComposableStringHolder?,
         val destinationBuilder: suspend (SessionId) -> Result<Destination>,
     ) : Destination {
         override val type = DestinationEnum.SessionSelector
