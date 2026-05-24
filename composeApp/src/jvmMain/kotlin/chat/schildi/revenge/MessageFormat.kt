@@ -138,7 +138,9 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
                     sessionId ?: return@Clickable
                     destinationStateHolder?.navigate(mention.toDestination(sessionId, roomId))
                 },
-                if (sessionId?.value == mention.userId) {
+                if (mention.isAutoLink) {
+                    SpanStyle(color = linkColor)
+                } else if (sessionId?.value == mention.userId) {
                     SpanStyle(color = mentionHighlightColor, fontWeight = FontWeight.Bold)
                 } else {
                     SpanStyle(color = mentionColor, fontWeight = FontWeight.Bold)
@@ -220,6 +222,9 @@ fun matrixBodyDrawStyle(): MatrixBodyDrawStyle {
                 )
             },
             drawBehindUserMention = { mention, position ->
+                if (mention.isAutoLink) {
+                    return@MatrixBodyDrawStyle
+                }
                 val color = if (sessionId?.value == mention.userId) {
                     mentionHighlightColor
                 } else {

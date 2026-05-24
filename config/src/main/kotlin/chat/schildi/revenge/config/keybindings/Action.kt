@@ -397,6 +397,6 @@ sealed interface Action {
         override val aliases: kotlin.collections.List<String> = emptyList(),
         override val args: kotlin.collections.List<ActionArgument> = emptyList()
     ) : Action {
-        // For future use? Copying MXIDs moved to CopyAble
+        CopyUserMatrixToLink(aliases = listOf("copyUserLink")),
     }
 }

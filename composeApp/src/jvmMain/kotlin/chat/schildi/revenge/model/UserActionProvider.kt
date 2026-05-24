@@ -10,6 +10,7 @@ import chat.schildi.revenge.config.keybindings.KeyTrigger
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
+import org.matrix.rustcomponents.sdk.matrixToUserPermalink
 
 class UserActionProvider(
     val sessionId: SessionId,
@@ -32,15 +33,12 @@ class UserActionProvider(
         action: Action.User,
         args: List<String>,
     ): ActionResult {
-        // For future use, currently there are no user actions
-        return ActionResult.Inapplicable
-        /*
         return when (action) {
-            Action.User.CopyMxId -> {
-                context.copyToClipboard(userId.value, Res.string.command_copy_name_mxid.toStringHolder())
+            Action.User.CopyUserMatrixToLink -> {
+                val link = matrixToUserPermalink(userId.value)
+                context.copyToClipboard(link)
             }
         }
-         */
     }
 
     override fun impliedArguments(): List<Pair<ActionArgumentPrimitive, String>> = listOfNotNull(
