@@ -2095,15 +2095,29 @@ class ConversationViewModel(
                                 ActionResult.Inapplicable
                             } else {
                                 val link = links[offset]
-                                context.destinationStateHolder?.navigate(
-                                    when (link) {
-                                        is MatrixToLink.MessageLink -> link.toDestination(sessionId)
-                                        is MatrixToLink.RoomLink -> link.toDestination(sessionId)
-                                        is MatrixToLink.UserMention -> link.toDestination(sessionId, roomId)
+                                context.launchActionAsync(
+                                    "followMatrixToLink",
+                                    viewModelScope,
+                                ) {
+                                    val destinationResult = when (link) {
+                                        is MatrixToLink.MessageLink -> link.toDestination(sessionId, clientFlow.value)
+                                        is MatrixToLink.RoomLink -> link.toDestination(sessionId, clientFlow.value)
+                                        is MatrixToLink.UserMention -> Result.success(
+                                            link.toDestination(
+                                                sessionId,
+                                                roomId
+                                            )
+                                        )
                                     }
-                                )?.let {
-                                    ActionResult.Success()
-                                } ?: ActionResult.Inapplicable
+                                    val destination = destinationResult.getOrNull()
+                                    if (destinationResult.isFailure || destination == null) {
+                                        ActionResult.Failure(destinationResult.exceptionOrNull()?.message ?: "Failed to resolve link")
+                                    } else {
+                                        context.destinationStateHolder?.navigate(destination)?.let {
+                                            ActionResult.Success()
+                                        } ?: ActionResult.Inapplicable
+                                    }
+                                }
                             }
                         } ?: ActionResult.Inapplicable
                     }

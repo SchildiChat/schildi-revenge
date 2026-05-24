@@ -464,6 +464,7 @@ class CommandSuggestionsProvider(
                 ActionArgumentPrimitive.RoomAliasNotJoined,
                 ActionArgumentPrimitive.ServerName,
                 ActionArgumentPrimitive.SpaceOrder,
+                ActionArgumentPrimitive.MatrixToLink,
                 ActionArgumentPrimitive.Json,
                 ActionArgumentPrimitive.AccountDataType,
                 ActionArgumentPrimitive.RoomAccountDataType,

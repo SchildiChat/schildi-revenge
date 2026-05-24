@@ -84,9 +84,11 @@ import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.REAL_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.RevengeSpaceListDataSource
 import chat.schildi.revenge.notification.NotifiableRoomSubscriber
+import chat.schildi.revenge.toDestination
 import chat.schildi.revenge.toPrettyJson
 import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
+import com.beeper.android.messageformat.MatrixToLink
 import io.element.android.libraries.core.coroutine.childScope
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.MatrixPatterns
@@ -125,6 +127,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import org.jetbrains.compose.resources.getString
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_cancel
 import shire.composeapp.generated.resources.action_processing
@@ -137,6 +140,7 @@ import shire.composeapp.generated.resources.command_copy_name_full_account_data
 import shire.composeapp.generated.resources.command_external_application_launched
 import shire.composeapp.generated.resources.command_not_applicable
 import shire.composeapp.generated.resources.command_not_found
+import shire.composeapp.generated.resources.failed_to_resolve_room
 import shire.composeapp.generated.resources.toast_room_created
 import java.awt.Desktop
 import java.awt.Toolkit
@@ -1947,6 +1951,27 @@ class KeyboardActionHandler(
                         }
                     }
                 }
+                Action.Global.ConsumeLink -> {
+                    val link = args.firstOrNull()?.let {
+                        com.beeper.android.messageformat.MatrixPatterns.parseMatrixToUrl(it, true)
+                    }.orActionValidationError()
+                    context.launchActionAsync(
+                        "consumeLink/$link",
+                        GlobalActionsScope,
+                        Dispatchers.IO,
+                        "consumeLink/$link",
+                    ) {
+                        val destination = Destination.SessionSelector { sessionId ->
+                            when (link) {
+                                is MatrixToLink.MessageLink -> link.toDestination(sessionId)
+                                is MatrixToLink.RoomLink -> link.toDestination(sessionId)
+                                is MatrixToLink.UserMention -> Result.success(link.toDestination(sessionId, null))
+                            }
+                        }
+                        UiState.openWindow(destination)
+                        ActionResult.Success()
+                    }
+                }
             }
         }
     }
@@ -2728,7 +2753,7 @@ fun checkArgument(
     return when (argDef) {
         is ActionArgumentAnyOf -> {
             if (argDef.arguments.any {
-                checkArgument(actionName, it, argVal, context, lookahead, validSessionIds) != null
+                checkArgument(actionName, it, argVal, context, lookahead, validSessionIds) == null
             }) {
                 null
             } else {
@@ -2758,6 +2783,18 @@ fun checkArgument(
         ActionArgumentPrimitive.ServerName,
         ActionArgumentPrimitive.SpaceOrder,
         ActionArgumentPrimitive.Text -> null
+        ActionArgumentPrimitive.MatrixToLink -> {
+            try {
+                val link = com.beeper.android.messageformat.MatrixPatterns.parseMatrixToUrl(argVal, true)
+                if (link == null) {
+                    ActionResult.Malformed("Invalid matrix.to URL")
+                } else {
+                    null
+                }
+            } catch (e: Exception) {
+                ActionResult.Malformed("Invalid matrix.to URL: $e")
+            }
+        }
         ActionArgumentPrimitive.Json -> {
             try {
                 Json.parseToJsonElement(argVal)

@@ -563,5 +563,6 @@
     <string name="room_preview_membership_knocked">You have knocked on this room.</string>
 
     <string name="room_preview_failed">Failed to fetch room preview</string>
+    <string name="failed_to_resolve_room">Failed to resolve room</string>
 
 </resources>

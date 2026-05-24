@@ -195,7 +195,7 @@ sealed interface Destination {
     }
 
     data class SessionSelector(
-        val destinationBuilder: (SessionId) -> Destination,
+        val destinationBuilder: suspend (SessionId) -> Result<Destination>,
     ) : Destination {
         override val type = DestinationEnum.SessionSelector
         override val title = StringResourceHolder(Res.string.select_account)

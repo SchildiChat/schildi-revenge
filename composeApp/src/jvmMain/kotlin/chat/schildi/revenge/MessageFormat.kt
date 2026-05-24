@@ -4,6 +4,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.RoundRect
@@ -14,7 +15,6 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
@@ -23,10 +23,13 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.sp
-import chat.schildi.revenge.actions.InteractionAction
+import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
+import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.compose.components.LocalSessionId
+import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.revenge.util.tryOrNull
 import chat.schildi.theme.scExposures
 import com.beeper.android.messageformat.DefaultMatrixBodyStyledFormatter
 import com.beeper.android.messageformat.DrawPosition
@@ -37,12 +40,18 @@ import com.beeper.android.messageformat.MatrixBodyStyledFormatter
 import com.beeper.android.messageformat.MatrixHtmlParser
 import com.beeper.android.messageformat.MatrixToLink
 import com.beeper.android.messageformat.SpanAttributes
+import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.matrix.api.core.RoomIdOrAlias
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.launch
+import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.failed_to_resolve_room
+import kotlin.jvm.optionals.getOrNull
 
 object MessageFormatDefaults {
     val blockIndention = 16.sp
@@ -105,6 +114,8 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
     val urlHandler = LocalUriHandler.current
     val keyHandler = LocalKeyboardActionHandler.current
     val destinationStateHolder = LocalDestinationState.current
+    val scope = rememberCoroutineScope()
+    val actionContext = currentActionContext()
     return remember(
         density,
         textMeasurer,
@@ -117,6 +128,7 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
         urlHandler,
         keyHandler,
         destinationStateHolder,
+        actionContext,
     ) {
         val urlStyle = TextLinkStyles(SpanStyle(color = linkColor))
         object : DefaultMatrixBodyStyledFormatter(
@@ -159,7 +171,21 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
                         return@Clickable
                     }
                     sessionId ?: return@Clickable
-                    destinationStateHolder?.navigate(roomLink.toDestination(sessionId))
+                    scope.launch {
+                        val result = roomLink.toDestination(sessionId)
+                        val destination = result.getOrNull()
+                        if (result.isFailure || destination == null) {
+                            actionContext.publishMessage(
+                                AppMessage(
+                                    result.exceptionOrNull()?.message?.toStringHolder()
+                                        ?: Res.string.failed_to_resolve_room.toStringHolder(),
+                                    isError = true,
+                                )
+                            )
+                        } else {
+                            destinationStateHolder?.navigate(destination)
+                        }
+                    }
                 }
             )
 
@@ -172,25 +198,77 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
                         return@Clickable
                     }
                     sessionId ?: return@Clickable
-                    destinationStateHolder?.navigate(messageLink.toDestination(sessionId))
+                    scope.launch {
+                        val result = messageLink.toDestination(sessionId)
+                        val destination = result.getOrNull()
+                        if (result.isFailure || destination == null) {
+                            actionContext.publishMessage(
+                                AppMessage(
+                                    result.exceptionOrNull()?.message?.toStringHolder()
+                                        ?: Res.string.failed_to_resolve_room.toStringHolder(),
+                                    isError = true,
+                                )
+                            )
+                        } else {
+                            destinationStateHolder?.navigate(destination)
+                        }
+                    }
                 }
             )
         }
     }
 }
 
-fun MatrixToLink.RoomLink.toDestination(sessionId: SessionId) = Destination.Conversation(
-    sessionId = sessionId,
-    roomId = RoomId(roomId),
-    joinServerNames = via?.toPersistentList(),
-)
+suspend fun MatrixToLink.RoomLink.toDestination(
+    sessionId: SessionId,
+    client: MatrixClient? = UiState.currentClientFor(sessionId),
+): Result<Destination.Conversation> {
+    val safeRoomId = try {
+        when (val roomIdOrAlias = RoomIdOrAlias.from(roomId)) {
+            is RoomIdOrAlias.Alias -> client?.resolveRoomAlias(roomIdOrAlias.roomAlias)?.let {
+                it.getOrNull()?.getOrNull()?.roomId
+                    ?: return Result.failure(it.exceptionOrNull() ?: RuntimeException("Failed to resolve room alias"))
+            } ?: return Result.failure(RuntimeException("Failed to resolve room alias"))
+            is RoomIdOrAlias.Id -> roomIdOrAlias.roomId
+            null -> return Result.failure(IllegalArgumentException("Not a valid room ID"))
+        }
+    } catch (e: Exception) {
+        return Result.failure(e)
+    }
+    return Result.success(
+        Destination.Conversation(
+            sessionId = sessionId,
+            roomId = safeRoomId,
+            joinServerNames = via?.toPersistentList(),
+        )
+    )
+}
 
-fun MatrixToLink.MessageLink.toDestination(sessionId: SessionId) = Destination.Conversation(
-    sessionId = sessionId,
-    roomId = RoomId(roomId),
-    timelineParams = CreateTimelineParams.Focused(EventId(messageId)),
-    joinServerNames = via?.toPersistentList(),
-)
+suspend fun MatrixToLink.MessageLink.toDestination(
+    sessionId: SessionId,
+    client: MatrixClient? = UiState.currentClientFor(sessionId),
+): Result<Destination.Conversation> {
+    val safeRoomId = try {
+        when (val roomIdOrAlias = RoomIdOrAlias.from(roomId)) {
+            is RoomIdOrAlias.Alias -> client?.resolveRoomAlias(roomIdOrAlias.roomAlias)?.let {
+                it.getOrNull()?.getOrNull()?.roomId
+                    ?: return Result.failure(it.exceptionOrNull() ?: RuntimeException("Failed to resolve room alias"))
+            } ?: return Result.failure(RuntimeException("Failed to resolve room alias"))
+            is RoomIdOrAlias.Id -> roomIdOrAlias.roomId
+            null -> return Result.failure(IllegalArgumentException("Not a valid room ID"))
+        }
+    } catch (e: Exception) {
+        return Result.failure(e)
+    }
+    return Result.success(
+        Destination.Conversation(
+            sessionId = sessionId,
+            roomId = safeRoomId,
+            timelineParams = CreateTimelineParams.Focused(EventId(messageId)),
+            joinServerNames = via?.toPersistentList(),
+        )
+    )
+}
 
 fun MatrixToLink.UserMention.toDestination(sessionId: SessionId, roomId: RoomId?) = Destination.UserDetails(
     sessionId = sessionId,

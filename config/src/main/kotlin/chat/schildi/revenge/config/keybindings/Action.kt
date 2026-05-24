@@ -95,6 +95,7 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     RoomName(consumesTrailingArgsWithSpace = true),
     RoomTopic(consumesTrailingArgsWithSpace = true),
     RoomNotificationSetting,
+    MatrixToLink,
     SpaceOrder,
     SpaceCatchAllMode,
     FocusRole,
@@ -102,6 +103,11 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     override fun possiblePrimitives(context: CommandArgContext) = listOf(this)
     override fun canHold(primitive: ActionArgumentPrimitive) = primitive == this
 }
+
+private val DeepLink = ActionArgumentAnyOf(
+    ActionArgumentPrimitive.MatrixToLink,
+    // TODO support matrix:// and schildichat:// scheme too
+)
 
 private val SessionIdOrIndex =
     ActionArgumentAnyOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.SessionIndex)
@@ -180,6 +186,7 @@ sealed interface Action {
         InspectFocusable(aliases = listOf("inspect")),
         Join(args = listOf(ActionArgumentPrimitive.SessionId, UnjoinedRoom, ViaServerVararg)),
         VerifyUser(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.UserId)),
+        ConsumeLink(args = listOf(DeepLink)),
     }
     enum class AppMessage(
         override val aliases: kotlin.collections.List<String> = emptyList(),

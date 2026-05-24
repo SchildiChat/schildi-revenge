@@ -17,7 +17,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -47,10 +49,15 @@ import chat.schildi.revenge.model.SessionSelectorAccount
 import chat.schildi.revenge.model.SessionSelectorViewModel
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
+import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.media.MediaSource
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.action_processing
 import shire.composeapp.generated.resources.empty_screen_placeholder_unexpected
+import shire.composeapp.generated.resources.failed_to_resolve_room
 import shire.composeapp.generated.resources.select_account
 
 @Composable
@@ -68,14 +75,30 @@ fun SessionSelectorScreen(
     val destinationState = LocalDestinationState.current
     val accounts = viewModel.accounts.collectAsState().value
     val filteredAccounts = viewModel.filteredAccounts.collectAsState().value
+
+    val didNavigate = remember { mutableStateOf(false) }
+    val error = remember { mutableStateOf<String?>(null) }
+
+    suspend fun navigateToSessionDestination(sessionId: SessionId) {
+        didNavigate.value = true
+        val result = destination.destinationBuilder(sessionId)
+        val destination = result.getOrNull()
+        if (result.isFailure || destination == null) {
+            error.value = result.exceptionOrNull()?.message ?: getString(Res.string.failed_to_resolve_room)
+        } else {
+            destinationState?.navigate(destination, NavigationPreference.REPLACE)
+        }
+    }
+
     LaunchedEffect(accounts, destination, destinationState) {
         val loadedAccounts = accounts ?: return@LaunchedEffect
         when (loadedAccounts.size) {
             0 -> destinationState?.navigate(Destination.AccountManagement, NavigationPreference.REPLACE)
-            1 -> destinationState?.navigate(destination.destinationBuilder(loadedAccounts.single().sessionId), NavigationPreference.REPLACE)
+            1 -> navigateToSessionDestination(loadedAccounts.single().sessionId)
         }
     }
 
+    val scope = rememberCoroutineScope()
     val listState = rememberLazyListState()
     FocusContainer(
         LocalSearchProvider provides viewModel,
@@ -92,11 +115,17 @@ fun SessionSelectorScreen(
                 val renderedAccounts = filteredAccounts?.accounts
                 if (renderedAccounts.isNullOrEmpty()) {
                     EmptyListScreen(
-                        title = Res.string.empty_screen_placeholder_unexpected.toStringHolder(),
+                        title = Res.string.action_processing.toStringHolder(),
                         icon = rememberVectorPainter(Icons.Default.AccountCircle),
                         renderedSearchTerm = filteredAccounts?.searchTerm,
-                        isLoading = accounts == null || filteredAccounts == null,
+                        isLoading = accounts == null || filteredAccounts == null || didNavigate.value,
                         modifier = contentModifier.fillMaxSize(),
+                    )
+                } else if (error.value != null) {
+                    Text(
+                        error.value ?: "",
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodyLarge,
                     )
                 } else {
                     LazyColumn(
@@ -107,10 +136,9 @@ fun SessionSelectorScreen(
                             SessionSelectorRow(
                                 account = account,
                                 onClick = {
-                                    destinationState?.navigate(
-                                        destination.destinationBuilder(account.sessionId),
-                                        NavigationPreference.REPLACE,
-                                    )
+                                    scope.launch {
+                                        navigateToSessionDestination(account.sessionId)
+                                    }
                                 },
                             )
                         }
