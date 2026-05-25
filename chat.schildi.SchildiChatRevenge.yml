@@ -4,7 +4,7 @@ runtime-version: '25.08'
 sdk: org.freedesktop.Sdk
 sdk-extensions:
   - org.freedesktop.Sdk.Extension.openjdk
-command: /app/bin/SchildiChatRevenge
+command: /app/bin/schildichat-revenge
 modules:
   - name: install-openjdk
     buildsystem: simple
@@ -14,11 +14,11 @@ modules:
     buildsystem: simple
     build-commands:
       - mkdir -p /app/{bin,lib}
-      - install -Dm755 bin/SchildiChatRevenge /app/bin/SchildiChatRevenge
+      - install -Dm755 bin/schildichat-revenge /app/bin/schildichat-revenge
       - cp -a lib/* /app/lib
     sources:
       - type: dir
-        path: composeApp/build/compose/binaries/main-release/app/SchildiChatRevenge
+        path: composeApp/build/compose/binaries/main-release/app/schildichat-revenge
   - name: install-desktop-app
     sources:
       - type: dir
@@ -26,7 +26,7 @@ modules:
     buildsystem: simple
     build-commands:
       - mkdir -p /app/share/applications 
-      - cp SchildiChatRevenge.desktop /app/share/applications/chat.schildi.SchildiChatRevenge.desktop
+      - cp schildichat-revenge.desktop /app/share/applications/chat.schildi.SchildiChatRevenge.desktop
       - sed -i 's/^Icon=.*$/Icon=chat.schildi.SchildiChatRevenge/' /app/share/applications/chat.schildi.SchildiChatRevenge.desktop
   - name: install-icon
     sources:
