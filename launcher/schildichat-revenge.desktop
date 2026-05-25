@@ -2,8 +2,9 @@
 Type=Application
 Name=SchildiChat Revenge
 Comment=Matrix chat client
-Exec=schildichat-revenge
+Exec=schildichat-revenge %u
 Icon=schildichat-revenge
 Categories=Network;Chat;InstantMessaging;
+MimeType=x-scheme-handler/matrix;
 Terminal=false
 StartupWMClass=chat-schildi-revenge-MainKt

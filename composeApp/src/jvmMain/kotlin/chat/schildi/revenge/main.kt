@@ -42,7 +42,7 @@ class MainCommand : CliktCommand("schildi-revenge") {
             ComposeApp.main(startInTray)
         } else {
             val joinedCommand = when {
-                command.size == 1 && MatrixPatterns.parseMatrixToUrl(command.first(), true) != null -> {
+                command.size == 1 && MatrixPatterns.parseMatrixLink(command.first(), true) != null -> {
                     "${Action.Global.ConsumeLink.name} ${command.first()}"
                 }
                 else -> command.joinToString(separator = " ")

@@ -1953,7 +1953,7 @@ class KeyboardActionHandler(
                 }
                 Action.Global.ConsumeLink -> {
                     val rawLink = args.firstOrNull().orActionValidationError()
-                    val link = com.beeper.android.messageformat.MatrixPatterns.parseMatrixToUrl(rawLink, true)
+                    val link = com.beeper.android.messageformat.MatrixPatterns.parseMatrixLink(rawLink, true)
                         .orActionValidationError()
                     context.launchActionAsync(
                         "consumeLink/$link",
@@ -2783,6 +2783,18 @@ fun checkArgument(
         ActionArgumentPrimitive.ServerName,
         ActionArgumentPrimitive.SpaceOrder,
         ActionArgumentPrimitive.Text -> null
+        ActionArgumentPrimitive.MatrixLink -> {
+            try {
+                val link = com.beeper.android.messageformat.MatrixPatterns.parseMatrixUri(argVal, true)
+                if (link == null) {
+                    ActionResult.Malformed("Invalid matrix URI")
+                } else {
+                    null
+                }
+            } catch (e: Exception) {
+                ActionResult.Malformed("Invalid matrix URI: $e")
+            }
+        }
         ActionArgumentPrimitive.MatrixToLink -> {
             try {
                 val link = com.beeper.android.messageformat.MatrixPatterns.parseMatrixToUrl(argVal, true)

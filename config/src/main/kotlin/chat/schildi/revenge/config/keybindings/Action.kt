@@ -95,6 +95,7 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     RoomName(consumesTrailingArgsWithSpace = true),
     RoomTopic(consumesTrailingArgsWithSpace = true),
     RoomNotificationSetting,
+    MatrixLink,
     MatrixToLink,
     SpaceOrder,
     SpaceCatchAllMode,
@@ -105,8 +106,9 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
 }
 
 private val DeepLink = ActionArgumentAnyOf(
+    ActionArgumentPrimitive.MatrixLink,
     ActionArgumentPrimitive.MatrixToLink,
-    // TODO support matrix:// and schildichat:// scheme too
+    // TODO support schildichat:// scheme too?
 )
 
 private val SessionIdOrIndex =
