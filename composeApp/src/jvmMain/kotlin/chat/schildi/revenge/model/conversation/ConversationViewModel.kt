@@ -281,6 +281,7 @@ class ConversationViewModel(
 
     val initialTargetEvent: EventId? =
         (timelineParams as? CreateTimelineParams.Focused)?.focusedEventId
+    val threadId = (timelineParams as? CreateTimelineParams.Threaded)?.threadRootEventId
 
     private val loadStateHolder = LoadStateHolder(
         LoadCheckPoint.Client(sessionId),
@@ -1801,7 +1802,7 @@ class ConversationViewModel(
         }
         return controller.focusOnEvent(
             eventId,
-            (timelineParams as? CreateTimelineParams.Threaded)?.threadRootEventId,
+            threadId,
             timelineFilterSettings.value.preferHideThreadedEvents
                 // Shouldn't happen
                 ?: ScPrefs.THREAD_REPLIES_IN_MAIN_TIMELINE.defaultValue
@@ -2145,8 +2146,27 @@ class ConversationViewModel(
                                     }
                                     val destination = destinationResult.getOrNull()
                                     if (destinationResult.isFailure || destination == null) {
-                                        ActionResult.Failure(destinationResult.exceptionOrNull()?.message ?: "Failed to resolve link")
+                                        ActionResult.Failure(
+                                            destinationResult.exceptionOrNull()?.message ?: "Failed to resolve link"
+                                        )
                                     } else {
+                                        // Follow same-room event links directly
+                                        if (destination is Destination.Conversation) {
+                                            if (destination.sessionId == sessionId
+                                                && destination.roomId == roomId
+                                                && (timelineParams == null || timelineParams is CreateTimelineParams.Focused)
+                                            ) {
+                                                when (val params = destination.timelineParams) {
+                                                    is CreateTimelineParams.Focused -> {
+                                                        return@launchActionAsync focusOnEvent(params.focusedEventId).toActionResult()
+                                                    }
+                                                    null -> {
+                                                        return@launchActionAsync ActionResult.Inapplicable
+                                                    }
+                                                    else -> {}
+                                                }
+                                            }
+                                        }
                                         context.destinationStateHolder?.navigate(destination)?.let {
                                             ActionResult.Success()
                                         } ?: ActionResult.Inapplicable
@@ -2274,7 +2294,7 @@ class ConversationViewModel(
                 ActionArgumentPrimitive.SessionId to sessionId.value,
                 ActionArgumentPrimitive.RoomId to roomId.value,
                 eventId?.value?.let { ActionArgumentPrimitive.EventId to it },
-                (((timelineParams as? CreateTimelineParams.Threaded)?.threadRootEventId ?: (event.threadInfo() as? EventThreadInfo.ThreadResponse)?.threadRootId)?.value ?: event.eventId?.value)?.let {
+                ((threadId ?: (event.threadInfo() as? EventThreadInfo.ThreadResponse)?.threadRootId)?.value ?: event.eventId?.value)?.let {
                     ActionArgumentPrimitive.ThreadId to it
                 },
             )
