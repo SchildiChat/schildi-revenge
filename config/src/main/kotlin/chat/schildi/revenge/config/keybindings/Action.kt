@@ -54,7 +54,7 @@ enum class ActionRoomNotificationSetting(val aliases: List<String> = emptyList()
 
 enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: Boolean = false) : ActionArgument {
     Text,
-    Reason,
+    Reason(consumesTrailingArgsWithSpace = true),
     Boolean,
     Integer,
     PositiveOffset,
