@@ -278,6 +278,10 @@ class ConversationViewModel(
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
 ) : ViewModel(), TitleProvider, SearchProvider, UserIdSuggestionsProvider, ComposerViewModel, RoomPreviewViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
+
+    val initialTargetEvent: EventId? =
+        (timelineParams as? CreateTimelineParams.Focused)?.focusedEventId
+
     private val loadStateHolder = LoadStateHolder(
         LoadCheckPoint.Client(sessionId),
         LoadCheckPoint.Room,
@@ -290,7 +294,9 @@ class ConversationViewModel(
 
     private val clientFlow = UiState.selectClient(sessionId, viewModelScope, loadStateHolder)
 
-    private val _targetEvent = MutableStateFlow<EventJumpTarget?>(EventJumpTarget.Index(0))
+    private val _targetEvent = MutableStateFlow<EventJumpTarget?>(
+        initialTargetEvent?.let(EventJumpTarget::Event) ?: EventJumpTarget.Index(0)
+    )
     val targetEvent = _targetEvent.asStateFlow()
 
     private val timelineFilterSettings = scPreferencesStore.combinedSettingFlow { lookup ->
