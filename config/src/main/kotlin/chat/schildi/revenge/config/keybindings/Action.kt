@@ -324,6 +324,7 @@ sealed interface Action {
         InviteUser(aliases = listOf("invite"), args = listOf(ActionArgumentPrimitive.UserIdNotInRoom)),
         BanUser(aliases = listOf("ban"), args = listOf(ActionArgumentPrimitive.UserIdInRoom, OptionalReason)),
         UnbanUser(aliases = listOf("unban"), args = listOf(ActionArgumentPrimitive.UserIdNotInRoom, OptionalReason)),
+        InviteOrKickUser(aliases = listOf("kickOrInvite"), args = listOf(ActionArgumentPrimitive.UserId, OptionalReason)),
         CopyFullRoomState(aliases = listOf("roomState", "copyRoomState")),
         ViewFullRoomState(aliases = listOf("viewRoomState")),
     }

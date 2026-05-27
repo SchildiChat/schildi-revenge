@@ -110,6 +110,7 @@ import io.element.android.libraries.matrix.api.room.IntentionalMention
 import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.room.MessageEventType
 import io.element.android.libraries.matrix.api.room.RoomInfo
+import io.element.android.libraries.matrix.api.room.RoomMembershipState
 import io.element.android.libraries.matrix.api.room.powerlevels.permissionsFlow
 import io.element.android.libraries.matrix.api.room.preview.RoomPreviewInfo
 import io.element.android.libraries.matrix.api.room.roomMembers
@@ -1494,6 +1495,33 @@ class ConversationViewModel(
                         appMessageId = "unbanUser",
                     ) {
                         room.unbanUser(userId, reason).toActionResult(async = true)
+                    }
+                }
+
+                Action.Conversation.InviteOrKickUser -> { // TODO drop once we have scripting support or something?
+                    val room = joinedRoom.value ?: return@run ActionResult.Failure("Room not ready")
+                    val userId = UserId(args.firstOrNull().orActionValidationError())
+                    val reason = if (args.size > 1) {
+                        args.subList(1, args.size).joinToString().takeIf(String::isNotBlank)
+                    } else {
+                        null
+                    }
+                    launchActionAsync(
+                        "inviteOrKickUser",
+                        GlobalActionsScope,
+                        Dispatchers.IO,
+                        notifyProcessing = true,
+                        appMessageId = "inviteOrKickUser",
+                    ) {
+                        when (roomMembersById.value[userId]?.membership) {
+                            null,
+                            RoomMembershipState.KNOCK,
+                            RoomMembershipState.LEAVE -> room.inviteUserById(userId).toActionResult(async = true)
+                            RoomMembershipState.INVITE,
+                            RoomMembershipState.JOIN -> room.kickUser(userId, reason).toActionResult(async = true)
+                            RoomMembershipState.BAN -> room.unbanUser(userId, reason).toActionResult(async = true)
+                        }
+
                     }
                 }
 
