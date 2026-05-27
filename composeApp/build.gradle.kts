@@ -1,6 +1,5 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.gradle.api.DefaultTask
-import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.RegularFileProperty
@@ -8,6 +7,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
@@ -252,18 +252,12 @@ abstract class GenerateAvailableLocalesTask : DefaultTask() {
     }
 }
 
-abstract class PackagePacmanTask : DefaultTask() {
+abstract class SyncLinuxPackageRootTask : DefaultTask() {
     @get:Inject
     abstract val fileSystemOperations: FileSystemOperations
 
     @get:Input
     abstract val packageNameValue: Property<String>
-
-    @get:Input
-    abstract val appVersion: Property<String>
-
-    @get:Input
-    abstract val appDescription: Property<String>
 
     @get:Input
     abstract val xWaylandDesktopId: Property<String>
@@ -280,21 +274,17 @@ abstract class PackagePacmanTask : DefaultTask() {
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val desktopFile: RegularFileProperty
 
-    @get:Input
-    abstract val outputFileName: Property<String>
-
-    @get:OutputFile
-    abstract val outputFile: RegularFileProperty
+    @get:OutputDirectory
+    abstract val outputDirectory: DirectoryProperty
 
     @TaskAction
-    fun packagePacman() {
+    fun syncRoot() {
         val packageName = packageNameValue.get()
-        val pkgRoot = temporaryDir.resolve("pkgroot")
+        val pkgRoot = outputDirectory.get().asFile
         val optAppDir = pkgRoot.resolve("opt/$packageName")
 
         pkgRoot.deleteRecursively()
-        outputFile.get().asFile.delete()
-        outputFile.get().asFile.parentFile.mkdirs()
+        pkgRoot.mkdirs()
 
         fileSystemOperations.copy {
             from(appDirectory)
@@ -303,8 +293,7 @@ abstract class PackagePacmanTask : DefaultTask() {
         installLauncher(pkgRoot, packageName)
         installDesktopEntries(pkgRoot, packageName, xWaylandDesktopId.get())
         installIcons(pkgRoot, packageName)
-        writePackageInfo(pkgRoot, packageName)
-        createArchive(pkgRoot)
+        logger.lifecycle("Synced Linux package root to ${pkgRoot.absolutePath}")
     }
 
     private fun installLauncher(pkgRoot: File, packageName: String) {
@@ -369,57 +358,6 @@ abstract class PackagePacmanTask : DefaultTask() {
                 Files.copy(source.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
             }
         }
-    }
-
-    private fun writePackageInfo(pkgRoot: File, packageName: String) {
-        val packageSize = pkgRoot.walkTopDown()
-            .filter { it.isFile }
-            .sumOf { it.length() }
-        pkgRoot.resolve(".PKGINFO").writeText(
-            buildString {
-                appendLine("pkgname = $packageName")
-                appendLine("pkgbase = $packageName")
-                appendLine("pkgver = ${appVersion.get()}-1")
-                appendLine("pkgdesc = ${appDescription.get()}")
-                appendLine("url = https://github.com/SchildiChat/schildichat-revenge")
-                appendLine("builddate = ${System.currentTimeMillis() / 1000}")
-                appendLine("packager = SchildiChat Revenge Gradle build")
-                appendLine("size = $packageSize")
-                appendLine("arch = x86_64")
-                appendLine("license = AGPL-3.0-only")
-            }
-        )
-    }
-
-    private fun createArchive(pkgRoot: File) {
-        val command = listOf(
-            "bsdtar",
-            "--zstd",
-            "--uid",
-            "0",
-            "--gid",
-            "0",
-            "--uname",
-            "root",
-            "--gname",
-            "root",
-            "-cf",
-            outputFile.get().asFile.absolutePath,
-            "-C",
-            pkgRoot.absolutePath,
-            ".PKGINFO",
-            "opt",
-            "usr",
-        )
-        val process = ProcessBuilder(command)
-            .redirectErrorStream(true)
-            .start()
-        val output = process.inputStream.bufferedReader().readText()
-        val exitCode = process.waitFor()
-        if (exitCode != 0) {
-            throw GradleException("Failed to create Pacman package with `${command.joinToString(" ")}`:\n$output")
-        }
-        logger.lifecycle("Created ${outputFileName.get()}")
     }
 
 }
@@ -500,9 +438,6 @@ compose.desktop {
         nativeDistributions {
             modules("java.management", "jdk.security.auth")
             targetFormats(
-                TargetFormat.Deb,
-                TargetFormat.AppImage,
-                TargetFormat.Rpm,
                 TargetFormat.Exe,
                 TargetFormat.Msi,
                 // TargetFormat.Dmg, // Needs Apple volunteers
@@ -511,6 +446,12 @@ compose.desktop {
             packageVersion = calVer
             vendor = "SchildiChat"
             description = "SchildiChat Revenge"
+
+            fileAssociation(
+                mimeType = "x-scheme-handler/matrix",
+                extension = "matrix",
+                description = "Matrix URI",
+            )
 
             appResourcesRootDir.set(distributionResourcesDir)
 
@@ -536,20 +477,16 @@ compose.desktop {
     }
 }
 
-val pacmanPackageFileName = "$linuxPackageName-$calVer-1-x86_64.pkg.tar.zst"
-val packageReleasePacman = tasks.register<PackagePacmanTask>("packageReleasePacman") {
-    description = "Build a release package installable with pacman on Arch Linux"
+val syncReleaseLinuxPackageRoot = tasks.register<SyncLinuxPackageRootTask>("syncReleaseLinuxPackageRoot") {
+    description = "Build the common Linux package filesystem root used by nfpm"
     group = "distribution"
 
     packageNameValue.set(linuxPackageName)
-    appVersion.set(calVer)
-    appDescription.set("Matrix chat client")
     xWaylandDesktopId.set(linuxXWaylandDesktopId)
     appDirectory.set(layout.buildDirectory.dir("compose/binaries/main-release/app/$nativePackageName"))
     composeResourcesDirectory.set(composeResourcesDir)
     desktopFile.set(layout.projectDirectory.file("../launcher/$linuxPackageName.desktop"))
-    outputFileName.set(pacmanPackageFileName)
-    outputFile.set(layout.buildDirectory.file("compose/binaries/main-release/pacman/$pacmanPackageFileName"))
+    outputDirectory.set(layout.buildDirectory.dir("compose/binaries/main-release/linux-package-root"))
 
     dependsOn(tasks.named("createReleaseDistributable"))
 }

@@ -1,0 +1,48 @@
+name: schildichat-revenge
+arch: amd64
+platform: linux
+version: ${VERSION}
+version_schema: none
+section: net
+priority: optional
+maintainer: SpiritCroc <shire@spiritcroc.de>
+description: Matrix chat client
+vendor: SchildiChat
+homepage: https://github.com/SchildiChat/schildichat-revenge
+license: AGPL-3.0-only
+
+contents:
+  - src: ./composeApp/build/compose/binaries/main-release/linux-package-root/opt/schildichat-revenge/
+    dst: /opt/schildichat-revenge/
+    type: tree
+    file_info: &root_info
+      owner: root
+      group: root
+  - src: ./composeApp/build/compose/binaries/main-release/linux-package-root/usr/bin/schildichat-revenge
+    dst: /usr/bin/schildichat-revenge
+    file_info:
+      <<: *root_info
+      mode: 0755
+  - src: ./composeApp/build/compose/binaries/main-release/linux-package-root/usr/share/applications/schildichat-revenge.desktop
+    dst: /usr/share/applications/schildichat-revenge.desktop
+    file_info: &root_file_info
+      <<: *root_info
+      mode: 0644
+  - src: ./composeApp/build/compose/binaries/main-release/linux-package-root/usr/share/applications/chat-schildi-revenge-MainKt.desktop
+    dst: /usr/share/applications/chat-schildi-revenge-MainKt.desktop
+    file_info: *root_file_info
+  - src: ./composeApp/build/compose/binaries/main-release/linux-package-root/usr/share/icons/hicolor/48x48/apps/schildichat-revenge.png
+    dst: /usr/share/icons/hicolor/48x48/apps/schildichat-revenge.png
+    file_info: *root_file_info
+  - src: ./composeApp/build/compose/binaries/main-release/linux-package-root/usr/share/icons/hicolor/72x72/apps/schildichat-revenge.png
+    dst: /usr/share/icons/hicolor/72x72/apps/schildichat-revenge.png
+    file_info: *root_file_info
+  - src: ./composeApp/build/compose/binaries/main-release/linux-package-root/usr/share/icons/hicolor/96x96/apps/schildichat-revenge.png
+    dst: /usr/share/icons/hicolor/96x96/apps/schildichat-revenge.png
+    file_info: *root_file_info
+  - src: ./composeApp/build/compose/binaries/main-release/linux-package-root/usr/share/icons/hicolor/144x144/apps/schildichat-revenge.png
+    dst: /usr/share/icons/hicolor/144x144/apps/schildichat-revenge.png
+    file_info: *root_file_info
+  - src: ./composeApp/build/compose/binaries/main-release/linux-package-root/usr/share/icons/hicolor/192x192/apps/schildichat-revenge.png
+    dst: /usr/share/icons/hicolor/192x192/apps/schildichat-revenge.png
+    file_info: *root_file_info

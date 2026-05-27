@@ -245,10 +245,10 @@ build (which is intended).
 
 [For now, no cross-compilation for Windows targets from Linux](https://youtrack.jetbrains.com/issue/CMP-2918).
 
-For Linux releases:
+For Linux releases (requires to have `nfpm` and `appimagetool` installed):
 
 ```
-./package_appimage.sh
+./package_linux_releases.sh
 ```
 
 For Windows releases:
@@ -259,8 +259,8 @@ For Windows releases:
 
 ## Running as Flatpak
 
-While there is no plan to release SchildiChat on Flathub for the moment, if you prefer to run it as a Flatpak instead
-of an AppImage you can use the `install_flatpak.sh` script:
+While there is no plan to release SchildiChat on Flathub for the moment, if you prefer to run it as a Flatpak you can use the
+`install_flatpak.sh` script:
 
 ```
 sudo apt install magick flatpak-builder # or your distro equivalent
@@ -269,8 +269,8 @@ flatpak install flathub org.freedesktop.Sdk//25.08 org.freedesktop.Platform//25.
 ```
 
 This will build the Flatpak and install it locally.
-Note this is mode of operation is not officially supported, so when running into issues please check against the AppImage
-first, and include your findings in the bug report.
+Note this is mode of operation is not officially supported, so when running into issues please check against an official
+build first, and include your findings in the bug report.
 
 ## Upstream SDK merges
 

@@ -11,7 +11,7 @@ done
 
 echo "[+] Building bundle"
 ./gradlew clean
-./gradlew packageReleaseAppImage
+./gradlew createReleaseDistributable
 
 echo "[+] Building icons"
 mkdir -p composeApp/build/graphics

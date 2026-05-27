@@ -2,9 +2,11 @@
 
 set -e
 
-./package_pacman.sh
+app_version="git"
 
-file=`ls -Art "release/"*.pkg.tar.zst | tail -n 1`
+./package_linux_releases.sh -f "$app_version"
+
+file=`ls -Art "release/$app_version/"*.pkg.tar.zst | tail -n 1`
 
 echo "Installing $file"
 
