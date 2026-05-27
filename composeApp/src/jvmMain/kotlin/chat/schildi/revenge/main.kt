@@ -38,17 +38,35 @@ class MainCommand : CliktCommand("schildi-revenge") {
     }
     override fun run() {
         if (command.isEmpty()) {
-            SingleInstance.ensureSingleInstanceOrExit(startInTray)
-            ComposeApp.main(startInTray)
+            launchMainApp()
         } else {
+            var allowLaunchFromCommand = false
             val joinedCommand = when {
                 command.size == 1 && MatrixPatterns.parseMatrixLink(command.first(), true) != null -> {
+                    allowLaunchFromCommand = true
                     "${Action.Global.ConsumeLink.name} ${command.first()}"
                 }
                 else -> command.joinToString(separator = " ")
             }
             val success = SingleInstance.notifyExistingInstance(joinedCommand)
-            exitProcess(if (success) 0 else 1)
+            if (!success && allowLaunchFromCommand) {
+                Logger.withTag("main").i("Failed to pass action to running instance, trying to launch new")
+                // We usually allow launching from command if it opens a new window, so force start-in-tray here
+                // to avoid getting two windows
+                launchMainApp(startInTray = true, initialCommand = joinedCommand)
+            } else {
+                exitProcess(if (success) 0 else 1)
+            }
         }
+    }
+
+    private fun launchMainApp(
+        startInTray: Boolean = this.startInTray,
+        initialCommand: String? = null,
+    ) {
+        SingleInstance.ensureSingleInstanceOrExit(
+            openExistingInstance = initialCommand == null && !startInTray,
+        )
+        ComposeApp.main(startInTray, initialCommand)
     }
 }

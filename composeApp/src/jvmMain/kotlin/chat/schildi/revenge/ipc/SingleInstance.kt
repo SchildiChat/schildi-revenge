@@ -39,14 +39,14 @@ object SingleInstance {
     @Volatile
     private var serverThread: Thread? = null
 
-    fun ensureSingleInstanceOrExit(startInTray: Boolean) {
+    fun ensureSingleInstanceOrExit(openExistingInstance: Boolean) {
         if (tryAcquireLock()) {
             startServer()
             return
         }
         // Another instance seems to be running; try to notify it and exit.
         log.i { "Another instance is already running" }
-        if (!startInTray) {
+        if (openExistingInstance) {
             notifyExistingInstance("${Action.Global.SetMinimized.name} false")
         }
         exitProcess(0)

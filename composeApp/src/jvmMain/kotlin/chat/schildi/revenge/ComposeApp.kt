@@ -39,7 +39,7 @@ import java.awt.event.WindowEvent
 
 @OptIn(ExperimentalComposeUiApi::class)
 object ComposeApp {
-    fun main(startInTray: Boolean) {
+    fun main(startInTray: Boolean, initialCommand: String? = null) {
         SdkLoader.ensureLoaded()
         TrayWatcher.start()
         NotificationProcessor.observeNotifications()
@@ -49,6 +49,9 @@ object ComposeApp {
                 UiState.initializeWith(this@application, startInTray)
                 RevengePrefs.prefetch()
                 Notifier.initialize()
+                if (initialCommand != null) {
+                    UiState.headlessKeyboardActionHandler?.executeCommandFromIpc(initialCommand)
+                }
             }
             val minimized = UiState.minimizedToTray.collectAsState().value
             key(UiState.trayIconRecreationCounter.collectAsState().value) {
