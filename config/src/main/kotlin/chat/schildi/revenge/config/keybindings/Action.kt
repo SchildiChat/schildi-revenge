@@ -97,6 +97,7 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     RoomNotificationSetting,
     MatrixLink,
     MatrixToLink,
+    SchildiChatLegacyLink,
     SpaceOrder,
     SpaceCatchAllMode,
     FocusRole,
@@ -108,7 +109,7 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
 private val DeepLink = ActionArgumentAnyOf(
     ActionArgumentPrimitive.MatrixLink,
     ActionArgumentPrimitive.MatrixToLink,
-    // TODO support schildichat:// scheme too?
+    ActionArgumentPrimitive.SchildiChatLegacyLink,
 )
 
 private val SessionIdOrIndex =

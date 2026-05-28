@@ -5,7 +5,7 @@ import chat.schildi.revenge.config.keybindings.Action
 import co.touchlab.kermit.Logger
 import kotlin.system.exitProcess
 import chat.schildi.revenge.ipc.SingleInstance
-import com.beeper.android.messageformat.MatrixPatterns
+import chat.schildi.revenge.util.matrix.MatrixLinkPatterns
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.main
@@ -42,7 +42,7 @@ class MainCommand : CliktCommand("schildi-revenge") {
         } else {
             var allowLaunchFromCommand = false
             val joinedCommand = when {
-                command.size == 1 && MatrixPatterns.parseMatrixLink(command.first(), true) != null -> {
+                command.size == 1 && MatrixLinkPatterns.parseMatrixLink(command.first()) != null -> {
                     allowLaunchFromCommand = true
                     "${Action.Global.ConsumeLink.name} ${command.first()}"
                 }

@@ -466,6 +466,7 @@ class CommandSuggestionsProvider(
                 ActionArgumentPrimitive.SpaceOrder,
                 ActionArgumentPrimitive.MatrixLink,
                 ActionArgumentPrimitive.MatrixToLink,
+                ActionArgumentPrimitive.SchildiChatLegacyLink,
                 ActionArgumentPrimitive.Json,
                 ActionArgumentPrimitive.AccountDataType,
                 ActionArgumentPrimitive.RoomAccountDataType,

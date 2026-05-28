@@ -86,6 +86,7 @@ import chat.schildi.revenge.model.spaces.RevengeSpaceListDataSource
 import chat.schildi.revenge.notification.NotifiableRoomSubscriber
 import chat.schildi.revenge.toDestination
 import chat.schildi.revenge.toPrettyJson
+import chat.schildi.revenge.util.matrix.MatrixLinkPatterns
 import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
 import com.beeper.android.messageformat.MatrixToLink
@@ -1953,7 +1954,10 @@ class KeyboardActionHandler(
                 }
                 Action.Global.ConsumeLink -> {
                     val rawLink = args.firstOrNull().orActionValidationError()
-                    val link = com.beeper.android.messageformat.MatrixPatterns.parseMatrixLink(rawLink, true)
+                    val link = MatrixLinkPatterns.parseMatrixLink(rawLink)
+                        .also {
+                            log.e { "Consuming matrix link: $rawLink -> $it" }
+                        }
                         .orActionValidationError()
                     context.launchActionAsync(
                         "consumeLink/$link",
@@ -2805,6 +2809,18 @@ fun checkArgument(
                 }
             } catch (e: Exception) {
                 ActionResult.Malformed("Invalid matrix.to URL: $e")
+            }
+        }
+        ActionArgumentPrimitive.SchildiChatLegacyLink -> {
+            try {
+                val link = MatrixLinkPatterns.parseSchildiChatLegacyLink(argVal)
+                if (link == null) {
+                    ActionResult.Malformed("Invalid schildichat URI")
+                } else {
+                    null
+                }
+            } catch (e: Exception) {
+                ActionResult.Malformed("Invalid schildichat URI: $e")
             }
         }
         ActionArgumentPrimitive.Json -> {

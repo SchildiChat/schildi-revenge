@@ -453,6 +453,12 @@ compose.desktop {
                 description = "Matrix URI",
             )
 
+            fileAssociation(
+                mimeType = "x-scheme-handler/schildichat",
+                extension = "schildichat",
+                description = "SchildiChat Legacy URI",
+            )
+
             appResourcesRootDir.set(distributionResourcesDir)
 
             windows {
