@@ -106,7 +106,6 @@ fun FileMessage(
             type = type,
             messageMetadata = messageMetadata,
             filename = filename,
-            // TODO formatted caption
             caption = caption?.let { AnnotatedString(it) },
         ) {
             captionLayoutResult.value = it

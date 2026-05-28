@@ -66,7 +66,7 @@ This list is not sufficient to consider the client feature-complete in any way.
     - [x] Render media thumbnails & placeholders (+ open with external applications for advanced playback)
         - [x] Images
         - [x] Video thumbnails if provided in the message event
-        - [ ] Audio
+        - [x] Audio
         - [x] Files
     - [x] Render reactions
     - [x] Render joins/leaves

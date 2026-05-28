@@ -18,6 +18,7 @@ import chat.schildi.preferences.value
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.actions.buildNavigationActionProvider
 import chat.schildi.revenge.compose.components.WithTooltip
+import chat.schildi.revenge.compose.destination.conversation.event.message.AudioMessage
 import chat.schildi.revenge.compose.destination.conversation.event.message.FileMessage
 import chat.schildi.revenge.compose.destination.conversation.event.message.MessageLayout
 import chat.schildi.revenge.compose.destination.conversation.event.message.ImageMessage
@@ -25,6 +26,7 @@ import chat.schildi.revenge.compose.destination.conversation.event.message.Local
 import chat.schildi.revenge.compose.destination.conversation.event.message.TextLikeMessage
 import chat.schildi.revenge.compose.destination.conversation.event.message.TimestampOverlayContent
 import chat.schildi.revenge.compose.destination.conversation.event.message.VideoMessage
+import chat.schildi.revenge.compose.destination.conversation.event.message.VoiceMessage
 import chat.schildi.revenge.compose.destination.conversation.event.sender.SenderAvatar
 import chat.schildi.revenge.compose.destination.conversation.event.sender.SenderName
 import chat.schildi.revenge.compose.focus.keyFocusable
@@ -159,8 +161,7 @@ fun EventContentLayout(
                         MessageFallback("LOCATION", isOwn, timestamp, inReplyTo, threadInfo)
                     }
                     is AudioMessageType -> {
-                        // TODO audio-message specific rendering
-                        FileMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
+                        AudioMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
                     }
                     is FileMessageType -> {
                         FileMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
@@ -169,8 +170,7 @@ fun EventContentLayout(
                         VideoMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
                     }
                     is VoiceMessageType -> {
-                        // TODO voice-message specific rendering
-                        FileMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
+                        VoiceMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
                     }
                     is OtherMessageType -> {
                         MessageFallback(

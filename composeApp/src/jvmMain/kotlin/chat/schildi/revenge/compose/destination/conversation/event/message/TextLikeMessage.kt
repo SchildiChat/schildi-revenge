@@ -153,6 +153,7 @@ fun TextLikeMessageContent(
     allowBigEmojiOnly: Boolean = false,
     textColor: Color = MaterialTheme.colorScheme.primary,
     interactionState: MatrixFormatInteractionState = rememberMatrixFormatInteractionState(text),
+    maxLines: Int = if (LocalMessageRenderContext.current == MessageRenderContext.IN_REPLY_TO) 20 else Int.MAX_VALUE,
     onTextLayout: (TextLayoutResult) -> Unit = {},
 ) {
     val isEmojiOnly = allowBigEmojiOnly && LocalMessageRenderContext.current == MessageRenderContext.NORMAL &&
@@ -170,6 +171,7 @@ fun TextLikeMessageContent(
         textColor = textColor,
         textStyle = textStyle,
         interactionState = interactionState,
+        maxLines = maxLines,
         onTextLayout = onTextLayout,
     )
 }

@@ -10,6 +10,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.min
 import chat.schildi.theme.rememberEmojiFontFamily
 
 object Dimens {
@@ -114,6 +115,16 @@ object Dimens {
         val newMessagesLineHeight = 2.dp
 
         val fileIconSize = 36.dp
+
+        object AudioWaveform {
+            val lineWidth = 2.dp
+            val linePadding = 2.dp
+
+            const val maxRenderedSegments = 64
+
+            fun maxWidth(waveformLength: Int) =
+                (linePadding + lineWidth) * waveformLength.coerceIn(1, maxRenderedSegments) - linePadding
+        }
     }
 
     object Split {
