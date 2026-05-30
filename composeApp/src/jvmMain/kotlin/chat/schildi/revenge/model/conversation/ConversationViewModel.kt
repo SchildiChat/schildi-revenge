@@ -81,6 +81,7 @@ import chat.schildi.revenge.toPrettyJson
 import chat.schildi.revenge.util.MimeUtil
 import chat.schildi.revenge.util.tryOrNull
 import chat.schildi.revenge.util.MediaInfoUtil
+import chat.schildi.revenge.util.filepicker.FilePicker
 import chat.schildi.revenge.util.flowClosable
 import co.touchlab.kermit.Logger
 import com.beeper.android.messageformat.MatrixFormatInteractionState
@@ -170,9 +171,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import java.awt.FileDialog
-import java.awt.Frame
+import org.jetbrains.compose.resources.getString
 import shire.composeapp.generated.resources.Res
+import shire.composeapp.generated.resources.action_add_attachment
 import shire.composeapp.generated.resources.action_redact
 import shire.composeapp.generated.resources.action_redact_event_by_sender_prompt
 import shire.composeapp.generated.resources.action_redact_event_prompt
@@ -1604,12 +1605,12 @@ class ConversationViewModel(
         viewModelScope,
         Dispatchers.IO
     ) {
+        val fileResult = FilePicker.requestFilePicker(getString(Res.string.action_add_attachment))
+        if (fileResult.isFailure) {
+            return@launchActionAsync fileResult.toActionResult()
+        }
+        val files = fileResult.getOrNull()
         return@launchActionAsync try {
-            val dialog = FileDialog(null as Frame?, "Select attachment", FileDialog.LOAD)
-            dialog.isMultipleMode = false
-            dialog.isVisible = true
-
-            val files = dialog.files
             if (files?.size == 1) {
                 loadAttachmentFileIntoComposer(files[0])
             } else if ((files?.size ?: 0) > 1) {

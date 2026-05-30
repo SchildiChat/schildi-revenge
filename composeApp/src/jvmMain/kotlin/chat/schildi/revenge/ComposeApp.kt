@@ -27,6 +27,7 @@ import chat.schildi.revenge.actions.KeyboardActionHandler
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.WindowContent
 import chat.schildi.revenge.compose.media.LocalImageLoaderHolder
+import chat.schildi.revenge.dbus.TrayWatcher
 import chat.schildi.revenge.model.account.RevengeDeviceVerificationProvider
 import chat.schildi.revenge.notification.NotificationProcessor
 import chat.schildi.revenge.notification.Notifier

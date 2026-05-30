@@ -1,5 +1,6 @@
-package chat.schildi.revenge
+package chat.schildi.revenge.dbus
 
+import chat.schildi.revenge.UiState
 import chat.schildi.revenge.util.OsDetection
 import co.touchlab.kermit.Logger
 import org.freedesktop.dbus.connections.impl.DBusConnection
