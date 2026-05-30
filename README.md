@@ -33,6 +33,9 @@ noticing/missing something particular that's not already tracked below or in an 
 This is a rough collection of features that I consider important for core use, to help with the initial bringup.
 This list is not sufficient to consider the client feature-complete in any way.
 
+<details>
+<summary>Checklist</summary>
+
 - [x] Schildi theme
 - [x] Initial config hooked in
     - [x] Accounts with username+homeserver (not: password and secrets)
@@ -152,6 +155,8 @@ This list is not sufficient to consider the client feature-complete in any way.
 - [x] Send / render blurhashes
 - [x] Generate & send media thumbnails (requires ffmpeg installed for video thumbnails)
 - [ ] Send custom emotes & stickers
+
+</details>
 
 
 ## Customizable keybindings
