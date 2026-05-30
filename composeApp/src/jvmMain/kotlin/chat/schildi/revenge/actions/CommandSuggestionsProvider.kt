@@ -313,7 +313,7 @@ class CommandSuggestionsProvider(
     ): List<CommandSuggestion> {
         val impliedValues = arg.possiblePrimitives(context).flatMap {
             context.findAll(it)
-        }.distinct()
+        }.filterValidSuggestionsFor(prefix) { it }.distinct()
         val suggestionList = suggestPrimaryFor(arg, context, prefix).takeIf { it.isNotEmpty() }
             ?: suggestSecondaryFor(arg, context, prefix)
         val impliedSuggestions = impliedValues.map { implied ->
