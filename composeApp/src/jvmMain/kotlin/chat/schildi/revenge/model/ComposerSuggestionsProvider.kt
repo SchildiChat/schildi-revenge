@@ -33,12 +33,13 @@ class ComposerSuggestionsProvider(
         when {
             currentCompletionEntity == null -> ComposerSuggestionsState()
             currentCompletionEntity.startsWith("@") -> {
+                val search = currentCompletionEntity.substring(1)
                 // Mentions
                 val userSuggestions = userIds
                     .filter {
-                        it.userId.value.startsWith(currentCompletionEntity) ||
+                        it.userId.value.contains(search, ignoreCase = true) ||
                                 // Allow @displayName as well
-                                it.displayName?.startsWith(currentCompletionEntity.substring(1)) == true
+                                it.displayName?.contains(search, ignoreCase = true) == true
                     }
                     .map { ComposerUserMentionSuggestion(it.userId, it.displayName) }
                 val roomSuggestions = if (canPingRoom &&
