@@ -9,6 +9,13 @@ else
     force=0
 fi
 
+# Prefer jetbrains JDK 21 if installed
+JETBRAINS_JDK_LOCATION="/usr/lib/jvm/java-21-jetbrains"
+if [ -x "$JETBRAINS_JDK_LOCATION/bin/java" ]; then
+    echo "Using $JETBRAINS_JDK_LOCATION"
+    export JAVA_HOME="$JETBRAINS_JDK_LOCATION"
+fi
+
 if [ ! -z "$1" ]; then
     app_version="$1"
 else

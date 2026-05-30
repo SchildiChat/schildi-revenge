@@ -209,7 +209,7 @@ Additional arguments may be optional or mandatory depending on the selected acti
 
 ### Build dependencies
 
-- JDK 21
+- JDK 21, [Jetbrains JDK](https://github.com/JetBrains/JetBrainsRuntime) recommended - vanilla OpenJDK can cause some launcher crashes
 - Rust toolchain / `cargo`
 
 Windows-specific hints for my own notes:
