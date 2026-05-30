@@ -391,6 +391,7 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
             }
             scope.launch {
                 inProgress.value = true
+                error.value = null
                 try {
                     val server = homeserver.text.let {
                         if (it.contains("://")) {
