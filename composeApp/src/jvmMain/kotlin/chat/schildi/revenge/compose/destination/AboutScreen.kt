@@ -42,6 +42,7 @@ import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.appendUrlText
 import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.revenge.util.OsDetection
 import chat.schildi.theme.scLinkStyle
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -51,12 +52,14 @@ import shire.composeapp.generated.resources.about_build_date
 import shire.composeapp.generated.resources.about_build_info
 import shire.composeapp.generated.resources.about_credits
 import shire.composeapp.generated.resources.about_kotlin_base_revision
+import shire.composeapp.generated.resources.about_os_name
 import shire.composeapp.generated.resources.about_privacy_policy
 import shire.composeapp.generated.resources.about_release_variant
 import shire.composeapp.generated.resources.about_revision
 import shire.composeapp.generated.resources.about_rust_release_variant
 import shire.composeapp.generated.resources.about_rust_revision
 import shire.composeapp.generated.resources.about_source_code
+import shire.composeapp.generated.resources.about_system_info
 import shire.composeapp.generated.resources.about_website
 import shire.composeapp.generated.resources.app_title_full
 import shire.composeapp.generated.resources.hint_app_icon
@@ -221,6 +224,13 @@ fun AboutScreen(
                     }
                     buildInfoItem("build_timestamp") {
                         stringResource(Res.string.about_build_date, BuildInfo.BUILD_TIMESTAMP)
+                    }
+
+                    item(key = "system_info") {
+                        AboutSectionHeader(stringResource(Res.string.about_system_info))
+                    }
+                    buildInfoItem("os_name") {
+                        stringResource(Res.string.about_os_name, OsDetection.getOsName())
                     }
                 }
             }

@@ -1,5 +1,7 @@
 package chat.schildi.revenge
 
+import chat.schildi.revenge.util.OperatingSystem
+import chat.schildi.revenge.util.OsDetection
 import org.matrix.rustcomponents.sdk.LogLevel
 import org.matrix.rustcomponents.sdk.TracingConfiguration
 import org.matrix.rustcomponents.sdk.initPlatform
@@ -13,14 +15,10 @@ object SdkLoader {
     private val loaded = AtomicBoolean(false)
 
     private val isDebugBuild = BuildInfo.BUILD_TYPE == "debug"
-    private val libName = when (val os = System.getProperty("os.name").lowercase()) {
-        else -> {
-            when {
-                os.contains("win") -> "matrix_sdk_ffi.dll"
-                os.contains("mac") || os.contains("darwin") -> "libmatrix_sdk_ffi.dylib"
-                else -> "libmatrix_sdk_ffi.so"
-            }
-        }
+    private val libName = when (OsDetection.get()) {
+        OperatingSystem.Windows -> "matrix_sdk_ffi.dll"
+        OperatingSystem.Mac -> "libmatrix_sdk_ffi.dylib"
+        else -> "libmatrix_sdk_ffi.so"
     }
 
     fun ensureLoaded() {

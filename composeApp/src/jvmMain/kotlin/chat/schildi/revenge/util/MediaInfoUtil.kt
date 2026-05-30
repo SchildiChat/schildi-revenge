@@ -179,9 +179,9 @@ object MediaInfoUtil {
         }.getOrNull()
     }
 
-    private fun ffmpegExecutable(): String = if (System.getProperty("os.name").startsWith("Windows")) "ffmpeg.exe" else "ffmpeg"
+    private fun ffmpegExecutable(): String = if (OsDetection.isWindows()) "ffmpeg.exe" else "ffmpeg"
 
-    private fun ffprobeExecutable(): String = if (System.getProperty("os.name").startsWith("Windows")) "ffprobe.exe" else "ffprobe"
+    private fun ffprobeExecutable(): String = if (OsDetection.isWindows()) "ffprobe.exe" else "ffprobe"
 
     private fun BufferedImage.scaleDownForBlurHash(): BufferedImage {
         if (width <= BLURHASH_MAX_DIMENSION && height <= BLURHASH_MAX_DIMENSION) {

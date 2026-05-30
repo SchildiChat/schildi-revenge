@@ -1,5 +1,6 @@
 package chat.schildi.revenge
 
+import chat.schildi.revenge.util.OsDetection
 import co.touchlab.kermit.Logger
 import org.freedesktop.dbus.connections.impl.DBusConnection
 import org.freedesktop.dbus.connections.impl.DBusConnectionBuilder
@@ -31,8 +32,7 @@ object TrayWatcher {
     }
 
     private fun isSupportedEnvironment(): Boolean {
-        val osName = System.getProperty("os.name")?.lowercase().orEmpty()
-        if (!osName.contains("linux")) {
+        if (!OsDetection.isLinux()) {
             return false
         }
 
