@@ -6,6 +6,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import chat.schildi.revenge.ScCoroutines
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
@@ -16,6 +17,7 @@ import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.config.RevengeDatastoreStorage
 import chat.schildi.revenge.config.ScAppDirs
 import co.touchlab.kermit.Logger
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
@@ -62,7 +64,10 @@ class DefaultScPreferencesStore() : ScPreferencesStore {
     }
     private val storeFile = File(dataDir, "preferences.toml")
     private val store = DataStoreFactory.create(
-        RevengeDatastoreStorage(storeFile.path)
+        RevengeDatastoreStorage(
+            storeFile.path,
+            ScCoroutines.scope(Dispatchers.IO, "ScPrefStore"),
+        )
     )
 
     // When listening to the settings flow, we want an appropriate initial value

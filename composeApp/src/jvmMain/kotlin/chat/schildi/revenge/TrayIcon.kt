@@ -80,7 +80,7 @@ fun ApplicationScope.TrayIcon(
         Divider()
 
         Item(label = titleExit) {
-            exitApplication()
+            UiState.exit()
         }
     }
 }
@@ -138,4 +138,3 @@ class IconWithBadgePainter(
         }
     }
 }
-

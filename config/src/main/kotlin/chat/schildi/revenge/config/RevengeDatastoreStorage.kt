@@ -7,13 +7,12 @@ import androidx.datastore.core.StorageConnection
 import androidx.datastore.core.WriteScope
 import androidx.datastore.core.createSingleProcessCoordinator
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import androidx.datastore.preferences.core.MutablePreferences
@@ -24,7 +23,9 @@ import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.mutablePreferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
+import kotlinx.coroutines.isActive
 import java.io.File
+import java.nio.file.ClosedWatchServiceException
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
@@ -41,18 +42,20 @@ import java.util.concurrent.atomic.AtomicInteger
  * changes on disk. It uses a WatchService on the parent directory and reacts to
  * create/modify/delete events for the specific target filename.
  */
-internal class FileWatchingCoordinator(private val target: Path) : InterProcessCoordinator {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+internal class FileWatchingCoordinator(
+    private val target: Path,
+    private val scope: CoroutineScope,
+) : InterProcessCoordinator {
     private val _updates = MutableSharedFlow<Unit>(replay = 0, extraBufferCapacity = 1, onBufferOverflow = BufferOverflow.DROP_OLDEST)
     private val version = AtomicInteger(0)
     private val mutex = Mutex()
 
     override val updateNotifications: Flow<Unit> = _updates
 
-    init {
-        scope.launch {
-            val dir = target.parent
-            val ws = FileSystems.getDefault().newWatchService()
+    private val watchJob = scope.launch {
+        val dir = target.parent
+        val ws = FileSystems.getDefault().newWatchService()
+        try {
             try {
                 // Register interest in basic events; ATOMIC_MOVE will surface as CREATE/DELETE pair
                 dir.register(ws, ENTRY_CREATE, ENTRY_MODIFY, ENTRY_DELETE)
@@ -66,10 +69,14 @@ internal class FileWatchingCoordinator(private val target: Path) : InterProcessC
                 _updates.tryEmit(Unit)
             }
 
-            while (true) {
+            while (isActive) {
                 val key: WatchKey = try {
-                    ws.take() // blocking wait
+                    runInterruptible {
+                        ws.take()
+                    }
                 } catch (_: InterruptedException) {
+                    break
+                } catch (_: ClosedWatchServiceException) {
                     break
                 }
                 var relevant = false
@@ -90,6 +97,7 @@ internal class FileWatchingCoordinator(private val target: Path) : InterProcessC
                 if (relevant) emitUpdate()
                 if (!valid) break
             }
+        } finally {
             try {
                 ws.close()
             } catch (_: Throwable) {}
@@ -121,19 +129,25 @@ internal class FileWatchingCoordinator(private val target: Path) : InterProcessC
         }
     }
 
-    fun shutdown() { scope.cancel() }
+    fun shutdown() { watchJob.cancel() }
 }
 
-class RevengeDatastoreStorage(private val filePath: String) : Storage<Preferences> {
+class RevengeDatastoreStorage(
+    private val filePath: String,
+    private val scope: CoroutineScope,
+) : Storage<Preferences> {
     override fun createConnection(): StorageConnection<Preferences> {
-        return RevengeStorageConnection(filePath)
+        return RevengeStorageConnection(filePath, scope)
     }
 }
 
-internal class RevengeStorageConnection(private val path: String) : StorageConnection<Preferences> {
+internal class RevengeStorageConnection(
+    private val path: String,
+    scope: CoroutineScope,
+) : StorageConnection<Preferences> {
     // Replace single-process coordinator with file watching coordinator to observe external changes
     private val watcher: FileWatchingCoordinator? = try {
-        FileWatchingCoordinator(File(path).toPath())
+        FileWatchingCoordinator(File(path).toPath(), scope)
     } catch (_: Throwable) {
         null
     }

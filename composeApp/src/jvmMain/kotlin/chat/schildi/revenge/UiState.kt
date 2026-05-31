@@ -48,16 +48,18 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.toast_key_config_reload_error
 import shire.composeapp.generated.resources.toast_key_config_reload_success
 import java.util.Locale
 import kotlin.collections.map
+import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.concurrent.atomics.fetchAndIncrement
 
-val GlobalActionsScope = CoroutineScope(Dispatchers.IO)
+val GlobalActionsScope = ScCoroutines.scope(Dispatchers.IO, "GlobalActionScope")
 
 private const val MESSAGE_ID_KEY_CONFIG = "keyConfig"
 
@@ -67,7 +69,9 @@ private const val HEADLESS_WINDOW_ID = -1
 @OptIn(ExperimentalAtomicApi::class)
 object UiState {
     private val log = Logger.withTag("UiState")
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private val scope = ScCoroutines.scope(Dispatchers.IO, "UiState")
+    private val shutdownScope = CoroutineScope(Dispatchers.Default)
+    private val isShuttingDown = AtomicBoolean(false)
 
     val appGraph: AppGraph = createGraphFactory<AppGraph.Factory>().create()
     private val windowCounter = AtomicInt(0)
@@ -425,7 +429,16 @@ object UiState {
     }
 
     fun exit() {
-        applicationScope?.exitApplication()
+        if (isShuttingDown.compareAndSet(false, true)) {
+            shutdownScope.launch {
+                log.i("Shutting down")
+                ScCoroutines.shutdown()
+                shutdownClients()
+                withContext(Dispatchers.Main) {
+                    applicationScope?.exitApplication()
+                }
+            }
+        }
     }
 
     fun recreateUi() {
@@ -482,6 +495,19 @@ object UiState {
     fun disableSession(sessionId: SessionId) {
         disabledSessions.update { it + sessionId }
         appGraph.sessionCache.remove(sessionId)
+    }
+
+    private suspend fun shutdownClients() {
+        val clients = matrixClients.value
+        disabledSessions.update { it + currentValidSessionIds.value?.map(::SessionId).orEmpty() }
+        appGraph.sessionCache.removeAll()
+        clients.forEach { (sessionId, client) ->
+            try {
+                client.shutdownClient()
+            } catch (e: Exception) {
+                log.e("Failed to shutdown client $sessionId", e)
+            }
+        }
     }
 
     fun enableSession(sessionId: SessionId) {

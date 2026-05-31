@@ -1,6 +1,7 @@
 package chat.schildi.revenge.model.account
 
 import chat.schildi.revenge.CombinedSessions
+import chat.schildi.revenge.ScCoroutines
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.toStringHolder
@@ -16,7 +17,6 @@ import io.element.android.libraries.matrix.api.verification.VerificationRequest
 import io.ktor.util.collections.ConcurrentMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.flowOf
@@ -78,7 +78,7 @@ class DeviceVerificationProvider(
     private val combinedSessions: CombinedSessions = UiState.combinedSessions,
 ) {
     private val log = Logger.withTag("DeviceVerificationProvider")
-    private val scope = CoroutineScope(Dispatchers.Default)
+    private val scope = ScCoroutines.scope(Dispatchers.Default, "DeviceVerificationProvider")
 
     private val activeRequests = MutableStateFlow<Map<SessionId, ScVerificationRequest>>(emptyMap())
     private val currentRequestDestinationCounts = ConcurrentMap<SessionId, AtomicInt>()

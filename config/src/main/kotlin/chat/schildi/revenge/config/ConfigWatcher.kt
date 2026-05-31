@@ -6,14 +6,18 @@ import com.akuleshov7.ktoml.TomlInputConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.IOException
+import java.nio.file.ClosedWatchServiceException
 import java.nio.file.FileSystems
 import java.nio.file.Files
 import java.nio.file.Path
@@ -179,8 +183,10 @@ abstract class ConfigWatcher<T : Any>(
             )
 
             var lastEventAt: Instant? = null
-            while (true) {
-                val key = watchService.take() // blocks
+            while (isActive) {
+                val key = runInterruptible(Dispatchers.IO) {
+                    watchService.take()
+                }
                 var relevant = false
                 for (event in key.pollEvents()) {
                     val kind = event.kind()
@@ -205,6 +211,8 @@ abstract class ConfigWatcher<T : Any>(
                     }
                 }
             }
+        } catch (_: InterruptedException) {
+        } catch (_: ClosedWatchServiceException) {
         } finally {
             try { watchService.close() } catch (_: Throwable) {}
         }

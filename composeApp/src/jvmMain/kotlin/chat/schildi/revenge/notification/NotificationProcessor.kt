@@ -3,13 +3,13 @@ package chat.schildi.revenge.notification
 import chat.schildi.notifications.SyncNotification
 import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPrefs
+import chat.schildi.revenge.ScCoroutines
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.model.account.ScIncomingVerificationRequest
 import chat.schildi.revenge.plaintext.NotificationEventTextFormat
 import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.media.MediaSource
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
@@ -27,7 +27,7 @@ import kotlinx.serialization.json.longOrNull
 
 object NotificationProcessor {
     private val log = Logger.withTag("NotificationProcessor")
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private val scope = ScCoroutines.scope(Dispatchers.IO, "NotificationProcessor")
     private val launchTimestamp = System.currentTimeMillis()
 
     @OptIn(ExperimentalCoroutinesApi::class)

@@ -1,5 +1,6 @@
 package chat.schildi.revenge.glue
 
+import chat.schildi.revenge.ScCoroutines
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.SingleIn
@@ -18,7 +19,7 @@ import kotlinx.coroutines.sync.withLock
 object RevengeSessionObserver : SessionObserver {
     private val listenerLock = Mutex()
     private val listeners = mutableListOf<SessionListener>()
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private val scope = ScCoroutines.scope(Dispatchers.IO, "SessionObserver")
 
     init {
         RevengeSessionStore.sessionUpdatesFlow

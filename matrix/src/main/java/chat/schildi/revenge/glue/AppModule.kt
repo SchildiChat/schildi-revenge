@@ -1,6 +1,7 @@
 package chat.schildi.revenge.glue
 
 import android.content.Context
+import chat.schildi.revenge.ScCoroutines
 import chat.schildi.revenge.config.ScAppDirs
 import coil3.PlatformContext
 import dev.zacsweers.metro.AppScope
@@ -14,10 +15,8 @@ import io.element.android.libraries.core.meta.BuildType
 import io.element.android.libraries.di.BaseDirectory
 import io.element.android.libraries.di.CacheDirectory
 import io.element.android.libraries.di.annotations.AppCoroutineScope
-import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.plus
+import kotlinx.coroutines.Dispatchers
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import java.io.File
@@ -81,7 +80,7 @@ object AppModule {
     @AppCoroutineScope
     @SingleIn(AppScope::class)
     fun providesAppCoroutineScope(): CoroutineScope {
-        return MainScope() + CoroutineName("SchildiRevenge Scope")
+        return ScCoroutines.scope(Dispatchers.Main, "DI")
     }
 
     @Provides

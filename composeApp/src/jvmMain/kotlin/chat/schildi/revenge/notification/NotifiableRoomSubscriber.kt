@@ -1,12 +1,12 @@
 package chat.schildi.revenge.notification
 
+import chat.schildi.revenge.ScCoroutines
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.model.RevengeRoomListDataSource
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.room.RoomNotificationMode
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.combine
@@ -18,7 +18,7 @@ import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 object NotifiableRoomSubscriber {
     private val log = Logger.withTag("NotifiableRoomSubscriber")
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private val scope = ScCoroutines.scope(Dispatchers.IO, "NotifiableRoomSubscriber")
     @OptIn(ExperimentalAtomicApi::class)
     private val launched = AtomicBoolean(false)
 

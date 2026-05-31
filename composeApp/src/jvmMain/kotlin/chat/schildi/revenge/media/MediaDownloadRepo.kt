@@ -46,7 +46,6 @@ private data class JobInfo(
 object MediaDownloadRepo {
     private val log = Logger.withTag("MediaDownloadRepo")
 
-    private val scope = CoroutineScope(Dispatchers.IO)
     private val jobQueueLock = Mutex()
 
     private val jobs = ConcurrentHashMap<ScopedMediaKey, JobInfo>()
