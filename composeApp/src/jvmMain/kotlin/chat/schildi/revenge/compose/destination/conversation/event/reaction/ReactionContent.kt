@@ -14,7 +14,7 @@ import androidx.compose.ui.text.TextStyle
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.media.rememberAnimatedImageTransform
 import chat.schildi.revenge.compose.media.imageLoader
-import chat.schildi.revenge.compose.util.containsOnlyEmojis
+import chat.schildi.revenge.compose.util.EmojiUtil.containsOnlyEmojis
 import chat.schildi.theme.rememberEmojiFontFamily
 import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
@@ -30,7 +30,7 @@ fun ReactionContent(
     modifier: Modifier = Modifier
 ) {
     val isRealEmojiReaction = remember(reaction) {
-        reaction.containsOnlyEmojis()
+        reaction.isNotEmpty() && reaction.containsOnlyEmojis()
     }
     val reactionTextStyle = if (isRealEmojiReaction) {
         baseStyle.merge(fontFamily = rememberEmojiFontFamily())

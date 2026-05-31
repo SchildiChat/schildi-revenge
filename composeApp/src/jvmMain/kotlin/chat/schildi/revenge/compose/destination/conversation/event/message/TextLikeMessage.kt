@@ -41,7 +41,7 @@ import chat.schildi.revenge.MessageFormatDefaults
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.media.rememberAnimatedImageTransform
 import chat.schildi.revenge.compose.media.imageLoader
-import chat.schildi.revenge.compose.util.containsOnlyEmojis
+import chat.schildi.revenge.compose.util.EmojiUtil.containsOnlyEmojis
 import chat.schildi.revenge.model.conversation.MessageMetadata
 import coil3.PlatformContext
 import coil3.compose.AsyncImagePainter
@@ -160,7 +160,7 @@ fun TextLikeMessageContent(
 ) {
     val isEmojiOnly = allowBigEmojiOnly && LocalMessageRenderContext.current == MessageRenderContext.NORMAL &&
             remember(text) {
-                text.toString().containsOnlyEmojis()
+                text.text.isNotEmpty() && text.text.containsOnlyEmojis(text.inlineImages)
             }
     val textStyle = if (isEmojiOnly) {
         Dimens.Conversation.emojiOnlyMessageStyle
