@@ -1,5 +1,6 @@
 /*
  * Copyright 2022 The Android Open Source Project
+ * Copyright 2026 SchildiChat
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -51,11 +52,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.layout.MeasureResult
@@ -66,6 +70,7 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.node.LayoutModifierNode
 import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.platform.InspectorInfo
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.debugInspectorInfo
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Density
@@ -877,6 +882,7 @@ private fun ScrollableTabRowImp(
             Modifier
                 .fillMaxWidth()
                 .wrapContentSize(align = Alignment.CenterStart)
+                .horizontalScrollFromVerticalWheel(scrollState) // SC
                 .horizontalScroll(scrollState)
                 .selectableGroup()
                 .clipToBounds()
@@ -959,6 +965,22 @@ private fun ScrollableTabRowImp(
                     selectedTab = selectedTabIndex
                 )
             }
+        }
+    }
+}
+
+// SC
+fun Modifier.horizontalScrollFromVerticalWheel(
+    scrollState: ScrollState,
+    scrollAmount: Dp = 88.dp,
+): Modifier = composed {
+    val scrollAmountPx = with(LocalDensity.current) { scrollAmount.toPx() }
+    @OptIn(ExperimentalComposeUiApi::class)
+    onPointerEvent(PointerEventType.Scroll) { event ->
+        val scrollDelta = event.changes.firstOrNull()?.scrollDelta ?: return@onPointerEvent
+        if (scrollDelta.x == 0f && scrollDelta.y != 0f) {
+            scrollState.dispatchRawDelta(scrollDelta.y * scrollAmountPx)
+            event.changes.forEach { it.consume() }
         }
     }
 }
