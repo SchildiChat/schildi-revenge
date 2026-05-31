@@ -29,10 +29,13 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import chat.schildi.preferences.ScPrefs
@@ -78,6 +81,7 @@ import shire.composeapp.generated.resources.hint_composer_text
 import shire.composeapp.generated.resources.hint_composer_video
 import shire.composeapp.generated.resources.hint_not_encrypted
 import shire.composeapp.generated.resources.hint_public_room
+import kotlin.math.min
 
 @Composable
 fun ComposerRow(viewModel: ComposerViewModel, modifier: Modifier = Modifier) {
@@ -155,6 +159,9 @@ fun ComposerRow(
                         .padding(Dimens.Conversation.messageBubbleInnerPadding),
                 )
             }
+            var isFocused by remember { mutableStateOf(false) }
+            val maxLinesFocused = ScPrefs.COMPOSER_MAX_LINES.value()
+            val maxLinesUnfocused = ScPrefs.COMPOSER_MAX_LINES_UNFOCUSED.value()
             TextField(
                 value = draftState.textFieldValue,
                 onValueChange = {
@@ -222,12 +229,16 @@ fun ComposerRow(
                 modifier = Modifier
                     .weight(1f)
                     .background(MaterialTheme.colorScheme.surface)
-                    .keyFocusable(role = FocusRole.MESSAGE_COMPOSER),
+                    .keyFocusable(role = FocusRole.MESSAGE_COMPOSER)
+                    .onFocusChanged {
+                        isFocused = it.isFocused
+                    },
                 colors = TextFieldDefaults.colors().copy(
                     focusedContainerColor = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
                     disabledContainerColor = Color.Transparent,
-                )
+                ),
+                maxLines = if (isFocused) maxLinesFocused else min(maxLinesUnfocused, maxLinesFocused),
             )
             AnimatedContent(draftState.isSendInProgress) { isSendInProgress ->
                 if (isSendInProgress) {

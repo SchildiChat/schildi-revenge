@@ -99,6 +99,7 @@ import shire.composeapp.generated.resources.pref_compact_root_spaces_title
 import shire.composeapp.generated.resources.pref_bury_low_priority_summary
 import shire.composeapp.generated.resources.pref_bury_low_priority_title
 import shire.composeapp.generated.resources.pref_category_chat_sorting
+import shire.composeapp.generated.resources.pref_category_composer
 import shire.composeapp.generated.resources.pref_category_general
 import shire.composeapp.generated.resources.pref_category_general_appearance
 import shire.composeapp.generated.resources.pref_category_general_behaviour
@@ -106,6 +107,10 @@ import shire.composeapp.generated.resources.pref_category_general_summary
 import shire.composeapp.generated.resources.pref_category_unread_counts
 import shire.composeapp.generated.resources.pref_client_side_sort_by_unread_summary
 import shire.composeapp.generated.resources.pref_client_side_sort_by_unread_title
+import shire.composeapp.generated.resources.pref_composer_max_lines_summary
+import shire.composeapp.generated.resources.pref_composer_max_lines_title
+import shire.composeapp.generated.resources.pref_composer_max_lines_unfocused_summary
+import shire.composeapp.generated.resources.pref_composer_max_lines_unfocused_title
 import shire.composeapp.generated.resources.pref_dual_mention_unread_counts_summary
 import shire.composeapp.generated.resources.pref_dual_mention_unread_counts_title
 import shire.composeapp.generated.resources.pref_force_render_blurhash_summary
@@ -285,6 +290,8 @@ object ScPrefs {
         summaryRes = Res.string.pref_preferred_message_format_summary,
     )
     val FORMATTED_COMPOSER_PREVIEW = ScBoolPref("FORMATTED_COMPOSER_PREVIEW", false, Res.string.pref_formatted_composer_preview_title, Res.string.pref_formatted_composer_preview_summary)
+    val COMPOSER_MAX_LINES = ScIntPref("COMPOSER_MAX_LINES", 30, Res.string.pref_composer_max_lines_title, Res.string.pref_composer_max_lines_summary, minValue = 1, maxValue = 100)
+    val COMPOSER_MAX_LINES_UNFOCUSED = ScIntPref("COMPOSER_MAX_LINES_UNFOCUSED", 20, Res.string.pref_composer_max_lines_unfocused_title, Res.string.pref_composer_max_lines_unfocused_summary, minValue = 1, maxValue = 100)
     val URL_PREVIEWS = ScBoolPref("URL_PREVIEWS", false, Res.string.pref_url_previews_title, Res.string.pref_url_previews_summary)
     val URL_PREVIEWS_IN_E2EE_ROOMS = ScBoolPref("URL_PREVIEWS_IN_E2EE_ROOMS", false, Res.string.pref_url_previews_in_e2ee_rooms_title, Res.string.pref_url_previews_in_e2ee_rooms_summary, dependencies = URL_PREVIEWS.asDependencies(), disabledValue = false)
     val URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS = ScBoolPref("URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS", true, Res.string.pref_url_previews_require_explicit_links_title, Res.string.pref_url_previews_require_explicit_links_summary, dependencies = URL_PREVIEWS.asDependencies(), disabledValue = null)
@@ -340,8 +347,12 @@ object ScPrefs {
             VIEW_REDACTIONS,
             HIDE_AUTHENTICITY_NOT_GUARANTEED,
             HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS,
-            PREFERRED_MESSAGE_FORMAT,
-            FORMATTED_COMPOSER_PREVIEW,
+            ScPrefCategory("COMPOSER", Res.string.pref_category_composer, null, listOf(
+                PREFERRED_MESSAGE_FORMAT,
+                FORMATTED_COMPOSER_PREVIEW,
+                COMPOSER_MAX_LINES,
+                COMPOSER_MAX_LINES_UNFOCUSED,
+            )),
             ScPrefCategory("TYPING_INDICATORS", Res.string.pref_category_typing_notices, null, listOf(
                 SEND_TYPING_NOTICE,
                 DISABLE_SEND_TYPING_NOTICE_IN_PUBLIC_ROOMS,

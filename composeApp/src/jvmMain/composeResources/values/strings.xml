@@ -404,6 +404,10 @@
     <string name="pref_disable_typing_notice_in_public_rooms_summary">Do not share your typing status in public rooms</string>
     <string name="pref_force_render_blurhash_title">Always render blurhash</string>
     <string name="pref_force_render_blurhash_summary">Show blurhash image/video fallbacks also for loaded media</string>
+    <string name="pref_composer_max_lines_title">Max composer lines</string>
+    <string name="pref_composer_max_lines_summary">Limit the rendered height of the message composer</string>
+    <string name="pref_composer_max_lines_unfocused_title">Unfocused max composer lines</string>
+    <string name="pref_composer_max_lines_unfocused_summary">Limit the rendered height of the message composer while not focused</string>
 
     <string name="nameless_space_fallback_title">Nameless space</string>
 
@@ -460,6 +464,7 @@
     <string name="pref_category_general_behaviour">Behaviour</string>
     <string name="pref_category_chat_sorting">Sort order</string>
     <string name="pref_category_unread_counts">Unread counts</string>
+    <string name="pref_category_composer">Message composer</string>
 
     <string name="pref_url_previews_title">Link previews</string>
     <string name="pref_url_previews_summary">Query and render previews for links included in messages</string>
