@@ -93,6 +93,7 @@ fun ImageMessage(
         contentTextLayoutResult = captionLayoutResult.value,
         isMediaOverlay = true,
         transparent = isTransparent,
+        allowTimestampOverlay = messageMetadata?.preFormattedContent?.allowTimestampOverlay() != false,
     ) {
         inReplyTo?.let {
             ReplyContent(

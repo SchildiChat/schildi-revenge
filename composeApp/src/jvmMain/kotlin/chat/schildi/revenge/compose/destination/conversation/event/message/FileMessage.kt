@@ -98,6 +98,7 @@ fun FileMessage(
         contentTextLayoutResult = captionLayoutResult.value,
         verticalArrangement = Arrangement.spacedBy(Dimens.Conversation.captionPadding),
         nonTextWidth = if (caption == null) Dimens.Conversation.fileIconSize + Dimens.horizontalItemPadding else 0.dp,
+        allowTimestampOverlay = messageMetadata?.preFormattedContent?.allowTimestampOverlay() != false,
     ) {
         inReplyTo?.let {
             ReplyContent(it, threadInfo)

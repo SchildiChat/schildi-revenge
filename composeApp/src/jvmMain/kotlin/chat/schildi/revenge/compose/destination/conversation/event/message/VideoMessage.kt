@@ -75,6 +75,7 @@ fun VideoMessage(
         padding = PaddingValues(Dimens.Conversation.imageBubbleInnerPadding),
         contentTextLayoutResult = captionLayoutResult.value,
         isMediaOverlay = true,
+        allowTimestampOverlay = messageMetadata?.preFormattedContent?.allowTimestampOverlay() != false,
     ) {
         inReplyTo?.let {
             ReplyContent(

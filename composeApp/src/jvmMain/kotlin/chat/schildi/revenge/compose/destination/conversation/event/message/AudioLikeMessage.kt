@@ -139,7 +139,7 @@ fun AudioLikeMessage(
         } else {
             0.dp
         },
-        allowTimestampOverlay = details?.waveform.isNullOrEmpty(),
+        allowTimestampOverlay = details?.waveform.isNullOrEmpty() && messageMetadata?.preFormattedContent?.allowTimestampOverlay() != false,
     ) {
         inReplyTo?.let {
             ReplyContent(it, threadInfo)

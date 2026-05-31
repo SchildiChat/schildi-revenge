@@ -52,6 +52,7 @@ import coil3.request.SuccessResult
 import coil3.request.maxBitmapSize
 import coil3.size.Size
 import com.beeper.android.messageformat.InlineImageInfo
+import com.beeper.android.messageformat.MatrixBodyAnnotations
 import com.beeper.android.messageformat.MatrixBodyParseResult
 import com.beeper.android.messageformat.MatrixFormatInteractionState
 import com.beeper.android.messageformat.MatrixStyledFormattedText
@@ -125,6 +126,7 @@ fun TextLikeMessage(
         modifier = modifier,
         outlined = outlined,
         contentTextLayoutResult = textLayoutResult.value,
+        allowTimestampOverlay = text.allowTimestampOverlay(),
     ) {
         inReplyTo?.let { ReplyContent(it, threadInfo) }
         urlPreview?.let {
@@ -348,5 +350,16 @@ private fun InlineImage(
                 }
             }
         }
+    }
+}
+
+@Composable
+fun MatrixBodyParseResult.allowTimestampOverlay(): Boolean = remember(this) {
+    if (text.isEmpty()) {
+        true
+    } else {
+        // Don't allow for last-line codeblocks
+        val codeBlocks = text.getStringAnnotations(MatrixBodyAnnotations.BLOCK_CODE, text.length - 1, text.length)
+        codeBlocks.isEmpty()
     }
 }
