@@ -296,7 +296,7 @@ private fun Map<String, InlineImageInfo>.toInlineContent(
 }
 
 @Composable
-private fun InlineImage(
+fun InlineImage(
     info: InlineImageInfo,
     textStyle: TextStyle,
     textColor: Color,

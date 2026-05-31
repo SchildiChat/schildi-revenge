@@ -173,6 +173,7 @@
     <string name="hint_composer_edit">Edit message</string>
     <string name="hint_composer_edit_caption">Edit caption</string>
     <string name="hint_composer_reaction">React</string>
+    <string name="hint_composer_sticker">Sticker</string>
     <string name="hint_composer_caption">Attachment caption</string>
     <string name="hint_composer_image">Image</string>
     <string name="hint_composer_video">Video</string>

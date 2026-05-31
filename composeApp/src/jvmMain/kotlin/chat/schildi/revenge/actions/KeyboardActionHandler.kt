@@ -87,12 +87,14 @@ import chat.schildi.revenge.notification.NotifiableRoomSubscriber
 import chat.schildi.revenge.toDestination
 import chat.schildi.revenge.toPrettyJson
 import chat.schildi.revenge.util.matrix.MatrixLinkPatterns
+import chat.schildi.revenge.util.matrix.updateAccountData
 import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
 import com.beeper.android.messageformat.MatrixToLink
 import io.element.android.libraries.core.coroutine.childScope
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.MatrixPatterns
+import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.RoomIdOrAlias
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
@@ -128,6 +130,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_cancel
 import shire.composeapp.generated.resources.action_processing
@@ -1959,6 +1966,60 @@ class KeyboardActionHandler(
                         .orActionValidationError()
                     consumeLink(link)
                     ActionResult.Success()
+                }
+                Action.Global.EnableImagePack -> {
+                    val sessionId = SessionId(args.firstOrNull().orActionValidationError())
+                    val roomId = args.getOrNull(1).orActionValidationError()
+                    val stateKey = args.getOrNull(2) ?: ""
+                    val client = UiState.currentClientFor(sessionId) ?: return ActionResult.Failure("Client not ready")
+                    val actionId = "imagePack/$sessionId/$roomId/$stateKey"
+                    context.launchActionAsync(
+                        actionId,
+                        GlobalActionsScope,
+                        Dispatchers.IO,
+                        actionId,
+                        notifyProcessing = true,
+                    ) {
+                        client.updateAccountData("m.image_pack.rooms") {
+                            it.orEmpty().toMutableMap().apply {
+                                this["rooms"] = this["rooms"]?.jsonObject.orEmpty().toMutableMap().apply {
+                                    this[roomId] = this[roomId]?.jsonObject.orEmpty().toMutableMap().apply {
+                                        this[stateKey] = JsonObject(emptyMap())
+                                    }.let(::JsonObject)
+                                }.let(::JsonObject)
+                            }.let(::JsonObject)
+                        }
+                    }
+                }
+                Action.Global.DisableImagePack -> {
+                    val sessionId = SessionId(args.firstOrNull().orActionValidationError())
+                    val roomId = args.getOrNull(1).orActionValidationError()
+                    val stateKey = args.getOrNull(2) ?: ""
+                    val client = UiState.currentClientFor(sessionId) ?: return ActionResult.Failure("Client not ready")
+                    val actionId = "imagePack/$sessionId/$roomId/$stateKey"
+                    context.launchActionAsync(
+                        actionId,
+                        GlobalActionsScope,
+                        Dispatchers.IO,
+                        actionId,
+                        notifyProcessing = true,
+                    ) {
+                        client.updateAccountData("m.image_pack.rooms") {
+                            it?.toMutableMap()?.apply {
+                                this["rooms"]?.jsonObject?.toMutableMap()?.apply {
+                                    this[roomId]?.jsonObject?.toMutableMap()?.apply {
+                                        remove(stateKey)
+                                    }?.let {
+                                        if (it.isEmpty()) {
+                                            this.remove(roomId)
+                                        } else {
+                                            this[roomId] = JsonObject(it)
+                                        }
+                                    }
+                                }?.let { this["rooms"] = JsonObject(it) }
+                            }?.let(::JsonObject)
+                        }
+                    }
                 }
             }
         }

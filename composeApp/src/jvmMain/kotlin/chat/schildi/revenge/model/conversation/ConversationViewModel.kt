@@ -54,17 +54,15 @@ import chat.schildi.revenge.model.Attachment
 import chat.schildi.revenge.model.CheckpointLoadState
 import chat.schildi.revenge.model.ComposerFormat
 import chat.schildi.revenge.model.ComposerRoomInfo
-import chat.schildi.revenge.model.ComposerRoomMentionSuggestion
 import chat.schildi.revenge.model.ComposerSuggestion
 import chat.schildi.revenge.model.ComposerSuggestionsProvider
 import chat.schildi.revenge.model.ComposerSuggestionsState
-import chat.schildi.revenge.model.ComposerUserMentionSuggestion
 import chat.schildi.revenge.model.ComposerViewModel
 import chat.schildi.revenge.model.DraftKey
-import chat.schildi.revenge.model.DraftMention
 import chat.schildi.revenge.model.DraftRepo
 import chat.schildi.revenge.model.DraftType
 import chat.schildi.revenge.model.DraftValue
+import chat.schildi.revenge.model.ImagePackProvider
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.LoadStateHolder
 import chat.schildi.revenge.model.PendingAction
@@ -106,7 +104,6 @@ import io.element.android.libraries.matrix.api.media.ThumbnailInfo
 import io.element.android.libraries.matrix.api.media.VideoInfo
 import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
-import io.element.android.libraries.matrix.api.room.IntentionalMention
 import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.room.MessageEventType
 import io.element.android.libraries.matrix.api.room.RoomInfo
@@ -167,6 +164,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -573,6 +573,9 @@ class ConversationViewModel(
         it.associateBy { it.userId }.toPersistentHashMap()
     }.stateIn(viewModelScope, SharingStarted.Lazily, persistentHashMapOf())
 
+    private val imagePackProvider = ImagePackProvider(sessionId, roomId, viewModelScope)
+    val imagePacks = imagePackProvider.imagePacks.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
     override val userIdInRoomSuggestions: Flow<List<UserIdSuggestion>> = roomMembers.map {
         it.map {
             UserIdSuggestion(it.userId, it.displayName, it.membership)
@@ -687,6 +690,7 @@ class ConversationViewModel(
         queryFlow = composerState,
         userIdSuggestionsProvider = this,
         canPingRoomFlow = flowOf(true), // TODO check room ping permission
+        imagePackFlow = imagePacks,
     )
     override val composerSuggestions: StateFlow<ComposerSuggestionsState> =
         composerSuggestionsProvider.suggestionsState
@@ -845,10 +849,35 @@ class ConversationViewModel(
                                 IllegalArgumentException("Tried to react without message eventId")
                             )
                         }
-                        currentTimeline.toggleReaction(
-                            emoji = draft.body,
-                            eventOrTransactionId = relatesToEventId.toEventOrTransactionId(),
-                        )
+                        if (draft.isValidReaction) {
+                            currentTimeline.toggleReaction(
+                                emoji = draft.body,
+                                eventOrTransactionId = relatesToEventId.toEventOrTransactionId(),
+                            )
+                        } else {
+                            null
+                        }
+                    }
+
+                    DraftType.STICKER -> {
+                        val sticker = draft.fullBodyCustomEmote?.takeIf { it.source.supportsSticker }
+                        if (sticker != null) {
+                            val room = joinedRoom.value ?: return@result Result.failure(
+                                IllegalStateException("Room not ready")
+                            )
+                            room.sendRaw(
+                                eventType = "m.sticker",
+                                content = Json.encodeToString(JsonObject(
+                                    mapOf(
+                                        "body" to JsonPrimitive(sticker.image.body),
+                                        "url" to JsonPrimitive(sticker.image.url),
+                                        "info" to (sticker.image.info ?: JsonNull),
+                                    ).filter { it.value !is JsonNull }
+                                )),
+                            )
+                        } else {
+                            null
+                        }
                     }
 
                     DraftType.ATTACHMENT -> {
@@ -937,7 +966,14 @@ class ConversationViewModel(
                     }
                 }
             }
-            if (result.isSuccess) {
+            if (result == null) {
+                DraftRepo.update(
+                    draftKey,
+                    draft.copy(isSendInProgress = false),
+                    allowWhileSendInProgress = true
+                )
+                ActionResult.Inapplicable
+            } else if (result.isSuccess) {
                 log.v("Message sent successfully in $roomId")
                 DraftRepo.deleteDraft(draftKey)
                 ActionResult.Success()
@@ -991,11 +1027,7 @@ class ConversationViewModel(
             log.e { "Cannot confirm autosuggestion, mismatch with current composer state" }
             return false
         }
-        val intentionalMention = when (suggestion) {
-            is ComposerUserMentionSuggestion -> IntentionalMention.User(suggestion.userId)
-            is ComposerRoomMentionSuggestion -> IntentionalMention.Room
-            else -> null
-        }
+
         val oldText = draft.textFieldValue.text
         val newText = buildString {
             append(oldText.take(completionEntity.start))
@@ -1006,22 +1038,21 @@ class ConversationViewModel(
             append(oldText.substring(completionEntity.end))
         }
         val suggestionInsertEndIndex = completionEntity.start + suggestion.value.length
-        val newDraftMention = intentionalMention?.let {
-            DraftMention(
-                start = completionEntity.start,
-                end = suggestionInsertEndIndex,
-                mention = intentionalMention,
-            )
-        }
+
+        val newSpan = suggestion.buildDraftSpan(
+            start = completionEntity.start,
+            end = suggestionInsertEndIndex,
+        )
+
         val newDraft = draft.copy(
             textFieldValue = TextFieldValue(
                 text = newText,
                 selection = TextRange(suggestionInsertEndIndex + 1),
             ),
-            mentions = if (newDraftMention == null)
-                draft.mentions
+            spans = if (newSpan == null)
+                draft.spans
             else
-                (draft.mentions + newDraftMention).toImmutableList(),
+                (draft.spans + newSpan).toImmutableList(),
         )
         DraftRepo.update(draftKey, newDraft)
         return true
@@ -1237,6 +1268,17 @@ class ConversationViewModel(
                     DraftRepo.update(draftKey) {
                         it?.copy(type = DraftType.EMOTE, editEventId = null, initialBody = "", attachment = null)
                             ?: createDraftValue(type = DraftType.EMOTE)
+                    }
+                    focusByRole(FocusRole.MESSAGE_COMPOSER)
+                    ActionResult.Success()
+                }
+
+                Action.Conversation.ComposeSticker -> {
+                    draftKey ?: return@run ActionResult.Inapplicable
+                    forceShowComposer.value = true
+                    DraftRepo.update(draftKey) {
+                        it?.copy(type = DraftType.STICKER, editEventId = null, initialBody = "", attachment = null)
+                            ?: createDraftValue(type = DraftType.STICKER, initialBody = "")
                     }
                     focusByRole(FocusRole.MESSAGE_COMPOSER)
                     ActionResult.Success()

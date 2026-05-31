@@ -51,6 +51,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
+import org.matrix.rustcomponents.sdk.RoomImagePackStateEvent
 import java.util.Optional
 
 interface MatrixClient {
@@ -82,6 +83,7 @@ interface MatrixClient {
     suspend fun setAccountData(eventType: String, content: String): Result<Unit> // SC
     suspend fun setRoomAccountData(roomId: RoomId, eventType: String, content: String): Result<Unit> // SC
     suspend fun getUrlPreviewJson(url: String): String // SC
+    fun getImagePackFlow(roomIds: List<RoomId>): Flow<List<RoomImagePackStateEvent>> // SC
     suspend fun shutdownClient() // SC
     suspend fun findDM(userId: UserId): Result<RoomId?>
     suspend fun getJoinedRoomIds(): Result<Set<RoomId>>

@@ -77,6 +77,7 @@ import shire.composeapp.generated.resources.hint_composer_image
 import shire.composeapp.generated.resources.hint_composer_missing_send_permission
 import shire.composeapp.generated.resources.hint_composer_notice
 import shire.composeapp.generated.resources.hint_composer_reaction
+import shire.composeapp.generated.resources.hint_composer_sticker
 import shire.composeapp.generated.resources.hint_composer_text
 import shire.composeapp.generated.resources.hint_composer_video
 import shire.composeapp.generated.resources.hint_not_encrypted
@@ -175,6 +176,7 @@ fun ComposerRow(
                         DraftType.EDIT -> stringResource(Res.string.hint_composer_edit).appendComposerFormat(draftState)
                         DraftType.EDIT_CAPTION -> stringResource(Res.string.hint_composer_edit_caption).appendComposerFormat(draftState)
                         DraftType.REACTION -> stringResource(Res.string.hint_composer_reaction)
+                        DraftType.STICKER -> stringResource(Res.string.hint_composer_sticker)
                         DraftType.ATTACHMENT -> when (draftState.attachment) {
                             is Attachment.Audio -> stringResource(Res.string.hint_composer_audio)
                             is Attachment.Generic -> stringResource(Res.string.hint_composer_file)
@@ -201,6 +203,7 @@ fun ComposerRow(
                             DraftType.EDIT,
                             DraftType.EDIT_CAPTION,
                             DraftType.ATTACHMENT -> Color.Unspecified
+                            DraftType.STICKER,
                             DraftType.REACTION -> MaterialTheme.scExposures.reactHint
                             DraftType.NOTICE,
                             DraftType.EMOTE,
@@ -220,6 +223,7 @@ fun ComposerRow(
                             DraftType.EDIT,
                             DraftType.EDIT_CAPTION,
                             DraftType.REACTION,
+                            DraftType.STICKER,
                             DraftType.CUSTOM_EVENT,
                             DraftType.CUSTOM_STATE_EVENT -> {}
                         }

@@ -4,6 +4,8 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
+import chat.schildi.matrixsdk.ImagePackImageSource
+import chat.schildi.matrixsdk.ImagePackImageWithRawInfo
 import chat.schildi.revenge.model.conversation.ConversationPermissions
 import chat.schildi.theme.ScColors
 import io.element.android.libraries.matrix.api.core.RoomId
@@ -17,6 +19,7 @@ import io.element.android.libraries.matrix.api.room.IntentionalMention
 import io.element.android.libraries.matrix.api.timeline.InMemoryMediaThumbnail
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
+import io.ktor.http.encodeURLPath
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentListOf
@@ -46,6 +49,7 @@ enum class DraftType {
     EDIT,
     EDIT_CAPTION,
     REACTION,
+    STICKER,
     ATTACHMENT,
     CUSTOM_EVENT,
     CUSTOM_STATE_EVENT,
@@ -65,6 +69,7 @@ fun DraftType.shouldSendTypingIndicator() = when (this) {
     DraftType.EDIT,
     DraftType.EDIT_CAPTION,
     DraftType.REACTION,
+    DraftType.STICKER,
     DraftType.CUSTOM_EVENT,
     DraftType.CUSTOM_STATE_EVENT -> false
 }
@@ -91,15 +96,59 @@ sealed interface Attachment {
     ) : VisualAttachment
 }
 
-data class DraftMention(
-    val start: Int,
-    val end: Int,
-    val mention: IntentionalMention,
-) {
+sealed interface DraftSpan {
+    val start: Int
+    val end: Int
     val range: IntRange
         get() = IntRange(start, end-1)
     val textRange: TextRange
         get() = TextRange(start, end)
+    fun withAdjustedRange(start: Int, end: Int): DraftSpan
+    fun formatContentToHtml(content: String): String
+    fun formatContentToPlaintext(content: String): String = content
+    // TODO themed?
+    fun draftStyle(): SpanStyle = SpanStyle(color = ScColors.colorAccentGreen)
+}
+
+data class DraftMention(
+    override val start: Int,
+    override val end: Int,
+    val mention: IntentionalMention,
+) : DraftSpan {
+    override fun withAdjustedRange(start: Int, end: Int) = copy(start = start, end = end)
+    override fun formatContentToHtml(content: String): String = when (mention) {
+        IntentionalMention.Room -> "@room"
+        is IntentionalMention.User -> {
+            "<a href=\"https://matrix.to/#/${mention.userId.value.encodeURLPath()}\">$content</a>"
+        }
+    }
+    override fun formatContentToPlaintext(content: String) = when (mention) {
+        IntentionalMention.Room -> "@room"
+        is IntentionalMention.User -> mention.userId.value
+    }
+}
+
+data class DraftCustomEmote(
+    override val start: Int,
+    override val end: Int,
+    val shortcode: String,
+    val image: ImagePackImageWithRawInfo,
+    val source: ImagePackImageSource,
+) : DraftSpan {
+    override fun withAdjustedRange(start: Int, end: Int) = copy(start = start, end = end)
+    override fun formatContentToHtml(content: String) = buildString {
+        append("<img data-mx-emoticon height=\"32\" src=\"")
+        append(image.url)
+        append("\" title=\"")
+        append(shortcode)
+        append("\"")
+        if (image.body != null) {
+            append(" alt=\"")
+            append(image.body)
+            append("\"")
+        }
+        append(" />")
+    }
 }
 
 sealed interface ComposerState {
@@ -118,7 +167,7 @@ data class DraftValue(
     val type: DraftType = DraftType.TEXT,
     val preferredFormat: ComposerFormat = ComposerFormat.MARKDOWN,
     val textFieldValue: TextFieldValue = TextFieldValue(""),
-    val mentions: ImmutableList<DraftMention> = persistentListOf(),
+    val spans: ImmutableList<DraftSpan> = persistentListOf(),
     val inReplyTo: InReplyTo.Ready? = null,
     val editEventId: EventOrTransactionId? = null, // Only for DraftType.EDIT and DraftType.EDIT_CAPTION
     val isSendInProgress: Boolean = false,
@@ -140,11 +189,7 @@ data class DraftValue(
         else -> ComposerFormat.PLAIN
     }
     val body: String
-        get() = when (format) {
-            ComposerFormat.MARKDOWN -> ComposerBodyFormatter.preformatPlaintextMentionsForMarkdown(rawBody, mentions)
-            ComposerFormat.HTML,
-            ComposerFormat.PLAIN -> rawBody
-        }
+        get() = reactionCustomEmoteBody?.image?.url ?: ComposerBodyFormatter.expandDraftSpans(rawBody, spans, allowHtml = format != ComposerFormat.PLAIN)
     val htmlBody: String?
         get() = when (format) {
             // SDK generates Markdown for us
@@ -152,8 +197,45 @@ data class DraftValue(
             ComposerFormat.PLAIN -> null
             ComposerFormat.HTML -> body
         }
-    val intentionalMentions = mentions.map { it.mention }
-    val hasRoomMention = mentions.any { it.mention == IntentionalMention.Room }
+    val intentionalMentions = spans.mapNotNull { (it as? DraftMention)?.mention }
+    val hasRoomMention = spans.any { (it as? DraftMention)?.mention == IntentionalMention.Room }
+
+    val fullBodyCustomEmote = if (spans.size == 1) {
+        (spans.first() as? DraftCustomEmote)?.takeIf {
+            it.start == 0 && it.end == body.length
+        }
+    } else {
+        null
+    }
+    private val reactionCustomEmoteBody = if (type == DraftType.REACTION) fullBodyCustomEmote else null
+    val isValidReaction = spans.isEmpty() || fullBodyCustomEmote?.source?.supportsCustomEmoji == true
+    val isValidSticker = spans.isEmpty() || fullBodyCustomEmote?.source?.supportsSticker == true
+
+    val allowsMention = when (type) {
+        DraftType.TEXT,
+        DraftType.NOTICE,
+        DraftType.EMOTE,
+        DraftType.ATTACHMENT,
+        DraftType.EDIT,
+        DraftType.EDIT_CAPTION -> true
+        DraftType.REACTION,
+        DraftType.STICKER,
+        DraftType.CUSTOM_EVENT,
+        DraftType.CUSTOM_STATE_EVENT -> false
+    }
+    val allowsCustomEmote = when (type) {
+        DraftType.TEXT,
+        DraftType.NOTICE,
+        DraftType.EMOTE,
+        DraftType.ATTACHMENT,
+        DraftType.EDIT,
+        DraftType.EDIT_CAPTION -> true
+        DraftType.REACTION,
+        DraftType.STICKER,
+        DraftType.CUSTOM_EVENT,
+        DraftType.CUSTOM_STATE_EVENT -> false
+    }
+    val allowsImagePackImage = type == DraftType.STICKER || allowsCustomEmote
 
     val shouldSendAsPlaintext: Boolean
         get() = format == ComposerFormat.PLAIN
@@ -213,49 +295,48 @@ object DraftRepo {
 
     private fun maintainAnnotations(newValue: DraftValue, oldValue: DraftValue?): DraftValue {
         val newText = newValue.textFieldValue.text
-        val mentionsToRemove = mutableSetOf<DraftMention>()
-        val mentionsToAdd = mutableListOf<DraftMention>()
-        oldValue?.mentions?.forEach { mention ->
-            if (!newValue.mentions.contains(mention)) {
+        val spansToRemove = mutableSetOf<DraftSpan>()
+        val spansToAdd = mutableListOf<DraftSpan>()
+        oldValue?.spans?.forEach { span ->
+            if (!newValue.spans.contains(span)) {
                 // Was already dropped anyway
                 return@forEach
             }
-            val mentionText = oldValue.textFieldValue.text.substring(mention.range)
-            val mentionTextCheck = if (mention.end <= newText.length)
-                newText.substring(mention.range)
+            val spanText = oldValue.textFieldValue.text.substring(span.range)
+            val spanTextCheck = if (span.end <= newText.length)
+                newText.substring(span.range)
             else
                 null
-            if (mentionText == mentionTextCheck) {
+            if (spanText == spanTextCheck) {
                 // Still applicable
                 return@forEach
             } else {
-                mentionsToRemove.add(mention)
+                spansToRemove.add(span)
                 // Check if text was just moved?
-                val newIndex = newText.indexOf(mentionText)
+                val newIndex = newText.indexOf(spanText)
                 if (newIndex >= 0) {
-                    val newMention = mention.copy(start = newIndex, end = newIndex + mentionText.length)
+                    val newSpan = span.withAdjustedRange(start = newIndex, end = newIndex + spanText.length)
                     // Avoid duplicates
-                    if (newMention !in newValue.mentions) {
-                        mentionsToAdd.add(newMention)
+                    if (newSpan !in newValue.spans) {
+                        spansToAdd.add(newSpan)
                     }
                 }
             }
         }
-        return if (mentionsToAdd.isEmpty() && mentionsToRemove.isEmpty() && newValue.mentions.isEmpty()) {
+        return if (spansToAdd.isEmpty() && spansToRemove.isEmpty() && newValue.spans.isEmpty()) {
             newValue
         } else {
-            val mentions = (newValue.mentions - mentionsToRemove + mentionsToAdd).toImmutableList()
+            val spans = (newValue.spans - spansToRemove + spansToAdd).toImmutableList()
             newValue.copy(
-                mentions = mentions,
+                spans = spans,
                 textFieldValue = newValue.textFieldValue.copy(
                     annotatedString = buildAnnotatedString {
                         append(newText)
-                        mentions.forEach { mention ->
+                        spans.forEach { span ->
                             addStyle(
-                                // TODO get color from theme
-                                SpanStyle(color = ScColors.colorAccentGreen),
-                                start = mention.start,
-                                end = mention.end,
+                                span.draftStyle(),
+                                start = span.start,
+                                end = span.end,
                             )
                         }
                     }

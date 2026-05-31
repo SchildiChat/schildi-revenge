@@ -135,6 +135,7 @@ private val OptionalSettingValue = ActionArgumentOptional(ActionArgumentPrimitiv
 private val OptionalReason = ActionArgumentOptional(ActionArgumentPrimitive.Reason)
 private val StateKey = ActionArgumentOptional(ActionArgumentPrimitive.NonEmptyStateKey)
 private val ViaServerVararg = ActionArgumentRepeatable(ActionArgumentPrimitive.ServerName)
+private val RoomIdRelaxed = ActionArgumentAnyOf(ActionArgumentPrimitive.RoomId, ActionArgumentPrimitive.SpaceId)
 
 private val navigationDestinationArgs = listOf(
     ActionArgumentOptional(NavigationDestinationSessionId),
@@ -190,6 +191,8 @@ sealed interface Action {
         Join(args = listOf(ActionArgumentPrimitive.SessionId, UnjoinedRoom, ViaServerVararg)),
         VerifyUser(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.UserId)),
         ConsumeLink(args = listOf(DeepLink)),
+        EnableImagePack(args = listOf(ActionArgumentPrimitive.SessionId, RoomIdRelaxed, StateKey)),
+        DisableImagePack(args = listOf(ActionArgumentPrimitive.SessionId, RoomIdRelaxed, StateKey)),
     }
     enum class AppMessage(
         override val aliases: kotlin.collections.List<String> = emptyList(),
@@ -305,6 +308,7 @@ sealed interface Action {
         ComposeMessage,
         ComposeNotice,
         ComposeEmote,
+        ComposeSticker,
         ComposeCustomEvent(args = listOf(ActionArgumentPrimitive.EventType), aliases = listOf("sendEvent")),
         ComposeCustomStateEvent(args = listOf(ActionArgumentPrimitive.StateEventType, StateKey), aliases = listOf("sendState")),
         ComposerSend,

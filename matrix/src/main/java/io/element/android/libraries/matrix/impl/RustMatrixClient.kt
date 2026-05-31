@@ -128,6 +128,8 @@ import org.matrix.rustcomponents.sdk.IgnoredUsersListener
 import org.matrix.rustcomponents.sdk.Membership
 import org.matrix.rustcomponents.sdk.NotificationProcessSetup
 import org.matrix.rustcomponents.sdk.PowerLevels
+import org.matrix.rustcomponents.sdk.RoomImagePackStateEvent
+import org.matrix.rustcomponents.sdk.RoomImagePackStateEventsListener
 import org.matrix.rustcomponents.sdk.RoomInfoListener
 import org.matrix.rustcomponents.sdk.SendQueueRoomErrorListener
 import org.matrix.rustcomponents.sdk.TaskHandle
@@ -401,6 +403,15 @@ class RustMatrixClient(
     }
     override suspend fun getUrlPreviewJson(url: String): String = withContext(sessionDispatcher) {
         innerClient.getUrlPreviewJson(url)
+    }
+    override fun getImagePackFlow(roomIds: List<RoomId>): Flow<List<RoomImagePackStateEvent>> {
+        return mxCallbackFlow {
+            innerClient.subscribeToImagePackStateEvents(roomIds.map(RoomId::value), object : RoomImagePackStateEventsListener {
+                override fun onUpdate(events: List<RoomImagePackStateEvent>) {
+                    channel.trySend(events)
+                }
+            })
+        }.distinctUntilChanged()
     }
     override suspend fun shutdownClient() = destroy()
     // SC additions end
