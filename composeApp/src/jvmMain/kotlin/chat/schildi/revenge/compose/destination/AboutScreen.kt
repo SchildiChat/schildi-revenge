@@ -14,15 +14,25 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.revenge.BuildInfo
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.MatrixSdkMetadata
@@ -39,10 +49,18 @@ import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInb
 import chat.schildi.revenge.compose.components.TopNavigationTitle
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
-import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.appendUrlText
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.revenge.model.about.AboutViewModel
+import chat.schildi.revenge.model.about.AppLink
+import chat.schildi.revenge.model.about.AppLinks
+import chat.schildi.revenge.model.about.DependencyInfo
+import chat.schildi.revenge.model.about.REVENGE_SDK_SOURCE_URL
+import chat.schildi.revenge.model.about.REVENGE_SOURCE_URL
+import chat.schildi.revenge.model.about.SCHILDI_NEXT_SOURCE_URL
+import chat.schildi.revenge.model.about.ThirdPartyAcknowledgement
+import chat.schildi.revenge.model.about.ThirdPartyAcknowledgements
 import chat.schildi.revenge.util.OsDetection
+import chat.schildi.theme.scExposures
 import chat.schildi.theme.scLinkStyle
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
@@ -50,113 +68,29 @@ import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.about
 import shire.composeapp.generated.resources.about_build_date
 import shire.composeapp.generated.resources.about_build_info
-import shire.composeapp.generated.resources.about_credits
 import shire.composeapp.generated.resources.about_kotlin_base_revision
+import shire.composeapp.generated.resources.about_open_source_licenses
 import shire.composeapp.generated.resources.about_os_name
-import shire.composeapp.generated.resources.about_privacy_policy
 import shire.composeapp.generated.resources.about_release_variant
 import shire.composeapp.generated.resources.about_revision
 import shire.composeapp.generated.resources.about_rust_release_variant
 import shire.composeapp.generated.resources.about_rust_revision
-import shire.composeapp.generated.resources.about_source_code
 import shire.composeapp.generated.resources.about_system_info
-import shire.composeapp.generated.resources.about_website
+import shire.composeapp.generated.resources.action_show_less
+import shire.composeapp.generated.resources.action_show_more
 import shire.composeapp.generated.resources.app_title_full
 import shire.composeapp.generated.resources.hint_app_icon
 import shire.composeapp.generated.resources.ic_launcher
-
-private const val REVENGE_SOURCE_URL = "https://github.com/SchildiChat/schildi-revenge"
-private const val REVENGE_SDK_SOURCE_URL = "https://github.com/SchildiChat/matrix-rust-sdk"
-private const val SCHILDI_NEXT_SOURCE_URL = "https://github.com/SchildiChat/schildichat-android-next"
-
-private data class ThirdPartyAcknowledgement(
-    val name: String,
-    val nameAdd: String? = null,
-    val url: String,
-    val author: String,
-    val authorUrl: String?,
-    val license: String,
-    val licenseUrl: String,
-)
-
-private data class AppLink(
-    val name: ComposableStringHolder,
-    val url: String,
-)
-
-private val ThirdPartyAcknowledgements = listOf(
-    ThirdPartyAcknowledgement(
-        name = "Matrix Rust SDK",
-        url = "https://github.com/matrix-org/matrix-rust-sdk",
-        author = "The Matrix.org Foundation C.I.C.",
-        authorUrl = "https://matrix.org/",
-        license = "Apache-2.0",
-        licenseUrl = "https://www.apache.org/licenses/LICENSE-2.0.txt",
-    ),
-    ThirdPartyAcknowledgement(
-        name = "Element X Android",
-        url = "https://github.com/element-hq/element-x-android/",
-        author = "Element Creations Ltd.",
-        authorUrl = "https://element.io",
-        license = "AGPL-3.0",
-        licenseUrl = "https://www.gnu.org/licenses/agpl-3.0.txt",
-    ),
-    ThirdPartyAcknowledgement(
-        name = "matrix-messageformat-compose",
-        url = "https://github.com/beeper/matrix-messageformat-compose",
-        author = "Beeper (Automattic)",
-        authorUrl = "https://www.beeper.com/",
-        license = "MIT",
-        licenseUrl = "https://mit-license.org/",
-    ),
-    ThirdPartyAcknowledgement(
-        name = "tortoise",
-        url = "https://pictogrammers.com/library/mdi/icon/tortoise/",
-        author = "Nick",
-        authorUrl = "https://github.com/Croutonix",
-        license = "Apache-2.0",
-        licenseUrl = "https://www.apache.org/licenses/LICENSE-2.0.txt",
-    ),
-    ThirdPartyAcknowledgement(
-        name = "Inter",
-        nameAdd = "font",
-        url = "https://fonts.google.com/specimen/Inter",
-        author = "Rasmus Andersson",
-        authorUrl = null,
-        license = "OFL-1.1",
-        licenseUrl = "https://fonts.google.com/specimen/Inter/license",
-    ),
-    ThirdPartyAcknowledgement(
-        name = "Noto Color Emoji",
-        nameAdd = "font",
-        url = "https://fonts.google.com/noto/specimen/Noto+Color+Emoji",
-        author = "Google Inc.",
-        authorUrl = null,
-        license = "OFL-1.1",
-        licenseUrl = "https://fonts.google.com/noto/specimen/Noto+Color+Emoji/license",
-    ),
-)
-
-private val AppLinks = listOf(
-    AppLink(
-        name = Res.string.about_website.toStringHolder(),
-        url = "https://schildi.chat/revenge",
-    ),
-    AppLink(
-        name = Res.string.about_privacy_policy.toStringHolder(),
-        url = "https://schildi.chat/revenge/privacy/",
-    ),
-    AppLink(
-        name = Res.string.about_source_code.toStringHolder(),
-        url = REVENGE_SOURCE_URL,
-    ),
-)
 
 @Composable
 fun AboutScreen(
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
 ) {
+    val viewModel: AboutViewModel = viewModel(
+        //key = viewModelKey(destination),
+        factory = viewModelFactory { initializer { AboutViewModel() } }
+    )
     val listState = rememberLazyListState()
     val listAction = remember(listState) { ListActions(listState, isReverseList = true) }
     FocusContainer(
@@ -164,6 +98,7 @@ fun AboutScreen(
         modifier = modifier,
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
     ) {
+        var expandOpenSourceLicenses by remember { mutableStateOf(false) }
         Column {
             TopNavigation {
                 TopNavigationTitle(stringResource(Res.string.about))
@@ -173,6 +108,7 @@ fun AboutScreen(
                 LazyColumn(
                     modifier = contentModifier.padding(horizontal = Dimens.windowPadding),
                     verticalArrangement = Dimens.verticalArrangement,
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     state = listState,
                 ) {
                     item(key = "header") {
@@ -194,14 +130,62 @@ fun AboutScreen(
                             }
                         }
                     }
-                    item(key = "section_credits") {
-                        AboutSectionHeader(stringResource(Res.string.about_credits))
+
+                    item(key = "section_open_source_licenses") {
+                        AboutSectionHeader(stringResource(Res.string.about_open_source_licenses))
                     }
                     items(ThirdPartyAcknowledgements, key = { it.name }) { item ->
                         AcknowledgementItem(
                             item,
                         )
                     }
+                    item(key = "expand_licenses") {
+                        Row(
+                            Modifier
+                                .keyFocusable(
+                                    role = FocusRole.LIST_ITEM,
+                                    actionProvider = actionProvider(
+                                        primaryAction = InteractionAction.Invoke {
+                                            expandOpenSourceLicenses = !expandOpenSourceLicenses
+                                            true
+                                        },
+                                    ),
+                                )
+                                .padding(Dimens.listPaddingSmall),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(
+                                Dimens.horizontalItemPaddingSmall,
+                                Alignment.CenterHorizontally,
+                            ),
+                        ) {
+                            Text(
+                                if (expandOpenSourceLicenses) {
+                                    stringResource(Res.string.action_show_less)
+                                } else {
+                                    stringResource(Res.string.action_show_more)
+                                },
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.scExposures.linkColor,
+                            )
+                            Icon(
+                                if (expandOpenSourceLicenses) {
+                                    Icons.Default.ExpandLess
+                                } else {
+                                    Icons.Default.ExpandMore
+                                },
+                                null,
+                                tint = MaterialTheme.scExposures.linkColor,
+                            )
+                        }
+                    }
+                    if (expandOpenSourceLicenses) {
+                        items(viewModel.openSourceLicenses, key = { it.name }) { item ->
+                            DependencyItem(
+                                item,
+                            )
+                        }
+                    }
+
                     item(key = "build_info") {
                         AboutSectionHeader(stringResource(Res.string.about_build_info))
                     }
@@ -313,6 +297,40 @@ private fun AcknowledgementItem(item: ThirdPartyAcknowledgement, modifier: Modif
             actionProvider = actionProvider(
                 primaryAction = InteractionAction.Invoke {
                     keyHandler.openLinkInExternalBrowser(item.url) is ActionResult.Success
+                },
+                copyActions = plainTextCopyAction { text.toString() },
+            ),
+        ).fillMaxWidth()
+    ) {
+        SelectionContainer {
+            Text(
+                text,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun DependencyItem(item: DependencyInfo, modifier: Modifier = Modifier) {
+    val keyHandler = LocalKeyboardActionHandler.current
+    val linkStyle = scLinkStyle()
+    val text = remember(item) {
+        buildAnnotatedString {
+            appendUrlText(item.url, item.name, linkStyle)
+            if (item.license != null) {
+                append(" under the terms of ")
+                appendUrlText(item.licenseUrl, item.license, linkStyle)
+            }
+        }
+    }
+    val primaryUrl = item.url ?: item.licenseUrl
+    AboutCard(
+        modifier.keyFocusable(
+            actionProvider = actionProvider(
+                primaryAction = if (primaryUrl == null) null else InteractionAction.Invoke {
+                    keyHandler.openLinkInExternalBrowser(primaryUrl) is ActionResult.Success
                 },
                 copyActions = plainTextCopyAction { text.toString() },
             ),

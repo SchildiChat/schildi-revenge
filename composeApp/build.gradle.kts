@@ -105,6 +105,7 @@ val rustProfile: String = if (isReleaseBuild) "release" else "debug"
 
 val generatedSrcDir = layout.buildDirectory.dir("generated/src/jvmMain/kotlin").get().asFile
 val composeResourcesDir = layout.projectDirectory.dir("src/jvmMain/composeResources")
+val jvmResourcesDir = layout.projectDirectory.dir("src/jvmMain/resources")
 
 val distributionResourcesDirName = "distribution-resources"
 val distributionResourcesDir = layout.buildDirectory.dir(distributionResourcesDirName)
@@ -399,6 +400,17 @@ val generateAvailableLocales = tasks.register<GenerateAvailableLocalesTask>("gen
     composeResourcesDirectory.set(composeResourcesDir)
     packageName.set(pkg)
     outputFile.set(outFile)
+}
+
+val persistDependencyLicenseReport = tasks.register<Sync>("persistDependencyLicenseReport") {
+    description = "Update third-party Maven dependency license report in JVM resources"
+    group = "build"
+
+    dependsOn(rootProject.tasks.named("generateLicenseReport"))
+    from(rootProject.layout.buildDirectory.dir("reports/dependency-license")) {
+        include("third-party-libs.json")
+    }
+    into(jvmResourcesDir)
 }
 
 // Add generated sources to jvmMain

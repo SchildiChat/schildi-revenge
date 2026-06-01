@@ -19,6 +19,7 @@ object Dimens {
     val listPaddingBig = 16.dp
     val listPaddingSmall = 4.dp
     val horizontalItemPadding = 8.dp
+    val horizontalItemPaddingSmall = 4.dp
     val horizontalItemPaddingBig = 16.dp
     val horizontalArrangement = Arrangement.spacedBy(horizontalItemPadding)
     val horizontalArrangementSmall = Arrangement.spacedBy(4.dp)

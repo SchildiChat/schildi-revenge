@@ -1,5 +1,6 @@
 [versions]
 versionsPlugin = "0.54.0"
+dependencyLicenseReport = "3.1.2"
 androidx-lifecycle = "2.10.0"
 androidx-datastore = "1.2.1"
 composeHotReload = "1.1.1"
@@ -73,6 +74,7 @@ vanniktech-blurhash = { module = "com.vanniktech:blurhash", version.ref = "blurh
 
 [plugins]
 versions = { id = "com.github.ben-manes.versions", version.ref = "versionsPlugin" }
+dependencyLicenseReport = { id = "com.github.jk1.dependency-license-report", version.ref = "dependencyLicenseReport" }
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
 composeCompiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

@@ -1,0 +1,1517 @@
+{
+    "dependencies": [
+        {
+            "moduleName": "androidx.annotation:annotation",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/annotation#1.9.1",
+            "moduleVersion": "1.9.1",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.annotation:annotation-jvm",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/annotation#1.9.1",
+            "moduleVersion": "1.9.1",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.arch.core:core-common",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/arch-core#2.2.0",
+            "moduleVersion": "2.2.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.collection:collection",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/collection#1.5.0",
+            "moduleVersion": "1.5.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.collection:collection-jvm",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/collection#1.5.0",
+            "moduleVersion": "1.5.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.compose.runtime:runtime",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/compose-runtime#1.11.1",
+            "moduleVersion": "1.11.1",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.compose.runtime:runtime-annotation",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/compose-runtime#1.11.1",
+            "moduleVersion": "1.11.1",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.compose.runtime:runtime-annotation-jvm",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/compose-runtime#1.11.1",
+            "moduleVersion": "1.11.1",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.compose.runtime:runtime-desktop",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/compose-runtime#1.11.1",
+            "moduleVersion": "1.11.1",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.compose.runtime:runtime-retain",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/compose-runtime#1.11.1",
+            "moduleVersion": "1.11.1",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.compose.runtime:runtime-retain-desktop",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/compose-runtime#1.11.1",
+            "moduleVersion": "1.11.1",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.compose.runtime:runtime-saveable",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/compose-runtime#1.11.1",
+            "moduleVersion": "1.11.1",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.compose.runtime:runtime-saveable-desktop",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/compose-runtime#1.11.1",
+            "moduleVersion": "1.11.1",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.datastore:datastore-core",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
+            "moduleVersion": "1.2.1",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.datastore:datastore-core-jvm",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
+            "moduleVersion": "1.2.1",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.datastore:datastore-core-okio",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
+            "moduleVersion": "1.2.1",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.datastore:datastore-core-okio-jvm",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
+            "moduleVersion": "1.2.1",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.datastore:datastore-preferences-core",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
+            "moduleVersion": "1.2.1",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.datastore:datastore-preferences-core-jvm",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
+            "moduleVersion": "1.2.1",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.datastore:datastore-preferences-external-protobuf",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
+            "moduleVersion": "1.2.1",
+            "moduleLicense": "BSD-3-Clause",
+            "moduleLicenseUrl": "https://opensource.org/licenses/BSD-3-Clause"
+        },
+        {
+            "moduleName": "androidx.datastore:datastore-preferences-proto",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/datastore#1.2.1",
+            "moduleVersion": "1.2.1",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.lifecycle:lifecycle-common",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.10.0",
+            "moduleVersion": "2.10.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.lifecycle:lifecycle-common-jvm",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.10.0",
+            "moduleVersion": "2.10.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.lifecycle:lifecycle-runtime",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.10.0",
+            "moduleVersion": "2.10.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.lifecycle:lifecycle-runtime-compose",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.10.0",
+            "moduleVersion": "2.10.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.lifecycle:lifecycle-runtime-compose-desktop",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.10.0",
+            "moduleVersion": "2.10.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.lifecycle:lifecycle-runtime-desktop",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.10.0",
+            "moduleVersion": "2.10.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.lifecycle:lifecycle-viewmodel",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.10.0",
+            "moduleVersion": "2.10.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.lifecycle:lifecycle-viewmodel-desktop",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.10.0",
+            "moduleVersion": "2.10.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.lifecycle:lifecycle-viewmodel-savedstate",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.10.0",
+            "moduleVersion": "2.10.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.lifecycle:lifecycle-viewmodel-savedstate-desktop",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.10.0",
+            "moduleVersion": "2.10.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.navigationevent:navigationevent",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/navigationevent#1.0.1",
+            "moduleVersion": "1.0.1",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.navigationevent:navigationevent-desktop",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/navigationevent#1.0.1",
+            "moduleVersion": "1.0.1",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.savedstate:savedstate",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/savedstate#1.4.0",
+            "moduleVersion": "1.4.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.savedstate:savedstate-compose",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/savedstate#1.4.0",
+            "moduleVersion": "1.4.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.savedstate:savedstate-compose-desktop",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/savedstate#1.4.0",
+            "moduleVersion": "1.4.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "androidx.savedstate:savedstate-desktop",
+            "moduleUrl": "https://developer.android.com/jetpack/androidx/releases/savedstate#1.4.0",
+            "moduleVersion": "1.4.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "ca.gosyer:kotlin-multiplatform-appdirs",
+            "moduleUrl": "https://github.com/syer10/Kotlin-Multiplatform-AppDirs",
+            "moduleVersion": "2.0.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "ca.gosyer:kotlin-multiplatform-appdirs-jvm",
+            "moduleUrl": "https://github.com/syer10/Kotlin-Multiplatform-AppDirs",
+            "moduleVersion": "2.0.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "co.touchlab:kermit",
+            "moduleUrl": "https://github.com/touchlab/Kermit",
+            "moduleVersion": "2.1.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "co.touchlab:kermit-core",
+            "moduleUrl": "https://github.com/touchlab/Kermit",
+            "moduleVersion": "2.1.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "co.touchlab:kermit-core-jvm",
+            "moduleUrl": "https://github.com/touchlab/Kermit",
+            "moduleVersion": "2.1.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "co.touchlab:kermit-jvm",
+            "moduleUrl": "https://github.com/touchlab/Kermit",
+            "moduleVersion": "2.1.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "com.akuleshov7:ktoml-core",
+            "moduleUrl": "https://github.com/akuleshov7/ktoml",
+            "moduleVersion": "0.7.1",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "com.akuleshov7:ktoml-core-jvm",
+            "moduleUrl": "https://github.com/akuleshov7/ktoml",
+            "moduleVersion": "0.7.1",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "com.github.ajalt.clikt:clikt",
+            "moduleUrl": "https://github.com/ajalt/clikt/",
+            "moduleVersion": "5.1.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "com.github.ajalt.clikt:clikt-core",
+            "moduleUrl": "https://github.com/ajalt/clikt/",
+            "moduleVersion": "5.1.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "com.github.ajalt.clikt:clikt-core-jvm",
+            "moduleUrl": "https://github.com/ajalt/clikt/",
+            "moduleVersion": "5.1.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "com.github.ajalt.clikt:clikt-jvm",
+            "moduleUrl": "https://github.com/ajalt/clikt/",
+            "moduleVersion": "5.1.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "com.github.ajalt.colormath:colormath",
+            "moduleUrl": "https://github.com/ajalt/colormath/",
+            "moduleVersion": "3.6.0",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "com.github.ajalt.colormath:colormath-jvm",
+            "moduleUrl": "https://github.com/ajalt/colormath/",
+            "moduleVersion": "3.6.0",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "com.github.ajalt.mordant:mordant",
+            "moduleUrl": "https://github.com/ajalt/mordant/",
+            "moduleVersion": "3.0.2",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "com.github.ajalt.mordant:mordant-core",
+            "moduleUrl": "https://github.com/ajalt/mordant/",
+            "moduleVersion": "3.0.2",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "com.github.ajalt.mordant:mordant-core-jvm",
+            "moduleUrl": "https://github.com/ajalt/mordant/",
+            "moduleVersion": "3.0.2",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "com.github.ajalt.mordant:mordant-jvm",
+            "moduleUrl": "https://github.com/ajalt/mordant/",
+            "moduleVersion": "3.0.2",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "com.github.ajalt.mordant:mordant-jvm-ffm",
+            "moduleUrl": "https://github.com/ajalt/mordant/",
+            "moduleVersion": "3.0.2",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "com.github.ajalt.mordant:mordant-jvm-ffm-jvm",
+            "moduleUrl": "https://github.com/ajalt/mordant/",
+            "moduleVersion": "3.0.2",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "com.github.ajalt.mordant:mordant-jvm-graal-ffi",
+            "moduleUrl": "https://github.com/ajalt/mordant/",
+            "moduleVersion": "3.0.2",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "com.github.ajalt.mordant:mordant-jvm-graal-ffi-jvm",
+            "moduleUrl": "https://github.com/ajalt/mordant/",
+            "moduleVersion": "3.0.2",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "com.github.ajalt.mordant:mordant-jvm-jna",
+            "moduleUrl": "https://github.com/ajalt/mordant/",
+            "moduleVersion": "3.0.2",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "com.github.ajalt.mordant:mordant-jvm-jna-jvm",
+            "moduleUrl": "https://github.com/ajalt/mordant/",
+            "moduleVersion": "3.0.2",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "com.github.beeper.matrix-messageformat-compose:messageformat-jvm",
+            "moduleUrl": "https://github.com/beeper/matrix-messageformat-compose",
+            "moduleVersion": "17e7a0c99bb719bec5424aa6fb09c6a0e1616b88",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "com.github.hypfvieh:dbus-java-core",
+            "moduleVersion": "5.2.0",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "com.github.hypfvieh:dbus-java-transport-native-unixsocket",
+            "moduleVersion": "5.2.0",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "com.github.skydoves:compose-stable-marker",
+            "moduleUrl": "https://github.com/skydoves/compose-stable-marker/",
+            "moduleVersion": "1.0.7",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "com.github.skydoves:compose-stable-marker-jvm",
+            "moduleUrl": "https://github.com/skydoves/compose-stable-marker/",
+            "moduleVersion": "1.0.7",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "com.googlecode.htmlcompressor:htmlcompressor",
+            "moduleUrl": "http://code.google.com/p/htmlcompressor/",
+            "moduleVersion": "1.5.2",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "com.squareup.okhttp3:okhttp",
+            "moduleUrl": "https://square.github.io/okhttp/",
+            "moduleVersion": "4.12.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "com.squareup.okio:okio",
+            "moduleUrl": "https://github.com/square/okio/",
+            "moduleVersion": "3.17.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "com.squareup.okio:okio-jvm",
+            "moduleUrl": "https://github.com/square/okio/",
+            "moduleVersion": "3.17.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "com.vanniktech:blurhash",
+            "moduleUrl": "https://github.com/vanniktech/blurhash",
+            "moduleVersion": "0.3.0",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "com.vanniktech:blurhash-jvm",
+            "moduleUrl": "https://github.com/vanniktech/blurhash",
+            "moduleVersion": "0.3.0",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "de.jangassen:jfa",
+            "moduleUrl": "https://github.com/0x4a616e/jfa",
+            "moduleVersion": "1.2.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "dev.zacsweers.metro:runtime",
+            "moduleUrl": "https://github.com/ZacSweers/metro/",
+            "moduleVersion": "1.0.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "dev.zacsweers.metro:runtime-jvm",
+            "moduleUrl": "https://github.com/ZacSweers/metro/",
+            "moduleVersion": "1.0.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.coil-kt.coil3:coil",
+            "moduleUrl": "https://github.com/coil-kt/coil",
+            "moduleVersion": "3.5.0-beta01",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.coil-kt.coil3:coil-compose",
+            "moduleUrl": "https://github.com/coil-kt/coil",
+            "moduleVersion": "3.5.0-beta01",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.coil-kt.coil3:coil-compose-core",
+            "moduleUrl": "https://github.com/coil-kt/coil",
+            "moduleVersion": "3.5.0-beta01",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.coil-kt.coil3:coil-compose-core-jvm",
+            "moduleUrl": "https://github.com/coil-kt/coil",
+            "moduleVersion": "3.5.0-beta01",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.coil-kt.coil3:coil-compose-jvm",
+            "moduleUrl": "https://github.com/coil-kt/coil",
+            "moduleVersion": "3.5.0-beta01",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.coil-kt.coil3:coil-core",
+            "moduleUrl": "https://github.com/coil-kt/coil",
+            "moduleVersion": "3.5.0-beta01",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.coil-kt.coil3:coil-core-jvm",
+            "moduleUrl": "https://github.com/coil-kt/coil",
+            "moduleVersion": "3.5.0-beta01",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.coil-kt.coil3:coil-jvm",
+            "moduleUrl": "https://github.com/coil-kt/coil",
+            "moduleVersion": "3.5.0-beta01",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.coil-kt.coil3:coil-network-core",
+            "moduleUrl": "https://github.com/coil-kt/coil",
+            "moduleVersion": "3.5.0-beta01",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.coil-kt.coil3:coil-network-core-jvm",
+            "moduleUrl": "https://github.com/coil-kt/coil",
+            "moduleVersion": "3.5.0-beta01",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.coil-kt.coil3:coil-network-okhttp",
+            "moduleUrl": "https://github.com/coil-kt/coil",
+            "moduleVersion": "3.5.0-beta01",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.coil-kt.coil3:coil-network-okhttp-jvm",
+            "moduleUrl": "https://github.com/coil-kt/coil",
+            "moduleVersion": "3.5.0-beta01",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.github.kdroidfilter:composenativetray",
+            "moduleUrl": "https://github.com/kdroidFilter/ComposeNativeTray",
+            "moduleVersion": "1.3.0",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "io.github.kdroidfilter:composenativetray-jvm",
+            "moduleUrl": "https://github.com/kdroidFilter/ComposeNativeTray",
+            "moduleVersion": "1.3.0",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "io.github.kdroidfilter:knotify",
+            "moduleUrl": "https://github.com/kdroidFilter/ComposeNativeNotification",
+            "moduleVersion": "0.4.3",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "io.github.kdroidfilter:knotify-compose",
+            "moduleUrl": "https://github.com/kdroidFilter/ComposeNativeNotification",
+            "moduleVersion": "0.4.3",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "io.github.kdroidfilter:knotify-compose-jvm",
+            "moduleUrl": "https://github.com/kdroidFilter/ComposeNativeNotification",
+            "moduleVersion": "0.4.3",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "io.github.kdroidfilter:knotify-jvm",
+            "moduleUrl": "https://github.com/kdroidFilter/ComposeNativeNotification",
+            "moduleVersion": "0.4.3",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "io.github.kdroidfilter:nucleus.core-runtime",
+            "moduleUrl": "https://github.com/kdroidFilter/Nucleus",
+            "moduleVersion": "1.12.0",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "io.github.kdroidfilter:nucleus.darkmode-detector",
+            "moduleUrl": "https://github.com/kdroidFilter/Nucleus",
+            "moduleVersion": "1.12.0",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "io.github.kdroidfilter:platformtools.core",
+            "moduleUrl": "https://github.com/kdroidFilter/",
+            "moduleVersion": "0.7.5",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "io.github.kdroidfilter:platformtools.core-jvm",
+            "moduleUrl": "https://github.com/kdroidFilter/",
+            "moduleVersion": "0.7.5",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "io.github.kdroidfilter:platformtools.darkmodedetector",
+            "moduleUrl": "https://github.com/kdroidFilter/",
+            "moduleVersion": "0.7.5",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "io.github.kdroidfilter:platformtools.darkmodedetector-jvm",
+            "moduleUrl": "https://github.com/kdroidFilter/",
+            "moduleVersion": "0.7.5",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "io.ktor:ktor-client-core",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.ktor:ktor-client-core-jvm",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.ktor:ktor-events",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.ktor:ktor-events-jvm",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.ktor:ktor-http",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.ktor:ktor-http-cio",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.ktor:ktor-http-cio-jvm",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.ktor:ktor-http-jvm",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.ktor:ktor-io",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.ktor:ktor-io-jvm",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.ktor:ktor-network",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.ktor:ktor-network-jvm",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.ktor:ktor-serialization",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.ktor:ktor-serialization-jvm",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.ktor:ktor-sse",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.ktor:ktor-sse-jvm",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.ktor:ktor-utils",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.ktor:ktor-utils-jvm",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.ktor:ktor-websocket-serialization",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.ktor:ktor-websocket-serialization-jvm",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.ktor:ktor-websockets",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "io.ktor:ktor-websockets-jvm",
+            "moduleUrl": "https://github.com/ktorio/ktor",
+            "moduleVersion": "3.4.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "net.java.dev.jna:jna",
+            "moduleUrl": "https://github.com/java-native-access/jna",
+            "moduleVersion": "5.18.1",
+            "moduleLicense": "LGPL-2.1-only",
+            "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-2.1"
+        },
+        {
+            "moduleName": "net.java.dev.jna:jna-jpms",
+            "moduleUrl": "https://github.com/java-native-access/jna",
+            "moduleVersion": "5.18.1",
+            "moduleLicense": "LGPL-2.1-only",
+            "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-2.1"
+        },
+        {
+            "moduleName": "net.java.dev.jna:jna-platform",
+            "moduleUrl": "https://github.com/java-native-access/jna",
+            "moduleVersion": "5.18.1",
+            "moduleLicense": "LGPL-2.1-only",
+            "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-2.1"
+        },
+        {
+            "moduleName": "net.java.dev.jna:jna-platform-jpms",
+            "moduleUrl": "https://github.com/java-native-access/jna",
+            "moduleVersion": "5.18.1",
+            "moduleLicense": "LGPL-2.1-only",
+            "moduleLicenseUrl": "https://www.gnu.org/licenses/lgpl-2.1"
+        },
+        {
+            "moduleName": "org.jetbrains.androidx.lifecycle:lifecycle-common",
+            "moduleUrl": "https://github.com/JetBrains/compose-jb",
+            "moduleVersion": "2.10.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.androidx.lifecycle:lifecycle-runtime",
+            "moduleUrl": "https://github.com/JetBrains/compose-jb",
+            "moduleVersion": "2.10.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose",
+            "moduleUrl": "https://github.com/JetBrains/compose-jb",
+            "moduleVersion": "2.10.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-jb",
+            "moduleVersion": "2.10.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel",
+            "moduleUrl": "https://github.com/JetBrains/compose-jb",
+            "moduleVersion": "2.10.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose",
+            "moduleUrl": "https://github.com/JetBrains/compose-jb",
+            "moduleVersion": "2.10.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-jb",
+            "moduleVersion": "2.10.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-savedstate",
+            "moduleUrl": "https://github.com/JetBrains/compose-jb",
+            "moduleVersion": "2.10.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.androidx.savedstate:savedstate",
+            "moduleUrl": "https://github.com/JetBrains/compose-jb",
+            "moduleVersion": "1.3.6",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.androidx.savedstate:savedstate-compose",
+            "moduleUrl": "https://github.com/JetBrains/compose-jb",
+            "moduleVersion": "1.3.6",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.androidx.savedstate:savedstate-compose-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-jb",
+            "moduleVersion": "1.3.6",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.animation:animation",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.animation:animation-core",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.animation:animation-core-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.animation:animation-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.annotation-internal:annotation",
+            "moduleUrl": "https://github.com/JetBrains/compose-jb",
+            "moduleVersion": "1.9.1",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.collection-internal:collection",
+            "moduleUrl": "https://github.com/JetBrains/compose-jb",
+            "moduleVersion": "1.9.1",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.components:components-resources",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.components:components-resources-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.desktop:desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.desktop:desktop-jvm",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.desktop:desktop-jvm-linux-x64",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.desktop:desktop-jvm-macos-arm64",
+            "moduleUrl": "https://github.com/JetBrains/compose-jb",
+            "moduleVersion": "1.9.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.foundation:foundation",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.foundation:foundation-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.foundation:foundation-layout",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.foundation:foundation-layout-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.material3:material3",
+            "moduleUrl": "https://github.com/JetBrains/compose-jb",
+            "moduleVersion": "1.9.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.material3:material3-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-jb",
+            "moduleVersion": "1.9.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.material:material",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.material:material-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.material:material-icons-core",
+            "moduleUrl": "https://github.com/JetBrains/compose-jb",
+            "moduleVersion": "1.7.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.material:material-icons-core-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-jb",
+            "moduleVersion": "1.7.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.material:material-icons-extended",
+            "moduleUrl": "https://github.com/JetBrains/compose-jb",
+            "moduleVersion": "1.7.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.material:material-icons-extended-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-jb",
+            "moduleVersion": "1.7.3",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.material:material-ripple",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.material:material-ripple-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.runtime:runtime",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.runtime:runtime-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.runtime:runtime-saveable",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.runtime:runtime-saveable-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.ui:ui",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.ui:ui-backhandler",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.ui:ui-backhandler-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.ui:ui-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.ui:ui-geometry",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.ui:ui-geometry-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.ui:ui-graphics",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.ui:ui-graphics-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.ui:ui-text",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.ui:ui-text-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.ui:ui-tooling-preview",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.ui:ui-tooling-preview-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.ui:ui-unit",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.ui:ui-unit-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.ui:ui-util",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.compose.ui:ui-util-desktop",
+            "moduleUrl": "https://github.com/JetBrains/compose-multiplatform",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlin:kotlin-stdlib",
+            "moduleUrl": "https://kotlinlang.org/",
+            "moduleVersion": "2.3.21",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
+            "moduleUrl": "https://kotlinlang.org/",
+            "moduleVersion": "1.8.21",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
+            "moduleUrl": "https://kotlinlang.org/",
+            "moduleVersion": "1.8.21",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlinx:atomicfu",
+            "moduleUrl": "https://github.com/Kotlin/kotlinx.atomicfu",
+            "moduleVersion": "0.28.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlinx:atomicfu-jvm",
+            "moduleUrl": "https://github.com/Kotlin/kotlinx.atomicfu",
+            "moduleVersion": "0.28.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlinx:kotlinx-collections-immutable",
+            "moduleUrl": "https://github.com/Kotlin/kotlinx.collections.immutable",
+            "moduleVersion": "0.4.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlinx:kotlinx-collections-immutable-jvm",
+            "moduleUrl": "https://github.com/Kotlin/kotlinx.collections.immutable",
+            "moduleVersion": "0.4.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlinx:kotlinx-coroutines-core",
+            "moduleUrl": "https://github.com/Kotlin/kotlinx.coroutines",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm",
+            "moduleUrl": "https://github.com/Kotlin/kotlinx.coroutines",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j",
+            "moduleUrl": "https://github.com/Kotlin/kotlinx.coroutines",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlinx:kotlinx-coroutines-swing",
+            "moduleUrl": "https://github.com/Kotlin/kotlinx.coroutines",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlinx:kotlinx-coroutines-test",
+            "moduleUrl": "https://github.com/Kotlin/kotlinx.coroutines",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlinx:kotlinx-coroutines-test-jvm",
+            "moduleUrl": "https://github.com/Kotlin/kotlinx.coroutines",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlinx:kotlinx-datetime",
+            "moduleUrl": "https://github.com/Kotlin/kotlinx-datetime",
+            "moduleVersion": "0.8.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlinx:kotlinx-datetime-jvm",
+            "moduleUrl": "https://github.com/Kotlin/kotlinx-datetime",
+            "moduleVersion": "0.8.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlinx:kotlinx-io-bytestring",
+            "moduleUrl": "https://github.com/Kotlin/kotlinx-io",
+            "moduleVersion": "0.8.2",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlinx:kotlinx-io-bytestring-jvm",
+            "moduleUrl": "https://github.com/Kotlin/kotlinx-io",
+            "moduleVersion": "0.8.2",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlinx:kotlinx-io-core",
+            "moduleUrl": "https://github.com/Kotlin/kotlinx-io",
+            "moduleVersion": "0.8.2",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlinx:kotlinx-io-core-jvm",
+            "moduleUrl": "https://github.com/Kotlin/kotlinx-io",
+            "moduleVersion": "0.8.2",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlinx:kotlinx-serialization-core",
+            "moduleUrl": "https://github.com/Kotlin/kotlinx.serialization",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm",
+            "moduleUrl": "https://github.com/Kotlin/kotlinx.serialization",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlinx:kotlinx-serialization-json",
+            "moduleUrl": "https://github.com/Kotlin/kotlinx.serialization",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm",
+            "moduleUrl": "https://github.com/Kotlin/kotlinx.serialization",
+            "moduleVersion": "1.11.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.runtime:jbr-api",
+            "moduleUrl": "https://github.com/JetBrains/JetBrainsRuntimeApi",
+            "moduleVersion": "1.9.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.skiko:skiko",
+            "moduleUrl": "https://www.github.com/JetBrains/skiko",
+            "moduleVersion": "0.144.6",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.skiko:skiko-awt",
+            "moduleUrl": "https://www.github.com/JetBrains/skiko",
+            "moduleVersion": "0.144.6",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.skiko:skiko-awt-runtime-linux-x64",
+            "moduleUrl": "https://www.github.com/JetBrains/skiko",
+            "moduleVersion": "0.144.6",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains.skiko:skiko-awt-runtime-macos-arm64",
+            "moduleUrl": "https://www.github.com/JetBrains/skiko",
+            "moduleVersion": "0.144.6",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jetbrains:annotations",
+            "moduleUrl": "https://github.com/JetBrains/java-annotations",
+            "moduleVersion": "23.0.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.jsoup:jsoup",
+            "moduleUrl": "https://jsoup.org/",
+            "moduleVersion": "1.22.2",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "org.jspecify:jspecify",
+            "moduleUrl": "https://jspecify.dev/docs/start-here",
+            "moduleVersion": "1.0.0",
+            "moduleLicense": "Apache-2.0",
+            "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
+        },
+        {
+            "moduleName": "org.kodein.emoji:emoji-kt",
+            "moduleUrl": "http://kodein.org",
+            "moduleVersion": "2.4.0",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "org.kodein.emoji:emoji-kt-jvm",
+            "moduleUrl": "http://kodein.org",
+            "moduleVersion": "2.4.0",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        },
+        {
+            "moduleName": "org.slf4j:slf4j-api",
+            "moduleUrl": "http://www.slf4j.org",
+            "moduleVersion": "2.0.17",
+            "moduleLicense": "MIT",
+            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+        }
+    ],
+    "importedModules": [
+        
+    ]
+}

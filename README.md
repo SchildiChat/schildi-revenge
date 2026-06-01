@@ -324,6 +324,15 @@ git merge origin/main
 ```
 
 
+## Library maintenance
+
+License information to view in the about screen requires manual collection.
+For libraries pulled in via maven, running `./gradlew persistDependencyLicenseReport` should be enough for the about
+screen to pick it up.
+
+To view a list of currently outdated dependencies, use `./gradlew dependencyUpdate`.
+
+
 ## Troubleshooting
 
 ### I'm using [insert Linux desktop/WM here], how to follow system dark mode?
