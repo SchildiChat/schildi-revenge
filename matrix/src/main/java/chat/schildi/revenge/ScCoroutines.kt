@@ -6,6 +6,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.withTimeoutOrNull
 
 object ScCoroutines {
     private val appJob = SupervisorJob()
@@ -16,5 +17,12 @@ object ScCoroutines {
 
     fun shutdown() {
         appScope.cancel("App shutdown")
+    }
+
+    suspend fun awaitShutdownFinished(timeoutMillis: Long): Boolean {
+        return withTimeoutOrNull(timeoutMillis) {
+            appJob.join()
+            true
+        } ?: false
     }
 }

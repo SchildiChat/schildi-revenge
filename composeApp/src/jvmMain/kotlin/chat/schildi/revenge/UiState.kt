@@ -58,6 +58,7 @@ import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.concurrent.atomics.fetchAndIncrement
+import kotlin.system.exitProcess
 
 val GlobalActionsScope = ScCoroutines.scope(Dispatchers.IO, "GlobalActionScope")
 
@@ -431,12 +432,24 @@ object UiState {
     fun exit() {
         if (isShuttingDown.compareAndSet(false, true)) {
             shutdownScope.launch {
-                log.i("Shutting down")
+                log.i("Shutting down coroutines")
                 ScCoroutines.shutdown()
+                log.i("Shutting down clients")
                 shutdownClients()
-                withContext(Dispatchers.Main) {
-                    applicationScope?.exitApplication()
+                log.i("Shutting down application")
+                applicationScope?.let {
+                    withContext(Dispatchers.Main) {
+                        it.exitApplication()
+                    }
+                } ?: run {
+                    log.e("Compose application not tracked for shutdown")
                 }
+                log.i("Waiting for coroutines to finish")
+                if (!ScCoroutines.awaitShutdownFinished(30_000L)) {
+                    log.w("Timed out waiting for coroutines to finish")
+                }
+                log.i("Shutdown finished")
+                exitProcess(0)
             }
         }
     }
