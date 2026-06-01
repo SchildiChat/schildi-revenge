@@ -3,7 +3,11 @@ package chat.schildi.revenge
 import androidx.compose.ui.ExperimentalComposeUiApi
 import chat.schildi.revenge.config.keybindings.Action
 import co.touchlab.kermit.Logger
-import kotlin.system.exitProcess
+import co.touchlab.kermit.Message
+import co.touchlab.kermit.MessageStringFormatter
+import co.touchlab.kermit.Severity
+import co.touchlab.kermit.Tag
+import co.touchlab.kermit.platformLogWriter
 import chat.schildi.revenge.ipc.SingleInstance
 import chat.schildi.revenge.util.OsDetection
 import chat.schildi.revenge.util.matrix.MatrixLinkPatterns
@@ -14,9 +18,14 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import kotlin.system.exitProcess
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun main(args: Array<String>) {
+    Logger.setLogWriters(platformLogWriter(RevengeLogFormatter))
+
     // Avoid ugly JVM crash dialog. May want to replace with our own branded crash screen later.
     // On Windows keep it, since I don't know how to get crash logs otherwise, and it's less ugly there anyway.
     if (!OsDetection.isWindows()) {
@@ -27,6 +36,12 @@ fun main(args: Array<String>) {
     }
 
     MainCommand().main(args)
+}
+
+private object RevengeLogFormatter : MessageStringFormatter {
+    override fun formatMessage(severity: Severity?, tag: Tag?, message: Message): String {
+        return "${Instant.now().truncatedTo(ChronoUnit.MILLIS)} ${super.formatMessage(severity, tag, message)}"
+    }
 }
 
 class MainCommand : CliktCommand("schildi-revenge") {
