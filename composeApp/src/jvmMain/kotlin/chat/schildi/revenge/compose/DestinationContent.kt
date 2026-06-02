@@ -66,7 +66,7 @@ fun DestinationContent(
                 is Destination.RoomDevTools -> RoomDevToolsScreen(destination, baseModifier, contentModifier)
                 is Destination.SplitHorizontal -> SplitHorizontal(destination, baseModifier, contentModifier)
                 is Destination.SplitVertical -> SplitVertical(destination, baseModifier, contentModifier)
-                is Destination.About -> AboutScreen(baseModifier, contentModifier)
+                is Destination.About -> AboutScreen(destination, baseModifier, contentModifier)
                 is Destination.Diagnostics -> DiagnosticsScreen(destination, baseModifier, contentModifier)
                 is Destination.VerificationRequest -> VerificationRequestScreen(destination, baseModifier, contentModifier)
                 is Destination.SessionSelector -> SessionSelectorScreen(destination, baseModifier, contentModifier)

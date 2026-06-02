@@ -2,6 +2,7 @@ package chat.schildi.revenge.model.about
 
 import chat.schildi.revenge.compose.util.ComposableStringHolder
 import chat.schildi.revenge.compose.util.toStringHolder
+import kotlinx.collections.immutable.persistentListOf
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.about_privacy_policy
 import shire.composeapp.generated.resources.about_source_code
@@ -19,14 +20,20 @@ data class ThirdPartyAcknowledgement(
     val authorUrl: String?,
     val license: String,
     val licenseUrl: String,
-)
+) {
+    fun matches(search: String): Boolean {
+        return name.contains(search, ignoreCase = true) ||
+                author.contains(search, ignoreCase = true) ||
+                license.contains(search, ignoreCase = true)
+    }
+}
 
 data class AppLink(
     val name: ComposableStringHolder,
     val url: String,
 )
 
-val ThirdPartyAcknowledgements = listOf(
+val ThirdPartyAcknowledgements = persistentListOf(
     ThirdPartyAcknowledgement(
         name = "Matrix Rust SDK",
         url = "https://github.com/matrix-org/matrix-rust-sdk",
@@ -79,7 +86,7 @@ val ThirdPartyAcknowledgements = listOf(
     ),
 )
 
-val AppLinks = listOf(
+val AppLinks = persistentListOf(
     AppLink(
         name = Res.string.about_website.toStringHolder(),
         url = "https://schildi.chat/revenge",

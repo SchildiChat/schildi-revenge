@@ -17,23 +17,27 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.revenge.BuildInfo
+import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.MatrixSdkMetadata
 import chat.schildi.revenge.actions.ActionResult
@@ -44,12 +48,15 @@ import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.plainTextCopyAction
+import chat.schildi.revenge.compose.components.EmptyListScreen
 import chat.schildi.revenge.compose.components.TopNavigation
 import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInboxIcon
-import chat.schildi.revenge.compose.components.TopNavigationTitle
+import chat.schildi.revenge.compose.components.TopNavigationSearchOrTitle
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
+import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.compose.util.appendUrlText
+import chat.schildi.revenge.compose.util.toStringHolder
 import chat.schildi.revenge.model.about.AboutViewModel
 import chat.schildi.revenge.model.about.AppLink
 import chat.schildi.revenge.model.about.AppLinks
@@ -58,8 +65,8 @@ import chat.schildi.revenge.model.about.REVENGE_SDK_SOURCE_URL
 import chat.schildi.revenge.model.about.REVENGE_SOURCE_URL
 import chat.schildi.revenge.model.about.SCHILDI_NEXT_SOURCE_URL
 import chat.schildi.revenge.model.about.ThirdPartyAcknowledgement
-import chat.schildi.revenge.model.about.ThirdPartyAcknowledgements
 import chat.schildi.revenge.util.OsDetection
+import chat.schildi.revenge.viewModelKey
 import chat.schildi.theme.scExposures
 import chat.schildi.theme.scLinkStyle
 import org.jetbrains.compose.resources.painterResource
@@ -79,21 +86,26 @@ import shire.composeapp.generated.resources.about_system_info
 import shire.composeapp.generated.resources.action_show_less
 import shire.composeapp.generated.resources.action_show_more
 import shire.composeapp.generated.resources.app_title_full
+import shire.composeapp.generated.resources.empty_screen_placeholder_unexpected
 import shire.composeapp.generated.resources.hint_app_icon
 import shire.composeapp.generated.resources.ic_launcher
 
 @Composable
 fun AboutScreen(
+    destination: Destination.About,
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
 ) {
     val viewModel: AboutViewModel = viewModel(
-        //key = viewModelKey(destination),
+        key = viewModelKey(destination),
         factory = viewModelFactory { initializer { AboutViewModel() } }
     )
+    val state = viewModel.state.collectAsState().value
+    val isSearching = state.isSearching
     val listState = rememberLazyListState()
-    val listAction = remember(listState) { ListActions(listState, isReverseList = true) }
+    val listAction = remember(listState) { ListActions(listState) }
     FocusContainer(
+        LocalSearchProvider provides viewModel,
         LocalListActionProvider provides listAction,
         modifier = modifier,
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
@@ -101,120 +113,148 @@ fun AboutScreen(
         var expandOpenSourceLicenses by remember { mutableStateOf(false) }
         Column {
             TopNavigation {
-                TopNavigationTitle(stringResource(Res.string.about))
+                TopNavigationSearchOrTitle(stringResource(Res.string.about))
                 TopNavigationCloseOrNavigateToInboxIcon()
             }
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                LazyColumn(
-                    modifier = contentModifier.padding(horizontal = Dimens.windowPadding),
-                    verticalArrangement = Dimens.verticalArrangement,
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    state = listState,
-                ) {
-                    item(key = "header") {
-                        AboutHeader()
-                    }
-                    item(key = "links") {
-                        FlowRow(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(
-                                Dimens.horizontalItemPadding,
-                                Alignment.CenterHorizontally
-                            ),
-                            verticalArrangement = Dimens.verticalArrangement,
-                        ) {
-                            AppLinks.forEach { item ->
-                                AppLinkItem(
+                if (state.isEmpty) {
+                    EmptyListScreen(
+                        title = Res.string.empty_screen_placeholder_unexpected.toStringHolder(),
+                        icon = rememberVectorPainter(Icons.Default.Info),
+                        renderedSearchTerm = state.searchQuery,
+                        modifier = contentModifier.fillMaxSize(),
+                    )
+                } else {
+                    LazyColumn(
+                        modifier = contentModifier.padding(horizontal = Dimens.windowPadding),
+                        verticalArrangement = Dimens.verticalArrangement,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        state = listState,
+                    ) {
+                        if (!isSearching) {
+                            item(key = "header") {
+                                AboutHeader()
+                            }
+                            item(key = "links") {
+                                FlowRow(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(
+                                        Dimens.horizontalItemPadding,
+                                        Alignment.CenterHorizontally
+                                    ),
+                                    verticalArrangement = Dimens.verticalArrangement,
+                                ) {
+                                    AppLinks.forEach { item ->
+                                        AppLinkItem(
+                                            item,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        item(key = "section_open_source_licenses") {
+                            AboutSectionHeader(stringResource(Res.string.about_open_source_licenses))
+                        }
+                        items(state.acknowledgements, key = { it.name }) { item ->
+                            AcknowledgementItem(
+                                item,
+                            )
+                        }
+                        if (!isSearching) {
+                            item(key = "expand_licenses") {
+                                Row(
+                                    Modifier
+                                        .keyFocusable(
+                                            role = FocusRole.LIST_ITEM,
+                                            actionProvider = actionProvider(
+                                                primaryAction = InteractionAction.Invoke {
+                                                    expandOpenSourceLicenses = !expandOpenSourceLicenses
+                                                    true
+                                                },
+                                            ),
+                                        )
+                                        .padding(Dimens.listPaddingSmall),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(
+                                        Dimens.horizontalItemPaddingSmall,
+                                        Alignment.CenterHorizontally,
+                                    )
+                                ) {
+                                    Text(
+                                        if (expandOpenSourceLicenses) {
+                                            stringResource(Res.string.action_show_less)
+                                        } else {
+                                            stringResource(Res.string.action_show_more)
+                                        },
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.scExposures.linkColor,
+                                    )
+                                    Icon(
+                                        if (expandOpenSourceLicenses) {
+                                            Icons.Default.ExpandLess
+                                        } else {
+                                            Icons.Default.ExpandMore
+                                        },
+                                        null,
+                                        tint = MaterialTheme.scExposures.linkColor,
+                                    )
+                                }
+                            }
+                        }
+                        if (expandOpenSourceLicenses || isSearching) {
+                            items(state.openSourceLicenses, key = { it.name }) { item ->
+                                DependencyItem(
                                     item,
                                 )
                             }
                         }
-                    }
 
-                    item(key = "section_open_source_licenses") {
-                        AboutSectionHeader(stringResource(Res.string.about_open_source_licenses))
-                    }
-                    items(ThirdPartyAcknowledgements, key = { it.name }) { item ->
-                        AcknowledgementItem(
-                            item,
-                        )
-                    }
-                    item(key = "expand_licenses") {
-                        Row(
-                            Modifier
-                                .keyFocusable(
-                                    role = FocusRole.LIST_ITEM,
-                                    actionProvider = actionProvider(
-                                        primaryAction = InteractionAction.Invoke {
-                                            expandOpenSourceLicenses = !expandOpenSourceLicenses
-                                            true
-                                        },
-                                    ),
+                        if (!isSearching) {
+
+                            item(key = "build_info") {
+                                AboutSectionHeader(stringResource(Res.string.about_build_info))
+                            }
+                            buildInfoItem("release_variant") {
+                                stringResource(Res.string.about_release_variant, BuildInfo.BUILD_TYPE)
+                            }
+                            if (BuildInfo.RUST_PROFILE != BuildInfo.BUILD_TYPE) {
+                                buildInfoItem("rust_release_variant") {
+                                    stringResource(Res.string.about_rust_release_variant, BuildInfo.RUST_PROFILE)
+                                }
+                            }
+                            buildInfoItem(
+                                "revision",
+                                action = InteractionAction.OpenInBrowser("$REVENGE_SOURCE_URL/commits/${BuildInfo.SOURCE_REVISION}")
+                            ) {
+                                stringResource(Res.string.about_revision, BuildInfo.SOURCE_REVISION.formatCommitHash())
+                            }
+                            buildInfoItem(
+                                "kotlin_sdk_revision",
+                                action = InteractionAction.OpenInBrowser("$SCHILDI_NEXT_SOURCE_URL/commits/${MatrixSdkMetadata.SCHILDI_NEXT_REVISION}")
+                            ) {
+                                stringResource(Res.string.about_kotlin_base_revision, MatrixSdkMetadata.ELEMENT_VERSION)
+                            }
+                            buildInfoItem(
+                                "rust_sdk_revision",
+                                action = InteractionAction.OpenInBrowser("$REVENGE_SDK_SOURCE_URL/commits/${BuildInfo.SDK_REVISION}")
+                            ) {
+                                stringResource(
+                                    Res.string.about_rust_revision,
+                                    BuildInfo.SDK_REVISION.formatCommitHash()
                                 )
-                                .padding(Dimens.listPaddingSmall),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(
-                                Dimens.horizontalItemPaddingSmall,
-                                Alignment.CenterHorizontally,
-                            ),
-                        ) {
-                            Text(
-                                if (expandOpenSourceLicenses) {
-                                    stringResource(Res.string.action_show_less)
-                                } else {
-                                    stringResource(Res.string.action_show_more)
-                                },
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.scExposures.linkColor,
-                            )
-                            Icon(
-                                if (expandOpenSourceLicenses) {
-                                    Icons.Default.ExpandLess
-                                } else {
-                                    Icons.Default.ExpandMore
-                                },
-                                null,
-                                tint = MaterialTheme.scExposures.linkColor,
-                            )
-                        }
-                    }
-                    if (expandOpenSourceLicenses) {
-                        items(viewModel.openSourceLicenses, key = { it.name }) { item ->
-                            DependencyItem(
-                                item,
-                            )
-                        }
-                    }
+                            }
+                            buildInfoItem("build_timestamp") {
+                                stringResource(Res.string.about_build_date, BuildInfo.BUILD_TIMESTAMP)
+                            }
 
-                    item(key = "build_info") {
-                        AboutSectionHeader(stringResource(Res.string.about_build_info))
-                    }
-                    buildInfoItem("release_variant") {
-                        stringResource(Res.string.about_release_variant, BuildInfo.BUILD_TYPE)
-                    }
-                    if (BuildInfo.RUST_PROFILE != BuildInfo.BUILD_TYPE) {
-                        buildInfoItem("rust_release_variant") {
-                            stringResource(Res.string.about_rust_release_variant, BuildInfo.RUST_PROFILE)
+                            item(key = "system_info") {
+                                AboutSectionHeader(stringResource(Res.string.about_system_info))
+                            }
+                            buildInfoItem("os_name") {
+                                stringResource(Res.string.about_os_name, OsDetection.getOsName())
+                            }
                         }
-                    }
-                    buildInfoItem("revision", action = InteractionAction.OpenInBrowser("$REVENGE_SOURCE_URL/commits/${BuildInfo.SOURCE_REVISION}")) {
-                        stringResource(Res.string.about_revision, BuildInfo.SOURCE_REVISION.formatCommitHash())
-                    }
-                    buildInfoItem("kotlin_sdk_revision", action = InteractionAction.OpenInBrowser("$SCHILDI_NEXT_SOURCE_URL/commits/${MatrixSdkMetadata.SCHILDI_NEXT_REVISION}")) {
-                        stringResource(Res.string.about_kotlin_base_revision, MatrixSdkMetadata.ELEMENT_VERSION)
-                    }
-                    buildInfoItem("rust_sdk_revision", action = InteractionAction.OpenInBrowser("$REVENGE_SDK_SOURCE_URL/commits/${BuildInfo.SDK_REVISION}")) {
-                        stringResource(Res.string.about_rust_revision, BuildInfo.SDK_REVISION.formatCommitHash())
-                    }
-                    buildInfoItem("build_timestamp") {
-                        stringResource(Res.string.about_build_date, BuildInfo.BUILD_TIMESTAMP)
-                    }
-
-                    item(key = "system_info") {
-                        AboutSectionHeader(stringResource(Res.string.about_system_info))
-                    }
-                    buildInfoItem("os_name") {
-                        stringResource(Res.string.about_os_name, OsDetection.getOsName())
                     }
                 }
             }
@@ -294,6 +334,7 @@ private fun AcknowledgementItem(item: ThirdPartyAcknowledgement, modifier: Modif
     }
     AboutCard(
         modifier.keyFocusable(
+            role = FocusRole.LIST_ITEM,
             actionProvider = actionProvider(
                 primaryAction = InteractionAction.Invoke {
                     keyHandler.openLinkInExternalBrowser(item.url) is ActionResult.Success
@@ -328,6 +369,7 @@ private fun DependencyItem(item: DependencyInfo, modifier: Modifier = Modifier) 
     val primaryUrl = item.url ?: item.licenseUrl
     AboutCard(
         modifier.keyFocusable(
+            role = FocusRole.LIST_ITEM,
             actionProvider = actionProvider(
                 primaryAction = if (primaryUrl == null) null else InteractionAction.Invoke {
                     keyHandler.openLinkInExternalBrowser(primaryUrl) is ActionResult.Success
@@ -391,6 +433,7 @@ private fun LazyListScope.buildInfoItem(
                 Text(
                     text,
                     Modifier.keyFocusable(
+                        role = FocusRole.LIST_ITEM,
                         actionProvider = actionProvider(
                             primaryAction = action ?: copyAction,
                             secondaryAction = copyAction,
