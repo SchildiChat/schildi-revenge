@@ -132,7 +132,7 @@ fun TextLikeMessage(
         urlPreview?.let {
             val keyHandler = LocalKeyboardActionHandler.current
             UrlPreviewView(urlPreview.preview) {
-                keyHandler.openLinkInExternalBrowser(urlPreview.url)
+                keyHandler.openLink(urlPreview.url)
             }
         }
         SelectionContainer {

@@ -128,7 +128,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import org.jetbrains.compose.resources.getString
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_cancel
 import shire.composeapp.generated.resources.action_processing
@@ -141,7 +140,6 @@ import shire.composeapp.generated.resources.command_copy_name_full_account_data
 import shire.composeapp.generated.resources.command_external_application_launched
 import shire.composeapp.generated.resources.command_not_applicable
 import shire.composeapp.generated.resources.command_not_found
-import shire.composeapp.generated.resources.failed_to_resolve_room
 import shire.composeapp.generated.resources.toast_room_created
 import java.awt.Desktop
 import java.awt.Toolkit
@@ -619,7 +617,7 @@ class KeyboardActionHandler(
             }
 
             is InteractionAction.OpenInBrowser -> {
-                openLinkInExternalBrowser(action.url) is ActionResult.Success
+                this@KeyboardActionHandler.openLink(action.url) is ActionResult.Success
             }
 
             is InteractionAction.ContextMenu -> openContextMenu(action.focusId, action.menuId, action.parentMenuId)
@@ -1159,8 +1157,8 @@ class KeyboardActionHandler(
             this@KeyboardActionHandler.viewInExternalApp(this, content, fileExtension)
         override fun getFilesFromClipboard() = this@KeyboardActionHandler.getFilesFromClipboard()
         override fun getStringFromClipboard() = this@KeyboardActionHandler.getStringFromClipboard()
-        override fun openLinkInExternalBrowser(uri: String): ActionResult =
-            this@KeyboardActionHandler.openLinkInExternalBrowser(uri)
+        override fun openLink(uri: String): ActionResult =
+            this@KeyboardActionHandler.openLink(uri)
         override fun focusByRole(role: FocusRole) =
             this@KeyboardActionHandler.focusByRole(role)
         override fun withCriticalActionConfirmation(
@@ -1959,25 +1957,22 @@ class KeyboardActionHandler(
                             log.e { "Consuming matrix link: $rawLink -> $it" }
                         }
                         .orActionValidationError()
-                    context.launchActionAsync(
-                        "consumeLink/$link",
-                        GlobalActionsScope,
-                        Dispatchers.IO,
-                        "consumeLink/$link",
-                    ) {
-                        val destination = Destination.SessionSelector(rawLink.toStringHolder()) { sessionId ->
-                            when (link) {
-                                is MatrixToLink.MessageLink -> link.toDestination(sessionId)
-                                is MatrixToLink.RoomLink -> link.toDestination(sessionId)
-                                is MatrixToLink.UserMention -> Result.success(link.toDestination(sessionId, null))
-                            }
-                        }
-                        UiState.openWindow(destination)
-                        ActionResult.Success()
-                    }
+                    consumeLink(link)
+                    ActionResult.Success()
                 }
             }
         }
+    }
+
+    private fun consumeLink(link: MatrixToLink) {
+        val destination = Destination.SessionSelector(link.rawUrl.toStringHolder()) { sessionId ->
+            when (link) {
+                is MatrixToLink.MessageLink -> link.toDestination(sessionId)
+                is MatrixToLink.RoomLink -> link.toDestination(sessionId)
+                is MatrixToLink.UserMention -> Result.success(link.toDestination(sessionId, null))
+            }
+        }
+        UiState.openWindow(destination)
     }
 
     private fun ActionContext.launchCreateRoomAction(
@@ -2610,7 +2605,13 @@ class KeyboardActionHandler(
         }
     }
 
-    fun openLinkInExternalBrowser(uri: String): ActionResult {
+    fun openLink(uri: String): ActionResult {
+        if (uri.startsWith("matrix:")) {
+            MatrixLinkPatterns.parseMatrixLink(uri)?.let {
+                consumeLink(it)
+                return ActionResult.Success()
+            }
+        }
         return try {
             val localUriHandler = uriHandler ?: return ActionResult.Failure("No uri handler found")
             localUriHandler.openUri(uri)
@@ -3136,7 +3137,7 @@ interface ActionContext {
     fun viewInExternalApp(content: String, fileExtension: String = ".txt"): ActionResult
     fun getFilesFromClipboard(): List<File>
     fun getStringFromClipboard(): String?
-    fun openLinkInExternalBrowser(uri: String): ActionResult
+    fun openLink(uri: String): ActionResult
     fun focusByRole(role: FocusRole): Boolean
     fun withCriticalActionConfirmation(
         prompt: ComposableStringHolder,

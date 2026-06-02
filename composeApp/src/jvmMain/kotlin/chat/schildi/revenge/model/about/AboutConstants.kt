@@ -10,6 +10,8 @@ import shire.composeapp.generated.resources.about_website
 
 const val REVENGE_SOURCE_URL = "https://github.com/SchildiChat/schildi-revenge"
 const val REVENGE_SDK_SOURCE_URL = "https://github.com/SchildiChat/matrix-rust-sdk"
+const val REVENGE_MATRIX_ROOM_ALIAS = "#revenge:schildi.chat"
+val REVENGE_MATRIX_ROOM_URI = "matrix:r/${REVENGE_MATRIX_ROOM_ALIAS.removePrefix("#")}"
 const val SCHILDI_NEXT_SOURCE_URL = "https://github.com/SchildiChat/schildichat-android-next"
 
 data class ThirdPartyAcknowledgement(
@@ -98,5 +100,9 @@ val AppLinks = persistentListOf(
     AppLink(
         name = Res.string.about_source_code.toStringHolder(),
         url = REVENGE_SOURCE_URL,
+    ),
+    AppLink(
+        name = REVENGE_MATRIX_ROOM_ALIAS.toStringHolder(),
+        url = REVENGE_MATRIX_ROOM_URI,
     ),
 )

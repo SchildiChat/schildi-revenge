@@ -41,7 +41,6 @@ import chat.schildi.revenge.actions.orActionInapplicable
 import chat.schildi.revenge.actions.orActionValidationError
 import chat.schildi.revenge.actions.parseRoomStateSnapshot
 import chat.schildi.revenge.actions.toActionResult
-import chat.schildi.revenge.actions.unwrapActionResult
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.revenge.compose.util.StringResourceHolder
 import chat.schildi.revenge.compose.util.insertAtCursor
@@ -2096,7 +2095,7 @@ class ConversationViewModel(
                                 ActionResult.Inapplicable
                             } else {
                                 links.forEach {
-                                    openLinkInExternalBrowser(it).let {
+                                    openLink(it).let {
                                         if (it is ActionResult.Failure) {
                                             return@run it
                                         }

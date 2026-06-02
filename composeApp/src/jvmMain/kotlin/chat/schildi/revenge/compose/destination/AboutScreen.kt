@@ -339,7 +339,7 @@ private fun AcknowledgementItem(item: ThirdPartyAcknowledgement, modifier: Modif
             role = FocusRole.LIST_ITEM,
             actionProvider = actionProvider(
                 primaryAction = InteractionAction.Invoke {
-                    keyHandler.openLinkInExternalBrowser(item.url) is ActionResult.Success
+                    keyHandler.openLink(item.url) is ActionResult.Success
                 },
                 copyActions = plainTextCopyAction { text.toString() },
             ),
@@ -374,7 +374,7 @@ private fun DependencyItem(item: DependencyInfo, modifier: Modifier = Modifier) 
             role = FocusRole.LIST_ITEM,
             actionProvider = actionProvider(
                 primaryAction = if (primaryUrl == null) null else InteractionAction.Invoke {
-                    keyHandler.openLinkInExternalBrowser(primaryUrl) is ActionResult.Success
+                    keyHandler.openLink(primaryUrl) is ActionResult.Success
                 },
                 copyActions = plainTextCopyAction { text.toString() },
             ),
@@ -404,7 +404,7 @@ private fun AppLinkItem(item: AppLink, modifier: Modifier = Modifier) {
         modifier.keyFocusable(
             actionProvider = actionProvider(
                 primaryAction = InteractionAction.Invoke {
-                    keyHandler.openLinkInExternalBrowser(item.url) is ActionResult.Success
+                    keyHandler.openLink(item.url) is ActionResult.Success
                 },
                 copyActions = plainTextCopyAction { text.toString() },
             )
