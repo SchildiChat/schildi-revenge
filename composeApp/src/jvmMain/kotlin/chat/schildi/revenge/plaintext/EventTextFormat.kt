@@ -1,17 +1,10 @@
 package chat.schildi.revenge.plaintext
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.buildAnnotatedString
 import chat.schildi.revenge.MessageFormatDefaults
 import chat.schildi.revenge.model.conversation.MessageMetadata
-import co.touchlab.kermit.Logger
-import com.beeper.android.messageformat.InlineImageInfo
-import com.beeper.android.messageformat.MatrixBodyAnnotations
 import com.beeper.android.messageformat.MatrixBodyParseResult
-import com.beeper.android.messageformat.MatrixFormatInteractionState
-import com.beeper.android.messageformat.SpanAttributes
+import com.beeper.android.messageformat.StrippedFormattingRenderer
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.notification.CallIntent
@@ -44,7 +37,6 @@ import io.element.android.libraries.matrix.api.timeline.item.event.MessageFormat
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
 import io.element.android.libraries.matrix.api.timeline.item.event.TextLikeMessageType
-import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
@@ -432,134 +424,12 @@ object EventTextFormat {
         }
     }
 
-    private val STRIP_WHITESPACE_REGEX = "\\s+".toRegex()
-    private val STRIP_WHITESPACE_EXCEPT_NEWLINES_REGEX = "[\\s&&[^\\n]]+".toRegex()
     fun preformattedContentToString(
         parseResult: MatrixBodyParseResult,
         stripNewlines: Boolean,
-    ): String {
-        // Strip spoilers, formatting, and unnecessary whitespace
-        return MessageFormatDefaults.plaintextFormatter
-            .applyStyle(parseResult, MatrixFormatInteractionState(emptySet(), mutableStateOf(emptySet())))
-            .ensureParagraphItemNewlines()
-            .replaceInlineImages(parseResult.inlineImages)
-            .stripMatrixSpoilers()
-            .stripDetailsContent()
-            .toString()
-            .trim()
-            .replace(if (stripNewlines) STRIP_WHITESPACE_REGEX else STRIP_WHITESPACE_EXCEPT_NEWLINES_REGEX, " ")
-            .let {
-                if (stripNewlines) {
-                    it
-                } else {
-                    var tmp: String
-                    var new = it
-                    do {
-                        tmp = new
-                        new = tmp.replace("\n\n", "\n")
-                    } while (tmp != new)
-                    new
-                }
-            }
-    }
-
-    fun AnnotatedString.stripMatrixSpoilers() = replaceAnnotationContent(
-        tag = MatrixBodyAnnotations.SPAN,
-        predicate = {
-            try {
-                Json.decodeFromString<SpanAttributes>(it.item).isSpoiler
-            } catch (e: Exception) {
-                Logger.withTag("stripMatrixSpoilers").e("Failed to parse span attributes", e)
-                false
-            }
-        }
-    ) { content, _ ->
-        AnnotatedString("█".repeat(content.length.coerceIn(0, 12)))
-    }
-
-    fun AnnotatedString.stripDetailsContent() = replaceAnnotationContent(
-        tag = MatrixBodyAnnotations.DETAILS_CONTENT,
-    ) { _, _ ->
-        AnnotatedString("")
-    }
-
-    private fun AnnotatedString.replaceInlineImages(
-        inlineImages: Map<String, InlineImageInfo>,
-    ) = if (inlineImages.isEmpty()) this else replaceAnnotationContent(
-        MatrixBodyAnnotations.INLINE_IMAGE,
-    ) { content, id ->
-        val info = inlineImages[id]
-        if (info == null) {
-            Logger.withTag("replaceInlineImages").w("Unknown URI")
-            return@replaceAnnotationContent content
-        }
-        AnnotatedString(
-            info.alt ?: info.title ?: if (info.isEmote) "[emote]" else "[IMG]"
-        )
-    }
-
-    private fun AnnotatedString.ensureParagraphItemNewlines() = replaceAnnotationContent(
-        paragraphStyles,
-        recurse = true,
-    ) { content, _, _ ->
-        buildAnnotatedString {
-            append("\n")
-            append(content)
-            append("\n")
-        }
-    }
-
-    fun AnnotatedString.replaceAnnotationContent(
-        tag: String,
-        predicate: (AnnotatedString.Range<String>) -> Boolean = { true },
-        replacement: (content: AnnotatedString, annotation: String) -> AnnotatedString,
-    ) = replaceAnnotationContent(
-        annotationRanges = getStringAnnotations(tag, 0, text.length).filter(predicate),
-        replacement = { content, _, annotation -> replacement(content, annotation) },
+    ): String = StrippedFormattingRenderer.formattedContentToPlainString(
+        parseResult,
+        MessageFormatDefaults.plaintextFormatter,
+        stripNewlines,
     )
-
-    fun <T> AnnotatedString.replaceAnnotationContent(
-        annotationRanges: List<AnnotatedString.Range<T>>,
-        recurse: Boolean = false,
-        replacement: (content: AnnotatedString, annotationKey: String, annotation: T) -> AnnotatedString,
-    ): AnnotatedString {
-        val ranges = annotationRanges.sortedWith(compareBy({ it.start }, { -it.end }))
-        if (ranges.isEmpty()) return this
-
-        return buildAnnotatedString {
-            var cursor = 0
-
-            for (r in ranges) {
-                // Skip overlapping/contained ranges
-                if (r.start < cursor) continue
-
-                if (cursor < r.start) {
-                    append(subSequence(cursor, r.start))
-                }
-
-                if (recurse) {
-                    val containedRanges =  annotationRanges.filter {
-                        it.start >= r.start
-                                && it.end <= r.end
-                                && (it.start != r.start || it.end != r.end)
-                    }.map { it.copy(start = it.start - r.start, end = it.end - r.start) }
-                    append(
-                        replacement(
-                            subSequence(r.start, r.end).replaceAnnotationContent(containedRanges, true, replacement),
-                            r.tag,
-                            r.item
-                        )
-                    )
-                } else {
-                    append(replacement(subSequence(r.start, r.end), r.tag, r.item))
-                }
-
-                cursor = r.end
-            }
-
-            if (cursor < text.length) {
-                append(subSequence(cursor, text.length))
-            }
-        }
-    }
 }
