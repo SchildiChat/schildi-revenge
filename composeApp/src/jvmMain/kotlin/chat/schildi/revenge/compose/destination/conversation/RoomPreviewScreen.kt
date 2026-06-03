@@ -42,6 +42,7 @@ import chat.schildi.revenge.model.conversation.RoomPreviewViewModel
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import io.element.android.libraries.matrix.api.room.RoomInfo
+import io.element.android.libraries.matrix.api.room.RoomType
 import io.element.android.libraries.matrix.api.room.preview.RoomPreviewInfo
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
@@ -56,6 +57,7 @@ import shire.composeapp.generated.resources.room_preview_membership_invited
 import shire.composeapp.generated.resources.room_preview_membership_joined
 import shire.composeapp.generated.resources.room_preview_membership_knocked
 import shire.composeapp.generated.resources.room_preview_membership_left
+import shire.composeapp.generated.resources.room_type_space
 
 @Composable
 fun RoomPreviewScreen(
@@ -73,6 +75,7 @@ fun RoomPreviewScreen(
     val privateRoomName = roomInfo?.privateRoomName
     val currentUserMembership = roomInfo?.currentUserMembership ?: roomPreview?.membership
     val inviter = roomInfo?.inviter
+    val roomType = roomPreview?.roomType
 
     FocusContainer(
         LocalListActionProvider provides listAction,
@@ -161,6 +164,32 @@ fun RoomPreviewScreen(
                                         text,
                                         color = MaterialTheme.colorScheme.onSurface,
                                         style = MaterialTheme.typography.bodyLarge,
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    if (roomType != null && roomType != RoomType.Room) {
+                        item {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                SelectionContainer {
+                                    val text = when (roomType) {
+                                        is RoomType.Other -> roomType.type
+                                        RoomType.Space -> stringResource(Res.string.room_type_space)
+                                    }
+                                    Text(
+                                        text,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        modifier = Modifier.padding(horizontal = Dimens.horizontalItemPadding).keyFocusable(
+                                            role = FocusRole.LIST_ITEM,
+                                            actionProvider = actionProvider(
+                                                copyActions = plainTextCopyAction { text },
+                                            ),
+                                        ),
                                     )
                                 }
                             }

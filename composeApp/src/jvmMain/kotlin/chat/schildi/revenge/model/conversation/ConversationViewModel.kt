@@ -350,8 +350,12 @@ class ConversationViewModel(
         it?.filter { it.identityState.isAViolation() }?.toPersistentList()
     }
 
-    private val notJoinedRoom = loadStateHolder.state.map {
-        it.any { it.checkpoint is LoadCheckPoint.Room && it.state == CheckpointLoadState.FAILED }
+    private val notJoinedRoom = combine(
+        loadStateHolder.state,
+        roomInfo,
+    ) { loadState, info ->
+        info != null && info.currentUserMembership != CurrentUserMembership.JOINED ||
+                loadState.any { it.checkpoint is LoadCheckPoint.Room && it.state == CheckpointLoadState.FAILED }
     }.distinctUntilChanged().combine(clientFlow) { needsPreview, client ->
         client ?: return@combine null
         if (needsPreview) {

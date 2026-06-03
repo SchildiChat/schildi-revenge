@@ -73,11 +73,13 @@ import io.element.android.libraries.matrix.api.user.MatrixUser
 import org.jetbrains.compose.resources.stringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.action_join
+import shire.composeapp.generated.resources.empty_screen_placeholder_space
 import shire.composeapp.generated.resources.membership_change_invited
 import shire.composeapp.generated.resources.message_placeholder_invite
 import shire.composeapp.generated.resources.message_placeholder_invite_by
 import shire.composeapp.generated.resources.message_placeholder_invite_by_disambiguated
 import shire.composeapp.generated.resources.message_placeholder_tombstone
+import shire.composeapp.generated.resources.room_type_space
 import kotlin.math.max
 
 @Composable
@@ -181,7 +183,7 @@ private fun RowScope.ScNameAndTimestampRow(room: RoomSummary, hasDraft: Boolean)
     }
     Text(
         modifier = Modifier
-            .thenIf(secondaryName == null) {
+            .thenIf(secondaryName == null && !room.info.isSpace) {
                 weight(1f)
             },
         style = MaterialTheme.typography.titleMedium,
@@ -190,6 +192,20 @@ private fun RowScope.ScNameAndTimestampRow(room: RoomSummary, hasDraft: Boolean)
         maxLines = 1,
         overflow = TextOverflow.Ellipsis
     )
+    if (room.info.isSpace) {
+        Text(
+            modifier = Modifier
+                .padding(start = Dimens.horizontalItemPadding)
+                .thenIf(secondaryName == null) {
+                    weight(1f)
+                },
+            style = MaterialTheme.typography.titleMedium,
+            text = stringResource(Res.string.room_type_space),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
     if (secondaryName != null) {
         Text(
             modifier = Modifier
