@@ -115,7 +115,7 @@ object UiState {
         .settingFlow(ScPrefs.SKIKO_VSYNC)
         .distinctUntilChanged()
         .onEach {
-            log.e { "Setting vsync=$it" }
+            log.d { "Setting vsync=$it" }
             System.setProperty("skiko.vsync.enabled", it.toString())
         }
         .stateIn(scope, SharingStarted.Eagerly, null)
@@ -341,7 +341,7 @@ object UiState {
         val initialVsync = runBlocking {
             vsyncEnabled.first { it != null }
         }
-        log.e { "Starting with vsync=$initialVsync" }
+        log.i { "Starting with vsync=$initialVsync" }
     }
 
     fun setAccountMuted(sessionId: SessionId, muted: Boolean) {
