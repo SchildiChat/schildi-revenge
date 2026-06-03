@@ -98,6 +98,8 @@ import shire.composeapp.generated.resources.pref_compact_root_spaces_summary
 import shire.composeapp.generated.resources.pref_compact_root_spaces_title
 import shire.composeapp.generated.resources.pref_bury_low_priority_summary
 import shire.composeapp.generated.resources.pref_bury_low_priority_title
+import shire.composeapp.generated.resources.pref_category_advanced_configuration
+import shire.composeapp.generated.resources.pref_category_advanced_configuration_summary
 import shire.composeapp.generated.resources.pref_category_chat_sorting
 import shire.composeapp.generated.resources.pref_category_composer
 import shire.composeapp.generated.resources.pref_category_general
@@ -139,6 +141,8 @@ import shire.composeapp.generated.resources.pseudo_space_unread
 import shire.composeapp.generated.resources.pref_pseudo_spaces_summary
 import shire.composeapp.generated.resources.pref_pseudo_spaces_title
 import shire.composeapp.generated.resources.pref_render_space_order_keys_title
+import shire.composeapp.generated.resources.pref_skiko_vsync_summary
+import shire.composeapp.generated.resources.pref_skiko_vsync_title
 import shire.composeapp.generated.resources.pref_space_all_rooms_summary
 import shire.composeapp.generated.resources.pref_space_all_rooms_title
 import shire.composeapp.generated.resources.pref_space_unread_counts_mode_chats
@@ -301,6 +305,9 @@ object ScPrefs {
     val SEND_TYPING_NOTICE = ScBoolPref("SEND_TYPING_NOTICE", true, Res.string.pref_send_typing_notice_title, Res.string.pref_send_typing_notice_summary)
     val DISABLE_SEND_TYPING_NOTICE_IN_PUBLIC_ROOMS = ScBoolPref("DISABLE_SEND_TYPING_NOTICE_IN_PUBLIC_ROOMS", false, Res.string.pref_disable_typing_notice_in_public_rooms_title, Res.string.pref_disable_typing_notice_in_public_rooms_summary, dependencies = SEND_TYPING_NOTICE.asDependencies())
 
+    // Advanced / low-level stuff
+    val SKIKO_VSYNC = ScBoolPref("SKIKO_VSYNC", true, Res.string.pref_skiko_vsync_title, Res.string.pref_skiko_vsync_summary, requiresWindowRecreation = true)
+
     val rootPrefs = ScPrefScreen("ROOT", Res.string.hint_settings, null, listOf<AbstractScPref>(
         ScPrefScreen("GENERAL", Res.string.pref_category_general, Res.string.pref_category_general_summary, listOf(
             LOCALE,
@@ -407,6 +414,9 @@ object ScPrefs {
             MAX_WIDTH_CONVERSATION,
             MAX_WIDTH_ROOM_DETAILS,
             MAX_WIDTH_SETTINGS,
+        )),
+        ScPrefScreen("SYSTEM_BEHAVIOR", Res.string.pref_category_advanced_configuration, Res.string.pref_category_advanced_configuration_summary, listOf(
+            SKIKO_VSYNC,
         )),
         ScPrefScreen("DEVELOPER", Res.string.pref_category_developer_options, null, prefs = listOf(
             RENDER_AVATAR_STATES,

@@ -6,8 +6,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.awt.ComposeWindow
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -15,6 +17,33 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.model.DiagnosticsViewModel
 import chat.schildi.revenge.util.formatBytes
 import chat.schildi.revenge.viewModelKey
+import org.jetbrains.skiko.SkiaLayer
+import java.awt.Component
+import java.awt.Container
+
+data class WindowDiagnostics(
+    val isVsyncEnabled: Boolean?,
+) {
+    companion object {
+        fun from(window: ComposeWindow) = WindowDiagnostics(
+            isVsyncEnabled = window.findSkiaLayer()?.properties?.isVsyncEnabled
+        )
+
+        private fun Component.findSkiaLayer(): SkiaLayer? {
+            if (this is SkiaLayer) return this
+
+            if (this is Container) {
+                for (child in components) {
+                    child.findSkiaLayer()?.let { return it }
+                }
+            }
+
+            return null
+        }
+    }
+}
+
+val LocalWindowDiagnostics = compositionLocalOf<WindowDiagnostics?> { null }
 
 @Composable
 fun DiagnosticsRow(modifier: Modifier = Modifier) {
@@ -29,6 +58,7 @@ fun DiagnosticsRow(modifier: Modifier = Modifier) {
         horizontalArrangement = Arrangement.End,
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        val windowDiagnostics = LocalWindowDiagnostics.current
         val text = buildString {
             append(diagnostics.jvmHeap.usedBytes.formatBytes())
             if (diagnostics.process != null) {
@@ -37,6 +67,8 @@ fun DiagnosticsRow(modifier: Modifier = Modifier) {
                 append("/")
                 append(diagnostics.process.rssBytes.formatBytes())
             }
+            append(" vsync=")
+            append(windowDiagnostics?.isVsyncEnabled)
         }
         Text(
             text,

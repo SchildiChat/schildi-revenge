@@ -338,6 +338,10 @@
     <string name="pref_category_spaces">Spaces</string>
     <string name="pref_category_spaces_summary">Inbox filters</string>
     <string name="pref_category_typing_notices">Typing indicator</string>
+    <string name="pref_category_advanced_configuration">Advanced configuration</string>
+    <string name="pref_category_advanced_configuration_summary">Low-level behavior</string>
+    <string name="pref_skiko_vsync_title">Enable skiko VSync</string>
+    <string name="pref_skiko_vsync_summary">Try disabling VSync if you notice intermittent laggyness when having multiple windows open</string>
     <string name="pref_render_scale">Render scale</string>
     <string name="pref_font_scale">Font scale</string>
     <string name="pref_max_width_inbox_title">Inbox max width</string>

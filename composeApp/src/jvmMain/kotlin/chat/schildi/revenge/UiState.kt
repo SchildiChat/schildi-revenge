@@ -48,6 +48,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.toast_key_config_reload_error
@@ -109,6 +110,15 @@ object UiState {
             SharingStarted.Eagerly,
             RevengePrefs.getCachedOrDefaultValue(ScPrefs.CLOSE_TO_TRAY),
         )
+
+    private val vsyncEnabled = RevengePrefs
+        .settingFlow(ScPrefs.SKIKO_VSYNC)
+        .distinctUntilChanged()
+        .onEach {
+            log.e { "Setting vsync=$it" }
+            System.setProperty("skiko.vsync.enabled", it.toString())
+        }
+        .stateIn(scope, SharingStarted.Eagerly, null)
 
     private val preferMultiPaneInbox = RevengePrefs
         .settingFlow(ScPrefs.PREFER_DUAL_PANE_INBOX)
@@ -326,6 +336,12 @@ object UiState {
         this.applicationScope = applicationScope
         headlessKeyboardActionHandler = KeyboardActionHandler(GlobalActionsScope, HEADLESS_WINDOW_ID)
         _minimizedToTray.value = startInTray
+
+        // Block until vsync is set up, since we need to set it before opening windows
+        val initialVsync = runBlocking {
+            vsyncEnabled.first { it != null }
+        }
+        log.e { "Starting with vsync=$initialVsync" }
     }
 
     fun setAccountMuted(sessionId: SessionId, muted: Boolean) {
