@@ -279,4 +279,10 @@
     <string name="message_placeholder_state_event_policy_rule_room">%1$s änderte den Richtlinienraum</string>
     <string name="message_placeholder_state_event_policy_rule_server">%1$s änderte den Richtlinienserver</string>
     <string name="message_placeholder_state_event_policy_rule_user">%1$s änderte das Richtlinienkonto</string>
+    <string name="hint_homeserver">Homeserver</string>
+    <string name="hint_composer_audio">Audionachricht</string>
+    <string name="hint_composer_format_markdown">Markdown</string>
+    <string name="hint_sending">Sende</string>
+    <string name="message_placeholder_invite_by_disambiguated">Eingeladen von %1$s (%2$s)</string>
+    <string name="message_placeholder_reaction">Reagierte auf eine Nachricht</string>
 </resources>
