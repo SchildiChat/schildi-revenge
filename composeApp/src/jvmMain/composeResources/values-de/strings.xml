@@ -184,4 +184,9 @@
     <string name="diagnostics_system_info">Systeminformation</string>
     <string name="action_thread">Thread öffnen</string>
     <string name="command_success">Erfolgreich: %1$s</string>
+    <string name="pinned_messages">Angepinnte Nachrichten</string>
+    <plurals name="room_members_title_loaded">
+        <item quantity="one">Mitglied</item>
+        <item quantity="other">Mitglieder</item>
+    </plurals>
 </resources>
