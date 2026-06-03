@@ -186,7 +186,8 @@
     <string name="command_success">Erfolgreich: %1$s</string>
     <string name="pinned_messages">Angepinnte Nachrichten</string>
     <plurals name="room_members_title_loaded">
-        <item quantity="one">Mitglied</item>
-        <item quantity="other">Mitglieder</item>
+        <item quantity="one">%1$s Mitglied</item>
+        <item quantity="other">%1$s Mitglieder</item>
     </plurals>
+    <string name="command_event_name_fully_read_marker">vollständig gelesen Markierung</string>
 </resources>
