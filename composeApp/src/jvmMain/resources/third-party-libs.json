@@ -429,10 +429,7 @@
         },
         {
             "moduleName": "com.github.beeper.matrix-messageformat-compose:messageformat-jvm",
-            "moduleUrl": "https://github.com/beeper/matrix-messageformat-compose",
-            "moduleVersion": "17e7a0c99bb719bec5424aa6fb09c6a0e1616b88",
-            "moduleLicense": "MIT",
-            "moduleLicenseUrl": "https://opensource.org/licenses/mit"
+            "moduleVersion": "5ac720dbe1a46f228df673cc2c554584731f932c"
         },
         {
             "moduleName": "com.github.hypfvieh:dbus-java-core",
@@ -1275,7 +1272,7 @@
         {
             "moduleName": "org.jetbrains.kotlin:kotlin-stdlib",
             "moduleUrl": "https://kotlinlang.org/",
-            "moduleVersion": "2.3.21",
+            "moduleVersion": "2.4.0",
             "moduleLicense": "Apache-2.0",
             "moduleLicenseUrl": "https://www.apache.org/licenses/LICENSE-2.0"
         },
