@@ -1,6 +1,7 @@
 package chat.schildi.revenge
 
 import androidx.compose.ui.window.ApplicationScope
+import chat.schildi.matrixsdk.StaticRevengeSdkConfig
 import chat.schildi.preferences.RevengePrefs
 import chat.schildi.preferences.ScPrefs
 import chat.schildi.revenge.actions.AbstractAppMessage
@@ -120,6 +121,17 @@ object UiState {
         }
         .stateIn(scope, SharingStarted.Eagerly, null)
 
+    private val sdkSqlitePoolSize = RevengePrefs
+        .settingFlow(ScPrefs.SDK_SQLITE_MAX_POOL_SIZE)
+        .distinctUntilChanged()
+        .onEach {
+            val safeValue = ScPrefs.SDK_SQLITE_MAX_POOL_SIZE.coerceValue(it).toUInt()
+            log.d { "Setting SDK sqlite max pool size=$safeValue" }
+            StaticRevengeSdkConfig.sqlitePoolLimit = safeValue
+        }
+        .stateIn(scope, SharingStarted.Eagerly, null)
+
+
     private val preferMultiPaneInbox = RevengePrefs
         .settingFlow(ScPrefs.PREFER_DUAL_PANE_INBOX)
         .distinctUntilChanged()
@@ -214,14 +226,16 @@ object UiState {
 
     val matrixClients = combine(
         disabledSessions,
-        appGraph.sessionStore.sessionsFlow()
+        appGraph.sessionStore.sessionsFlow(),
     ) { disabled, allSessions ->
+        // Need to block on client config being ready first
+        val initialDbPoolSize = sdkSqlitePoolSize.first { it != null}
         val persistedSessions = allSessions.filter { SessionId(it.userId) !in disabled }
         globalLoadState.addExpected(
             *persistedSessions.map { LoadCheckPoint.Client(SessionId(it.userId)) }.toTypedArray()
         )
         val startTs = System.currentTimeMillis()
-        log.i("Restoring ${persistedSessions.size} sessions")
+        log.i("Restoring ${persistedSessions.size} sessions; per-account SDK DB max pool size: $initialDbPoolSize")
         val sessions = appGraph.sessionCache.runBatchRestore {
             val sessionJobs = persistedSessions.map { sessionData ->
                 scope.async {

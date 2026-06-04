@@ -133,8 +133,9 @@ data class ScIntPref(
         }
         return value?.coerceIn(minValue, maxValue)
     }
-    override fun parseType(value: String): Int? = value.toIntOrNull()?.coerceIn(minValue, maxValue)
+    override fun parseType(value: String): Int? = value.toIntOrNull()?.let(::coerceValue)
     override fun autoSuggestionValues() = emptyList<String>()
+    fun coerceValue(value: Int) = value.coerceIn(minValue, maxValue)
 }
 
 data class ScFloatPref(

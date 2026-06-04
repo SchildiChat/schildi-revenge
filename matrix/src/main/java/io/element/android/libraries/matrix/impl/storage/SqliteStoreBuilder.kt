@@ -7,6 +7,7 @@
 
 package io.element.android.libraries.matrix.impl.storage
 
+import chat.schildi.matrixsdk.StaticRevengeSdkConfig
 import io.element.android.libraries.core.data.ByteUnit
 import io.element.android.libraries.core.data.megaBytes
 import io.element.android.libraries.matrix.impl.paths.SessionPaths
@@ -25,6 +26,7 @@ class RustSqliteStoreBuilder(
         dataPath = sessionPaths.fileDirectory.absolutePath,
         cachePath = sessionPaths.cacheDirectory.absolutePath,
     ).journalSizeLimit(25.megaBytes.into(ByteUnit.BYTES).toUInt())
+        .poolMaxSize(StaticRevengeSdkConfig.sqlitePoolLimit) // SC: don't scale by CPU count, I have too many of those and can run into too many FD issues
 
     override fun passphrase(passphrase: String?): SqliteStoreBuilder {
         inner = inner.passphrase(passphrase)
