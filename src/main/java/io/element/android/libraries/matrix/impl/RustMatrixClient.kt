@@ -392,10 +392,10 @@ class RustMatrixClient(
             innerClient.roomAccountDataEvents(roomId.value).map(::mapRustAccountDataRawEvent)
         }
     }
-
     override suspend fun getUrlPreviewJson(url: String): String = withContext(sessionDispatcher) {
         innerClient.getUrlPreviewJson(url)
     }
+    override suspend fun shutdownClient() = destroy()
     // SC additions end
 
     override suspend fun findDM(userId: UserId): Result<RoomId?> = withContext(sessionDispatcher) {
