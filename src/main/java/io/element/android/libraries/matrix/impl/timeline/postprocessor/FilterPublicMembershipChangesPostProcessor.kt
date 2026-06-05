@@ -25,6 +25,7 @@ class FilterPublicMembershipChangesPostProcessor {
         joinRule: JoinRule?,
         isEncrypted: Boolean?,
     ): List<MatrixTimelineItem> {
+        if (true) return items // SC: TODO add a setting, once upstream moved this to SDK; or wait until upstream adds the setting
         return if (joinRule !is JoinRule.Invite && isEncrypted == false) {
             filterMembershipEvents(items)
         } else {
