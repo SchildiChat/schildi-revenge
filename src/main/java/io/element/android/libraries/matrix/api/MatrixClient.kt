@@ -80,6 +80,7 @@ interface MatrixClient {
     suspend fun setAccountData(eventType: String, content: String): Result<Unit> // SC
     suspend fun setRoomAccountData(roomId: RoomId, eventType: String, content: String): Result<Unit> // SC
     suspend fun getUrlPreviewJson(url: String): String // SC
+    suspend fun shutdownClient() // SC
     suspend fun findDM(userId: UserId): Result<RoomId?>
     suspend fun getJoinedRoomIds(): Result<Set<RoomId>>
     suspend fun ignoreUser(userId: UserId): Result<Unit>
