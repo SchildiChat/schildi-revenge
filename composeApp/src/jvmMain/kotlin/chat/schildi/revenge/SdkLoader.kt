@@ -1,7 +1,7 @@
 package chat.schildi.revenge
 
 import chat.schildi.revenge.util.OperatingSystem
-import chat.schildi.revenge.util.OsDetection
+import chat.schildi.revenge.util.SystemInfo
 import org.matrix.rustcomponents.sdk.LogLevel
 import org.matrix.rustcomponents.sdk.TracingConfiguration
 import org.matrix.rustcomponents.sdk.initPlatform
@@ -15,7 +15,7 @@ object SdkLoader {
     private val loaded = AtomicBoolean(false)
 
     private val isDebugBuild = BuildInfo.BUILD_TYPE == "debug"
-    private val libName = when (OsDetection.get()) {
+    private val libName = when (SystemInfo.getOs()) {
         OperatingSystem.Windows -> "matrix_sdk_ffi.dll"
         OperatingSystem.Mac -> "libmatrix_sdk_ffi.dylib"
         else -> "libmatrix_sdk_ffi.so"

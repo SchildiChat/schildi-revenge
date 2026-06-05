@@ -66,7 +66,7 @@ import chat.schildi.revenge.model.about.REVENGE_SDK_SOURCE_URL
 import chat.schildi.revenge.model.about.REVENGE_SOURCE_URL
 import chat.schildi.revenge.model.about.SCHILDI_NEXT_SOURCE_URL
 import chat.schildi.revenge.model.about.ThirdPartyAcknowledgement
-import chat.schildi.revenge.util.OsDetection
+import chat.schildi.revenge.util.SystemInfo
 import chat.schildi.revenge.viewModelKey
 import chat.schildi.theme.scExposures
 import chat.schildi.theme.scLinkStyle
@@ -76,6 +76,8 @@ import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.about
 import shire.composeapp.generated.resources.about_build_date
 import shire.composeapp.generated.resources.about_build_info
+import shire.composeapp.generated.resources.about_java_runtime
+import shire.composeapp.generated.resources.about_java_vm
 import shire.composeapp.generated.resources.about_kotlin_base_revision
 import shire.composeapp.generated.resources.about_open_source_licenses
 import shire.composeapp.generated.resources.about_os_name
@@ -254,7 +256,22 @@ fun AboutScreen(
                                 AboutSectionHeader(stringResource(Res.string.about_system_info))
                             }
                             buildInfoItem("os_name") {
-                                stringResource(Res.string.about_os_name, OsDetection.getOsName())
+                                stringResource(
+                                    Res.string.about_os_name,
+                                    remember { SystemInfo.getOsName() },
+                                )
+                            }
+                            buildInfoItem("java_runtime") {
+                                stringResource(
+                                    Res.string.about_java_runtime,
+                                    remember { SystemInfo.javaRuntime() },
+                                )
+                            }
+                            buildInfoItem("java_vm") {
+                                stringResource(
+                                    Res.string.about_java_vm,
+                                    remember { SystemInfo.javaVm() },
+                                )
                             }
                         }
                     }

@@ -2,7 +2,7 @@ package chat.schildi.revenge.util.filepicker
 
 import chat.schildi.revenge.dbus.FreedesktopPortal
 import chat.schildi.revenge.util.OperatingSystem
-import chat.schildi.revenge.util.OsDetection
+import chat.schildi.revenge.util.SystemInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.swing.Swing
 import kotlinx.coroutines.withContext
@@ -12,7 +12,7 @@ import java.io.File
 
 object FilePicker {
 
-    suspend fun requestFilePicker(title: String): Result<List<File>?> = when (OsDetection.get()) {
+    suspend fun requestFilePicker(title: String): Result<List<File>?> = when (SystemInfo.getOs()) {
         OperatingSystem.Linux -> runCatching {
             FreedesktopPortal.requestFiles(title)
         }

@@ -35,6 +35,8 @@
     <string name="about_rust_release_variant">SDK variant: %1$s</string>
     <string name="about_system_info">System info</string>
     <string name="about_os_name">OS name: %1$s</string>
+    <string name="about_java_runtime">Java runtime: %1$s</string>
+    <string name="about_java_vm">Java VM: %1$s</string>
 
     <string name="diagnostics">Diagnostics</string>
     <string name="diagnostics_system_info">System info</string>
