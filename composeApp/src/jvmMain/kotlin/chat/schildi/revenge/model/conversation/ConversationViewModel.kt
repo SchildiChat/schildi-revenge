@@ -260,8 +260,13 @@ data class ConversationPermissions(
     // TODO more
 )
 
-data class ImagePreviewState(
+data class MediaPreviewItem(
     val source: MediaSource,
+)
+
+data class MediaPreviewState(
+    val items: List<MediaPreviewItem>,
+    val initialIndex: Int,
 )
 
 interface RoomPreviewViewModel {
@@ -386,20 +391,45 @@ class ConversationViewModel(
     private val _highlightedActionEventId = MutableStateFlow<EventOrTransactionId?>(null)
     val highlightedActionEventId = _highlightedActionEventId.asStateFlow()
 
-    private val _imagePreviewState = MutableStateFlow<ImagePreviewState?>(null)
-    val imagePreviewState: StateFlow<ImagePreviewState?> = _imagePreviewState.asStateFlow()
+    private val _imagePreviewState = MutableStateFlow<MediaPreviewState?>(null)
+    val imagePreviewState: StateFlow<MediaPreviewState?> = _imagePreviewState.asStateFlow()
 
     fun showImagePreview(event: EventTimelineItem) {
-        val source = when (val content = event.content) {
-            is StickerContent -> content.source
-            is MessageContent -> (content.type as? ImageLikeMessageType)?.source
-            else -> null
-        } ?: return
-        _imagePreviewState.value = ImagePreviewState(source)
+        val scItems = timelineItems.value ?: return
+        val targetEventId = event.eventId?.value ?: event.transactionId?.value ?: return
+
+        val mediaItems = mutableListOf<MediaPreviewItem>()
+        var currentIndex = -1
+
+        for (item in scItems) {
+            val eventItem = (item.item as? MatrixTimelineItem.Event)?.event ?: continue
+            val previewItem = eventItem.toMediaPreviewItem() ?: continue
+            mediaItems.add(previewItem)
+            if (currentIndex < 0) {
+                val itemEventId = eventItem.eventId?.value ?: eventItem.transactionId?.value
+                if (itemEventId == targetEventId) {
+                    currentIndex = mediaItems.size - 1
+                }
+            }
+        }
+
+        if (currentIndex < 0 || mediaItems.isEmpty()) return
+        _imagePreviewState.value = MediaPreviewState(mediaItems, currentIndex)
     }
 
     fun hideImagePreview() {
         _imagePreviewState.value = null
+    }
+
+    private fun EventTimelineItem.toMediaPreviewItem(): MediaPreviewItem? {
+        return when (val content = content) {
+            is StickerContent -> MediaPreviewItem(source = content.source)
+            is MessageContent -> when (val type = content.type) {
+                is ImageLikeMessageType -> MediaPreviewItem(source = type.source)
+                else -> null
+            }
+            else -> null
+        }
     }
 
     private val roomPermissions = joinedRoom.flatMapLatest { room ->

@@ -312,7 +312,7 @@ fun ConversationScreen(
         val imagePreviewState by viewModel.imagePreviewState.collectAsState()
         imagePreviewState?.let { state ->
             ImagePreview(
-                source = state.source,
+                state = state,
                 onDismiss = { viewModel.hideImagePreview() },
                 modifier = Modifier.fillMaxSize(),
             )
