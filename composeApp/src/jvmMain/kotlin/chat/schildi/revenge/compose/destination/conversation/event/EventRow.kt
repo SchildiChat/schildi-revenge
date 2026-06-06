@@ -38,8 +38,10 @@ import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.EventContent
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
+import io.element.android.libraries.matrix.api.timeline.item.event.ImageLikeMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
+import io.element.android.libraries.matrix.api.timeline.item.event.StickerContent
 import io.element.android.libraries.matrix.api.timeline.item.event.UnknownContent
 import kotlinx.collections.immutable.ImmutableMap
 
@@ -160,8 +162,16 @@ private fun eventClickAction(
     event: EventTimelineItem,
 ): InteractionAction? = remember(viewModel, context, event) {
     when (val content = event.content) {
+        is StickerContent -> InteractionAction.Invoke {
+            viewModel.showImagePreview(event)
+            true
+        }
         is MessageContent -> {
             when (content.type) {
+                is ImageLikeMessageType -> InteractionAction.Invoke {
+                    viewModel.showImagePreview(event)
+                    true
+                }
                 is MessageTypeWithAttachment -> InteractionAction.Invoke {
                     viewModel.downloadFileAndOpen(context, event) is ActionResult.Success
                 }

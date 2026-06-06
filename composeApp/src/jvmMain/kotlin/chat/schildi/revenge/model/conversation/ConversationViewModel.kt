@@ -119,9 +119,11 @@ import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
 import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.AudioMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.EventContent
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.FileMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.ImageLikeMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.ImageMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 import io.element.android.libraries.matrix.api.timeline.item.event.LocalEventSendState
@@ -258,6 +260,10 @@ data class ConversationPermissions(
     // TODO more
 )
 
+data class ImagePreviewState(
+    val source: MediaSource,
+)
+
 interface RoomPreviewViewModel {
     val sessionId: SessionId
     val roomId: RoomId
@@ -379,6 +385,22 @@ class ConversationViewModel(
 
     private val _highlightedActionEventId = MutableStateFlow<EventOrTransactionId?>(null)
     val highlightedActionEventId = _highlightedActionEventId.asStateFlow()
+
+    private val _imagePreviewState = MutableStateFlow<ImagePreviewState?>(null)
+    val imagePreviewState: StateFlow<ImagePreviewState?> = _imagePreviewState.asStateFlow()
+
+    fun showImagePreview(event: EventTimelineItem) {
+        val source = when (val content = event.content) {
+            is StickerContent -> content.source
+            is MessageContent -> (content.type as? ImageLikeMessageType)?.source
+            else -> null
+        } ?: return
+        _imagePreviewState.value = ImagePreviewState(source)
+    }
+
+    fun hideImagePreview() {
+        _imagePreviewState.value = null
+    }
 
     private val roomPermissions = joinedRoom.flatMapLatest { room ->
         room?.permissionsFlow(null) {

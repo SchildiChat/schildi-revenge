@@ -51,6 +51,7 @@ import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.composer.ComposerRow
 import chat.schildi.revenge.compose.destination.SplashScreenContent
 import chat.schildi.revenge.compose.destination.conversation.event.EventHighlight
+import chat.schildi.revenge.compose.destination.conversation.event.message.ImagePreview
 import chat.schildi.revenge.compose.destination.conversation.event.message.LocalUrlPreviewStateProvider
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
@@ -306,6 +307,15 @@ fun ConversationScreen(
                     ComposerRow(viewModel)
                 }
             }
+        }
+
+        val imagePreviewState by viewModel.imagePreviewState.collectAsState()
+        imagePreviewState?.let { state ->
+            ImagePreview(
+                source = state.source,
+                onDismiss = { viewModel.hideImagePreview() },
+                modifier = Modifier.fillMaxSize(),
+            )
         }
     }
 }
