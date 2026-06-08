@@ -402,7 +402,7 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
                     }
                     val serverResult = viewModel.setHomeserver(server)
                     if (serverResult.isFailure) {
-                        error.value = serverResult.exceptionOrNull()?.message ?: "Setting server failed without exception"
+                        error.value = serverResult.exceptionOrNull()?.let { it.message ?: it.toString() } ?: "Setting server failed without exception"
                         return@launch
                     }
                     val result = viewModel.login(username.text, password.text)
@@ -411,7 +411,7 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
                         username = TextFieldValue()
                         homeserver = TextFieldValue()
                     } else {
-                        error.value = result.exceptionOrNull()?.message ?: "Login failed without exception"
+                        error.value = result.exceptionOrNull()?.let { it.message ?: it.toString() } ?: "Login failed without exception"
                     }
                 } finally {
                     inProgress.value = false
