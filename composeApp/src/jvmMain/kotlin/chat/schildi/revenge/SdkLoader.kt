@@ -2,6 +2,7 @@ package chat.schildi.revenge
 
 import chat.schildi.revenge.util.OperatingSystem
 import chat.schildi.revenge.util.SystemInfo
+import co.touchlab.kermit.Logger
 import org.matrix.rustcomponents.sdk.LogLevel
 import org.matrix.rustcomponents.sdk.TracingConfiguration
 import org.matrix.rustcomponents.sdk.initPlatform
@@ -12,6 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Load the Rust SDK for JNA.
  */
 object SdkLoader {
+    private val log = Logger.withTag("SdkLoader")
     private val loaded = AtomicBoolean(false)
 
     private val isDebugBuild = BuildInfo.BUILD_TYPE == "debug"
@@ -37,6 +39,7 @@ object SdkLoader {
                 }
             }
 
+            val linkingAttempts = mutableListOf<Pair<File, Throwable>>()
             for (dir in candidateDirs) {
                 val file = File(dir, libName)
                 if (file.isFile) {
@@ -47,14 +50,18 @@ object SdkLoader {
                         System.load(file.absolutePath)
                         loaded.set(true)
                         break
-                    } catch (_: UnsatisfiedLinkError) {
+                    } catch (e: UnsatisfiedLinkError) {
+                        linkingAttempts.add(file to e)
                         // try next
                     }
                 }
             }
 
             if (!loaded.get()) {
-                throw IllegalStateException("Failed to find the $libName in following paths: [${candidateDirs.joinToString()}]")
+                linkingAttempts.forEach { (file, error) ->
+                    log.e("Linking failed via ${file.absolutePath}", error)
+                }
+                throw IllegalStateException("Failed to find the $libName in following paths: [${candidateDirs.joinToString()}]", linkingAttempts.lastOrNull()?.second)
             }
 
             initPlatform(
