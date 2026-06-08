@@ -48,7 +48,7 @@ fun AvatarImage(
     contentDescription: String? = null,
     allowAnimated: Boolean = ScPrefs.ANIMATE_AVATARS.value(),
 ) {
-    if (source == null) {
+    if (source == null || source.safeUrl.isEmpty()) {
         AvatarFallback(displayName, shape, size)
         return
     }
