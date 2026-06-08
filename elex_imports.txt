@@ -15,6 +15,8 @@ libraries/androidutils/src/main/kotlin/io/element/android/libraries/androidutils
 libraries/androidutils/src/main/kotlin/io/element/android/libraries/androidutils/file/File.kt==>src/main/java/io/element/android/libraries/androidutils/file/File.kt
 libraries/androidutils/src/main/kotlin/io/element/android/libraries/androidutils/hash/Hash.kt
 libraries/androidutils/src/main/kotlin/io/element/android/libraries/androidutils/hash/Hash.kt==>src/main/java/io/element/android/libraries/androidutils/hash/Hash.kt
+libraries/androidutils/src/main/kotlin/io/element/android/libraries/androidutils/crypto/ClientSecret.kt
+libraries/androidutils/src/main/kotlin/io/element/android/libraries/androidutils/crypto/ClientSecret.kt==>src/main/java/io/element/android/libraries/androidutils/crypto/ClientSecret.kt
 libraries/androidutils/src/main/kotlin/io/element/android/libraries/androidutils/metadata/IsInDebug.kt
 libraries/androidutils/src/main/kotlin/io/element/android/libraries/androidutils/metadata/IsInDebug.kt==>src/main/java/io/element/android/libraries/androidutils/metadata/IsInDebug.kt
 libraries/architecture/src/main/kotlin/io/element/android/libraries/architecture/AsyncData.kt
