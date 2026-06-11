@@ -154,7 +154,7 @@ This list is not sufficient to consider the client feature-complete in any way.
 - [ ] Custom theming
 - [x] Send / render blurhashes
 - [x] Generate & send media thumbnails (requires ffmpeg installed for video thumbnails)
-- [ ] Send custom emotes & stickers
+- [x] Send custom emotes & stickers
 
 </details>
 

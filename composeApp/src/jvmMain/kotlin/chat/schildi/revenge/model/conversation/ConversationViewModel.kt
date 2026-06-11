@@ -869,7 +869,7 @@ class ConversationViewModel(
                                 eventType = "m.sticker",
                                 content = Json.encodeToString(JsonObject(
                                     mapOf(
-                                        "body" to JsonPrimitive(sticker.image.body),
+                                        "body" to JsonPrimitive(sticker.image.body ?: "Sticker"),
                                         "url" to JsonPrimitive(sticker.image.url),
                                         "info" to (sticker.image.info ?: JsonNull),
                                     ).filter { it.value !is JsonNull }
