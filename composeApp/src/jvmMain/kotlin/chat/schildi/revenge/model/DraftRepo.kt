@@ -229,8 +229,8 @@ data class DraftValue(
         DraftType.EMOTE,
         DraftType.ATTACHMENT,
         DraftType.EDIT,
-        DraftType.EDIT_CAPTION -> true
-        DraftType.REACTION,
+        DraftType.EDIT_CAPTION,
+        DraftType.REACTION -> true
         DraftType.STICKER,
         DraftType.CUSTOM_EVENT,
         DraftType.CUSTOM_STATE_EVENT -> false
