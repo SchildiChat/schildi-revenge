@@ -87,6 +87,7 @@ data class ComposerSuggestionsState(
 data class ComposerRoomInfo(
     val isEncrypted: Boolean?,
     val isPublic: Boolean?,
+    val canSendStickers: Boolean,
 )
 
 interface ComposerViewModel {
@@ -94,6 +95,7 @@ interface ComposerViewModel {
     val composerSuggestions: StateFlow<ComposerSuggestionsState>
     val composerRoomInfo: StateFlow<ComposerRoomInfo?>
     fun onComposerUpdate(value: DraftValue)
+    fun toggleStickerMode()
     fun sendMessage(context: ActionContext): ActionResult
     fun attachFile(context: ActionContext, path: String): Boolean
     fun launchAttachmentPicker(context: ActionContext): ActionResult

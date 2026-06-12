@@ -117,6 +117,11 @@ object Dimens {
 
         val fileIconSize = 36.dp
 
+        object Composer {
+            val buttonWidth = 48.dp
+            val buttonHeight = 48.dp
+        }
+
         object AudioWaveform {
             val lineWidth = 2.dp
             val linePadding = 2.dp

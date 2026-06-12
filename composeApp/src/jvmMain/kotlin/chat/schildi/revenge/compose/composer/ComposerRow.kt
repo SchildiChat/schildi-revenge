@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.CrueltyFree
 import androidx.compose.material.icons.filled.NoEncryption
 import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.minimumInteractiveComponentSize
@@ -44,6 +45,8 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.MessageFormatDefaults
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.currentActionContext
+import chat.schildi.revenge.compose.components.ScIconButton
+import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.revenge.compose.destination.conversation.event.message.ReplyContent
 import chat.schildi.revenge.compose.destination.conversation.event.message.TextLikeMessageContent
 import chat.schildi.revenge.compose.focus.keyFocusable
@@ -78,6 +81,7 @@ import shire.composeapp.generated.resources.hint_composer_missing_send_permissio
 import shire.composeapp.generated.resources.hint_composer_notice
 import shire.composeapp.generated.resources.hint_composer_reaction
 import shire.composeapp.generated.resources.hint_composer_sticker
+import shire.composeapp.generated.resources.hint_composer_sticker_shortcode
 import shire.composeapp.generated.resources.hint_composer_text
 import shire.composeapp.generated.resources.hint_composer_video
 import shire.composeapp.generated.resources.hint_not_encrypted
@@ -132,21 +136,25 @@ fun ComposerRow(
             AnimatedVisibility(
                 draftState.canAddAttachment(),
             ) {
-                IconButton(
-                    onClick = { viewModel.launchAttachmentPicker(actionContext) },
-                    enabled = !draftState.isSendInProgress,
-                ) {
-                    val color = animateColorAsState(
-                        if (draftState.isSendInProgress)
-                            MaterialTheme.colorScheme.tertiary
-                        else
-                            MaterialTheme.colorScheme.primary,
-                    ).value
-                    Icon(
-                        Icons.Default.Add,
-                        stringResource(Res.string.action_add_attachment),
-                        tint = color,
-                    )
+                WithTooltip(stringResource(Res.string.action_add_attachment)) {
+                    ScIconButton(
+                        onClick = { viewModel.launchAttachmentPicker(actionContext) },
+                        enabled = !draftState.isSendInProgress,
+                        minWidth = Dimens.Conversation.Composer.buttonWidth,
+                        minHeight = Dimens.Conversation.Composer.buttonHeight,
+                    ) {
+                        val color = animateColorAsState(
+                            if (draftState.isSendInProgress)
+                                MaterialTheme.colorScheme.tertiary
+                            else
+                                MaterialTheme.colorScheme.onSurface,
+                        ).value
+                        Icon(
+                            Icons.Default.Add,
+                            stringResource(Res.string.action_add_attachment),
+                            tint = color,
+                        )
+                    }
                 }
             }
             if (ScPrefs.FORMATTED_COMPOSER_PREVIEW.value() && draftState.format != ComposerFormat.PLAIN) {
@@ -176,7 +184,7 @@ fun ComposerRow(
                         DraftType.EDIT -> stringResource(Res.string.hint_composer_edit).appendComposerFormat(draftState)
                         DraftType.EDIT_CAPTION -> stringResource(Res.string.hint_composer_edit_caption).appendComposerFormat(draftState)
                         DraftType.REACTION -> stringResource(Res.string.hint_composer_reaction)
-                        DraftType.STICKER -> stringResource(Res.string.hint_composer_sticker)
+                        DraftType.STICKER -> stringResource(Res.string.hint_composer_sticker_shortcode)
                         DraftType.ATTACHMENT -> when (draftState.attachment) {
                             is Attachment.Audio -> stringResource(Res.string.hint_composer_audio)
                             is Attachment.Generic -> stringResource(Res.string.hint_composer_file)
@@ -244,6 +252,32 @@ fun ComposerRow(
                 ),
                 maxLines = if (isFocused) maxLinesFocused else min(maxLinesUnfocused, maxLinesFocused),
             )
+            AnimatedVisibility(
+                draftState.type == DraftType.STICKER ||
+                        draftState.type == DraftType.TEXT && composerInfo?.canSendStickers == true &&
+                                (draftState.isEmpty() || draftState.isValidSticker)
+            ) {
+                WithTooltip(stringResource(Res.string.hint_composer_sticker)) {
+                    ScIconButton(
+                        onClick = { viewModel.toggleStickerMode() },
+                        enabled = !draftState.isSendInProgress,
+                        minWidth = Dimens.Conversation.Composer.buttonWidth,
+                        minHeight = Dimens.Conversation.Composer.buttonHeight,
+                    ) {
+                        val color = animateColorAsState(
+                            if (draftState.type == DraftType.STICKER)
+                                MaterialTheme.scExposures.accentColor
+                            else
+                                MaterialTheme.colorScheme.onSurface,
+                        ).value
+                        Icon(
+                            Icons.Default.CrueltyFree,
+                            stringResource(Res.string.hint_composer_sticker),
+                            tint = color,
+                        )
+                    }
+                }
+            }
             AnimatedContent(draftState.isSendInProgress) { isSendInProgress ->
                 if (isSendInProgress) {
                     Box(Modifier.minimumInteractiveComponentSize(), contentAlignment = Alignment.Center) {

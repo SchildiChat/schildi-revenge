@@ -734,6 +734,18 @@ class ConversationViewModel(
         DraftRepo.update(draftKey, value)
     }
 
+    override fun toggleStickerMode() {
+        draftKey ?: return
+        DraftRepo.update(draftKey) {
+            it?.copy(
+                type = if (it.type == DraftType.STICKER) DraftType.TEXT else DraftType.STICKER,
+                editEventId = null,
+                initialBody = "",
+                attachment = null
+            ) ?: createDraftValue(type = DraftType.STICKER, initialBody = "")
+        }
+    }
+
     override fun sendMessage(context: ActionContext): ActionResult {
         draftKey ?: return ActionResult.Inapplicable
         val currentTimeline = activeTimeline.value
@@ -1060,15 +1072,18 @@ class ConversationViewModel(
 
     val userProfile = clientFlow.flatMapLatest { it?.userProfile ?: flowOf(null) }
 
-    override val composerRoomInfo: StateFlow<ComposerRoomInfo?> =
-        roomInfo.map { info ->
-            info?.let {
-                ComposerRoomInfo(
-                    isEncrypted = info.isEncrypted,
-                    isPublic = info.isPublic,
-                )
-            }
-        }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    override val composerRoomInfo: StateFlow<ComposerRoomInfo?> = combine(
+        roomInfo,
+        imagePacks,
+    ) { info, imagePacks ->
+        info?.let {
+            ComposerRoomInfo(
+                isEncrypted = info.isEncrypted,
+                isPublic = info.isPublic,
+                canSendStickers = imagePacks?.any { it.pack.supportsSticker } == true
+            )
+        }
+    }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     override val windowTitle: Flow<ComposableStringHolder?> = combine(
         roomInfo,
@@ -1241,54 +1256,36 @@ class ConversationViewModel(
                 }
 
                 Action.Conversation.ComposeMessage -> {
-                    draftKey ?: return@run ActionResult.Inapplicable
-                    forceShowComposer.value = true
-                    DraftRepo.update(draftKey) {
+                    updateDraftAndFocus {
                         it?.copy(type = DraftType.TEXT, editEventId = null, initialBody = "", attachment = null)
                             ?: createDraftValue(type = DraftType.TEXT)
                     }
-                    focusByRole(FocusRole.MESSAGE_COMPOSER)
-                    ActionResult.Success()
                 }
 
                 Action.Conversation.ComposeNotice -> {
-                    draftKey ?: return@run ActionResult.Inapplicable
-                    forceShowComposer.value = true
-                    DraftRepo.update(draftKey) {
+                    updateDraftAndFocus {
                         it?.copy(type = DraftType.NOTICE, editEventId = null, initialBody = "", attachment = null)
                             ?: createDraftValue(type = DraftType.NOTICE)
                     }
-                    focusByRole(FocusRole.MESSAGE_COMPOSER)
-                    ActionResult.Success()
                 }
 
                 Action.Conversation.ComposeEmote -> {
-                    draftKey ?: return@run ActionResult.Inapplicable
-                    forceShowComposer.value = true
-                    DraftRepo.update(draftKey) {
+                    updateDraftAndFocus {
                         it?.copy(type = DraftType.EMOTE, editEventId = null, initialBody = "", attachment = null)
                             ?: createDraftValue(type = DraftType.EMOTE)
                     }
-                    focusByRole(FocusRole.MESSAGE_COMPOSER)
-                    ActionResult.Success()
                 }
 
                 Action.Conversation.ComposeSticker -> {
-                    draftKey ?: return@run ActionResult.Inapplicable
-                    forceShowComposer.value = true
-                    DraftRepo.update(draftKey) {
+                    updateDraftAndFocus {
                         it?.copy(type = DraftType.STICKER, editEventId = null, initialBody = "", attachment = null)
                             ?: createDraftValue(type = DraftType.STICKER, initialBody = "")
                     }
-                    focusByRole(FocusRole.MESSAGE_COMPOSER)
-                    ActionResult.Success()
                 }
 
                 Action.Conversation.ComposeCustomEvent -> {
-                    draftKey ?: return@run ActionResult.Inapplicable
                     val eventType = args.firstOrNull().orActionValidationError()
-                    forceShowComposer.value = true
-                    DraftRepo.update(draftKey) {
+                    updateDraftAndFocus {
                         it?.copy(
                             textFieldValue = it.textFieldValue.takeIf { it.text.isNotEmpty() }
                                 ?: TextFieldValue("{\n\n}", TextRange(2)),
@@ -1303,8 +1300,6 @@ class ConversationViewModel(
                             customEventType = eventType,
                         )
                     }
-                    focusByRole(FocusRole.MESSAGE_COMPOSER)
-                    ActionResult.Success()
                 }
 
                 Action.Conversation.ComposeCustomStateEvent -> {
@@ -1341,8 +1336,7 @@ class ConversationViewModel(
                             TextFieldValue(it, TextRange(it.length))
                         } ?: TextFieldValue("{\n\n}", TextRange(2))
                         dismissMessage("fetchState")
-                        forceShowComposer.value = true
-                        DraftRepo.update(draftKey) {
+                        updateDraftAndFocus {
                             it?.copy(
                                 textFieldValue = initialText,
                                 type = DraftType.CUSTOM_STATE_EVENT,
@@ -1359,8 +1353,6 @@ class ConversationViewModel(
                                 stateKey = stateKey,
                             )
                         }
-                        focusByRole(FocusRole.MESSAGE_COMPOSER)
-                        ActionResult.Success()
                     }
                 }
 
@@ -1390,8 +1382,7 @@ class ConversationViewModel(
                             ) ?: createDraftValue(
                                 textFieldValue = TextFieldValue(content, TextRange(content.length))
                             )
-                        }
-                        ActionResult.Success()
+                        }.orActionInapplicable()
                     }
                 }
 
@@ -1621,6 +1612,18 @@ class ConversationViewModel(
                     }
                 }
             }
+        }
+    }
+
+    private fun ActionContext.updateDraftAndFocus(transform: (DraftValue?) -> DraftValue?): ActionResult {
+        draftKey ?: return ActionResult.Inapplicable
+        forceShowComposer.value = true
+        val updated = DraftRepo.update(draftKey, transform = transform)
+        val focusResult = focusByRoleUnlessAlreadyFocused(FocusRole.MESSAGE_COMPOSER)
+        return if (updated) {
+            ActionResult.Success()
+        } else {
+            focusResult
         }
     }
 
@@ -1995,20 +1998,16 @@ class ConversationViewModel(
                     } ?: ActionResult.Inapplicable
 
                     Action.Event.ComposeReply -> eventId?.let {
-                        draftKey ?: return@let ActionResult.Inapplicable
-                        forceShowComposer.value = true
                         val inReplyTo = InReplyTo.Ready(
                             eventId = eventId,
                             content = event.content,
                             senderId = event.sender,
                             senderProfile = event.senderProfile,
                         )
-                        DraftRepo.update(draftKey) {
+                        updateDraftAndFocus {
                             it?.copy(inReplyTo = inReplyTo)
                                 ?: createDraftValue(inReplyTo = inReplyTo)
                         }
-                        focusByRole(FocusRole.MESSAGE_COMPOSER)
-                        ActionResult.Success()
                     } ?: ActionResult.Inapplicable
 
                     Action.Event.ComposeEdit -> eventOrTransactionId?.let {
@@ -2045,10 +2044,7 @@ class ConversationViewModel(
                             if (draftValue == null) {
                                 ActionResult.Inapplicable
                             } else {
-                                forceShowComposer.value = true
-                                DraftRepo.update(draftKey, draftValue)
-                                focusByRole(FocusRole.MESSAGE_COMPOSER)
-                                ActionResult.Success()
+                                updateDraftAndFocus { draftValue }
                             }
                         } else {
                             ActionResult.Inapplicable
@@ -2056,15 +2052,13 @@ class ConversationViewModel(
                     } ?: ActionResult.Inapplicable
 
                     Action.Event.ComposeReaction -> eventId?.let {
-                        draftKey ?: return@let ActionResult.Inapplicable
-                        forceShowComposer.value = true
                         val inReplyTo = InReplyTo.Ready(
                             eventId = eventId,
                             content = event.content,
                             senderId = event.sender,
                             senderProfile = event.senderProfile,
                         )
-                        DraftRepo.update(draftKey) {
+                        updateDraftAndFocus {
                             it?.copy(
                                 inReplyTo = inReplyTo,
                                 type = DraftType.REACTION,
@@ -2077,8 +2071,6 @@ class ConversationViewModel(
                                 type = DraftType.REACTION,
                             )
                         }
-                        focusByRole(FocusRole.MESSAGE_COMPOSER)
-                        ActionResult.Success()
                     } ?: ActionResult.Inapplicable
 
                     Action.Event.CopyContent -> {

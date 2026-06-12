@@ -202,14 +202,14 @@ data class DraftValue(
 
     val fullBodyCustomEmote = if (spans.size == 1) {
         (spans.first() as? DraftCustomEmote)?.takeIf {
-            it.start == 0 && it.end == body.length
+            it.start == 0 && it.end == textFieldValue.text.length
         }
     } else {
         null
     }
     private val reactionCustomEmoteBody = if (type == DraftType.REACTION) fullBodyCustomEmote else null
     val isValidReaction = spans.isEmpty() || fullBodyCustomEmote?.source?.supportsCustomEmoji == true
-    val isValidSticker = spans.isEmpty() || fullBodyCustomEmote?.source?.supportsSticker == true
+    val isValidSticker = (spans.size == 1 && fullBodyCustomEmote?.source?.supportsSticker == true)
 
     val allowsMention = when (type) {
         DraftType.TEXT,
@@ -278,19 +278,27 @@ object DraftRepo {
         }
     }
 
-    fun update(draftKey: DraftKey, allowWhileSendInProgress: Boolean = false, transform: (DraftValue?) -> DraftValue?) {
+    fun update(
+        draftKey: DraftKey,
+        allowWhileSendInProgress: Boolean = false,
+        transform: (DraftValue?) -> DraftValue?,
+    ): Boolean {
+        var updated = false
         drafts.update {
             val oldValue = it[draftKey]
             if (oldValue?.isSendInProgress == true && !allowWhileSendInProgress) {
+                updated = false
                 return@update it
             }
             val value = transform(oldValue)
+            updated = value != oldValue
             if (value == null) {
                 it - draftKey
             } else {
                 it + (draftKey to maintainAnnotations(value, it[draftKey]))
             }.toPersistentMap()
         }
+        return updated
     }
 
     private fun maintainAnnotations(newValue: DraftValue, oldValue: DraftValue?): DraftValue {

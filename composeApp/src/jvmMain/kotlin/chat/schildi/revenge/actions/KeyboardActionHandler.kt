@@ -532,6 +532,14 @@ class KeyboardActionHandler(
         }?.focusRequester?.requestFocus() ?: false
     }
 
+    fun focusByRoleUnlessAlreadyFocused(role: FocusRole): ActionResult {
+        return if (currentFocused(fallbackToRoot = false)?.role == role) {
+            ActionResult.Inapplicable
+        } else {
+            focusByRole(role).orActionFailure("No focusable target for role $role")
+        }
+    }
+
     fun focusByRole(role: FocusRole): Boolean {
         _keyboardPrimary.value = true
         val focusRequester = findClosestByRole(role)?.focusRequester
@@ -1168,6 +1176,8 @@ class KeyboardActionHandler(
             this@KeyboardActionHandler.openLink(uri)
         override fun focusByRole(role: FocusRole) =
             this@KeyboardActionHandler.focusByRole(role)
+        override fun focusByRoleUnlessAlreadyFocused(role: FocusRole) =
+            this@KeyboardActionHandler.focusByRoleUnlessAlreadyFocused(role)
         override fun withCriticalActionConfirmation(
             prompt: ComposableStringHolder,
             confirmText: ComposableStringHolder,
@@ -3200,6 +3210,7 @@ interface ActionContext {
     fun getStringFromClipboard(): String?
     fun openLink(uri: String): ActionResult
     fun focusByRole(role: FocusRole): Boolean
+    fun focusByRoleUnlessAlreadyFocused(role: FocusRole): ActionResult
     fun withCriticalActionConfirmation(
         prompt: ComposableStringHolder,
         confirmText: ComposableStringHolder,
