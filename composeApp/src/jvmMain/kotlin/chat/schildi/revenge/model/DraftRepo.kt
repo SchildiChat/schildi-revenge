@@ -242,7 +242,11 @@ data class DraftValue(
 
     override fun isEmpty() = attachment?.takeIf { type == DraftType.ATTACHMENT } == null &&
             (textFieldValue.text.isBlank() || textFieldValue.text == initialBody)
-    fun canSend() = !isSendInProgress && !isEmpty()
+    fun canSend() = !isSendInProgress && !isEmpty() && when (type) {
+        DraftType.STICKER -> isValidSticker
+        DraftType.REACTION -> isValidReaction
+        else -> true
+    }
     /** Whether an attachment can be added to the current composer state without dropping state. */
     fun canAddAttachment() = editEventId == null && type == DraftType.TEXT
 

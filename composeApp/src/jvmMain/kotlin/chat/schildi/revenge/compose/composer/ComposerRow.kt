@@ -288,7 +288,7 @@ fun ComposerRow(
                     }
                 } else {
                     SendButton(
-                        enabled = draftState.canSend() || bodyValidationError == null,
+                        enabled = draftState.canSend() && bodyValidationError == null,
                         onClick = { viewModel.sendMessage(actionContext) }
                     )
                 }
