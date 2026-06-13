@@ -164,6 +164,11 @@ class RoomDetailsViewModel(
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
+    val predecessorRoom = baseRoom.map { room ->
+        room?: return@map null
+        room.predecessorRoom()
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
     val actionProvider = RoomActionProvider(
         sessionId = sessionId,
         roomId = roomId,

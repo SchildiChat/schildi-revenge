@@ -53,6 +53,7 @@ private fun DestinationStateHolder.wrapped(
         parent = parent,
         inner = this,
         isDetails = isDetails,
+        accessMain = { destination.inbox },
         accessDetails = { destination.conversation },
         createPlaceholder = { Destination.MultiPaneConversationPlaceholder },
         mainDestination = DestinationEnum.Inbox,

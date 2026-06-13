@@ -67,6 +67,7 @@ private fun DestinationStateHolder.wrapped(
             parent = parent,
             inner = this,
             isDetails = isDetails,
+            accessMain = { destination.conversation },
             accessDetails = { destination.details },
             createPlaceholder = { Destination.MultiPaneRoomInfoPlaceholder },
             mainDestination = primaryDestination?.type ?: DestinationEnum.Conversation,

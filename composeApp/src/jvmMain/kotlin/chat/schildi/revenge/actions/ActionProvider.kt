@@ -35,7 +35,9 @@ fun actionProvider(
     searchProvider: SearchProvider? = LocalSearchProvider.current,
     primaryAction: InteractionAction? = null,
     secondaryAction: InteractionAction? = null,
-    tertiaryAction: InteractionAction? = null,
+    tertiaryAction: InteractionAction? = (primaryAction as? InteractionAction.NavigationAction)?.let {
+        InteractionAction.OpenWindow(it.initialTitle, it.buildDestination)
+    },
     copyActions: CopyActions? = null,
     editActions: EditActions? = null,
     listActions: ListActions? = LocalListActionProvider.current,

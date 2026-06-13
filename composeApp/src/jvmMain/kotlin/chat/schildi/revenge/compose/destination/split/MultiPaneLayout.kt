@@ -121,6 +121,7 @@ fun buildMultiPaneDestinationStateHolderWrapper(
     inner: DestinationStateHolder,
     parent: DestinationStateHolder?,
     isDetails: Boolean,
+    accessMain: () -> DestinationStateHolder,
     accessDetails: () -> DestinationStateHolder,
     createPlaceholder: () -> Destination.MultiPanePlaceholder,
     mainDestination: DestinationEnum,
@@ -171,8 +172,9 @@ fun buildMultiPaneDestinationStateHolderWrapper(
 ) { navDestination ->
     when {
         navDestination.type == mainDestination -> {
-            if (inner.state.value.destination != navDestination) {
-                inner.navigate(navDestination, NavigationPreference.REPLACE)
+            val main = accessMain()
+            if (main.state.value.destination != navDestination) {
+                main.navigate(navDestination, NavigationPreference.REPLACE)
             }
             accessDetails().navigate(
                 createPlaceholder(),

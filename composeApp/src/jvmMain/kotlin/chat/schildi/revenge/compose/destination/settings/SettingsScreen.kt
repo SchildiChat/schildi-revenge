@@ -196,6 +196,7 @@ private fun DestinationStateHolder.wrapped(
         parent = parent,
         inner = this,
         isDetails = isDetails,
+        accessMain = { destination.root },
         accessDetails = { destination.details },
         createPlaceholder = { Destination.MultiPaneSettingsPlaceholder },
         mainDestination = DestinationEnum.SettingsRoot,

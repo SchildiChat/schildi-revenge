@@ -207,6 +207,7 @@
     <string name="hint_canonical_room_alias">Room address</string>
     <string name="hint_other_room_aliases">Alternative room addresses</string>
     <string name="hint_room_version">Room version</string>
+    <string name="hint_room_predecessor">Predecessor room</string>
     <string name="hint_connected_bridges">Connected bridges</string>
     <string name="hint_not_set">Not set</string>
     <string name="hint_no_room_name">Room name not set</string>

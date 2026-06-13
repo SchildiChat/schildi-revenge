@@ -43,6 +43,7 @@ import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.CopyActions
 import chat.schildi.revenge.actions.FocusRole
+import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
@@ -91,6 +92,7 @@ import shire.composeapp.generated.resources.hint_private_room
 import shire.composeapp.generated.resources.hint_public_room
 import shire.composeapp.generated.resources.hint_room_id
 import shire.composeapp.generated.resources.hint_room_name_private
+import shire.composeapp.generated.resources.hint_room_predecessor
 import shire.composeapp.generated.resources.hint_room_version
 import shire.composeapp.generated.resources.hint_topic
 import shire.composeapp.generated.resources.history_visibility_custom
@@ -166,6 +168,7 @@ fun RoomDetailsScreen(
         val info = viewModel.roomInfo.collectAsState().value
         val topic = viewModel.topic.collectAsState().value
         val permissions = viewModel.roomSettingsPermissions.collectAsState().value ?: RoomSettingsPermissions()
+        val predecessorRoom = viewModel.predecessorRoom.collectAsState().value
         Column(contentModifier.fillMaxSize().padding(Dimens.windowPadding)) {
             ConversationDetailsTopNavigation(stringResource(Res.string.room_details_title))
             if (info == null) {
@@ -347,6 +350,20 @@ fun RoomDetailsScreen(
                                 )
                             }
                         }
+                        predecessorRoom?.let {
+                            item {
+                                RoomInfoAdvancedInfoField(
+                                    stringResource(Res.string.hint_room_predecessor),
+                                    predecessorRoom.roomId.value,
+                                    primaryAction = InteractionAction.Navigate {
+                                        Destination.Conversation(
+                                            sessionId = viewModel.sessionId,
+                                            roomId = predecessorRoom.roomId,
+                                        )
+                                    }
+                                )
+                            }
+                        }
                         val bridges = info.bridgeState.mapNotNull { bridge ->
                             if (bridge.protocol?.displayName != null) {
                                 if (bridge.protocol?.id != null && bridge.protocol?.displayName?.lowercase() != bridge.protocol?.id) {
@@ -402,6 +419,7 @@ private fun RoomDetailsSection(
     headerText: String? = null,
     copyActions: CopyActions?,
     modifier: Modifier = Modifier,
+    primaryAction: InteractionAction? = null,
     color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     style: TextStyle = MaterialTheme.typography.titleSmall,
     content: @Composable ColumnScope.() -> Unit,
@@ -411,6 +429,7 @@ private fun RoomDetailsSection(
             Modifier.fillMaxWidth().keyFocusable(
                 role = FocusRole.LIST_ITEM,
                 actionProvider = actionProvider(
+                    primaryAction = primaryAction,
                     copyActions = copyActions,
                 ),
             ),
@@ -522,11 +541,13 @@ private fun RoomInfoAdvancedInfoField(
     title: String,
     content: String,
     modifier: Modifier = Modifier,
+    primaryAction: InteractionAction? = null,
     monospace: Boolean = false,
 ) {
     RoomDetailsSection(
         title,
         copyActions = content.toCopyAction(),
+        primaryAction = primaryAction,
         color = MaterialTheme.colorScheme.tertiary,
         modifier = modifier,
     ) {
