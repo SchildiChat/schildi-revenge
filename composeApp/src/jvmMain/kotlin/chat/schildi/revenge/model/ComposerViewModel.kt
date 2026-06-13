@@ -101,4 +101,5 @@ interface ComposerViewModel {
     fun launchAttachmentPicker(context: ActionContext): ActionResult
     fun clearAttachment()
     fun onConfirmSuggestion(suggestion: ComposerSuggestion): Boolean
+    fun updateDraftTheme(theme: DraftTheme)
 }

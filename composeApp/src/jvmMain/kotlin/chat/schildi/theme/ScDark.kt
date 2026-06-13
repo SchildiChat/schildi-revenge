@@ -4,6 +4,7 @@ import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import chat.schildi.revenge.model.DraftTheme
 
 val scd_fgPrimary = ScColors.colorWhite
 val scd_fgSecondary = ScColors.colorWhiteAlpha_b3
@@ -90,4 +91,8 @@ internal val scdExposures = ScThemeExposures(
     commandHint = ScColors.colorAccentOrange,
     reactHint = ScColors.colorAccentGreen,
     customEventHint = ScColors.colorAccentLime,
+    draftTheme = DraftTheme(
+        mentionSpanColor = ScColors.colorAccentGreen,
+        customEmoteSpanColor = ScColors.colorAccentLime,
+    ),
 )

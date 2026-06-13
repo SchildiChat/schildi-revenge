@@ -105,6 +105,10 @@ fun ComposerRow(
 ) {
     val suggestionsState = viewModel.composerSuggestions.collectAsState().value
     val composerInfo = viewModel.composerRoomInfo.collectAsState().value
+    val draftTheme = MaterialTheme.scExposures.draftTheme
+    LaunchedEffect(draftTheme) {
+        viewModel.updateDraftTheme(draftTheme)
+    }
     Column(modifier) {
         ComposerSuggestions(
             suggestionsState,

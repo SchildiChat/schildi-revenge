@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
+import chat.schildi.revenge.model.DraftTheme
 
 @Stable
 class ScThemeExposures(
@@ -43,6 +44,7 @@ class ScThemeExposures(
     commandHint: Color,
     reactHint: Color,
     customEventHint: Color,
+    draftTheme: DraftTheme,
 ) {
     var isDarkTheme by mutableStateOf(isDarkTheme)
         private set
@@ -112,6 +114,8 @@ class ScThemeExposures(
         private set
     var customEventHint by mutableStateOf(customEventHint)
         private set
+    var draftTheme by mutableStateOf(draftTheme)
+        private set
 
     fun copy(
         isDarkTheme: Boolean = this.isDarkTheme,
@@ -148,6 +152,7 @@ class ScThemeExposures(
         commandHint: Color = this.commandHint,
         reactHint: Color = this.reactHint,
         customEventHint: Color = this.customEventHint,
+        draftTheme: DraftTheme = this.draftTheme,
     ) = ScThemeExposures(
         isDarkTheme = isDarkTheme,
         horizontalDividerThickness = horizontalDividerThickness,
@@ -183,6 +188,7 @@ class ScThemeExposures(
         searchHint = searchHint,
         reactHint = reactHint,
         customEventHint = customEventHint,
+        draftTheme = draftTheme,
     )
 
     fun updateColorsFrom(other: ScThemeExposures) {
@@ -220,5 +226,6 @@ class ScThemeExposures(
         commandHint = other.commandHint
         reactHint = other.reactHint
         customEventHint = other.customEventHint
+        draftTheme = other.draftTheme
     }
 }

@@ -1,5 +1,6 @@
 package chat.schildi.revenge.model
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.buildAnnotatedString
@@ -7,7 +8,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import chat.schildi.matrixsdk.ImagePackImageSource
 import chat.schildi.matrixsdk.ImagePackImageWithRawInfo
 import chat.schildi.revenge.model.conversation.ConversationPermissions
-import chat.schildi.theme.ScColors
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.ThreadId
@@ -35,6 +35,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import java.io.File
+import kotlin.concurrent.atomics.AtomicReference
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 data class DraftKey(
     val sessionId: SessionId,
@@ -106,8 +108,7 @@ sealed interface DraftSpan {
     fun withAdjustedRange(start: Int, end: Int): DraftSpan
     fun formatContentToHtml(content: String): String
     fun formatContentToPlaintext(content: String): String = content
-    // TODO themed?
-    fun draftStyle(): SpanStyle = SpanStyle(color = ScColors.colorAccentGreen)
+    fun draftStyle(theme: DraftTheme): SpanStyle
 }
 
 data class DraftMention(
@@ -126,6 +127,7 @@ data class DraftMention(
         IntentionalMention.Room -> "@room"
         is IntentionalMention.User -> mention.userId.value
     }
+    override fun draftStyle(theme: DraftTheme): SpanStyle = SpanStyle(color = theme.mentionSpanColor)
 }
 
 data class DraftCustomEmote(
@@ -149,6 +151,7 @@ data class DraftCustomEmote(
         }
         append(" />")
     }
+    override fun draftStyle(theme: DraftTheme): SpanStyle = SpanStyle(color = theme.customEmoteSpanColor)
 }
 
 sealed interface ComposerState {
@@ -264,9 +267,23 @@ data class DraftValue(
     }
 }
 
+data class DraftTheme(
+    val mentionSpanColor: Color,
+    val customEmoteSpanColor: Color,
+) {
+    companion object {
+        internal val uninitialized = DraftTheme(
+            mentionSpanColor = Color.Gray,
+            customEmoteSpanColor = Color.Gray,
+        )
+    }
+}
+
 // TODO may add some persistent storage to this one to survive restarts & crashes
+@OptIn(ExperimentalAtomicApi::class)
 object DraftRepo {
     private val drafts = MutableStateFlow<ImmutableMap<DraftKey, DraftValue>>(persistentMapOf())
+    private val globalDraftTheme = AtomicReference(DraftTheme.uninitialized)
 
     val roomsWithDrafts = drafts.map {
         it.filter { (k, v) -> !v.isEmpty() }.keys.map { ScopedRoomKey(it.sessionId, it.roomId) }.toSet()
@@ -305,7 +322,21 @@ object DraftRepo {
         return updated
     }
 
-    private fun maintainAnnotations(newValue: DraftValue, oldValue: DraftValue?): DraftValue {
+    fun updateGlobalTheme(theme: DraftTheme) {
+        val updated = globalDraftTheme.exchange(theme) != theme
+        if (updated) {
+            drafts.update {
+                it.mapValues { (_, draft) -> maintainAnnotations(draft, draft, theme) }
+                    .toPersistentMap()
+            }
+        }
+    }
+
+    private fun maintainAnnotations(
+        newValue: DraftValue,
+        oldValue: DraftValue?,
+        theme: DraftTheme = globalDraftTheme.load(),
+    ): DraftValue {
         val newText = newValue.textFieldValue.text
         val spansToRemove = mutableSetOf<DraftSpan>()
         val spansToAdd = mutableListOf<DraftSpan>()
@@ -346,7 +377,7 @@ object DraftRepo {
                         append(newText)
                         spans.forEach { span ->
                             addStyle(
-                                span.draftStyle(),
+                                span.draftStyle(theme),
                                 start = span.start,
                                 end = span.end,
                             )

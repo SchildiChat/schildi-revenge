@@ -60,6 +60,7 @@ import chat.schildi.revenge.model.ComposerSuggestionsState
 import chat.schildi.revenge.model.ComposerViewModel
 import chat.schildi.revenge.model.DraftKey
 import chat.schildi.revenge.model.DraftRepo
+import chat.schildi.revenge.model.DraftTheme
 import chat.schildi.revenge.model.DraftType
 import chat.schildi.revenge.model.DraftValue
 import chat.schildi.revenge.model.ImagePackProvider
@@ -1058,6 +1059,10 @@ class ConversationViewModel(
         )
         DraftRepo.update(draftKey, newDraft)
         return true
+    }
+
+    override fun updateDraftTheme(theme: DraftTheme) {
+        DraftRepo.updateGlobalTheme(theme)
     }
 
     val userProfile = clientFlow.flatMapLatest { it?.userProfile ?: flowOf(null) }
