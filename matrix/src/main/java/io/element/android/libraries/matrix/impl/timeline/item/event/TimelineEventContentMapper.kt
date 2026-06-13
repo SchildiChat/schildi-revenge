@@ -110,6 +110,7 @@ class TimelineEventContentMapper(
                                 info = kind.info.map(),
                                 source = kind.source.map(),
                                 threadInfo = extractThreadInfo(it.content),
+                                inReplyTo = eventMessageMapper.mapInReplyTo(it.content.inReplyTo), // SC
                             )
                         }
                         is MsgLikeKind.LiveLocation -> {

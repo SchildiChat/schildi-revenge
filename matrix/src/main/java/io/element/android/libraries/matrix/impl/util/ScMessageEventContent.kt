@@ -3,6 +3,7 @@ package io.element.android.libraries.matrix.impl.util
 import io.element.android.libraries.matrix.api.room.IntentionalMention
 import io.element.android.libraries.matrix.impl.room.map
 import org.matrix.rustcomponents.sdk.RoomMessageEventContentWithoutRelation
+import org.matrix.rustcomponents.sdk.StickerEventContent
 import org.matrix.rustcomponents.sdk.messageEventContentFromHtml
 import org.matrix.rustcomponents.sdk.messageEventContentFromHtmlAsEmote
 import org.matrix.rustcomponents.sdk.messageEventContentFromHtmlAsNotice
@@ -12,6 +13,7 @@ import org.matrix.rustcomponents.sdk.messageEventContentFromMarkdownAsNotice
 import org.matrix.rustcomponents.sdk.messageEventContentFromPlaintext
 import org.matrix.rustcomponents.sdk.messageEventContentFromPlaintextAsEmote
 import org.matrix.rustcomponents.sdk.messageEventContentFromPlaintextAsNotice
+import org.matrix.rustcomponents.sdk.stickerEventContentNew
 
 /**
  * Creates a [RoomMessageEventContentWithoutRelation] from a body, an html body and a list of mentions.
@@ -58,5 +60,15 @@ object EmoteEventContent {
             plaintext -> messageEventContentFromPlaintextAsEmote(body)
             else -> messageEventContentFromMarkdownAsEmote(body)
         }.withMentions(intentionalMentions.map())
+    }
+}
+
+object StickerEventContent {
+    fun from(
+        url: String,
+        body: String,
+        info: String?,
+    ): StickerEventContent {
+        return stickerEventContentNew(url, body, info)
     }
 }

@@ -89,6 +89,13 @@ interface Timeline : AutoCloseable {
         inReplyToEventId: EventId?,
     ): Result<Unit>
 
+    suspend fun sendSticker( // SC
+        url: String,
+        body: String,
+        info: String?,
+        inReplyToEventId: EventId?,
+    ): Result<Unit>
+
     suspend fun editMessage(
         eventOrTransactionId: EventOrTransactionId,
         body: String,

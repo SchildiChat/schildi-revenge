@@ -43,7 +43,7 @@ data class EventTimelineItem(
     val forwarderProfile: ProfileDetails?,
 ) {
     fun inReplyTo(): InReplyTo? {
-        return (content as? MessageContent)?.inReplyTo
+        return (content as? MessageContent)?.inReplyTo ?: /* SC */ (content as? StickerContent)?.inReplyTo
     }
 
     fun threadInfo(): EventThreadInfo? = when (content) {

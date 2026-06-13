@@ -129,6 +129,9 @@ class EventMessageMapper {
             OtherMessageType(MSG_TYPE_GALLERY_UNSTABLE, type.content.body)
         }
     }
+
+    // SC
+    fun mapInReplyTo(inReplyTo: InReplyToDetails?) = inReplyTo?.use(inReplyToMapper::map)
 }
 
 private fun RustFormattedBody.map(): FormattedBody = FormattedBody(

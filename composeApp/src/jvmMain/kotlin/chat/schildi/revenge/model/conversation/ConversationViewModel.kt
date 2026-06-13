@@ -164,9 +164,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonNull
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -874,18 +871,11 @@ class ConversationViewModel(
                     DraftType.STICKER -> {
                         val sticker = draft.fullBodyCustomEmote?.takeIf { it.source.supportsSticker }
                         if (sticker != null) {
-                            val room = joinedRoom.value ?: return@result Result.failure(
-                                IllegalStateException("Room not ready")
-                            )
-                            room.sendRaw(
-                                eventType = "m.sticker",
-                                content = Json.encodeToString(JsonObject(
-                                    mapOf(
-                                        "body" to JsonPrimitive(sticker.image.body ?: "Sticker"),
-                                        "url" to JsonPrimitive(sticker.image.url),
-                                        "info" to (sticker.image.info ?: JsonNull),
-                                    ).filter { it.value !is JsonNull }
-                                )),
+                            currentTimeline.sendSticker(
+                                url = sticker.image.url,
+                                body = sticker.image.body ?: "Sticker",
+                                info = sticker.image.info?.let { Json.encodeToString(it) },
+                                inReplyToEventId = draft.inReplyTo?.eventId,
                             )
                         } else {
                             null
@@ -2099,6 +2089,16 @@ class ConversationViewModel(
                                 viewInExternalApp(eventSource, ".json")
                             }
                         } ?: ActionResult.Inapplicable
+                    }
+
+                    Action.Event.CopyEventModel,
+                    Action.Event.ViewEventModel -> {
+                        val content = event.toString()
+                        if (action == Action.Event.CopyEventModel) {
+                            copyToClipboard(content)
+                        } else {
+                            viewInExternalApp(content)
+                        }
                     }
 
                     Action.Event.CopyEventId -> {

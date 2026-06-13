@@ -389,6 +389,8 @@ sealed interface Action {
         CopyFormattedBody,
         CopyEventSource,
         ViewEventSource(aliases = listOf("viewEventSource")),
+        CopyEventModel,
+        ViewEventModel,
         CopyEventId,
         CopyMxc,
         CopyContentLink,

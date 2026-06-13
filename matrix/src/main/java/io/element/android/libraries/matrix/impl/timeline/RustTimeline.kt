@@ -50,6 +50,7 @@ import io.element.android.libraries.matrix.impl.util.EmoteEventContent
 import io.element.android.libraries.matrix.impl.util.MessageEventContent
 import io.element.android.libraries.matrix.impl.util.NoticeEventContent
 import io.element.android.libraries.matrix.impl.util.ScMessageEventContent
+import io.element.android.libraries.matrix.impl.util.StickerEventContent
 import io.element.android.services.toolbox.api.systemclock.SystemClock
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.CoroutineDispatcher
@@ -354,6 +355,23 @@ class RustTimeline(
                     inner.send(content)
                 } else {
                     inner.sendReply(content, inReplyToEventId.value)
+                }
+            }
+        }
+    }
+
+    override suspend fun sendSticker( // SC
+        url: String,
+        body: String,
+        info: String?,
+        inReplyToEventId: EventId?
+    ): Result<Unit> = withContext(dispatcher) {
+        StickerEventContent.from(url, body, info).use { content ->
+            runCatchingExceptions<Unit> {
+                if (inReplyToEventId == null) {
+                    inner.sendSticker(content)
+                } else {
+                    inner.sendStickerReply(content, inReplyToEventId.value)
                 }
             }
         }

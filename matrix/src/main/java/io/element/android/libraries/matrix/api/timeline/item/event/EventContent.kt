@@ -48,6 +48,7 @@ data class StickerContent(
     val info: ImageInfo,
     val source: MediaSource,
     val threadInfo: EventThreadInfo?,
+    val inReplyTo: InReplyTo?, // SC
 ) : EventContent {
     val bestDescription: String
         get() = body ?: filename
