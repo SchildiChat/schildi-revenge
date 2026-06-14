@@ -1,4 +1,4 @@
-package chat.schildi.revenge.model.account
+package chat.schildi.revenge.model.verification
 
 import chat.schildi.revenge.CombinedSessions
 import chat.schildi.revenge.ScCoroutines

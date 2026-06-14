@@ -54,6 +54,7 @@ enum class ActionRoomNotificationSetting(val aliases: List<String> = emptyList()
 
 enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: Boolean = false) : ActionArgument {
     Text,
+    Ignored,
     Reason(consumesTrailingArgsWithSpace = true),
     Boolean,
     Integer,
@@ -98,6 +99,7 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     MatrixLink,
     MatrixToLink,
     SchildiChatLegacyLink,
+    OAuthCallbackPath,
     SpaceOrder,
     SpaceCatchAllMode,
     FocusRole,
@@ -193,6 +195,8 @@ sealed interface Action {
         ConsumeLink(args = listOf(DeepLink)),
         EnableImagePack(args = listOf(ActionArgumentPrimitive.SessionId, RoomIdRelaxed, StateKey)),
         DisableImagePack(args = listOf(ActionArgumentPrimitive.SessionId, RoomIdRelaxed, StateKey)),
+        // Alias is important here, it's what browsers will send us while assuming we speak HTTP
+        HandleOAuthResponse(aliases = listOf("GET"), args = listOf(ActionArgumentPrimitive.OAuthCallbackPath, ActionArgumentRepeatable(ActionArgumentPrimitive.Ignored)))
     }
     enum class AppMessage(
         override val aliases: kotlin.collections.List<String> = emptyList(),

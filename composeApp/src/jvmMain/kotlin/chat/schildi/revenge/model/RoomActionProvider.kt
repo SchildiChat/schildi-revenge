@@ -126,23 +126,23 @@ class RoomActionProvider(
         return when (action) {
             Action.Room.MarkFavorite -> {
                 val value = args.firstOrNull()?.toBooleanStrictOrNull() ?: true
-                room.setIsFavorite(value).toActionResult(async = true)
+                room.setIsFavorite(value).toActionResult()
             }
             Action.Room.MarkLowPriority -> {
                 val value = args.firstOrNull()?.toBooleanStrictOrNull() ?: true
-                room.setIsLowPriority(value).toActionResult(async = true)
+                room.setIsLowPriority(value).toActionResult()
             }
             Action.Room.ToggleIsFavorite -> {
                 val value = !room.info().isFavorite
-                room.setIsFavorite(value).toActionResult(async = true)
+                room.setIsFavorite(value).toActionResult()
             }
             Action.Room.ToggleIsLowPriority -> {
                 val value = !room.info().isLowPriority
-                room.setIsLowPriority(value).toActionResult(async = true)
+                room.setIsLowPriority(value).toActionResult()
             }
             Action.Room.MarkRoomUnread -> {
                 val value = args.firstOrNull()?.toBooleanStrictOrNull() ?: true
-                room.setUnreadFlag(value).toActionResult(async = true)
+                room.setUnreadFlag(value).toActionResult()
             }
             Action.Room.MarkInviteSeen -> {
                 val seenInvitesStore: SeenInvitesStore = UiState.appStateStore
@@ -160,19 +160,19 @@ class RoomActionProvider(
                 }
             }
             Action.Room.ClearUnreadFlag -> {
-                room.setUnreadFlag(false).toActionResult(async = true)
+                room.setUnreadFlag(false).toActionResult()
             }
             Action.Room.MarkRoomRead -> {
-                room.markAsRead(ReceiptType.READ).toActionResult(async = true)
+                room.markAsRead(ReceiptType.READ).toActionResult()
             }
             Action.Room.MarkRoomReadPrivate -> {
-                room.markAsRead(ReceiptType.READ_PRIVATE).toActionResult(async = true)
+                room.markAsRead(ReceiptType.READ_PRIVATE).toActionResult()
             }
             Action.Room.MarkRoomFullyRead -> {
-                room.markAsRead(ReceiptType.FULLY_READ).toActionResult(async = true)
+                room.markAsRead(ReceiptType.FULLY_READ).toActionResult()
             }
             Action.Room.Join -> {
-                room.joinTracked().toActionResult(async = true)
+                room.joinTracked().toActionResult()
             }
             Action.Room.Leave -> {
                 val info = room.info()
@@ -195,12 +195,12 @@ class RoomActionProvider(
                     actionName = action.name,
                 ) {
                     if (isPeekedRoom) {
-                        room.leaveTracked().toActionResult(async = true)
+                        room.leaveTracked().toActionResult()
                     } else {
                         // Needs a fresh room, old one already used up
                         val room = peekClient()?.getRoom(roomId)
                         room?.use {
-                            it.leaveTracked().toActionResult(async = true)
+                            it.leaveTracked().toActionResult()
                         } ?: ActionResult.Failure("Room disappeared")
                     }
                 }
@@ -304,7 +304,7 @@ class RoomActionProvider(
                         context.viewInExternalApp(joined, ".md")
                     }
                 } else {
-                    result.toActionResult(async = true)
+                    result.toActionResult()
                 }
             }
             Action.Room.SetRoomAccountData -> {
@@ -318,7 +318,7 @@ class RoomActionProvider(
                     "setRoomAccountData/$roomId/$sessionId/$eventType",
                     notifyProcessing = true,
                 ) {
-                    client.setRoomAccountData(roomId, eventType, content).toActionResult(async = true)
+                    client.setRoomAccountData(roomId, eventType, content).toActionResult()
                 }
             }
             Action.Room.ConvertToDm -> {
@@ -355,9 +355,9 @@ class RoomActionProvider(
             }
             Action.Room.Join -> {
                 if (joinServerNames.isNullOrEmpty()) {
-                    client.joinRoomTracked(roomId).toActionResult(async = true)
+                    client.joinRoomTracked(roomId).toActionResult()
                 } else {
-                    client.joinRoomByIdOrAliasTracked(roomId.toRoomIdOrAlias(), joinServerNames).toActionResult(async = true)
+                    client.joinRoomByIdOrAliasTracked(roomId.toRoomIdOrAlias(), joinServerNames).toActionResult()
                 }
             }
             else -> ActionResult.Failure("Room not ready")

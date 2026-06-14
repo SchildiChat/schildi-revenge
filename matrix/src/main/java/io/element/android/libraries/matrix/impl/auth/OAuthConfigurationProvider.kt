@@ -19,7 +19,8 @@ class OAuthConfigurationProvider(
     private val buildMeta: BuildMeta,
     private val oAuthRedirectUrlProvider: OAuthRedirectUrlProvider,
 ) {
-    fun get(): OAuthConfiguration = OAuthConfiguration(
+    // SC suspend
+    suspend fun get(): OAuthConfiguration = OAuthConfiguration(
         clientName = buildMeta.applicationName,
         redirectUri = oAuthRedirectUrlProvider.provide(),
         clientUri = OAuthConfig.CLIENT_URI,

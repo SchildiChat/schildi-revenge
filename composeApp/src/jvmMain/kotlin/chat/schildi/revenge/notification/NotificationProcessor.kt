@@ -5,7 +5,7 @@ import chat.schildi.revenge.preferences.RevengePrefs
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.ScCoroutines
 import chat.schildi.revenge.UiState
-import chat.schildi.revenge.model.account.ScIncomingVerificationRequest
+import chat.schildi.revenge.model.verification.ScIncomingVerificationRequest
 import chat.schildi.revenge.plaintext.NotificationEventTextFormat
 import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger

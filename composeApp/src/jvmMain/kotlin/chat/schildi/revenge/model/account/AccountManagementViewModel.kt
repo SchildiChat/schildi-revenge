@@ -1,4 +1,4 @@
-package chat.schildi.revenge.model
+package chat.schildi.revenge.model.account
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -6,10 +6,11 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.flatMergeCombinedWith
-import chat.schildi.revenge.model.account.AccountComparator
-import chat.schildi.revenge.model.account.RevengeDeviceVerificationProvider
-import chat.schildi.revenge.model.account.ScOutgoingVerificationRequest
+import chat.schildi.revenge.model.verification.RevengeDeviceVerificationProvider
+import chat.schildi.revenge.model.verification.ScOutgoingVerificationRequest
 import co.touchlab.kermit.Logger
+import io.element.android.libraries.matrix.api.auth.MatrixHomeServerDetails
+import io.element.android.libraries.matrix.api.auth.OAuthPrompt
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.encryption.BackupState
 import io.element.android.libraries.matrix.api.encryption.RecoveryState
@@ -24,6 +25,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.awt.Desktop
+import java.net.URI
 
 data class AccountManagementData(
     val session: SessionData,
@@ -37,8 +40,14 @@ data class AccountManagementData(
         get() = SessionId(session.userId)
 }
 
+enum class LoginVariant {
+    PASSWORD,
+    OAUTH,
+}
+
 class AccountManagementViewModel(
     appGraph: AppGraph = UiState.appGraph,
+    private val oAuthRepo: OAuthRepo = RevengeOAUthRepo,
 ) : ViewModel() {
     private val sessionStore = appGraph.sessionStore
     private val authService = appGraph.authenticationService
@@ -49,6 +58,8 @@ class AccountManagementViewModel(
     private val sessions = sessionStore.sessionsFlow()
 
     private val sessionIdComparator = UiState.sessionIdComparator
+
+    val oauthState = oAuthRepo.state
 
     val data = sessions.flatMergeCombinedWith(
         map = { session, _ ->
@@ -83,14 +94,42 @@ class AccountManagementViewModel(
     )
 
     suspend fun setHomeserver(homeserver: String) =
-        authService.setHomeserver(homeserver)
+        authService.setHomeserver(normalizeHomeserver(homeserver))
             .onSuccess { log.d { "Set homeserver to $homeserver" } }
             .onFailure { log.w("Failed to set homeserver to $homeserver", it) }
 
-    suspend fun login(username: String, password: String): Result<SessionId> =
+    private fun normalizeHomeserver(homeserver: String): String =
+        homeserver.trim().let {
+            if (it.contains("://")) it else "https://$it"
+        }
+
+    suspend fun loginWithPassword(username: String, password: String): Result<SessionId> =
         authService.login(username, password)
             .onSuccess { log.i { "Logged in to $username" } }
             .onFailure { log.w("Failed to log in to $username", it) }
+
+    suspend fun loginWithBrowser(): Result<Unit> {
+        return runCatching {
+            val oauthDetails = authService.getOAuthUrl(
+                prompt = OAuthPrompt.Login,
+                loginHint = null,
+            ).getOrThrow()
+            oAuthRepo.onOAuthRequestLaunched(oauthDetails)
+            openBrowser(oauthDetails.url)
+        }.onSuccess {
+            log.i { "Opened browser login" }
+        }.onFailure { failure ->
+            log.w("Failed to log in with browser", failure)
+            oAuthRepo.onOAuthRequestCancelled()
+        }
+    }
+
+    private fun openBrowser(url: String) {
+        if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+            error("Opening a browser is not supported on this desktop")
+        }
+        Desktop.getDesktop().browse(URI(url))
+    }
 
     suspend fun verify(session: SessionData, recoveryKey: String): Result<Unit> {
         return sessionCache.getOrRestore(SessionId(session.userId))

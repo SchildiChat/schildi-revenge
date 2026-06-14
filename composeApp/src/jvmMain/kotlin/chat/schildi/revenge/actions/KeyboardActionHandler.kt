@@ -54,6 +54,7 @@ import chat.schildi.revenge.compose.focus.preferFocusChildren
 import chat.schildi.resources.ComposableStringHolder
 import chat.schildi.resources.StringResourceHolder
 import chat.schildi.resources.toStringHolder
+import chat.schildi.revenge.HEADLESS_WINDOW_ID
 import chat.schildi.revenge.config.keybindings.ALLOWED_DESTINATION_STRINGS
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.ActionArgument
@@ -76,9 +77,11 @@ import chat.schildi.revenge.config.keybindings.SpaceCatchAllMode
 import chat.schildi.revenge.config.keybindings.findAll
 import chat.schildi.revenge.config.keybindings.maxArgsSize
 import chat.schildi.revenge.config.keybindings.minArgsSize
-import chat.schildi.revenge.model.account.RevengeDeviceVerificationProvider
-import chat.schildi.revenge.model.account.ScIncomingVerificationRequest
-import chat.schildi.revenge.model.account.ScOutgoingVerificationRequest
+import chat.schildi.revenge.model.account.OAuthRepo
+import chat.schildi.revenge.model.verification.RevengeDeviceVerificationProvider
+import chat.schildi.revenge.model.account.RevengeOAUthRepo
+import chat.schildi.revenge.model.verification.ScIncomingVerificationRequest
+import chat.schildi.revenge.model.verification.ScOutgoingVerificationRequest
 import chat.schildi.revenge.model.joinRoomByIdOrAliasTracked
 import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.REAL_SPACE_ID_PREFIX
@@ -335,6 +338,7 @@ data class ContextMenuFocus(
 class KeyboardActionHandler(
     private val scope: CoroutineScope,
     private val windowId: Int,
+    private val oAuthRepo: OAuthRepo = RevengeOAUthRepo,
 ) {
     private val log = Logger.withTag("Nav/$windowId")
 
@@ -1165,6 +1169,7 @@ class KeyboardActionHandler(
         criticalActionRequiresConfirmation: Boolean,
         keybindingConfig: KeybindingConfig? = UiState.keybindingsConfig.value,
         currentDestinationType: DestinationEnum? = focused?.destinationStateHolder?.state?.value?.destination?.type,
+        asyncCallback: ActionResultCallback? = null,
     ) = object : InternalActionContext {
         override fun publishMessage(message: AbstractAppMessage) =
             this@KeyboardActionHandler.publishMessage(message)
@@ -1221,6 +1226,9 @@ class KeyboardActionHandler(
             } else {
                 action()
             }
+        }
+        override suspend fun onAsyncActionResult(result: ActionResult) {
+            asyncCallback?.onActionResult(result)
         }
         override val focused = focused
         override val criticalActionRequiresConfirmation = criticalActionRequiresConfirmation
@@ -1652,7 +1660,13 @@ class KeyboardActionHandler(
     }
 
     private val globalActionHandler = object : KeyboardActionProvider<Action.Global> {
-        override fun getPossibleActions() = Action.Global.entries.toSet()
+        override fun getPossibleActions() = Action.Global.entries.toSet().let {
+            if (windowId == HEADLESS_WINDOW_ID) {
+                it
+            } else {
+                it - Action.Global.HandleOAuthResponse
+            }
+        }
         override fun ensureActionType(action: Action) = action as? Action.Global
 
         override fun handleNavigationModeEvent(
@@ -1760,7 +1774,7 @@ class KeyboardActionHandler(
                         client.clearCache()
                         log.i("Session cache cleared, restarting $sessionId")
                         UiState.enableSession(sessionId)
-                        ActionResult.Success(async = true, notifySuccess = false)
+                        ActionResult.Success(notifySuccess = false)
                     }
                 }
                 Action.Global.VacuumDatabase -> {
@@ -1795,7 +1809,7 @@ class KeyboardActionHandler(
                                 notFound++
                                 return@forEach
                             }
-                            val result = client.performDatabaseVacuum().toActionResult(async = true)
+                            val result = client.performDatabaseVacuum().toActionResult()
                             if (result is ActionResult.Failure && error == null) {
                                 error = result
                             } else if (result is ActionResult.Success) {
@@ -1833,7 +1847,7 @@ class KeyboardActionHandler(
                                 context.viewInExternalApp(joined, ".md")
                             }
                         } else {
-                            result.toActionResult(async = true)
+                            result.toActionResult()
                         }
                     }
                 }
@@ -1849,7 +1863,7 @@ class KeyboardActionHandler(
                         "setAccountData/$sessionId/$eventType",
                         notifyProcessing = true,
                     ) {
-                        client.setAccountData(eventType, content).toActionResult(async = true)
+                        client.setAccountData(eventType, content).toActionResult()
                     }
                 }
                 Action.Global.CreateRoom -> {
@@ -1900,7 +1914,7 @@ class KeyboardActionHandler(
                             )
                             ActionResult.Success()
                         } else {
-                            result.toActionResult(async = true)
+                            result.toActionResult()
                         }
                     }
                 }
@@ -2035,6 +2049,18 @@ class KeyboardActionHandler(
                         }
                     }
                 }
+                Action.Global.HandleOAuthResponse -> {
+                    val path = args.firstOrNull().orActionValidationError()
+                    context.launchActionAsync(
+                        "handleOAuthResponse/$path",
+                        GlobalActionsScope,
+                        Dispatchers.IO,
+                        "handleOAuthResponse",
+                        notifyProcessing = true,
+                    ) {
+                        oAuthRepo.handleOAuthLoginCallback(path)
+                    }
+                }
             }
         }
     }
@@ -2073,7 +2099,7 @@ class KeyboardActionHandler(
                 )
                 ActionResult.Success()
             } else {
-                result.toActionResult(async = true)
+                result.toActionResult()
             }
         }
     }
@@ -2435,9 +2461,15 @@ class KeyboardActionHandler(
         return true
     }
 
-    fun executeCommandFromIpc(command: String) = executeCommand(IpcCommand(command))
+    fun executeCommandFromIpc(
+        command: String,
+        asyncCallback: ActionResultCallback? = null,
+    ) = executeCommand(IpcCommand(command), asyncCallback)
 
-    private fun executeCommand(command: CommandHolder): ActionResult {
+    private fun executeCommand(
+        command: CommandHolder,
+        asyncCallback: ActionResultCallback? = null,
+    ): ActionResult {
         val focused = command.focused?.let {
             focusableTargets[it]
         } ?: focusableTargets.values.find { it.role == FocusRole.DESTINATION_ROOT_CONTAINER }
@@ -2479,6 +2511,7 @@ class KeyboardActionHandler(
                     focused,
                     keybindingConfig = null,
                     criticalActionRequiresConfirmation = false,
+                    asyncCallback = asyncCallback,
                 )
                 val result = try {
                     ActionResult.chain(
@@ -2596,7 +2629,7 @@ class KeyboardActionHandler(
                     action()
                 }
             )
-            ActionResult.Success(async = true, notifySuccess = false)
+            ActionResult.Success(notifySuccess = false)
         } else {
             action()
         }
@@ -2862,7 +2895,8 @@ fun checkArgument(
         ActionArgumentPrimitive.RoomTopic,
         ActionArgumentPrimitive.ServerName,
         ActionArgumentPrimitive.SpaceOrder,
-        ActionArgumentPrimitive.Text -> null
+        ActionArgumentPrimitive.Text,
+        ActionArgumentPrimitive.Ignored -> null
         ActionArgumentPrimitive.MatrixLink -> {
             try {
                 val link = com.beeper.android.messageformat.MatrixPatterns.parseMatrixUri(argVal, true)
@@ -2897,6 +2931,13 @@ fun checkArgument(
                 }
             } catch (e: Exception) {
                 ActionResult.Malformed("Invalid schildichat URI: $e")
+            }
+        }
+        ActionArgumentPrimitive.OAuthCallbackPath -> {
+            if (argVal.startsWith("/")) {
+                null
+            } else {
+                ActionResult.Malformed("Invalid oauth callback path")
             }
         }
         ActionArgumentPrimitive.Json -> {
@@ -3230,6 +3271,7 @@ interface ActionContext {
         coroutineContext: CoroutineContext = EmptyCoroutineContext,
         action: suspend () -> ActionResult,
     ): ActionResult
+    suspend fun onAsyncActionResult(result: ActionResult)
     val currentDestinationType: DestinationEnum?
     val destinationStateHolder: DestinationStateHolder?
     val keybindingConfig: KeybindingConfig?
@@ -3314,6 +3356,7 @@ fun ActionContext.launchActionAsync(
         } else if (notifyProcessing && appMessageId != null) {
             dismissMessage(appMessageId)
         }
+        onAsyncActionResult(result)
     }
     return ActionResult.Success(async = true)
 }

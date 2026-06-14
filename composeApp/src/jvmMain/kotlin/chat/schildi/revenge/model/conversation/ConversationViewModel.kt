@@ -994,7 +994,7 @@ class ConversationViewModel(
         if (composerSettings.value.autoHideComposer || draft.type == DraftType.REACTION) {
             forceShowComposer.value = false
         }
-        return ActionResult.Success(async = true)
+        return ActionResult.Success()
     }
 
     override fun clearAttachment() {
@@ -1432,7 +1432,7 @@ class ConversationViewModel(
                     _targetEvent.update {
                         EventJumpTarget.Index(0).navigateFrom(it)
                     }
-                    ActionResult.Success(async = true)
+                    ActionResult.Success()
                 }
 
                 Action.Conversation.MarkTimelineRead -> {
@@ -1442,7 +1442,7 @@ class ConversationViewModel(
                         GlobalActionsScope,
                         Dispatchers.IO
                     ) {
-                        timeline.markAsRead(ReceiptType.READ).toActionResult(async = true)
+                        timeline.markAsRead(ReceiptType.READ).toActionResult()
                     }
                 }
 
@@ -1453,7 +1453,7 @@ class ConversationViewModel(
                         GlobalActionsScope,
                         Dispatchers.IO
                     ) {
-                        timeline.markAsRead(ReceiptType.READ_PRIVATE).toActionResult(async = true)
+                        timeline.markAsRead(ReceiptType.READ_PRIVATE).toActionResult()
                     }
                 }
 
@@ -1464,7 +1464,7 @@ class ConversationViewModel(
                         GlobalActionsScope,
                         Dispatchers.IO
                     ) {
-                        timeline.markAsRead(ReceiptType.FULLY_READ).toActionResult(async = true).also {
+                        timeline.markAsRead(ReceiptType.FULLY_READ).toActionResult().also {
                             if (it is ActionResult.Success) {
                                 _cachedFullyRead.value = null
                             }
@@ -1487,7 +1487,7 @@ class ConversationViewModel(
                         notifyProcessing = true,
                         appMessageId = "kickUser",
                     ) {
-                        room.kickUser(userId, reason).toActionResult(async = true)
+                        room.kickUser(userId, reason).toActionResult()
                     }
                 }
 
@@ -1501,7 +1501,7 @@ class ConversationViewModel(
                         notifyProcessing = true,
                         appMessageId = "inviteUser",
                     ) {
-                        room.inviteUserById(userId).toActionResult(async = true)
+                        room.inviteUserById(userId).toActionResult()
                     }
                 }
 
@@ -1515,7 +1515,7 @@ class ConversationViewModel(
                         notifyProcessing = true,
                         appMessageId = "banUser",
                     ) {
-                        room.banUser(userId).toActionResult(async = true)
+                        room.banUser(userId).toActionResult()
                     }
                 }
 
@@ -1534,7 +1534,7 @@ class ConversationViewModel(
                         notifyProcessing = true,
                         appMessageId = "unbanUser",
                     ) {
-                        room.unbanUser(userId, reason).toActionResult(async = true)
+                        room.unbanUser(userId, reason).toActionResult()
                     }
                 }
 
@@ -1556,10 +1556,10 @@ class ConversationViewModel(
                         when (roomMembersById.value[userId]?.membership) {
                             null,
                             RoomMembershipState.KNOCK,
-                            RoomMembershipState.LEAVE -> room.inviteUserById(userId).toActionResult(async = true)
+                            RoomMembershipState.LEAVE -> room.inviteUserById(userId).toActionResult()
                             RoomMembershipState.INVITE,
-                            RoomMembershipState.JOIN -> room.kickUser(userId, reason).toActionResult(async = true)
-                            RoomMembershipState.BAN -> room.unbanUser(userId, reason).toActionResult(async = true)
+                            RoomMembershipState.JOIN -> room.kickUser(userId, reason).toActionResult()
+                            RoomMembershipState.BAN -> room.unbanUser(userId, reason).toActionResult()
                         }
 
                     }
@@ -1603,7 +1603,7 @@ class ConversationViewModel(
                                 context.viewInExternalApp(joined, ".md")
                             }
                         } else {
-                            result.toActionResult(async = true)
+                            result.toActionResult()
                         }
                     }
                 }
@@ -1869,7 +1869,7 @@ class ConversationViewModel(
                     .onFailure {
                         log.e("Failed to send read receipt $receiptType", it)
                     }
-                    .toActionResult(async = true)
+                    .toActionResult()
             }
             result ?: ActionResult.Failure("Failed to send $receiptType")
         }
@@ -1886,7 +1886,7 @@ class ConversationViewModel(
                     unpinEvent(eventId)
                 }.onFailure {
                     log.e("Failed to set pin status", it)
-                }.toActionResult(async = true)
+                }.toActionResult()
             }
             result ?: ActionResult.Failure("Failed to set pin status")
         }
@@ -2291,7 +2291,7 @@ class ConversationViewModel(
                             "sendRetry",
                             notifyProcessing = true
                         ) {
-                            sendHandle.retry().toActionResult(async = true)
+                            sendHandle.retry().toActionResult()
                         }
                     }
 
@@ -2418,7 +2418,7 @@ class ConversationViewModel(
                     }
                 }
             }
-            result.toActionResult(async = true, notifySuccess = false)
+            result.toActionResult(notifySuccess = false)
         }
     }
 
@@ -2452,7 +2452,7 @@ class ConversationViewModel(
             "acknowledgeIdentityChange",
         ) {
             val client = clientFlow.value ?: return@launchActionAsync ActionResult.Failure("Client not ready")
-            action(client).toActionResult(async = true)
+            action(client).toActionResult()
         }
     }
 

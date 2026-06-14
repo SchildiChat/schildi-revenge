@@ -77,18 +77,17 @@ class ActionValidationException() : Exception("Internal action parsing validatio
 fun Boolean.orActionInapplicable() = if (this) ActionResult.Success() else ActionResult.Inapplicable
 fun Boolean.orActionFailure(message: String) = if (this) ActionResult.Success() else ActionResult.Failure(message)
 fun <T>T?.orActionValidationError() = this ?: throw ActionValidationException()
-fun <T>Result<T>.toActionResult(async: Boolean = false, notifySuccess: Boolean = false) = if (isSuccess) {
-    ActionResult.Success(async = async, notifySuccess = notifySuccess)
+fun <T>Result<T>.toActionResult(notifySuccess: Boolean = false) = if (isSuccess) {
+    ActionResult.Success(notifySuccess = notifySuccess)
 } else {
     ActionResult.Failure(exceptionOrNull()?.message ?: "Unknown failure")
 }
-fun Result<ActionResult>.unwrapActionResult(async: Boolean = false, notifySuccess: Boolean = false) = if (isSuccess) {
-    getOrNull() ?: ActionResult.Success(async = async, notifySuccess = notifySuccess)
+fun Result<ActionResult>.unwrapActionResult(notifySuccess: Boolean = false) = if (isSuccess) {
+    getOrNull() ?: ActionResult.Success(notifySuccess = notifySuccess)
 } else {
     ActionResult.Failure(exceptionOrNull()?.message ?: "Unknown failure")
 }
 fun <T>Result<T>.mapActionResult(
-    async: Boolean = false,
     notifySuccess: Boolean = false,
     block: (T) -> ActionResult,
-) = map(block).unwrapActionResult(async = async, notifySuccess = notifySuccess)
+) = map(block).unwrapActionResult(notifySuccess = notifySuccess)

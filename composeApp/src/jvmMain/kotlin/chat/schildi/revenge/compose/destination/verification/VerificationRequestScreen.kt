@@ -44,9 +44,9 @@ import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInb
 import chat.schildi.revenge.compose.components.TopNavigationTitle
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
-import chat.schildi.revenge.model.account.ScIncomingVerificationRequest
-import chat.schildi.revenge.model.account.ScOutgoingVerificationRequest
-import chat.schildi.revenge.model.account.ScVerificationRequest
+import chat.schildi.revenge.model.verification.ScIncomingVerificationRequest
+import chat.schildi.revenge.model.verification.ScOutgoingVerificationRequest
+import chat.schildi.revenge.model.verification.ScVerificationRequest
 import chat.schildi.revenge.model.verification.VerificationRequestViewModel
 import chat.schildi.revenge.model.verification.toEmojiResource
 import chat.schildi.revenge.publishTitle

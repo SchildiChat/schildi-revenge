@@ -15,7 +15,7 @@ import chat.schildi.revenge.config.ConfigWatchers
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.LoadStateHolder
 import chat.schildi.revenge.model.RevengeRoomListDataSource
-import chat.schildi.revenge.model.account.ScIncomingVerificationRequest
+import chat.schildi.revenge.model.verification.ScIncomingVerificationRequest
 import chat.schildi.revenge.model.asCheckpointLoadedOrPending
 import chat.schildi.revenge.store.AppStateStore
 import chat.schildi.revenge.util.throttleLatest
@@ -67,7 +67,7 @@ val GlobalActionsScope = ScCoroutines.scope(Dispatchers.IO, "GlobalActionScope")
 private const val MESSAGE_ID_KEY_CONFIG = "keyConfig"
 
 // For KeyboardActionHandler via headless IPC
-private const val HEADLESS_WINDOW_ID = -1
+const val HEADLESS_WINDOW_ID = -1
 
 @OptIn(ExperimentalAtomicApi::class)
 object UiState {

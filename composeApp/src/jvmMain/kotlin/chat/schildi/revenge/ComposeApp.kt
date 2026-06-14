@@ -30,7 +30,7 @@ import chat.schildi.revenge.compose.components.LocalWindowDiagnostics
 import chat.schildi.revenge.compose.components.WindowDiagnostics
 import chat.schildi.revenge.compose.media.LocalImageLoaderHolder
 import chat.schildi.revenge.dbus.TrayWatcher
-import chat.schildi.revenge.model.account.RevengeDeviceVerificationProvider
+import chat.schildi.revenge.model.verification.RevengeDeviceVerificationProvider
 import chat.schildi.revenge.notification.NotificationProcessor
 import chat.schildi.revenge.notification.Notifier
 import kotlinx.coroutines.runBlocking

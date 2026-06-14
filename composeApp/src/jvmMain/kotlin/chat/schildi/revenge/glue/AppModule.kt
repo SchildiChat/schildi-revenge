@@ -2,8 +2,10 @@ package chat.schildi.revenge.glue
 
 import android.content.Context
 import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.revenge.BuildInfo
 import chat.schildi.revenge.ScCoroutines
 import chat.schildi.revenge.config.ScAppDirs
+import chat.schildi.revenge.ipc.SingleInstance
 import chat.schildi.revenge.preferences.RevengePrefs
 import coil3.PlatformContext
 import dev.zacsweers.metro.AppScope
@@ -17,11 +19,14 @@ import io.element.android.libraries.core.meta.BuildType
 import io.element.android.libraries.di.BaseDirectory
 import io.element.android.libraries.di.CacheDirectory
 import io.element.android.libraries.di.annotations.AppCoroutineScope
+import io.element.android.libraries.matrix.api.auth.OAuthRedirectUrlProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import java.io.File
+import java.lang.System
+import kotlin.String
 
 @BindingContainer
 @ContributesTo(AppScope::class)
@@ -29,11 +34,11 @@ object AppModule {
     val okHttpClient = OkHttpClient.Builder().apply {
         addInterceptor(
             Interceptor { chain ->
+                val appVersion: String = System.getProperty("jpackage.app-version") ?: "0.0.0-dev"
                 chain.proceed(
                     chain.request()
                         .newBuilder()
-                        // TODO version number?
-                        .header("User-Agent", "Schildi Revenge")
+                        .header("User-Agent", "SchildiChat Revenge $appVersion")
                         .build()
                 )
             }
@@ -55,17 +60,17 @@ object AppModule {
     @Provides
     @SingleIn(AppScope::class)
     fun providesBuildMeta(): BuildMeta {
-        // TODO
+        val appVersion: String = System.getProperty("jpackage.app-version") ?: "0.0.0-dev"
         return BuildMeta(
-            buildType = BuildType.DEBUG_SC,
+            buildType = if (BuildInfo.DEBUG) BuildType.DEBUG_SC else BuildType.RELEASE_SC,
             isDebuggable = true,
-            applicationName = "Schildi Revenge",
+            applicationName = "SchildiChat Revenge",
             productionApplicationName = "SchildiRevenge",
             applicationId = "chat.schildi.revenge",
             lowPrivacyLoggingEnabled = false,
-            versionName = "WIP",
+            versionName = appVersion,
             versionCode = 1,
-            gitRevision = "",
+            gitRevision = BuildInfo.SOURCE_REVISION,
             gitBranchName = "",
             flavorDescription = "",
             flavorShortDescription = ""
@@ -102,4 +107,14 @@ object AppModule {
     fun providesPlatformContext(): Context {
         return PlatformContext.INSTANCE
     }
+
+    @Provides
+    @SingleIn(AppScope::class)
+    fun providesOAuthRedirectUrlProvider(): OAuthRedirectUrlProvider {
+        return RevengeOAuthRedirectUrlProvider
+    }
+}
+
+val RevengeOAuthRedirectUrlProvider = object : OAuthRedirectUrlProvider {
+    override suspend fun provide(): String = "http://127.0.0.1:${SingleInstance.awaitIpcServerPort()}"
 }

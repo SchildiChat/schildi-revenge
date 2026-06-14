@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{title}}</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --background: #001a2a;
+            --background-gradient: radial-gradient(circle farthest-corner at center top, #0a5c7c, #001a2a);
+            --surface: #ffffff;
+            --text: #212121;
+            --secondary-text: rgba(0, 0, 0, 0.54);
+            --details-background: #eeeeee;
+            --divider: rgba(0, 0, 0, 0.12);
+            --accent: #f44336;
+            --on-accent: #ffffff;
+            --shadow: rgba(0, 0, 0, 0.12);
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --surface: #303030;
+                --text: #ffffff;
+                --secondary-text: rgba(255, 255, 255, 0.70);
+                --details-background: #424242;
+                --divider: rgba(255, 255, 255, 0.12);
+                --shadow: rgba(0, 0, 0, 0.32);
+            }
+        }
+
+        body {
+            min-height: 100vh;
+            margin: 0;
+            padding: clamp(2rem, 8vh, 5rem) 1rem 1rem;
+            display: grid;
+            align-items: start;
+            justify-items: center;
+            background-color: var(--background);
+            background-image: var(--background-gradient);
+            color: var(--text);
+        }
+
+        main {
+            max-width: 34rem;
+            width: min(100%, 34rem);
+            padding: 2rem;
+            border-radius: 10px;
+            background: var(--surface);
+            box-shadow: 0 8px 32px var(--shadow);
+            text-align: center;
+        }
+
+        .error-image {
+            width: min(12rem, 70vw);
+            height: auto;
+            margin: 0 auto 1.25rem;
+        }
+
+        h1 {
+            margin: 0 0 0.75rem;
+            color: var(--accent);
+            font-size: clamp(1.7rem, 5vw, 2.5rem);
+        }
+
+        p {
+            margin: 0;
+            color: var(--secondary-text);
+            line-height: 1.5;
+        }
+
+        h5 {
+            margin: 1.25rem 0 0.5rem;
+            text-align: start;
+        }
+
+        .details {
+            margin-top: 1.25rem;
+            padding: 0.9rem 1rem;
+            border: 1px solid var(--divider);
+            border-radius: 0.75rem;
+            background: var(--details-background);
+            text-align: start;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            font: 0.9rem ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+
+        h5 + .details {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <img class="error-image" src="{{iconSrc}}" alt="">
+        <h1>{{title}}</h1>
+        <p>{{message}}</p>
+        <h5>{{details_header}}</h5>
+        <div class="details">{{details_content}}</div>
+    </main>
+</body>
+</html>

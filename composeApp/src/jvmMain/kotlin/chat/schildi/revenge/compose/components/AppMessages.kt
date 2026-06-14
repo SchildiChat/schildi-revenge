@@ -32,7 +32,7 @@ import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.toCopyAction
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.resources.toStringHolder
-import chat.schildi.revenge.model.account.RevengeDeviceVerificationProvider
+import chat.schildi.revenge.model.verification.RevengeDeviceVerificationProvider
 import kotlinx.collections.immutable.ImmutableList
 import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res

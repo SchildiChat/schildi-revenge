@@ -448,6 +448,7 @@ class CommandSuggestionsProvider(
                 }
                 ActionArgumentPrimitive.PseudoSpaceId -> pseudoSpaceSuggestions.value
                 ActionArgumentPrimitive.Text,
+                ActionArgumentPrimitive.Ignored,
                 ActionArgumentPrimitive.Reason,
                 ActionArgumentPrimitive.Integer,
                 ActionArgumentPrimitive.PositiveOffset,
@@ -467,6 +468,7 @@ class CommandSuggestionsProvider(
                 ActionArgumentPrimitive.MatrixLink,
                 ActionArgumentPrimitive.MatrixToLink,
                 ActionArgumentPrimitive.SchildiChatLegacyLink,
+                ActionArgumentPrimitive.OAuthCallbackPath,
                 ActionArgumentPrimitive.Json,
                 ActionArgumentPrimitive.AccountDataType,
                 ActionArgumentPrimitive.RoomAccountDataType,

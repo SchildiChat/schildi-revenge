@@ -9,5 +9,6 @@
 package io.element.android.libraries.matrix.api.auth
 
 interface OAuthRedirectUrlProvider {
-    fun provide(): String
+    // SC suspend
+    suspend fun provide(): String
 }

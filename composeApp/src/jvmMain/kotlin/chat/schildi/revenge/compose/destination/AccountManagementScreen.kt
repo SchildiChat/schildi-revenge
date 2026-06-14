@@ -1,8 +1,10 @@
 package chat.schildi.revenge.compose.destination
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,6 +25,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,18 +59,28 @@ import chat.schildi.revenge.compose.components.TopNavigationTitle
 import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
-import chat.schildi.revenge.model.AccountManagementData
-import chat.schildi.revenge.model.AccountManagementViewModel
+import chat.schildi.revenge.model.account.AccountManagementData
+import chat.schildi.revenge.model.account.AccountManagementViewModel
+import chat.schildi.revenge.model.account.LoginVariant
+import chat.schildi.revenge.model.account.OAuthLoginState
 import chat.schildi.revenge.viewModelKey
+import co.touchlab.kermit.Logger
+import io.element.android.libraries.matrix.api.auth.MatrixHomeServerDetails
 import io.element.android.libraries.matrix.api.verification.SessionVerifiedStatus
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.account_status_invalid_token
+import shire.res.generated.resources.action_change
+import shire.res.generated.resources.action_check
 import shire.res.generated.resources.action_hide
 import shire.res.generated.resources.action_login
+import shire.res.generated.resources.action_login_with_browser
+import shire.res.generated.resources.action_login_with_password
 import shire.res.generated.resources.action_logout
+import shire.res.generated.resources.action_retry
 import shire.res.generated.resources.action_show
 import shire.res.generated.resources.action_verify
 import shire.res.generated.resources.action_verify_with_another_device
@@ -74,12 +88,17 @@ import shire.res.generated.resources.hint_homeserver
 import shire.res.generated.resources.hint_password
 import shire.res.generated.resources.hint_recovery_key
 import shire.res.generated.resources.hint_username
+import shire.res.generated.resources.login_continue_in_browser_message
+import shire.res.generated.resources.login_not_supported
 import shire.res.generated.resources.manage_accounts
 import shire.res.generated.resources.title_login_account
+import shire.res.generated.resources.verification_cancelled
 import shire.res.generated.resources.verification_status_not_verified
 import shire.res.generated.resources.verification_status_verified
 import shire.res.generated.resources.verified_off_24px
 
+// TODO redo me with more view model responsibilities, only one account login active at a time etc.
+//  when I have a better idea for how the UI should look
 @Composable
 fun AccountManagementScreen(
     destination: Destination.AccountManagement,
@@ -117,7 +136,10 @@ fun AccountManagementScreen(
                         }
                     }
                     item(key = "new_header") {
-                        SectionHeader(stringResource(Res.string.title_login_account))
+                        SectionHeader(
+                            stringResource(Res.string.title_login_account),
+                            modifier = Modifier.padding(top = Dimens.horizontalItemPadding),
+                        )
                     }
                     item(key = "new") {
                         NewLogin(viewModel)
@@ -129,12 +151,15 @@ fun AccountManagementScreen(
 }
 
 @Composable
-private fun SectionHeader(text: String) {
+private fun SectionHeader(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
     Text(
         text,
         color = MaterialTheme.colorScheme.primary,
         style = MaterialTheme.typography.labelMedium,
-        modifier = Modifier.padding(horizontal = Dimens.windowPadding),
+        modifier = modifier.padding(horizontal = Dimens.windowPadding),
     )
 }
 
@@ -165,23 +190,13 @@ private fun ExistingLogin(account: AccountManagementData, viewModel: AccountMana
                 }
                 if (account.sessionVerifiedStatus?.isVerified() == false) {
                     val destinationStateHolder = LocalDestinationState.current
-                    Button(
+                    AccountManagementButton(
+                        stringResource(Res.string.action_verify_with_another_device),
+                        role = FocusRole.NESTED_AUX_ITEM,
                         onClick = {
-                            viewModel.launchDeviceVerification(account.sessionId, destinationStateHolder!!)
+                            viewModel.launchDeviceVerification(account.sessionId, destinationStateHolder!!).isSuccess
                         },
-                        modifier = Modifier
-                            .keyFocusable(
-                                role = FocusRole.NESTED_AUX_ITEM,
-                                actionProvider = actionProvider(
-                                    primaryAction = InteractionAction.Invoke {
-                                        viewModel.launchDeviceVerification(account.sessionId, destinationStateHolder!!).isSuccess
-                                    },
-                                ),
-                                addClickListener = false,
-                            ),
-                    ) {
-                        Text(stringResource(Res.string.action_verify_with_another_device))
-                    }
+                    )
                 }
                 IconButtonWithConfirmation(
                     icon = Icons.AutoMirrored.Default.Logout,
@@ -208,31 +223,21 @@ private fun ExistingLogin(account: AccountManagementData, viewModel: AccountMana
                         modifier = Modifier.weight(1f),
                     )
                     // TODO move to VM
-                    fun verify() {
-                        if (isVerifying) return
+                    fun verify(): Boolean {
+                        if (isVerifying) return false
                         scope.launch {
                             isVerifying = true
                             viewModel.verify(account.session, recoveryKey.text)
                             isVerifying = false
                         }
+                        return true
                     }
-                    Button(
+                    AccountManagementButton(
+                        text = stringResource(Res.string.action_verify),
+                        role = FocusRole.NESTED_AUX_ITEM,
                         enabled = !isVerifying && recoveryKey.text.isNotBlank(),
                         onClick = ::verify,
-                        modifier = Modifier
-                            .keyFocusable(
-                                role = FocusRole.NESTED_AUX_ITEM,
-                                actionProvider = actionProvider(
-                                    primaryAction = InteractionAction.Invoke {
-                                        verify()
-                                        true
-                                    },
-                                ),
-                                addClickListener = false,
-                            ),
-                    ) {
-                        Text(stringResource(Res.string.action_verify))
-                    }
+                    )
                 }
             }
             if (ScPrefs.SHOW_DEV_INFOS.value()) {
@@ -318,119 +323,272 @@ private fun AccountStatusIcon(
 
 @Composable
 private fun NewLogin(viewModel: AccountManagementViewModel) {
-    val inProgress = remember { mutableStateOf(false) }
+    val setHomeserverInProgress = remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val error = remember { mutableStateOf<String?>(null) }
     var homeserver by remember { mutableStateOf(TextFieldValue()) }
-    var username by remember { mutableStateOf(TextFieldValue()) }
-    var password by remember { mutableStateOf(TextFieldValue()) }
+    var hsDetails by remember(homeserver.text) { mutableStateOf<Result<MatrixHomeServerDetails>?>(null) }
+    var loginVariant by remember(homeserver.text) { mutableStateOf<LoginVariant?>(null) }
+    val loginError = remember(homeserver.text) { mutableStateOf<String?>(null) }
+    LaunchedEffect(Unit) {
+        viewModel.oauthState.collect {
+            when (it) {
+                is OAuthLoginState.AuthenticationResult -> {
+                    if (it.result.isSuccess) {
+                        homeserver = TextFieldValue()
+                    } else {
+                        loginError.value = it.result.exceptionOrNull()?.let {
+                            it.message ?: it.toString()
+                        } ?: "Unexpected oauth login error"
+                    }
+                }
+                OAuthLoginState.Cancelled -> {
+                    loginError.value = getString(Res.string.verification_cancelled)
+                }
+                OAuthLoginState.Idle,
+                is OAuthLoginState.Processing,
+                is OAuthLoginState.Waiting -> {}
+            }
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = Dimens.windowPadding),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        error.value?.let {
+        val error = loginError.value ?: hsDetails?.exceptionOrNull()?.let {
+            it.message ?: it.toString()
+        }
+        if (error != null) {
             Text(
-                it,
+                error,
                 color = MaterialTheme.colorScheme.error,
                 style = MaterialTheme.typography.bodyMedium,
-            maxLines = 10,
+                maxLines = 10,
             )
         }
-        OutlinedTextField(
-            value = homeserver,
-            onValueChange = { homeserver = it },
-            label = { Text(stringResource(Res.string.hint_homeserver)) },
-            maxLines = 1,
-            modifier = Modifier.fillMaxWidth().keyFocusable(FocusRole.TEXT_FIELD_SINGLE_LINE),
-        )
-        OutlinedTextField(
-            value = username,
-            onValueChange = { username = it },
-            label = { Text(stringResource(Res.string.hint_username)) },
-            maxLines = 1,
-            modifier = Modifier.fillMaxWidth().keyFocusable(FocusRole.TEXT_FIELD_SINGLE_LINE),
-        )
-        val passwordVisible = remember { mutableStateOf(false) }
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text(stringResource(Res.string.hint_password)) },
-            modifier = Modifier.fillMaxWidth().keyFocusable(FocusRole.TEXT_FIELD_SINGLE_LINE),
-            visualTransformation = if (passwordVisible.value) {
-                VisualTransformation.None
-            } else {
-                PasswordVisualTransformation()
-            },
-            maxLines = 1,
-            trailingIcon = {
-                IconButton(onClick = { passwordVisible.value = !passwordVisible.value }) {
-                    Icon(
-                        imageVector = if (passwordVisible.value)
-                            Icons.Default.VisibilityOff
-                        else
-                            Icons.Default.Visibility,
-                        contentDescription = stringResource(
-                            if (passwordVisible.value)
-                                Res.string.action_hide
-                            else
-                                Res.string.action_show
-                        )
-                    )
-                }
-            }
-        )
-        // TODO move to VM
-        fun login() {
-            if (inProgress.value) {
-                return
-            }
-            scope.launch {
-                inProgress.value = true
-                error.value = null
-                try {
-                    val server = homeserver.text.let {
-                        if (it.contains("://")) {
-                            it
-                        } else {
-                            "https://$it"
+        Row(
+            horizontalArrangement = Dimens.horizontalArrangement,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            OutlinedTextField(
+                value = homeserver,
+                onValueChange = { homeserver = it },
+                label = { Text(stringResource(Res.string.hint_homeserver)) },
+                maxLines = 1,
+                modifier = Modifier.weight(1f).keyFocusable(FocusRole.TEXT_FIELD_SINGLE_LINE),
+                enabled = loginVariant == null && !setHomeserverInProgress.value,
+            )
+            AnimatedContent(Pair(loginVariant, hsDetails?.getOrNull())) { (selectedLogin, currentHsDetails) ->
+                when {
+                    selectedLogin != null -> {
+                        AccountManagementButton(
+                            stringResource(Res.string.action_change),
+                        ) {
+                            loginVariant = null
+                            hsDetails = null
+                            true
                         }
                     }
-                    val serverResult = viewModel.setHomeserver(server)
-                    if (serverResult.isFailure) {
-                        error.value = serverResult.exceptionOrNull()?.let { it.message ?: it.toString() } ?: "Setting server failed without exception"
-                        return@launch
+                    currentHsDetails == null -> {
+                        AccountManagementButton(
+                            stringResource(Res.string.action_check),
+                            enabled = !setHomeserverInProgress.value && homeserver.text.isNotBlank(),
+                        ) {
+                            if (setHomeserverInProgress.value) {
+                                return@AccountManagementButton false
+                            }
+                            setHomeserverInProgress.value = true
+                            scope.launch {
+                                try {
+                                    viewModel.setHomeserver(homeserver.text)
+                                        .also {
+                                            hsDetails = it
+                                        }
+                                        .onFailure {
+                                            loginError.value = it.message ?: it.toString()
+                                        }
+                                        .onSuccess {
+                                            when {
+                                                it.supportsOAuthLogin && it.supportsPasswordLogin -> {
+                                                    loginVariant = null
+                                                }
+
+                                                it.supportsOAuthLogin -> {
+                                                    loginVariant = LoginVariant.OAUTH
+                                                    viewModel.loginWithBrowser()
+                                                }
+
+                                                it.supportsPasswordLogin -> {
+                                                    loginVariant = LoginVariant.PASSWORD
+                                                }
+
+                                                else -> {
+                                                    loginError.value = getString(Res.string.login_not_supported)
+                                                }
+                                            }
+                                        }
+                                } finally {
+                                    setHomeserverInProgress.value = false
+                                }
+                            }
+                            true
+                        }
                     }
-                    val result = viewModel.login(username.text, password.text)
-                    if (result.isSuccess) {
-                        password = TextFieldValue()
-                        username = TextFieldValue()
-                        homeserver = TextFieldValue()
-                    } else {
-                        error.value = result.exceptionOrNull()?.let { it.message ?: it.toString() } ?: "Login failed without exception"
-                    }
-                } finally {
-                    inProgress.value = false
                 }
             }
         }
-        Button(
-            enabled = !inProgress.value &&
-                    homeserver.text.isNotBlank() && username.text.isNotBlank() && password.text.isNotBlank(),
-            onClick = ::login,
-            modifier = Modifier
-                .keyFocusable(
-                    actionProvider = actionProvider(
-                        primaryAction = InteractionAction.Invoke {
-                            login()
-                            true
-                        },
-                    ),
-                    addClickListener = false,
-                ),
-        ) {
-            Text(stringResource(Res.string.action_login))
+        when (loginVariant) {
+            null -> {
+                hsDetails?.getOrNull()?.let { currentHsDetails ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Dimens.horizontalArrangement,
+                    ) {
+                        if (currentHsDetails.supportsOAuthLogin) {
+                            AccountManagementButton(
+                                stringResource(Res.string.action_login_with_browser)
+                            ) {
+                                loginVariant = LoginVariant.OAUTH
+                                scope.launch {
+                                    viewModel.loginWithBrowser()
+                                }
+                                true
+                            }
+                        }
+                        if (currentHsDetails.supportsPasswordLogin) {
+                            AccountManagementButton(
+                                stringResource(Res.string.action_login_with_password)
+                            ) {
+                                loginVariant = LoginVariant.PASSWORD
+                                true
+                            }
+                        }
+                    }
+                }
+            }
+
+            LoginVariant.PASSWORD -> {
+                PasswordLogin(viewModel, loginError) {
+                    homeserver = TextFieldValue()
+                }
+            }
+
+            LoginVariant.OAUTH -> {
+                Text(stringResource(Res.string.login_continue_in_browser_message))
+                AccountManagementButton(
+                    stringResource(Res.string.action_retry)
+                ) {
+                    scope.launch {
+                        viewModel.loginWithBrowser()
+                    }
+                    true
+                }
+            }
         }
+    }
+}
+
+@Composable
+private fun ColumnScope.PasswordLogin(
+    viewModel: AccountManagementViewModel,
+    loginError: MutableState<String?>,
+    onSuccess: () -> Unit,
+) {
+    val scope = rememberCoroutineScope()
+    var username by remember { mutableStateOf(TextFieldValue()) }
+    var password by remember { mutableStateOf(TextFieldValue()) }
+    val loginInProgress = remember { mutableStateOf(false) }
+    OutlinedTextField(
+        value = username,
+        onValueChange = { username = it },
+        label = { Text(stringResource(Res.string.hint_username)) },
+        maxLines = 1,
+        modifier = Modifier.fillMaxWidth().keyFocusable(FocusRole.TEXT_FIELD_SINGLE_LINE),
+    )
+    val passwordVisible = remember { mutableStateOf(false) }
+    OutlinedTextField(
+        value = password,
+        onValueChange = { password = it },
+        label = { Text(stringResource(Res.string.hint_password)) },
+        modifier = Modifier.fillMaxWidth().keyFocusable(FocusRole.TEXT_FIELD_SINGLE_LINE),
+        visualTransformation = if (passwordVisible.value) {
+            VisualTransformation.None
+        } else {
+            PasswordVisualTransformation()
+        },
+        maxLines = 1,
+        trailingIcon = {
+            IconButton(onClick = { passwordVisible.value = !passwordVisible.value }) {
+                Icon(
+                    imageVector = if (passwordVisible.value)
+                        Icons.Default.VisibilityOff
+                    else
+                        Icons.Default.Visibility,
+                    contentDescription = stringResource(
+                        if (passwordVisible.value)
+                            Res.string.action_hide
+                        else
+                            Res.string.action_show
+                    )
+                )
+            }
+        }
+    )
+    // TODO move state to VM
+    fun loginWithPassword(): Boolean {
+        val log = Logger.withTag("AccountLogin")
+        if (loginInProgress.value) {
+            log.w("Ignoring login request, already logging in")
+            return false
+        }
+        scope.launch {
+            loginInProgress.value = true
+            loginError.value = null
+            try {
+                val result = viewModel.loginWithPassword(username.text, password.text)
+                if (result.isSuccess) {
+                    password = TextFieldValue()
+                    username = TextFieldValue()
+                    onSuccess()
+                } else {
+                    loginError.value = result.exceptionOrNull()?.let { it.message ?: it.toString() }
+                        ?: "Login failed without exception"
+                }
+            } finally {
+                loginInProgress.value = false
+            }
+        }
+        return true
+    }
+    AccountManagementButton(
+        stringResource(Res.string.action_login),
+        enabled = !loginInProgress.value && username.text.isNotBlank() && password.text.isNotBlank(),
+        onClick = ::loginWithPassword,
+        modifier = Modifier.align(Alignment.End)
+    )
+}
+
+@Composable
+private fun AccountManagementButton(
+    text: String,
+    modifier: Modifier = Modifier,
+    role: FocusRole = FocusRole.AUX_ITEM,
+    enabled: Boolean = true,
+    onClick: () -> Boolean,
+) {
+    Button(
+        enabled = enabled,
+        onClick = { onClick() },
+        modifier = modifier
+            .keyFocusable(
+                role = role,
+                actionProvider = actionProvider(
+                    primaryAction = InteractionAction.Invoke(onClick),
+                ),
+                addClickListener = false,
+            ),
+    ) {
+        Text(text)
     }
 }

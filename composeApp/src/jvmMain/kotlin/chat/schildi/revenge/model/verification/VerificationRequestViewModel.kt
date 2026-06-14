@@ -9,8 +9,6 @@ import chat.schildi.revenge.UiState
 import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.LoadStateHolder
-import chat.schildi.revenge.model.account.DeviceVerificationProvider
-import chat.schildi.revenge.model.account.RevengeDeviceVerificationProvider
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.verification.SessionVerificationService

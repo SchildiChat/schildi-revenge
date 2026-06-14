@@ -51,6 +51,9 @@
     <string name="diagnostics_max">Max</string>
 
     <string name="action_login">Login</string>
+    <string name="action_check">Check</string>
+    <string name="action_login_with_browser">Login with browser</string>
+    <string name="action_login_with_password">Login with password</string>
     <string name="action_verify">Verify</string>
     <string name="action_verify_with_another_device">Verify with another device</string>
     <string name="action_start_emoji_verification">Start emoji verification</string>
@@ -124,6 +127,8 @@
     <string name="action_verification_mismatch">They do not match</string>
     <string name="action_show_more">Show more</string>
     <string name="action_show_less">Show less</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_change">Change</string>
 
     <string name="command_success">Success: %1$s</string>
     <string name="command_loading_event">Loading %1$s</string>
@@ -579,6 +584,15 @@
     <string name="account_status_invalid_token">Login token invalid</string>
     <string name="verification_status_verified">Verified</string>
     <string name="verification_status_not_verified">Not verified</string>
+
+    <string name="login_not_supported">No supported login method found</string>
+    <string name="login_continue_in_browser_message">Please continue login in the browser window that just opened.</string>
+    <string name="login_cancelled">Login cancelled</string>
+    <string name="oauth_login_success_title">Login successful</string>
+    <string name="oauth_login_success_message">You can close this browser tab and return to SchildiChat.</string>
+    <string name="oauth_login_failure_title">Login failed</string>
+    <string name="oauth_login_failure_message">SchildiChat could not complete your login. Please close this tab and launch a new login from the app.</string>
+    <string name="oauth_login_failure_details_title">Technical details:</string>
 
     <string name="history_visibility_invited">Room members since invited</string>
     <string name="history_visibility_joined">Room members since joined</string>

@@ -1,6 +1,7 @@
 package chat.schildi.revenge
 
 import androidx.compose.ui.ExperimentalComposeUiApi
+import chat.schildi.revenge.actions.checkArguments
 import chat.schildi.revenge.config.keybindings.Action
 import co.touchlab.kermit.Logger
 import co.touchlab.kermit.Message
@@ -10,7 +11,6 @@ import co.touchlab.kermit.Tag
 import co.touchlab.kermit.platformLogWriter
 import chat.schildi.revenge.ipc.SingleInstance
 import chat.schildi.revenge.util.SystemInfo
-import chat.schildi.revenge.util.matrix.MatrixLinkPatterns
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.context
 import com.github.ajalt.clikt.core.main
@@ -58,7 +58,7 @@ class MainCommand : CliktCommand("schildi-revenge") {
         } else {
             var allowLaunchFromCommand = false
             val joinedCommand = when {
-                command.size == 1 && MatrixLinkPatterns.parseMatrixLink(command.first()) != null -> {
+                isSupportedDeeplink(command) -> {
                     allowLaunchFromCommand = true
                     "${Action.Global.ConsumeLink.name} ${command.first()}"
                 }
@@ -75,6 +75,13 @@ class MainCommand : CliktCommand("schildi-revenge") {
             }
         }
     }
+
+    private fun isSupportedDeeplink(args: List<String>) = checkArguments(
+        Action.Global.ConsumeLink,
+        args = args,
+        implicitArgs = emptyList(),
+        validSessionIds = null,
+    ) == null
 
     private fun launchMainApp(
         startInTray: Boolean = this.startInTray,
