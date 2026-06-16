@@ -229,4 +229,8 @@
     <string name="action_view_read_receipts">Ver recibos de leitura</string>
     <string name="action_open_inbox">Ir para caixa de entrada</string>
     <string name="action_jump_to_unread">Pular para não lido</string>
+    <string name="about_open_source_licenses">Licenças de código aberto</string>
+    <string name="about_system_info">Informações do sistema</string>
+    <string name="about_os_name">Nome do SO: %1$s</string>
+    <string name="about_java_vm">Máquina virtual Java: %1$s</string>
 </resources>
