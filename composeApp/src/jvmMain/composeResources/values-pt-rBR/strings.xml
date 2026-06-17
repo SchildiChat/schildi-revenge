@@ -234,4 +234,6 @@
     <string name="about_os_name">Nome do SO: %1$s</string>
     <string name="about_java_vm">Máquina virtual Java: %1$s</string>
     <string name="pref_hide_window_decoration_summary">Renderizar janelas sem decorações. Só recomendado se você tiver um gerenciador de janelas com bons controles de teclado e quiser ativar configurações de transparência de janela.</string>
+    <string name="hint_composer_sticker">Figurinha</string>
+    <string name="room_type_space">Espaço</string>
 </resources>
