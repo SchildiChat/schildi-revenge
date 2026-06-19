@@ -9,18 +9,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import chat.schildi.revenge.DateTimeFormat
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.buildNavigationActionProvider
+import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.ThreadId
+import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
+import io.element.android.libraries.matrix.api.timeline.item.event.getAvatarUrl
+import io.element.android.libraries.matrix.api.timeline.item.event.getDisambiguatedDisplayName
+import io.element.android.libraries.matrix.api.timeline.item.event.getDisplayName
 import org.jetbrains.compose.resources.pluralStringResource
 import shire.composeapp.generated.resources.Res
 import shire.composeapp.generated.resources.n_threaded_replies
@@ -75,5 +81,21 @@ fun ColumnScope.ThreadRootInfoRow(
             color = MaterialTheme.scExposures.threadHint,
             style = MaterialTheme.typography.labelMedium,
         )
+        threadInfo.summary.latestEvent.dataOrNull()?.let { latestEvent ->
+            latestEvent.senderProfile.getAvatarUrl()?.let { latestSenderAvatar ->
+                AvatarImage(
+                    source = MediaSource(latestSenderAvatar),
+                    size = Dimens.Conversation.receiptSize,
+                    contentDescription = latestEvent.senderProfile.getDisambiguatedDisplayName(latestEvent.senderId),
+                    displayName = latestEvent.senderProfile.getDisplayName() ?: "",
+                    modifier = modifier,
+                )
+            }
+            Text(
+                DateTimeFormat.formatTimestampAsDateOrTime(latestEvent.timestamp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.labelMedium,
+            )
+        }
     }
 }

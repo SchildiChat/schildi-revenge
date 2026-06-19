@@ -122,8 +122,7 @@ fun EventRow(
                 roomMembersById = roomMembersById,
                 messageIsOwn = event.isOwn,
             )
-            if (threadInfo is EventThreadInfo.ThreadRoot &&
-                event.eventId?.value != LocalRoomContextSuggestionsProvider.current?.threadId?.value) {
+            if (threadInfo is EventThreadInfo.ThreadRoot && event.eventId?.value != viewModel.threadId?.value) {
                 ThreadRootInfoRow(
                     threadInfo = threadInfo,
                     sessionId = viewModel.sessionId,
