@@ -294,4 +294,12 @@
     <string name="pref_animate_avatars_summary">Permitir que imagens animadas em avatares sejam animadas constantemente</string>
     <string name="command_not_applicable">%1$s não se aplica neste contexto</string>
     <string name="command_ambiguous">Comando %1$s é ambíguo neste contexto</string>
+    <string name="pref_hide_message_authenticity_warnings_in_bridged_chats_title">Ocultar avisos de autenticidade de mensagens em conversas em ponte</string>
+    <string name="pref_compact_root_spaces_summary">Mostrar ícone sem nome para espaços raiz</string>
+    <string name="verification_incoming_request_prompt">Pedido de verificação: %1$s deseja verificar %2$s</string>
+    <string name="room_preview_membership_invited">Você foi convidado para esta sala.</string>
+    <string name="room_preview_membership_kicked">Você foi expulso desta sala.</string>
+    <string name="room_preview_membership_banned">Você foi banido desta sala.</string>
+    <string name="hint_room">Sala</string>
+    <string name="hint_timeline">Linha do tempo</string>
 </resources>
