@@ -286,4 +286,12 @@
     <string name="pref_url_previews_require_explicit_links_summary">Apenas consultar pré-visualizações para endereços que comecem explicitamente com https://</string>
     <string name="profile_update_name_and_avatar">%1$s mudou seu avatar e nome (era %2$s)</string>
     <string name="profile_update_set_name_and_avatar">%1$s mudou seu avatar e definiu seu nome</string>
+    <string name="pref_focus_follows_mouse_summary">Atualizar foco do teclado imediatamente ao mover o mause</string>
+    <string name="pref_send_typing_notice_summary">Permitir que outros usuários vejam quando você está digitando</string>
+    <string name="pref_client_side_sort_by_unread_summary">Classificar conversas não lidas no topo da lista</string>
+    <string name="pref_sort_with_silent_unread_summary">Classificar conversas não lidas silenciadas acima de conversas lidas totalmente</string>
+    <string name="pref_threaded_replies_in_main_timeline_summary">Se deve ou não mostrar respostas em tópicos na linha do tempo principal</string>
+    <string name="pref_animate_avatars_summary">Permitir que imagens animadas em avatares sejam animadas constantemente</string>
+    <string name="command_not_applicable">%1$s não se aplica neste contexto</string>
+    <string name="command_ambiguous">Comando %1$s é ambíguo neste contexto</string>
 </resources>
