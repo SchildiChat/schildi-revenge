@@ -302,4 +302,6 @@
     <string name="room_preview_membership_banned">Você foi banido desta sala.</string>
     <string name="hint_room">Sala</string>
     <string name="hint_timeline">Linha do tempo</string>
+    <string name="pref_auto_hide_composer_title">Ocultar caixa de texto automaticamente</string>
+    <string name="pref_category_composer">Caixa de texto</string>
 </resources>
