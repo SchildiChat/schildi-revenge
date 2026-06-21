@@ -304,4 +304,5 @@
     <string name="hint_timeline">Linha do tempo</string>
     <string name="pref_auto_hide_composer_title">Ocultar caixa de texto automaticamente</string>
     <string name="pref_category_composer">Caixa de texto</string>
+    <string name="pref_minimal_mode_summary">Oculta elementos de navegação e a caixa de texto quando não estiverem em uso. Só útil se tiver configurado atalhos de teclado customizados e/ou conhece o modo de comando o suficiente para navegar o programa.</string>
 </resources>
