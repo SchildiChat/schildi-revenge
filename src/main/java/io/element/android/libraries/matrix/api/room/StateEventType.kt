@@ -35,6 +35,7 @@ sealed interface StateEventType {
     data object MemberHints : StateEventType
     data object RoomImagePack : StateEventType
     data object RoomLanguage : StateEventType
+    data object RoomPolicy : StateEventType
 
     data class Custom(val type: String) : StateEventType
 }
