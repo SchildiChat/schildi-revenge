@@ -261,7 +261,7 @@ fun <T> ScListPref<T>.Rendered() {
     val currentValue = value()
     WithContextMenu(
         focusId = focusId,
-        entries = remember(items) {
+        entries = remember(items, currentValue) {
             items.mapIndexed { index, item ->
                 ContextMenuActionEntry(
                     title = item.name,
