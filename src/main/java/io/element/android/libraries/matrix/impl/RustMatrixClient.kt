@@ -247,6 +247,7 @@ class RustMatrixClient(
         timelineEventFilterFactory = timelineEventFilterFactory,
         roomMembershipObserver = roomMembershipObserver,
         roomInfoMapper = roomInfoMapper,
+        scPreferencesStore = scPreferencesStore, // SC
         featureFlagService = featureFlagService,
         analyticsService = analyticsService,
     )

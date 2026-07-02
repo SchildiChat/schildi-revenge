@@ -8,6 +8,8 @@
 
 package io.element.android.libraries.matrix.impl.room
 
+import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.matrixsdk.ScTimelineFilterSettings
 import io.element.android.appconfig.TimelineConfig
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
@@ -60,6 +62,7 @@ class RustRoomFactory(
     private val innerRoomListService: InnerRoomListService,
     private val roomSyncSubscriber: RoomSyncSubscriber,
     private val timelineEventFilterFactory: TimelineEventFilterFactory,
+    private val scPreferencesStore: ScPreferencesStore, // SC
     private val featureFlagService: FeatureFlagService,
     private val roomMembershipObserver: RoomMembershipObserver,
     private val roomInfoMapper: RoomInfoMapper,
@@ -131,6 +134,7 @@ class RustRoomFactory(
                             EncryptionState.UNKNOWN -> null
                         }
                         val timelineFilter = timelineEventFilterFactory.create(
+                            hideMembershipInPublicChats = !scPreferencesStore.getSetting(ScPrefs.VIEW_MEMBERSHIP_EVENTS_IN_PUBLIC_ROOMS),
                             joinRule = roomInfo.joinRule?.map(),
                             isEncrypted = isEncrypted,
                             excludedStateTypes = TimelineConfig.excludedEvents,
@@ -156,6 +160,7 @@ class RustRoomFactory(
                             liveInnerTimeline = timeline,
                             coroutineDispatchers = dispatchers,
                             systemClock = systemClock,
+                            scPreferencesStore = scPreferencesStore, // SC
                             featureFlagService = featureFlagService,
                         )
                     )

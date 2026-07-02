@@ -8,6 +8,8 @@
 
 package io.element.android.libraries.matrix.impl.room
 
+import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.lib.preferences.ScPrefs
 import io.element.android.appconfig.TimelineConfig
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
 import io.element.android.libraries.core.coroutine.childScope
@@ -103,6 +105,7 @@ class JoinedRustRoom(
     private val coroutineDispatchers: CoroutineDispatchers,
     private val systemClock: SystemClock,
     private val roomContentForwarder: RoomContentForwarder,
+    private val scPreferencesStore: ScPreferencesStore, // SC
     private val featureFlagService: FeatureFlagService,
 ) : JoinedRoom, BaseRoom by baseRoom {
     // Create a dispatcher for all room methods...
@@ -225,6 +228,7 @@ class JoinedRustRoom(
             CreateTimelineParams.PinnedOnly,
             is CreateTimelineParams.Threaded -> {
                 RustTimelineEventFilterFactory().create(
+                    hideMembershipInPublicChats = !scPreferencesStore.getSetting(ScPrefs.VIEW_MEMBERSHIP_EVENTS_IN_PUBLIC_ROOMS),
                     joinRule = roomInfoFlow.value.joinRule,
                     isEncrypted = roomInfoFlow.value.isEncrypted,
                     excludedStateTypes = TimelineConfig.excludedEvents,

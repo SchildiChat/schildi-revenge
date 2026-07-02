@@ -19,6 +19,7 @@ import uniffi.matrix_sdk_ui.MembershipChangeFilter
 
 interface TimelineEventFilterFactory {
     fun create(
+        hideMembershipInPublicChats: Boolean, // SC
         joinRule: JoinRule?,
         isEncrypted: Boolean?,
         excludedStateTypes: List<StateEventType>
@@ -28,6 +29,7 @@ interface TimelineEventFilterFactory {
 @ContributesBinding(AppScope::class)
 class RustTimelineEventFilterFactory : TimelineEventFilterFactory {
     override fun create(
+        hideMembershipInPublicChats: Boolean, // SC
         joinRule: JoinRule?,
         isEncrypted: Boolean?,
         excludedStateTypes: List<StateEventType>
@@ -37,7 +39,7 @@ class RustTimelineEventFilterFactory : TimelineEventFilterFactory {
         }
         // If the room is publicly joinable and not encrypted, we also want to exclude membership changes and profile changes,
         // as they will pollute the timelines since they're quite common and not add much value.
-        val excludedMembershipChanges = if (joinRule !is JoinRule.Invite && isEncrypted == false) {
+        val excludedMembershipChanges = if (joinRule !is JoinRule.Invite && isEncrypted == false && hideMembershipInPublicChats) {
             listOf(
                 FilterTimelineEventCondition.MembershipChange(MembershipChangeFilter.JOIN),
                 FilterTimelineEventCondition.MembershipChange(MembershipChangeFilter.LEAVE),
