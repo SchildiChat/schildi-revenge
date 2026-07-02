@@ -246,6 +246,7 @@ private fun buildScTimelineFilterSettings(lookup: (ScPref<*>) -> Any?) = ScTimel
     showHiddenEvents = ScPrefs.VIEW_HIDDEN_EVENTS.safeLookup(lookup),
     showRedactions = ScPrefs.VIEW_REDACTIONS.safeLookup(lookup),
     preferHideThreadedEvents = !ScPrefs.THREAD_REPLIES_IN_MAIN_TIMELINE.safeLookup(lookup),
+    showMembershipEventsInPublicRooms = ScPrefs.VIEW_MEMBERSHIP_EVENTS_IN_PUBLIC_ROOMS.safeLookup(lookup),
 )
 
 data class ConversationPermissions(

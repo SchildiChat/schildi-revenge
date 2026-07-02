@@ -51,7 +51,6 @@ inbox = [
 ]
 room = [
     { key = "M", ctrl = true, action = "MarkRoomRead", destinations = ["Inbox"] },
-    { key = "R", alt = true, action = "ClearEventCache" },
     { key = "Y", ctrl = true, alt = true, action = "CopyRoomId" },
 ]
 conversation = [

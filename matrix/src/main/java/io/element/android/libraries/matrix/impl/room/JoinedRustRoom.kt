@@ -16,7 +16,7 @@ import io.element.android.libraries.core.coroutine.childScope
 import io.element.android.libraries.core.extensions.mapFailure
 import io.element.android.libraries.core.extensions.runCatchingExceptions
 import io.element.android.libraries.featureflag.api.FeatureFlagService
-import chat.schildi.revenge.glue.FeatureFlags
+import io.element.android.libraries.featureflag.api.FeatureFlags
 import io.element.android.libraries.matrix.api.core.DeviceId
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomAlias
@@ -228,7 +228,7 @@ class JoinedRustRoom(
             is CreateTimelineParams.Focused,
             CreateTimelineParams.PinnedOnly,
             is CreateTimelineParams.Threaded -> {
-                RustTimelineEventFilterFactory().create(
+                RustTimelineEventFilterFactory.create(
                     hideMembershipInPublicChats = !scPreferencesStore.getSetting(ScPrefs.VIEW_MEMBERSHIP_EVENTS_IN_PUBLIC_ROOMS),
                     joinRule = roomInfoFlow.value.joinRule,
                     isEncrypted = roomInfoFlow.value.isEncrypted,

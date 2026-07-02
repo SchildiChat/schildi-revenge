@@ -1,8 +1,10 @@
 package chat.schildi.revenge.glue
 
 import android.content.Context
+import chat.schildi.lib.preferences.ScPreferencesStore
 import chat.schildi.revenge.ScCoroutines
 import chat.schildi.revenge.config.ScAppDirs
+import chat.schildi.revenge.preferences.RevengePrefs
 import coil3.PlatformContext
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.BindingContainer
@@ -74,6 +76,12 @@ object AppModule {
     @SingleIn(AppScope::class)
     fun providesCoroutineDispatchers(): CoroutineDispatchers {
         return CoroutineDispatchers.Default
+    }
+
+    @Provides
+    @SingleIn(AppScope::class)
+    fun providesScPreferencesStore(): ScPreferencesStore {
+        return RevengePrefs
     }
 
     @Provides

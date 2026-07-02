@@ -347,6 +347,9 @@
     <string name="pref_category_typing_notices">Typing indicator</string>
     <string name="pref_category_advanced_configuration">Advanced configuration</string>
     <string name="pref_category_advanced_configuration_summary">Low-level behavior</string>
+    <string name="pref_category_timeline_event_visibility">Event visibility</string>
+    <string name="pref_category_message_authenticity_warnings">Message authenticity warnings</string>
+
     <string name="pref_skiko_vsync_title">Enable skiko VSync</string>
     <string name="pref_skiko_vsync_summary">Try disabling VSync if you notice intermittent laggyness when having multiple windows open</string>
     <string name="pref_sdk_sqlite_max_pool_size_title">Max SDK client DB pool size</string>
@@ -424,6 +427,8 @@
     <string name="pref_composer_max_lines_summary">Limit the rendered height of the message composer</string>
     <string name="pref_composer_max_lines_unfocused_title">Unfocused max composer lines</string>
     <string name="pref_composer_max_lines_unfocused_summary">Limit the rendered height of the message composer while not focused</string>
+    <string name="pref_view_membership_events_in_public_rooms_title">Membership changes in public rooms</string>
+    <string name="pref_view_membership_events_in_public_rooms_summary">Render in the timeline of public rooms when members join, leave or change their profile. Private rooms will render these changes independently of this setting.</string>
 
     <string name="nameless_space_fallback_title">Nameless space</string>
 

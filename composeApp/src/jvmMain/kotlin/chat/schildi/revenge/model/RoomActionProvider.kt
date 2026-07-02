@@ -198,9 +198,6 @@ class RoomActionProvider(
                     context.copyToClipboard(it)
                 }
             }
-            Action.Room.ClearEventCache -> {
-                room.clearEventCacheStorage().toActionResult()
-            }
             Action.Room.SetRoomUserDisplayName -> {
                 val name = args.firstOrNull()
                 room.setRoomUserDisplayName(name).toActionResult()

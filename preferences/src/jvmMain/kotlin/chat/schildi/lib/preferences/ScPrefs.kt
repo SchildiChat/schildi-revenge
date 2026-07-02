@@ -105,6 +105,8 @@ import shire.res.generated.resources.pref_category_general
 import shire.res.generated.resources.pref_category_general_appearance
 import shire.res.generated.resources.pref_category_general_behaviour
 import shire.res.generated.resources.pref_category_general_summary
+import shire.res.generated.resources.pref_category_message_authenticity_warnings
+import shire.res.generated.resources.pref_category_timeline_event_visibility
 import shire.res.generated.resources.pref_category_unread_counts
 import shire.res.generated.resources.pref_client_side_sort_by_unread_summary
 import shire.res.generated.resources.pref_client_side_sort_by_unread_title
@@ -160,6 +162,8 @@ import shire.res.generated.resources.pref_url_previews_require_explicit_links_su
 import shire.res.generated.resources.pref_url_previews_require_explicit_links_title
 import shire.res.generated.resources.pref_url_previews_summary
 import shire.res.generated.resources.pref_url_previews_title
+import shire.res.generated.resources.pref_view_membership_events_in_public_rooms_summary
+import shire.res.generated.resources.pref_view_membership_events_in_public_rooms_title
 import java.util.Locale
 
 object ScPrefs {
@@ -283,6 +287,7 @@ object ScPrefs {
     val HIDE_AUTHENTICITY_NOT_GUARANTEED = ScBoolPref("HIDE_AUTHENTICITY_NOT_GUARANTEED", false, Res.string.pref_hide_message_authenticity_not_guaranteed_title, Res.string.pref_hide_message_authenticity_not_guaranteed_summary)
     val VIEW_HIDDEN_EVENTS = ScBoolPref("VIEW_HIDDEN_EVENTS", false, Res.string.pref_view_hidden_events_title)
     val VIEW_REDACTIONS = ScBoolPref("VIEW_REDACTIONS", false, Res.string.pref_view_redactions_title, dependencies = listOf(VIEW_HIDDEN_EVENTS.toDependency(expect = false)), disabledValue = true)
+    val VIEW_MEMBERSHIP_EVENTS_IN_PUBLIC_ROOMS = ScBoolPref("VIEW_MEMBERSHIP_EVENTS_IN_PUBLIC_ROOMS", true, Res.string.pref_view_membership_events_in_public_rooms_title, Res.string.pref_view_membership_events_in_public_rooms_summary, dependencies = listOf(VIEW_HIDDEN_EVENTS.toDependency(expect = false)), disabledValue = true)
     val PREFERRED_MESSAGE_FORMAT = ScStringListPref(
         "PREFERRED_MESSAGE_FORMAT",
         defaultValue = ComposerFormat.MARKDOWN.toString(),
@@ -353,9 +358,10 @@ object ScPrefs {
         )),
         ScPrefScreen("CONVERSATION", Res.string.pref_category_conversation, Res.string.pref_category_conversation_summary, listOf(
             THREAD_REPLIES_IN_MAIN_TIMELINE,
-            VIEW_REDACTIONS,
-            HIDE_AUTHENTICITY_NOT_GUARANTEED,
-            HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS,
+            ScPrefCategory("TIMELINE_EVENT_VISIBILITY", Res.string.pref_category_timeline_event_visibility, null, listOf(
+                VIEW_REDACTIONS,
+                VIEW_MEMBERSHIP_EVENTS_IN_PUBLIC_ROOMS,
+            )),
             ScPrefCategory("COMPOSER", Res.string.pref_category_composer, null, listOf(
                 PREFERRED_MESSAGE_FORMAT,
                 FORMATTED_COMPOSER_PREVIEW,
@@ -370,6 +376,10 @@ object ScPrefs {
                 URL_PREVIEWS,
                 URL_PREVIEWS_IN_E2EE_ROOMS,
                 URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS,
+            )),
+            ScPrefCategory("MESSAGE_AUTHENTICITY", Res.string.pref_category_message_authenticity_warnings, null, listOf(
+                HIDE_AUTHENTICITY_NOT_GUARANTEED,
+                HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS,
             )),
         )),
         ScPrefScreen("SPACES", Res.string.pref_category_spaces, Res.string.pref_category_spaces_summary, listOf(

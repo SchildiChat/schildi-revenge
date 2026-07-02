@@ -1,7 +1,7 @@
 package chat.schildi.revenge
 
 object MatrixSdkMetadata {
-    const val ELEMENT_VERSION = "26.6.1"
-    const val SCHILDI_NEXT_REVISION = "8907d3b2e0c3245f7747f3226e9ec5a37b46cb98"
+    const val ELEMENT_VERSION = "26.7.0"
+    const val SCHILDI_NEXT_REVISION = "a20a261052a172f926e0ad8dc015513eaacbf157"
 }
 

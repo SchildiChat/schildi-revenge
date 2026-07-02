@@ -8,6 +8,7 @@
 
 package io.element.android.libraries.matrix.impl
 
+import chat.schildi.lib.preferences.ScPreferencesStore
 import dev.zacsweers.metro.Inject
 import io.element.android.libraries.androidutils.crypto.ClientSecret
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
@@ -18,7 +19,7 @@ import io.element.android.libraries.di.annotations.AppCoroutineScope
 import io.element.android.libraries.featureflag.api.FeatureFlagService
 import io.element.android.libraries.featureflag.api.FeatureFlags
 import io.element.android.libraries.matrix.api.paths.SessionPaths
-import io.element.android.libraries.matrix.impl.analytics.UtdTracker
+//import io.element.android.libraries.matrix.impl.analytics.UtdTracker
 import io.element.android.libraries.matrix.impl.paths.getSessionPaths
 import io.element.android.libraries.matrix.impl.proxy.ProxyProvider
 import io.element.android.libraries.matrix.impl.room.TimelineEventFilterFactory
@@ -57,6 +58,7 @@ class RustMatrixClientFactory(
     private val appCoroutineScope: CoroutineScope,
     private val coroutineDispatchers: CoroutineDispatchers,
     private val sessionStore: SessionStore,
+    private val scPreferencesStore: ScPreferencesStore,
     private val userAgentProvider: UserAgentProvider,
     private val proxyProvider: ProxyProvider,
     private val clock: SystemClock,
@@ -129,7 +131,7 @@ class RustMatrixClientFactory(
             baseCacheDirectory = cacheDirectory,
             clock = clock,
             timelineEventFilterFactory = timelineEventFilterFactory,
-            //scPreferencesStore = scPreferencesStore,
+            scPreferencesStore = scPreferencesStore,
             featureFlagService = featureFlagService,
             analyticsService = analyticsService,
             workManagerScheduler = workManagerScheduler,

@@ -1,7 +1,6 @@
-package chat.schildi.revenge.glue
+package io.element.android.libraries.featureflag.api
 
-import io.element.android.libraries.featureflag.api.Feature
-
+// Just a SC shim, default values will be used as hard-coded values throughout the app
 object FeatureFlags {
     object Threads : Feature { override val defaultValue = false }
     object OnlySignedDeviceIsolationMode : Feature { override val defaultValue = false }
