@@ -8,6 +8,9 @@
 
 package io.element.android.libraries.matrix.impl.room
 
+import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.lib.preferences.ScPrefs
+import io.element.android.appconfig.TimelineConfig
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
 import io.element.android.libraries.core.coroutine.childScope
 import io.element.android.libraries.core.extensions.mapFailure
@@ -102,6 +105,7 @@ class JoinedRustRoom(
     private val coroutineDispatchers: CoroutineDispatchers,
     private val systemClock: SystemClock,
     private val roomContentForwarder: RoomContentForwarder,
+    private val scPreferencesStore: ScPreferencesStore, // SC
     private val featureFlagService: FeatureFlagService,
 ) : JoinedRoom, BaseRoom by baseRoom {
     // Create a dispatcher for all room methods...
@@ -223,7 +227,14 @@ class JoinedRustRoom(
             )
             is CreateTimelineParams.Focused,
             CreateTimelineParams.PinnedOnly,
-            is CreateTimelineParams.Threaded -> TimelineFilter.All
+            is CreateTimelineParams.Threaded -> {
+                RustTimelineEventFilterFactory().create(
+                    hideMembershipInPublicChats = !scPreferencesStore.getSetting(ScPrefs.VIEW_MEMBERSHIP_EVENTS_IN_PUBLIC_ROOMS),
+                    joinRule = roomInfoFlow.value.joinRule,
+                    isEncrypted = roomInfoFlow.value.isEncrypted,
+                    excludedStateTypes = TimelineConfig.excludedEvents,
+                )?.let(TimelineFilter::EventFilter) ?: TimelineFilter.All
+            }
         }
 
         val internalIdPrefix = when (createTimelineParams) {
@@ -552,6 +563,12 @@ class JoinedRustRoom(
                 is LiveLocationException -> throwable.map()
                 else -> throwable
             }
+        }
+    }
+
+    override suspend fun setOwnMemberDisplayName(displayName: String): Result<Unit> = withContext(roomDispatcher) {
+        runCatchingExceptions {
+            innerRoom.setOwnMemberDisplayName(displayName)
         }
     }
 

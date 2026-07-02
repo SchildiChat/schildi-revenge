@@ -8,6 +8,8 @@
 
 package io.element.android.libraries.matrix.impl.room
 
+import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.matrixsdk.ScTimelineFilterSettings
 import io.element.android.appconfig.TimelineConfig
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
@@ -22,6 +24,7 @@ import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.room.RoomMembershipObserver
 import io.element.android.libraries.matrix.api.roomlist.RoomListService
 import io.element.android.libraries.matrix.api.roomlist.awaitLoaded
+import io.element.android.libraries.matrix.impl.room.join.map
 import io.element.android.libraries.matrix.impl.room.preview.RoomPreviewInfoMapper
 import io.element.android.libraries.matrix.impl.roomlist.roomOrNull
 import io.element.android.services.analytics.api.AnalyticsLongRunningTransaction
@@ -42,6 +45,7 @@ import org.matrix.rustcomponents.sdk.TimelineConfiguration
 import org.matrix.rustcomponents.sdk.TimelineFilter
 import org.matrix.rustcomponents.sdk.TimelineFocus
 import timber.log.Timber
+import uniffi.matrix_sdk_base.EncryptionState
 import uniffi.matrix_sdk_ui.TimelineReadReceiptTracking
 import java.util.concurrent.atomic.AtomicBoolean
 import org.matrix.rustcomponents.sdk.RoomListService as InnerRoomListService
@@ -58,6 +62,7 @@ class RustRoomFactory(
     private val innerRoomListService: InnerRoomListService,
     private val roomSyncSubscriber: RoomSyncSubscriber,
     private val timelineEventFilterFactory: TimelineEventFilterFactory,
+    private val scPreferencesStore: ScPreferencesStore, // SC
     private val featureFlagService: FeatureFlagService,
     private val roomMembershipObserver: RoomMembershipObserver,
     private val roomInfoMapper: RoomInfoMapper,
@@ -66,12 +71,6 @@ class RustRoomFactory(
     private val dispatcher = dispatchers.computation.limitedParallelism(1)
     private val mutex = Mutex()
     private val isDestroyed: AtomicBoolean = AtomicBoolean(false)
-
-    private val eventFilters = TimelineConfig.excludedEvents
-        .takeIf { it.isNotEmpty() }
-        ?.let { listStateEventType ->
-            timelineEventFilterFactory.create(listStateEventType)
-        }
 
     suspend fun destroy() {
         withContext(NonCancellable + dispatcher) {
@@ -129,11 +128,22 @@ class RustRoomFactory(
                         operation = "sdkRoom.timelineWithConfiguration",
                         description = "Get timeline from the SDK",
                     ) {
+                        val isEncrypted = when (roomInfo.encryptionState) {
+                            EncryptionState.ENCRYPTED -> true
+                            EncryptionState.NOT_ENCRYPTED -> false
+                            EncryptionState.UNKNOWN -> null
+                        }
+                        val timelineFilter = timelineEventFilterFactory.create(
+                            hideMembershipInPublicChats = !scPreferencesStore.getSetting(ScPrefs.VIEW_MEMBERSHIP_EVENTS_IN_PUBLIC_ROOMS),
+                            joinRule = roomInfo.joinRule?.map(),
+                            isEncrypted = isEncrypted,
+                            excludedStateTypes = TimelineConfig.excludedEvents,
+                        )
                         sdkRoom.timelineWithConfiguration(
                             TimelineConfiguration(
                                 focus = TimelineFocus.Live(hideThreadedEvents = hideThreadedEvents),
-                                //filter = eventFilters?.let(TimelineFilter::EventFilter) ?: TimelineFilter.All,
-                                filter = eventFilters.scTimelineFilter(scTimelineFilterSettings),
+                                //filter = timelineFilter?.let(TimelineFilter::EventFilter) ?: TimelineFilter.All,
+                                filter = timelineFilter.scTimelineFilter(scTimelineFilterSettings),
                                 internalIdPrefix = "live",
                                 dateDividerMode = DateDividerMode.DAILY,
                                 trackReadReceipts = TimelineReadReceiptTracking.ALL_EVENTS,
@@ -150,6 +160,7 @@ class RustRoomFactory(
                             liveInnerTimeline = timeline,
                             coroutineDispatchers = dispatchers,
                             systemClock = systemClock,
+                            scPreferencesStore = scPreferencesStore, // SC
                             featureFlagService = featureFlagService,
                         )
                     )
