@@ -26,13 +26,13 @@ import io.element.android.libraries.matrix.api.room.RoomMember
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.action_acknowledge
-import shire.composeapp.generated.resources.common_learn_more
-import shire.composeapp.generated.resources.named_user_verification_pin_violation_summary
-import shire.composeapp.generated.resources.named_user_verification_pinned_summary
-import shire.composeapp.generated.resources.named_user_verification_verified_summary
-import shire.composeapp.generated.resources.named_user_verification_violation_summary
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_acknowledge
+import shire.res.generated.resources.common_learn_more
+import shire.res.generated.resources.named_user_verification_pin_violation_summary
+import shire.res.generated.resources.named_user_verification_pinned_summary
+import shire.res.generated.resources.named_user_verification_verified_summary
+import shire.res.generated.resources.named_user_verification_violation_summary
 
 @Composable
 fun IdentityStateChangesRow(

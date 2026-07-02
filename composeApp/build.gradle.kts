@@ -21,8 +21,6 @@ import java.time.ZoneOffset
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
-import javax.xml.XMLConstants
-import javax.xml.parsers.DocumentBuilderFactory
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -67,6 +65,8 @@ kotlin {
             implementation(libs.vanniktech.blurhash)
 
             implementation(projects.matrix)
+            implementation(projects.preferences)
+            implementation(projects.res)
             implementation(projects.config)
         }
         commonTest.dependencies {
@@ -104,7 +104,7 @@ val buildType: String = if (isReleaseBuild) "release" else "debug"
 val rustProfile: String = if (isReleaseBuild) "release" else "debug"
 
 val generatedSrcDir = layout.buildDirectory.dir("generated/src/jvmMain/kotlin").get().asFile
-val composeResourcesDir = layout.projectDirectory.dir("src/jvmMain/composeResources")
+val composeResourcesDir = rootProject.layout.projectDirectory.dir("res/src/jvmMain/composeResources")
 val jvmResourcesDir = layout.projectDirectory.dir("src/jvmMain/resources")
 
 val distributionResourcesDirName = "distribution-resources"
@@ -164,92 +164,6 @@ abstract class GenerateBuildInfoTask : DefaultTask() {
             |}
             |""".trimMargin()
         )
-    }
-}
-
-abstract class GenerateAvailableLocalesTask : DefaultTask() {
-    @get:InputDirectory
-    @get:PathSensitive(PathSensitivity.RELATIVE)
-    abstract val composeResourcesDirectory: DirectoryProperty
-
-    @get:Input
-    abstract val packageName: Property<String>
-
-    @get:OutputFile
-    abstract val outputFile: RegularFileProperty
-
-    @TaskAction
-    fun generate() {
-        val localeCodes = composeResourcesDirectory.get().asFile
-            .listFiles()
-            .orEmpty()
-            .asSequence()
-            .filter { it.isDirectory }
-            .filter(::hasNonEmptyStringsXml)
-            .mapNotNull { directory ->
-                directory.name.removePrefix("values-")
-                    .takeIf { directory.name.startsWith("values-") }
-                    ?.let(::normalizeResourceLocale)
-            }
-            .distinct()
-            .sorted()
-            .toList()
-
-        val outFile = outputFile.get().asFile
-        outFile.parentFile.mkdirs()
-        outFile.writeText(
-            buildString {
-                appendLine("package ${packageName.get()}")
-                appendLine()
-                appendLine("object AvailableLocales {")
-                append("    val codes: List<String> = listOf(")
-                if (localeCodes.isNotEmpty()) {
-                    appendLine()
-                    localeCodes.forEach { code ->
-                        appendLine("        \"$code\",")
-                    }
-                    appendLine("    )")
-                } else {
-                    appendLine(")")
-                }
-                appendLine("}")
-            }
-        )
-    }
-
-    private fun normalizeResourceLocale(qualifier: String): String {
-        if (qualifier.startsWith("b+")) {
-            return qualifier.removePrefix("b+").replace('+', '-')
-        }
-
-        return qualifier.split('-')
-            .filter { it.isNotEmpty() }
-            .mapIndexed { index, part ->
-                when {
-                    index == 1 && part.startsWith("r") && part.length > 1 -> part.removePrefix("r").uppercase()
-                    part.length == 4 -> part.lowercase().replaceFirstChar(Char::titlecase)
-                    index == 0 -> part.lowercase()
-                    else -> part
-                }
-            }
-            .joinToString("-")
-    }
-
-    private fun hasNonEmptyStringsXml(directory: File): Boolean {
-        val stringsFile = File(directory, "strings.xml")
-        if (!stringsFile.isFile) {
-            return false
-        }
-
-        val documentBuilderFactory = DocumentBuilderFactory.newInstance().apply {
-            setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true)
-        }
-        val document = documentBuilderFactory.newDocumentBuilder().parse(stringsFile)
-        val resources = document.documentElement ?: return false
-
-        return (0 until resources.childNodes.length).any { index ->
-            resources.childNodes.item(index).nodeType == org.w3c.dom.Node.ELEMENT_NODE
-        }
     }
 }
 
@@ -390,18 +304,6 @@ val generateBuildInfo = tasks.register<GenerateBuildInfoTask>("generateBuildInfo
     outputFile.set(outFile)
 }
 
-val generateAvailableLocales = tasks.register<GenerateAvailableLocalesTask>("generateAvailableLocales") {
-    description = "Generate AvailableLocales.kt from compose resource locales"
-    group = "build"
-    val pkg = "chat.schildi.revenge"
-    val outDir = File(generatedSrcDir, pkg.replace('.', '/'))
-    val outFile = File(outDir, "AvailableLocales.kt")
-
-    composeResourcesDirectory.set(composeResourcesDir)
-    packageName.set(pkg)
-    outputFile.set(outFile)
-}
-
 val persistDependencyLicenseReport = tasks.register<Sync>("persistDependencyLicenseReport") {
     description = "Update third-party Maven dependency license report in JVM resources"
     group = "build"
@@ -420,7 +322,7 @@ kotlin.sourceSets.named("jvmMain") {
 
 // Ensure codegen runs before compiling JVM sources
 tasks.named("compileKotlinJvm").configure {
-    dependsOn(generateBuildInfo, generateAvailableLocales)
+    dependsOn(generateBuildInfo)
 }
 
 val calVer: String = ZonedDateTime.now(ZoneOffset.UTC)
@@ -486,7 +388,7 @@ compose.desktop {
                 shortcut = true
                 appCategory = "Network;Chat"
 
-                iconFile.set(project.file("src/jvmMain/composeResources/drawable-xxxhdpi/ic_launcher.png"))
+                iconFile.set(rootProject.file("res/src/jvmMain/composeResources/drawable-xxxhdpi/ic_launcher.png"))
 
                 debMaintainer = "SpiritCroc <shire@spiritcroc.de>"
                 rpmLicenseType = "AGPL-3.0-only"

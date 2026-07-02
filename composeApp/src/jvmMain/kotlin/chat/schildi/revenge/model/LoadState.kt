@@ -1,7 +1,7 @@
 package chat.schildi.revenge.model
 
-import chat.schildi.revenge.compose.util.ComposableStringHolder
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.ComposableStringHolder
+import chat.schildi.resources.toStringHolder
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.room.RoomMembersState
 import kotlinx.collections.immutable.ImmutableList
@@ -10,15 +10,15 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.action_show_room_members
-import shire.composeapp.generated.resources.dual_title_format
-import shire.composeapp.generated.resources.hint_member_profile
-import shire.composeapp.generated.resources.hint_room
-import shire.composeapp.generated.resources.hint_room_preview
-import shire.composeapp.generated.resources.hint_timeline
-import shire.composeapp.generated.resources.hint_user_profile
-import shire.composeapp.generated.resources.verification_request_title
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_show_room_members
+import shire.res.generated.resources.dual_title_format
+import shire.res.generated.resources.hint_member_profile
+import shire.res.generated.resources.hint_room
+import shire.res.generated.resources.hint_room_preview
+import shire.res.generated.resources.hint_timeline
+import shire.res.generated.resources.hint_user_profile
+import shire.res.generated.resources.verification_request_title
 
 interface LoadCheckPoint {
     val name: ComposableStringHolder

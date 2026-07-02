@@ -32,8 +32,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import chat.schildi.preferences.ScPrefs
-import chat.schildi.preferences.value
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.revenge.preferences.value
 import chat.schildi.lib.util.formatUnreadCount
 import chat.schildi.revenge.DateTimeFormat
 import chat.schildi.revenge.Destination
@@ -71,15 +71,14 @@ import io.element.android.libraries.matrix.api.timeline.item.event.getDisambigua
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisplayName
 import io.element.android.libraries.matrix.api.user.MatrixUser
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.action_join
-import shire.composeapp.generated.resources.empty_screen_placeholder_space
-import shire.composeapp.generated.resources.membership_change_invited
-import shire.composeapp.generated.resources.message_placeholder_invite
-import shire.composeapp.generated.resources.message_placeholder_invite_by
-import shire.composeapp.generated.resources.message_placeholder_invite_by_disambiguated
-import shire.composeapp.generated.resources.message_placeholder_tombstone
-import shire.composeapp.generated.resources.room_type_space
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_join
+import shire.res.generated.resources.membership_change_invited
+import shire.res.generated.resources.message_placeholder_invite
+import shire.res.generated.resources.message_placeholder_invite_by
+import shire.res.generated.resources.message_placeholder_invite_by_disambiguated
+import shire.res.generated.resources.message_placeholder_tombstone
+import shire.res.generated.resources.room_type_space
 import kotlin.math.max
 
 @Composable

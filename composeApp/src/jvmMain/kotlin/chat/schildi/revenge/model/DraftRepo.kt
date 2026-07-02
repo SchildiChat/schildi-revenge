@@ -7,6 +7,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.input.TextFieldValue
 import chat.schildi.matrixsdk.ImagePackImageSource
 import chat.schildi.matrixsdk.ImagePackImageWithRawInfo
+import chat.schildi.lib.preferences.ComposerFormat
 import chat.schildi.revenge.model.conversation.ConversationPermissions
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -55,12 +56,6 @@ enum class DraftType {
     ATTACHMENT,
     CUSTOM_EVENT,
     CUSTOM_STATE_EVENT,
-}
-
-enum class ComposerFormat {
-    PLAIN,
-    MARKDOWN,
-    HTML,
 }
 
 fun DraftType.shouldSendTypingIndicator() = when (this) {

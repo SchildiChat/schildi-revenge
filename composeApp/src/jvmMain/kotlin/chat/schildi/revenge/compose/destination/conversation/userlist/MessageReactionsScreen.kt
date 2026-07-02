@@ -25,13 +25,13 @@ import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.components.EmptyListScreen
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.model.userlist.MessageReactionListViewModel
 import chat.schildi.revenge.viewModelKey
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.empty_screen_placeholder_message_reactions
-import shire.composeapp.generated.resources.message_reactions_title
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.empty_screen_placeholder_message_reactions
+import shire.res.generated.resources.message_reactions_title
 
 @Composable
 fun MessageReactionsScreen(

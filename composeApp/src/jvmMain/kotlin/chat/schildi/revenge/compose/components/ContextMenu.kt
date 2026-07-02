@@ -46,7 +46,7 @@ import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
-import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.resources.ComposableStringHolder
 import chat.schildi.revenge.config.keybindings.Action
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf

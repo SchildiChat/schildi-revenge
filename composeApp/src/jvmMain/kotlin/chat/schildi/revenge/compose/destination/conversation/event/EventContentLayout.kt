@@ -13,8 +13,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import chat.schildi.preferences.ScPrefs
-import chat.schildi.preferences.value
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.actions.buildNavigationActionProvider
 import chat.schildi.revenge.compose.components.WithTooltip
@@ -62,12 +62,12 @@ import io.element.android.libraries.matrix.api.timeline.item.event.UnknownConten
 import io.element.android.libraries.matrix.api.timeline.item.event.VideoMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.VoiceMessageType
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.message_placeholder_message_failed_to_parse
-import shire.composeapp.generated.resources.message_placeholder_message_redacted
-import shire.composeapp.generated.resources.message_placeholder_unable_to_decrypt
-import shire.composeapp.generated.resources.message_placeholder_unknown
-import shire.composeapp.generated.resources.message_thread
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.message_placeholder_message_failed_to_parse
+import shire.res.generated.resources.message_placeholder_message_redacted
+import shire.res.generated.resources.message_placeholder_unable_to_decrypt
+import shire.res.generated.resources.message_placeholder_unknown
+import shire.res.generated.resources.message_thread
 
 @Composable
 fun EventContentLayout(

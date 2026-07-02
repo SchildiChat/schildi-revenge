@@ -18,8 +18,8 @@ import io.github.kdroidfilter.knotify.compose.builder.sendComposeNotification
 import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.skia.Image
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.app_title_short
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.app_title_short
 
 sealed interface NotificationId {
     val sessionId: SessionId?

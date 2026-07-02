@@ -25,8 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import chat.schildi.preferences.ScPrefs
-import chat.schildi.preferences.value
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.Dimens
@@ -46,17 +46,17 @@ import chat.schildi.revenge.compose.destination.split.buildMultiPaneDestinationS
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.compose.search.SearchProvider
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.model.SettingsViewModel
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.about
-import shire.composeapp.generated.resources.action_close
-import shire.composeapp.generated.resources.diagnostics
-import shire.composeapp.generated.resources.empty_screen_placeholder_unexpected
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.about
+import shire.res.generated.resources.action_close
+import shire.res.generated.resources.diagnostics
+import shire.res.generated.resources.empty_screen_placeholder_unexpected
 
 private val LocalRootPreferenceViewModel = compositionLocalOf<MutableState<SettingsViewModel?>?> { null }
 

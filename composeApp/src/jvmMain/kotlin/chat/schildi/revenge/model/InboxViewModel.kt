@@ -2,10 +2,10 @@ package chat.schildi.revenge.model
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import chat.schildi.preferences.RevengePrefs
-import chat.schildi.preferences.ScPreferencesStore
-import chat.schildi.preferences.ScPrefs
-import chat.schildi.preferences.safeLookup
+import chat.schildi.revenge.preferences.RevengePrefs
+import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.lib.preferences.safeLookup
 import chat.schildi.revenge.CombinedSessions
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.GlobalActionsScope
@@ -21,8 +21,8 @@ import chat.schildi.revenge.actions.orActionValidationError
 import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.revenge.compose.destination.inbox.isInvite
 import chat.schildi.revenge.compose.search.SearchProvider
-import chat.schildi.revenge.compose.util.ComposableStringHolder
-import chat.schildi.revenge.compose.util.StringResourceHolder
+import chat.schildi.resources.ComposableStringHolder
+import chat.schildi.resources.StringResourceHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.flatMerge
@@ -73,9 +73,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.inbox
-import shire.composeapp.generated.resources.inbox_search
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.inbox
+import shire.res.generated.resources.inbox_search
 import kotlin.collections.map
 
 data class ScopedRoomSummary(

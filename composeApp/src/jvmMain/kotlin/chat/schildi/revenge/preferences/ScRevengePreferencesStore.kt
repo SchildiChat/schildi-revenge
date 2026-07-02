@@ -1,4 +1,4 @@
-package chat.schildi.preferences
+package chat.schildi.revenge.preferences
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
@@ -6,25 +6,32 @@ import androidx.compose.runtime.collectAsState
 import androidx.datastore.core.DataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import chat.schildi.lib.preferences.AbstractScPref
+import chat.schildi.lib.preferences.ScBoolPref
+import chat.schildi.lib.preferences.ScPref
+import chat.schildi.lib.preferences.ScPrefContainer
+import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.lib.preferences.findPreference
+import chat.schildi.lib.preferences.forEachPreference
 import chat.schildi.revenge.ScCoroutines
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.actions.orActionValidationError
-import chat.schildi.revenge.compose.util.StringResourceHolder
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.StringResourceHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.config.RevengeDatastoreStorage
 import chat.schildi.revenge.config.ScAppDirs
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.command_setting_set_to
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.command_setting_set_to
 import java.io.File
 import kotlin.collections.set
 import kotlin.coroutines.CoroutineContext
@@ -32,31 +39,13 @@ import kotlin.coroutines.EmptyCoroutineContext
 
 const val SETTINGS_MESSAGE_ID = "setSetting"
 
-interface ScPreferencesStore {
-    suspend fun <T>setSetting(scPref: ScPref<T>, value: T)
-    suspend fun <T>setSettingTypesafe(scPref: ScPref<T>, value: Any?)
-    fun <T> settingFlow(scPref: ScPref<T>): Flow<T>
-    fun <T> combinedSettingValueAndEnabledFlow(transform: ((ScPref<*>) -> Any?, (ScPref<*>) -> Boolean) -> T): Flow<T>
-    fun isEnabledFlow(scPref: AbstractScPref): Flow<Boolean>
-    fun <T>getCachedOrDefaultValue(scPref: ScPref<T>): T
-    suspend fun reset()
-    suspend fun prefetch()
+interface ScRevengePreferencesStore : ScPreferencesStore {
     suspend fun handleSetAction(context: ActionContext?, args: List<String>): ActionResult
     suspend fun handleToggleAction(context: ActionContext?, args: List<String>): ActionResult
     suspend fun handleResetAction(context: ActionContext?, args: List<String>): ActionResult
-
-    fun <T> combinedSettingFlow(transform: ((ScPref<*>) -> Any?) -> T): Flow<T> = combinedSettingValueAndEnabledFlow { getPref, _ ->
-        transform(getPref)
-    }
-
-    suspend fun <T>getSetting(scPref: ScPref<T>): T = settingFlow(scPref).first()
 }
 
-fun <T>ScPref<T>.safeLookup(getPref: (ScPref<*>) -> Any?): T {
-    return ensureType(getPref(this)) ?: defaultValue
-}
-
-class DefaultScPreferencesStore() : ScPreferencesStore {
+class DefaultScPreferencesStore() : ScRevengePreferencesStore {
     private val log = Logger.withTag("ScPrefStore")
 
     private val dataDir = File(ScAppDirs.getUserConfigDir()).also {
@@ -261,23 +250,6 @@ fun <T>ScPreferencesStore.settingState(scPref: ScPref<T>, context: CoroutineCont
 @Composable
 fun ScPreferencesStore.enabledState(scPref: AbstractScPref, context: CoroutineContext = EmptyCoroutineContext): State<Boolean> = isEnabledFlow(scPref).collectAsState(true, context)
 
-fun List<AbstractScPref>.collectScPrefs(predicate: (ScPref<*>) -> Boolean = { true }): List<ScPref<*>> = this.flatMap { pref ->
-    when (pref) {
-        is ScPrefContainer -> pref.prefs.collectScPrefs(predicate).let {
-            if (pref is ScPref<*>) {
-                it + listOf(pref).filter(predicate)
-            } else {
-                it
-            }
-        }
-        is ScPref<*> -> listOf(pref).filter(predicate)
-        /*
-        is ScDisclaimerPref,
-        is ScActionablePref -> emptyList()
-         */
-    }
-}
-
 @Composable
 fun <R>List<ScPref<*>>.prefValMap(v: @Composable (ScPref<*>) -> R) = associate { it.sKey to v(it) }
 @Composable
@@ -297,63 +269,6 @@ fun ScColorPref.userColor(): Color? = LocalScPreferencesStore.current.settingSta
 
 @Composable
 fun <T>ScPref<T>.state(): State<T> = LocalScPreferencesStore.current.settingState(this)
-
-fun ScPrefContainer.forEachPreference(block: (ScPref<*>) -> Unit) {
-    prefs.forEach {
-        if (it is ScPrefContainer) {
-            it.forEachPreference(block)
-        }
-        if (it is ScPref<*>) {
-            block(it)
-        }
-    }
-}
-
-fun ScPrefContainer.forEachPreferenceOrContainer(block: (AbstractScPref) -> Unit) {
-    prefs.forEach {
-        block(it)
-        if (it is ScPrefContainer) {
-            it.forEachPreferenceOrContainer(block)
-        }
-    }
-}
-
-suspend fun ScPrefContainer.forEachPreferenceSuspend(block: suspend (ScPref<*>) -> Unit) {
-    prefs.forEach {
-        if (it is ScPrefContainer) {
-            it.forEachPreferenceSuspend(block)
-        }
-        if (it is ScPref<*>) {
-            block(it)
-        }
-    }
-}
-
-fun ScPrefContainer.findPreference(condition: (ScPref<*>) -> Boolean): ScPref<*>? {
-    prefs.forEach {
-        if (it is ScPrefContainer) {
-            it.findPreference(condition)?.let { return it }
-        }
-        if (it is ScPref<*>) {
-            if (condition(it)) {
-                return it
-            }
-        }
-    }
-    return null
-}
-
-fun ScPrefContainer.findPreferenceContainer(condition: (ScPrefContainer) -> Boolean): ScPrefContainer? {
-    prefs.forEach { pref ->
-        if (pref is ScPrefContainer) {
-            if (condition(pref)) {
-                return pref
-            }
-            pref.findPreferenceContainer(condition)?.let { return it }
-        }
-    }
-    return null
-}
 
 fun ScPrefContainer.hasDirectChild(
     allowedIntermediate: (ScPrefContainer) -> Boolean = { false },

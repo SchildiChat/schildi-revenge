@@ -30,8 +30,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.unit.dp
-import chat.schildi.preferences.ScPrefs
-import chat.schildi.preferences.value
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.actionProvider
@@ -43,7 +43,7 @@ import chat.schildi.revenge.compose.components.WithContextMenu
 import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.focus.rememberFocusId
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.model.InboxAccount
@@ -60,17 +60,17 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.action_context_account_hide
-import shire.composeapp.generated.resources.action_context_account_select
-import shire.composeapp.generated.resources.action_mute
-import shire.composeapp.generated.resources.hint_sync_state_error
-import shire.composeapp.generated.resources.hint_sync_state_idle
-import shire.composeapp.generated.resources.hint_sync_state_offline
-import shire.composeapp.generated.resources.hint_sync_state_running
-import shire.composeapp.generated.resources.hint_sync_state_terminated
-import shire.composeapp.generated.resources.verification_status_not_verified
-import shire.composeapp.generated.resources.verified_off_24px
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_context_account_hide
+import shire.res.generated.resources.action_context_account_select
+import shire.res.generated.resources.action_mute
+import shire.res.generated.resources.hint_sync_state_error
+import shire.res.generated.resources.hint_sync_state_idle
+import shire.res.generated.resources.hint_sync_state_offline
+import shire.res.generated.resources.hint_sync_state_running
+import shire.res.generated.resources.hint_sync_state_terminated
+import shire.res.generated.resources.verification_status_not_verified
+import shire.res.generated.resources.verified_off_24px
 import kotlin.math.max
 
 @Composable

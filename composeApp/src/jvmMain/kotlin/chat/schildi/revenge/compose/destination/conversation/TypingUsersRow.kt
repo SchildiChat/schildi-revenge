@@ -17,8 +17,8 @@ import io.element.android.libraries.matrix.api.room.RoomMember
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import org.jetbrains.compose.resources.pluralStringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.named_users_typing
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.named_users_typing
 
 @Composable
 fun TypingUsersRow(

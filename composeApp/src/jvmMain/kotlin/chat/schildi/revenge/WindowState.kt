@@ -1,6 +1,6 @@
 package chat.schildi.revenge
 
-import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.resources.ComposableStringHolder
 import chat.schildi.revenge.Destination
 import kotlinx.coroutines.flow.Flow
 

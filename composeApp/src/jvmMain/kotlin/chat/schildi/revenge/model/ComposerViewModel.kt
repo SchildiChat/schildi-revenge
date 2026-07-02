@@ -4,8 +4,8 @@ import chat.schildi.matrixsdk.ImagePackImageSource
 import chat.schildi.matrixsdk.ImagePackImageWithRawInfo
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
-import chat.schildi.revenge.compose.util.ComposableStringHolder
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.ComposableStringHolder
+import chat.schildi.resources.toStringHolder
 import com.beeper.android.messageformat.InlineImageInfo
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.IntentionalMention

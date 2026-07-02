@@ -1,10 +1,10 @@
 package chat.schildi.revenge.model
 
-import chat.schildi.preferences.RevengePrefs
-import chat.schildi.preferences.ScPref
-import chat.schildi.preferences.ScPreferencesStore
-import chat.schildi.preferences.ScPrefs
-import chat.schildi.preferences.safeLookup
+import chat.schildi.revenge.preferences.RevengePrefs
+import chat.schildi.lib.preferences.ScPref
+import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.lib.preferences.safeLookup
 import chat.schildi.revenge.CombinedSessions
 import chat.schildi.revenge.MessageFormatDefaults
 import chat.schildi.revenge.UiState

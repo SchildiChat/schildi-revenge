@@ -10,8 +10,8 @@ import androidx.compose.ui.Modifier
 import chat.schildi.revenge.Dimens
 import chat.schildi.theme.scExposures
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.event_placeholder_room_beginning
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.event_placeholder_room_beginning
 
 @Composable
 fun RoomBeginning(modifier: Modifier = Modifier) {

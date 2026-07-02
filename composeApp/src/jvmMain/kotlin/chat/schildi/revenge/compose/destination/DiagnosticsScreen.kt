@@ -40,18 +40,18 @@ import chat.schildi.revenge.util.formatBytes
 import chat.schildi.revenge.viewModelKey
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.skiko.SkikoProperties
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.diagnostics
-import shire.composeapp.generated.resources.diagnostics_committed
-import shire.composeapp.generated.resources.diagnostics_current
-import shire.composeapp.generated.resources.diagnostics_jvm_heap
-import shire.composeapp.generated.resources.diagnostics_jvm_non_heap
-import shire.composeapp.generated.resources.diagnostics_max
-import shire.composeapp.generated.resources.diagnostics_native_estimated
-import shire.composeapp.generated.resources.diagnostics_process_rss
-import shire.composeapp.generated.resources.diagnostics_render_api
-import shire.composeapp.generated.resources.diagnostics_system_info
-import shire.composeapp.generated.resources.diagnostics_unavailable
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.diagnostics
+import shire.res.generated.resources.diagnostics_committed
+import shire.res.generated.resources.diagnostics_current
+import shire.res.generated.resources.diagnostics_jvm_heap
+import shire.res.generated.resources.diagnostics_jvm_non_heap
+import shire.res.generated.resources.diagnostics_max
+import shire.res.generated.resources.diagnostics_native_estimated
+import shire.res.generated.resources.diagnostics_process_rss
+import shire.res.generated.resources.diagnostics_render_api
+import shire.res.generated.resources.diagnostics_system_info
+import shire.res.generated.resources.diagnostics_unavailable
 
 @Composable
 fun DiagnosticsScreen(

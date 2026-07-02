@@ -1,6 +1,6 @@
 package chat.schildi.revenge.actions
 
-import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.resources.ComposableStringHolder
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.revenge.config.keybindings.Action

@@ -12,7 +12,7 @@ import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.LocalSessionId
 import chat.schildi.revenge.compose.focus.keyFocusable
-import chat.schildi.revenge.compose.util.HardcodedStringHolder
+import chat.schildi.resources.HardcodedStringHolder
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.timeline.item.event.ProfileDetails

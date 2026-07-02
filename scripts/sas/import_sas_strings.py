@@ -87,7 +87,7 @@ def write_file(file, dict):
         o.write("</resources>\n")
 
 scripts_dir = os.path.dirname(os.path.abspath(__file__))
-data_defs_dir = os.path.join(scripts_dir, "../../composeApp/src/jvmMain/composeResources/")
+data_defs_dir = os.path.join(scripts_dir, "../../res/src/jvmMain/composeResources/")
 
 # Write default file
 write_file(os.path.join(data_defs_dir, "values/strings_sas.xml"), default)

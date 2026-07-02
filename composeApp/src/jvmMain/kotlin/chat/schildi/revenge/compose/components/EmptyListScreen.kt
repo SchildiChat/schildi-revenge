@@ -20,13 +20,13 @@ import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.destination.SplashScreenContent
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.compose.search.SearchProvider
-import chat.schildi.revenge.compose.util.ComposableStringHolder
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.ComposableStringHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.model.LoadState
 import kotlinx.coroutines.flow.StateFlow
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.empty_screen_placeholder_search
-import shire.composeapp.generated.resources.empty_screen_placeholder_search_in_progress
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.empty_screen_placeholder_search
+import shire.res.generated.resources.empty_screen_placeholder_search_in_progress
 
 @Composable
 fun EmptyListScreen(

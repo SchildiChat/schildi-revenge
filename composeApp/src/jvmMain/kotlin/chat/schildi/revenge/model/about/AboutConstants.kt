@@ -1,12 +1,12 @@
 package chat.schildi.revenge.model.about
 
-import chat.schildi.revenge.compose.util.ComposableStringHolder
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.ComposableStringHolder
+import chat.schildi.resources.toStringHolder
 import kotlinx.collections.immutable.persistentListOf
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.about_privacy_policy
-import shire.composeapp.generated.resources.about_source_code
-import shire.composeapp.generated.resources.about_website
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.about_privacy_policy
+import shire.res.generated.resources.about_source_code
+import shire.res.generated.resources.about_website
 
 const val REVENGE_SOURCE_URL = "https://github.com/SchildiChat/schildi-revenge"
 const val REVENGE_SDK_SOURCE_URL = "https://github.com/SchildiChat/matrix-rust-sdk"

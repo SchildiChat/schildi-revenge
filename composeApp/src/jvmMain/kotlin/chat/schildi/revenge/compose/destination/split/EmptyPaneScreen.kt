@@ -13,8 +13,8 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.compose.focus.FocusContainer
 import org.jetbrains.compose.resources.painterResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.ic_launcher
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.ic_launcher
 
 @Composable
 fun EmptyPaneScreen(

@@ -4,9 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.text.font.FontFamily
 import org.jetbrains.compose.resources.Font
-import shire.composeapp.generated.resources.`Inter_VariableFont_opsz,wght`
-import shire.composeapp.generated.resources.NotoColorEmoji_Regular
-import shire.composeapp.generated.resources.Res
+import shire.res.generated.resources.`Inter_VariableFont_opsz,wght`
+import shire.res.generated.resources.NotoColorEmoji_Regular
+import shire.res.generated.resources.Res
 
 @Composable
 fun rememberInterFontFamily(): FontFamily {

@@ -20,9 +20,9 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowDecoration
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import chat.schildi.preferences.RevengePrefs
-import chat.schildi.preferences.ScPrefs
-import chat.schildi.preferences.value
+import chat.schildi.revenge.preferences.RevengePrefs
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.actions.KeyboardActionHandler
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.WindowContent
@@ -35,8 +35,8 @@ import chat.schildi.revenge.notification.NotificationProcessor
 import chat.schildi.revenge.notification.Notifier
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.painterResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.ic_launcher
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.ic_launcher
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 

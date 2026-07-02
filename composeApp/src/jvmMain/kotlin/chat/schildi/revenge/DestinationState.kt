@@ -5,7 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import chat.schildi.revenge.actions.KeyboardActionHandler
-import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.resources.ComposableStringHolder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

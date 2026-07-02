@@ -27,8 +27,8 @@ import chat.schildi.revenge.model.devtools.AccountDevToolsViewModel
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.account_dev_tools_title
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.account_dev_tools_title
 
 @Composable
 fun AccountDevToolsScreen(

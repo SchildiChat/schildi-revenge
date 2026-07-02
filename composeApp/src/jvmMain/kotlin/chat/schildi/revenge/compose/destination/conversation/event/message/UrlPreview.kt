@@ -34,8 +34,8 @@ import chat.schildi.matrixsdk.urlpreview.UrlPreview
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewInfo
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewStateHolder
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewStateProvider
-import chat.schildi.preferences.ScPrefs
-import chat.schildi.preferences.value
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.components.thenIf
 import chat.schildi.revenge.compose.media.rememberAnimatedImageTransform

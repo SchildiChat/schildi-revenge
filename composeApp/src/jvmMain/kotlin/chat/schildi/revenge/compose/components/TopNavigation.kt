@@ -29,10 +29,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import chat.schildi.preferences.ScPrefs
-import chat.schildi.preferences.value
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.Anim
-import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.NavigationPreference
@@ -42,10 +41,10 @@ import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.compose.search.SearchBar
 import chat.schildi.revenge.compose.search.SearchProvider
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.action_close
-import shire.composeapp.generated.resources.action_open_inbox
-import shire.composeapp.generated.resources.hint_search
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_close
+import shire.res.generated.resources.action_open_inbox
+import shire.res.generated.resources.hint_search
 import java.util.UUID
 
 @Composable

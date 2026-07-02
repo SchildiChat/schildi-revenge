@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.TitleProvider
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.toStringHolder
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.diagnostics
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.diagnostics
 import java.lang.management.ManagementFactory
 import java.nio.file.Files
 import java.nio.file.Path

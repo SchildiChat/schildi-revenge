@@ -1,7 +1,7 @@
 package chat.schildi.revenge.actions
 
 import androidx.compose.runtime.compositionLocalOf
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.toStringHolder
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.RoomMembershipState
 import kotlinx.coroutines.flow.Flow

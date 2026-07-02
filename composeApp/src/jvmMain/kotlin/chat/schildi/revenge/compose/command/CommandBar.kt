@@ -22,8 +22,8 @@ import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.theme.scExposures
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.hint_command
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.hint_command
 
 @Composable
 fun CommandBar(modifier: Modifier = Modifier) {

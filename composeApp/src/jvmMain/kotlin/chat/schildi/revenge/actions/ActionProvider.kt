@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.compose.search.SearchProvider
-import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.resources.ComposableStringHolder
 import chat.schildi.revenge.Destination
 
 data class ActionProvider(

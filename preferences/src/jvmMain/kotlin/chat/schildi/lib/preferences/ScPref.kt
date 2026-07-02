@@ -1,11 +1,11 @@
-package chat.schildi.preferences
+package chat.schildi.lib.preferences
 
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.resources.ComposableStringHolder
 import co.touchlab.kermit.Logger
 import kotlinx.collections.immutable.ImmutableList
 import org.jetbrains.compose.resources.StringResource

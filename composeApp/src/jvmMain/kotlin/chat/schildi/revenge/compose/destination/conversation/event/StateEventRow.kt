@@ -10,8 +10,8 @@ import io.element.android.libraries.matrix.api.timeline.item.event.ProfileDetail
 import io.element.android.libraries.matrix.api.timeline.item.event.StateContent
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisambiguatedDisplayName
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.message_placeholder_state_event
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.message_placeholder_state_event
 
 @Composable
 fun StateEventRow(

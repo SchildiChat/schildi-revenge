@@ -3,9 +3,9 @@ package chat.schildi.revenge
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.datetime_today
-import shire.composeapp.generated.resources.datetime_yesterday
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.datetime_today
+import shire.res.generated.resources.datetime_yesterday
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId

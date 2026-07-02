@@ -1,4 +1,4 @@
-package chat.schildi.revenge.compose.util
+package chat.schildi.resources
 
 import androidx.compose.runtime.Composable
 import kotlinx.collections.immutable.ImmutableList

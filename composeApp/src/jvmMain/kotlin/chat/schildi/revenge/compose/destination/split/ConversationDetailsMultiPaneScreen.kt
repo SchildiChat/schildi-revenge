@@ -6,9 +6,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import chat.schildi.preferences.ScPrefs
-import chat.schildi.preferences.ScPrefs.ALLOW_THREADS_IN_DETAILS_PANE
-import chat.schildi.preferences.value
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.lib.preferences.ScPrefs.ALLOW_THREADS_IN_DETAILS_PANE
+import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.DestinationCategory
 import chat.schildi.revenge.DestinationStateHolder

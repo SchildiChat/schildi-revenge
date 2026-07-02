@@ -52,8 +52,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import chat.schildi.lib.util.formatUnreadCount
-import chat.schildi.preferences.ScPrefs
-import chat.schildi.preferences.value
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
@@ -71,7 +71,7 @@ import chat.schildi.revenge.compose.components.WithContextMenu
 import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.focus.rememberFocusId
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.config.keybindings.SpaceCatchAllMode
@@ -82,18 +82,17 @@ import chat.schildi.revenge.model.spaces.toSpaceCatchAllMode
 import chat.schildi.theme.scExposures
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.media.MediaSource
-import io.element.android.libraries.matrix.api.room.SpaceCatchAllInfo
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.action_catch_dms_only
-import shire.composeapp.generated.resources.action_catch_groups_only
-import shire.composeapp.generated.resources.action_catch_space_orphans
-import shire.composeapp.generated.resources.action_leave
-import shire.composeapp.generated.resources.action_navigate_debug_timeline
-import shire.composeapp.generated.resources.pref_space_all_rooms_title
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_catch_dms_only
+import shire.res.generated.resources.action_catch_groups_only
+import shire.res.generated.resources.action_catch_space_orphans
+import shire.res.generated.resources.action_leave
+import shire.res.generated.resources.action_navigate_debug_timeline
+import shire.res.generated.resources.pref_space_all_rooms_title
 import java.util.UUID
 
 @Composable

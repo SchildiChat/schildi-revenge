@@ -48,9 +48,9 @@ import io.element.android.libraries.matrix.api.timeline.item.event.AudioMessageT
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 import io.element.android.libraries.matrix.api.timeline.item.event.VoiceMessageType
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.message_placeholder_audio_message
-import shire.composeapp.generated.resources.message_placeholder_voice_message
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.message_placeholder_audio_message
+import shire.res.generated.resources.message_placeholder_voice_message
 
 @Composable
 fun AudioMessage(

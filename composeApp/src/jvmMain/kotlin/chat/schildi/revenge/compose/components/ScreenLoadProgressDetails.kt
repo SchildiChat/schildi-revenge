@@ -7,8 +7,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import chat.schildi.preferences.ScPrefs
-import chat.schildi.preferences.value
 import chat.schildi.revenge.model.CheckpointLoadState
 import chat.schildi.revenge.model.LoadState
 import chat.schildi.revenge.model.LoadStateEntry

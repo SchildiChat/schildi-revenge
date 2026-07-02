@@ -45,7 +45,7 @@ import chat.schildi.revenge.compose.components.TopNavigationSearchOrTitle
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.search.LocalSearchProvider
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.model.SessionSelectorAccount
 import chat.schildi.revenge.model.SessionSelectorViewModel
 import chat.schildi.revenge.publishTitle
@@ -55,10 +55,10 @@ import io.element.android.libraries.matrix.api.media.MediaSource
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.action_processing
-import shire.composeapp.generated.resources.failed_to_resolve_room
-import shire.composeapp.generated.resources.select_account
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_processing
+import shire.res.generated.resources.failed_to_resolve_room
+import shire.res.generated.resources.select_account
 
 @Composable
 fun SessionSelectorScreen(

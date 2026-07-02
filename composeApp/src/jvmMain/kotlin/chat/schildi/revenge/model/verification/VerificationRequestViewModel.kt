@@ -6,7 +6,7 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.GlobalActionsScope
 import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.UiState
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.LoadStateHolder
 import chat.schildi.revenge.model.account.DeviceVerificationProvider
@@ -25,8 +25,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.verification_request_title
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.verification_request_title
 import kotlin.concurrent.atomics.AtomicBoolean
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 

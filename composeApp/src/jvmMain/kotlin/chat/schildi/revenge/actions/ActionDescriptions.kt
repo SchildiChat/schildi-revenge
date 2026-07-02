@@ -1,7 +1,7 @@
 package chat.schildi.revenge.actions
 
-import chat.schildi.revenge.compose.util.ComposableStringHolder
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.ComposableStringHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.ActionArgument
 

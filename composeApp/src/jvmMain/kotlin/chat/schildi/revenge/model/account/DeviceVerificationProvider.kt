@@ -3,8 +3,8 @@ package chat.schildi.revenge.model.account
 import chat.schildi.revenge.CombinedSessions
 import chat.schildi.revenge.ScCoroutines
 import chat.schildi.revenge.UiState
-import chat.schildi.revenge.compose.util.ComposableStringHolder
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.ComposableStringHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.flatMerge
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.LoadStateHolder
@@ -25,10 +25,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.verification_incoming_request_prompt
-import shire.composeapp.generated.resources.verification_incoming_request_summary
-import shire.composeapp.generated.resources.verification_request_title
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.verification_incoming_request_prompt
+import shire.res.generated.resources.verification_incoming_request_summary
+import shire.res.generated.resources.verification_request_title
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.concurrent.atomics.decrementAndFetch

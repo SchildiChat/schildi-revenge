@@ -21,8 +21,8 @@ import chat.schildi.revenge.compose.destination.conversation.event.message.Image
 import chat.schildi.revenge.compose.destination.conversation.event.message.VideoMessageContent
 import chat.schildi.revenge.model.Attachment
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.action_clear_attachment
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_clear_attachment
 
 @Composable
 fun ComposerAttachment(

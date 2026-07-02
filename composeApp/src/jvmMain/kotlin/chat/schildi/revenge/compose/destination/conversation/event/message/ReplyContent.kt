@@ -21,8 +21,8 @@ import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.reply_failed_to_load
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.reply_failed_to_load
 
 @Composable
 fun ReplyContent(

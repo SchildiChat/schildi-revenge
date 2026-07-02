@@ -1,7 +1,7 @@
 package chat.schildi.revenge
 
-import chat.schildi.revenge.compose.util.ComposableStringHolder
-import chat.schildi.revenge.compose.util.StringResourceHolder
+import chat.schildi.resources.ComposableStringHolder
+import chat.schildi.resources.StringResourceHolder
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
@@ -9,20 +9,20 @@ import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import kotlinx.collections.immutable.ImmutableList
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.about
-import shire.composeapp.generated.resources.account_dev_tools_title
-import shire.composeapp.generated.resources.app_title_short
-import shire.composeapp.generated.resources.diagnostics
-import shire.composeapp.generated.resources.hint_settings
-import shire.composeapp.generated.resources.inbox
-import shire.composeapp.generated.resources.manage_accounts
-import shire.composeapp.generated.resources.message_reactions_title
-import shire.composeapp.generated.resources.message_read_receipts_title
-import shire.composeapp.generated.resources.room_dev_tools_title
-import shire.composeapp.generated.resources.room_details_title
-import shire.composeapp.generated.resources.select_account
-import shire.composeapp.generated.resources.verification_request_title
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.about
+import shire.res.generated.resources.account_dev_tools_title
+import shire.res.generated.resources.app_title_short
+import shire.res.generated.resources.diagnostics
+import shire.res.generated.resources.hint_settings
+import shire.res.generated.resources.inbox
+import shire.res.generated.resources.manage_accounts
+import shire.res.generated.resources.message_reactions_title
+import shire.res.generated.resources.message_read_receipts_title
+import shire.res.generated.resources.room_dev_tools_title
+import shire.res.generated.resources.room_details_title
+import shire.res.generated.resources.select_account
+import shire.res.generated.resources.verification_request_title
 
 val DEFAULT_WINDOW_APP_TITLE = StringResourceHolder(Res.string.app_title_short)
 

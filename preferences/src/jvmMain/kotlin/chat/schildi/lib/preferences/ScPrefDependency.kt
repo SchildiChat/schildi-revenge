@@ -1,4 +1,4 @@
-package chat.schildi.preferences
+package chat.schildi.lib.preferences
 
 import androidx.datastore.preferences.core.Preferences
 

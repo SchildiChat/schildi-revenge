@@ -6,8 +6,8 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.search.SearchProvider
-import chat.schildi.revenge.compose.util.ComposableStringHolder
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.ComposableStringHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.flatMergeCombinedWith
 import chat.schildi.revenge.model.account.AccountComparator
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -23,8 +23,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.select_account
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.select_account
 
 data class SessionSelectorAccount(
     val user: MatrixUser,

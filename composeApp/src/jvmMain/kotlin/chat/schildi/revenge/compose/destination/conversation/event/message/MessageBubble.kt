@@ -40,22 +40,22 @@ import io.element.android.libraries.matrix.api.timeline.item.event.MessageShield
 import io.element.android.libraries.matrix.api.timeline.item.event.RedactedContent
 import io.element.android.libraries.matrix.api.timeline.item.event.isCritical
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.hint_sending
-import shire.composeapp.generated.resources.message_edited_decoration
-import shire.composeapp.generated.resources.message_shield_authenticity_not_guaranteed
-import shire.composeapp.generated.resources.message_shield_mismatched_sender
-import shire.composeapp.generated.resources.message_shield_sent_in_clear
-import shire.composeapp.generated.resources.message_shield_unknown_device
-import shire.composeapp.generated.resources.message_shield_unsigned_device
-import shire.composeapp.generated.resources.message_shield_unverified_identity
-import shire.composeapp.generated.resources.message_shield_verification_violation
-import shire.composeapp.generated.resources.send_error_invalid_mime_type
-import shire.composeapp.generated.resources.send_error_missing_media_content
-import shire.composeapp.generated.resources.send_error_sending_from_unverified_device
-import shire.composeapp.generated.resources.send_error_unknown
-import shire.composeapp.generated.resources.send_error_verified_user_changed_identity
-import shire.composeapp.generated.resources.send_error_verified_user_has_unsigned_device
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.hint_sending
+import shire.res.generated.resources.message_edited_decoration
+import shire.res.generated.resources.message_shield_authenticity_not_guaranteed
+import shire.res.generated.resources.message_shield_mismatched_sender
+import shire.res.generated.resources.message_shield_sent_in_clear
+import shire.res.generated.resources.message_shield_unknown_device
+import shire.res.generated.resources.message_shield_unsigned_device
+import shire.res.generated.resources.message_shield_unverified_identity
+import shire.res.generated.resources.message_shield_verification_violation
+import shire.res.generated.resources.send_error_invalid_mime_type
+import shire.res.generated.resources.send_error_missing_media_content
+import shire.res.generated.resources.send_error_sending_from_unverified_device
+import shire.res.generated.resources.send_error_unknown
+import shire.res.generated.resources.send_error_verified_user_changed_identity
+import shire.res.generated.resources.send_error_verified_user_has_unsigned_device
 
 data class TimestampOverlayContent(
     val timestamp: String,

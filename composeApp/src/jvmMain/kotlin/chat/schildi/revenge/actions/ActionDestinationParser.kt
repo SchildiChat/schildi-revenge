@@ -1,6 +1,6 @@
 package chat.schildi.revenge.actions
 
-import chat.schildi.preferences.ScPrefs
+import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive

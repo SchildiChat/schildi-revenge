@@ -28,8 +28,8 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import chat.schildi.preferences.ScPrefs
-import chat.schildi.preferences.value
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.Anim
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
@@ -43,7 +43,7 @@ import chat.schildi.revenge.compose.components.DiagnosticsRow
 import chat.schildi.revenge.compose.components.EmptyListScreen
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.model.DraftRepo
 import chat.schildi.revenge.model.InboxViewModel
 import chat.schildi.revenge.model.spaces.SpaceListDataSource
@@ -54,9 +54,9 @@ import chat.schildi.revenge.viewModelKey
 import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.empty_screen_placeholder_inbox
-import shire.composeapp.generated.resources.empty_screen_placeholder_space
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.empty_screen_placeholder_inbox
+import shire.res.generated.resources.empty_screen_placeholder_space
 
 @OptIn(FlowPreview::class)
 @Composable

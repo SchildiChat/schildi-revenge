@@ -19,9 +19,9 @@ import chat.schildi.revenge.compose.components.TopNavigationIcon
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.theme.scExposures
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.action_clear_search
-import shire.composeapp.generated.resources.hint_search
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_clear_search
+import shire.res.generated.resources.hint_search
 import java.util.UUID
 
 @Composable

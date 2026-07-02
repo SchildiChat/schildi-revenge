@@ -28,7 +28,7 @@ import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
 import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.compose.components.LocalSessionId
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.util.tryOrNull
 import chat.schildi.theme.scExposures
 import com.beeper.android.messageformat.DefaultMatrixBodyStyledFormatter
@@ -49,8 +49,8 @@ import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.failed_to_resolve_room
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.failed_to_resolve_room
 import kotlin.jvm.optionals.getOrNull
 
 object MessageFormatDefaults {

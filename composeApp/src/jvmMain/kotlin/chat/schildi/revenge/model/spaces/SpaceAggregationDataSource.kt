@@ -1,9 +1,9 @@
 package chat.schildi.revenge.model.spaces
 
 import androidx.compose.runtime.Immutable
-import chat.schildi.preferences.RevengePrefs
-import chat.schildi.preferences.ScPreferencesStore
-import chat.schildi.preferences.ScPrefs
+import chat.schildi.revenge.preferences.RevengePrefs
+import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.model.ScopedRoomSummary
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource.SpaceUnreadCounts

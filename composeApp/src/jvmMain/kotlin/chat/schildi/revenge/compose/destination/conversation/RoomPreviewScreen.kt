@@ -45,19 +45,19 @@ import io.element.android.libraries.matrix.api.room.RoomInfo
 import io.element.android.libraries.matrix.api.room.RoomType
 import io.element.android.libraries.matrix.api.room.preview.RoomPreviewInfo
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.action_join
-import shire.composeapp.generated.resources.action_reject_invite
-import shire.composeapp.generated.resources.hint_room_via
-import shire.composeapp.generated.resources.message_placeholder_invite_by
-import shire.composeapp.generated.resources.message_placeholder_invite_by_disambiguated
-import shire.composeapp.generated.resources.room_preview_failed
-import shire.composeapp.generated.resources.room_preview_membership_banned
-import shire.composeapp.generated.resources.room_preview_membership_invited
-import shire.composeapp.generated.resources.room_preview_membership_joined
-import shire.composeapp.generated.resources.room_preview_membership_knocked
-import shire.composeapp.generated.resources.room_preview_membership_left
-import shire.composeapp.generated.resources.room_type_space
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_join
+import shire.res.generated.resources.action_reject_invite
+import shire.res.generated.resources.hint_room_via
+import shire.res.generated.resources.message_placeholder_invite_by
+import shire.res.generated.resources.message_placeholder_invite_by_disambiguated
+import shire.res.generated.resources.room_preview_failed
+import shire.res.generated.resources.room_preview_membership_banned
+import shire.res.generated.resources.room_preview_membership_invited
+import shire.res.generated.resources.room_preview_membership_joined
+import shire.res.generated.resources.room_preview_membership_knocked
+import shire.res.generated.resources.room_preview_membership_left
+import shire.res.generated.resources.room_type_space
 
 @Composable
 fun RoomPreviewScreen(

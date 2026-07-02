@@ -30,8 +30,8 @@ import chat.schildi.revenge.model.devtools.RoomDevToolsViewModel
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.room_dev_tools_title
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.room_dev_tools_title
 
 @Composable
 fun RoomDevToolsScreen(

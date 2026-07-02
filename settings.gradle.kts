@@ -57,4 +57,6 @@ plugins {
 include(":composeApp")
 include(":config")
 include(":matrix")
+include(":preferences")
+include(":res")
 include(":shim")

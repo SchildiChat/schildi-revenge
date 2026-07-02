@@ -21,10 +21,10 @@ import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.conversation.ConversationViewModel
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.action_view
-import shire.composeapp.generated.resources.hint_composer_room_upgraded
-import shire.composeapp.generated.resources.hint_composer_room_upgraded_with_reason
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_view
+import shire.res.generated.resources.hint_composer_room_upgraded
+import shire.res.generated.resources.hint_composer_room_upgraded_with_reason
 
 @Composable
 fun RoomUpgradeRow(

@@ -28,8 +28,8 @@ import io.element.android.libraries.matrix.api.timeline.item.event.getAvatarUrl
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisambiguatedDisplayName
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisplayName
 import org.jetbrains.compose.resources.pluralStringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.n_threaded_replies
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.n_threaded_replies
 
 @Composable
 fun ColumnScope.ThreadRootInfoRow(

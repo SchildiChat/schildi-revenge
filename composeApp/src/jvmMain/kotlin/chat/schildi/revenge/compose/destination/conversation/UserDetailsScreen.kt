@@ -44,7 +44,7 @@ import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.revenge.compose.destination.conversation.userlist.ConversationDetailsTopNavigation
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.model.UserDetailsViewModel
 import chat.schildi.revenge.viewModelKey
 import chat.schildi.theme.scExposures
@@ -52,11 +52,11 @@ import io.element.android.libraries.matrix.api.encryption.identity.IdentityState
 import io.element.android.libraries.matrix.api.media.MediaSource
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.empty_screen_placeholder_unexpected
-import shire.composeapp.generated.resources.verification_status_not_verified
-import shire.composeapp.generated.resources.verification_status_verified
-import shire.composeapp.generated.resources.verified_off_24px
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.empty_screen_placeholder_unexpected
+import shire.res.generated.resources.verification_status_not_verified
+import shire.res.generated.resources.verification_status_verified
+import shire.res.generated.resources.verified_off_24px
 
 @Composable
 fun UserDetailsScreen(

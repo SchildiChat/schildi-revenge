@@ -13,7 +13,7 @@ import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.RoomContextSuggestionsProvider
 import chat.schildi.revenge.actions.toActionResult
-import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.resources.ComposableStringHolder
 import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.util.flowClosable
 import co.touchlab.kermit.Logger

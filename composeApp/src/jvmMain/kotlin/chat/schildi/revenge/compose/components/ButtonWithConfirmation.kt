@@ -29,9 +29,9 @@ import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.compose.focus.keyFocusable
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.action_cancel
-import shire.composeapp.generated.resources.action_logout
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_cancel
+import shire.res.generated.resources.action_logout
 
 @Composable
 fun IconButtonWithConfirmation(

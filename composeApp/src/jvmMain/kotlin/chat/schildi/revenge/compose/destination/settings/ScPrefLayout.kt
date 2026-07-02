@@ -15,10 +15,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
-import chat.schildi.preferences.LocalScPreferencesStore
-import chat.schildi.preferences.ScPref
-import chat.schildi.preferences.enabledState
-import chat.schildi.preferences.value
+import chat.schildi.revenge.preferences.LocalScPreferencesStore
+import chat.schildi.lib.preferences.ScPref
+import chat.schildi.revenge.preferences.enabledState
+import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction

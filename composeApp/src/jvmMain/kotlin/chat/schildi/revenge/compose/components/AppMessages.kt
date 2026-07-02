@@ -31,14 +31,14 @@ import chat.schildi.revenge.actions.VerificationRequestAppMessage
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.toCopyAction
 import chat.schildi.revenge.compose.focus.keyFocusable
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.model.account.RevengeDeviceVerificationProvider
 import kotlinx.collections.immutable.ImmutableList
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.action_dismiss
-import shire.composeapp.generated.resources.action_view
-import shire.composeapp.generated.resources.verification_failed
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_dismiss
+import shire.res.generated.resources.action_view
+import shire.res.generated.resources.verification_failed
 
 @Composable
 fun AppMessages(

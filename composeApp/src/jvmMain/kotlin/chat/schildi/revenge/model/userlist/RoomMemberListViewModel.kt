@@ -7,8 +7,8 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.RoomContextSuggestionsProvider
-import chat.schildi.revenge.compose.util.ComposableStringHolder
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.ComposableStringHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.LoadStateHolder
 import chat.schildi.revenge.model.RoomActionProvider
@@ -37,9 +37,9 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.room_members_title_in_room_loaded
-import shire.composeapp.generated.resources.room_members_title_loading
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.room_members_title_in_room_loaded
+import shire.res.generated.resources.room_members_title_loading
 
 data class RoomMemberItem(
     val value: RoomMember

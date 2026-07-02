@@ -51,11 +51,11 @@ import chat.schildi.revenge.config.keybindings.Action
 import com.beeper.android.messageformat.MatrixBodyParseResult
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.action_cancel
-import shire.composeapp.generated.resources.action_edit
-import shire.composeapp.generated.resources.action_save
-import shire.composeapp.generated.resources.hint_not_set
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_cancel
+import shire.res.generated.resources.action_edit
+import shire.res.generated.resources.action_save
+import shire.res.generated.resources.hint_not_set
 import java.util.UUID
 
 sealed interface EditTextValue {

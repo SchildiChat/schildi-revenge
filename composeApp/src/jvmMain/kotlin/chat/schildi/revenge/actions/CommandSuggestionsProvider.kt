@@ -1,15 +1,15 @@
 package chat.schildi.revenge.actions
 
-import chat.schildi.preferences.ScPrefContainer
-import chat.schildi.preferences.ScPrefs
-import chat.schildi.preferences.findPreference
-import chat.schildi.preferences.forEachPreference
-import chat.schildi.preferences.forEachPreferenceOrContainer
+import chat.schildi.lib.preferences.ScPrefContainer
+import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.lib.preferences.findPreference
+import chat.schildi.lib.preferences.forEachPreference
+import chat.schildi.lib.preferences.forEachPreferenceOrContainer
 import chat.schildi.revenge.UiState
-import chat.schildi.revenge.compose.util.ComposableStringHolder
-import chat.schildi.revenge.compose.util.HardcodedStringHolder
-import chat.schildi.revenge.compose.util.StringResourceHolder
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.ComposableStringHolder
+import chat.schildi.resources.HardcodedStringHolder
+import chat.schildi.resources.StringResourceHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.config.keybindings.ALLOWED_DESTINATION_STRINGS
 import chat.schildi.revenge.config.keybindings.ActionArgument
 import chat.schildi.revenge.config.keybindings.ActionArgumentAnyOf
@@ -45,8 +45,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.command_suggestion_title_and_hint
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.command_suggestion_title_and_hint
 
 enum class CurrentCommandValidity {
     INCOMPLETE,

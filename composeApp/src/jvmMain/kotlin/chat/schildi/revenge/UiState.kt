@@ -2,15 +2,15 @@ package chat.schildi.revenge
 
 import androidx.compose.ui.window.ApplicationScope
 import chat.schildi.matrixsdk.StaticRevengeSdkConfig
-import chat.schildi.preferences.RevengePrefs
-import chat.schildi.preferences.ScPrefs
+import chat.schildi.revenge.preferences.RevengePrefs
+import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.actions.AbstractAppMessage
 import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.actions.KeyboardActionHandler
 import chat.schildi.revenge.actions.VerificationRequestAppMessage
-import chat.schildi.revenge.compose.util.ComposableStringHolder
-import chat.schildi.revenge.compose.util.StringResourceHolder
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.ComposableStringHolder
+import chat.schildi.resources.StringResourceHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.config.ConfigWatchers
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.LoadStateHolder
@@ -51,9 +51,9 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.toast_key_config_reload_error
-import shire.composeapp.generated.resources.toast_key_config_reload_success
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.toast_key_config_reload_error
+import shire.res.generated.resources.toast_key_config_reload_success
 import java.util.Locale
 import kotlin.collections.map
 import kotlin.concurrent.atomics.AtomicBoolean

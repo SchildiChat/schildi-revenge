@@ -15,8 +15,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.isSpecified
-import chat.schildi.preferences.ScPref
-import chat.schildi.preferences.value
 
 private data class AdaptiveSplitParentData(
     val maxWidth: Int?,

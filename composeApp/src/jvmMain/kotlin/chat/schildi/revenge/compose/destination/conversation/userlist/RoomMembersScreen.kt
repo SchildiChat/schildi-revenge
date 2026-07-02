@@ -25,16 +25,16 @@ import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.components.EmptyListScreen
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.model.userlist.RoomMemberListViewModel
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.empty_screen_placeholder_room_members
-import shire.composeapp.generated.resources.room_members_title_loaded
-import shire.composeapp.generated.resources.room_members_title_loading
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.empty_screen_placeholder_room_members
+import shire.res.generated.resources.room_members_title_loaded
+import shire.res.generated.resources.room_members_title_loading
 
 @Composable
 fun RoomMembersScreen(

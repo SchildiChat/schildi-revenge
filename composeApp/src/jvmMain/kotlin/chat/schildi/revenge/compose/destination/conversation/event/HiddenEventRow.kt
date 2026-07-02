@@ -14,9 +14,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.message_placeholder_hidden_event
-import shire.composeapp.generated.resources.message_placeholder_unknown
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.message_placeholder_hidden_event
+import shire.res.generated.resources.message_placeholder_unknown
 
 @Composable
 fun HiddenEventRow(

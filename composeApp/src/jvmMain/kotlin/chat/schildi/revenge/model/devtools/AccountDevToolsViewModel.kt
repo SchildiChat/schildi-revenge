@@ -8,8 +8,8 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.search.SearchProvider
-import chat.schildi.revenge.compose.util.StringResourceHolder
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.StringResourceHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.LoadStateHolder
 import chat.schildi.revenge.toPrettyJson
@@ -28,10 +28,10 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.dual_title_format
-import shire.composeapp.generated.resources.hint_account_data
-import shire.composeapp.generated.resources.room_dev_tools_title
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.dual_title_format
+import shire.res.generated.resources.hint_account_data
+import shire.res.generated.resources.room_dev_tools_title
 
 class AccountDevToolsViewModel(
     private val sessionId: SessionId,

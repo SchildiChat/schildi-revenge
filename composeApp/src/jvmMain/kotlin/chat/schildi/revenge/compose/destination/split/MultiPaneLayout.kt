@@ -14,7 +14,7 @@ import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.KeyboardActionHandler
 import chat.schildi.revenge.compose.components.AdaptiveRow
 import chat.schildi.revenge.compose.focus.rememberFocusId
-import chat.schildi.revenge.compose.util.ComposableStringHolder
+import chat.schildi.resources.ComposableStringHolder
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 import java.util.UUID
 

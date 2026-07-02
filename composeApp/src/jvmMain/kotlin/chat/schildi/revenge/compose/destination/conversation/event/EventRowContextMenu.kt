@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.key.Key
 import chat.schildi.revenge.compose.components.ContextMenuActionEntry
 import chat.schildi.revenge.compose.components.ContextMenuEntry
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 import io.element.android.libraries.matrix.api.core.RoomId
@@ -28,18 +28,18 @@ import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWi
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.action_copy_body
-import shire.composeapp.generated.resources.action_download
-import shire.composeapp.generated.resources.action_download_and_open
-import shire.composeapp.generated.resources.action_edit
-import shire.composeapp.generated.resources.action_jump_to_replied_to_message
-import shire.composeapp.generated.resources.action_react
-import shire.composeapp.generated.resources.action_redact
-import shire.composeapp.generated.resources.action_reply
-import shire.composeapp.generated.resources.action_thread
-import shire.composeapp.generated.resources.action_view_reactions
-import shire.composeapp.generated.resources.action_view_read_receipts
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_copy_body
+import shire.res.generated.resources.action_download
+import shire.res.generated.resources.action_download_and_open
+import shire.res.generated.resources.action_edit
+import shire.res.generated.resources.action_jump_to_replied_to_message
+import shire.res.generated.resources.action_react
+import shire.res.generated.resources.action_redact
+import shire.res.generated.resources.action_reply
+import shire.res.generated.resources.action_thread
+import shire.res.generated.resources.action_view_reactions
+import shire.res.generated.resources.action_view_read_receipts
 
 @Composable
 fun EventTimelineItem.contextMenu(

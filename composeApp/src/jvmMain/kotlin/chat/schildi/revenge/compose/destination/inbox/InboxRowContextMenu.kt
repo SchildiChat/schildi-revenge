@@ -20,7 +20,7 @@ import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.revenge.compose.components.ContextMenuSubmenuEntry
 import chat.schildi.revenge.compose.components.isAllowed
 import chat.schildi.revenge.compose.focus.rememberFocusId
-import chat.schildi.revenge.compose.util.toStringHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.ActionRoomNotificationSetting
 import chat.schildi.revenge.model.InboxViewModel
@@ -32,21 +32,21 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.flowOf
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.action_context_favorite_toggle
-import shire.composeapp.generated.resources.action_context_low_priority_toggle
-import shire.composeapp.generated.resources.action_join
-import shire.composeapp.generated.resources.action_leave
-import shire.composeapp.generated.resources.action_mark_as_read
-import shire.composeapp.generated.resources.action_mark_as_unread
-import shire.composeapp.generated.resources.action_navigate_in_current
-import shire.composeapp.generated.resources.action_navigate_in_new_window
-import shire.composeapp.generated.resources.action_notifications
-import shire.composeapp.generated.resources.action_notifications_all
-import shire.composeapp.generated.resources.action_notifications_default
-import shire.composeapp.generated.resources.action_notifications_mentions
-import shire.composeapp.generated.resources.action_notifications_none
-import shire.composeapp.generated.resources.action_reject_invite
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_context_favorite_toggle
+import shire.res.generated.resources.action_context_low_priority_toggle
+import shire.res.generated.resources.action_join
+import shire.res.generated.resources.action_leave
+import shire.res.generated.resources.action_mark_as_read
+import shire.res.generated.resources.action_mark_as_unread
+import shire.res.generated.resources.action_navigate_in_current
+import shire.res.generated.resources.action_navigate_in_new_window
+import shire.res.generated.resources.action_notifications
+import shire.res.generated.resources.action_notifications_all
+import shire.res.generated.resources.action_notifications_default
+import shire.res.generated.resources.action_notifications_mentions
+import shire.res.generated.resources.action_notifications_none
+import shire.res.generated.resources.action_reject_invite
 import java.util.UUID
 
 @Composable

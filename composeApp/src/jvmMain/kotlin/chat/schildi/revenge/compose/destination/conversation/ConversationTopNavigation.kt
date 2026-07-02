@@ -28,14 +28,14 @@ import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
-import shire.composeapp.generated.resources.Res
-import shire.composeapp.generated.resources.action_jump_to_unread
-import shire.composeapp.generated.resources.action_mark_as_read
-import shire.composeapp.generated.resources.action_show_room_members
-import shire.composeapp.generated.resources.keep_24px
-import shire.composeapp.generated.resources.pinned_messages
-import shire.composeapp.generated.resources.room_details_title
-import shire.composeapp.generated.resources.thread
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_jump_to_unread
+import shire.res.generated.resources.action_mark_as_read
+import shire.res.generated.resources.action_show_room_members
+import shire.res.generated.resources.keep_24px
+import shire.res.generated.resources.pinned_messages
+import shire.res.generated.resources.room_details_title
+import shire.res.generated.resources.thread
 
 @Composable
 fun ConversationTopNavigation(
