@@ -13,13 +13,14 @@ import chat.schildi.revenge.actions.mapActionResult
 import chat.schildi.revenge.actions.orActionValidationError
 import chat.schildi.revenge.actions.runWithMessage
 import chat.schildi.revenge.actions.toActionResult
-import chat.schildi.revenge.actions.unwrapActionResult
 import chat.schildi.resources.StringResourceHolder
 import chat.schildi.resources.toStringHolder
+import chat.schildi.revenge.UiState
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
 import chat.schildi.revenge.config.keybindings.ActionRoomNotificationSetting
 import chat.schildi.revenge.config.keybindings.KeyTrigger
+import chat.schildi.revenge.model.invites.SeenInvitesStore
 import chat.schildi.revenge.toPrettyJson
 import chat.schildi.revenge.util.matrix.updateAccountData
 import io.element.android.libraries.matrix.api.MatrixClient
@@ -35,7 +36,6 @@ import io.element.android.libraries.matrix.api.room.RoomNotificationMode
 import io.element.android.libraries.matrix.api.room.powerlevels.UserRoleChange
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
@@ -59,7 +59,7 @@ import kotlin.collections.orEmpty
 private val GenericRoomActions = setOf(Action.Room.CopyRoomId)
 
 // Rejecting an invite is leaving
-private val RoomInviteActions = setOf(Action.Room.Join, Action.Room.Leave)
+private val RoomInviteActions = setOf(Action.Room.Join, Action.Room.Leave, Action.Room.MarkInviteSeen)
 private val RoomNotJoinedActions = setOf(Action.Room.Join)
 
 class RoomActionProvider(
@@ -76,7 +76,7 @@ class RoomActionProvider(
     else if (!isJoined)
         RoomNotJoinedActions + GenericRoomActions
     else
-        Action.Room.entries.toSet() - RoomNotJoinedActions
+        Action.Room.entries.toSet() - RoomNotJoinedActions - Action.Room.MarkInviteSeen
 
     override fun ensureActionType(action: Action) = action as? Action.Room
 
@@ -143,6 +143,21 @@ class RoomActionProvider(
             Action.Room.MarkRoomUnread -> {
                 val value = args.firstOrNull()?.toBooleanStrictOrNull() ?: true
                 room.setUnreadFlag(value).toActionResult(async = true)
+            }
+            Action.Room.MarkInviteSeen -> {
+                val seenInvitesStore: SeenInvitesStore = UiState.appStateStore
+                val value = args.firstOrNull()?.toBooleanStrictOrNull() ?: true
+                val key = ScopedRoomKey(sessionId, roomId)
+                if (value == seenInvitesStore.isInviteSeen(key)) {
+                    ActionResult.Inapplicable
+                } else {
+                    if (value) {
+                        seenInvitesStore.markInviteAsSeen(key)
+                    } else {
+                        seenInvitesStore.markInviteAsUnSeen(key)
+                    }
+                    ActionResult.Success()
+                }
             }
             Action.Room.ClearUnreadFlag -> {
                 room.setUnreadFlag(false).toActionResult(async = true)

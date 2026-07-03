@@ -26,6 +26,7 @@ import chat.schildi.resources.StringResourceHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.flatMerge
+import chat.schildi.revenge.model.invites.SeenInvitesStore
 import chat.schildi.revenge.model.conversation.MessageMetadata
 import chat.schildi.revenge.model.spaces.RevengeSpaceListDataSource
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
@@ -124,6 +125,7 @@ class InboxViewModel(
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
     private val sessionIdComparatorFlow: Flow<Comparator<SessionId>> = UiState.sessionIdComparator,
     private val appStateStore: AppStateStore = UiState.appStateStore,
+    private val seenInvitesStore: SeenInvitesStore = UiState.appStateStore,
 ) : ViewModel(), SearchProvider, KeyboardActionProvider<Action.Inbox>, TitleProvider {
     private val log = Logger.withTag("Inbox")
 
@@ -231,11 +233,12 @@ class InboxViewModel(
         searchTerm,
         selectedSpace,
         UiState.sessionIdOrder,
-    ) { rooms, searchTerm, selectedSpace, sessionIdOrder ->
+        seenInvitesStore.seenInvites(),
+    ) { rooms, searchTerm, selectedSpace, sessionIdOrder, seenRoomInvites ->
         // Only filter by spaces if search term is empty
         if (searchTerm.isNullOrBlank()) {
             RoomListState(
-                rooms = selectedSpace?.applyFilter(rooms) ?: rooms.toPersistentList(),
+                rooms = selectedSpace?.applyFilter(rooms, seenRoomInvites) ?: rooms.toPersistentList(),
                 searchTerm = null,
             )
         } else {

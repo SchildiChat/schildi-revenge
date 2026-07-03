@@ -342,6 +342,7 @@ sealed interface Action {
         ToggleIsFavorite,
         ToggleIsLowPriority,
         MarkRoomUnread(aliases = listOf("SetUnread", "MarkUnread"), args = listOf(OptionalBoolean)),
+        MarkInviteSeen(args = listOf(OptionalBoolean)),
         ClearUnreadFlag,
         MarkRoomRead, // Different than timeline-based MarkRead
         MarkRoomReadPrivate, // Different than timeline-based MarkRead

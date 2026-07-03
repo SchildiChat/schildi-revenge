@@ -378,7 +378,10 @@ class SpaceListDataSource(
         val spaces: ImmutableList<SpaceHierarchyItem>
         val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts?
         val enabled: Boolean
-        fun applyFilter(rooms: List<ScopedRoomSummary>): ImmutableList<ScopedRoomSummary>
+        fun applyFilter(
+            rooms: List<ScopedRoomSummary>,
+            seenRoomInvites: Set<ScopedRoomKey> = emptySet(),
+        ): ImmutableList<ScopedRoomSummary>
         fun canHide(spaceUnreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts): Boolean = false
         // To add additional space information independent of the actual space hierarchy, use separate flows to enrich
         fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?): AbstractSpaceHierarchyItem
@@ -413,7 +416,7 @@ class SpaceListDataSource(
             unreadCounts = getUnreadCounts(this),
             spaces = spaces.map { it.enrich(getUnreadCounts) as SpaceHierarchyItem }.toImmutableList(),
         )
-        override fun applyFilter(rooms: List<ScopedRoomSummary>) =
+        override fun applyFilter(rooms: List<ScopedRoomSummary>, seenRoomInvites: Set<ScopedRoomKey>) =
             rooms.filter { room ->
                 flattenedRooms.contains(room.key) || orphanCatcher?.let { catcher ->
                     catcher.instances.any {
@@ -454,7 +457,7 @@ class SpaceListDataSource(
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
         )
-        override fun applyFilter(rooms: List<ScopedRoomSummary>) =
+        override fun applyFilter(rooms: List<ScopedRoomSummary>, seenRoomInvites: Set<ScopedRoomKey>) =
             rooms.filter { it.summary.info.isFavorite }.toImmutableList()
     }
 
@@ -473,7 +476,7 @@ class SpaceListDataSource(
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
         )
-        override fun applyFilter(rooms: List<ScopedRoomSummary>) =
+        override fun applyFilter(rooms: List<ScopedRoomSummary>, seenRoomInvites: Set<ScopedRoomKey>) =
             rooms.filter { it.summary.info.isDirect }.toImmutableList()
     }
 
@@ -492,7 +495,7 @@ class SpaceListDataSource(
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
         )
-        override fun applyFilter(rooms: List<ScopedRoomSummary>) =
+        override fun applyFilter(rooms: List<ScopedRoomSummary>, seenRoomInvites: Set<ScopedRoomKey>) =
             rooms.filter { !it.summary.info.isDirect }.toImmutableList()
     }
 
@@ -512,7 +515,7 @@ class SpaceListDataSource(
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
         )
-        override fun applyFilter(rooms: List<ScopedRoomSummary>) =
+        override fun applyFilter(rooms: List<ScopedRoomSummary>, seenRoomInvites: Set<ScopedRoomKey>) =
             rooms.filter { !it.summary.info.isDirect && !excludedRooms.contains(it.summary.roomId.value) }.toImmutableList()
     }
 
@@ -533,7 +536,7 @@ class SpaceListDataSource(
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
         )
-        override fun applyFilter(rooms: List<ScopedRoomSummary>) =
+        override fun applyFilter(rooms: List<ScopedRoomSummary>, seenRoomInvites: Set<ScopedRoomKey>) =
             rooms.filter { !excludedRooms.contains(it.summary.roomId.value) }.toImmutableList()
     }
 
@@ -553,16 +556,18 @@ class SpaceListDataSource(
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
         )
-        override fun applyFilter(rooms: List<ScopedRoomSummary>): ImmutableList<ScopedRoomSummary> {
+        override fun applyFilter(rooms: List<ScopedRoomSummary>, seenRoomInvites: Set<ScopedRoomKey>): ImmutableList<ScopedRoomSummary> {
             return if (clientUnreadCounts) {
                 rooms.filter {
                     it.summary.info.numUnreadNotifications > 0 || it.summary.info.numUnreadMentions > 0
-                        || it.summary.info.isMarkedUnread || it.summary.info.currentUserMembership == CurrentUserMembership.INVITED
+                        || it.summary.info.isMarkedUnread
+                        || (it.summary.info.currentUserMembership == CurrentUserMembership.INVITED && it.key !in seenRoomInvites)
                 }
             } else {
                 rooms.filter {
                     it.summary.info.notificationCount > 0 || it.summary.info.highlightCount > 0 || it.summary.info.numUnreadMentions > 0
-                        || it.summary.info.isMarkedUnread || it.summary.info.currentUserMembership == CurrentUserMembership.INVITED
+                        || it.summary.info.isMarkedUnread
+                        || (it.summary.info.currentUserMembership == CurrentUserMembership.INVITED && it.key !in seenRoomInvites)
                 }
             }.toImmutableList()
         }
@@ -586,7 +591,7 @@ class SpaceListDataSource(
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
         )
-        override fun applyFilter(rooms: List<ScopedRoomSummary>): ImmutableList<ScopedRoomSummary> {
+        override fun applyFilter(rooms: List<ScopedRoomSummary>, seenRoomInvites: Set<ScopedRoomKey>): ImmutableList<ScopedRoomSummary> {
             return if (clientUnreadCounts) {
                 rooms.filter { it.summary.info.numUnreadMessages > 0 || it.summary.info.isMarkedUnread || it.summary.info.currentUserMembership == CurrentUserMembership.INVITED }
             } else {
@@ -612,7 +617,7 @@ class SpaceListDataSource(
         override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
             unreadCounts = getUnreadCounts(this)
         )
-        override fun applyFilter(rooms: List<ScopedRoomSummary>): ImmutableList<ScopedRoomSummary> =
+        override fun applyFilter(rooms: List<ScopedRoomSummary>, seenRoomInvites: Set<ScopedRoomKey>): ImmutableList<ScopedRoomSummary> =
             rooms.filter { it.summary.info.currentUserMembership == CurrentUserMembership.INVITED }.toImmutableList()
         override fun canHide(spaceUnreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts): Boolean =
             spaceUnreadCounts.inviteCount == 0L
@@ -638,7 +643,7 @@ class SpaceListDataSource(
             unreadCounts = getUnreadCounts(this)
         )
         override fun canHide(spaceUnreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts) = spaceUnreadCounts.isEmptySpace
-        override fun applyFilter(rooms: List<ScopedRoomSummary>): ImmutableList<ScopedRoomSummary> =
+        override fun applyFilter(rooms: List<ScopedRoomSummary>, seenRoomInvites: Set<ScopedRoomKey>): ImmutableList<ScopedRoomSummary> =
             rooms.filter { it.sessionId == sessionId }.toImmutableList()
     }
 

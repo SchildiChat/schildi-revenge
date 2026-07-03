@@ -21,6 +21,7 @@ import chat.schildi.revenge.compose.components.ContextMenuSubmenuEntry
 import chat.schildi.revenge.compose.components.isAllowed
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.resources.toStringHolder
+import chat.schildi.revenge.UiState
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.ActionRoomNotificationSetting
 import chat.schildi.revenge.model.InboxViewModel
@@ -52,8 +53,8 @@ import java.util.UUID
 @Composable
 fun ScopedRoomSummary.contextMenu(inboxViewModel: InboxViewModel, focusId: UUID): ImmutableList<ContextMenuEntry> {
     return if (summary.isInvite()) {
-        // TODO reject invite, reject and ignore
-        persistentListOf(
+        val isInviteSeen = UiState.appStateStore.isInviteSeenFlow(key).collectAsState(false).value
+        listOfNotNull(
             ContextMenuActionEntry(
                 Res.string.action_join.toStringHolder(),
                 rememberVectorPainter(Icons.Default.MeetingRoom),
@@ -62,6 +63,19 @@ fun ScopedRoomSummary.contextMenu(inboxViewModel: InboxViewModel, focusId: UUID)
                 keyboardShortcut = Key.J,
             ),
             ContextMenuActionEntry(
+                Res.string.action_mark_as_read.toStringHolder(),
+                rememberVectorPainter(Icons.Default.Visibility),
+                Action.Room.MarkInviteSeen,
+                keyboardShortcut = Key.S,
+            ).takeIf { !isInviteSeen },
+            ContextMenuActionEntry(
+                Res.string.action_mark_as_unread.toStringHolder(),
+                rememberVectorPainter(Icons.Default.Visibility),
+                Action.Room.MarkInviteSeen,
+                actionArgs = persistentListOf("false"),
+                keyboardShortcut = Key.U,
+            ).takeIf { isInviteSeen },
+            ContextMenuActionEntry(
                 Res.string.action_reject_invite.toStringHolder(),
                 rememberVectorPainter(Icons.Default.MeetingRoom),
                 Action.Room.Leave,
@@ -69,7 +83,7 @@ fun ScopedRoomSummary.contextMenu(inboxViewModel: InboxViewModel, focusId: UUID)
                 enabled = PendingAction.RoomLeave(summary.roomId).isAllowed(),
                 keyboardShortcut = Key.R,
             ),
-        )
+        ).toPersistentList()
     } else {
         val keyHandler = LocalKeyboardActionHandler.current
         val isMenuVisible = keyHandler.currentOpenContextMenu.collectAsState().value?.hasMenu(focusId) == true

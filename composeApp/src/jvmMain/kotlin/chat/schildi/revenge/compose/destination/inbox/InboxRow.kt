@@ -23,6 +23,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -367,7 +368,7 @@ private fun RowScope.ScLastMessageAndIndicatorRow(
                 }
             }
         }
-        ScUnreadCounter(room)
+        ScUnreadCounter(scopedRoom)
     }
 }
 
@@ -406,13 +407,17 @@ fun RoomSummary.unreadCounts(): RoomUnreadCounts {
 }
 
 @Composable
-private fun ScUnreadCounter(room: RoomSummary) {
+private fun ScUnreadCounter(scopedRoom: ScopedRoomSummary) {
+    val room = scopedRoom.summary
     val (highlightCount, notificationCount, unreadCount, markedUnread, underestimate) = room.unreadCounts()
     val count: String
     val badgeColor: Color
     var outlinedBadge = false
     when {
         room.isInvite() -> {
+            if (UiState.appStateStore.isInviteSeenFlow(scopedRoom.key).collectAsState(false).value) {
+                return
+            }
             count = "!"
             badgeColor = MaterialTheme.scExposures.notificationBadgeColor
         }

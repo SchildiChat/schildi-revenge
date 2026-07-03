@@ -5,10 +5,13 @@ import chat.schildi.revenge.preferences.RevengePrefs
 import chat.schildi.lib.preferences.ScPreferencesStore
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.UiState
+import chat.schildi.revenge.model.ScopedRoomKey
+import chat.schildi.revenge.model.invites.SeenInvitesStore
 import chat.schildi.revenge.model.ScopedRoomSummary
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource.SpaceUnreadCounts
 import chat.schildi.revenge.util.throttleLatest
 import dev.zacsweers.metro.Inject
+import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import kotlinx.collections.immutable.ImmutableList
@@ -31,6 +34,7 @@ class SpaceAggregationDataSource(
     allRooms: Flow<List<ScopedRoomSummary>>,
     sessionIdComparatorFlow: Flow<Comparator<SessionId>> = UiState.sessionIdComparator,
     scPreferencesStore: ScPreferencesStore = RevengePrefs,
+    seenInvitesStore: SeenInvitesStore = UiState.appStateStore,
 ) {
 
     val allSpacesHierarchicalMerged = combine(
@@ -47,11 +51,12 @@ class SpaceAggregationDataSource(
         allRooms.throttleLatest(300),
         allSpacesHierarchicalMerged.throttleLatest(300),
         scPreferencesStore.settingFlow(ScPrefs.CLIENT_GENERATED_UNREAD_COUNTS),
-    ) { allRoomsValue, rootSpaces, useClientGeneratedCounts ->
-        val totalUnreadCounts = getAggregatedUnreadCounts(allRoomsValue, useClientGeneratedCounts)
+        seenInvitesStore.seenInvites(),
+    ) { allRoomsValue, rootSpaces, useClientGeneratedCounts, seenRoomInvites ->
+        val totalUnreadCounts = getAggregatedUnreadCounts(allRoomsValue, useClientGeneratedCounts, seenRoomInvites)
         val newEnrichedSpaces = rootSpaces.map { space ->
             space.enrich {
-                getUnreadCountsForSpace(it, allRoomsValue, useClientGeneratedCounts)
+                getUnreadCountsForSpace(it, allRoomsValue, useClientGeneratedCounts, seenRoomInvites)
             }
         }.toImmutableList()
         SpaceAggregationState(newEnrichedSpaces, totalUnreadCounts)
@@ -61,14 +66,17 @@ class SpaceAggregationDataSource(
         space: SpaceListDataSource.AbstractSpaceHierarchyItem,
         allRooms: List<ScopedRoomSummary>,
         useClientGeneratedUnreadCounts: Boolean,
+        seenRoomInvites: Set<ScopedRoomKey>,
     ) = getAggregatedUnreadCounts(
-        space.applyFilter(allRooms),
+        space.applyFilter(allRooms, seenRoomInvites),
         useClientGeneratedUnreadCounts,
+        seenRoomInvites,
     )
 
     private fun getAggregatedUnreadCounts(
         rooms: List<ScopedRoomSummary>,
         useClientGeneratedUnreadCounts: Boolean,
+        seenRoomInvites: Set<ScopedRoomKey>,
     ): SpaceUnreadCounts {
         var unread = SpaceUnreadCounts()
         for (room in rooms) {
@@ -79,6 +87,7 @@ class SpaceAggregationDataSource(
                 if (useClientGeneratedUnreadCounts) info.numUnreadMessages else info.unreadCount,
                 info.isMarkedUnread,
                 info.currentUserMembership == CurrentUserMembership.INVITED,
+                room.key in seenRoomInvites,
                 false,
             )
         }
@@ -105,12 +114,13 @@ private fun SpaceUnreadCounts.add(
     unread: Long,
     markedUnread: Boolean,
     isInvite: Boolean,
+    isSeenInvite: Boolean,
     isEmpty: Boolean,
 ): SpaceUnreadCounts = if (isInvite) {
     copy(
-        notifiedMessages = this.notifiedMessages + 1,
+        notifiedMessages = this.notifiedMessages + if (isSeenInvite) 0 else 1,
         unreadMessages = this.unreadMessages + 1,
-        notifiedChats = this.notifiedChats + 1,
+        notifiedChats = this.notifiedChats + if (isSeenInvite) 0 else 1,
         unreadChats = this.unreadChats + 1,
         inviteCount = this.inviteCount + 1,
         isEmptySpace = false,
