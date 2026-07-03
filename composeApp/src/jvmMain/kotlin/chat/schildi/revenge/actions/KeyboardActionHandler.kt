@@ -791,6 +791,7 @@ class KeyboardActionHandler(
     }
 
     private fun updateMode(update: (KeyboardActionMode) -> KeyboardActionMode) {
+        var focusToRestore: UUID? = null
         _mode.update { old ->
             val new = update(old)
             val oldSearchProvider = old.asSearchMode()?.searchProvider
@@ -802,7 +803,14 @@ class KeyboardActionHandler(
             if (oldCommandSuggestionsProvider != newCommandSuggestionsProvider) {
                 oldCommandSuggestionsProvider?.clear()
             }
+            focusToRestore = when (new) {
+                is KeyboardActionMode.Navigation -> old.impliedFocus()
+                else -> null
+            }
             new
+        }
+        if (focusToRestore != null) {
+            focusableTargets[focusToRestore]?.focusRequester?.requestFocus()
         }
     }
 
@@ -3323,5 +3331,10 @@ fun currentActionContext(): ActionContext {
 private fun KeyboardActionMode.asSearchMode() = when (this) {
     is KeyboardActionMode.Search -> this
     is KeyboardActionMode.Command -> forSearch
+    else -> null
+}
+
+private fun KeyboardActionMode.impliedFocus() = when (this) {
+    is KeyboardActionMode.Command -> this.focused
     else -> null
 }
