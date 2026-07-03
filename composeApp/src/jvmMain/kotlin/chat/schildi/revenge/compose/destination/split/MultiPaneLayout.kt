@@ -127,6 +127,7 @@ fun buildMultiPaneDestinationStateHolderWrapper(
     mainDestination: DestinationEnum,
     allowedDetailsDestinations: List<DestinationEnum>,
     allowedDetailsCategories: List<DestinationCategory>,
+    isCompatibleDetails: (Destination) -> Boolean = { true },
 ) = MultiPaneLayoutDestinationStateHolderWrapper(
     parent = parent,
     inner = inner,
@@ -181,6 +182,9 @@ fun buildMultiPaneDestinationStateHolderWrapper(
                 NavigationPreference.REPLACE
             )
             true
+        }
+        navDestination !is Destination.MultiPanePlaceholder && !isCompatibleDetails(navDestination) -> {
+            false
         }
         navDestination.type in allowedDetailsDestinations -> {
             accessDetails().navigate(navDestination, NavigationPreference.REPLACE)

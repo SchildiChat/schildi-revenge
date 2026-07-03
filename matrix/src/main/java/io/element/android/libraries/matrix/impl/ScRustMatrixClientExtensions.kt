@@ -1,6 +1,8 @@
 package io.element.android.libraries.matrix.impl
 
 import io.element.android.libraries.matrix.api.AccountDataRawEvent
+import io.element.android.libraries.matrix.api.MutualRoomsPagedInfo
+import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.room.BridgeState
 import io.element.android.libraries.matrix.api.room.SpaceCatchAllInfo
 
@@ -24,4 +26,10 @@ fun mapRustSpaceCatchAll(event: org.matrix.rustcomponents.sdk.SpaceCatchAllInfo)
 fun mapRustAccountDataRawEvent(event: org.matrix.rustcomponents.sdk.AccountDataRawEvent) = AccountDataRawEvent(
     eventType = event.eventType,
     content = event.content,
+)
+
+fun org.matrix.rustcomponents.sdk.MutualRoomsResponse.map() = MutualRoomsPagedInfo(
+    count = count.toLong(),
+    joined = joined.map(::RoomId),
+    nextBatch = nextBatch,
 )

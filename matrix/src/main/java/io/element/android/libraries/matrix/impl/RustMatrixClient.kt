@@ -414,6 +414,11 @@ class RustMatrixClient(
             })
         }.distinctUntilChanged()
     }
+    override suspend fun getMutualRooms(userId: UserId, from: String?) = withContext(sessionDispatcher) {
+        runCatching {
+            innerClient.getMutualRooms(userId.value, from).map()
+        }
+    }
     override suspend fun shutdownClient() = destroy()
     // SC additions end
 

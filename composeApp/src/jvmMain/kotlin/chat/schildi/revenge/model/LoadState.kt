@@ -80,6 +80,10 @@ interface LoadCheckPoint {
         override val name = "Room state".toStringHolder()
     }
 
+    data object RoomsInCommon : LoadCheckPoint {
+        override val name = "Common rooms".toStringHolder()
+    }
+
     data object VerificationRequest : LoadCheckPoint {
         override val name = Res.string.verification_request_title.toStringHolder()
     }

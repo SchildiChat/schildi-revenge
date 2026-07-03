@@ -55,6 +55,15 @@ sealed interface Destination {
         val sessionId: SessionId
     }
 
+
+    sealed interface WithRoomOptional : Destination, WithSession {
+        val roomId: RoomId?
+    }
+
+    sealed interface WithRoom : Destination, WithRoomOptional {
+        override val roomId: RoomId
+    }
+
     data object AccountManagement : Destination {
         override val type = DestinationEnum.AccountManagement
         override val title = StringResourceHolder(Res.string.manage_accounts)
@@ -75,10 +84,10 @@ sealed interface Destination {
 
     data class Conversation(
         override val sessionId: SessionId,
-        val roomId: RoomId,
+        override val roomId: RoomId,
         val timelineParams: CreateTimelineParams? = null,
         val joinServerNames: ImmutableList<String>? = null,
-    ) : WithSession {
+    ) : WithRoom {
         val preferDetailsPane = when (timelineParams) {
             null,
             is CreateTimelineParams.Focused -> false
@@ -104,8 +113,8 @@ sealed interface Destination {
 
     data class RoomMembers(
         override val sessionId: SessionId,
-        val roomId: RoomId,
-    ) : WithSession {
+        override val roomId: RoomId,
+    ) : WithRoom {
         override val type = DestinationEnum.RoomMembers
         override val title = null
         override val category = DestinationCategory.CONVERSATION_DETAILS
@@ -113,8 +122,8 @@ sealed interface Destination {
 
     data class RoomDetails(
         override val sessionId: SessionId,
-        val roomId: RoomId,
-    ) : WithSession {
+        override val roomId: RoomId,
+    ) : WithRoom {
         override val type = DestinationEnum.RoomDetails
         override val title = StringResourceHolder(Res.string.room_details_title)
         override val category = DestinationCategory.CONVERSATION_DETAILS
@@ -122,9 +131,9 @@ sealed interface Destination {
 
     data class MessageReactions(
         override val sessionId: SessionId,
-        val roomId: RoomId,
+        override val roomId: RoomId,
         val eventId: EventId,
-    ) : WithSession {
+    ) : WithRoom {
         override val type = DestinationEnum.MessageReactions
         override val title = StringResourceHolder(Res.string.message_reactions_title)
         override val category = DestinationCategory.CONVERSATION_DETAILS
@@ -132,9 +141,9 @@ sealed interface Destination {
 
     data class MessageReadReceipts(
         override val sessionId: SessionId,
-        val roomId: RoomId,
+        override val roomId: RoomId,
         val eventId: EventId,
-    ) : WithSession {
+    ) : WithRoom {
         override val type = DestinationEnum.MessageReadReceipts
         override val title = StringResourceHolder(Res.string.message_read_receipts_title)
         override val category = DestinationCategory.CONVERSATION_DETAILS
@@ -143,8 +152,8 @@ sealed interface Destination {
     data class UserDetails(
         override val sessionId: SessionId,
         val userId: UserId,
-        val roomId: RoomId?,
-    ) : WithSession {
+        override val roomId: RoomId?,
+    ) : WithRoomOptional {
         override val type = DestinationEnum.UserDetails
         override val title = null
         override val category = DestinationCategory.CONVERSATION_DETAILS
@@ -213,8 +222,8 @@ sealed interface Destination {
 
     data class RoomDevTools(
         override val sessionId: SessionId,
-        val roomId: RoomId,
-    ) : WithSession {
+        override val roomId: RoomId,
+    ) : WithRoom {
         override val type = DestinationEnum.RoomDevTools
         override val title = StringResourceHolder(Res.string.room_dev_tools_title)
         override val category = DestinationCategory.DEV_TOOLS

@@ -290,6 +290,7 @@
     <string name="event_placeholder_room_beginning">Room beginning</string>
 
     <string name="room_type_space">Space</string>
+    <string name="room_type_tombstoned">Upgraded</string>
 
     <!-- Join rules mapping -->
     <string name="join_rule_public">Anyone can join</string>
@@ -594,5 +595,18 @@
 
     <string name="room_preview_failed">Failed to fetch room preview</string>
     <string name="failed_to_resolve_room">Failed to resolve room</string>
+
+    <plurals name="n_mutual_rooms">
+        <item quantity="one">%1$d shared room</item>
+        <item quantity="other">%1$d shared rooms</item>
+    </plurals>
+    <plurals name="n_mutual_rooms_header">
+        <item quantity="one">%1$d shared room:</item>
+        <item quantity="other">%1$d shared rooms:</item>
+    </plurals>
+    <plurals name="n_mutual_rooms_such_as">
+        <item quantity="one">%1$d shared room: %2$s</item>
+        <item quantity="other">%1$d shared rooms: %2$s</item>
+    </plurals>
 
 </resources>

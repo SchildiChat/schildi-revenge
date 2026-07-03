@@ -86,6 +86,7 @@ interface MatrixClient {
     suspend fun setRoomAccountData(roomId: RoomId, eventType: String, content: String): Result<Unit> // SC
     suspend fun getUrlPreviewJson(url: String): String // SC
     fun getImagePackFlow(roomIds: List<RoomId>): Flow<List<RoomImagePackStateEvent>> // SC
+    suspend fun getMutualRooms(userId: UserId, from: String? = null): Result<MutualRoomsPagedInfo> // SC
     suspend fun shutdownClient() // SC
     suspend fun findDM(userId: UserId): Result<RoomId?>
     suspend fun getJoinedRoomIds(): Result<Set<RoomId>>

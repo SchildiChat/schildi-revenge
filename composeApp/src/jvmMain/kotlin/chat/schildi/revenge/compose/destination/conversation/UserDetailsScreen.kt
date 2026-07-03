@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
@@ -20,12 +21,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.revenge.Destination
@@ -45,15 +48,24 @@ import chat.schildi.revenge.compose.destination.conversation.userlist.Conversati
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.resources.toStringHolder
+import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.model.UserDetailsViewModel
+import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.viewModelKey
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.encryption.identity.IdentityState
 import io.element.android.libraries.matrix.api.media.MediaSource
+import io.element.android.libraries.matrix.api.room.RoomInfo
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.empty_screen_placeholder_unexpected
+import shire.res.generated.resources.n_mutual_rooms
+import shire.res.generated.resources.n_mutual_rooms_header
+import shire.res.generated.resources.n_mutual_rooms_such_as
+import shire.res.generated.resources.room_type_space
+import shire.res.generated.resources.room_type_tombstoned
 import shire.res.generated.resources.verification_status_not_verified
 import shire.res.generated.resources.verification_status_verified
 import shire.res.generated.resources.verified_off_24px
@@ -86,6 +98,9 @@ fun UserDetailsScreen(
         val info = viewModel.globalUserInfo.collectAsState().value
         val roomMemberInfo = viewModel.roomMember.collectAsState().value
         val userIdentity = viewModel.userIdentity.collectAsState().value
+        val mutualRoomsInfo = viewModel.mutualRooms.collectAsState(null).value
+        val mutualRoomsPreview = viewModel.mutualRoomsPreview.collectAsState().value
+        val expandRoomPreviews = remember { mutableStateOf(false) }
         Column(contentModifier.fillMaxSize()) {
             ConversationDetailsTopNavigation(info?.displayName ?: viewModel.userId.value)
             if (info == null && roomMemberInfo == null) {
@@ -178,6 +193,7 @@ fun UserDetailsScreen(
                                             text,
                                             color = MaterialTheme.colorScheme.onSurface,
                                             style = MaterialTheme.typography.bodyLarge,
+                                            textAlign = TextAlign.Center,
                                         )
                                     }
                                     when (userIdentity) {
@@ -219,6 +235,95 @@ fun UserDetailsScreen(
                                         viewModel.userId.value,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         style = MaterialTheme.typography.bodyMedium,
+                                        textAlign = TextAlign.Center,
+                                    )
+                                }
+                            }
+                        }
+                        if (mutualRoomsInfo != null) {
+                            item {
+                                Box(
+                                    Modifier.fillMaxWidth().keyFocusable(
+                                        role = FocusRole.LIST_ITEM,
+                                        actionProvider = actionProvider(
+                                            primaryAction = InteractionAction.Invoke {
+                                                expandRoomPreviews.value = !expandRoomPreviews.value
+                                                true
+                                            }
+                                        ),
+                                    ),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    val text = if (mutualRoomsPreview.isNullOrEmpty()) {
+                                        pluralStringResource(
+                                            Res.plurals.n_mutual_rooms,
+                                            mutualRoomsInfo.count.toInt(),
+                                            mutualRoomsInfo.count,
+                                        )
+                                    } else if (expandRoomPreviews.value) {
+                                        pluralStringResource(
+                                            Res.plurals.n_mutual_rooms_header,
+                                            mutualRoomsInfo.count.toInt(),
+                                            mutualRoomsInfo.count,
+                                        )
+                                    } else {
+                                        pluralStringResource(
+                                            Res.plurals.n_mutual_rooms_such_as,
+                                            mutualRoomsInfo.count.toInt(),
+                                            mutualRoomsInfo.count,
+                                            mutualRoomsPreview.joinToString(limit = 3) {
+                                                it.privateRoomName ?: it.name ?: it.id.value
+                                            },
+                                        )
+                                    }
+                                    Text(
+                                        text,
+                                        color = if (expandRoomPreviews.value && !mutualRoomsPreview.isNullOrEmpty())
+                                            MaterialTheme.scExposures.accentColor
+                                        else
+                                            MaterialTheme.colorScheme.onSurfaceVariant,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        textAlign = TextAlign.Center,
+                                    )
+                                }
+                            }
+                        }
+                        if (expandRoomPreviews.value && mutualRoomsPreview != null) {
+                            items(mutualRoomsPreview, key = { "mutual_room_preview_${it.id}" }) { preview ->
+                                Box(
+                                    Modifier.fillMaxWidth().keyFocusable(
+                                        role = FocusRole.LIST_ITEM,
+                                        actionProvider = actionProvider(
+                                            primaryAction = InteractionAction.OpenWindow(
+                                                initialTitle = {
+                                                    ConversationViewModel.windowTitle(
+                                                        preview,
+                                                        sessionId = viewModel.sessionId,
+                                                    )
+                                                }
+                                            ) {
+                                                if (preview.isSpace) {
+                                                    // TODO what's the best destination for viewing spaces?
+                                                    Destination.RoomMembers(
+                                                        sessionId = viewModel.sessionId,
+                                                        roomId = preview.id,
+                                                    )
+                                                } else {
+                                                    Destination.Conversation(
+                                                        sessionId = viewModel.sessionId,
+                                                        roomId = preview.id,
+                                                    )
+                                                }
+                                            }
+                                        )
+                                    ),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Text(
+                                        preview.toTitle(),
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        textAlign = TextAlign.Center,
                                     )
                                 }
                             }
@@ -227,6 +332,28 @@ fun UserDetailsScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun RoomInfo.toTitle(): String {
+    val name = privateRoomName ?: name ?: id.value
+    return if (isSpace || successorRoom != null) {
+        val spaceString = if (isSpace) stringResource(Res.string.room_type_space) else null
+        val tombstoneString = if (successorRoom != null) stringResource(Res.string.room_type_tombstoned) else null
+        buildString {
+            append(name)
+            append(" [")
+            append(
+                listOfNotNull(
+                    spaceString,
+                    tombstoneString,
+                ).joinToString()
+            )
+            append("]")
+        }
+    } else {
+        name
     }
 }
 

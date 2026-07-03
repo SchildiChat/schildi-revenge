@@ -84,6 +84,9 @@ private fun DestinationStateHolder.wrapped(
                 DestinationCategory.CONVERSATION_DETAILS,
                 DestinationCategory.CONVERSATION_THREAD.takeIf { allowThreadsInDetails },
             ),
+            isCompatibleDetails = {
+                it is Destination.WithRoomOptional && (it.roomId == null || it.roomId == primaryDestination?.roomId)
+            }
         )
     }
 }

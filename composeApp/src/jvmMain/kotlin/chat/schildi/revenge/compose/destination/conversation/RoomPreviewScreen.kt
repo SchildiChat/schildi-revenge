@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.FocusRole
@@ -27,6 +28,7 @@ import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
 import chat.schildi.revenge.actions.actionProvider
+import chat.schildi.revenge.actions.buildNavigationActionProvider
 import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.plainTextCopyAction
@@ -233,9 +235,11 @@ fun RoomPreviewScreen(
                             Row(
                                 Modifier.fillMaxWidth().keyFocusable(
                                     role = FocusRole.LIST_ITEM,
-                                    actionProvider = actionProvider(
+                                    actionProvider = buildNavigationActionProvider(
                                         copyActions = plainTextCopyActionWithUserId(inviter.userId) { invitedBy },
-                                    )
+                                    ) {
+                                        Destination.UserDetails(viewModel.sessionId, inviter.userId, viewModel.roomId)
+                                    }
                                 ),
                                 horizontalArrangement = Arrangement.spacedBy(Dimens.horizontalItemPadding, Alignment.CenterHorizontally),
                                 verticalAlignment = Alignment.CenterVertically,
@@ -254,13 +258,11 @@ fun RoomPreviewScreen(
                                         allowAnimated = true,
                                     )
                                 }
-                                SelectionContainer {
-                                    Text(
-                                        invitedBy,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        style = MaterialTheme.typography.bodyLarge,
-                                    )
-                                }
+                                Text(
+                                    invitedBy,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
                             }
                         }
                     }
