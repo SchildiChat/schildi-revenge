@@ -182,10 +182,10 @@ sealed interface Action {
         ViewGlobalAccountData(args = listOf(ActionArgumentPrimitive.SessionId), aliases = listOf("viewAccountData", "viewGlobalAccountData")),
         SetGlobalAccountData(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.AccountDataType, ActionArgumentOptional(ActionArgumentPrimitive.Json)), aliases = listOf("setAccountData")),
         VacuumDatabase(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.SessionId))),
-        CreateRoom(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.RoomName), aliases = listOf("createRoom")),
-        CreateUnencryptedRoom(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.RoomName), aliases = listOf("createUnencryptedRoom", "createRoomUnencrypted")),
+        CreateRoom(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentOptional(ActionArgumentPrimitive.RoomName)), aliases = listOf("createRoom")),
+        CreateUnencryptedRoom(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentOptional(ActionArgumentPrimitive.RoomName)), aliases = listOf("createUnencryptedRoom", "createRoomUnencrypted")),
         CreateDm(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.UserId), aliases = listOf("createDm", "startDm")),
-        CreateSpace(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.RoomName), aliases = listOf("createSpace")),
+        CreateSpace(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentOptional(ActionArgumentPrimitive.RoomName)), aliases = listOf("createSpace")),
         AutoSubscribeNotifiableRooms, // Experimental feature
         InspectFocusable(aliases = listOf("inspect")),
         Join(args = listOf(ActionArgumentPrimitive.SessionId, UnjoinedRoom, ViaServerVararg)),
