@@ -137,8 +137,8 @@ This list is not sufficient to consider the client feature-complete in any way.
 - [x] Verify self via emoji
 - [x] Verify other users via emoji (initiated via command)
 - [ ] Ignore users (including invite reject & ignore)
-- [ ] MAS + rotating token support (need to re-persist session data)
-- [ ] MAS: support generating QR for quick sign in of mobile devices
+- [x] Next-gen-auth (login with browser)
+- [ ] Next-gen-auth: Support generating QR for quick sign in of mobile devices
 - [x] Threads (optional thread view, will want to show threaded messages in the main timeline by default as well)
 - [x] Expose command line message interface
 - [ ] More UI for "advanced" features
@@ -146,8 +146,10 @@ This list is not sufficient to consider the client feature-complete in any way.
         - [ ] Own user profile settings
         - [ ] Change user password
         - [ ] Reset user identity
-        - [ ] Session management to rename or log out other devices
-    - [ ] Room settings
+        - [ ] Key recovery setup
+        - [ ] Session management to rename or log out other devices (probably just link to next-gen-auth website :( )
+    - [x] Room settings
+    - [ ] Invite/kick/ban user UI
     - [ ] Create new rooms with all the settings (room visibility, history, ...)
     - [ ] Media viewer
     - [ ] ...
