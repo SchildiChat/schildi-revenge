@@ -219,7 +219,7 @@ object EventTextFormat {
         getString: (StringResource) -> String,
         getFormatString: (StringResource, formatArgs: Array<Any>) -> String,
     ): String {
-        val senderName = senderProfile.getDisambiguatedDisplayName(senderId)
+        val senderName = senderProfile.getDisambiguatedDisplayName(senderId).sanitizeDirection()
         return when (val content = stateContent.content) {
             is OtherState.Custom -> getFormatString(Res.string.message_placeholder_state_event, arrayOf(senderName, content.eventType))
             OtherState.PolicyRuleRoom -> getFormatString(Res.string.message_placeholder_state_event_policy_rule_room, arrayOf(senderName))
@@ -246,7 +246,7 @@ object EventTextFormat {
             }
             is OtherState.RoomName -> when (content.name) {
                 null -> getFormatString(Res.string.message_placeholder_state_event_room_name_cleared, arrayOf(senderName))
-                else -> getFormatString(Res.string.message_placeholder_state_event_room_name_set, arrayOf(senderName, content.name ?: ""))
+                else -> getFormatString(Res.string.message_placeholder_state_event_room_name_set, arrayOf(senderName, content.name?.sanitizeDirection() ?: ""))
             }
             is OtherState.RoomPinnedEvents -> when (content.change) {
                 OtherState.RoomPinnedEvents.Change.ADDED -> getFormatString(Res.string.message_placeholder_state_event_room_pinned_events_added, arrayOf(senderName))
@@ -258,7 +258,7 @@ object EventTextFormat {
                 Res.string.message_placeholder_state_event_room_third_party_invite,
                 arrayOf(
                     senderName,
-                    content.displayName ?: ""
+                    content.displayName?.sanitizeDirection() ?: ""
                 )
             )
             OtherState.RoomTombstone -> getFormatString(Res.string.message_placeholder_state_event_room_tombstone, arrayOf(senderName))
@@ -296,7 +296,7 @@ object EventTextFormat {
             is JoinRule.Restricted -> if (rule.rules.isNotEmpty() && roomNameMap.isNotEmpty() && rule.rules.all { it is AllowRule.RoomMembership }) {
                 val rooms = rule.rules.joinToString {
                     (it as? AllowRule.RoomMembership)?.roomId?.let { roomId ->
-                        roomNameMap[roomId] ?: roomId.value
+                        roomNameMap[roomId]?.sanitizeDirection() ?: roomId.value
                     } ?: it.toString()
                 }
                 getFormatString(Res.string.join_rule_restricted_to_room_membership, arrayOf(rooms))
@@ -306,7 +306,7 @@ object EventTextFormat {
             is JoinRule.KnockRestricted -> if (rule.rules.isNotEmpty() && roomNameMap.isNotEmpty() && rule.rules.all { it is AllowRule.RoomMembership }) {
                 val rooms = rule.rules.joinToString {
                     (it as? AllowRule.RoomMembership)?.roomId?.let { roomId ->
-                        roomNameMap[roomId] ?: roomId.value
+                        roomNameMap[roomId]?.sanitizeDirection() ?: roomId.value
                     } ?: it.toString()
                 }
                 getFormatString(Res.string.join_rule_knock_restricted_to_room_membership, arrayOf(rooms))
@@ -335,7 +335,7 @@ object EventTextFormat {
         senderId: UserId,
         getFormatString: (StringResource, formatArgs: Array<Any>) -> String,
     ): String {
-        val senderName = senderProfile.getDisambiguatedDisplayName(senderId)
+        val senderName = senderProfile.getDisambiguatedDisplayName(senderId).sanitizeDirection()
         return if (content.prevDisplayName == content.displayName) {
             if (content.prevAvatarUrl == content.avatarUrl) {
                 getFormatString(Res.string.profile_update_none, arrayOf(senderName))
@@ -346,7 +346,7 @@ object EventTextFormat {
             if (content.prevDisplayName == null) {
                 getFormatString(Res.string.profile_update_set_name_and_avatar, arrayOf(senderName))
             } else {
-                getFormatString(Res.string.profile_update_name_and_avatar, arrayOf(senderName, content.prevDisplayName ?: ""))
+                getFormatString(Res.string.profile_update_name_and_avatar, arrayOf(senderName, content.prevDisplayName?.sanitizeDirection() ?: ""))
             }
         } else {
             when {
@@ -355,11 +355,11 @@ object EventTextFormat {
                     Res.string.profile_update_cleared_name,
                     arrayOf(
                         senderName,
-                        content.prevDisplayName ?: ""
+                        content.prevDisplayName?.sanitizeDirection() ?: ""
                     )
                 )
 
-                else -> getFormatString(Res.string.profile_update_name, arrayOf(senderName, content.prevDisplayName ?: ""))
+                else -> getFormatString(Res.string.profile_update_name, arrayOf(senderName, content.prevDisplayName?.sanitizeDirection() ?: ""))
             }
         }
     }
@@ -382,8 +382,8 @@ object EventTextFormat {
         senderId: UserId,
         getFormatString: (StringResource, formatArgs: Array<Any>) -> String,
     ): String {
-        val senderName = senderProfile.getDisambiguatedDisplayName(senderId)
-        val otherUser = content.userDisplayName ?: content.userId.value
+        val senderName = senderProfile.getDisambiguatedDisplayName(senderId).sanitizeDirection()
+        val otherUser = (content.userDisplayName ?: content.userId.value).sanitizeDirection()
         val bestName = if (senderProfile.getDisplayName() == null && content.userId == senderId) otherUser else senderName
         val mainText = when (content.change) {
             null,
@@ -409,7 +409,7 @@ object EventTextFormat {
             append(mainText)
             if (!content.reason.isNullOrBlank()) {
                 append(". ")
-                append(getFormatString(Res.string.membership_reason, arrayOf(content.reason ?: "")))
+                append(getFormatString(Res.string.membership_reason, arrayOf(content.reason?.sanitizeDirection() ?: "")))
             }
         }
     }

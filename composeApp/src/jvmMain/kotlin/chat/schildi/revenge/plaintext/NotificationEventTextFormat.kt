@@ -21,7 +21,6 @@ import shire.res.generated.resources.message_placeholder_reaction
 import shire.res.generated.resources.message_placeholder_state_event_policy_rule_room
 import shire.res.generated.resources.message_placeholder_state_event_policy_rule_server
 import shire.res.generated.resources.message_placeholder_state_event_policy_rule_user
-import shire.res.generated.resources.message_placeholder_state_event_room_aliases
 import shire.res.generated.resources.message_placeholder_state_event_room_avatar_changed
 import shire.res.generated.resources.message_placeholder_state_event_room_canonical_alias
 import shire.res.generated.resources.message_placeholder_state_event_room_create
@@ -46,20 +45,20 @@ object NotificationEventTextFormat {
 
     suspend fun notificationToText(notification: SyncNotification, stripNewlines: Boolean = false): String {
         return when (val content = notification.content) {
-            is NotificationContent.Invite -> getString(Res.string.message_placeholder_invite_by, notification.senderName())
+            is NotificationContent.Invite -> getString(Res.string.message_placeholder_invite_by, notification.senderName().sanitizeDirection())
             is NotificationContent.MessageLike -> {
-                val textContent = messageLikeToText(content, stripNewlines)
+                val textContent = messageLikeToText(content, stripNewlines).sanitizeDirection()
                 val senderName = notification.senderName()
                 if (notification.roomInfo.isDirect && senderName == notification.roomInfo.displayName) {
                     textContent
                 } else {
-                    "$senderName: $textContent"
+                    "${senderName.sanitizeDirection()}: $textContent"
                 }
             }
             is NotificationContent.StateEvent -> stateEventToText(
                 content,
                 notification.senderId,
-                notification.senderName(),
+                notification.senderName().sanitizeDirection(),
             )
         }
     }
@@ -92,7 +91,7 @@ object NotificationEventTextFormat {
                 } else {
                     getString(
                         Res.string.message_placeholder_message_redacted_with_reason,
-                        content.reason ?: "",
+                        content.reason?.sanitizeDirection() ?: "",
                     )
                 }
             }

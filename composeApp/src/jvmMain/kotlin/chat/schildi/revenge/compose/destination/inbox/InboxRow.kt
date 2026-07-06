@@ -49,6 +49,7 @@ import chat.schildi.revenge.compose.components.ComposeSessionScope
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.ScopedRoomSummary
 import chat.schildi.revenge.plaintext.EventTextFormat
+import chat.schildi.revenge.plaintext.sanitizeDirection
 import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.currentActionContext
@@ -296,7 +297,8 @@ private fun RowScope.ScLastMessageAndIndicatorRow(
                 if (event.isOwn || room.isDm) {
                     eventText
                 } else {
-                    "${event.senderProfile.getDisambiguatedDisplayName(event.senderId)}: $eventText"
+                    val senderName = event.senderProfile.getDisambiguatedDisplayName(event.senderId).sanitizeDirection()
+                    "$senderName: ${eventText.sanitizeDirection()}"
                 }
             }
             is LatestEventValue.RoomInvite -> event.inviterId?.let { inviterId ->
