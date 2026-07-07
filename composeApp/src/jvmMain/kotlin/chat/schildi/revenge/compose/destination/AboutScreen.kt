@@ -24,8 +24,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandLess
-import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -58,6 +56,7 @@ import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.plainTextCopyAction
 import chat.schildi.revenge.compose.components.EmptyListScreen
+import chat.schildi.revenge.compose.components.ExpandButton
 import chat.schildi.revenge.compose.components.TopNavigation
 import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInboxIcon
 import chat.schildi.revenge.compose.components.TopNavigationSearchOrTitle
@@ -177,42 +176,16 @@ fun AboutScreen(
                         }
                         if (!isSearching) {
                             item(key = "expand_licenses") {
-                                Row(
-                                    Modifier
-                                        .keyFocusable(
-                                            role = FocusRole.LIST_ITEM,
-                                            actionProvider = actionProvider(
-                                                primaryAction = InteractionAction.Invoke {
-                                                    expandOpenSourceLicenses = !expandOpenSourceLicenses
-                                                    true
-                                                },
-                                            ),
-                                        )
-                                        .padding(Dimens.listPaddingSmall),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(
-                                        Dimens.horizontalItemPaddingSmall,
-                                        Alignment.CenterHorizontally,
-                                    )
+                                ExpandButton(
+                                    text = if (expandOpenSourceLicenses) {
+                                        stringResource(Res.string.action_show_less)
+                                    } else {
+                                        stringResource(Res.string.action_show_more)
+                                    },
+                                    expanded = expandOpenSourceLicenses,
+                                    enabledColor = MaterialTheme.scExposures.linkColor,
                                 ) {
-                                    Text(
-                                        if (expandOpenSourceLicenses) {
-                                            stringResource(Res.string.action_show_less)
-                                        } else {
-                                            stringResource(Res.string.action_show_more)
-                                        },
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.scExposures.linkColor,
-                                    )
-                                    Icon(
-                                        if (expandOpenSourceLicenses) {
-                                            Icons.Default.ExpandLess
-                                        } else {
-                                            Icons.Default.ExpandMore
-                                        },
-                                        null,
-                                        tint = MaterialTheme.scExposures.linkColor,
-                                    )
+                                    expandOpenSourceLicenses = !expandOpenSourceLicenses
                                 }
                             }
                         }

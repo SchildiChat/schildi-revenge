@@ -7,6 +7,8 @@
 
 package io.element.android.libraries.matrix.api
 
+import org.matrix.rustcomponents.sdk.RoomVersions
+
 /**
  * Provides information about the capabilities of the homeserver.
  *
@@ -27,4 +29,8 @@ interface HomeserverCapabilitiesProvider {
      * Indicates whether the homeserver allows the user to change their avatar URL.
      */
     suspend fun canChangeAvatarUrl(): Result<Boolean>
+
+    // SC start
+    suspend fun roomVersions(): Result<RoomVersions>
+    // SC end
 }

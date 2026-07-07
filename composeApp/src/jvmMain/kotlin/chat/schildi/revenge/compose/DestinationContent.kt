@@ -22,6 +22,7 @@ import chat.schildi.revenge.compose.destination.DiagnosticsScreen
 import chat.schildi.revenge.compose.destination.SessionSelectorScreen
 import chat.schildi.revenge.compose.destination.SplashScreen
 import chat.schildi.revenge.compose.destination.conversation.ConversationScreen
+import chat.schildi.revenge.compose.destination.conversation.CreateRoomScreen
 import chat.schildi.revenge.compose.destination.devtools.RoomDevToolsScreen
 import chat.schildi.revenge.compose.destination.conversation.RoomDetailsScreen
 import chat.schildi.revenge.compose.destination.conversation.UserDetailsScreen
@@ -57,6 +58,7 @@ fun DestinationContent(
                 is Destination.Inbox -> InboxScreen(destination, baseModifier, contentModifier)
                 is Destination.Splash -> SplashScreen(baseModifier, contentModifier)
                 is Destination.Conversation -> ConversationScreen(destination, baseModifier, contentModifier)
+                is Destination.CreateRoom -> CreateRoomScreen(destination, baseModifier, contentModifier)
                 is Destination.RoomDetails -> RoomDetailsScreen(destination, baseModifier, contentModifier)
                 is Destination.RoomMembers -> RoomMembersScreen(destination, baseModifier, contentModifier)
                 is Destination.MessageReactions -> MessageReactionsScreen(destination, baseModifier, contentModifier)
@@ -132,6 +134,7 @@ private fun DestinationEnum.measureInfo(): DestinationMeasure = when (this) {
     DestinationEnum.SettingsRoot -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_SETTINGS, ScPrefs.LAYOUT_WEIGHT_SETTINGS_ROOT)
     DestinationEnum.SplitSettingsDetailsPlaceholder,
     DestinationEnum.SettingsDetails -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_SETTINGS, ScPrefs.LAYOUT_WEIGHT_SETTINGS)
+    DestinationEnum.CreateRoom,
     DestinationEnum.SplitConversationPlaceholder -> if (ScPrefs.PREFER_CONVERSATION_DETAILS_SPLIT.value()) {
         DestinationEnum.ConversationDetailsSplit.measureInfo()
     } else {

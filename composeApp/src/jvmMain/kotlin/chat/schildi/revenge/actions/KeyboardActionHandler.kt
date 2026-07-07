@@ -659,7 +659,7 @@ class KeyboardActionHandler(
             is InteractionAction.Invoke -> action.invoke()
             is InteractionAction.HandleAction -> handleAction(action.focusId, action.action, action.args) is ActionResult.Success
             is InteractionAction.CopyToClipboard -> {
-                val context = getActionContext(destinationStateHolder?.state?.value?.destination)
+                val context = getActionContext(destinationStateHolder?.state?.value?.destination, destinationStateHolder)
                 copyToClipboard(context, action.text, action.text.toStringHolder()) is ActionResult.Success
             }
 
@@ -1161,12 +1161,14 @@ class KeyboardActionHandler(
 
     fun getActionContext(
         destination: Destination?,
+        destinationStateHolder: DestinationStateHolder?,
         criticalActionRequiresConfirmation: Boolean = true,
     ): ActionContext = getInternalActionContext(
         focused = currentFocused(),
         criticalActionRequiresConfirmation = criticalActionRequiresConfirmation,
         keybindingConfig = UiState.keybindingsConfig.value,
         currentDestinationType = destination?.destinationId,
+        destinationStateHolder = destinationStateHolder,
     )
 
     fun handleAction(
@@ -3514,9 +3516,10 @@ fun ActionContext.launchActionAsync(
 @Composable
 fun currentActionContext(): ActionContext {
     val keyHandler = LocalKeyboardActionHandler.current
-    val destination = LocalDestinationState.current?.state?.collectAsState()?.value?.destination
-    return remember(keyHandler, destination) {
-        keyHandler.getActionContext(destination)
+    val destinationStateHolder = LocalDestinationState.current
+    val destination = destinationStateHolder?.state?.collectAsState()?.value?.destination
+    return remember(keyHandler, destinationStateHolder, destination) {
+        keyHandler.getActionContext(destination, destinationStateHolder)
     }
 }
 

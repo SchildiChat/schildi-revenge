@@ -487,6 +487,7 @@ class RustMatrixClient(
                 historyVisibilityOverride = createRoomParams.historyVisibilityOverride?.map(),
                 canonicalAlias = createRoomParams.roomAliasName.getOrNull(),
                 isSpace = createRoomParams.isSpace,
+                roomVersion = createRoomParams.roomVersion, // SC
             )
             val roomId = RoomId(innerClient.createRoom(rustParams))
             // Wait to receive the room back from the sync but do not returns failure if it fails.

@@ -90,8 +90,8 @@ fun ScPrefLayout(
     modifier: Modifier = Modifier,
     clickAction: (() -> InteractionAction?) = { null },
     focusId: Uuid = rememberFocusId(),
-    secondaryContent: @Composable ((Boolean) -> Unit)? = null,
-    trailing: @Composable ((Boolean) -> Unit)? = null,
+    secondaryContent: @Composable ((enabled: Boolean) -> Unit)? = null,
+    trailing: @Composable ((enabled: Boolean) -> Unit)? = null,
 ) {
     ListItem(
         modifier = modifier.keyFocusable(

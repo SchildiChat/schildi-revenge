@@ -2,6 +2,7 @@
     <string name="manage_accounts">Accounts</string>
     <string name="inbox">Inbox</string>
     <string name="inbox_search">Inbox search</string>
+    <string name="create_room">Create new room</string>
     <string name="thread">Thread</string>
     <string name="pinned_messages">Pinned messages</string>
     <string name="room_details_title">Room details</string>
@@ -143,6 +144,7 @@
     <string name="action_account_management">Manage accounts</string>
     <string name="action_view_event_source">View event source</string>
     <string name="action_copy_event_source">Copy event source</string>
+    <string name="action_create">Create</string>
 
     <string name="command_success">Success: %1$s</string>
     <string name="command_loading_event">Loading %1$s</string>
@@ -211,7 +213,7 @@
     <string name="hint_sync_state_running">Running</string>
     <string name="hint_sync_state_terminated">Terminated</string>
     <string name="hint_sync_state_offline">Terminated</string>
-    <string name="hint_hidden">hidden</string>
+    <string name="hint_hidden">Hidden</string>
     <string name="hint_sending">Sending</string>
     <string name="hint_send_error">Send error</string>
     <string name="hint_app_icon">App icon</string>
@@ -221,6 +223,7 @@
     <string name="hint_group_chat">Group chat</string>
     <string name="hint_not_encrypted">Not encrypted</string>
     <string name="hint_encrypted">Encrypted</string>
+    <string name="hint_room_name">Name</string>
     <string name="hint_room_name_private">Personal room name override</string>
     <string name="hint_topic">Topic</string>
     <string name="hint_room_id">Room ID</string>
@@ -244,6 +247,13 @@
     <string name="hint_history_visibility">History visibility</string>
     <string name="hint_join_rule">Join rule</string>
     <string name="hint_room_via">Via: %1$s</string>
+    <string name="hint_nothing_selected">Nothing selected</string>
+    <string name="hint_preset_default">Preset default</string>
+    <string name="hint_published">Published</string>
+    <string name="hint_e2ee">End-to-end encryption</string>
+    <string name="hint_room_directory_visibility">Room directory visibility</string>
+    <string name="hint_enabled">Enabled</string>
+    <string name="hint_disabled">Disabled</string>
 
     <string name="reply_failed_to_load">Failed to load replied-to message</string>
 
@@ -315,6 +325,11 @@
     <string name="room_type_space">Space</string>
     <string name="room_type_tombstoned">Upgraded</string>
 
+    <string name="room_preset">Room preset</string>
+    <string name="room_preset_private_chat">Private chat</string>
+    <string name="room_preset_public_chat">Public chat</string>
+    <string name="room_preset_trusted_private_chat">Trusted private chat</string>
+
     <!-- Join rules mapping -->
     <string name="join_rule_public">Anyone can join</string>
     <string name="join_rule_invite">Invite-only</string>
@@ -374,6 +389,7 @@
     <string name="pref_category_timeline_event_visibility">Event visibility</string>
     <string name="pref_category_message_authenticity_warnings">Message authenticity warnings</string>
     <string name="pref_category_message_appearance">Message appearance</string>
+    <string name="pref_category_advanced_room_settings">Advanced room settings</string>
 
     <string name="pref_skiko_vsync_title">Enable skiko VSync</string>
     <string name="pref_skiko_vsync_summary">Try disabling VSync if you notice intermittent laggyness when having multiple windows open</string>
@@ -463,6 +479,8 @@
     <string name="pref_floating_date_summary">Show the date on top of messages while scrolling</string>
     <string name="pref_canonical_space_parent_avatar_fallback_title">Space parent avatar fallback</string>
     <string name="pref_canonical_space_parent_avatar_fallback_summary">For chats without an avatar but with a canonical parent space set, render the space avatar as fallback.</string>
+    <string name="pref_show_advanced_room_creation_parameters_title">Advanced room creation parameters</string>
+    <string name="pref_show_advanced_room_creation_parameters_summary">Show advanced settings when creating new rooms</string>
 
     <string name="pref_message_font_size_title">Message font size</string>
     <string name="pref_message_font_size_summary">Scaled pixel text size for messages (while respecting global render and font scale settings)</string>
@@ -547,6 +565,8 @@
     <string name="toast_removing_from_space">Removing %1$s from space %2$s</string>
     <string name="toast_removed_from_space">Removed %1$s from space %2$s</string>
     <string name="toast_room_created">Created room %1$s</string>
+    <string name="toast_room_creation_error">Failed to create room</string>
+    <string name="toast_room_creation_success">Room created</string>
 
     <plurals name="named_users_typing">
         <item quantity="one">%1$s is typing</item>
@@ -573,7 +593,7 @@
     <string name="send_error_verified_user_has_unsigned_device">Verified user has unsigned device</string>
 
     <string name="power_level_user_role_creator">Creator</string>
-    <string name="power_level_user_role_owner">Creator</string>
+    <string name="power_level_user_role_owner">Owner</string>
     <string name="power_level_user_role_admin">Admin</string>
     <string name="power_level_user_role_moderator">Moderator</string>
     <string name="power_level_user_role_default">Default</string>

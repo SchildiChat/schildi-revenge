@@ -159,6 +159,8 @@ import shire.res.generated.resources.pref_floating_date_summary
 import shire.res.generated.resources.pref_floating_date_title
 import shire.res.generated.resources.pref_sdk_sqlite_max_pool_size_summary
 import shire.res.generated.resources.pref_sdk_sqlite_max_pool_size_title
+import shire.res.generated.resources.pref_show_advanced_room_creation_parameters_summary
+import shire.res.generated.resources.pref_show_advanced_room_creation_parameters_title
 import shire.res.generated.resources.pref_skiko_vsync_summary
 import shire.res.generated.resources.pref_skiko_vsync_title
 import shire.res.generated.resources.pref_space_all_rooms_summary
@@ -334,6 +336,9 @@ object ScPrefs {
     val SEND_TYPING_NOTICE = ScBoolPref("SEND_TYPING_NOTICE", true, Res.string.pref_send_typing_notice_title, Res.string.pref_send_typing_notice_summary)
     val DISABLE_SEND_TYPING_NOTICE_IN_PUBLIC_ROOMS = ScBoolPref("DISABLE_SEND_TYPING_NOTICE_IN_PUBLIC_ROOMS", false, Res.string.pref_disable_typing_notice_in_public_rooms_title, Res.string.pref_disable_typing_notice_in_public_rooms_summary, dependencies = SEND_TYPING_NOTICE.asDependencies())
 
+    // Misc
+    val SHOW_ADVANCED_ROOM_CREATION_PARAMETERS = ScBoolPref("SHOW_ADVANCED_ROOM_CREATION_PARAMETERS", false, Res.string.pref_show_advanced_room_creation_parameters_title, Res.string.pref_show_advanced_room_creation_parameters_summary)
+
     // Advanced / low-level stuff
     val SKIKO_VSYNC = ScBoolPref("SKIKO_VSYNC", true, Res.string.pref_skiko_vsync_title, Res.string.pref_skiko_vsync_summary, requiresWindowRecreation = true, supportedOnPlatform = scPrefPlatformSupport.desktopOnly)
     val SDK_SQLITE_MAX_POOL_SIZE = ScIntPref("SDK_SQLITE_MAX_POOL_SIZE", 8, Res.string.pref_sdk_sqlite_max_pool_size_title, Res.string.pref_sdk_sqlite_max_pool_size_summary, minValue = 2, maxValue = 64)
@@ -470,6 +475,7 @@ object ScPrefs {
             FORCE_RENDER_BLURHASH,
             RENDER_AVATAR_STATES,
             FRAME_DROP_SPINNER,
+            SHOW_ADVANCED_ROOM_CREATION_PARAMETERS,
         )),
     ))
 

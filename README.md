@@ -150,7 +150,7 @@ This list is not sufficient to consider the client feature-complete in any way.
         - [ ] Session management to rename or log out other devices (probably just link to next-gen-auth website :( )
     - [x] Room settings
     - [ ] Invite/kick/ban user UI
-    - [ ] Create new rooms with all the settings (room visibility, history, ...)
+    - [x] Create new rooms with all the settings (room visibility, history, ...)
     - [ ] Media viewer
     - [ ] ...
 - [ ] Custom theming

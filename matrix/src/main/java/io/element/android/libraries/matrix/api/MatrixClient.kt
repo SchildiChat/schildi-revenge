@@ -55,6 +55,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import org.matrix.rustcomponents.sdk.RoomImagePackStateEvent
+import org.matrix.rustcomponents.sdk.RoomVersions
 import java.util.Optional
 
 interface MatrixClient {

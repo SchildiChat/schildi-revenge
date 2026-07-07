@@ -349,16 +349,44 @@ private fun ContextMenuDropdownMenuItemContent(
     )
 }
 
-fun Int.keyboardShortcutFromIndex() = when (this) {
-    0 -> Key.One
-    1 -> Key.Two
-    2 -> Key.Three
-    3 -> Key.Four
-    4 -> Key.Five
-    5 -> Key.Six
-    6 -> Key.Seven
-    7 -> Key.Eight
-    8 -> Key.Nine
-    9 -> Key.Zero
+fun Int.keyboardShortcutFromIndexZero() = when (this) {
+    0 -> Key.Zero
+    1 -> Key.One
+    2 -> Key.Two
+    3 -> Key.Three
+    4 -> Key.Four
+    5 -> Key.Five
+    6 -> Key.Six
+    7 -> Key.Seven
+    8 -> Key.Eight
+    9 -> Key.Nine
+    10 -> Key.A
+    11 -> Key.B
+    12 -> Key.C
+    13 -> Key.D
+    14 -> Key.E
+    15 -> Key.F
+    16 -> Key.G
+    17 -> Key.H
+    18 -> Key.I
+    19 -> Key.J
+    20 -> Key.K
+    21 -> Key.L
+    22 -> Key.M
+    23 -> Key.N
+    24 -> Key.O
+    25 -> Key.P
+    26 -> Key.Q
+    27 -> Key.R
+    28 -> Key.S
+    29 -> Key.T
+    30 -> Key.U
+    31 -> Key.V
+    32 -> Key.W
+    33 -> Key.X
+    34 -> Key.Y
+    35 -> Key.Z
     else -> null
 }
+
+fun Int.keyboardShortcutFromIndex() = inc().keyboardShortcutFromIndexZero()

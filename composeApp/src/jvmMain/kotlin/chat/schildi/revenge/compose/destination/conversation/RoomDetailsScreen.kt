@@ -77,6 +77,8 @@ import chat.schildi.revenge.matrixBodyDrawStyle
 import chat.schildi.revenge.matrixBodyFormatter
 import chat.schildi.revenge.model.RoomDetailsViewModel
 import chat.schildi.revenge.model.RoomSettingsPermissions
+import chat.schildi.revenge.model.conversation.HISTORY_VISIBILITY_ENTRIES
+import chat.schildi.revenge.model.conversation.JOIN_RULE_ENTRIES
 import chat.schildi.revenge.plaintext.EventTextFormat
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
@@ -84,8 +86,6 @@ import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.RoomInfo
 import io.element.android.libraries.matrix.api.room.history.RoomHistoryVisibility
-import io.element.android.libraries.matrix.api.room.join.JoinRule
-import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.action_show_room_members
@@ -108,49 +108,8 @@ import shire.res.generated.resources.hint_room_type
 import shire.res.generated.resources.hint_room_version
 import shire.res.generated.resources.hint_topic
 import shire.res.generated.resources.history_visibility_custom
-import shire.res.generated.resources.history_visibility_invited
-import shire.res.generated.resources.history_visibility_joined
-import shire.res.generated.resources.history_visibility_shared
-import shire.res.generated.resources.history_visibility_world_readable
-import shire.res.generated.resources.join_rule_invite
-import shire.res.generated.resources.join_rule_knock
-import shire.res.generated.resources.join_rule_public
 import shire.res.generated.resources.room_details_title
 import kotlin.toString
-
-private val JOIN_RULE_ENTRIES = persistentListOf(
-    EditableDropdownEntry(
-        JoinRule.Invite,
-        Res.string.join_rule_invite.toStringHolder()
-    ),
-    EditableDropdownEntry(
-        JoinRule.Knock,
-        Res.string.join_rule_knock.toStringHolder()
-    ),
-    EditableDropdownEntry(
-        JoinRule.Public,
-        Res.string.join_rule_public.toStringHolder()
-    ),
-)
-
-private val HISTORY_VISIBILITY_ENTRIES = persistentListOf(
-    EditableDropdownEntry(
-        RoomHistoryVisibility.Joined,
-        Res.string.history_visibility_joined.toStringHolder()
-    ),
-    EditableDropdownEntry(
-        RoomHistoryVisibility.Invited,
-        Res.string.history_visibility_invited.toStringHolder()
-    ),
-    EditableDropdownEntry(
-        RoomHistoryVisibility.Shared,
-        Res.string.history_visibility_shared.toStringHolder()
-    ),
-    EditableDropdownEntry(
-        RoomHistoryVisibility.WorldReadable,
-        Res.string.history_visibility_world_readable.toStringHolder()
-    ),
-)
 
 @Composable
 fun RoomDetailsScreen(
@@ -260,6 +219,7 @@ fun RoomDetailsScreen(
                                     textAlign = TextAlign.Center,
                                     emptyFallbackText = stringResource(Res.string.hint_no_room_name),
                                     canEdit = permissions.canEditName,
+                                    singleLine = true,
                                 )
                             }
                         }
@@ -340,7 +300,9 @@ fun RoomDetailsScreen(
                                     JOIN_RULE_ENTRIES,
                                     persist = { viewModel.setJoinRule(it) },
                                     renderValue = { value, entry ->
-                                        entry?.title?.render() ?: EventTextFormat.joinRuleToText(value, roomNames.orEmpty())
+                                        entry?.title?.render() ?: value?.let {
+                                            EventTextFormat.joinRuleToText(value, roomNames.orEmpty())
+                                        } ?: value.toString()
                                     },
                                     enabled = permissions.canSetJoinRule,
                                 )
@@ -600,12 +562,12 @@ private fun RoomInfoAdvancedInfoField(
 }
 
 @Composable
-fun <T>RoomDetailsDropDownSetting(
+private fun <T>RoomDetailsDropDownSetting(
     headerText: String,
     currentValue: T,
     items: List<EditableDropdownEntry<out T>>,
     persist: suspend ActionContext.(T) -> ActionResult,
-    renderValue: @Composable (T, EditableDropdownEntry<out T>?) -> String = { value, entry ->
+    renderValue: @Composable (T?, EditableDropdownEntry<out T>?) -> String = { value, entry ->
         entry?.title?.render() ?: value.toString()
     },
     enabled: Boolean = true,

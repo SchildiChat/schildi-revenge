@@ -20,6 +20,7 @@ import shire.res.generated.resources.about
 import shire.res.generated.resources.account_dev_tools_title
 import shire.res.generated.resources.app_title_short
 import shire.res.generated.resources.diagnostics
+import shire.res.generated.resources.create_room
 import shire.res.generated.resources.hint_settings
 import shire.res.generated.resources.inbox
 import shire.res.generated.resources.manage_accounts
@@ -62,7 +63,6 @@ sealed interface Destination {
     sealed interface WithSession : Destination {
         val sessionId: SessionId
     }
-
 
     sealed interface WithRoomOptional : Destination, WithSession {
         val roomId: RoomId?
@@ -126,6 +126,16 @@ sealed interface Destination {
             DestinationCategory.CONVERSATION
 
         override val title = null
+    }
+
+    @Serializable
+    data class CreateRoom(
+        val initialSessionId: SessionId? = null,
+    ) : Destination {
+        override val destinationId = DestinationEnum.CreateRoom
+        override val category = DestinationCategory.CONVERSATION
+        @Transient
+        override val title = StringResourceHolder(Res.string.create_room)
     }
 
     @Serializable

@@ -10,6 +10,7 @@ package io.element.android.libraries.matrix.impl
 import io.element.android.libraries.core.extensions.runCatchingExceptions
 import io.element.android.libraries.matrix.api.HomeserverCapabilitiesProvider
 import org.matrix.rustcomponents.sdk.HomeserverCapabilities
+import org.matrix.rustcomponents.sdk.RoomVersions
 
 class RustHomeserverCapabilitiesProvider(
     private val homeserverCapabilities: HomeserverCapabilities,
@@ -25,4 +26,10 @@ class RustHomeserverCapabilitiesProvider(
     override suspend fun canChangeAvatarUrl(): Result<Boolean> = runCatchingExceptions {
         homeserverCapabilities.canChangeAvatar()
     }
+
+    // SC start
+    override suspend fun roomVersions(): Result<RoomVersions> = runCatchingExceptions {
+        homeserverCapabilities.roomVersions()
+    }
+    // SC end
 }

@@ -27,4 +27,5 @@ data class CreateRoomParameters(
     val historyVisibilityOverride: RoomHistoryVisibility? = null,
     val roomAliasName: Optional<String> = Optional.empty(),
     val isSpace: Boolean = false,
+    val roomVersion: String? = null, // SC
 )
