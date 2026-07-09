@@ -143,6 +143,7 @@
     <string name="command_copy_name_message_content">message content</string>
     <string name="command_copy_name_formatted_message_content">formatted message content</string>
     <string name="command_copy_name_event_source">event source</string>
+    <string name="command_copy_name_loaded_timeline">loaded timeline</string>
     <string name="command_copy_name_full_room_state">room state</string>
     <string name="command_copy_name_full_account_data">account data</string>
     <string name="command_copy_name_event_id">event ID</string>

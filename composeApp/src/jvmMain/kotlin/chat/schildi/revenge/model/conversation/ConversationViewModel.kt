@@ -165,6 +165,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -179,6 +180,7 @@ import shire.res.generated.resources.action_redact_message_prompt
 import shire.res.generated.resources.command_copy_name_event_source
 import shire.res.generated.resources.command_copy_name_formatted_message_content
 import shire.res.generated.resources.command_copy_name_full_room_state
+import shire.res.generated.resources.command_copy_name_loaded_timeline
 import shire.res.generated.resources.command_copy_name_message_content
 import shire.res.generated.resources.command_copy_name_mxc
 import shire.res.generated.resources.command_copy_name_url
@@ -1562,6 +1564,30 @@ class ConversationViewModel(
                             RoomMembershipState.BAN -> room.unbanUser(userId, reason).toActionResult()
                         }
 
+                    }
+                }
+
+                Action.Conversation.CopyLoadedTimeline,
+                Action.Conversation.ViewLoadedTimeline -> {
+                    val events = rawTimelineItems.value ?: return@run ActionResult.Failure("Timeline not ready")
+                    val eventSources = events.mapNotNull { item ->
+                        (item as? MatrixTimelineItem.Event)
+                            ?.event
+                            ?.timelineItemDebugInfoProvider()
+                            ?.originalJson
+                            ?.let { runCatching { PrettyJson.parseToJsonElement(it) }.getOrNull() }
+                    }
+                    if (eventSources.isEmpty()) {
+                        return@run ActionResult.Inapplicable
+                    }
+                    val content = PrettyJson.encodeToString(JsonArray(eventSources))
+                    if (action == Action.Conversation.CopyLoadedTimeline) {
+                        context.copyToClipboard(
+                            content,
+                            Res.string.command_copy_name_loaded_timeline.toStringHolder(),
+                        )
+                    } else {
+                        context.viewInExternalApp(content, ".json")
                     }
                 }
 

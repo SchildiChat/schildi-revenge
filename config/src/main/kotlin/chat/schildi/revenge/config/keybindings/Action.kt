@@ -334,6 +334,8 @@ sealed interface Action {
         BanUser(aliases = listOf("ban"), args = listOf(ActionArgumentPrimitive.UserIdInRoom, OptionalReason)),
         UnbanUser(aliases = listOf("unban"), args = listOf(ActionArgumentPrimitive.UserIdNotInRoom, OptionalReason)),
         InviteOrKickUser(aliases = listOf("kickOrInvite"), args = listOf(ActionArgumentPrimitive.UserId, OptionalReason)),
+        CopyLoadedTimeline(aliases = listOf("copyTimeline", "copyLoadedMessages")),
+        ViewLoadedTimeline(aliases = listOf("viewTimeline", "viewLoadedMessages")),
         CopyFullRoomState(aliases = listOf("roomState", "copyRoomState")),
         ViewFullRoomState(aliases = listOf("viewRoomState")),
     }
