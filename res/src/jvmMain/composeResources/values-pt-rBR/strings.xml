@@ -307,4 +307,19 @@
     <string name="pref_minimal_mode_summary">Oculta elementos de navegação e a caixa de texto quando não estiverem em uso. Só útil se tiver configurado atalhos de teclado customizados e/ou conhece o modo de comando o suficiente para navegar o programa.</string>
     <string name="pref_formatted_composer_preview_summary">Mostrar uma pré-visualização da mensagem renderizada antes de enviar ao lado da caixa de texto</string>
     <string name="pref_category_message_authenticity_warnings">Avisos de autenticidade de mensagem</string>
+    <plurals name="n_mutual_rooms">
+        <item quantity="one">%1$d sala compartilhada</item>
+        <item quantity="many">%1$d salas compartilhadas</item>
+        <item quantity="other">%1$d salas compartilhadas</item>
+    </plurals>
+    <plurals name="n_mutual_rooms_header">
+        <item quantity="one">%1$d sala compartilhada:</item>
+        <item quantity="many">%1$d salas compartilhadas:</item>
+        <item quantity="other">%1$d salas compartilhadas:</item>
+    </plurals>
+    <plurals name="n_mutual_rooms_such_as">
+        <item quantity="one">%1$d sala compartilhada: %2$s</item>
+        <item quantity="many">%1$d salas compartilhadas: %2$s</item>
+        <item quantity="other">%1$d salas compartilhadas: %2$s</item>
+    </plurals>
 </resources>
