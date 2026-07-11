@@ -57,6 +57,7 @@ plugins {
 include(":composeApp")
 include(":config")
 include(":matrix")
+include(":matrixRustBindings")
 include(":preferences")
 include(":res")
 include(":shim")

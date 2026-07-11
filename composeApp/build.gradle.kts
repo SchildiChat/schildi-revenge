@@ -431,7 +431,7 @@ val copyNativeLib = tasks.register<Sync>("copyNativeLibToDistribution") {
 
     into(distributionResourcesOsDir)
 
-    dependsOn(":matrix:buildSdk")
+    dependsOn(":matrixRustBindings:buildDesktopSdk")
 }
 
 tasks.matching {
