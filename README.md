@@ -193,7 +193,7 @@ The sections include:
 - `split`: Actions related to an experimental split screen mode.
 
 Until I properly document all available actions, you can find them defined
-[here](https://github.com/SchildiChat/schildi-revenge/blob/main/config/src/main/kotlin/chat/schildi/revenge/config/keybindings/Action.kt).
+[here](https://github.com/SchildiChat/schildi-revenge/blob/main/config/src/commonMain/kotlin/chat/schildi/revenge/config/keybindings/Action.kt).
 Note that as long as you have a keybinding for `Command` in the `global` section, you can also type in any of these
 action into the command mode to play around with them before defining key bindings for them.
 

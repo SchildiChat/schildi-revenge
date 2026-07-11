@@ -78,7 +78,7 @@ fun String.destinationRequiresResolvableRoom() = this in listOf("chat", "convers
 fun String.destinationRequiresEventId() = this in listOf("reactions")
 
 data object NavigationDestinationSessionId : ActionArgumentContextBased {
-    override val name: String = javaClass.simpleName
+    override val name: String = "NavigationDestinationSessionId"
     override val consumesTrailingArgsWithSpace = false
     override fun canHold(primitive: ActionArgumentPrimitive) = primitive == ActionArgumentPrimitive.SessionId
     override fun getFor(context: CommandArgContext): ActionArgument {
@@ -93,7 +93,7 @@ data object NavigationDestinationSessionId : ActionArgumentContextBased {
 }
 
 data object NavigationDestinationResolvableRoom : ActionArgumentContextBased {
-    override val name: String = javaClass.simpleName
+    override val name: String = "NavigationDestinationResolvableRoom"
     override val consumesTrailingArgsWithSpace = false
     override fun canHold(primitive: ActionArgumentPrimitive) = primitive == ActionArgumentPrimitive.RoomId ||
             primitive == ActionArgumentPrimitive.ExistingDmUserId ||
@@ -110,7 +110,7 @@ data object NavigationDestinationResolvableRoom : ActionArgumentContextBased {
 }
 
 data object NavigationDestinationEventId : ActionArgumentContextBased {
-    override val name: String = javaClass.simpleName
+    override val name: String = "NavigationDestinationEventId"
     override val consumesTrailingArgsWithSpace = false
     override fun canHold(primitive: ActionArgumentPrimitive) = primitive == ActionArgumentPrimitive.EventId
     override fun getFor(context: CommandArgContext): ActionArgument {

@@ -1,30 +1,42 @@
 plugins {
-    id("java-library")
-    alias(libs.plugins.jetbrainsKotlinJvm)
+    alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlinxSerialization)
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+kotlin {
+    jvm {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+        }
+    }
+    androidTarget {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        }
+    }
+
+    sourceSets {
+        commonMain.dependencies {
+            api(libs.appdirs)
+            api(libs.compose.ui)
+            api(libs.kotlinx.serialization.core)
+        }
+        jvmMain.dependencies {
+            api(libs.androidx.datastore.preferences.core)
+            api(libs.kotlinx.coroutines.core)
+            implementation(libs.kermit)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.ktoml.core)
+        }
+    }
 }
 
-kotlin {
-    compilerOptions {
-        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
-    }
-    sourceSets {
-        named("main") {
-            dependencies {
-                implementation(libs.kermit)
-                implementation(libs.coil3.compose)
-                implementation(libs.kotlinx.serialization.core)
-                implementation(libs.kotlinx.serialization.json)
-                implementation(libs.kotlinx.coroutines.core)
-                implementation(libs.ktoml.core)
-                implementation(libs.androidx.datastore.preferences.core)
-                api(libs.appdirs)
-            }
-        }
+android {
+    namespace = "chat.schildi.revenge.config"
+    compileSdk = 37
+
+    defaultConfig {
+        minSdk = 21
     }
 }
