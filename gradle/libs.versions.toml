@@ -27,6 +27,8 @@ beeperMessageFormat = "5ac720dbe1a46f228df673cc2c554584731f932c"
 dbusJava = "5.2.0"
 clikt = "5.1.0"
 blurhash = "0.3.0"
+androidx-core = "1.16.0"
+desugarJdkLibs = "2.1.5"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -72,6 +74,9 @@ dbus-java-core = { module = "com.github.hypfvieh:dbus-java-core", version.ref = 
 dbus-java-transport-native-unixsocket = { module = "com.github.hypfvieh:dbus-java-transport-native-unixsocket", version.ref = "dbusJava" }
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 vanniktech-blurhash = { module = "com.vanniktech:blurhash", version.ref = "blurhash" }
+androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
+desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
+coil3-gif = { group = "io.coil-kt.coil3", name = "coil-gif", version.ref = "coil" }
 
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "androidGradlePlugin" }
@@ -84,3 +89,4 @@ kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref =
 jetbrainsKotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrainsKotlinJvm" }
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 metro = { id = "dev.zacsweers.metro", version.ref = "metro" }
+kotlinParcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }

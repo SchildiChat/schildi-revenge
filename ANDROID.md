@@ -21,3 +21,7 @@ injected ABI property overrides either default, for example:
 ./gradlew :matrixRustBindings:assembleDebug -Pandroid.injected.build.abi=x86_64
 ```
 
+## TODOs to remember for later
+
+- The Android `Application` must call `attachAppDirs()` before Matrix or configuration storage is initialized. This attaches
+  the application context used by the multiplatform AppDirs implementation.
