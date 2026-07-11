@@ -104,7 +104,7 @@ val buildType: String = if (isReleaseBuild) "release" else "debug"
 val rustProfile: String = if (isReleaseBuild) "release" else "debug"
 
 val generatedSrcDir = layout.buildDirectory.dir("generated/src/jvmMain/kotlin").get().asFile
-val composeResourcesDir = rootProject.layout.projectDirectory.dir("res/src/jvmMain/composeResources")
+val composeResourcesDir = rootProject.layout.projectDirectory.dir("res/src/commonMain/composeResources")
 val jvmResourcesDir = layout.projectDirectory.dir("src/jvmMain/resources")
 
 val distributionResourcesDirName = "distribution-resources"
@@ -388,7 +388,7 @@ compose.desktop {
                 shortcut = true
                 appCategory = "Network;Chat"
 
-                iconFile.set(rootProject.file("res/src/jvmMain/composeResources/drawable-xxxhdpi/ic_launcher.png"))
+                iconFile.set(rootProject.file("res/src/commonMain/composeResources/drawable-xxxhdpi/ic_launcher.png"))
 
                 debMaintainer = "SpiritCroc <shire@spiritcroc.de>"
                 rpmLicenseType = "AGPL-3.0-only"

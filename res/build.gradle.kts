@@ -14,12 +14,14 @@ import javax.xml.parsers.DocumentBuilderFactory
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
 }
 
 kotlin {
     jvm()
+    androidTarget()
 
     sourceSets {
         commonMain.dependencies {
@@ -30,12 +32,21 @@ kotlin {
     }
 }
 
+android {
+    namespace = "chat.schildi.resources"
+    compileSdk = 37
+
+    defaultConfig {
+        minSdk = 21
+    }
+}
+
 compose.resources {
     publicResClass = true
 }
 
-val generatedSrcDir = layout.buildDirectory.dir("generated/src/jvmMain/kotlin").get().asFile
-val composeResourcesDir = layout.projectDirectory.dir("src/jvmMain/composeResources")
+val generatedSrcDir = layout.buildDirectory.dir("generated/src/commonMain/kotlin").get().asFile
+val composeResourcesDir = layout.projectDirectory.dir("src/commonMain/composeResources")
 
 abstract class GenerateAvailableLocalesTask : DefaultTask() {
     @get:InputDirectory
@@ -135,10 +146,14 @@ val generateAvailableLocales = tasks.register<GenerateAvailableLocalesTask>("gen
     outputFile.set(outFile)
 }
 
-kotlin.sourceSets.named("jvmMain") {
+kotlin.sourceSets.named("commonMain") {
     kotlin.srcDir(generatedSrcDir)
 }
 
-tasks.named("compileKotlinJvm").configure {
+tasks.matching {
+    it.name == "compileCommonMainKotlinMetadata" ||
+        it.name == "compileKotlinJvm" ||
+        (it.name.startsWith("compile") && it.name.endsWith("KotlinAndroid"))
+}.configureEach {
     dependsOn(generateAvailableLocales)
 }

@@ -165,7 +165,7 @@ This list is not sufficient to consider the client feature-complete in any way.
 
 Schildi Revenge has highly customizable keyboard actions (that I still need to properly document at some point).  
 To customize them, copy either
-[`keybindings-default.toml`](https://github.com/SchildiChat/schildi-revenge/blob/main/composeApp/src/jvmMain/composeResources/files/keybindings-default.toml)
+[`keybindings-default.toml`](https://github.com/SchildiChat/schildi-revenge/blob/main/res/src/commonMain/composeResources/files/keybindings-default.toml)
 (the default config if not customized) or
 [the more opinionated example config](https://github.com/SchildiChat/schildi-revenge/blob/main/example-config/keybindings-advanced.toml)
 to `~/.config/SchildiChatRevenge/keybindings.toml` (on typical Linux systems)
