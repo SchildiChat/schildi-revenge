@@ -103,7 +103,7 @@ data class ScBoolPref(
     override val key = booleanPreferencesKey(sKey)
     override fun ensureType(value: Any?): Boolean? {
         if (value !is Boolean?) {
-            Logger.withTag("ScBoolPref").e("Parse boolean failed of $sKey for ${value?.javaClass?.simpleName}")
+            Logger.withTag("ScBoolPref").e("Parse boolean failed of $sKey for ${value::class.simpleName}")
             return null
         }
         return value
@@ -128,7 +128,7 @@ data class ScIntPref(
     override val key = intPreferencesKey(sKey)
     override fun ensureType(value: Any?): Int? {
         if (value !is Int?) {
-            Logger.withTag("ScIntPref").e("Parse int failed of $sKey for ${value?.javaClass?.simpleName}")
+            Logger.withTag("ScIntPref").e("Parse int failed of $sKey for ${value::class.simpleName}")
             return null
         }
         return value?.coerceIn(minValue, maxValue)
@@ -155,7 +155,7 @@ data class ScFloatPref(
     override val key = floatPreferencesKey(sKey)
     override fun ensureType(value: Any?): Float? {
         if (value !is Float?) {
-            Logger.withTag("ScFloatPref").e("Parse float failed of $sKey for ${value?.javaClass?.simpleName}")
+            Logger.withTag("ScFloatPref").e("Parse float failed of $sKey for ${value::class.simpleName}")
             return null
         }
         return value?.coerceIn(minValue, maxValue)
@@ -211,7 +211,7 @@ data class ScStringListPref(
     override val key = stringPreferencesKey(sKey)
     override fun ensureType(value: Any?): String? {
         if (value !is String?) {
-            Logger.withTag("ScStringListPref").e("Parse string failed of $sKey for ${value?.javaClass?.simpleName}")
+            Logger.withTag("ScStringListPref").e("Parse string failed of $sKey for ${value::class.simpleName}")
             return null
         }
         return value

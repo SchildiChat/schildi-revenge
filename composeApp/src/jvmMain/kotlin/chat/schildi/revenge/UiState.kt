@@ -75,6 +75,7 @@ object UiState {
     private val scope = ScCoroutines.scope(Dispatchers.IO, "UiState")
     private val shutdownScope = CoroutineScope(Dispatchers.Default)
     private val isShuttingDown = AtomicBoolean(false)
+    private val initialLocale = Locale.getDefault()
 
     val appGraph: AppGraph = createGraphFactory<AppGraph.Factory>().create()
     private val windowCounter = AtomicInt(0)
@@ -289,7 +290,7 @@ object UiState {
 
     val currentLocale = RevengePrefs.settingFlow(ScPrefs.LOCALE).onEach {
         val localeToSet = when (it) {
-            "" -> ScPrefs.initialLocale
+            "" -> initialLocale
             else -> Locale.forLanguageTag(it)
         }
         if (localeToSet != Locale.getDefault()) {

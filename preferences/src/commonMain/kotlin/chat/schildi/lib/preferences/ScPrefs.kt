@@ -164,16 +164,14 @@ import shire.res.generated.resources.pref_url_previews_summary
 import shire.res.generated.resources.pref_url_previews_title
 import shire.res.generated.resources.pref_view_membership_events_in_public_rooms_summary
 import shire.res.generated.resources.pref_view_membership_events_in_public_rooms_title
-import java.util.Locale
 
 object ScPrefs {
 
-    val initialLocale: Locale = Locale.getDefault()
     const val LOCALE_DEFAULT = "en"
     val availableLocaleSettings = (
         listOf(ScListPrefEntry("", Res.string.pref_locale_follow_system.toStringHolder())) +
         (listOf(LOCALE_DEFAULT) + AvailableLocales.codes).map {
-            ScListPrefEntry(it, Locale.forLanguageTag(it).displayName.toStringHolder())
+            ScListPrefEntry(it, languageDisplayName(it).toStringHolder())
         }
     ).toPersistentList()
 
