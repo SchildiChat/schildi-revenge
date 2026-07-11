@@ -28,6 +28,7 @@ dbusJava = "5.2.0"
 clikt = "5.1.0"
 blurhash = "0.3.0"
 androidx-core = "1.16.0"
+androidx-activity = "1.10.1"
 desugarJdkLibs = "2.1.5"
 
 [libraries]
@@ -68,18 +69,20 @@ kdroidfilter_knotify_compose = { group = "io.github.kdroidfilter", name = "knoti
 kodein-emojiKt = { group = "org.kodein.emoji", name = "emoji-kt", version = "2.4.0" }
 ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 #beeper-messageformat = { module = "com.beeper.android.messageformat:messageformat-jvm", version = "1.0" }
-beeper-messageformat = { module = "com.github.beeper.matrix-messageformat-compose:messageformat-jvm", version.ref = "beeperMessageFormat" }
+beeper-messageformat = { module = "com.github.beeper.matrix-messageformat-compose:messageformat", version.ref = "beeperMessageFormat" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 dbus-java-core = { module = "com.github.hypfvieh:dbus-java-core", version.ref = "dbusJava" }
 dbus-java-transport-native-unixsocket = { module = "com.github.hypfvieh:dbus-java-transport-native-unixsocket", version.ref = "dbusJava" }
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 vanniktech-blurhash = { module = "com.vanniktech:blurhash", version.ref = "blurhash" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
 desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 coil3-gif = { group = "io.coil-kt.coil3", name = "coil-gif", version.ref = "coil" }
 
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "androidGradlePlugin" }
+androidApplication = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 versions = { id = "com.github.ben-manes.versions", version.ref = "versionsPlugin" }
 dependencyLicenseReport = { id = "com.github.jk1.dependency-license-report", version.ref = "dependencyLicenseReport" }
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }

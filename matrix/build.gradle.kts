@@ -57,7 +57,6 @@ kotlin {
                 implementation(libs.kotlinx.coroutines.test)
                 implementation(libs.kotlinx.collections.immutable)
                 implementation(libs.compose.runtime)
-                implementation(libs.skydoves.compose.stable.marker)
                 implementation(libs.coil3.compose)
                 implementation(libs.coil3.okhttp)
                 implementation(libs.coil3.gif)

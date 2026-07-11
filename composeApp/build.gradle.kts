@@ -24,6 +24,7 @@ import javax.inject.Inject
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
@@ -33,6 +34,11 @@ plugins {
 }
 kotlin {
     jvm()
+    androidTarget {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
+        }
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -53,14 +59,9 @@ kotlin {
             implementation(libs.kermit)
             implementation(libs.coil3.compose)
             implementation(libs.coil3.okhttp)
-            implementation(libs.clikt)
             implementation(libs.kdroidfilter.platformtools.darkmodedetector)
-            implementation(libs.kdroidfilter.composenativetray)
-            implementation(libs.kdroidfilter.knotify)
-            implementation(libs.kdroidfilter.knotify.compose)
             implementation(libs.kodein.emojiKt)
             implementation(libs.ktor.core)
-            implementation(libs.jsoup)
             implementation(libs.beeper.messageformat)
             implementation(libs.vanniktech.blurhash)
 
@@ -73,12 +74,63 @@ kotlin {
             implementation(libs.kotlin.test)
         }
         jvmMain.dependencies {
+            implementation(libs.kdroidfilter.composenativetray)
+            implementation(libs.kdroidfilter.knotify)
+            implementation(libs.kdroidfilter.knotify.compose)
+            implementation(libs.clikt)
+            implementation(libs.jsoup)
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
             implementation(libs.dbus.java.core)
             implementation(libs.dbus.java.transport.native.unixsocket)
         }
+        androidMain.dependencies {
+            implementation(libs.androidx.activity.compose)
+            implementation(libs.appdirs)
+            implementation(libs.jsoup)
+        }
     }
+}
+
+val supportedAndroidAbis = listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+val injectedAndroidAbis = providers.gradleProperty("android.injected.build.abi").orNull
+    ?.split(',')
+    ?.map(String::trim)
+    ?.filter(String::isNotEmpty)
+    ?.takeIf(List<String>::isNotEmpty)
+val unknownAndroidAbis = injectedAndroidAbis.orEmpty() - supportedAndroidAbis
+require(unknownAndroidAbis.isEmpty()) {
+    "Unsupported Android ABI(s): ${unknownAndroidAbis.joinToString()}. Supported ABIs: ${supportedAndroidAbis.joinToString()}"
+}
+
+android {
+    namespace = "chat.schildi.revenge"
+    compileSdk = 37
+
+    defaultConfig {
+        applicationId = "chat.schildi.revenge"
+        minSdk = 24
+        targetSdk = 37
+        versionCode = 1
+        versionName = "0.1"
+    }
+    buildTypes {
+        debug {
+            ndk.abiFilters += injectedAndroidAbis ?: listOf("arm64-v8a")
+        }
+        release {
+            ndk.abiFilters += injectedAndroidAbis ?: supportedAndroidAbis
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
+    }
+}
+
+dependencies {
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 }
 
 // --- Build variant info (debug/release) and codegen for BuildInfo ---
