@@ -75,6 +75,11 @@ fun selectedAbis(buildType: String): List<String> {
         ?.split(',')
         ?.map(String::trim)
         ?.filter(String::isNotEmpty)
+        ?.map { abi ->
+            // Normalize armeabi
+            if (abi == "armeabi") "armeabi-v7a" else abi
+        }
+        ?.distinct()
     val selected = injectedAbis?.takeIf(List<String>::isNotEmpty)
         ?: if (buildType == "release") abiTargets.keys.toList() else listOf("arm64-v8a")
     val unknown = selected - abiTargets.keys

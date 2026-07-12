@@ -95,11 +95,12 @@ kotlin {
     }
 }
 
-val supportedAndroidAbis = listOf("arm64-v8a", "armeabi-v7a", "x86", "x86_64")
+val supportedAndroidAbis = listOf("arm64-v8a", "armeabi", "armeabi-v7a", "x86", "x86_64")
 val injectedAndroidAbis = providers.gradleProperty("android.injected.build.abi").orNull
     ?.split(',')
     ?.map(String::trim)
     ?.filter(String::isNotEmpty)
+    ?.distinct()
     ?.takeIf(List<String>::isNotEmpty)
 val unknownAndroidAbis = injectedAndroidAbis.orEmpty() - supportedAndroidAbis
 require(unknownAndroidAbis.isEmpty()) {
