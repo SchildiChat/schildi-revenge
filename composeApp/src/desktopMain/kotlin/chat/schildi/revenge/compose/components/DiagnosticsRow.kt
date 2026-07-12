@@ -46,7 +46,7 @@ data class WindowDiagnostics(
 val LocalWindowDiagnostics = compositionLocalOf<WindowDiagnostics?> { null }
 
 @Composable
-fun DiagnosticsRow(modifier: Modifier = Modifier) {
+actual fun DiagnosticsRow(modifier: Modifier) {
     val diagnosticsViewModel: DiagnosticsViewModel =
         viewModel(
             key = viewModelKey(Destination.Diagnostics),

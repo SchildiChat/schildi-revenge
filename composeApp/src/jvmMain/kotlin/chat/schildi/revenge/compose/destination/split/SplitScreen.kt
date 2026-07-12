@@ -53,14 +53,14 @@ fun SplitHorizontal(
         SplitScreenDestination(
             focusId = primaryFocusId,
             splitRole = SplitRole.Start,
-            splitType = destination.type,
+            splitType = destination.destinationId,
             destinationHolder = destination.primary,
             actionProvider = splitKeyboardActionProvider(true),
         )
         SplitScreenDestination(
             focusId = secondaryFocusId,
             splitRole = SplitRole.End,
-            splitType = destination.type,
+            splitType = destination.destinationId,
             destinationHolder = destination.secondary,
             actionProvider = splitKeyboardActionProvider(false),
         )
@@ -81,14 +81,14 @@ fun SplitVertical(
         SplitScreenDestination(
             focusId = primaryFocusId,
             splitRole = SplitRole.Top,
-            splitType = destination.type,
+            splitType = destination.destinationId,
             destinationHolder = destination.primary,
             actionProvider = splitKeyboardActionProvider(true),
         )
         SplitScreenDestination(
             focusId = secondaryFocusId,
             splitRole = SplitRole.Bottom,
-            splitType = destination.type,
+            splitType = destination.destinationId,
             destinationHolder = destination.secondary,
             actionProvider = splitKeyboardActionProvider(false),
         )
@@ -119,7 +119,7 @@ fun SplitScreenDestination(
                 parentDestinationStateHolder.publishTitle(
                     childTitle
                 ) {
-                    it.type == splitType
+                    it.destinationId == splitType
                 }
             }
         }

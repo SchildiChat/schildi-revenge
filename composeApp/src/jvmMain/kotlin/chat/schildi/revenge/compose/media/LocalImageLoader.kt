@@ -7,7 +7,7 @@ import androidx.compose.runtime.remember
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.components.LocalSessionId
 import coil3.ImageLoader
-import coil3.PlatformContext
+import coil3.compose.LocalPlatformContext
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.ui.media.ImageLoaderHolder
 
@@ -20,6 +20,7 @@ val LocalImageLoaderHolder = compositionLocalOf<ImageLoaderHolder?> { null }
 
 @Composable
 fun imageLoader(sessionId: SessionId? = LocalSessionId.current): ImageLoader {
+    val context = LocalPlatformContext.current
     return if (sessionId != null) {
         LocalSessionImageLoader.current?.takeIf { it.first == sessionId }?.second
             ?: LocalImageLoaderHolder.current?.let { holder ->
@@ -28,5 +29,5 @@ fun imageLoader(sessionId: SessionId? = LocalSessionId.current): ImageLoader {
             }
     } else {
         LocalImageLoaderHolder.current?.get()
-    } ?: remember { ImageLoader(PlatformContext.INSTANCE) }
+    } ?: remember(context) { ImageLoader(context) }
 }

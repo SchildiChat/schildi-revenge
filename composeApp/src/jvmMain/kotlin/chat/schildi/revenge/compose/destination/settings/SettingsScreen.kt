@@ -87,7 +87,7 @@ fun SettingsScreen(
                     .collectAsState(null).value != null
             }
             MultiPaneLayout(
-                outerDestination = destination.type,
+                outerDestination = destination.destinationId,
                 innerDestinations = listOfNotNull(
                     if (collapseSinglePane && hasDetails && !isSearching)
                         null

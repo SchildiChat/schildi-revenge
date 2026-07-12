@@ -146,9 +146,9 @@ fun buildMultiPaneDestinationStateHolderWrapper(
     closeDestination = { toClose ->
         val details = accessDetails()
         val placeholder = createPlaceholder()
-        if (toClose !in allowedDetailsDestinations || toClose == placeholder.type) {
+        if (toClose !in allowedDetailsDestinations || toClose == placeholder.destinationId) {
             ActionResult.Inapplicable
-        } else if (details.state.value.destination.type != toClose) {
+        } else if (details.state.value.destination.destinationId != toClose) {
             ActionResult.Inapplicable
         } else {
             details.navigate(
@@ -172,7 +172,7 @@ fun buildMultiPaneDestinationStateHolderWrapper(
     }
 ) { navDestination ->
     when {
-        navDestination.type == mainDestination -> {
+        navDestination.destinationId == mainDestination -> {
             val main = accessMain()
             if (main.state.value.destination != navDestination) {
                 main.navigate(navDestination, NavigationPreference.REPLACE)
@@ -186,7 +186,7 @@ fun buildMultiPaneDestinationStateHolderWrapper(
         navDestination !is Destination.MultiPanePlaceholder && !isCompatibleDetails(navDestination) -> {
             false
         }
-        navDestination.type in allowedDetailsDestinations -> {
+        navDestination.destinationId in allowedDetailsDestinations -> {
             accessDetails().navigate(navDestination, NavigationPreference.REPLACE)
             true
         }

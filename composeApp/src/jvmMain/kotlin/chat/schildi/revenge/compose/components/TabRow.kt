@@ -58,8 +58,6 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.Measurable
 import androidx.compose.ui.layout.MeasureResult
@@ -965,22 +963,6 @@ private fun ScrollableTabRowImp(
                     selectedTab = selectedTabIndex
                 )
             }
-        }
-    }
-}
-
-// SC
-fun Modifier.horizontalScrollFromVerticalWheel(
-    scrollState: ScrollState,
-    scrollAmount: Dp = 88.dp,
-): Modifier = composed {
-    val scrollAmountPx = with(LocalDensity.current) { scrollAmount.toPx() }
-    @OptIn(ExperimentalComposeUiApi::class)
-    onPointerEvent(PointerEventType.Scroll) { event ->
-        val scrollDelta = event.changes.firstOrNull()?.scrollDelta ?: return@onPointerEvent
-        if (scrollDelta.x == 0f && scrollDelta.y != 0f) {
-            scrollState.dispatchRawDelta(scrollDelta.y * scrollAmountPx)
-            event.changes.forEach { it.consume() }
         }
     }
 }

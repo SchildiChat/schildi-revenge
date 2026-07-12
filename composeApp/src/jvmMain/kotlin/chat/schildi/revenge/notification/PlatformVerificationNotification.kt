@@ -1,0 +1,5 @@
+package chat.schildi.revenge.notification
+
+import chat.schildi.revenge.model.verification.ScIncomingVerificationRequest
+
+expect fun platformNotifyIncomingVerificationRequest(request: ScIncomingVerificationRequest)

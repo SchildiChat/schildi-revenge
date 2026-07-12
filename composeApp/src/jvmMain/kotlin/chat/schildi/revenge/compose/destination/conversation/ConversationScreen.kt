@@ -29,8 +29,6 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draganddrop.DragAndDropEvent
 import androidx.compose.ui.draganddrop.DragAndDropTarget
-import androidx.compose.ui.draganddrop.DragData
-import androidx.compose.ui.draganddrop.dragData
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -132,7 +130,7 @@ fun ConversationScreen(
                 }
                 override fun onDrop(event: DragAndDropEvent): Boolean {
                     isDragging = false
-                    val file = (event.dragData() as? DragData.FilesList)?.readFiles()?.firstOrNull()
+                    val file = event.firstDroppedFile()
                     Logger.withTag("DnD").d { "Received drop $event, file ${file != null}" }
                     return if (file != null) {
                         viewModel.attachFile(actionContext, file)
@@ -234,7 +232,7 @@ fun ConversationScreen(
                 .alpha(dragAlpha.value)
                 .dragAndDropTarget(
                     shouldStartDragAndDrop = { event ->
-                        event.dragData() is DragData.FilesList
+                        event.hasDroppedFiles()
                     },
                     target = fileDragTarget,
                 ),

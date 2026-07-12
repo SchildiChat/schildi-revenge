@@ -43,8 +43,8 @@ import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 
 @Composable
-fun rememberAnimatedImageTransform(
-    filterQuality: FilterQuality = DefaultFilterQuality,
+actual fun rememberAnimatedImageTransform(
+    filterQuality: FilterQuality,
 ): (AsyncImagePainter.State) -> AsyncImagePainter.State {
     return remember(filterQuality) {
         { state -> state.withAnimatedPainter(filterQuality) }

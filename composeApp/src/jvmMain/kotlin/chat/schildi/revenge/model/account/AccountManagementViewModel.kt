@@ -5,11 +5,11 @@ import androidx.lifecycle.viewModelScope
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.UiState
-import chat.schildi.revenge.dbus.FreedesktopPortal
+import chat.schildi.revenge.actions.ActionContext
+import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.flatMergeCombinedWith
 import chat.schildi.revenge.model.verification.RevengeDeviceVerificationProvider
 import chat.schildi.revenge.model.verification.ScOutgoingVerificationRequest
-import chat.schildi.revenge.util.SystemInfo
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.auth.MatrixHomeServerDetails
 import io.element.android.libraries.matrix.api.auth.OAuthPrompt
@@ -22,15 +22,11 @@ import io.element.android.libraries.sessionstorage.api.SessionData
 import io.element.android.x.di.AppGraph
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import java.awt.Desktop
-import java.net.URI
 
 data class AccountManagementData(
     val session: SessionData,
@@ -112,31 +108,24 @@ class AccountManagementViewModel(
             .onSuccess { log.i { "Logged in to $username" } }
             .onFailure { log.w("Failed to log in to $username", it) }
 
-    suspend fun loginWithBrowser(): Result<Unit> {
+    suspend fun loginWithBrowser(actionContext: ActionContext): Result<Unit> {
         return runCatching {
             val oauthDetails = authService.getOAuthUrl(
                 prompt = OAuthPrompt.Login,
                 loginHint = null,
             ).getOrThrow()
             oAuthRepo.onOAuthRequestLaunched(oauthDetails)
-            openBrowser(oauthDetails.url)
+            when (val result = actionContext.openLink(oauthDetails.url)) {
+                is ActionResult.Success -> Unit
+                is ActionResult.Failure -> error(result.message)
+                else -> error("Unexpected result trying to open browser: $result")
+            }
         }.onSuccess {
             log.i { "Opened browser login" }
         }.onFailure { failure ->
             log.w("Failed to log in with browser", failure)
             oAuthRepo.onOAuthRequestCancelled()
         }
-    }
-
-    private suspend fun openBrowser(url: String) = withContext(Dispatchers.IO) {
-        if (SystemInfo.isLinux()) {
-            FreedesktopPortal.openUri(url)
-            return@withContext
-        }
-        if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-            error("Opening a browser is not supported on this desktop")
-        }
-        Desktop.getDesktop().browse(URI(url))
     }
 
     suspend fun verify(session: SessionData, recoveryKey: String): Result<Unit> {

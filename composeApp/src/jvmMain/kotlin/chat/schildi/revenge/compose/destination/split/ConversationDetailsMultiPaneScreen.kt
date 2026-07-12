@@ -28,7 +28,7 @@ fun ConversationDetailsMultiPaneScreen(
             destination.details.state.collectAsState().value.destination !is Destination.MultiPaneRoomInfoPlaceholder
         val shouldHidePlaceholders = ScPrefs.HIDE_EMPTY_CONVERSATION_DETAILS_PANE.value()
         MultiPaneLayout(
-            outerDestination = destination.type,
+            outerDestination = destination.destinationId,
             innerDestinations =
                 listOfNotNull(
                     if (collapseSinglePane && hasDetails) {
@@ -70,7 +70,7 @@ private fun DestinationStateHolder.wrapped(
             accessMain = { destination.conversation },
             accessDetails = { destination.details },
             createPlaceholder = { Destination.MultiPaneRoomInfoPlaceholder },
-            mainDestination = primaryDestination?.type ?: DestinationEnum.Conversation,
+            mainDestination = primaryDestination?.destinationId ?: DestinationEnum.Conversation,
             allowedDetailsDestinations = listOfNotNull(
                 DestinationEnum.RoomDetails,
                 DestinationEnum.RoomMembers,

@@ -12,6 +12,7 @@ import io.element.android.libraries.androidutils.metadata.isInDebug
 import java.io.Serializable
 
 @JvmInline
+@kotlinx.serialization.Serializable
 value class EventId(val value: String) : Serializable {
     init {
         if (isInDebug && !MatrixPatterns.isEventId(value) && false) {

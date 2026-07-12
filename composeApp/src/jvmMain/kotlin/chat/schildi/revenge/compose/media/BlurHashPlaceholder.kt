@@ -4,13 +4,13 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toComposeImageBitmap
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.material3.MaterialTheme
 import com.vanniktech.blurhash.BlurHash
 import kotlin.math.roundToInt
 
@@ -32,11 +32,7 @@ fun BlurHashPlaceholder(
     val decodedImage = remember(sanitizedBlurHash, width, height) {
         sanitizedBlurHash?.let {
             val (targetWidth, targetHeight) = blurHashDecodeSize(width, height)
-            BlurHash.decode(
-                blurHash = it,
-                width = targetWidth,
-                height = targetHeight,
-            )?.toComposeImageBitmap()
+            decodeBlurHash(it, targetWidth, targetHeight)
         }
     }
     Box(
@@ -54,6 +50,8 @@ fun BlurHashPlaceholder(
         }
     }
 }
+
+internal expect fun decodeBlurHash(blurHash: String, width: Int, height: Int): ImageBitmap?
 
 private fun blurHashDecodeSize(width: Long?, height: Long?): Pair<Int, Int> {
     val safeWidth = width?.takeIf { it > 0 }

@@ -10,9 +10,9 @@ import java.awt.FileDialog
 import java.awt.Frame
 import java.io.File
 
-object FilePicker {
+actual object FilePicker {
 
-    suspend fun requestFilePicker(title: String): Result<List<File>?> = when (SystemInfo.getOs()) {
+    actual suspend fun requestFilePicker(title: String): Result<List<File>?> = when (SystemInfo.getOs()) {
         OperatingSystem.Linux -> runCatching {
             FreedesktopPortal.requestFiles(title)
         }

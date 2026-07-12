@@ -36,17 +36,21 @@ kotlin {
     compilerOptions {
         optIn.add("kotlin.uuid.ExperimentalUuidApi")
     }
-    jvm()
+    jvm("desktop")
     androidTarget {
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
         }
     }
 
+    applyDefaultHierarchyTemplate()
+
     sourceSets {
+        val commonMain by getting
         commonMain.dependencies {
             implementation(libs.compose.runtime)
             implementation(libs.compose.foundation)
+            implementation(compose.material)
             implementation(libs.compose.material3)
             implementation(libs.compose.ui)
             implementation(libs.compose.components.resources)
@@ -76,21 +80,32 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
-        jvmMain.dependencies {
+        val jvmMain by creating {
+            dependsOn(commonMain)
+            dependencies {
+                implementation(libs.jsoup)
+            }
+        }
+        val desktopMain by getting {
+            dependsOn(jvmMain)
+            dependencies {
             implementation(libs.kdroidfilter.composenativetray)
             implementation(libs.kdroidfilter.knotify)
             implementation(libs.kdroidfilter.knotify.compose)
             implementation(libs.clikt)
-            implementation(libs.jsoup)
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
             implementation(libs.dbus.java.core)
             implementation(libs.dbus.java.transport.native.unixsocket)
+            }
         }
-        androidMain.dependencies {
-            implementation(libs.androidx.activity.compose)
-            implementation(libs.appdirs)
-            implementation(libs.jsoup)
+        val androidMain by getting {
+            dependsOn(jvmMain)
+            dependencies {
+                implementation(libs.androidx.activity.compose)
+                // Provides attachAppDirs(), which initializes AppDirs with the Android context.
+                implementation(libs.appdirs)
+            }
         }
     }
 }
@@ -111,6 +126,10 @@ android {
     namespace = "chat.schildi.revenge"
     compileSdk = 37
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "chat.schildi.revenge"
         minSdk = 24
@@ -120,6 +139,7 @@ android {
     }
     buildTypes {
         debug {
+            applicationIdSuffix = ".debug"
             ndk.abiFilters += injectedAndroidAbis ?: listOf("arm64-v8a")
         }
         release {
@@ -376,8 +396,11 @@ kotlin.sourceSets.named("jvmMain") {
     kotlin.srcDir(generatedSrcDir)
 }
 
-// Ensure codegen runs before compiling JVM sources
-tasks.named("compileKotlinJvm").configure {
+// Ensure codegen runs before compiling desktop and Android sources.
+tasks.named("compileKotlinDesktop").configure {
+    dependsOn(generateBuildInfo)
+}
+tasks.matching { it.name.matches(Regex("compile(?:.*)KotlinAndroid")) }.configureEach {
     dependsOn(generateBuildInfo)
 }
 

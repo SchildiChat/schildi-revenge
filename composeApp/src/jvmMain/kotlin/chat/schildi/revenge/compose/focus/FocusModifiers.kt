@@ -1,11 +1,9 @@
 package chat.schildi.revenge.compose.focus
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.PointerMatcher
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.onClick
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -22,7 +20,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -146,12 +143,12 @@ fun Modifier.keyFocusable(
             }
         }
         .ifNotNull(actionProvider.secondaryAction, addClickListener) { action ->
-            onClick(enabled = enableClicks, matcher = PointerMatcher.mouse(PointerButton.Secondary)) {
+            platformPointerClick(enabled = enableClicks, button = PlatformPointerButton.Secondary) {
                 keyHandler.executeAction(action, destinationState)
             }
         }
         .ifNotNull(actionProvider.tertiaryAction, addClickListener) { action ->
-            onClick(enabled = enableClicks, matcher = PointerMatcher.mouse(PointerButton.Tertiary)) {
+            platformPointerClick(enabled = enableClicks, button = PlatformPointerButton.Tertiary) {
                 keyHandler.executeAction(action, destinationState)
             }
         }

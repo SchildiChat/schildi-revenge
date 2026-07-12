@@ -25,6 +25,9 @@
             <option value="$PROJECT_DIR$/composeApp" />
             <option value="$PROJECT_DIR$/config" />
             <option value="$PROJECT_DIR$/matrix" />
+            <option value="$PROJECT_DIR$/matrixRustBindings" />
+            <option value="$PROJECT_DIR$/preferences" />
+            <option value="$PROJECT_DIR$/res" />
             <option value="$PROJECT_DIR$/shim" />
           </set>
         </option>

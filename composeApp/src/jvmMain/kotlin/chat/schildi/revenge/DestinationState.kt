@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlin.uuid.Uuid
 
 enum class NavigationPreference {
@@ -117,10 +119,12 @@ class DefaultDestinationStateHolder(
         state.value.destination != destination
 }
 
+@Serializable
 data class DestinationState(
     // Mutable ID allows moving destinations around, e.g. when entering split screen
     val holderId: Uuid,
     val destination: Destination,
+    @Transient
     val titleOverride: ComposableStringHolder? = null,
 )
 

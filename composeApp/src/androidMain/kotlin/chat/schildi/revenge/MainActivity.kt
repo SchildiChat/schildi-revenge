@@ -3,30 +3,116 @@ package chat.schildi.revenge
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.geometry.toRect
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.unit.toSize
+import chat.schildi.revenge.actions.KeyboardActionHandler
+import chat.schildi.revenge.actions.LocalKeyboardActionHandler
+import chat.schildi.revenge.compose.WindowContent
+import chat.schildi.revenge.compose.components.rememberScaledDensity
+import chat.schildi.revenge.compose.media.LocalImageLoaderHolder
+import co.touchlab.kermit.Logger
+import kotlin.random.Random
 
+@OptIn(ExperimentalComposeUiApi::class)
 class MainActivity : ComponentActivity() {
+    private val log = Logger.withTag("MainActivity")
+    private var windowId: WindowId = Random.nextInt()
+    private var destinationStateHolder: DestinationStateHolder? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        windowId = savedInstanceState?.getInt(EXTRA_WINDOW_ID, windowId) ?: windowId
+
+        val destination = savedInstanceState?.getString(EXTRA_DESTINATION)?.let {
+            Destination.deserializedFromString(it)
+                .onFailure { log.e("Failed to deserialize saved destination", it) }
+                .getOrNull()
+        } ?: intent.getStringExtra(EXTRA_DESTINATION)?.let {
+            Destination.deserializedFromString(it)
+                .onFailure { log.e("Failed to deserialize initial destination", it) }
+                .getOrNull()
+        }
+
+        val destinationStateHolder =
+            androidWindowManager.register(windowId, destination, this)
+        this.destinationStateHolder = destinationStateHolder
+
         setContent {
-            MaterialTheme {
-                Surface(modifier = Modifier.fillMaxSize()) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
-                    ) {
-                        Text("SchildiChat Revenge")
-                        Text("Android bootstrap is running")
-                    }
+            val scope = rememberCoroutineScope()
+            val handler = remember { KeyboardActionHandler(scope, windowId) }
+            LaunchedEffect(handler) { keyHandler = handler }
+            val focusManager = LocalFocusManager.current
+            val clipboard = LocalClipboard.current
+            val uriHandler = LocalUriHandler.current
+            val density = LocalDensity.current
+            LaunchedEffect(handler, focusManager) { handler.focusManager = focusManager }
+            LaunchedEffect(handler, clipboard) { handler.clipboard = clipboard }
+            LaunchedEffect(handler, uriHandler) { handler.uriHandler = uriHandler }
+
+            // Scaling settings
+            val localDensity = rememberScaledDensity()
+            CompositionLocalProvider(
+                LocalImageLoaderHolder provides UiState.appGraph.imageLoaderHolder,
+                LocalKeyboardActionHandler provides handler,
+                LocalDensity provides localDensity,
+            ) {
+                key(UiState.currentLocale.collectAsState().value) {
+                    WindowContent(
+                        destinationStateHolder,
+                        modifier = androidx.compose.ui.Modifier.onSizeChanged {
+                            handler.windowCoordinates = density.run { it.toSize().toRect() }
+                        },
+                    )
                 }
             }
         }
+    }
+
+    private var keyHandler: KeyboardActionHandler? = null
+
+    override fun onResume() {
+        super.onResume()
+        keyHandler?.onWindowFocusChanged(true)
+    }
+
+    override fun onPause() {
+        keyHandler?.onWindowFocusChanged(false)
+        super.onPause()
+    }
+
+    override fun onWindowFocusChanged(hasFocus: Boolean) {
+        super.onWindowFocusChanged(hasFocus)
+        keyHandler?.onWindowFocusChanged(hasFocus)
+    }
+
+    override fun onDestroy() {
+        androidWindowManager.unregister(windowId)
+        super.onDestroy()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putInt(EXTRA_WINDOW_ID, windowId)
+        destinationStateHolder?.let { stateHolder ->
+            outState.putString(EXTRA_DESTINATION, stateHolder.state.value.destination.serializedToString())
+        }
+        super.onSaveInstanceState(outState)
+    }
+
+    companion object {
+        internal const val EXTRA_DESTINATION = "destination"
+        internal const val EXTRA_WINDOW_ID = "windowId"
     }
 }

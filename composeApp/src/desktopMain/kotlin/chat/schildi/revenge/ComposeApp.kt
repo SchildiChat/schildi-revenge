@@ -13,7 +13,6 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -28,6 +27,7 @@ import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.WindowContent
 import chat.schildi.revenge.compose.components.LocalWindowDiagnostics
 import chat.schildi.revenge.compose.components.WindowDiagnostics
+import chat.schildi.revenge.compose.components.rememberScaledDensity
 import chat.schildi.revenge.compose.media.LocalImageLoaderHolder
 import chat.schildi.revenge.dbus.TrayWatcher
 import chat.schildi.revenge.model.verification.RevengeDeviceVerificationProvider
@@ -50,7 +50,10 @@ object ComposeApp {
         application(exitProcessOnExit = false) {
             // Blocking initialization
             remember {
-                UiState.initializeWith(this@application, startInTray)
+                UiState.initializeWith(
+                    exitApplication = { this@application.exitApplication() },
+                    startInTray = startInTray,
+                )
             }
             LaunchedEffect(Unit) {
                 RevengePrefs.prefetch()
@@ -65,7 +68,7 @@ object ComposeApp {
             }
             key(UiState.forceRecreationCounter.collectAsState().value) {
                 if (!minimized) {
-                    val windows = UiState.windows.collectAsState().value
+                    val windows = platformWindowManager.windows.collectAsState().value
                     windows.forEach { windowState ->
                         key(windowState.windowId) {
                             val destinationState = windowState.destinationHolder.state.collectAsState().value
@@ -113,17 +116,8 @@ object ComposeApp {
                                 LaunchedEffect(keyHandler, uriHandler) { keyHandler.uriHandler = uriHandler }
 
                                 // Scaling settings
-                                val renderScale = ScPrefs.RENDER_SCALE.value()
-                                val fontScale = ScPrefs.FONT_SCALE.value()
                                 val rootDensity = LocalDensity.current
-                                val localDensity = if (renderScale == 1f && fontScale == 1f) {
-                                    rootDensity
-                                } else {
-                                    Density(
-                                        density = rootDensity.density * renderScale,
-                                        fontScale = rootDensity.fontScale * fontScale,
-                                    )
-                                }
+                                val localDensity = rememberScaledDensity()
 
                                 DisposableEffect(window) {
                                     val listener = object : WindowAdapter() {

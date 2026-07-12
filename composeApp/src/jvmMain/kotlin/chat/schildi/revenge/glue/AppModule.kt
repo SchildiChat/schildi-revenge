@@ -5,9 +5,7 @@ import chat.schildi.lib.preferences.ScPreferencesStore
 import chat.schildi.revenge.BuildInfo
 import chat.schildi.revenge.ScCoroutines
 import chat.schildi.revenge.config.ScAppDirs
-import chat.schildi.revenge.ipc.SingleInstance
 import chat.schildi.revenge.preferences.RevengePrefs
-import coil3.PlatformContext
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.BindingContainer
 import dev.zacsweers.metro.ContributesTo
@@ -66,7 +64,7 @@ object AppModule {
             isDebuggable = true,
             applicationName = "SchildiChat Revenge",
             productionApplicationName = "SchildiRevenge",
-            applicationId = "chat.schildi.revenge",
+            applicationId = platformApplicationId,
             lowPrivacyLoggingEnabled = false,
             versionName = appVersion,
             versionCode = 1,
@@ -105,7 +103,7 @@ object AppModule {
     @Provides
     @SingleIn(AppScope::class)
     fun providesPlatformContext(): Context {
-        return PlatformContext.INSTANCE
+        return applicationPlatformContext()
     }
 
     @Provides
@@ -115,6 +113,4 @@ object AppModule {
     }
 }
 
-val RevengeOAuthRedirectUrlProvider = object : OAuthRedirectUrlProvider {
-    override suspend fun provide(): String = "http://127.0.0.1:${SingleInstance.awaitIpcServerPort()}"
-}
+expect val RevengeOAuthRedirectUrlProvider: OAuthRedirectUrlProvider

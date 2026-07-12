@@ -27,7 +27,7 @@ fun InboxConversationMultiPaneScreen(
             destination.conversation.state.collectAsState().value.destination !is Destination.MultiPaneConversationPlaceholder
         val shouldHidePlaceholders = ScPrefs.HIDE_EMPTY_INBOX_PANE.value()
         MultiPaneLayout(
-            outerDestination = destination.type,
+            outerDestination = destination.destinationId,
             innerDestinations = listOfNotNull(
                 if (collapseSinglePane && hasConversation)
                     null

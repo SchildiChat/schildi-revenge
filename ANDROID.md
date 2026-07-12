@@ -1,20 +1,24 @@
-# [WIP] Experimental Android support
+# Experimental Android support
 
-I'm playing around with getting Revenge to run on Android, because why not.
-No, I'm not planning on replacing Next anytime soon.
-No, this is not suitable to use for anything yet.
+No, this is most likely not ready as daily driver yet.
 
-## Building
+## Build requirements
 
-Install Android SDK platform 37, NDK `29.0.14206865`, `cargo-ndk`, and the Rust targets `aarch64-linux-android`,
-`armv7-linux-androideabi`, `i686-linux-android`, and `x86_64-linux-android`. Build the debug APK with:
+- SDK platform 37
+- NDK `29.0.14206865`
+- `cargo-ndk`
+- Rust targets `aarch64-linux-android`, `armv7-linux-androideabi`, `i686-linux-android`, `x86_64-linux-android`
+
+## Build
 
 ```shell
 ./gradlew :composeApp:assembleDebug
 ```
 
-Debug builds default to `arm64-v8a`, while release builds default to all four supported Android ABIs. Android Studio's
-injected ABI property overrides either default, for example:
+Debug builds default to `arm64-v8a`, while release builds default to all four supported Android ABIs.
+Android-studio should detect the ABI of your target device automatically and adjust the call accordingly.
+
+To control build ABIs manually:
 
 ```shell
 ./gradlew :composeApp:assembleDebug -Pandroid.injected.build.abi=x86_64

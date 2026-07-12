@@ -45,13 +45,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.lib.preferences.ScPrefs
-import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.actionProvider
+import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.compose.components.IconButtonWithConfirmation
 import chat.schildi.revenge.compose.components.TopNavigation
 import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInboxIcon
@@ -63,6 +63,7 @@ import chat.schildi.revenge.model.account.AccountManagementData
 import chat.schildi.revenge.model.account.AccountManagementViewModel
 import chat.schildi.revenge.model.account.LoginVariant
 import chat.schildi.revenge.model.account.OAuthLoginState
+import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.viewModelKey
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.auth.MatrixHomeServerDetails
@@ -325,6 +326,7 @@ private fun AccountStatusIcon(
 private fun NewLogin(viewModel: AccountManagementViewModel) {
     val setHomeserverInProgress = remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val actionContext = currentActionContext()
     var homeserver by remember { mutableStateOf(TextFieldValue()) }
     var hsDetails by remember(homeserver.text) { mutableStateOf<Result<MatrixHomeServerDetails>?>(null) }
     var loginVariant by remember(homeserver.text) { mutableStateOf<LoginVariant?>(null) }
@@ -416,7 +418,7 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
 
                                                 it.supportsOAuthLogin -> {
                                                     loginVariant = LoginVariant.OAUTH
-                                                    viewModel.loginWithBrowser()
+                                                    viewModel.loginWithBrowser(actionContext)
                                                 }
 
                                                 it.supportsPasswordLogin -> {
@@ -451,7 +453,7 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
                             ) {
                                 loginVariant = LoginVariant.OAUTH
                                 scope.launch {
-                                    viewModel.loginWithBrowser()
+                                    viewModel.loginWithBrowser(actionContext)
                                 }
                                 true
                             }
@@ -480,7 +482,7 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
                     stringResource(Res.string.action_retry)
                 ) {
                     scope.launch {
-                        viewModel.loginWithBrowser()
+                        viewModel.loginWithBrowser(actionContext)
                     }
                     true
                 }

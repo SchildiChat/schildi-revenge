@@ -1,13 +1,10 @@
 package chat.schildi.revenge.compose.components
 
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.foundation.ContextMenuState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.text.LocalTextContextMenu
-import androidx.compose.foundation.text.TextContextMenu
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.DropdownMenu
@@ -105,19 +102,6 @@ data class ContextMenuSubmenuEntry(
     override val autoCloseMenu = false
 }
 
-@OptIn(ExperimentalFoundationApi::class)
-object EmptyTextContextMenu : TextContextMenu {
-    @OptIn(ExperimentalFoundationApi::class)
-    @Composable
-    override fun Area(
-        textManager: TextContextMenu.TextManager,
-        state: ContextMenuState,
-        content: @Composable (() -> Unit)
-    ) {
-        content()
-    }
-}
-
 /**
  * @param focusId: The focus ID of the keyFocusable to operate the action on.
  * @param menuId: The ID of the menu, should be equal to [focusId] except for submenus.
@@ -171,11 +155,9 @@ fun WithContextMenu(
             anchorBounds = it.boundsInWindow()
         }
     ) {
-        CompositionLocalProvider(
-            // If we have selectable text, want to override that menu as well.
-            // TODO teach that menu some copy-selection item
-            LocalTextContextMenu provides EmptyTextContextMenu
-        ) {
+        // If we have selectable text, want to override that menu as well
+        // TODO teach that menu some copy-selection item to replicate platform menu's functionality?
+        WithPlatformTextContextMenuDisabled {
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { keyHandler.dismissContextMenu(menuId) },

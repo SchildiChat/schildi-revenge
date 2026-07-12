@@ -21,13 +21,14 @@ kotlin {
             api(libs.appdirs)
             api(libs.compose.ui)
             api(libs.kotlinx.serialization.core)
-        }
-        jvmMain.dependencies {
             api(libs.androidx.datastore.preferences.core)
             api(libs.kotlinx.coroutines.core)
             implementation(libs.kermit)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.ktoml.core)
+        }
+        androidMain {
+            kotlin.srcDir("src/jvmMain/kotlin")
         }
     }
 }

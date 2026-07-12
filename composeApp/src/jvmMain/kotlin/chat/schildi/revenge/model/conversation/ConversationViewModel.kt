@@ -1,6 +1,5 @@
 package chat.schildi.revenge.model.conversation
 
-import android.net.Uri
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
@@ -1011,7 +1010,7 @@ class ConversationViewModel(
 
     override fun attachFile(context: ActionContext, path: String): Boolean {
         val file = try {
-            Uri.create(path).toPath().toFile()
+            File(java.net.URI(path))
         } catch (e: Exception) {
             log.w("Failed to parse file uri: $path", e)
             return false

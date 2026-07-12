@@ -27,8 +27,8 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.media.rememberAnimatedImageTransform
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.theme.ScColors
-import coil3.PlatformContext
 import coil3.compose.AsyncImagePainter
+import coil3.compose.LocalPlatformContext
 import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.SubcomposeAsyncImageContent
 import coil3.request.ImageRequest
@@ -54,8 +54,9 @@ fun AvatarImage(
     }
     // Model doesn't appear different enough from adding the option to invalidate on setting toggle, so key it
     key(allowAnimated) {
-        val model = remember(source, allowAnimated) {
-            ImageRequest.Builder(PlatformContext.INSTANCE)
+        val context = LocalPlatformContext.current
+        val model = remember(source, allowAnimated, context) {
+            ImageRequest.Builder(context)
                 .data(MediaRequestData(source, MediaRequestData.Kind.Content))
                 .allowAnimatedImageDecoding(allowAnimated)
                 .build()

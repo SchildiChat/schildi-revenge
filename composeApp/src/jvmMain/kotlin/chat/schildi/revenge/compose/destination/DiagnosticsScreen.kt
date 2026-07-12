@@ -39,7 +39,6 @@ import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.util.formatBytes
 import chat.schildi.revenge.viewModelKey
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.skiko.SkikoProperties
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.diagnostics
 import shire.res.generated.resources.diagnostics_committed
@@ -59,7 +58,7 @@ fun DiagnosticsScreen(
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
 ) {
-    val renderApi = remember { SkikoProperties.renderApi.toString() }
+    val renderApi = remember { platformRenderApi() }
     val viewModel: DiagnosticsViewModel =
         viewModel(
             key = viewModelKey(destination),

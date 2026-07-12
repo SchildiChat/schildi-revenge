@@ -1,43 +1,28 @@
 package chat.schildi.revenge.util
 
 import com.vanniktech.blurhash.BlurHash
+import io.element.android.libraries.matrix.api.timeline.InMemoryMediaThumbnail
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
 import java.io.ByteArrayInputStream
 import java.io.File
 import javax.imageio.ImageIO
 import javax.imageio.stream.ImageInputStream
-import kotlin.math.roundToLong
 import kotlin.math.roundToInt
-import io.element.android.libraries.matrix.api.timeline.InMemoryMediaThumbnail
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
+import kotlin.math.roundToLong
 
-/**
- * Utilities to probe basic media measures for local files.
- */
-object MediaInfoUtil {
+actual object MediaInfoUtil {
     private const val BLURHASH_MAX_DIMENSION = 128
     private const val BLURHASH_COMPONENT_X = 4
     private const val BLURHASH_COMPONENT_Y = 3
     private const val VIDEO_THUMBNAIL_MAX_WIDTH = 800
     private val json = Json { ignoreUnknownKeys = true }
 
-    data class MediaMeasures(
-        val width: Int?,
-        val height: Int?,
-        val durationMs: Long?,
-    )
-
-    data class GeneratedVideoThumbnail(
-        val thumbnail: InMemoryMediaThumbnail,
-        val videoMeasures: MediaMeasures,
-        val thumbnailMeasures: MediaMeasures,
-    )
-
-    fun probeImage(file: File): MediaMeasures {
+    actual fun probeImage(file: File): MediaMeasures {
         // Try ImageIO readers without decoding full bitmap
         var iis: ImageInputStream? = null
         try {
@@ -58,22 +43,22 @@ object MediaInfoUtil {
         return MediaMeasures(null, null, null)
     }
 
-    fun probeImage(bytes: ByteArray): MediaMeasures {
+    actual fun probeImage(bytes: ByteArray): MediaMeasures {
         val image = decodeImage(bytes) ?: return MediaMeasures(null, null, null)
         return MediaMeasures(image.width, image.height, null)
     }
 
-    fun generateImageBlurHash(file: File): String? {
+    actual fun generateImageBlurHash(file: File): String? {
         val image = runCatching { ImageIO.read(file) }.getOrNull() ?: return null
         return generateImageBlurHash(image)
     }
 
-    fun generateImageBlurHash(bytes: ByteArray): String? {
+    actual fun generateImageBlurHash(bytes: ByteArray): String? {
         val image = decodeImage(bytes) ?: return null
         return generateImageBlurHash(image)
     }
 
-    fun generateVideoThumbnail(file: File): GeneratedVideoThumbnail? {
+    actual fun generateVideoThumbnail(file: File): GeneratedVideoThumbnail? {
         val bytes = runCommand(
             listOf(
                 ffmpegExecutable(),
@@ -99,7 +84,7 @@ object MediaInfoUtil {
         )
     }
 
-    fun probeAudio(file: File): MediaMeasures {
+    actual fun probeAudio(file: File): MediaMeasures {
         val durationMs = probeMediaDuration(file)
         return MediaMeasures(width = null, height = null, durationMs = durationMs)
     }

@@ -7,15 +7,21 @@ import org.matrix.rustcomponents.sdk.TracingConfiguration
 import org.matrix.rustcomponents.sdk.initPlatform
 
 class RevengeApplication : Application() {
+    companion object {
+        lateinit var instance: RevengeApplication
+            private set
+    }
+
     override fun onCreate() {
         super.onCreate()
+        instance = this
         attachAppDirs()
         initPlatform(
             config = TracingConfiguration(
                 logLevel = LogLevel.INFO,
                 traceLogPacks = emptyList(),
                 extraTargets = emptyList(),
-                writeToStdoutOrSystem = true,
+                writeToStdoutOrSystem = BuildConfig.DEBUG,
                 writeToFiles = null,
             ),
             useLightweightTokioRuntime = false,

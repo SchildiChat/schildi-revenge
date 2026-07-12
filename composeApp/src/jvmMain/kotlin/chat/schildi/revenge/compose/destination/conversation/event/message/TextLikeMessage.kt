@@ -43,7 +43,7 @@ import chat.schildi.revenge.compose.media.rememberAnimatedImageTransform
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.revenge.compose.util.EmojiUtil.containsOnlyEmojis
 import chat.schildi.revenge.model.conversation.MessageMetadata
-import coil3.PlatformContext
+import coil3.compose.LocalPlatformContext
 import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.SubcomposeAsyncImageContent
@@ -304,11 +304,12 @@ fun InlineImage(
     onPainterSuccess: (SuccessResult) -> Unit = {},
 ) {
     val density = LocalDensity.current
+    val context = LocalPlatformContext.current
     SubcomposeAsyncImage(
         modifier = modifier,
         imageLoader = imageLoader(),
         model = ImageRequest
-            .Builder(PlatformContext.INSTANCE)
+            .Builder(context)
             .data(MediaRequestData(MediaSource(info.uri), MediaRequestData.Kind.Content))
             .size(Size.ORIGINAL)
             .maxBitmapSize(

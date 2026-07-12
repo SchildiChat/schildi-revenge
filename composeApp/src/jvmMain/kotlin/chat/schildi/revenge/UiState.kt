@@ -1,6 +1,5 @@
 package chat.schildi.revenge
 
-import androidx.compose.ui.window.ApplicationScope
 import chat.schildi.matrixsdk.StaticRevengeSdkConfig
 import chat.schildi.revenge.preferences.RevengePrefs
 import chat.schildi.lib.preferences.ScPrefs
@@ -24,12 +23,9 @@ import dev.zacsweers.metro.createGraphFactory
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.x.di.AppGraph
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentHashMapOf
 import kotlinx.collections.immutable.persistentListOf
-import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentHashMap
-import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -57,9 +53,7 @@ import shire.res.generated.resources.toast_key_config_reload_success
 import java.util.Locale
 import kotlin.collections.map
 import kotlin.concurrent.atomics.AtomicBoolean
-import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
-import kotlin.concurrent.atomics.fetchAndIncrement
 import kotlin.system.exitProcess
 
 val GlobalActionsScope = ScCoroutines.scope(Dispatchers.IO, "GlobalActionScope")
@@ -75,25 +69,17 @@ object UiState {
     private val scope = ScCoroutines.scope(Dispatchers.IO, "UiState")
     private val shutdownScope = CoroutineScope(Dispatchers.Default)
     private val isShuttingDown = AtomicBoolean(false)
+    @Suppress("ConstantLocale")
     private val initialLocale = Locale.getDefault()
 
     val appGraph: AppGraph = createGraphFactory<AppGraph.Factory>().create()
-    private val windowCounter = AtomicInt(0)
-    private val _windows = MutableStateFlow<ImmutableList<WindowState>>(
-        persistentListOf(
-            createWindow(Destination.Splash),
-        )
-    )
-    val windows = _windows.asStateFlow()
-    private var hasClearedSplashScreen = false
 
-    private var applicationScope: ApplicationScope? = null
+    private var exitApplication: (() -> Unit)? = null
     var headlessKeyboardActionHandler: KeyboardActionHandler? = null
         private set
 
-    // Default to minimized - it's less disruptive to toggle true to false during init than other way round
-    private val _minimizedToTray = MutableStateFlow(true)
-    val minimizedToTray = _minimizedToTray.asStateFlow()
+    private var hasClearedSplashScreen = false
+    val minimizedToTray = platformWindowManager.minimizedToTray
 
     private val _forceRecreationCounter = MutableStateFlow(0)
     val forceRecreationCounter = _forceRecreationCounter.asStateFlow()
@@ -138,11 +124,11 @@ object UiState {
         .distinctUntilChanged()
         .onEach { preferMultiPane ->
             // Recreate any potential inbox destinations to apply the new setting
-            windows.value.forEach { window ->
+            platformWindowManager.windows.value.forEach { window ->
                 val destination = window.destinationHolder.state.value.destination
                 if (destination.category == DestinationCategory.INBOX) {
                     val newDestination = getInboxDestination(preferMultiPane)
-                    if (newDestination.type != destination.type) {
+                    if (newDestination.destinationId != destination.destinationId) {
                         window.destinationHolder.navigate(newDestination, NavigationPreference.REPLACE)
                     }
                 }
@@ -183,7 +169,7 @@ object UiState {
         }
     }
 
-    val hasInboxOpen = windows.flatMerge(
+    val hasInboxOpen = platformWindowManager.windows.flatMerge(
         map = {
             it.destinationHolder.state
         },
@@ -342,15 +328,15 @@ object UiState {
         RevengeRoomListDataSource.observeInvalidationSignals(scope)
     }
 
-    fun initializeWith(applicationScope: ApplicationScope, startInTray: Boolean) {
-        if (this.applicationScope != null || this.headlessKeyboardActionHandler != null) {
-            throw IllegalStateException("Initializing UiState with applicationScope twice")
+    fun initializeWith(exitApplication: () -> Unit, startInTray: Boolean) {
+        if (this.exitApplication != null || this.headlessKeyboardActionHandler != null) {
+            throw IllegalStateException("Initializing UiState twice")
         }
 
-        // Initialize application scope and headless keyboard handler
-        this.applicationScope = applicationScope
+        // Initialize the desktop lifecycle callback and headless keyboard handler
+        this.exitApplication = exitApplication
         headlessKeyboardActionHandler = KeyboardActionHandler(GlobalActionsScope, HEADLESS_WINDOW_ID)
-        _minimizedToTray.value = startInTray
+        platformWindowManager.setMinimized(startInTray)
 
         // Block until vsync is set up, since we need to set it before opening windows
         val initialVsync = runBlocking {
@@ -397,32 +383,11 @@ object UiState {
     fun currentClientFor(sessionId: SessionId) = matrixClients.value[sessionId]
 
     private fun clearSplashScreen(destination: Destination) {
-        _windows.update { windows ->
-            windows.mapNotNull { window ->
-                if (window.destinationHolder.state.value.destination is Destination.Splash) {
-                    if (windows.size > 1) {
-                        // Already have other windows open??
-                        null
-                    } else {
-                        window.also {
-                            it.destinationHolder.navigate(destination, NavigationPreference.REPLACE)
-                        }
-                    }
-                } else {
-                    window
-                }
-            }.toPersistentList()
+        platformWindowManager.windows.value.forEach { window ->
+            if (window.destinationHolder.state.value.destination is Destination.Splash) {
+                window.destinationHolder.navigate(destination, NavigationPreference.REPLACE)
+            }
         }
-    }
-
-    private fun createWindow(
-        initialDestination: Destination,
-        initialTitle: ComposableStringHolder? = null
-    ): WindowState {
-        return WindowState(
-            windowId = windowCounter.fetchAndIncrement(),
-            destinationHolder = DestinationStateHolder.forInitialDestination(initialDestination, initialTitle),
-        )
     }
 
     fun openWindow(destination: Destination, initialTitle: ComposableStringHolder? = null) {
@@ -431,27 +396,14 @@ object UiState {
         } else {
             destination
         }
-        val newWindow = createWindow(effectiveDestination, initialTitle)
-        val wasMinimized = minimizedToTray.value
-        _windows.update {
-            // New window replaces old state when launched via IPC while minimized
-            if (wasMinimized) {
-                persistentListOf(newWindow)
-            } else {
-                (it + newWindow).toPersistentList()
-            }
-        }
-        _minimizedToTray.value = false
+        platformWindowManager.openWindow(effectiveDestination, initialTitle)
     }
 
-    fun closeWindow(windowId: Int) {
-        var closedLastWindow = false
-        _windows.update {
-            it.filter { it.windowId != windowId }.toPersistentList().also {
-                closedLastWindow = it.isEmpty()
-            }
-        }
-        if (closedLastWindow) {
+    fun closeWindow(windowId: WindowId, closeUnlessLast: Boolean = false): Boolean {
+        return platformWindowManager.closeWindow(
+            windowId = windowId,
+            closeUnlessLast = closeUnlessLast,
+        ) {
             if (closeToTray.value) {
                 setMinimized(true)
             } else {
@@ -468,10 +420,8 @@ object UiState {
                 log.i("Shutting down clients")
                 shutdownClients()
                 log.i("Shutting down application")
-                applicationScope?.let {
-                    withContext(Dispatchers.Main) {
-                        it.exitApplication()
-                    }
+                exitApplication?.let {
+                    withContext(Dispatchers.Main) { it() }
                 } ?: run {
                     log.e("Compose application not tracked for shutdown")
                 }
@@ -498,43 +448,10 @@ object UiState {
     }
 
     fun recreateWindow(windowId: Int) {
-        // Do with a slight delay - while immediately within one update() call would work too to recreate it,
-        // I want to run this command to get broken window transparency to work, in which case doing both at the
-        // same time doesn't work, as for some reason only new windows after already having one open are allowed
-        // to get transparency in some scenarios? May be a window manager bug
-        scope.launch {
-            val newWindowId = windowCounter.fetchAndIncrement()
-            var found =  false
-            _windows.update {
-                val window = it.find { it.windowId == windowId }
-                if (window == null) {
-                    found = true
-                    it
-                } else {
-                    found = true
-                    (it + window.copy(windowId = newWindowId)).toImmutableList()
-                }
-            }
-            if (found) {
-                delay(50)
-                _windows.update { it.filter { it.windowId != windowId }.toImmutableList() }
-            }
-        }
+        platformWindowManager.recreateWindow(scope, windowId)
     }
 
-    fun setMinimized(minimized: Boolean) {
-        _minimizedToTray.value = minimized
-        if (!minimized) {
-            // Ensure at least one window is open
-            _windows.update {
-                if (it.isEmpty()) {
-                    persistentListOf(createWindow(getInboxDestination()))
-                } else {
-                    it
-                }
-            }
-        }
-    }
+    fun setMinimized(minimized: Boolean) = platformWindowManager.setMinimized(minimized)
 
     fun disableSession(sessionId: SessionId) {
         disabledSessions.update { it + sessionId }

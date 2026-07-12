@@ -22,7 +22,6 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInWindow
-import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.text.TextRange
@@ -55,6 +54,7 @@ import chat.schildi.resources.ComposableStringHolder
 import chat.schildi.resources.StringResourceHolder
 import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.HEADLESS_WINDOW_ID
+import chat.schildi.revenge.WindowId
 import chat.schildi.revenge.config.keybindings.ALLOWED_DESTINATION_STRINGS
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.ActionArgument
@@ -74,7 +74,6 @@ import chat.schildi.revenge.config.keybindings.KeyMapped
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.config.keybindings.KeybindingConfig
 import chat.schildi.revenge.config.keybindings.SpaceCatchAllMode
-import chat.schildi.revenge.dbus.FreedesktopPortal
 import chat.schildi.revenge.config.keybindings.findAll
 import chat.schildi.revenge.config.keybindings.maxArgsSize
 import chat.schildi.revenge.config.keybindings.minArgsSize
@@ -89,7 +88,6 @@ import chat.schildi.revenge.model.spaces.REAL_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.RevengeSpaceListDataSource
 import chat.schildi.revenge.notification.NotifiableRoomSubscriber
 import chat.schildi.revenge.toDestination
-import chat.schildi.revenge.util.SystemInfo
 import chat.schildi.revenge.toPrettyJson
 import chat.schildi.revenge.util.matrix.MatrixLinkPatterns
 import chat.schildi.revenge.util.matrix.updateAccountData
@@ -152,7 +150,6 @@ import shire.res.generated.resources.toast_room_created
 import java.awt.Desktop
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
-import java.awt.datatransfer.StringSelection
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -339,7 +336,7 @@ data class ContextMenuFocus(
 @OptIn(FlowPreview::class)
 class KeyboardActionHandler(
     private val scope: CoroutineScope,
-    private val windowId: Int,
+    private val windowId: WindowId,
     private val oAuthRepo: OAuthRepo = RevengeOAUthRepo,
 ) {
     private val log = Logger.withTag("Nav/$windowId")
@@ -1127,7 +1124,7 @@ class KeyboardActionHandler(
         focused = currentFocused(),
         criticalActionRequiresConfirmation = criticalActionRequiresConfirmation,
         keybindingConfig = UiState.keybindingsConfig.value,
-        currentDestinationType = destination?.type,
+        currentDestinationType = destination?.destinationId,
     )
 
     fun handleAction(
@@ -1170,7 +1167,7 @@ class KeyboardActionHandler(
         focused: FocusTarget?,
         criticalActionRequiresConfirmation: Boolean,
         keybindingConfig: KeybindingConfig? = UiState.keybindingsConfig.value,
-        currentDestinationType: DestinationEnum? = focused?.destinationStateHolder?.state?.value?.destination?.type,
+        currentDestinationType: DestinationEnum? = focused?.destinationStateHolder?.state?.value?.destination?.destinationId,
         asyncCallback: ActionResultCallback? = null,
     ) = object : InternalActionContext {
         override fun publishMessage(message: AbstractAppMessage) =
@@ -1596,12 +1593,14 @@ class KeyboardActionHandler(
                     }
                 }
                 Action.Navigation.CloseWindow -> {
-                    UiState.closeWindow(windowId)
-                    ActionResult.Success()
+                    if (UiState.closeWindow(windowId)) {
+                        ActionResult.Success()
+                    } else {
+                        ActionResult.Inapplicable
+                    }
                 }
                 Action.Navigation.CloseWindowUnlessLast -> {
-                    if (UiState.windows.value.size > 1) {
-                        UiState.closeWindow(windowId)
+                    if (UiState.closeWindow(windowId, closeUnlessLast = true)) {
                         ActionResult.Success()
                     } else {
                         ActionResult.Inapplicable
@@ -1746,11 +1745,9 @@ class KeyboardActionHandler(
                 Action.Global.SetMinimized -> {
                     val minimized = args.firstOrNull()?.toBooleanStrictOrNull() ?: true
                     UiState.setMinimized(minimized)
-                    ActionResult.Success()
                 }
                 Action.Global.ToggleMinimized -> {
                     UiState.setMinimized(!UiState.minimizedToTray.value)
-                    ActionResult.Success()
                 }
                 Action.Global.RecreateUi -> {
                     UiState.recreateUi()
@@ -2642,7 +2639,7 @@ class KeyboardActionHandler(
         val localClipboard = clipboard ?: return ActionResult.Failure("No clipboard found")
         context.launchActionAsync("copyToClipboard", scope) {
             localClipboard.setClipEntry(
-                ClipEntry(StringSelection(content))
+                platformTextClipEntry(content)
             )
             publishMessage(
                 AppMessage(
@@ -2722,11 +2719,11 @@ class KeyboardActionHandler(
                 return ActionResult.Success()
             }
         }
-        if (SystemInfo.isLinux()) {
+        platformOpenUri?.let { openUri ->
             val context = getInternalActionContext(currentFocused(), criticalActionRequiresConfirmation = true)
             return context.launchActionAsync("openLink", scope) {
-                runCatching { FreedesktopPortal.openUri(uri) }
-                    .onFailure { log.w("Failed to open URL in external browser via portal", it) }
+                runCatching { openUri(uri) }
+                    .onFailure { log.w("Failed to open URL in external browser via platform", it) }
                     .toActionResult()
             }
         }

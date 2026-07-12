@@ -51,9 +51,9 @@ class SplitKeyboardActionProvider(
                 val destinationType = args.firstOrNull()?.toDestinationEnum()?.orActionValidationError()
                 val currentDestination = destinationStateHolder?.state?.value?.destination
                 val keptDestinationState = (currentDestination as? Destination.Split)?.let {
-                    if (it.secondary.state.value.destination.type == destinationType) {
+                    if (it.secondary.state.value.destination.destinationId == destinationType) {
                         it.primary
-                    } else if (it.primary.state.value.destination.type == destinationType) {
+                    } else if (it.primary.state.value.destination.destinationId == destinationType) {
                         it.secondary
                     } else {
                         // Keep both

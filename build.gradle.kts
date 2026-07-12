@@ -21,7 +21,7 @@ plugins {
 
 licenseReport {
     projects = arrayOf(project(":composeApp"))
-    configurations = arrayOf("jvmRuntimeClasspath")
+    configurations = arrayOf("desktopRuntimeClasspath")
     outputDir = layout.buildDirectory.dir("reports/dependency-license").get().asFile.absolutePath
     filters = arrayOf<DependencyFilter>(
         SpdxLicenseBundleNormalizer(),

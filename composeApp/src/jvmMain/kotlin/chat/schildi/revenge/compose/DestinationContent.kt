@@ -148,7 +148,7 @@ private fun DestinationEnum.measureInfo(): DestinationMeasure = when (this) {
 
 @Composable
 private fun Modifier.forDestination(destination: Destination): AdaptiveSplitLayoutModifierPair {
-    val (maxWidth, weight) = destination.type.measureInfo()
+    val (maxWidth, weight) = destination.destinationId.measureInfo()
     return if (maxWidth == null) {
         AdaptiveSplitLayoutModifierPair(this, Modifier, weight)
     } else {

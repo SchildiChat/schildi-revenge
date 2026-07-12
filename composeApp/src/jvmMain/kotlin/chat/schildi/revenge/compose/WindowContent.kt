@@ -32,14 +32,17 @@ import chat.schildi.theme.ScTheme
 import chat.schildi.theme.scExposures
 
 @Composable
-fun WindowContent(destinationHolder: DestinationStateHolder) {
+fun WindowContent(
+    destinationHolder: DestinationStateHolder,
+    modifier: Modifier = Modifier,
+) {
     ScTheme {
         val backgroundAlpha = if (MaterialTheme.scExposures.isDarkTheme) {
             ScPrefs.BACKGROUND_ALPHA_DARK.value()
         } else {
             ScPrefs.BACKGROUND_ALPHA_LIGHT.value()
         }
-        Box {
+        Box(modifier) {
             Column(
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.surface.copy(alpha = backgroundAlpha))
