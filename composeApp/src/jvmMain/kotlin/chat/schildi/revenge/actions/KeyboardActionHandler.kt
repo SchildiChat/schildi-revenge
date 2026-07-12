@@ -74,6 +74,7 @@ import chat.schildi.revenge.config.keybindings.KeyMapped
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.config.keybindings.KeybindingConfig
 import chat.schildi.revenge.config.keybindings.SpaceCatchAllMode
+import chat.schildi.revenge.dbus.FreedesktopPortal
 import chat.schildi.revenge.config.keybindings.findAll
 import chat.schildi.revenge.config.keybindings.maxArgsSize
 import chat.schildi.revenge.config.keybindings.minArgsSize
@@ -88,6 +89,7 @@ import chat.schildi.revenge.model.spaces.REAL_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.RevengeSpaceListDataSource
 import chat.schildi.revenge.notification.NotifiableRoomSubscriber
 import chat.schildi.revenge.toDestination
+import chat.schildi.revenge.util.SystemInfo
 import chat.schildi.revenge.toPrettyJson
 import chat.schildi.revenge.util.matrix.MatrixLinkPatterns
 import chat.schildi.revenge.util.matrix.updateAccountData
@@ -2720,12 +2722,20 @@ class KeyboardActionHandler(
                 return ActionResult.Success()
             }
         }
+        if (SystemInfo.isLinux()) {
+            val context = getInternalActionContext(currentFocused(), criticalActionRequiresConfirmation = true)
+            return context.launchActionAsync("openLink", scope) {
+                runCatching { FreedesktopPortal.openUri(uri) }
+                    .onFailure { log.w("Failed to open URL in external browser via portal", it) }
+                    .toActionResult()
+            }
+        }
         return try {
             val localUriHandler = uriHandler ?: return ActionResult.Failure("No uri handler found")
             localUriHandler.openUri(uri)
             ActionResult.Success()
         } catch (e: Exception) {
-            log.w("Failed to open URL in external browser", e)
+            log.w("Failed to open URL in external browser via JVM", e)
             return ActionResult.Failure(e.message ?: e.toString())
         }
     }

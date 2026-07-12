@@ -14,7 +14,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
@@ -113,7 +112,6 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
     val mentionHighlightColor = MaterialTheme.scExposures.mentionFgHighlight
     val sessionId = LocalSessionId.current
     val roomId = LocalRoomContextSuggestionsProvider.current?.roomId
-    val urlHandler = LocalUriHandler.current
     val keyHandler = LocalKeyboardActionHandler.current
     val destinationStateHolder = LocalDestinationState.current
     val scope = rememberCoroutineScope()
@@ -127,7 +125,6 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
         mentionHighlightColor,
         sessionId,
         roomId,
-        urlHandler,
         keyHandler,
         destinationStateHolder,
         actionContext,
@@ -139,7 +136,7 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
             textStyle,
             urlStyle = urlStyle,
             blockIndention = MessageFormatDefaults.blockIndention,
-            handleWebLinkClick = urlHandler::openUri,
+            handleWebLinkClick = { keyHandler.openLink(it) },
         ) {
             override fun formatUserMention(
                 mention: MatrixToLink.UserMention,
