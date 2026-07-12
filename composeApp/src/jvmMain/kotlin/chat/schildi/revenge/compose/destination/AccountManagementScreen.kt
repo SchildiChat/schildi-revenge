@@ -219,7 +219,7 @@ private fun ExistingLogin(account: AccountManagementData, viewModel: AccountMana
                         value = recoveryKey,
                         onValueChange = { recoveryKey = it },
                         label = { Text(stringResource(Res.string.hint_recovery_key)) },
-                        maxLines = 1,
+                        singleLine = true,
                         modifier = Modifier.weight(1f),
                     )
                     // TODO move to VM
@@ -375,7 +375,7 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
                 value = homeserver,
                 onValueChange = { homeserver = it },
                 label = { Text(stringResource(Res.string.hint_homeserver)) },
-                maxLines = 1,
+                singleLine = true,
                 modifier = Modifier.weight(1f).keyFocusable(FocusRole.TEXT_FIELD_SINGLE_LINE),
                 enabled = loginVariant == null && !setHomeserverInProgress.value,
             )
@@ -503,7 +503,7 @@ private fun ColumnScope.PasswordLogin(
         value = username,
         onValueChange = { username = it },
         label = { Text(stringResource(Res.string.hint_username)) },
-        maxLines = 1,
+        singleLine = true,
         modifier = Modifier.fillMaxWidth().keyFocusable(FocusRole.TEXT_FIELD_SINGLE_LINE),
     )
     val passwordVisible = remember { mutableStateOf(false) }
@@ -517,7 +517,7 @@ private fun ColumnScope.PasswordLogin(
         } else {
             PasswordVisualTransformation()
         },
-        maxLines = 1,
+        singleLine = true,
         trailingIcon = {
             IconButton(onClick = { passwordVisible.value = !passwordVisible.value }) {
                 Icon(
