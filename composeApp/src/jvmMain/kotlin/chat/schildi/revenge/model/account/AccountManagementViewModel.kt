@@ -5,9 +5,11 @@ import androidx.lifecycle.viewModelScope
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.UiState
+import chat.schildi.revenge.dbus.FreedesktopPortal
 import chat.schildi.revenge.flatMergeCombinedWith
 import chat.schildi.revenge.model.verification.RevengeDeviceVerificationProvider
 import chat.schildi.revenge.model.verification.ScOutgoingVerificationRequest
+import chat.schildi.revenge.util.SystemInfo
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.auth.MatrixHomeServerDetails
 import io.element.android.libraries.matrix.api.auth.OAuthPrompt
@@ -20,11 +22,13 @@ import io.element.android.libraries.sessionstorage.api.SessionData
 import io.element.android.x.di.AppGraph
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.awt.Desktop
 import java.net.URI
 
@@ -124,7 +128,11 @@ class AccountManagementViewModel(
         }
     }
 
-    private fun openBrowser(url: String) {
+    private suspend fun openBrowser(url: String) = withContext(Dispatchers.IO) {
+        if (SystemInfo.isLinux()) {
+            FreedesktopPortal.openUri(url)
+            return@withContext
+        }
         if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
             error("Opening a browser is not supported on this desktop")
         }

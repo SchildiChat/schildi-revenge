@@ -16,7 +16,41 @@ import java.io.File
 import java.net.URI
 
 object FreedesktopPortal {
-    suspend fun requestFiles(title: String): List<File>? = withContext(Dispatchers.IO) {
+    suspend fun requestFiles(title: String): List<File>? = sendRequest { connection ->
+        val fileChooser = connection.getRemoteObject(
+            PORTAL_BUS_NAME,
+            PORTAL_OBJECT_PATH,
+            FileChooser::class.java,
+            true,
+        )
+        fileChooser.OpenFile(
+            "",
+            title,
+            mapOf(
+                "multiple" to Variant(false),
+                "modal" to Variant(true),
+            ),
+        )
+    }.toFileChooserResult()
+
+    suspend fun openUri(uri: String) {
+        val response = sendRequest { connection ->
+            val openUri = connection.getRemoteObject(
+                PORTAL_BUS_NAME,
+                PORTAL_OBJECT_PATH,
+                OpenURI::class.java,
+                true,
+            )
+            openUri.OpenURI("", uri, emptyMap())
+        }
+        if (response.response.toInt() != 0) {
+            error("Desktop portal failed to open URI with response code ${response.response.toInt()}")
+        }
+    }
+
+    private suspend fun sendRequest(
+        request: (DBusConnection) -> DBusPath
+    ): Request.Response = withContext(Dispatchers.IO) {
         var connection: DBusConnection? = null
         var signalHandler: AutoCloseable? = null
         try {
@@ -25,20 +59,7 @@ object FreedesktopPortal {
                 .withShared(false)
                 .build()
 
-            val fileChooser = connection.getRemoteObject(
-                PORTAL_BUS_NAME,
-                PORTAL_OBJECT_PATH,
-                FileChooser::class.java,
-                true,
-            )
-            val requestPath = fileChooser.OpenFile(
-                "",
-                title,
-                mapOf(
-                    "multiple" to Variant(false),
-                    "modal" to Variant(true),
-                ),
-            )
+            val requestPath = request(checkNotNull(connection))
 
             val response = CompletableDeferred<Request.Response>()
             val matchRule = DBusMatchRuleBuilder.create()
@@ -50,7 +71,7 @@ object FreedesktopPortal {
                 response.complete(signal)
             }
 
-            response.await().toFileChooserResult()
+            response.await()
         } finally {
             try {
                 signalHandler?.close()
@@ -89,6 +110,12 @@ object FreedesktopPortal {
     interface FileChooser : DBusInterface {
         @Suppress("FunctionName")
         fun OpenFile(parentWindow: String, title: String, options: Map<String, Variant<*>>): DBusPath
+    }
+
+    @DBusInterfaceName("org.freedesktop.portal.OpenURI")
+    interface OpenURI : DBusInterface {
+        @Suppress("FunctionName")
+        fun OpenURI(parentWindow: String, uri: String, options: Map<String, Variant<*>>): DBusPath
     }
 
     @DBusInterfaceName("org.freedesktop.portal.Request")
