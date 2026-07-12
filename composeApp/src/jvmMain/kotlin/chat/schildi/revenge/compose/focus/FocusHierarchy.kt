@@ -1,10 +1,10 @@
 package chat.schildi.revenge.compose.focus
 
 import androidx.compose.runtime.compositionLocalOf
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 data class FocusParent(
-    val uuid: UUID,
+    val uuid: Uuid,
     val parent: FocusParent?,
 )
 

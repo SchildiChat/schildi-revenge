@@ -2,18 +2,18 @@ package chat.schildi.revenge.actions
 
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.text.input.TextFieldValue
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 sealed interface EditActions {
     val editId: Any
-    val stableFocusId: UUID?
+    val stableFocusId: Uuid?
     fun discardEdit()
     suspend fun persistEdit(): Result<Unit>?
 }
 
 data class PlaintextEditActions(
     override val editId: Any,
-    override val stableFocusId: UUID?,
+    override val stableFocusId: Uuid?,
     val editEcho: MutableState<TextFieldValue?>,
     val accessPersistedValue: () -> String?,
     val persistValue: suspend (String) -> Result<Unit>,

@@ -22,12 +22,12 @@ import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.action_clear_search
 import shire.res.generated.resources.hint_search
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 @Composable
 fun SearchBar(
     searchProvider: SearchProvider?,
-    searchFocusContainer: UUID?,
+    searchFocusContainer: Uuid?,
     modifier: Modifier = Modifier,
     showClearButton: Boolean = false,
 ) {

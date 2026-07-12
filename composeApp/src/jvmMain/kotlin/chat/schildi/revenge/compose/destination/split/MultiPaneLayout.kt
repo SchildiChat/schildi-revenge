@@ -16,11 +16,11 @@ import chat.schildi.revenge.compose.components.AdaptiveRow
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.resources.ComposableStringHolder
 import chat.schildi.revenge.config.keybindings.DestinationEnum
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 private data class MultiPaneLayoutTarget(
     val destinationHolder: MultiPaneLayoutDestinationStateHolderWrapper,
-    val focusId: UUID,
+    val focusId: Uuid,
     val role: SplitRole,
 )
 

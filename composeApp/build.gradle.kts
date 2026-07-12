@@ -33,6 +33,9 @@ plugins {
     id("GitOperations")
 }
 kotlin {
+    compilerOptions {
+        optIn.add("kotlin.uuid.ExperimentalUuidApi")
+    }
     jvm()
     androidTarget {
         compilerOptions {

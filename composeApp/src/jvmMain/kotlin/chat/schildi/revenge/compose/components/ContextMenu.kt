@@ -51,7 +51,7 @@ import chat.schildi.revenge.config.keybindings.Action
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import java.awt.event.KeyEvent
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 sealed interface ContextMenuEntry {
     val title: ComposableStringHolder
@@ -95,7 +95,7 @@ data class ContextMenuCallbackEntry(
 data class ContextMenuSubmenuEntry(
     override val title: ComposableStringHolder,
     override val icon: Painter? = null,
-    val submenuId: UUID,
+    val submenuId: Uuid,
     val submenu: ImmutableList<ContextMenuEntry>,
     override val decoration: ContextMenuDecoration? = null,
     override val keyboardShortcut: Key? = null,
@@ -125,10 +125,10 @@ object EmptyTextContextMenu : TextContextMenu {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun WithContextMenu(
-    focusId: UUID,
+    focusId: Uuid,
     popupContent: @Composable ColumnScope.() -> Unit,
     modifier: Modifier = Modifier,
-    menuId: UUID = focusId,
+    menuId: Uuid = focusId,
     content: @Composable () -> Unit,
 ) {
     val keyHandler = LocalKeyboardActionHandler.current
@@ -195,11 +195,11 @@ fun WithContextMenu(
  */
 @Composable
 fun WithContextMenu(
-    focusId: UUID,
+    focusId: Uuid,
     entries: ImmutableList<ContextMenuEntry>,
     modifier: Modifier = Modifier,
-    menuId: UUID = focusId,
-    parentMenuId: UUID? = null,
+    menuId: Uuid = focusId,
+    parentMenuId: Uuid? = null,
     content: @Composable (InteractionAction.ContextMenu?) -> Unit,
 ) {
     val keyHandler = LocalKeyboardActionHandler.current
@@ -233,8 +233,8 @@ fun WithContextMenu(
 @Composable
 private fun ContextMenuDropdownMenuItem(
     entry: ContextMenuEntry,
-    focusId: UUID,
-    menuId: UUID,
+    focusId: Uuid,
+    menuId: Uuid,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {

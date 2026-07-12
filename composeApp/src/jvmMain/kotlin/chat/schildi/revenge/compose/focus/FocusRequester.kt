@@ -5,7 +5,7 @@ import androidx.compose.ui.focus.FocusDirection.Companion.Enter
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.FocusState
 import chat.schildi.revenge.actions.KeyboardActionHandler
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 sealed interface AbstractFocusRequester {
     fun requestFocus(focusDirection: FocusDirection = Enter): Boolean
@@ -17,7 +17,7 @@ class FocusRequesterWrapper(
     override fun requestFocus(focusDirection: FocusDirection) = instance.requestFocus(focusDirection)
 }
 
-class FakeFocusRequester(val keyHandler: KeyboardActionHandler, val id: UUID) : AbstractFocusRequester {
+class FakeFocusRequester(val keyHandler: KeyboardActionHandler, val id: Uuid) : AbstractFocusRequester {
     override fun requestFocus(focusDirection: FocusDirection): Boolean {
         keyHandler.onFocusChanged(id, object : FocusState {
             override val isFocused = true

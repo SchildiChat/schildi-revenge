@@ -27,7 +27,7 @@ import chat.schildi.revenge.compose.focus.FlatFocusContainer
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 import kotlinx.collections.immutable.persistentListOf
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 enum class SplitRole {
     Start,
@@ -97,7 +97,7 @@ fun SplitVertical(
 
 @Composable
 fun SplitScreenDestination(
-    focusId: UUID,
+    focusId: Uuid,
     splitRole: SplitRole,
     splitType: DestinationEnum,
     destinationHolder: DestinationStateHolder,

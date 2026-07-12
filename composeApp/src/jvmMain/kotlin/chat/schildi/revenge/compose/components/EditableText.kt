@@ -56,7 +56,7 @@ import shire.res.generated.resources.action_cancel
 import shire.res.generated.resources.action_edit
 import shire.res.generated.resources.action_save
 import shire.res.generated.resources.hint_not_set
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 sealed interface EditTextValue {
     val rawText: String
@@ -210,7 +210,7 @@ fun EditableErrorText(
 @Composable
 private fun editableTextActionProvider(
     editId: Any,
-    stableFocusId: UUID?,
+    stableFocusId: Uuid?,
     canEdit: Boolean,
     editState: MutableState<TextFieldValue?>,
     persist: suspend (String) -> Result<Unit>,
@@ -230,7 +230,7 @@ private fun editableTextActionProvider(
 @Composable
 private fun plainTextEditActions(
     editId: Any,
-    stableFocusId: UUID?,
+    stableFocusId: Uuid?,
     canEdit: Boolean,
     editState: MutableState<TextFieldValue?>,
     persist: suspend (String) -> Result<Unit>,

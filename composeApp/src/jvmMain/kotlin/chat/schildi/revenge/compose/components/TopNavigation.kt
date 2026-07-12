@@ -45,7 +45,7 @@ import shire.res.generated.resources.Res
 import shire.res.generated.resources.action_close
 import shire.res.generated.resources.action_open_inbox
 import shire.res.generated.resources.hint_search
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 @Composable
 fun TopNavigation(content: @Composable RowScope.() -> Unit) {
@@ -145,7 +145,7 @@ fun RowScope.TopNavigationSearchOrTitle(
     searchProvider: SearchProvider = LocalSearchProvider.current ?: run {
         throw IllegalStateException("Called TopNavigationSearchOrTitle without search provider")
     },
-    searchFocusContainer: UUID? = null,
+    searchFocusContainer: Uuid? = null,
 ) {
     val keyHandler = LocalKeyboardActionHandler.current
     val searchBarVisible = keyHandler.needsKeyboardSearchBar(searchProvider).collectAsState().value

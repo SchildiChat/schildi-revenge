@@ -37,7 +37,7 @@ import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.compose.components.ifNotNull
 import chat.schildi.revenge.compose.components.thenIf
 import chat.schildi.theme.scExposures
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 @Composable
 fun Modifier.windowFocusContainer(): Modifier {
@@ -59,7 +59,7 @@ fun Modifier.windowFocusContainer(): Modifier {
 
 @Composable
 internal fun Modifier.keyFocusableContainer(
-    id: UUID,
+    id: Uuid,
     parent: FocusParent?,
     role: FocusRole = FocusRole.CONTAINER,
 ): Modifier {
@@ -112,13 +112,13 @@ fun FocusRole.preferFocusChildren() = when (this) {
 }
 
 @Composable
-fun rememberFocusId(): UUID = remember { UUID.randomUUID() }
+fun rememberFocusId(): Uuid = remember { Uuid.random() }
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Modifier.keyFocusable(
     role: FocusRole = FocusRole.AUX_ITEM,
-    id: UUID = rememberFocusId(),
+    id: Uuid = rememberFocusId(),
     actionProvider: ActionProvider = actionProvider(),
     focusRequester: FocusRequester = remember { FocusRequester() },
     enableClicks: Boolean = true,
@@ -168,7 +168,7 @@ fun Modifier.keyFocusable(
 @Composable
 private fun Modifier.focusableItemBackground(
     customHighlight: Boolean,
-    id: UUID,
+    id: Uuid,
     keyHandler: KeyboardActionHandler
 ): Modifier {
     val state = keyHandler.currentFocusState.collectAsState().value
@@ -190,7 +190,7 @@ private fun Modifier.keyFocusableCommon(
     role: FocusRole,
     focusRequester: AbstractFocusRequester,
     keyHandler: KeyboardActionHandler = LocalKeyboardActionHandler.current,
-    id: UUID = rememberFocusId(),
+    id: Uuid = rememberFocusId(),
     destinationState: DestinationStateHolder? = LocalDestinationState.current,
     actionProvider: ActionProvider? = actionProvider(),
     parent: FocusParent? = LocalFocusParent.current,

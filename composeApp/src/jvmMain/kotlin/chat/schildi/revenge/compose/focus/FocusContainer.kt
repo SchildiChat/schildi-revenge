@@ -10,7 +10,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import chat.schildi.revenge.actions.FocusRole
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 /**
  * A container for items in the same hierarchy depth, similar to [focusGroup]
@@ -22,7 +22,7 @@ fun FocusContainer(
     modifier: Modifier = Modifier,
     role: FocusRole = FocusRole.CONTAINER,
     contentAlignment: Alignment = Alignment.Center,
-    focusId: UUID = rememberFocusId(),
+    focusId: Uuid = rememberFocusId(),
     content: @Composable BoxScope.() -> Unit,
 ) {
     FlatFocusContainer(
@@ -50,7 +50,7 @@ fun FlatFocusContainer(
     vararg providedValues: ProvidedValue<*>,
     modifier: Modifier = Modifier,
     role: FocusRole = FocusRole.CONTAINER,
-    focusId: UUID = rememberFocusId(),
+    focusId: Uuid = rememberFocusId(),
     content: @Composable (Modifier) -> Unit,
 ) {
     val parent = LocalFocusParent.current

@@ -16,7 +16,7 @@ import chat.schildi.revenge.Dimens
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.media.MediaSource
 import kotlinx.collections.immutable.ImmutableList
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 data class UserTimestampItem<T>(
     val userId: UserId,
@@ -44,7 +44,7 @@ private fun <T>List<UserTimestampItem<T>>.tooltipTextFunction(
 
 @Composable
 fun <T>WithUserTimestampListPopup(
-    focusId: UUID,
+    focusId: Uuid,
     users: ImmutableList<UserTimestampItem<T>>,
     modifier: Modifier = Modifier,
     leadingItemContent: @Composable (T) -> Unit = {},

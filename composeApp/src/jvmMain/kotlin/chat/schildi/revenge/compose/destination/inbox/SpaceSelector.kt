@@ -93,7 +93,7 @@ import shire.res.generated.resources.action_catch_space_orphans
 import shire.res.generated.resources.action_leave
 import shire.res.generated.resources.action_navigate_debug_timeline
 import shire.res.generated.resources.pref_space_all_rooms_title
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 @Composable
 fun SpaceSelectorRow(
@@ -358,7 +358,7 @@ private fun AbstractSpaceTab(
 
 @Composable
 fun Modifier.spaceTabModifier(
-    focusId: UUID,
+    focusId: Uuid,
     openContextMenu: InteractionAction.ContextMenu? = null,
     onClick: () -> Unit,
 ) = keyFocusable(

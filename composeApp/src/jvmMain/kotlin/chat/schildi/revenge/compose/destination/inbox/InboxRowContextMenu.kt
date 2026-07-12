@@ -48,10 +48,10 @@ import shire.res.generated.resources.action_notifications_default
 import shire.res.generated.resources.action_notifications_mentions
 import shire.res.generated.resources.action_notifications_none
 import shire.res.generated.resources.action_reject_invite
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 @Composable
-fun ScopedRoomSummary.contextMenu(inboxViewModel: InboxViewModel, focusId: UUID): ImmutableList<ContextMenuEntry> {
+fun ScopedRoomSummary.contextMenu(inboxViewModel: InboxViewModel, focusId: Uuid): ImmutableList<ContextMenuEntry> {
     return if (summary.isInvite()) {
         val isInviteSeen = UiState.appStateStore.isInviteSeenFlow(key).collectAsState(false).value
         listOfNotNull(

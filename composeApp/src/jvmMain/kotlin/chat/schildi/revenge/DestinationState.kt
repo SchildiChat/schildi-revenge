@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 enum class NavigationPreference {
     AUTO,
@@ -45,7 +45,7 @@ interface DestinationStateHolder {
         ): DestinationStateHolder {
             return DefaultDestinationStateHolder(
                 DestinationState(
-                    UUID.randomUUID(),
+                    Uuid.random(),
                     destination,
                     initialTitle,
                 ),
@@ -84,7 +84,7 @@ class DefaultDestinationStateHolder(
         destination: Destination,
         invalidateHolderId: Boolean = false,
     ) {
-        val holderId = if (invalidateHolderId) UUID.randomUUID() else null
+        val holderId = if (invalidateHolderId) Uuid.random() else null
         _state.update {
             DestinationState(
                 holderId = holderId ?: it.holderId,
@@ -119,7 +119,7 @@ class DefaultDestinationStateHolder(
 
 data class DestinationState(
     // Mutable ID allows moving destinations around, e.g. when entering split screen
-    val holderId: UUID,
+    val holderId: Uuid,
     val destination: Destination,
     val titleOverride: ComposableStringHolder? = null,
 )

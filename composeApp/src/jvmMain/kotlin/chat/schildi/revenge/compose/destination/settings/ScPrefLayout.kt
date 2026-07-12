@@ -27,14 +27,14 @@ import chat.schildi.revenge.actions.plainTextCopyAction
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import org.jetbrains.compose.resources.stringResource
-import java.util.UUID
+import kotlin.uuid.Uuid
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun <T> ScPref<T>.ScPrefLayout(
     modifier: Modifier = Modifier,
     clickAction: ((T) -> InteractionAction?) = { null },
-    focusId: UUID = rememberFocusId(),
+    focusId: Uuid = rememberFocusId(),
     selectionAsSummary: Boolean = false,
     valueToString: @Composable (T) -> String = { it.toString() },
     secondaryContent: @Composable ((value: T, enabled: Boolean) -> Unit)? = null,
@@ -89,7 +89,7 @@ fun ScPrefLayout(
     enabled: Boolean = true,
     modifier: Modifier = Modifier,
     clickAction: (() -> InteractionAction?) = { null },
-    focusId: UUID = rememberFocusId(),
+    focusId: Uuid = rememberFocusId(),
     secondaryContent: @Composable ((Boolean) -> Unit)? = null,
     trailing: @Composable ((Boolean) -> Unit)? = null,
 ) {

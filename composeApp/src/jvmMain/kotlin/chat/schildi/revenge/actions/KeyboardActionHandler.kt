@@ -156,12 +156,12 @@ import java.awt.datatransfer.StringSelection
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
-import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.map
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.math.sqrt
+import kotlin.uuid.Uuid
 
 // When focusing certain elements by role, we want to disable following mouse focus for a second to avoid
 // any animations messing with the focus request
@@ -173,7 +173,7 @@ val LocalKeyboardActionHandler = compositionLocalOf<KeyboardActionHandler> {
 }
 
 private data class FocusTarget(
-    val id: UUID,
+    val id: Uuid,
     val parent: FocusParent?,
     val role: FocusRole,
     val coordinates: Rect,
@@ -209,14 +209,14 @@ val FOCUSABLE_LIST_ITEMS = arrayOf(FocusRole.LIST_ITEM, FocusRole.LIST_ITEM_EDIT
 
 sealed interface CommandHolder {
     val command: String
-    val focused: UUID?
+    val focused: Uuid?
     val impliedArguments: List<Pair<ActionArgumentPrimitive, String>>
 }
 
 data class IpcCommand(
     override val command: String,
 ) : CommandHolder {
-    override val focused: UUID? = null
+    override val focused: Uuid? = null
     override val impliedArguments: List<Pair<ActionArgumentPrimitive, String>> = emptyList()
 }
 
@@ -226,12 +226,12 @@ sealed interface KeyboardActionMode {
         val query: String,
         val searchProvider: SearchProvider,
         val navigating: Boolean,
-        val searchFocusContainer: UUID?,
+        val searchFocusContainer: Uuid?,
     ) : KeyboardActionMode
     data class Command(
         val query: TextFieldValue,
         // Fix the item we want to action on
-        override val focused: UUID?,
+        override val focused: Uuid?,
         val suggestionsProvider: CommandSuggestionsProvider,
         val selectedSuggestion: String?,
         override val impliedArguments: List<Pair<ActionArgumentPrimitive, String>>,
@@ -299,8 +299,8 @@ private const val COMMAND_MESSAGE_ID = "cmd"
 
 data class FocusState(
     val windowFocused: Boolean,
-    val keyboardFocus: UUID? = null,
-    val commandFocus: UUID? = null,
+    val keyboardFocus: Uuid? = null,
+    val commandFocus: Uuid? = null,
 )
 
 private data class KeyboardActionHandlerSettings(
@@ -316,15 +316,15 @@ private data class KeyboardActionHandlerSettings(
 }
 
 data class ContextMenuFocus(
-    val focusId: UUID,
-    val menuId: UUID,
+    val focusId: Uuid,
+    val menuId: Uuid,
     val parentMenu: ContextMenuFocus?,
 ) {
-    fun hasMenu(menuId: UUID): Boolean =
+    fun hasMenu(menuId: Uuid): Boolean =
         menuId == this.menuId || parentMenu?.hasMenu(menuId) == true
-    fun find(menuId: UUID): ContextMenuFocus? =
+    fun find(menuId: Uuid): ContextMenuFocus? =
         this.takeIf { menuId == this.menuId } ?: parentMenu?.find(menuId)
-    fun dismiss(menuId: UUID): ContextMenuFocus? {
+    fun dismiss(menuId: Uuid): ContextMenuFocus? {
         val toDismiss = find(menuId)
         return if (toDismiss == null) {
             // Not found, not dismissing self
@@ -356,13 +356,13 @@ class KeyboardActionHandler(
     private var _lastPointerPosition = Offset.Zero
     val lastPointerPosition: Offset
         get() = _lastPointerPosition
-    private val currentFocus = MutableStateFlow<UUID?>(null)
+    private val currentFocus = MutableStateFlow<Uuid?>(null)
 
     private val _isWindowFocused = MutableStateFlow(false)
     val isWindowsFocused = _isWindowFocused.asStateFlow()
 
-    private val lastFocusedDestination = MutableStateFlow<UUID?>(null)
-    private val lastFocusByDestination = MutableStateFlow<Map<UUID, UUID>>(emptyMap())
+    private val lastFocusedDestination = MutableStateFlow<Uuid?>(null)
+    private val lastFocusByDestination = MutableStateFlow<Map<Uuid, Uuid>>(emptyMap())
 
     val currentFocusedNestingDestinations = currentFocus.map { focusId ->
         focusId ?: return@map persistentListOf()
@@ -440,7 +440,7 @@ class KeyboardActionHandler(
         } ?: flowOf(null)
     }.stateIn(scope, SharingStarted.Eagerly, null)
 
-    private val focusableTargets = ConcurrentHashMap<UUID, FocusTarget>()
+    private val focusableTargets = ConcurrentHashMap<Uuid, FocusTarget>()
 
     private val pendingKeyTriggersInAction = ConcurrentHashMap<KeyTrigger, Unit>()
 
@@ -471,7 +471,7 @@ class KeyboardActionHandler(
     private fun moveFocus(
         focusDirection: FocusDirection,
         currentFocus: FocusTarget? = currentFocused(),
-        parentId: UUID? = currentFocus?.parent?.uuid,
+        parentId: Uuid? = currentFocus?.parent?.uuid,
     ): Boolean {
         _keyboardPrimary.value = true
         if (parentId == null || currentFocus == null || currentFocus.coordinates.isEmpty) {
@@ -516,7 +516,7 @@ class KeyboardActionHandler(
     private fun focusClosestTo(
         position: Offset,
         allowPartial: Boolean,
-        parentId: UUID? = null,
+        parentId: Uuid? = null,
         vararg roles: FocusRole,
     ): Boolean {
         _keyboardPrimary.value = true
@@ -797,7 +797,7 @@ class KeyboardActionHandler(
     }
 
     private fun updateMode(update: (KeyboardActionMode) -> KeyboardActionMode) {
-        var focusToRestore: UUID? = null
+        var focusToRestore: Uuid? = null
         _mode.update { old ->
             val new = update(old)
             val oldSearchProvider = old.asSearchMode()?.searchProvider
@@ -930,8 +930,8 @@ class KeyboardActionHandler(
     private fun handleContextMenuEvent(
         event: KeyEvent,
         contextMenuEntries: List<ContextMenuEntry>?,
-        focusId: UUID,
-        menuId: UUID,
+        focusId: Uuid,
+        menuId: Uuid,
     ): Boolean {
         when (event.key) {
             Key.Escape -> dismissContextMenu(menuId)
@@ -947,8 +947,8 @@ class KeyboardActionHandler(
     }
 
     fun handleContextMenuEntry(
-        focusId: UUID,
-        menuId: UUID,
+        focusId: Uuid,
+        menuId: Uuid,
         entry: ContextMenuEntry,
     ) {
         if (!entry.enabled) {
@@ -970,7 +970,7 @@ class KeyboardActionHandler(
         }
     }
 
-    private fun focusSearchResults(parentId: UUID?) {
+    private fun focusSearchResults(parentId: Uuid?) {
         focusClosestTo(Offset.Zero, allowPartial = true, roles = FOCUSABLE_LIST_ITEMS, parentId = parentId)
     }
 
@@ -981,7 +981,7 @@ class KeyboardActionHandler(
     ) = focusCurrentContainerRelative(parentId = currentFocus?.parent?.uuid, select = select, roles = roles)
 
     private fun focusCurrentContainerRelative(
-        parentId: UUID? = currentFocused()?.parent?.uuid,
+        parentId: Uuid? = currentFocused()?.parent?.uuid,
         vararg roles: FocusRole,
         select: (Rect) -> Offset,
     ): Boolean {
@@ -1033,7 +1033,7 @@ class KeyboardActionHandler(
                 target.focusRequester.requestFocus()
     }
 
-    private fun findFocusableListItems(parentId: UUID?) = if (parentId == null) {
+    private fun findFocusableListItems(parentId: Uuid?) = if (parentId == null) {
         focusableTargets.values.filter {
             it.role in FOCUSABLE_LIST_ITEMS
         }
@@ -1043,7 +1043,7 @@ class KeyboardActionHandler(
         }
     }
 
-    private fun findVisibleListItemTop(parentId: UUID?) = findFocusableListItems(parentId)
+    private fun findVisibleListItemTop(parentId: Uuid?) = findFocusableListItems(parentId)
         .filter { it.actions?.listActions != null }
         .takeIf { it.isNotEmpty() }
         ?.minBy {
@@ -1051,14 +1051,14 @@ class KeyboardActionHandler(
         }
 
 
-    private fun findVisibleListItemBottom(parentId: UUID?) = findFocusableListItems(parentId)
+    private fun findVisibleListItemBottom(parentId: Uuid?) = findFocusableListItems(parentId)
         .filter { it.actions?.listActions != null }
         .takeIf { it.isNotEmpty() }
         ?.maxBy {
             it.coordinates.bottom
         }
 
-    private fun findVisibleListItemStart(parentId: UUID?) = findFocusableListItems(parentId)
+    private fun findVisibleListItemStart(parentId: Uuid?) = findFocusableListItems(parentId)
         .filter { it.actions?.listActions != null }
         .takeIf { it.isNotEmpty() }
         ?.maxBy {
@@ -1069,7 +1069,7 @@ class KeyboardActionHandler(
             }
         }
 
-    private fun findVisibleListItemEnd(parentId: UUID?) = findFocusableListItems(parentId)
+    private fun findVisibleListItemEnd(parentId: Uuid?) = findFocusableListItems(parentId)
         .filter { it.actions?.listActions != null }
         .takeIf { it.isNotEmpty() }
         ?.maxBy {
@@ -1131,7 +1131,7 @@ class KeyboardActionHandler(
     )
 
     fun handleAction(
-        focusItem: UUID,
+        focusItem: Uuid,
         action: Action,
         args: List<String> = emptyList(),
     ): ActionResult {
@@ -1149,7 +1149,7 @@ class KeyboardActionHandler(
     }
 
     fun handleContextCallbackAction(
-        focusItem: UUID,
+        focusItem: Uuid,
         block: suspend ActionContext.() -> ActionResult,
     ): ActionResult {
         val focused = focusableTargets[focusItem] ?: run {
@@ -2148,9 +2148,9 @@ class KeyboardActionHandler(
         return false
     }
 
-    fun onFocusChanged(target: UUID, state: FocusState?) {
+    fun onFocusChanged(target: Uuid, state: FocusState?) {
         //log.v { "Focus changed for $target to $state" }
-        var lostFocusTargetId: UUID? = null
+        var lostFocusTargetId: Uuid? = null
         if (state == null) {
             // Should already happen in focusParent() via key actions where we already set this...?
             if (currentFocus.value != target) {
@@ -2179,7 +2179,7 @@ class KeyboardActionHandler(
         }
         val lostFocusTarget = lostFocusTargetId?.let { focusableTargets[it] }
         lostFocusTarget?.let(::handleLostFocus)
-        var newFocusedDestination: UUID? = null
+        var newFocusedDestination: Uuid? = null
         lastFocusByDestination.update {
             it.filter {
                 it.value != lostFocusTargetId
@@ -2218,7 +2218,7 @@ class KeyboardActionHandler(
     }
 
     fun registerFocusTarget(
-        target: UUID,
+        target: Uuid,
         parent: FocusParent?,
         coordinates: LayoutCoordinates,
         focusRequester: AbstractFocusRequester,
@@ -2244,7 +2244,7 @@ class KeyboardActionHandler(
         )
     }
 
-    fun unregisterFocusTarget(target: UUID) {
+    fun unregisterFocusTarget(target: Uuid) {
         focusableTargets.remove(target)
     }
 
@@ -2318,14 +2318,14 @@ class KeyboardActionHandler(
     fun onSearchType(
         query: String,
         searchProvider: SearchProvider?,
-        searchFocusContainer: UUID?,
+        searchFocusContainer: Uuid?,
     ) = handleSearchUpdate(query, searchProvider, searchFocusContainer, navigating = false) {
         it.searchProvider.onSearchEnter(it.query)
     }
 
     fun onSearchEnter(
         searchProvider: SearchProvider?,
-        searchFocusContainer: UUID?,
+        searchFocusContainer: Uuid?,
         query: String? = null,
     ) {
         handleSearchUpdate(query, searchProvider, searchFocusContainer, navigating = true) {
@@ -2341,7 +2341,7 @@ class KeyboardActionHandler(
     private fun handleSearchUpdate(
         query: String?,
         searchProvider: SearchProvider?,
-        searchFocusContainer: UUID?,
+        searchFocusContainer: Uuid?,
         navigating: Boolean,
         handleSuccess: (KeyboardActionMode.Search) -> Unit,
     ): Boolean {
@@ -2426,7 +2426,7 @@ class KeyboardActionHandler(
         }
     }
 
-    fun dismissContextMenu(id: UUID): Boolean {
+    fun dismissContextMenu(id: Uuid): Boolean {
         var dismissed = false
         _currentOpenContextMenu.update { current ->
             current?.dismiss(id).also {
@@ -2436,7 +2436,7 @@ class KeyboardActionHandler(
         return dismissed
     }
 
-    fun openContextMenu(focusId: UUID, menuId: UUID = focusId, parentMenuId: UUID? = null): Boolean {
+    fun openContextMenu(focusId: Uuid, menuId: Uuid = focusId, parentMenuId: Uuid? = null): Boolean {
         val focusTarget = focusableTargets[focusId]
         if (focusTarget == null) {
             log.e("Tried to open context menu on unregistered target $focusId")
@@ -2763,7 +2763,7 @@ class KeyboardActionHandler(
         return null
     }
 
-    private fun findAllChildren(parentId: UUID, condition: (FocusTarget) -> Boolean = { true }): List<FocusTarget> {
+    private fun findAllChildren(parentId: Uuid, condition: (FocusTarget) -> Boolean = { true }): List<FocusTarget> {
         return focusableTargets.values.filter { focusable ->
             focusable.findFirstInParentHierarchy {
                 it.parent?.uuid == parentId && condition(it)
