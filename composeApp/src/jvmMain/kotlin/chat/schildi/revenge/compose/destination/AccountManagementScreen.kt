@@ -37,6 +37,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
@@ -329,6 +330,7 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
     var hsDetails by remember(homeserver.text) { mutableStateOf<Result<MatrixHomeServerDetails>?>(null) }
     var loginVariant by remember(homeserver.text) { mutableStateOf<LoginVariant?>(null) }
     val loginError = remember(homeserver.text) { mutableStateOf<String?>(null) }
+    val uriHandler = LocalUriHandler.current
     LaunchedEffect(Unit) {
         viewModel.oauthState.collect {
             when (it) {
@@ -416,7 +418,7 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
 
                                                 it.supportsOAuthLogin -> {
                                                     loginVariant = LoginVariant.OAUTH
-                                                    viewModel.loginWithBrowser()
+                                                    viewModel.loginWithBrowser(uriHandler)
                                                 }
 
                                                 it.supportsPasswordLogin -> {
@@ -451,7 +453,7 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
                             ) {
                                 loginVariant = LoginVariant.OAUTH
                                 scope.launch {
-                                    viewModel.loginWithBrowser()
+                                    viewModel.loginWithBrowser(uriHandler)
                                 }
                                 true
                             }
@@ -480,7 +482,7 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
                     stringResource(Res.string.action_retry)
                 ) {
                     scope.launch {
-                        viewModel.loginWithBrowser()
+                        viewModel.loginWithBrowser(uriHandler)
                     }
                     true
                 }

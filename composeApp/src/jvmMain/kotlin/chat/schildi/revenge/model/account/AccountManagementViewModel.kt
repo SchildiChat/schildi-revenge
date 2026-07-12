@@ -1,5 +1,6 @@
 package chat.schildi.revenge.model.account
 
+import androidx.compose.ui.platform.UriHandler
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import chat.schildi.revenge.Destination
@@ -108,27 +109,20 @@ class AccountManagementViewModel(
             .onSuccess { log.i { "Logged in to $username" } }
             .onFailure { log.w("Failed to log in to $username", it) }
 
-    suspend fun loginWithBrowser(): Result<Unit> {
+    suspend fun loginWithBrowser(uriHandler: UriHandler): Result<Unit> {
         return runCatching {
             val oauthDetails = authService.getOAuthUrl(
                 prompt = OAuthPrompt.Login,
                 loginHint = null,
             ).getOrThrow()
             oAuthRepo.onOAuthRequestLaunched(oauthDetails)
-            openBrowser(oauthDetails.url)
+            uriHandler.openUri(oauthDetails.url)
         }.onSuccess {
             log.i { "Opened browser login" }
         }.onFailure { failure ->
             log.w("Failed to log in with browser", failure)
             oAuthRepo.onOAuthRequestCancelled()
         }
-    }
-
-    private fun openBrowser(url: String) {
-        if (!Desktop.isDesktopSupported() || !Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-            error("Opening a browser is not supported on this desktop")
-        }
-        Desktop.getDesktop().browse(URI(url))
     }
 
     suspend fun verify(session: SessionData, recoveryKey: String): Result<Unit> {
