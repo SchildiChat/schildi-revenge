@@ -143,7 +143,7 @@
     <string name="command_copy_name_full_account_data">dados da conta</string>
     <string name="command_copy_name_event_id">ID do evento</string>
     <string name="command_copy_name_room_id">ID da sala</string>
-    <string name="command_suggestion_title_and_hint">%1$s: %1$s</string>
+    <string name="command_suggestion_title_and_hint">%1$s: %2$s</string>
     <string name="command_fetching_state">Carregando estado</string>
     <string name="command_fetching_data">Carregando dados</string>
     <string name="common_internal_error">Erro interno</string>
@@ -213,7 +213,7 @@
     <string name="message_shield_unverified_identity">Identidade não verificada</string>
     <string name="message_shield_verification_violation">Identidade não verificada</string>
     <string name="send_error_unknown">Erro desconhecido</string>
-    <string name="power_level_user_role_combined">%1$s (%1$s)</string>
+    <string name="power_level_user_role_combined">%1$s (%2$s)</string>
     <string name="command_copied_content_to_clipboard">Copiado: %1$s</string>
     <string name="hint_not_set">Não definido</string>
     <string name="room_members_title_loading">Carregando membros da sala</string>
@@ -323,4 +323,6 @@
         <item quantity="other">%1$d salas compartilhadas: %2$s</item>
     </plurals>
     <string name="action_check">Verificar</string>
+    <string name="action_login_with_browser">Entrar com navegador</string>
+    <string name="action_login_with_password">Entrar com senha</string>
 </resources>
