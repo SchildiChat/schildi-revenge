@@ -23,7 +23,7 @@ fun ComposerSuggestions(
 ) {
     TextFieldSuggestions(
         suggestions = suggestionsState.suggestions,
-        key = { it },
+        key = { it.renderKey },
         currentSelection = suggestionsState.selectedSuggestion,
         onSuggestionClick = onSuggestionClick,
         modifier = modifier,

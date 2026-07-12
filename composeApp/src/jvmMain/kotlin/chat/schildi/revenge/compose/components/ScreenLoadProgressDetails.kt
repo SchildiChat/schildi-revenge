@@ -17,7 +17,7 @@ fun ScreenLoadProgressDetails(
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(modifier, horizontalAlignment = Alignment.CenterHorizontally) {
-        items(state, key = { it.checkpoint }) { item ->
+        items(state, key = { it.checkpoint.renderKey }) { item ->
             ScreenLoadingProgressRow(item)
         }
     }

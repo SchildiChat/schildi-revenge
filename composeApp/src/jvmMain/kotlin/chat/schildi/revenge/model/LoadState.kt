@@ -22,11 +22,14 @@ import shire.res.generated.resources.verification_request_title
 
 interface LoadCheckPoint {
     val name: ComposableStringHolder
+    val renderKey: String
+        get() = this::class.java.name
 
     data class Client(
         val sessionId: SessionId
     ) : LoadCheckPoint {
         override val name = sessionId.value.toStringHolder()
+        override val renderKey = "${this::class.java.name}/$sessionId"
     }
 
     data object Room : LoadCheckPoint {

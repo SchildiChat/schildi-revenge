@@ -20,6 +20,7 @@ sealed interface ComposerSuggestion {
     val previewImage: InlineImageInfo?
         get() = null
     fun buildDraftSpan(start: Int, end: Int): DraftSpan? = null
+    val renderKey: String
 }
 
 data class ComposerUserMentionSuggestion(
@@ -37,6 +38,7 @@ data class ComposerUserMentionSuggestion(
         }
     override fun buildDraftSpan(start: Int, end: Int) =
         DraftMention(start = start, end = end, mention = IntentionalMention.User(userId))
+    override val renderKey = "u/$userId"
 }
 
 data object ComposerRoomMentionSuggestion : ComposerSuggestion {
@@ -45,6 +47,7 @@ data object ComposerRoomMentionSuggestion : ComposerSuggestion {
     override val hint: ComposableStringHolder? = null
     override fun buildDraftSpan(start: Int, end: Int) =
         DraftMention(start = start, end = end, mention = IntentionalMention.Room)
+    override val renderKey = "@room"
 }
 
 data class ComposerEmojiSuggestion(
@@ -54,6 +57,7 @@ data class ComposerEmojiSuggestion(
 ) : ComposerSuggestion {
     override val shouldAppendSpace = false
     override val hint: ComposableStringHolder? = description?.toStringHolder()
+    override val renderKey = "emoji/$value"
 }
 
 data class ComposerCustomEmoteSuggestion(
@@ -77,6 +81,7 @@ data class ComposerCustomEmoteSuggestion(
     )
     override fun buildDraftSpan(start: Int, end: Int) =
         DraftCustomEmote(start = start, end = end, shortcode = shortcode, image = image, source = source)
+    override val renderKey = "emote/${source.packSource.roomId}/${source.packSource.stateKey}/$shortcode"
 }
 
 data class ComposerSuggestionsState(

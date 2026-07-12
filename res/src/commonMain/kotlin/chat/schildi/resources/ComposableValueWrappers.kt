@@ -15,6 +15,7 @@ sealed interface ComposableStringHolder {
     @Composable
     fun render(): String
     suspend fun renderSuspend(): String
+    val renderKey: String
 }
 
 data class HardcodedStringHolder(
@@ -23,6 +24,7 @@ data class HardcodedStringHolder(
     @Composable
     override fun render() = value
     override suspend fun renderSuspend() = value
+    override val renderKey = "raw/$value"
 }
 
 data class StringResourceHolder(
@@ -33,6 +35,7 @@ data class StringResourceHolder(
     @Composable
     override fun render() = stringResource(res, *formatArgs.map { it.render() }.toTypedArray())
     override suspend fun renderSuspend() = getString(res, *formatArgs.map { it.renderSuspend() }.toTypedArray())
+    override val renderKey = "res/${res.key}/${formatArgs.map(ComposableStringHolder::renderKey)}"
 }
 
 data class PluralsResourceHolder(
@@ -44,6 +47,7 @@ data class PluralsResourceHolder(
     @Composable
     override fun render() = pluralStringResource(res, quantity, *formatArgs.map { it.render() }.toTypedArray())
     override suspend fun renderSuspend() = getPluralString(res, quantity, *formatArgs.map { it.renderSuspend() }.toTypedArray())
+    override val renderKey = "plurals/${res.key}/$quantity/${formatArgs.map(ComposableStringHolder::renderKey)}"
 }
 
 fun String.toStringHolder() = HardcodedStringHolder(this)

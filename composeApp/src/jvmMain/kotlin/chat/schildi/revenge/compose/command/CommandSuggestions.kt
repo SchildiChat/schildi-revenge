@@ -31,7 +31,7 @@ fun CommandSuggestions(
 ) {
     TextFieldSuggestions(
         suggestions = suggestionsState.currentSuggestions,
-        key = { it },
+        key = { Pair(it.value, it.hint?.renderKey) },
         currentSelection = suggestionsState.currentSuggestions.find { it.value == currentSelection },
         onSuggestionClick = { onSuggestionClick(it.value) },
         modifier = modifier,
