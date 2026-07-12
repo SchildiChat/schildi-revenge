@@ -64,6 +64,7 @@ kotlin {
                 implementation(libs.coil3.okhttp)
                 implementation(libs.coil3.gif)
                 implementation(libs.androidx.core.ktx)
+                implementation(projects.rustlsTls)
                 implementation(projects.config)
                 implementation(projects.preferences)
                 implementation(libs.kermit)

@@ -1,5 +1,3 @@
-import extension.buildConfigFieldBoolean
-
 /*
  * Copyright (c) 2026 Element Creations Ltd.
  *
@@ -8,17 +6,24 @@ import extension.buildConfigFieldBoolean
  */
 
 plugins {
-    id("io.element.android-library")
+    alias(libs.plugins.androidLibrary)
 }
 
 android {
     namespace = "org.rustls.platformverifier"
+    compileSdk = 37
 
     buildFeatures {
         buildConfig = true
     }
 
     defaultConfig {
-        buildConfigFieldBoolean("TEST", false)
+        minSdk = 24
+        buildConfigField("boolean", "TEST", "false")
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
 }
