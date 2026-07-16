@@ -55,6 +55,7 @@ plugins {
 }
 
 include(":composeApp")
+include(":androidApp")
 include(":config")
 include(":matrix")
 include(":matrixRustBindings")

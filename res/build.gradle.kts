@@ -14,14 +14,19 @@ import javax.xml.parsers.DocumentBuilderFactory
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
 }
 
 kotlin {
     jvm()
-    androidTarget()
+    android {
+        namespace = "chat.schildi.resources"
+        compileSdk = 37
+        minSdk = 21
+        androidResources.enable = true
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -32,14 +37,6 @@ kotlin {
     }
 }
 
-android {
-    namespace = "chat.schildi.resources"
-    compileSdk = 37
-
-    defaultConfig {
-        minSdk = 21
-    }
-}
 
 compose.resources {
     publicResClass = true
@@ -153,7 +150,7 @@ kotlin.sourceSets.named("commonMain") {
 tasks.matching {
     it.name == "compileCommonMainKotlinMetadata" ||
         it.name == "compileKotlinJvm" ||
-        (it.name.startsWith("compile") && it.name.endsWith("KotlinAndroid"))
+        it.name == "compileAndroidMain"
 }.configureEach {
     dependsOn(generateAvailableLocales)
 }

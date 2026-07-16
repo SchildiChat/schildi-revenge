@@ -1,6 +1,6 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
 }
 
 kotlin {
@@ -9,7 +9,10 @@ kotlin {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
         }
     }
-    androidTarget {
+    android {
+        namespace = "chat.schildi.revenge.shim"
+        compileSdk = 37
+        minSdk = 21
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
         }
@@ -29,21 +32,10 @@ kotlin {
             kotlin.include("io/element/**")
             kotlin.include("timber/log/**")
             dependencies {
+                implementation(libs.coil3.compose)
                 implementation(libs.kermit)
                 implementation(libs.kotlinx.coroutines.core)
             }
         }
-    }
-}
-
-android {
-    namespace = "chat.schildi.revenge.shim"
-    compileSdk = 37
-
-    defaultConfig {
-        minSdk = 21
-    }
-    sourceSets.named("main") {
-        java.setSrcDirs(emptyList<String>())
     }
 }

@@ -24,7 +24,7 @@ import javax.inject.Inject
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidApplication)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
@@ -37,7 +37,10 @@ kotlin {
         optIn.add("kotlin.uuid.ExperimentalUuidApi")
     }
     jvm("desktop")
-    androidTarget {
+    android {
+        namespace = "chat.schildi.revenge.compose"
+        compileSdk = 37
+        minSdk = 24
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
         }
@@ -108,53 +111,6 @@ kotlin {
             }
         }
     }
-}
-
-val supportedAndroidAbis = listOf("arm64-v8a", "armeabi", "armeabi-v7a", "x86", "x86_64")
-val injectedAndroidAbis = providers.gradleProperty("android.injected.build.abi").orNull
-    ?.split(',')
-    ?.map(String::trim)
-    ?.filter(String::isNotEmpty)
-    ?.distinct()
-    ?.takeIf(List<String>::isNotEmpty)
-val unknownAndroidAbis = injectedAndroidAbis.orEmpty() - supportedAndroidAbis
-require(unknownAndroidAbis.isEmpty()) {
-    "Unsupported Android ABI(s): ${unknownAndroidAbis.joinToString()}. Supported ABIs: ${supportedAndroidAbis.joinToString()}"
-}
-
-android {
-    namespace = "chat.schildi.revenge"
-    compileSdk = 37
-
-    buildFeatures {
-        buildConfig = true
-    }
-
-    defaultConfig {
-        applicationId = "chat.schildi.revenge"
-        minSdk = 24
-        targetSdk = 37
-        versionCode = 1
-        versionName = "0.1"
-    }
-    buildTypes {
-        debug {
-            applicationIdSuffix = ".debug"
-            ndk.abiFilters += injectedAndroidAbis ?: listOf("arm64-v8a")
-        }
-        release {
-            ndk.abiFilters += injectedAndroidAbis ?: supportedAndroidAbis
-        }
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-        isCoreLibraryDesugaringEnabled = true
-    }
-}
-
-dependencies {
-    coreLibraryDesugaring(libs.desugar.jdk.libs)
 }
 
 // --- Build variant info (debug/release) and codegen for BuildInfo ---
@@ -400,7 +356,7 @@ kotlin.sourceSets.named("jvmMain") {
 tasks.named("compileKotlinDesktop").configure {
     dependsOn(generateBuildInfo)
 }
-tasks.matching { it.name.matches(Regex("compile(?:.*)KotlinAndroid")) }.configureEach {
+tasks.named("compileAndroidMain").configure {
     dependsOn(generateBuildInfo)
 }
 

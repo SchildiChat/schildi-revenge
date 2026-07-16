@@ -4,11 +4,11 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
-        android:name=".RevengeApplication"
+        android:name="chat.schildi.revenge.RevengeApplication"
         android:label="SchildiChat Revenge"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
         <activity
-            android:name=".MainActivity"
+            android:name="chat.schildi.revenge.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -16,15 +16,13 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".OAuthCallbackActivity"
+            android:name="chat.schildi.revenge.OAuthCallbackActivity"
             android:exported="true"
             android:theme="@android:style/Theme.NoDisplay">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
                 <data android:scheme="${applicationId}" />
             </intent-filter>
         </activity>

@@ -21,7 +21,7 @@ class RevengeApplication : Application() {
                 logLevel = LogLevel.INFO,
                 traceLogPacks = emptyList(),
                 extraTargets = emptyList(),
-                writeToStdoutOrSystem = BuildConfig.DEBUG,
+                writeToStdoutOrSystem = BuildInfo.DEBUG,
                 writeToFiles = null,
             ),
             useLightweightTokioRuntime = false,

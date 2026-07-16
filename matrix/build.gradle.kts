@@ -1,6 +1,6 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.kotlinxSerialization)
@@ -14,7 +14,10 @@ kotlin {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
         }
     }
-    androidTarget {
+    android {
+        namespace = "chat.schildi.revenge.matrix"
+        compileSdk = 37
+        minSdk = 21
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
         }
@@ -68,25 +71,4 @@ kotlin {
             }
         }
     }
-}
-
-android {
-    namespace = "chat.schildi.revenge.matrix"
-    compileSdk = 37
-
-    defaultConfig {
-        minSdk = 21
-    }
-    sourceSets.named("main") {
-        java.setSrcDirs(emptyList<String>())
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-        isCoreLibraryDesugaringEnabled = true
-    }
-}
-
-dependencies {
-    coreLibraryDesugaring(libs.desugar.jdk.libs)
 }

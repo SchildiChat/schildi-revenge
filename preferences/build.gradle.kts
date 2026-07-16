@@ -1,12 +1,16 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.composeCompiler)
 }
 
 kotlin {
     jvm()
-    androidTarget()
+    android {
+        namespace = "chat.schildi.lib.preferences"
+        compileSdk = 37
+        minSdk = 21
+    }
 
     sourceSets {
         commonMain.dependencies {
@@ -16,14 +20,5 @@ kotlin {
             api(projects.res)
             implementation(libs.kermit)
         }
-    }
-}
-
-android {
-    namespace = "chat.schildi.lib.preferences"
-    compileSdk = 37
-
-    defaultConfig {
-        minSdk = 21
     }
 }

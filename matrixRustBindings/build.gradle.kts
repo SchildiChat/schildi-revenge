@@ -2,7 +2,7 @@ import org.gradle.api.tasks.Exec
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
 }
 
 val rustSdkDir = layout.projectDirectory.dir("../matrix-rust-sdk")
@@ -92,7 +92,7 @@ fun selectedAbis(buildType: String): List<String> {
 fun registerAndroidRustBuild(buildType: String): TaskProvider<Task> {
     val rustProfileArgs = if (buildType == "release") listOf("--release") else emptyList()
     val abis = selectedAbis(buildType)
-    val outputDir = layout.buildDirectory.dir("generated/android/$buildType/${abis.joinToString("+")}/jniLibs")
+    val outputDir = layout.buildDirectory.dir("generated/android/$buildType/jniLibs")
     val abiTasks = abis.map { abi ->
         tasks.register<Exec>(
             "buildAndroid${buildType.replaceFirstChar(Char::uppercase)}${abi.replace("-", "").replaceFirstChar(Char::uppercase)}Sdk",
@@ -120,14 +120,8 @@ fun registerAndroidRustBuild(buildType: String): TaskProvider<Task> {
     }
 }
 
-val buildAndroidDebugSdk = registerAndroidRustBuild("debug")
-val buildAndroidReleaseSdk = registerAndroidRustBuild("release")
-val debugJniLibsDir = layout.buildDirectory.dir(
-    "generated/android/debug/${selectedAbis("debug").joinToString("+")}/jniLibs",
-)
-val releaseJniLibsDir = layout.buildDirectory.dir(
-    "generated/android/release/${selectedAbis("release").joinToString("+")}/jniLibs",
-)
+registerAndroidRustBuild("debug")
+registerAndroidRustBuild("release")
 
 kotlin {
     jvm {
@@ -135,7 +129,10 @@ kotlin {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
         }
     }
-    androidTarget {
+    android {
+        namespace = "org.matrix.rustcomponents.sdk"
+        compileSdk = 37
+        minSdk = 21
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
         }
@@ -159,40 +156,9 @@ kotlin {
     }
 }
 
-android {
-    namespace = "org.matrix.rustcomponents.sdk"
-    compileSdk = 37
-    ndkVersion = "29.0.14206865"
-
-    defaultConfig {
-        minSdk = 21
-    }
-    sourceSets {
-        named("debug") {
-            jniLibs.srcDir(debugJniLibsDir)
-        }
-        named("release") {
-            jniLibs.srcDir(releaseJniLibsDir)
-        }
-    }
-    packaging {
-        jniLibs.keepDebugSymbols += "**/*.so"
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
-    }
-}
-
-tasks.matching { it.name == "mergeDebugJniLibFolders" }.configureEach {
-    dependsOn(buildAndroidDebugSdk)
-}
-tasks.matching { it.name == "mergeReleaseJniLibFolders" }.configureEach {
-    dependsOn(buildAndroidReleaseSdk)
-}
 tasks.matching {
     it.name == "compileKotlinJvm" ||
-        (it.name.startsWith("compile") && it.name.endsWith("KotlinAndroid"))
+        it.name == "compileAndroidMain"
 }.configureEach {
     dependsOn(generateFfiBindings)
 }

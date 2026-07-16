@@ -1,6 +1,6 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.androidKotlinMultiplatformLibrary)
     alias(libs.plugins.kotlinxSerialization)
 }
 
@@ -10,7 +10,10 @@ kotlin {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
         }
     }
-    androidTarget {
+    android {
+        namespace = "chat.schildi.revenge.config"
+        compileSdk = 37
+        minSdk = 21
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
         }
@@ -30,14 +33,5 @@ kotlin {
         androidMain {
             kotlin.srcDir("src/jvmMain/kotlin")
         }
-    }
-}
-
-android {
-    namespace = "chat.schildi.revenge.config"
-    compileSdk = 37
-
-    defaultConfig {
-        minSdk = 21
     }
 }
