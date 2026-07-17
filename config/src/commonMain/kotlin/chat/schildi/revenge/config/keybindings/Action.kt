@@ -301,6 +301,8 @@ sealed interface Action {
                 ActionArgumentPrimitive.SpaceSelectionId,
             )
         )),
+        SetSpaceExpanded(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.Boolean))),
+        ToggleSpaceExpanded,
     }
     enum class Conversation(
         override val aliases: kotlin.collections.List<String> = emptyList(),

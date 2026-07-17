@@ -28,6 +28,7 @@ import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.flatMerge
 import chat.schildi.revenge.model.invites.SeenInvitesStore
 import chat.schildi.revenge.model.conversation.MessageMetadata
+import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_NO_FILTER
 import chat.schildi.revenge.model.spaces.RevengeSpaceListDataSource
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
 import chat.schildi.revenge.model.spaces.SpaceListDataSource
@@ -218,7 +219,7 @@ class InboxViewModel(
         spaces,
         spaceSelection
     ) { spaces, spaceSelection ->
-        spaces?.resolveSelection(spaceSelection)
+        spaces?.resolveSelection(spaceSelection, followWildcards = true)
     }
 
     val showSpaceUi = searchTerm.map {
@@ -526,6 +527,31 @@ class InboxViewModel(
                     navigateToSpaceById(spaceSelection)
                 }
             }
+
+            Action.Inbox.ToggleSpaceExpanded,
+            Action.Inbox.SetSpaceExpanded -> {
+                val currentSelection = spaceSelection.value
+                val isAlreadyExpanded = currentSelection.lastOrNull() == PSEUDO_SPACE_ID_NO_FILTER
+                val currentSpace = spaces.value?.resolveSelection(currentSelection)
+                val shouldExpand = if (action == Action.Inbox.ToggleSpaceExpanded) {
+                    !isAlreadyExpanded && !currentSpace?.spaces.isNullOrEmpty()
+                } else {
+                    args.firstOrNull()?.toBooleanStrictOrNull() ?: true
+                }
+                if (shouldExpand) {
+                    if (currentSpace is SpaceListDataSource.SpaceHierarchyItem) {
+                        setSpaceSelection(currentSelection + PSEUDO_SPACE_ID_NO_FILTER)
+                        ActionResult.Success()
+                    } else {
+                        ActionResult.Inapplicable
+                    }
+                } else if (currentSelection.size > 1) {
+                    setSpaceSelection(currentSelection.take(currentSelection.size - 1))
+                    ActionResult.Success()
+                } else {
+                    ActionResult.Inapplicable
+                }
+            }
         }
     }
 
@@ -563,13 +589,17 @@ class InboxViewModel(
             0
         } else {
             val currentSpaceSelectionId = currentSelection.last()
-            currentSpaceLevel.indexOfFirst { it?.selectionId == currentSpaceSelectionId }.takeIf { it >= 0 } ?: 0
+            currentSpaceLevel.indexOfFirst {
+                (it?.selectionId ?: PSEUDO_SPACE_ID_NO_FILTER) == currentSpaceSelectionId
+            }
         }
-        val navigatedIndex = (currentIndex + diff).coerceIn(0, currentSpaceLevel.size - 1)
+        val navigatedIndex = (currentIndex + diff).coerceIn(-1, currentSpaceLevel.size - 1)
         if (navigatedIndex == currentIndex) {
             return@navigateSpaceInCurrentHierarchyLevel ActionResult.NoOp
         }
-        setSpaceSelection(currentParentSelection + listOfNotNull(currentSpaceLevel[navigatedIndex]?.selectionId))
+        setSpaceSelection(
+            currentParentSelection + listOf(currentSpaceLevel.getOrNull(navigatedIndex)?.selectionId ?: PSEUDO_SPACE_ID_NO_FILTER)
+        )
         return@navigateSpaceInCurrentHierarchyLevel ActionResult.Success()
     }
 

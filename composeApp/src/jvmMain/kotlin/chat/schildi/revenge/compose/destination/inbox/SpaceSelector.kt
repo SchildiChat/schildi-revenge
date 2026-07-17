@@ -35,11 +35,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -75,6 +71,7 @@ import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.config.keybindings.SpaceCatchAllMode
+import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_NO_FILTER
 import chat.schildi.revenge.model.spaces.SpaceListDataSource
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
 import chat.schildi.revenge.model.spaces.SpaceOrder
@@ -114,18 +111,15 @@ fun SpaceSelectorRow(
             defaultSpace = null,
             parentSelection = persistentListOf(),
             selectSpace = { newSelection, parentSelection ->
-                if (newSelection == null) {
-                    onSpaceSelected(parentSelection)
-                } else {
-                    onSpaceSelected(parentSelection + listOf(newSelection.selectionId))
-                }
+                onSpaceSelected(
+                    parentSelection + listOf(newSelection?.selectionId ?: PSEUDO_SPACE_ID_NO_FILTER)
+                )
             },
             compactTabs = ScPrefs.COMPACT_ROOT_SPACES.value(),
             getSpaceActionProvider = getSpaceActionProvider,
         )
     }
 }
-
 
 @Composable
 private fun ColumnScope.SpaceSelector(
@@ -135,7 +129,7 @@ private fun ColumnScope.SpaceSelector(
     spaceSelection: ImmutableList<String>,
     defaultSpace: SpaceListDataSource.AbstractSpaceHierarchyItem?,
     parentSelection: ImmutableList<String>,
-    selectSpace: (SpaceListDataSource.AbstractSpaceHierarchyItem?, ImmutableList<String>) -> Unit,
+    selectSpace: (SpaceListDataSource.AbstractSpaceHierarchyItem?, List<String>) -> Unit,
     compactTabs: Boolean,
     getSpaceActionProvider: (SpaceListDataSource.SpaceHierarchyItem) -> KeyboardActionProvider<*>,
 ) {
@@ -154,8 +148,7 @@ private fun ColumnScope.SpaceSelector(
     }
     val selectedTab = selectedSpaceIndex + 1
 
-    // Child spaces if expanded
-    var expandSpaceChildren by remember { mutableStateOf(childSelections.isNotEmpty()) }
+    val expandSpaceChildren = childSelections.isNotEmpty()
 
     val allowAllRooms = defaultSpace != null || ScPrefs.PSEUDO_SPACE_ALL_ROOMS.value()
 
@@ -189,14 +182,12 @@ private fun ColumnScope.SpaceSelector(
         if (allowAllRooms) {
             if (defaultSpace != null) {
                 SpaceTab(defaultSpace, selectedTab == 0, expandSpaceChildren, false, compactTabs, getSpaceActionProvider) {
-                    expandSpaceChildren = false
                     if (selectedTab != 0) {
                         selectSpace(null, parentSelection)
                     }
                 }
             } else {
                 ShowAllTab(totalUnreadCounts, selectedTab == 0, expandSpaceChildren, compactTabs) {
-                    expandSpaceChildren = false
                     if (selectedTab != 0) {
                         selectSpace(null, parentSelection)
                     }
@@ -216,16 +207,15 @@ private fun ColumnScope.SpaceSelector(
                 ) {
                     if (selectedSpaceIndex == index) {
                         if (expandSpaceChildren) {
-                            expandSpaceChildren = false
                             // In case we selected a child, need to re-select this space
                             if (childSelections.isNotEmpty()) {
                                 selectSpace(spacesList[index], parentSelection)
                             }
                         } else if (space.spaces.isNotEmpty()) {
-                            expandSpaceChildren = true
+                            // Null means we expand it
+                            selectSpace(null, parentSelection + spacesList[index].selectionId)
                         }
                     } else {
-                        expandSpaceChildren = false
                         selectSpace(spacesList[index], parentSelection)
                     }
                 }
@@ -254,19 +244,6 @@ private fun ColumnScope.SpaceSelector(
 
 private fun Int.correctDownIfNot(condition: Boolean) = if (condition) this else dec()
 private fun Int.correctUpIfNot(condition: Boolean) = if (condition) this else inc()
-
-private fun selectSpaceIndex(
-    index: Int,
-    spacesList: ImmutableList<SpaceListDataSource.AbstractSpaceHierarchyItem>,
-    selectSpace: (SpaceListDataSource.AbstractSpaceHierarchyItem?, ImmutableList<String>) -> Unit,
-    parentSelection: ImmutableList<String>
-) {
-    if (index == 0) {
-        selectSpace(null, parentSelection)
-    } else {
-        selectSpace(spacesList[index-1], parentSelection)
-    }
-}
 
 @Composable
 private fun SpaceTabText(text: String, selected: Boolean, expandable: Boolean) {
@@ -412,10 +389,10 @@ private fun SpaceTab(
 }
 
 @Composable
-private fun AbstractSpaceIcon(
+internal fun AbstractSpaceIcon(
     space: SpaceListDataSource.AbstractSpaceHierarchyItem?,
-    size: Dp = Dimens.Inbox.spaceAvatar,
     modifier: Modifier = Modifier,
+    size: Dp = Dimens.Inbox.spaceAvatar,
     color: Color = MaterialTheme.colorScheme.primary,
     shape: Shape = Dimens.Inbox.spaceShape,
 ) {

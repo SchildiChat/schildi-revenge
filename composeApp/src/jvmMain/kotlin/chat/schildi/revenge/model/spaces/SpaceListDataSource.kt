@@ -70,6 +70,8 @@ import timber.log.Timber
 const val REAL_SPACE_ID_PREFIX = "s:"
 const val PSEUDO_SPACE_ID_PREFIX = "p:"
 
+const val PSEUDO_SPACE_ID_NO_FILTER = "*"
+
 private typealias ScopedSpaceId = ScopedRoomKey
 
 data class SpaceBuilderRoom(
@@ -682,10 +684,16 @@ fun ScPreferencesStore.pseudoSpaceSettingsFlow(): Flow<SpaceListDataSource.Pseud
     }
 }
 
-fun List<SpaceListDataSource.AbstractSpaceHierarchyItem>.resolveSelection(selection: List<String>): SpaceListDataSource.AbstractSpaceHierarchyItem? {
+fun List<SpaceListDataSource.AbstractSpaceHierarchyItem>.resolveSelection(
+    selection: List<String>,
+    followWildcards: Boolean = false,
+): SpaceListDataSource.AbstractSpaceHierarchyItem? {
     var space: SpaceListDataSource.AbstractSpaceHierarchyItem? = null
     var spaceList = this
     selection.forEach { spaceId ->
+        if (followWildcards && spaceId == PSEUDO_SPACE_ID_NO_FILTER) {
+            return@forEach
+        }
         space = spaceList.find { it.selectionId == spaceId }
         if (space == null) {
             return null
@@ -720,7 +728,8 @@ fun List<SpaceListDataSource.AbstractSpaceHierarchyItem>.resolveSpaceName(select
     if (isEmpty()) {
         return null
     }
-    return resolveSelection(selection)?.name ?: StringResourceHolder(Res.string.pref_space_all_rooms_title)
+    return resolveSelection(selection, followWildcards = true)?.name
+        ?: StringResourceHolder(Res.string.pref_space_all_rooms_title)
 }
 
 fun ImmutableList<SpaceListDataSource.AbstractSpaceHierarchyItem>.filterByVisible(

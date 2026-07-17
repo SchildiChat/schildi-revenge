@@ -6,6 +6,7 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -46,6 +47,7 @@ import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.model.DraftRepo
 import chat.schildi.revenge.model.InboxViewModel
+import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_NO_FILTER
 import chat.schildi.revenge.model.spaces.SpaceListDataSource
 import chat.schildi.revenge.model.spaces.filterByVisible
 import chat.schildi.revenge.model.spaces.resolveSelection
@@ -83,7 +85,7 @@ fun InboxScreen(
         ScPrefs.PSEUDO_SPACE_HIDE_EMPTY_UNREAD.value(),
     )
     val selectedSpace = if (searchQuery.isNullOrBlank()) {
-        spaces?.resolveSelection(spaceSelection)
+        spaces?.resolveSelection(spaceSelection, followWildcards = true)
     } else {
         // Search ignores spaces
         null
@@ -108,6 +110,9 @@ fun InboxScreen(
             val roomsByRoomId = viewModel.roomsByRoomId.collectAsState().value
             val dmsByHeroes = viewModel.dmsByHeroes.collectAsState().value
             val needsAccountDisambiguation = (accountsSorted?.count { it.isCurrentlyVisible } ?: 0) > 1
+
+            val spaceSwipeState = rememberSpaceSwipeState()
+            val spaceSelectionState = spaces.toSelectionState(spaceSelection)
 
             if (spaces != null) {
                 AnimatedVisibility(
@@ -146,42 +151,28 @@ fun InboxScreen(
                         viewModel.onVisibleRoomsChanged(visibleRooms)
                     }
             }
-            if (rooms.isNullOrEmpty()) {
-                Column(contentModifier.fillMaxSize()) {
-                    if (!accountsSorted.isNullOrEmpty()) {
-                        AccountSelectorRow(
-                            viewModel = viewModel,
-                            accounts = accountsSorted,
-                            unreadCounts = accountUnreadCounts,
-                            modifier = Modifier.padding(vertical = Dimens.listPadding),
-                        )
-                    }
-                    EmptyListScreen(
-                        title = if (selectedSpace == null) {
-                            Res.string.empty_screen_placeholder_inbox.toStringHolder()
-                        } else {
-                            Res.string.empty_screen_placeholder_space.toStringHolder()
-                        },
-                        icon = if (selectedSpace == null) {
-                            rememberVectorPainter(Icons.Default.Inbox)
-                        } else {
-                            val pseudoSpaceIcon = (selectedSpace as? SpaceListDataSource.PseudoSpaceItem)
-                                ?.icon as? SpaceListDataSource.PseudoSpaceIconSource.Icon
-                            if (pseudoSpaceIcon != null) {
-                                rememberVectorPainter(pseudoSpaceIcon.icon)
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .spaceSwipe(
+                        swipeState = spaceSwipeState,
+                        selectionState = spaceSelectionState,
+                    ) { space ->
+                        viewModel.setSpaceSelection(
+                            if (spaceSelection.isEmpty()) {
+                                listOf(space?.selectionId ?: PSEUDO_SPACE_ID_NO_FILTER)
                             } else {
-                                rememberVectorPainter(Icons.Default.TravelExplore)
+                                val parentId = spaceSelection.getOrNull(spaceSelection.size - 2)
+                                spaceSelection.take(spaceSelection.size - 1) +
+                                        (space?.selectionId?.takeIf { it != parentId } ?: PSEUDO_SPACE_ID_NO_FILTER)
                             }
-                        },
-                        renderedSearchTerm = roomsState?.searchTerm,
-                        isLoading = roomsState == null,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }
-            } else {
-                LazyColumn(contentModifier.fillMaxSize(), state = listState) {
-                    if (!accountsSorted.isNullOrEmpty()) {
-                        item {
+                        )
+                    },
+                contentAlignment = Alignment.Center,
+            ) {
+                if (rooms.isNullOrEmpty()) {
+                    Column(contentModifier.fillMaxSize()) {
+                        if (!accountsSorted.isNullOrEmpty()) {
                             AccountSelectorRow(
                                 viewModel = viewModel,
                                 accounts = accountsSorted,
@@ -189,30 +180,68 @@ fun InboxScreen(
                                 modifier = Modifier.padding(vertical = Dimens.listPadding),
                             )
                         }
-                    }
-                    items(
-                        rooms,
-                        key = { room ->
-                            Pair(room.sessionId, room.summary.roomId)
-                        }
-                    ) { room ->
-                        val needsDisambiguation = needsAccountDisambiguation &&
-                                selectedSpace?.sessionIds.let { it == null || it.size > 1 } &&
-                                (
-                                        room.summary.isInvite() ||
-                                                (roomsByRoomId[room.summary.roomId]?.size ?: 0) > 1 ||
-                                                room.summary.isDm && (dmsByHeroes[room.summary.info.heroes]?.size
-                                            ?: 0) > 1
-                                        )
-                        InboxRow(
-                            viewModel,
-                            room,
-                            hasDraft = room.key in drafts.value,
-                            user = remember(accounts) { accounts?.get(room.sessionId)?.user },
-                            needsAccountDisambiguation = needsDisambiguation,
+                        EmptyListScreen(
+                            title = if (selectedSpace == null) {
+                                Res.string.empty_screen_placeholder_inbox.toStringHolder()
+                            } else {
+                                Res.string.empty_screen_placeholder_space.toStringHolder()
+                            },
+                            icon = if (selectedSpace == null) {
+                                rememberVectorPainter(Icons.Default.Inbox)
+                            } else {
+                                val pseudoSpaceIcon = (selectedSpace as? SpaceListDataSource.PseudoSpaceItem)
+                                    ?.icon as? SpaceListDataSource.PseudoSpaceIconSource.Icon
+                                if (pseudoSpaceIcon != null) {
+                                    rememberVectorPainter(pseudoSpaceIcon.icon)
+                                } else {
+                                    rememberVectorPainter(Icons.Default.TravelExplore)
+                                }
+                            },
+                            renderedSearchTerm = roomsState?.searchTerm,
+                            isLoading = roomsState == null,
+                            modifier = Modifier.fillMaxSize(),
                         )
                     }
+                } else {
+                    LazyColumn(contentModifier.fillMaxSize(), state = listState) {
+                        if (!accountsSorted.isNullOrEmpty()) {
+                            item {
+                                AccountSelectorRow(
+                                    viewModel = viewModel,
+                                    accounts = accountsSorted,
+                                    unreadCounts = accountUnreadCounts,
+                                    modifier = Modifier.padding(vertical = Dimens.listPadding),
+                                )
+                            }
+                        }
+                        items(
+                            rooms,
+                            key = { room ->
+                                Pair(room.sessionId, room.summary.roomId)
+                            }
+                        ) { room ->
+                            val needsDisambiguation = needsAccountDisambiguation &&
+                                    selectedSpace?.sessionIds.let { it == null || it.size > 1 } &&
+                                    (
+                                            room.summary.isInvite() ||
+                                                    (roomsByRoomId[room.summary.roomId]?.size ?: 0) > 1 ||
+                                                    room.summary.isDm && (dmsByHeroes[room.summary.info.heroes]?.size
+                                                ?: 0) > 1
+                                            )
+                            InboxRow(
+                                viewModel,
+                                room,
+                                hasDraft = room.key in drafts.value,
+                                user = remember(accounts) { accounts?.get(room.sessionId)?.user },
+                                needsAccountDisambiguation = needsDisambiguation,
+                            )
+                        }
+                    }
                 }
+                SpaceSwipeIndicatorOverlay(
+                    swipeState = spaceSwipeState,
+                    selectionState = spaceSelectionState,
+                )
             }
         }
     }
