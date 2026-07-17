@@ -28,7 +28,7 @@ export_files_custom() {
 }
 
 
-# Launcher icon
+# Launcher icon - Desktop
 
 dpi=192
 
@@ -38,3 +38,10 @@ export_files_custom "ic_launcher.png"
 
 # Windows .ico
 magick "$base_folder-hdpi/ic_launcher.png" "$mydir/ic_launcher.ico"
+
+
+# Launcher icon - Android
+
+base_folder="$mydir/../androidApp/src/main/res/mipmap"
+file="$mydir/ic_launcher_foreground.svg"
+export_files_custom "ic_launcher_foreground.png"

@@ -5,6 +5,7 @@
 
     <application
         android:name="chat.schildi.revenge.RevengeApplication"
+        android:icon="@mipmap/ic_launcher"
         android:label="SchildiChat Revenge"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
         <activity
