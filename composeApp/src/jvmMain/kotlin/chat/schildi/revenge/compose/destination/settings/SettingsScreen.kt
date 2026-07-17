@@ -47,6 +47,7 @@ import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.resources.toStringHolder
+import chat.schildi.revenge.compose.components.PlatformBackHandler
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.model.SettingsViewModel
 import chat.schildi.revenge.publishTitle
@@ -85,6 +86,9 @@ fun SettingsScreen(
             } else {
                 LocalKeyboardActionHandler.current.searchQueryForDestination(rootViewModel)
                     .collectAsState(null).value != null
+            }
+            PlatformBackHandler(enabled = hasDetails) {
+                destination.details.navigate(Destination.MultiPaneSettingsPlaceholder)
             }
             MultiPaneLayout(
                 outerDestination = destination.destinationId,

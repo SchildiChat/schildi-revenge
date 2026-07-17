@@ -2,6 +2,7 @@ package chat.schildi.revenge.compose.destination.split
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -40,7 +41,7 @@ fun MultiPaneLayout(
         outerModifier.fillMaxSize(),
     ) {
         innerDestinations.forEachIndexed { index, destinationHolder ->
-            key(destinationHolder.state.value.holderId) {
+            key(destinationHolder.state.collectAsState().value.holderId) {
                 val focusId = rememberFocusId()
                 val target = remember(destinationHolder, focusId, index, innerDestinations.size) {
                     MultiPaneLayoutTarget(
