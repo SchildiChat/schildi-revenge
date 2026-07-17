@@ -3,6 +3,7 @@ package chat.schildi.revenge.compose.focus
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -137,7 +138,19 @@ fun Modifier.keyFocusable(
         .thenIf(addMouseFocusable) {
             focusable()
         }
-        .ifNotNull(actionProvider.primaryAction, addClickListener) { action ->
+        .ifNotNull(actionProvider.secondaryAction, addClickListener) { action ->
+            combinedClickable(
+                enabled = enableClicks,
+                onLongClick = {
+                    keyHandler.executeAction(action, destinationState)
+                },
+            ) {
+                actionProvider.primaryAction?.let {
+                    keyHandler.executeAction(it, destinationState)
+                }
+            }
+        }
+        .ifNotNull(actionProvider.primaryAction, addClickListener && actionProvider.secondaryAction == null) { action ->
             clickable(enabled = enableClicks) {
                 keyHandler.executeAction(action, destinationState)
             }
