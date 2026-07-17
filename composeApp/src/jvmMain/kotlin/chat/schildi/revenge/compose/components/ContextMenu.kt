@@ -27,7 +27,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.nativeKeyCode
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.AnnotatedString
@@ -45,9 +44,9 @@ import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.resources.ComposableStringHolder
 import chat.schildi.revenge.config.keybindings.Action
+import chat.schildi.revenge.config.keybindings.displayName
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
-import java.awt.event.KeyEvent
 import kotlin.uuid.Uuid
 
 sealed interface ContextMenuEntry {
@@ -307,7 +306,7 @@ private fun ContextMenuDropdownMenuItemContent(
                 if (keyboardShortcut == null) {
                     AnnotatedString(title)
                 } else {
-                    val keyText = KeyEvent.getKeyText(keyboardShortcut.nativeKeyCode).lowercase()
+                    val keyText = keyboardShortcut.displayName().lowercase()
                     val keyIndex = title.lowercase().indexOf(keyText)
                     buildAnnotatedString {
                         append(title)
