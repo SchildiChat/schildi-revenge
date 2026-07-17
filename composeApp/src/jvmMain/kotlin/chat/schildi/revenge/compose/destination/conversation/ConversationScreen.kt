@@ -51,6 +51,7 @@ import chat.schildi.revenge.compose.destination.SplashScreenContent
 import chat.schildi.revenge.compose.destination.conversation.event.EventHighlight
 import chat.schildi.revenge.compose.destination.conversation.event.message.LocalUrlPreviewStateProvider
 import chat.schildi.revenge.compose.focus.FocusContainer
+import chat.schildi.revenge.compose.focus.shouldAutoRequestFocus
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.matrixBodyDrawStyle
 import chat.schildi.revenge.matrixBodyFormatter
@@ -289,8 +290,9 @@ fun ConversationScreen(
                 RoomUpgradeRow(viewModel)
 
                 val shouldShowComposer = viewModel.shouldShowComposer.collectAsState().value
+                val shouldAutoFocusComposer = FocusRole.MESSAGE_COMPOSER.shouldAutoRequestFocus()
                 LaunchedEffect(shouldShowComposer) {
-                    if (shouldShowComposer) {
+                    if (shouldShowComposer && shouldAutoFocusComposer) {
                         keyHandler.focusByRole(FocusRole.MESSAGE_COMPOSER)
                     }
                 }

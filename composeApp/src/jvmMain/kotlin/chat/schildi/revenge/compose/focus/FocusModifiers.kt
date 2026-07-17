@@ -20,10 +20,11 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.LocalDestinationState
@@ -126,7 +127,7 @@ fun Modifier.keyFocusable(
 ): Modifier {
     val keyHandler = LocalKeyboardActionHandler.current
     val destinationState = LocalDestinationState.current
-    if (role.autoRequestFocus) {
+    if (role.shouldAutoRequestFocus()) {
         LaunchedEffect(Unit) {
             focusRequester.requestFocus()
         }
@@ -235,3 +236,8 @@ private fun Modifier.keyFocusableCommon(
         )
     }
 }
+
+@Composable
+fun FocusRole.shouldAutoRequestFocus(): Boolean =
+    autoRequestFocus && (this != FocusRole.MESSAGE_COMPOSER ||
+            LocalInputModeManager.current.inputMode == InputMode.Keyboard)
