@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.text.style.TextOverflow
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.Anim
@@ -134,6 +135,8 @@ fun RowScope.TopNavigationTitle(title: String, modifier: Modifier = Modifier) {
             Modifier.padding(Dimens.windowPadding),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodyLarge,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
