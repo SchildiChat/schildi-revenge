@@ -109,7 +109,7 @@ fun AppMessages(
                                 if (RevengeDeviceVerificationProvider.setActiveRequest(message.request)) {
                                     destinationHolder.navigate(
                                         Destination.VerificationRequest(message.request.sessionId),
-                                        NavigationPreference.NEW_WINDOW,
+                                        NavigationPreference.NEW_WINDOW_SAME_TASK,
                                     )
                                     keyHandler.dismissMessage(message.uniqueId)
                                 } else {

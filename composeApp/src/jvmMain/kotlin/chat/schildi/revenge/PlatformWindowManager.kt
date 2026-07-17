@@ -11,7 +11,7 @@ expect val platformWindowManager: PlatformWindowManager
 interface PlatformWindowManager {
     val windows: StateFlow<ImmutableList<WindowState>>
     val minimizedToTray: StateFlow<Boolean>
-    fun openWindow(destination: Destination, initialTitle: ComposableStringHolder? = null)
+    fun openWindow(destination: Destination, preferNewTask: Boolean, initialTitle: ComposableStringHolder? = null)
     fun closeWindow(windowId: WindowId, closeUnlessLast: Boolean = false, onLastWindowClosed: () -> Unit): Boolean
     fun setMinimized(minimized: Boolean): ActionResult
     fun recreateWindow(scope: CoroutineScope, windowId: WindowId)

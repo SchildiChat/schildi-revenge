@@ -390,13 +390,17 @@ object UiState {
         }
     }
 
-    fun openWindow(destination: Destination, initialTitle: ComposableStringHolder? = null) {
+    fun openWindow(
+        destination: Destination,
+        preferNewTask: Boolean,
+        initialTitle: ComposableStringHolder? = null,
+    ) {
         val effectiveDestination = if (destination is Destination.Conversation && preferMultiPaneConversation.value) {
             Destination.ConversationDetailsMultiPane(destination)
         } else {
             destination
         }
-        platformWindowManager.openWindow(effectiveDestination, initialTitle)
+        platformWindowManager.openWindow(effectiveDestination, preferNewTask, initialTitle)
     }
 
     fun closeWindow(windowId: WindowId, closeUnlessLast: Boolean = false): Boolean {

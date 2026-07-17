@@ -72,7 +72,11 @@ actual val platformWindowManager = object : PlatformWindowManager {
         }
     }
 
-    override fun openWindow(destination: Destination, initialTitle: ComposableStringHolder?) {
+    override fun openWindow(
+        destination: Destination,
+        preferNewTask: Boolean,
+        initialTitle: ComposableStringHolder?,
+    ) {
         val newWindow = createWindow(destination, initialTitle)
         val wasMinimized = UiState.minimizedToTray.value
         _windows.update {

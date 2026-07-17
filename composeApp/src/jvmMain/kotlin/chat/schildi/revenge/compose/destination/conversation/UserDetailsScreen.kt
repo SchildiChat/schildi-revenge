@@ -295,12 +295,13 @@ fun UserDetailsScreen(
                                         role = FocusRole.LIST_ITEM,
                                         actionProvider = actionProvider(
                                             primaryAction = InteractionAction.OpenWindow(
+                                                preferNewTask = false,
                                                 initialTitle = {
                                                     ConversationViewModel.windowTitle(
                                                         preview,
                                                         sessionId = viewModel.sessionId,
                                                     )
-                                                }
+                                                },
                                             ) {
                                                 if (preview.isSpace) {
                                                     // TODO what's the best destination for viewing spaces?

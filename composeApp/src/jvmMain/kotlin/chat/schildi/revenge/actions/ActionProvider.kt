@@ -36,7 +36,7 @@ fun actionProvider(
     primaryAction: InteractionAction? = null,
     secondaryAction: InteractionAction? = null,
     tertiaryAction: InteractionAction? = (primaryAction as? InteractionAction.NavigationAction)?.let {
-        InteractionAction.OpenWindow(it.initialTitle, it.buildDestination)
+        InteractionAction.OpenWindow(true, it.initialTitle, it.buildDestination)
     },
     copyActions: CopyActions? = null,
     editActions: EditActions? = null,
@@ -92,6 +92,7 @@ fun buildNavigationActionProvider(
         ),
         secondaryAction = secondaryAction,
         tertiaryAction = InteractionAction.OpenWindow(
+            preferNewTask = true,
             initialTitle = initialTitle,
             buildDestination = buildDestination,
         ),

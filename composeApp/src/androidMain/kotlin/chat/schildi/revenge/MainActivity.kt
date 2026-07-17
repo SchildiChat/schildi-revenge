@@ -86,10 +86,12 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         keyHandler?.onWindowFocusChanged(true)
+        androidWindowManager.onResume(this)
     }
 
     override fun onPause() {
         keyHandler?.onWindowFocusChanged(false)
+        androidWindowManager.onPause(this)
         super.onPause()
     }
 

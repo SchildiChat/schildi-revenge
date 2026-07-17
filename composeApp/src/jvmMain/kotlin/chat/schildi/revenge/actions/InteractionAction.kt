@@ -20,6 +20,7 @@ sealed interface InteractionAction {
     ) : NavigationAction
 
     data class OpenWindow(
+        val preferNewTask: Boolean,
         override val initialTitle: () -> ComposableStringHolder? = { null },
         override val buildDestination: () -> Destination,
     ) : NavigationAction

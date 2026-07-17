@@ -34,6 +34,9 @@ class AndroidWindowManager : PlatformWindowManager {
 
     private val androidWindows =
         MutableStateFlow<ImmutableMap<WindowId, AndroidWindowState>>(persistentMapOf())
+    var currentActivity: WeakReference<MainActivity>? = null
+        private set
+
     override val windows: StateFlow<ImmutableList<WindowState>> = androidWindows
         .map { it.values.toPersistentList() }
         .stateIn(scope, SharingStarted.Eagerly, persistentListOf())
@@ -42,14 +45,18 @@ class AndroidWindowManager : PlatformWindowManager {
 
     override fun openWindow(
         destination: Destination,
+        preferNewTask: Boolean,
         initialTitle: ComposableStringHolder?
     ) {
-        val context = RevengeApplication.instance
-        context.startActivity(
-            Intent(context, MainActivity::class.java)
-                .putExtra(MainActivity.EXTRA_DESTINATION, destination.serializedToString())
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
-        )
+        val currentActivity = androidWindowManager.currentActivity?.get()
+        val context = currentActivity ?: RevengeApplication.instance
+        val intent = Intent(context, MainActivity::class.java)
+            .putExtra(MainActivity.EXTRA_DESTINATION, destination.serializedToString())
+        if (preferNewTask || currentActivity == null) {
+            context.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_MULTIPLE_TASK))
+        } else {
+            context.startActivity(intent)
+        }
     }
 
     override fun closeWindow(
@@ -93,6 +100,16 @@ class AndroidWindowManager : PlatformWindowManager {
     fun unregister(windowId: Int) {
         androidWindows.update {
             (it - windowId).toPersistentHashMap()
+        }
+    }
+
+    fun onResume(activity: MainActivity) {
+        currentActivity = WeakReference(activity)
+    }
+
+    fun onPause(activity: MainActivity) {
+        if (currentActivity?.get() == activity) {
+            currentActivity = null
         }
     }
 }

@@ -18,7 +18,9 @@ import kotlin.uuid.Uuid
 enum class NavigationPreference {
     AUTO,
     REPLACE,
-    NEW_WINDOW,
+    // Same vs new tasks are currently just for Android specifics
+    NEW_WINDOW_SAME_TASK,
+    NEW_WINDOW_NEW_TASK,
 }
 
 interface DestinationStateHolder {
@@ -70,13 +72,14 @@ class DefaultDestinationStateHolder(
     ) {
         when (preference) {
             NavigationPreference.REPLACE -> navigateThis(destination, invalidateHolderId)
-            NavigationPreference.NEW_WINDOW -> UiState.openWindow(destination, initialTitle)
+            NavigationPreference.NEW_WINDOW_SAME_TASK -> UiState.openWindow(destination, false, initialTitle)
+            NavigationPreference.NEW_WINDOW_NEW_TASK -> UiState.openWindow(destination, true, initialTitle)
             NavigationPreference.AUTO -> {
                 val currentCategory = state.value.destination.category
                 when {
                     currentCategory == DestinationCategory.WILDCARD ||
                     currentCategory == destination.category -> navigateThis(destination, invalidateHolderId)
-                    else -> UiState.openWindow(destination, initialTitle)
+                    else -> UiState.openWindow(destination, false, initialTitle)
                 }
             }
         }

@@ -617,7 +617,7 @@ class KeyboardActionHandler(
                     }
 
                     is InteractionAction.OpenWindow -> {
-                        UiState.openWindow(destination, action.initialTitle())
+                        UiState.openWindow(destination, action.preferNewTask, action.initialTitle())
                         true
                     }
                 }
@@ -1266,7 +1266,7 @@ class KeyboardActionHandler(
                         navigateCurrentDestination(destination, destinationStateHolder)
                     }
                     Action.NavigationItem.NavigateInNewWindow -> {
-                        UiState.openWindow(destination, navigationActionable.initialTitle())
+                        UiState.openWindow(destination, true, navigationActionable.initialTitle())
                         ActionResult.Success()
                     }
                 }
@@ -1546,7 +1546,7 @@ class KeyboardActionHandler(
                         val extraArgs = args.subList(1, args.size)
                         val destination =
                             args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
-                        UiState.openWindow(destination)
+                        UiState.openWindow(destination, true)
                         ActionResult.Success()
                     }
                 }
@@ -1977,7 +1977,7 @@ class KeyboardActionHandler(
                             )
                         ) {
                             client.sessionVerificationService.requestUserVerification(userId)
-                            UiState.openWindow(Destination.VerificationRequest(sessionId))
+                            UiState.openWindow(Destination.VerificationRequest(sessionId), false)
                             ActionResult.Success()
                         } else {
                             ActionResult.Failure("Failed to initiate request")
@@ -2072,7 +2072,7 @@ class KeyboardActionHandler(
                 is MatrixToLink.UserMention -> Result.success(link.toDestination(sessionId, null))
             }
         }
-        UiState.openWindow(destination)
+        UiState.openWindow(destination, false)
     }
 
     private fun ActionContext.launchCreateRoomAction(
