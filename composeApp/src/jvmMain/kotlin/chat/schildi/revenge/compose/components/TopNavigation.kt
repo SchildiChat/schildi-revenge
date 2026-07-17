@@ -132,7 +132,7 @@ fun RowScope.TopNavigationTitle(title: String, modifier: Modifier = Modifier) {
     ) { title ->
         Text(
             title,
-            Modifier.padding(Dimens.windowPadding),
+            Modifier.padding(horizontal = Dimens.windowPadding),
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             style = MaterialTheme.typography.bodyLarge,
             maxLines = 1,
