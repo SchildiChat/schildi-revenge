@@ -5,10 +5,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.safeContent
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -93,7 +100,9 @@ fun UserDetailsScreen(
         LocalUserIdSuggestionsProvider provides viewModel,
         LocalListActionProvider provides listAction,
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.windowInsetsPadding(
+            WindowInsets.safeContent.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+        ).fillMaxSize(),
     ) {
         val info = viewModel.globalUserInfo.collectAsState().value
         val roomMemberInfo = viewModel.roomMember.collectAsState().value
@@ -120,6 +129,9 @@ fun UserDetailsScreen(
                     LazyColumn(
                         state = listState,
                         verticalArrangement = Dimens.verticalArrangement,
+                        contentPadding = WindowInsets.navigationBars
+                            .only(WindowInsetsSides.Bottom)
+                            .asPaddingValues(),
                     ) {
                         item {
                             val primaryAvatar = roomMemberInfo?.avatarUrl ?: info?.avatarUrl

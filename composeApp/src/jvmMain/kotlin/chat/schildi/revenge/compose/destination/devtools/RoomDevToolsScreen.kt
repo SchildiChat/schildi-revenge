@@ -2,8 +2,13 @@ package chat.schildi.revenge.compose.destination.devtools
 
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContent
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,7 +64,9 @@ fun RoomDevToolsScreen(
         LocalListActionProvider provides listAction,
         LocalKeyboardActionProvider provides viewModel.roomActionProvider.hierarchicalKeyboardActionProvider(),
         LocalRoomContextSuggestionsProvider provides viewModel.roomContextSuggestionsProvider,
-        modifier = modifier,
+        modifier = modifier.windowInsetsPadding(
+            WindowInsets.safeContent.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+        ),
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
     ) {
         Column {

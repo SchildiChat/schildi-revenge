@@ -11,7 +11,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -46,7 +47,6 @@ fun WindowContent(
             Column(
                 modifier = Modifier
                     .background(MaterialTheme.colorScheme.surface.copy(alpha = backgroundAlpha))
-                    .safeContentPadding()
                     .fillMaxSize()
                     .windowFocusContainer(),
             ) {
@@ -57,34 +57,44 @@ fun WindowContent(
 
                 // App messages
                 val publishedMessages = keyboardActionHandler.messageBoard.collectAsState().value
-                rememberInvalidating(
-                    500L.takeIf { publishedMessages.any { it.dismissedTimestamp == null && it.autoDismissDuration != null } },
-                    publishedMessages
-                ) {
-                    keyboardActionHandler.cleanUpMessageBoard()
-                }
-                AppMessages(publishedMessages, destinationHolder)
+                val showSearchBar = ScPrefs.MINIMAL_MODE.value() &&
+                        keyboardActionHandler.needsKeyboardSearchBar(null).collectAsState().value
+                val showCommandBar = keyboardActionHandler.mode.collectAsState().value is KeyboardActionMode.Command
+                val showsBottomContent = showSearchBar || showCommandBar ||
+                        publishedMessages.any { it.dismissedTimestamp == null }
 
-                // Search bar
-                AnimatedVisibility(
-                    visible = ScPrefs.MINIMAL_MODE.value() && keyboardActionHandler.needsKeyboardSearchBar(null).collectAsState().value,
-                    enter = slideInVertically(tween(Anim.DURATION)) { it } +
-                            expandVertically(tween(Anim.DURATION), expandFrom = Alignment.Bottom),
-                    exit = slideOutVertically(tween(Anim.DURATION)) { it } +
-                            shrinkVertically(tween(Anim.DURATION), shrinkTowards = Alignment.Bottom),
+                Column(
+                    if (showsBottomContent) Modifier.navigationBarsPadding().imePadding() else Modifier,
                 ) {
-                    SearchBar(null, null)
-                }
+                    rememberInvalidating(
+                        500L.takeIf { publishedMessages.any { it.dismissedTimestamp == null && it.autoDismissDuration != null } },
+                        publishedMessages
+                    ) {
+                        keyboardActionHandler.cleanUpMessageBoard()
+                    }
+                    AppMessages(publishedMessages, destinationHolder)
 
-                // Command bar
-                AnimatedVisibility(
-                    visible = keyboardActionHandler.mode.collectAsState().value is KeyboardActionMode.Command,
-                    enter = slideInVertically(tween(Anim.DURATION)) { it } +
-                            expandVertically(tween(Anim.DURATION), expandFrom = Alignment.Bottom),
-                    exit = slideOutVertically(tween(Anim.DURATION)) { it } +
-                            shrinkVertically(tween(Anim.DURATION), shrinkTowards = Alignment.Bottom),
-                ) {
-                    CommandBar()
+                    // Search bar
+                    AnimatedVisibility(
+                        visible = showSearchBar,
+                        enter = slideInVertically(tween(Anim.DURATION)) { it } +
+                                expandVertically(tween(Anim.DURATION), expandFrom = Alignment.Bottom),
+                        exit = slideOutVertically(tween(Anim.DURATION)) { it } +
+                                shrinkVertically(tween(Anim.DURATION), shrinkTowards = Alignment.Bottom),
+                    ) {
+                        SearchBar(null, null)
+                    }
+
+                    // Command bar
+                    AnimatedVisibility(
+                        visible = showCommandBar,
+                        enter = slideInVertically(tween(Anim.DURATION)) { it } +
+                                expandVertically(tween(Anim.DURATION), expandFrom = Alignment.Bottom),
+                        exit = slideOutVertically(tween(Anim.DURATION)) { it } +
+                                shrinkVertically(tween(Anim.DURATION), shrinkTowards = Alignment.Bottom),
+                    ) {
+                        CommandBar()
+                    }
                 }
             }
             if (ScPrefs.FRAME_DROP_SPINNER.value()) {

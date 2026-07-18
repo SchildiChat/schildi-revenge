@@ -1,8 +1,13 @@
 package chat.schildi.revenge.compose.destination.devtools
 
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -37,6 +42,9 @@ fun DevToolsEventList(
     LazyColumn(
         modifier = modifier,
         state = listState,
+        contentPadding = WindowInsets.navigationBars
+            .only(WindowInsetsSides.Bottom)
+            .asPaddingValues(),
     ) {
         sections.forEachIndexed { index, section ->
             devToolsListSection(section, isFirst = index == 0, isLast = index == sections.size -1, persist, maxEditItemHeight)

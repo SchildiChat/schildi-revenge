@@ -7,9 +7,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContent
+import androidx.compose.foundation.layout.windowInsetsBottomHeight
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
@@ -110,7 +118,9 @@ fun AboutScreen(
     FocusContainer(
         LocalSearchProvider provides viewModel,
         LocalListActionProvider provides listAction,
-        modifier = modifier,
+        modifier = modifier.windowInsetsPadding(
+            WindowInsets.safeContent.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+        ),
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
     ) {
         var expandOpenSourceLicenses by remember { mutableStateOf(false) }
@@ -273,6 +283,13 @@ fun AboutScreen(
                                     remember { SystemInfo.javaVm() },
                                 )
                             }
+                        }
+                        item(key = "navigation_bar_spacer") {
+                            Spacer(
+                                Modifier.windowInsetsBottomHeight(
+                                    WindowInsets.navigationBars.only(WindowInsetsSides.Bottom),
+                                ),
+                            )
                         }
                     }
                 }

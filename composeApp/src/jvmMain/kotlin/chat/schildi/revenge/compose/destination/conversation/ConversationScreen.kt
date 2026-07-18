@@ -11,6 +11,7 @@ import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -73,7 +74,10 @@ fun ConversationScreen(
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
 ) {
-    BoxWithConstraints(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+    BoxWithConstraints(
+        modifier.safeContentPadding().fillMaxSize(),
+        contentAlignment = Alignment.Center,
+    ) {
         val contentHeight = maxHeight
         val density = LocalDensity.current
 

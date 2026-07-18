@@ -8,9 +8,16 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContent
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -100,7 +107,9 @@ fun InboxScreen(
         LocalSearchProvider provides viewModel,
         LocalKeyboardActionProvider provides viewModel.hierarchicalKeyboardActionProvider(),
         LocalListActionProvider provides remember(listState) { ListActions(listState) },
-        modifier = modifier,
+        modifier = modifier.windowInsetsPadding(
+            WindowInsets.safeContent.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+        ),
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
     ) {
         Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -203,7 +212,13 @@ fun InboxScreen(
                         )
                     }
                 } else {
-                    LazyColumn(contentModifier.fillMaxSize(), state = listState) {
+                    LazyColumn(
+                        modifier = contentModifier.fillMaxSize(),
+                        state = listState,
+                        contentPadding = WindowInsets.navigationBars
+                            .only(WindowInsetsSides.Bottom)
+                            .asPaddingValues(),
+                    ) {
                         if (!accountsSorted.isNullOrEmpty()) {
                             item {
                                 AccountSelectorRow(

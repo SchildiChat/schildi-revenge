@@ -1,8 +1,15 @@
 package chat.schildi.revenge.compose.destination.conversation.userlist
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeContent
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -58,7 +65,9 @@ fun RoomMembersScreen(
         LocalKeyboardActionProvider provides viewModel.actionProvider.hierarchicalKeyboardActionProvider(),
         LocalListActionProvider provides listAction,
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
-        modifier = modifier.fillMaxSize(),
+        modifier = modifier.windowInsetsPadding(
+            WindowInsets.safeContent.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+        ).fillMaxSize(),
     ) {
         val membersState = viewModel.entries.collectAsState(null).value
         val members = membersState?.items
@@ -82,6 +91,9 @@ fun RoomMembersScreen(
                 LazyColumn(
                     Modifier.fillMaxWidth().weight(1f),
                     state = listState,
+                    contentPadding = WindowInsets.navigationBars
+                        .only(WindowInsetsSides.Bottom)
+                        .asPaddingValues(),
                 ) {
                     items(
                         members,

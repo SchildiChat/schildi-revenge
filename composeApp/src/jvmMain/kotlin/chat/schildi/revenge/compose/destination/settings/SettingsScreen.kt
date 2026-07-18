@@ -3,8 +3,15 @@ package chat.schildi.revenge.compose.destination.settings
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContent
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
@@ -135,7 +142,9 @@ fun SettingsScreen(
     FocusContainer(
         LocalSearchProvider provides (viewModel.takeIf { it.isRootPreferences } as? SearchProvider ?: LocalSearchProvider.current),
         LocalListActionProvider provides listAction,
-        modifier = modifier,
+        modifier = modifier.windowInsetsPadding(
+            WindowInsets.safeContent.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+        ),
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
     ) {
         Column {
@@ -178,6 +187,9 @@ fun SettingsScreen(
                         modifier = contentModifier.padding(horizontal = Dimens.windowPadding),
                         verticalArrangement = Dimens.verticalArrangement,
                         state = listState,
+                        contentPadding = WindowInsets.navigationBars
+                            .only(WindowInsetsSides.Bottom)
+                            .asPaddingValues(),
                     ) {
                         renderPref(
                             prefScreen,
