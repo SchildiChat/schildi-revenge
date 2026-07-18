@@ -219,7 +219,9 @@ fun TextLikeMessageContent(
         onTextLayout = onTextLayout,
         maxLines = maxLines,
         overflow = overflow,
-        inlineContent = text.inlineImages.toInlineContent(textStyle, textColor),
+        inlineContent = { result ->
+            result.inlineImages.toInlineContent(textStyle, textColor)
+        },
         textAlign = textAlign,
     )
 }
@@ -266,7 +268,9 @@ fun IndentionHackFormattedText(
                     textWidth = it.size.width
                 }
             },
-            inlineContent = text.inlineImages.toInlineContent(textStyle, textColor),
+            inlineContent = { result ->
+                result.inlineImages.toInlineContent(textStyle, textColor)
+            },
             textAlign = textAlign,
             maxLines = maxLines,
             overflow = overflow,

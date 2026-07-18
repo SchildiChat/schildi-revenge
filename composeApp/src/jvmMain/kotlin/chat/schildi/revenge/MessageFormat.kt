@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
@@ -21,6 +22,7 @@ import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
@@ -92,6 +94,8 @@ object MessageFormatDefaults {
         override fun formatWebLink(href: String, context: FormatContext) = null
         override fun formatUnorderedListItem(depth: Int, context: FormatContext) = listOf(ParagraphStyle())
         override fun formatOrderedListItem(depth: Int, context: FormatContext) = listOf(ParagraphStyle())
+        override fun formatTable(depth: Int, context: FormatContext) = listOf(ParagraphStyle())
+        override fun tableIndention(depth: Int) = 0.sp
         override fun formatDetailsSummary(revealId: Int, context: FormatContext) = listOf(ParagraphStyle())
         override fun formatDetailsContent(revealId: Int, context: FormatContext) = listOf(ParagraphStyle())
     }
