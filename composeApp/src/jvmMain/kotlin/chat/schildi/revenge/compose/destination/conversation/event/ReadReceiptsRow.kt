@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -61,7 +62,7 @@ fun ColumnScope.ReadReceiptsRow(
             top = Dimens.Conversation.receiptPaddingVertical,
             start = 0.dp,
             end = Dimens.Conversation.otherSidePadding,
-        ).clip(CircleShape),
+        ).clip(RoundedCornerShape(Dimens.Conversation.receiptSize / 2)),
     ) {
         FlowRow(
             modifier = Modifier
