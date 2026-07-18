@@ -140,25 +140,18 @@ kotlin {
 
     sourceSets {
         jvmMain {
-            kotlin.srcDir(generatedBindingsDir)
+            kotlin.srcDir(generateFfiBindings)
             dependencies {
                 api(libs.jna)
                 implementation(libs.kotlinx.coroutines.core)
             }
         }
         androidMain {
-            kotlin.srcDir(generatedBindingsDir)
+            kotlin.srcDir(generateFfiBindings)
             dependencies {
                 api("net.java.dev.jna:jna:${libs.versions.jna.get()}@aar")
                 implementation(libs.kotlinx.coroutines.core)
             }
         }
     }
-}
-
-tasks.matching {
-    it.name == "compileKotlinJvm" ||
-        it.name == "compileAndroidMain"
-}.configureEach {
-    dependsOn(generateFfiBindings)
 }

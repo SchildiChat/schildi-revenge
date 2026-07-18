@@ -75,7 +75,6 @@ kotlin {
             implementation(libs.beeper.messageformat)
             implementation(libs.vanniktech.blurhash)
 
-            implementation(projects.matrix)
             implementation(projects.preferences)
             implementation(projects.res)
             implementation(projects.config)
@@ -87,11 +86,15 @@ kotlin {
             dependsOn(commonMain)
             dependencies {
                 implementation(libs.jsoup)
+                // We're not true KMP but still re-use some JVM-common code across desktop and Android targets.
+                // Tell compiler where the code is so linting doesn't get confused about missing code.
+                compileOnly(project(mapOf("path" to ":matrix", "configuration" to "jvmApiElements")))
             }
         }
         val desktopMain by getting {
             dependsOn(jvmMain)
             dependencies {
+            implementation(projects.matrix)
             implementation(libs.kdroidfilter.composenativetray)
             implementation(libs.kdroidfilter.knotify)
             implementation(libs.kdroidfilter.knotify.compose)
@@ -105,6 +108,7 @@ kotlin {
         val androidMain by getting {
             dependsOn(jvmMain)
             dependencies {
+                implementation(projects.matrix)
                 implementation(libs.androidx.activity.compose)
                 // Provides attachAppDirs(), which initializes AppDirs with the Android context.
                 implementation(libs.appdirs)
