@@ -41,6 +41,8 @@ import shire.res.generated.resources.pref_disable_typing_notice_in_public_rooms_
 import shire.res.generated.resources.pref_focus_follows_mouse_summary
 import shire.res.generated.resources.pref_focus_follows_mouse_title
 import shire.res.generated.resources.pref_font_scale
+import shire.res.generated.resources.pref_message_font_size_summary
+import shire.res.generated.resources.pref_message_font_size_title
 import shire.res.generated.resources.pref_formatted_composer_preview_summary
 import shire.res.generated.resources.pref_formatted_composer_preview_title
 import shire.res.generated.resources.pref_framed_rop_spinner_summary
@@ -280,6 +282,7 @@ object ScPrefs {
     ))
 
     // Timeline
+    val MESSAGE_FONT_SIZE = ScIntPref("MESSAGE_FONT_SIZE", 14, Res.string.pref_message_font_size_title, Res.string.pref_message_font_size_summary, minValue = 8, maxValue = 24)
     val THREAD_REPLIES_IN_MAIN_TIMELINE = ScBoolPref("THREAD_REPLIES_IN_MAIN_TIMELINE", true, Res.string.pref_threaded_replies_in_main_timeline_title, Res.string.pref_threaded_replies_in_main_timeline_summary)
     val HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS = ScBoolPref("HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS", false, Res.string.pref_hide_message_authenticity_warnings_in_bridged_chats_title, Res.string.pref_hide_message_authenticity_warnings_in_bridged_chats_summary)
     val HIDE_AUTHENTICITY_NOT_GUARANTEED = ScBoolPref("HIDE_AUTHENTICITY_NOT_GUARANTEED", false, Res.string.pref_hide_message_authenticity_not_guaranteed_title, Res.string.pref_hide_message_authenticity_not_guaranteed_summary)
@@ -355,6 +358,7 @@ object ScPrefs {
             )),
         )),
         ScPrefScreen("CONVERSATION", Res.string.pref_category_conversation, Res.string.pref_category_conversation_summary, listOf(
+            MESSAGE_FONT_SIZE,
             THREAD_REPLIES_IN_MAIN_TIMELINE,
             ScPrefCategory("TIMELINE_EVENT_VISIBILITY", Res.string.pref_category_timeline_event_visibility, null, listOf(
                 VIEW_REDACTIONS,

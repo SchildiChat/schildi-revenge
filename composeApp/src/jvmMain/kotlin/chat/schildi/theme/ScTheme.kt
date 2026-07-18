@@ -5,16 +5,19 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.unit.sp
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.preferences.value
 
-// Element defaults to light compound colors, so follow that as fallback default for exposures as well
+val LocalMessageTextStyle = compositionLocalOf { TextStyle.Default }
 internal val LocalScExposures = staticCompositionLocalOf { scdExposures }
 
 fun getThemeExposures(darkTheme: Boolean) = when {
@@ -68,9 +71,19 @@ fun ScTheme(
         )
     }
 
+    // Message font size via setting
+    val bodyMedium = typography.bodyMedium
+    val messageFontSize = ScPrefs.MESSAGE_FONT_SIZE.value()
+    val messageTextStyle = bodyMedium.copy(
+        fontSize = messageFontSize.sp,
+        lineHeight = bodyMedium.lineHeight * (messageFontSize / bodyMedium.fontSize.value),
+        textDirection = TextDirection.Content,
+    )
+
     CompositionLocalProvider(
         LocalScExposures provides currentExposures,
         LocalContentColor provides colorScheme.onSurfaceVariant,
+        LocalMessageTextStyle provides messageTextStyle,
         //androidx.compose.material.LocalContentColor provides colorScheme.onSurfaceVariant,
     ) {
         MaterialTheme(

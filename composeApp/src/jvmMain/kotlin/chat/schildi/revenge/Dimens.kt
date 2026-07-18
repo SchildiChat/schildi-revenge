@@ -8,9 +8,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
+import chat.schildi.theme.LocalMessageTextStyle
 import chat.schildi.theme.rememberEmojiFontFamily
 
 object Dimens {
@@ -86,8 +88,8 @@ object Dimens {
         const val mentionBgRadius = 8f
         const val mentionBgRadiusOnLineBreak = 2f
 
-        val textMessageStyle
-            @Composable get() = MaterialTheme.typography.bodyLarge.copy(textDirection = TextDirection.Content)
+        val textMessageStyle: TextStyle
+            @Composable get() = LocalMessageTextStyle.current
         val emojiOnlyMessageStyle
             @Composable get() = MaterialTheme.typography.headlineLarge.copy(textDirection = TextDirection.Content)
                 .merge(fontFamily = rememberEmojiFontFamily())

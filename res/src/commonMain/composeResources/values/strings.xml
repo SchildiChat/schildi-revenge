@@ -363,6 +363,8 @@
     <string name="pref_sdk_sqlite_max_pool_size_summary">Max amount of DB workers per logged in account. Lower values may decrease performance, too high values may run into resource limitations. Requires restarting the application to apply.</string>
     <string name="pref_render_scale">Render scale</string>
     <string name="pref_font_scale">Font scale</string>
+    <string name="pref_message_font_size_title">Message font size</string>
+    <string name="pref_message_font_size_summary">Scaled pixel text size for messages (while respecting global render and font scale settings)</string>
     <string name="pref_max_width_inbox_title">Inbox max width</string>
     <string name="pref_max_width_conversation_title">Conversation max width</string>
     <string name="pref_max_width_settings_title">Settings max width</string>
