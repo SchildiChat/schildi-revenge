@@ -26,6 +26,10 @@ import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.media.rememberAnimatedImageTransform
 import chat.schildi.revenge.compose.media.imageLoader
+import chat.schildi.revenge.compose.media.NetworkIconColorRepository
+import chat.schildi.revenge.compose.media.NetworkIconColorState
+import chat.schildi.revenge.compose.media.compositeOver
+import chat.schildi.revenge.compose.media.contrastRatio
 import chat.schildi.theme.ScColors
 import coil3.compose.AsyncImagePainter
 import coil3.compose.LocalPlatformContext
@@ -37,19 +41,22 @@ import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.ui.media.MediaRequestData
 import io.element.android.libraries.matrix.ui.media.animated.allowAnimatedImageDecoding
 
+private const val NETWORK_FALLBACK_ALPHA = 0.5f
+
 @Composable
 fun AvatarImage(
     source: MediaSource?,
     size: Dp,
     displayName: String,
-    sessionId: SessionId? = LocalSessionId.current,
     modifier: Modifier = Modifier,
+    fallbackColorSource: MediaSource? = null,
+    sessionId: SessionId? = LocalSessionId.current,
     shape: Shape = Dimens.avatarShape,
     contentDescription: String? = null,
     allowAnimated: Boolean = ScPrefs.ANIMATE_AVATARS.value(),
 ) {
     if (source == null || source.safeUrl.isEmpty()) {
-        AvatarFallback(displayName, shape, size)
+        AvatarFallback(displayName, shape, size, fallbackColorSource = fallbackColorSource, sessionId = sessionId)
         return
     }
     // Model doesn't appear different enough from adding the option to invalidate on setting toggle, so key it
@@ -87,7 +94,7 @@ fun AvatarImage(
                     }
 
                     is AsyncImagePainter.State.Error -> {
-                        AvatarFallback(displayName, shape, size, isError = true)
+                        AvatarFallback(displayName, shape, size, fallbackColorSource = fallbackColorSource, sessionId = sessionId, isError = true)
                     }
 
                     is AsyncImagePainter.State.Loading -> {
@@ -112,10 +119,12 @@ fun AvatarFallback(
     shape: Shape,
     size: Dp,
     modifier: Modifier = Modifier,
+    fallbackColorSource: MediaSource? = null,
+    sessionId: SessionId? = LocalSessionId.current,
     isLoading: Boolean = false,
     isError: Boolean = false,
 ) {
-    val color = if (ScPrefs.RENDER_AVATAR_STATES.value()) animateColorAsState(
+    val stateColor = if (ScPrefs.RENDER_AVATAR_STATES.value()) animateColorAsState(
         if (isError) {
             MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
         } else if (isLoading) {
@@ -124,6 +133,18 @@ fun AvatarFallback(
             MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
         }
     ).value else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+    val networkColor = if (fallbackColorSource == null || isLoading) {
+        null
+    } else {
+        val state = NetworkIconColorRepository.colorFor(
+            source = fallbackColorSource,
+            imageLoader = imageLoader(sessionId),
+            platformContext = LocalPlatformContext.current,
+        ).collectAsState().value
+        (state as? NetworkIconColorState.Available)?.color
+    }
+    val color = networkColor?.copy(alpha = NETWORK_FALLBACK_ALPHA) ?: stateColor
+    val contrastBackground = color.compositeOver(MaterialTheme.colorScheme.surface)
     Box(modifier.size(size).background(color, shape), contentAlignment = Alignment.Center) {
         val text = remember(displayName) {
             val cleanedName = displayName.removePrefix("@")
@@ -144,7 +165,9 @@ fun AvatarFallback(
         }
         Text(
             text,
-            color = MaterialTheme.colorScheme.inverseOnSurface,
+            color = MaterialTheme.colorScheme.run {
+                if (onSurface.contrastRatio(contrastBackground) >= inverseOnSurface.contrastRatio(contrastBackground)) onSurface else inverseOnSurface
+            },
             style = MaterialTheme.typography.headlineSmall.copy(fontSize = textSize, lineHeight = textSize),
             maxLines = 1,
         )

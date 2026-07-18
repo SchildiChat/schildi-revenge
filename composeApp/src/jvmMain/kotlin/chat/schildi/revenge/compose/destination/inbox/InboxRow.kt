@@ -127,6 +127,9 @@ fun InboxRow(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Box {
+                    val bridgeProtocol = room.summary.info.bridgeState
+                        .firstOrNull { it.protocol?.avatarUrl != null }
+                        ?.protocol
                     AvatarImage(
                         source = room.summary.info.avatarUrl?.let { MediaSource(it) }
                             ?: room.summary.info.heroes.takeIf { it.size == 1 }?.firstOrNull()?.avatarUrl?.let {
@@ -134,6 +137,7 @@ fun InboxRow(
                             },
                         size = Dimens.Inbox.avatar,
                         displayName = room.summary.info.name ?: "",
+                        fallbackColorSource = bridgeProtocol?.avatarUrl?.let(::MediaSource),
                     )
                     user?.avatarUrl?.takeIf { needsAccountDisambiguation}?.let { userAvatar ->
                         AvatarImage(
@@ -144,7 +148,7 @@ fun InboxRow(
                             modifier = Modifier.align(Alignment.BottomStart),
                         )
                     }
-                    room.summary.info.bridgeState.firstOrNull { it.protocol?.avatarUrl != null }?.protocol?.let { protocol ->
+                    bridgeProtocol?.let { protocol ->
                         protocol.avatarUrl?.let { bridgeAvatar ->
                             AvatarImage(
                                 source = MediaSource(bridgeAvatar),
