@@ -90,7 +90,11 @@ fun selectedAbis(buildType: String): List<String> {
 }
 
 fun registerAndroidRustBuild(buildType: String): TaskProvider<Task> {
-    val rustProfileArgs = if (buildType == "release") listOf("--release") else emptyList()
+    val rustProfileArgs = if (buildType == "release") {
+        listOf("--release")
+    } else {
+        listOf("--profile", "reldev")
+    }
     val abis = selectedAbis(buildType)
     val outputDir = layout.buildDirectory.dir("generated/android/$buildType/jniLibs")
     val abiTasks = abis.map { abi ->
