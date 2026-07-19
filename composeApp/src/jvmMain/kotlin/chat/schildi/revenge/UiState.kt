@@ -257,10 +257,7 @@ object UiState {
 
     val combinedSessions: CombinedSessions = matrixClients.map {
         it.values.map {
-            LoadedSession(it, appGraph.sessionGraphFactory.create(it)).also { session ->
-                session.client.syncService.startSync()
-                    .onFailure { log.e("Failed to start sync for ${session.client.sessionId}", it) }
-            }
+            LoadedSession(it, appGraph.sessionGraphFactory.create(it))
         }
     }.stateIn(scope, SharingStarted.Eagerly, persistentListOf())
 

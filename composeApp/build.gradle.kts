@@ -110,6 +110,7 @@ kotlin {
             dependencies {
                 implementation(projects.matrix)
                 implementation(libs.androidx.activity.compose)
+                implementation(libs.androidx.lifecycle.process)
                 // Provides attachAppDirs(), which initializes AppDirs with the Android context.
                 implementation(libs.appdirs)
             }

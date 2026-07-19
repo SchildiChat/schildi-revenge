@@ -2,6 +2,7 @@ package chat.schildi.revenge
 
 import android.app.Application
 import ca.gosyer.appdirs.impl.attachAppDirs
+import chat.schildi.revenge.glue.AndroidSyncOrchestrationAppStateProvider
 import org.matrix.rustcomponents.sdk.LogLevel
 import org.matrix.rustcomponents.sdk.TracingConfiguration
 import org.matrix.rustcomponents.sdk.initPlatform
@@ -16,6 +17,7 @@ class RevengeApplication : Application() {
         super.onCreate()
         instance = this
         attachAppDirs()
+        AndroidSyncOrchestrationAppStateProvider.start(this)
         initPlatform(
             config = TracingConfiguration(
                 logLevel = LogLevel.INFO,

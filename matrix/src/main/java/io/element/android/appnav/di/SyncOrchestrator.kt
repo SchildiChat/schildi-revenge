@@ -8,6 +8,7 @@
 
 package io.element.android.appnav.di
 
+import chat.schildi.matrixsdk.ScSyncOrchestrationAppStateProvider
 import dev.zacsweers.metro.Assisted
 import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
@@ -25,7 +26,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -37,6 +37,7 @@ import kotlin.time.Duration.Companion.seconds
 class SyncOrchestrator(
     @Assisted private val syncService: SyncService,
     @Assisted sessionCoroutineScope: CoroutineScope,
+    private val scSyncOrchestrationAppStateProvider: ScSyncOrchestrationAppStateProvider,
     dispatchers: CoroutineDispatchers,
     private val analyticsService: AnalyticsService,
 ) {
@@ -95,12 +96,11 @@ class SyncOrchestrator(
         )
         val isAppActiveFlow = combine(isAppActiveFlows) { actives -> actives.any { it } }
          */
-        val isAppActiveFlow = flowOf(true)
         combine(
             // small debounce to avoid spamming startSync when the state is changing quickly in case of error.
             syncService.syncState.debounce(100.milliseconds),
-            flowOf(true),//networkMonitor.connectivity, // TODO?
-            isAppActiveFlow,
+            scSyncOrchestrationAppStateProvider.isNetworkAvailable,
+            scSyncOrchestrationAppStateProvider.isAppActive,
         ) { syncState, networkState, isAppActive ->
             val isNetworkAvailable = networkState //== NetworkStatus.Connected
 
