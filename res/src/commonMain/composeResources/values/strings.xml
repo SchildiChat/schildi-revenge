@@ -293,6 +293,8 @@
     <string name="message_placeholder_state_event_space_child">%1$s changed the space children</string>
     <string name="message_placeholder_state_event_space_parent">%1$s changed the space parents</string>
     <string name="message_placeholder_live_location">Live location</string>
+    <string name="message_placeholder_state_event_beacon_info">%1$s updated live location sharing</string>
+    <string name="message_placeholder_beacon">Live location update</string>
     <string name="event_placeholder_room_beginning">Room beginning</string>
 
     <string name="room_type_space">Space</string>

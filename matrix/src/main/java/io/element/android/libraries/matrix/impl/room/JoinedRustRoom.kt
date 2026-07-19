@@ -223,6 +223,7 @@ class JoinedRustRoom(
                     RoomMessageEventMessageType.IMAGE,
                     RoomMessageEventMessageType.VIDEO,
                     RoomMessageEventMessageType.AUDIO,
+                    RoomMessageEventMessageType.GALLERY,
                 )
             )
             is CreateTimelineParams.Focused,

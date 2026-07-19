@@ -32,6 +32,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.getDisambigua
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisplayName
 import io.element.android.libraries.matrix.api.room.join.JoinRule
 import io.element.android.libraries.matrix.api.timeline.item.event.FormattedBody
+import io.element.android.libraries.matrix.api.timeline.item.event.GalleryMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.LiveLocationContent
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageFormat
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageType
@@ -176,6 +177,7 @@ object EventTextFormat {
         return when (type) {
             is TextLikeMessageType -> formattedBodyToText(type.formatted, type.body, stripNewlines)
             is MessageTypeWithAttachment -> formattedBodyToText(type.formattedCaption, type.bestDescription, stripNewlines)
+            is GalleryMessageType -> formattedBodyToText(type.formatted, type.body, stripNewlines)
             is LocationMessageType -> type.body
             is OtherMessageType -> type.body
         }

@@ -61,6 +61,7 @@ metro_gradle_plugin = { module = "dev.zacsweers.metro:gradle-plugin", version.re
 metro_runtime = { module = "dev.zacsweers.metro:runtime", version.ref = "metro" }
 coil3_compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil3_okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
+coil3_svg = { group = "io.coil-kt.coil3", name = "coil-svg", version.ref = "coil" }
 kdroidfilter_platformtools_core = { group = "io.github.kdroidfilter", name = "platformtools.core", version.ref = "kdroidfilterPlatformtools" }
 kdroidfilter_platformtools_darkmodedetector = { group = "io.github.kdroidfilter", name = "platformtools.darkmodedetector", version.ref = "kdroidfilterPlatformtools" }
 kdroidfilter_composenativetray = { group = "io.github.kdroidfilter", name = "composenativetray", version.ref = "kdroidfilterComposeNativeTray" }

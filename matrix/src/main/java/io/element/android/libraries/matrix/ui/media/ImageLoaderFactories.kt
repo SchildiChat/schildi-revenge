@@ -14,6 +14,7 @@ import coil3.ImageLoader
 //import coil3.gif.AnimatedImageDecoder
 //import coil3.gif.GifDecoder
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
+import coil3.svg.SvgDecoder
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -54,6 +55,8 @@ class DefaultImageLoaderFactory(
             .components {
                 add(AnimatedImageDecoderFactory())
                 add(okHttpNetworkFetcherFactory)
+                // Add svg support
+                add(SvgDecoder.Factory())
                 // Add gif support
                 /*
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {

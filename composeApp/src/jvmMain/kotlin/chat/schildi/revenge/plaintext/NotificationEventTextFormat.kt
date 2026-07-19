@@ -11,6 +11,7 @@ import shire.res.generated.resources.membership_change_invited
 import shire.res.generated.resources.membership_change_joined
 import shire.res.generated.resources.membership_change_knocked
 import shire.res.generated.resources.membership_change_left
+import shire.res.generated.resources.message_placeholder_beacon
 import shire.res.generated.resources.message_placeholder_call
 import shire.res.generated.resources.message_placeholder_encrypted_message
 import shire.res.generated.resources.message_placeholder_invite_by
@@ -18,6 +19,7 @@ import shire.res.generated.resources.message_placeholder_key_verification
 import shire.res.generated.resources.message_placeholder_message_redacted
 import shire.res.generated.resources.message_placeholder_message_redacted_with_reason
 import shire.res.generated.resources.message_placeholder_reaction
+import shire.res.generated.resources.message_placeholder_state_event_beacon_info
 import shire.res.generated.resources.message_placeholder_state_event_policy_rule_room
 import shire.res.generated.resources.message_placeholder_state_event_policy_rule_server
 import shire.res.generated.resources.message_placeholder_state_event_policy_rule_user
@@ -97,6 +99,7 @@ object NotificationEventTextFormat {
             }
             NotificationContent.MessageLike.Sticker -> getString(Res.string.message_placeholder_sticker)
             is NotificationContent.MessageLike.Poll -> content.question
+            NotificationContent.MessageLike.Beacon -> getString(Res.string.message_placeholder_beacon)
         }
     }
 
@@ -208,6 +211,11 @@ object NotificationEventTextFormat {
             NotificationContent.StateEvent.SpaceParent ->
                 getString(
                     Res.string.message_placeholder_state_event_space_parent,
+                    senderName,
+                )
+            NotificationContent.StateEvent.BeaconInfo ->
+                getString(
+                    Res.string.message_placeholder_state_event_beacon_info,
                     senderName,
                 )
         }

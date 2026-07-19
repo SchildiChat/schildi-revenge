@@ -41,6 +41,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.EventContent
 import io.element.android.libraries.matrix.api.timeline.item.event.FailedToParseMessageLikeContent
 import io.element.android.libraries.matrix.api.timeline.item.event.FailedToParseStateContent
 import io.element.android.libraries.matrix.api.timeline.item.event.FileMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.GalleryMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.ImageLikeMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 import io.element.android.libraries.matrix.api.timeline.item.event.LegacyCallInviteContent
@@ -171,6 +172,10 @@ fun EventContentLayout(
                     }
                     is VoiceMessageType -> {
                         VoiceMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
+                    }
+                    is GalleryMessageType -> {
+                        // TODO
+                        MessageFallback("GALLERY", isOwn, timestamp, inReplyTo, threadInfo)
                     }
                     is OtherMessageType -> {
                         MessageFallback(

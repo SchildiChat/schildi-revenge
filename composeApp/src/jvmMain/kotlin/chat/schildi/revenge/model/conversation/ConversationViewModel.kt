@@ -119,6 +119,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.AudioMessageT
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.FileMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.GalleryMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.ImageMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 import io.element.android.libraries.matrix.api.timeline.item.event.LocalEventSendState
@@ -2057,6 +2058,16 @@ class ConversationViewModel(
                                     initialBody = messageType.caption ?: "",
                                     // Not supported yet, TODO formatted edits?
                                     //htmlBody = messageType.formattedCaption?.body,
+                                )
+
+                                is GalleryMessageType -> createDraftValue(
+                                    type = DraftType.EDIT_CAPTION,
+                                    textFieldValue = insertTextFieldValue(messageType.body),
+                                    editEventId = eventOrTransactionId,
+                                    initialBody = messageType.body,
+                                    // Not supported yet, TODO formatted edits?
+                                    //htmlBody = messageType.formatted?.body,
+                                    //intentionalMentions = // TODO?
                                 )
 
                                 is LocationMessageType,
