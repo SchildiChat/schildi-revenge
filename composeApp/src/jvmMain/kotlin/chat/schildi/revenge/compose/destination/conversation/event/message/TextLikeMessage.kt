@@ -7,7 +7,6 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.InlineTextContent
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,6 +38,7 @@ import chat.schildi.revenge.LocalMatrixBodyDrawStyle
 import chat.schildi.revenge.LocalMatrixBodyFormatter
 import chat.schildi.revenge.MessageFormatDefaults
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
+import chat.schildi.revenge.compose.components.SelectionContainerUnlessTouch
 import chat.schildi.revenge.compose.media.rememberAnimatedImageTransform
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.revenge.compose.util.EmojiUtil.containsOnlyEmojis
@@ -135,7 +135,8 @@ fun TextLikeMessage(
                 keyHandler.openLink(urlPreview.url)
             }
         }
-        SelectionContainer {
+        // Text selection only allowed if it doesn't interfere with other longpress context menu handling
+        SelectionContainerUnlessTouch {
             TextLikeMessageContent(
                 text,
                 textColor = textColor,

@@ -23,18 +23,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableFloatState
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.InputMode
-import androidx.compose.ui.platform.LocalInputModeManager
+import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.components.toPx
 import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_NO_FILTER
 import chat.schildi.revenge.model.spaces.SpaceListDataSource
@@ -122,7 +123,8 @@ fun Modifier.spaceSwipe(
     selectionState: ActiveSpaceSelectionState,
     selectSpace: (SpaceListDataSource.AbstractSpaceHierarchyItem?) -> Unit,
 ): Modifier {
-    if (LocalInputModeManager.current.inputMode != InputMode.Touch) {
+    val isTouch = LocalKeyboardActionHandler.current.lastPointerType.collectAsState().value == PointerType.Touch
+    if (!isTouch) {
         return this
     }
     // Indicator width itself is 96dp.

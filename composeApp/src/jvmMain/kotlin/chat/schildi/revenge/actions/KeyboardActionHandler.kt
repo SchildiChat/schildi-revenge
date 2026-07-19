@@ -20,6 +20,7 @@ import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.platform.Clipboard
@@ -350,9 +351,13 @@ class KeyboardActionHandler(
     var uriHandler: UriHandler? = null
 
     var windowCoordinates: Rect? = null
+
     private var _lastPointerPosition = Offset.Zero
     val lastPointerPosition: Offset
         get() = _lastPointerPosition
+    private val _lastPointerType = MutableStateFlow<PointerType?>(null)
+    val lastPointerType = _lastPointerType.asStateFlow()
+
     private val currentFocus = MutableStateFlow<Uuid?>(null)
 
     private val _isWindowFocused = MutableStateFlow(false)
@@ -2256,12 +2261,14 @@ class KeyboardActionHandler(
         focusableTargets.remove(target)
     }
 
-    fun handlePointer(position: Offset, type: PointerEventType) {
+    fun handlePointer(position: Offset, type: PointerEventType, pointerType: PointerType) {
         val previous = _lastPointerPosition
         // Don't action if nothing changed
         if (_lastPointerPosition == position) {
             return
         }
+
+        _lastPointerType.value = pointerType
 
         if (type != PointerEventType.Move) {
             // Still need to track the updated position so we don't trigger focus changes that we don't want,

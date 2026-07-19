@@ -21,6 +21,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -46,10 +47,10 @@ fun Modifier.windowFocusContainer(): Modifier {
             var lastPos: Offset? = null
             while (true) {
                 val event = awaitPointerEvent()
-                val pos = event.changes.firstOrNull()?.position ?: continue
-                if (pos != lastPos) {
-                    keyHandler.handlePointer(pos, event.type)
-                    lastPos = pos
+                val pointer = event.changes.firstOrNull() ?: continue
+                if (pointer.position != lastPos) {
+                    keyHandler.handlePointer(pointer.position, event.type, pointer.type)
+                    lastPos = pointer.position
                 }
             }
         }
@@ -238,6 +239,14 @@ private fun Modifier.keyFocusableCommon(
 }
 
 @Composable
-fun FocusRole.shouldAutoRequestFocus(): Boolean =
-    autoRequestFocus && (this != FocusRole.MESSAGE_COMPOSER ||
-            LocalInputModeManager.current.inputMode == InputMode.Keyboard)
+fun FocusRole.shouldAutoRequestFocus(): Boolean {
+    if (!autoRequestFocus) return false
+    if (this == FocusRole.MESSAGE_COMPOSER) {
+        // LocalInputModeManager thinks everything that's not a keypress is "touch", so do our own pointer tracking
+        val isTouch = LocalKeyboardActionHandler.current.lastPointerType.collectAsState().value?.let {
+            it == PointerType.Touch
+        } ?: (LocalInputModeManager.current.inputMode == InputMode.Touch)
+        return !isTouch
+    }
+    return true
+}
