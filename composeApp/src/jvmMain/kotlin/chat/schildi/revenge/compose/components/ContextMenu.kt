@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.RocketLaunch
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
@@ -15,7 +16,6 @@ import androidx.compose.material3.MenuItemColors
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -43,10 +44,13 @@ import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.resources.ComposableStringHolder
+import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.displayName
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_enter_command_mode
 import kotlin.uuid.Uuid
 
 sealed interface ContextMenuEntry {
@@ -197,7 +201,7 @@ fun WithContextMenu(
             )
         },
         popupContent = {
-            entries.forEach { entry ->
+            (entries + globalContextMenuEntries()).forEach { entry ->
                 ContextMenuDropdownMenuItem(
                     entry = entry,
                     focusId = focusId,
@@ -210,6 +214,16 @@ fun WithContextMenu(
         }
     )
 }
+
+// Always append command mode option to context menus - TODO make setting (maybe disable together with other non-advanced-user stuff)
+@Composable
+fun globalContextMenuEntries() = listOf(
+    ContextMenuActionEntry(
+        Res.string.action_enter_command_mode.toStringHolder(),
+        rememberVectorPainter(Icons.Default.RocketLaunch),
+        Action.Global.Command,
+    )
+)
 
 @Composable
 private fun ContextMenuDropdownMenuItem(

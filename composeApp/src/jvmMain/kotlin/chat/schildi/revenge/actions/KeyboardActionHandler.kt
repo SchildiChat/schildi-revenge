@@ -1702,11 +1702,22 @@ class KeyboardActionHandler(
                     }
                 }
                 Action.Global.Command -> {
-                    if (mode.value is KeyboardActionMode.Command) {
-                        // CMD already active, just focus again
-                        focusByRole(FocusRole.COMMAND_BAR).orActionInapplicable()
+                    val currentMode = mode.value
+                    val explicitFocus = context.focused(false)
+                    if (currentMode is KeyboardActionMode.Command) {
+                        if (explicitFocus != null && explicitFocus != currentMode.focused) {
+                            handleCommandInput(
+                                TextFieldValue(currentMode.command, TextRange(currentMode.command.length)),
+                                explicitFocus,
+                            ) {
+                                focusByRole(FocusRole.COMMAND_BAR)
+                            }.orActionInapplicable()
+                        } else {
+                            // CMD already active, just focus again
+                            focusByRole(FocusRole.COMMAND_BAR).orActionInapplicable()
+                        }
                     } else {
-                        handleCommandInput(TextFieldValue("")) {
+                        handleCommandInput(TextFieldValue(""), explicitFocus) {
                             focusByRole(FocusRole.COMMAND_BAR)
                         }.orActionInapplicable()
                     }
@@ -2418,6 +2429,10 @@ class KeyboardActionHandler(
     fun onCommandEnter() {
         val commandMode = (mode.value as? KeyboardActionMode.Command) ?: return
         executeCommand(commandMode)
+        clearCommandMode()
+    }
+
+    fun clearCommandMode() {
         updateMode {
             it.takeIf { it !is KeyboardActionMode.Command } ?: it.asSearchMode() ?: KeyboardActionMode.Navigation
         }
@@ -2578,14 +2593,16 @@ class KeyboardActionHandler(
 
     private fun handleCommandInput(
         query: TextFieldValue,
+        setCommandFocus: FocusTarget? = null,
         handleSuccess: (KeyboardActionMode.Command) -> Unit,
     ): Boolean {
         var success: KeyboardActionMode.Command? = null
         updateMode { mode ->
-            if (mode is KeyboardActionMode.Command) {
+            if (mode is KeyboardActionMode.Command && (setCommandFocus == null || setCommandFocus.id == mode.focused)) {
                 mode.copy(query = query)
             } else {
-                val focusTarget = currentFocus.value?.let { focusableTargets[it] }
+                val focusTarget = setCommandFocus
+                    ?: currentFocus.value?.let { focusableTargets[it] }
                     ?: focusableTargets.values.find { it.role == FocusRole.DESTINATION_ROOT_CONTAINER }
                 val actionHandlers = getCurrentKeyActionHandlers(focusTarget)
                 KeyboardActionMode.Command(

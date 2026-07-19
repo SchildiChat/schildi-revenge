@@ -39,6 +39,7 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.LocalMatrixBodyDrawStyle
 import chat.schildi.revenge.LocalMatrixBodyFormatter
 import chat.schildi.revenge.actions.FocusRole
+import chat.schildi.revenge.actions.KeyboardActionMode
 import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider

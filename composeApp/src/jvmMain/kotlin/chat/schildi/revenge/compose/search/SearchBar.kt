@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
+import chat.schildi.revenge.compose.components.PlatformBackHandler
 import chat.schildi.revenge.compose.components.TopNavigationIcon
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.theme.scExposures
@@ -32,6 +33,9 @@ fun SearchBar(
     showClearButton: Boolean = false,
 ) {
     val handler = LocalKeyboardActionHandler.current
+    PlatformBackHandler(enabled = !showClearButton) {
+        handler.clearSearch()
+    }
     TextField(
         value = handler.globalSearchQuery.collectAsState("").value,
         onValueChange = {

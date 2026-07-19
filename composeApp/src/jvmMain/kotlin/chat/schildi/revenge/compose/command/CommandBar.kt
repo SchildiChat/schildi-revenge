@@ -19,6 +19,7 @@ import chat.schildi.revenge.actions.CurrentCommandValidity
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.KeyboardActionMode
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
+import chat.schildi.revenge.compose.components.PlatformBackHandler
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.theme.scExposures
 import org.jetbrains.compose.resources.stringResource
@@ -32,6 +33,9 @@ fun CommandBar(modifier: Modifier = Modifier) {
     // typing when suggestions are slow
     val state = handler.mode.collectAsState().value as? KeyboardActionMode.Command ?: return
     val suggestionsState = state.suggestionsProvider.suggestionState.collectAsState().value
+    PlatformBackHandler {
+        handler.clearCommandMode()
+    }
     Column(modifier) {
         if (suggestionsState != null) {
             CommandSuggestions(
