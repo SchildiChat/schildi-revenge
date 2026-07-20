@@ -64,7 +64,7 @@ internal fun Modifier.keyFocusableContainer(
     role: FocusRole = FocusRole.CONTAINER,
 ): Modifier {
     val keyHandler = LocalKeyboardActionHandler.current
-    val focusRequester = remember(keyHandler, id) { FakeFocusRequester(keyHandler, id) }
+    val focusRequester = remember(keyHandler, id) { FakeFocusRequester(keyHandler, id, role) }
     return this.keyFocusableCommon(role = role, id = id, parent = parent, focusRequester = focusRequester)
         .let {
             if (role == FocusRole.DESTINATION_ROOT_CONTAINER) {
@@ -135,7 +135,7 @@ fun Modifier.keyFocusable(
     }
     return focusRequester(focusRequester)
         .onFocusChanged {
-            keyHandler.onFocusChanged(id, it)
+            keyHandler.onFocusChanged(id, it, role)
         }
         .thenIf(addMouseFocusable) {
             focusable()

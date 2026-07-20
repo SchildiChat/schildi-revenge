@@ -233,7 +233,7 @@ private fun ExistingLogin(account: AccountManagementData, viewModel: AccountMana
                         onValueChange = { recoveryKey = it },
                         label = { Text(stringResource(Res.string.hint_recovery_key)) },
                         singleLine = true,
-                        modifier = Modifier.weight(1f),
+                        modifier = Modifier.weight(1f).keyFocusable(FocusRole.TEXT_FIELD_SINGLE_LINE),
                     )
                     // TODO move to VM
                     fun verify(): Boolean {

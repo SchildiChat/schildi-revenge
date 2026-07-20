@@ -359,6 +359,11 @@ class KeyboardActionHandler(
     val lastPointerType = _lastPointerType.asStateFlow()
 
     private val currentFocus = MutableStateFlow<Uuid?>(null)
+    // Text input that should prevent some keys from being used for bindings, mapped to allowed whitelist of keys.
+    // If the map is empty, everything is allowed, else the intersection of keys is allowed.
+    // [currentFocus] is keyboard-controllable and may disagree with compose internals in some edge cases,
+    // thus the additional map to be safe.
+    private val focusedKeyConsumers = MutableStateFlow<Map<Uuid, FocusRole>>(emptyMap())
 
     private val _isWindowFocused = MutableStateFlow(false)
     val isWindowsFocused = _isWindowFocused.asStateFlow()
@@ -753,14 +758,22 @@ class KeyboardActionHandler(
             it.resolveMenuEntries(focusableTargets[it.focusId])
         }?.takeIf { it.isNotEmpty() }
         // Disallow plain keybindings of keys handled by text fields
-        if (!event.isCtrlPressed && contextMenu == null && (
-                focused?.role?.consumesKeyWhitelist?.let { event.key in it } == false ||
-                        focused?.role?.consumesKeyWhitelistDuringEdit
-                            ?.takeIf { focused.actions?.editActions?.editId?.let { it == activeEditAbleId.value } == true }
-                            ?.let { event.key in it } == false
-            )
-        ) {
-            return false
+        if (!event.isCtrlPressed && contextMenu == null) {
+            val currentActiveEditableId = activeEditAbleId.value
+            focusedKeyConsumers.value.forEach { (focusId, role) ->
+                if (role.consumesKeyWhitelist != null && event.key !in role.consumesKeyWhitelist) {
+                    return false
+                }
+                if (role.consumesKeyWhitelistDuringEdit != null && currentActiveEditableId != null) {
+                    if (event.key in role.consumesKeyWhitelistDuringEdit) {
+                        return@forEach
+                    }
+                    val editId = focusableTargets[focusId]?.actions?.editActions?.editId
+                    if (editId == currentActiveEditableId) {
+                        return false
+                    }
+                }
+            }
         }
         return when (event.type) {
             KeyDown -> {
@@ -998,7 +1011,7 @@ class KeyboardActionHandler(
         parent ?: return false
         currentFocus.value = parent.uuid
         focusableTargets[parent.uuid]?.let {
-            onFocusChanged(parent.uuid, null)
+            onFocusChanged(parent.uuid, null, it.role)
         }
         return true
     }
@@ -2161,8 +2174,21 @@ class KeyboardActionHandler(
         return false
     }
 
-    fun onFocusChanged(target: Uuid, state: FocusState?) {
+    fun onFocusChanged(
+        target: Uuid,
+        state: FocusState?,
+        role: FocusRole,
+    ) {
         //log.v { "Focus changed for $target to $state" }
+        if (role.consumesKeyWhitelist != null || role.consumesKeyWhitelistDuringEdit != null) {
+            focusedKeyConsumers.update {
+                if (state?.hasFocus == true) {
+                    it + (target to role)
+                } else {
+                    it - target
+                }
+            }
+        }
         var lostFocusTargetId: Uuid? = null
         if (state == null) {
             // Should already happen in focusParent() via key actions where we already set this...?
@@ -2259,6 +2285,7 @@ class KeyboardActionHandler(
 
     fun unregisterFocusTarget(target: Uuid) {
         focusableTargets.remove(target)
+        focusedKeyConsumers.update { it - target }
     }
 
     fun handlePointer(position: Offset, type: PointerEventType, pointerType: PointerType) {
