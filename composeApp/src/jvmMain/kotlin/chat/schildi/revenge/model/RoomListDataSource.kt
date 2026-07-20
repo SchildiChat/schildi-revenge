@@ -14,6 +14,7 @@ import chat.schildi.revenge.model.conversation.messageMetadata
 import chat.schildi.revenge.util.mergeLists
 import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.Inject
+import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.roomlist.LatestEventValue
 import io.element.android.libraries.matrix.api.roomlist.RoomListFilter
 import io.element.android.libraries.matrix.api.roomlist.ScSdkInboxSettings
@@ -23,11 +24,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.onStart
+import kotlin.time.Duration.Companion.milliseconds
 
 private fun buildScSdkInboxSettings(lookup: (ScPref<*>) -> Any?) = ScSdkInboxSettings(
     sortOrder = ScSdkRoomSortOrder(
@@ -60,7 +63,7 @@ class RoomListDataSource(
         combinedSessions.flatMerge(
             map = { session ->
                 session.client.notificationSettingsService.notificationSettingsChangeFlow
-                    .debounce(500)
+                    .debounce(500.milliseconds)
                     .onEach { session.client.roomListService.allRooms.rebuildSummaries() }
             },
             merge = { },
@@ -87,22 +90,38 @@ class RoomListDataSource(
     @OptIn(ExperimentalCoroutinesApi::class)
     val allRooms = combinedSessions.flatMergeCombinedWith(
         map = { input, _ ->
-            input.client.roomListService.allRooms.summaries.map {
-                it.map {
-                    val latestEventContent = when (val event = it.latestEvent) {
-                        is LatestEventValue.Local -> event.content
-                        is LatestEventValue.Remote -> event.content
-                        is LatestEventValue.RoomInvite,
-                        LatestEventValue.None -> null
+            // New list input often means that only few room summaries actually changed.
+            // If we cache previous built scoped summaries, we can decrease memory allocations significantly.
+            // Can e.g. observe memory consumption via `visualvm` while getting spammed in a single room
+            var cachedSummaries = emptyMap<RoomId, ScopedRoomSummary>()
+            input.client.roomListService.allRooms.summaries.map { summaries ->
+                summaries.map { summary ->
+                    val previous = cachedSummaries[summary.roomId]
+                    if (previous?.summary === summary) {
+                        previous
+                    } else {
+                        val latestEventMessageMetadata = if (previous?.summary?.latestEvent == summary.latestEvent) {
+                            previous.latestEventMessageMetadata
+                        } else {
+                            when (val event = summary.latestEvent) {
+                                is LatestEventValue.Local -> event.content
+                                is LatestEventValue.Remote -> event.content
+                                is LatestEventValue.RoomInvite,
+                                LatestEventValue.None -> null
+                            }?.messageMetadata(
+                                style = MessageFormatDefaults.parseStyleForStrippedFormatting,
+                            )
+                        }
+                        ScopedRoomSummary(
+                            input.client.sessionId,
+                            summary,
+                            latestEventMessageMetadata,
+                        )
                     }
-                    ScopedRoomSummary(
-                        input.client.sessionId,
-                        it,
-                        latestEventContent?.messageMetadata(
-                            style = MessageFormatDefaults.parseStyleForStrippedFormatting,
-                        ))
+                }.also { scopedSummaries ->
+                    cachedSummaries = scopedSummaries.associateBy { it.summary.roomId }
                 }
-            }
+            }.distinctUntilChanged()
         },
         onUpdatedInput = { it, settings ->
             it.forEach {
@@ -123,6 +142,8 @@ class RoomListDataSource(
         },
         onEmpty = { emptyList() },
         other = sdkSettings,
-    ).flowOn(Dispatchers.IO)
+    )
+        .distinctUntilChanged()
+        .flowOn(Dispatchers.Default)
 
 }
