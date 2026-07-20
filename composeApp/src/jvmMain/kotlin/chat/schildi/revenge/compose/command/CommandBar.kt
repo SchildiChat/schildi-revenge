@@ -70,7 +70,7 @@ fun CommandBar(modifier: Modifier = Modifier) {
                 .fillMaxWidth()
                 .background(MaterialTheme.colorScheme.surface)
                 .keyFocusable(role = FocusRole.COMMAND_BAR),
-            maxLines = 1,
+            singleLine = true,
             keyboardActions = KeyboardActions {
                 handler.onCommandEnter()
             },
