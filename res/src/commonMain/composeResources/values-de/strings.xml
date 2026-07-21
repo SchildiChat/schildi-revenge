@@ -388,4 +388,11 @@
     <string name="pref_close_to_tray_summary">Schließen des letzten Fensters lässt die Anwendung weiterlaufen und ermöglicht es, sie über das Symbol in der Taskleiste erneut zu öffnen</string>
     <string name="pref_show_dev_infos_title">Zeige Entwicklerinfos</string>
     <string name="pref_show_dev_infos_summary">Render erweiterte Debuginfos mit unfertiger UI in verschiedenen plätzen</string>
+    <plurals name="room_members_title_in_room_loaded">
+        <item quantity="one">%1$s Mitglied in %2$s</item>
+        <item quantity="other">%1$s Mitglieder in %2$s</item>
+    </plurals>
+    <string name="about_revision">Quellcode-Revision: %1$s</string>
+    <string name="about_java_runtime">Java-Laufzeit: %1$s</string>
+    <string name="about_java_vm">Java VM: %1$s</string>
 </resources>
