@@ -217,7 +217,7 @@
     <string name="action_navigate_debug_timeline">Öffne Debug Timeline</string>
     <string name="action_save">Speichern</string>
     <string name="action_notifications">Benachrichtigungen</string>
-    <string name="action_notifications_default">Standart</string>
+    <string name="action_notifications_default">Standard</string>
     <string name="action_notifications_all">Alle Nachrichten</string>
     <string name="action_notifications_mentions">Nur Erwähnungen</string>
     <string name="action_notifications_none">Keine</string>
