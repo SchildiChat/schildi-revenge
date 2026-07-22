@@ -100,7 +100,10 @@ fun SessionSelectorScreen(
     LaunchedEffect(accounts, destination, destinationState) {
         val loadedAccounts = accounts ?: return@LaunchedEffect
         when (loadedAccounts.size) {
-            0 -> destinationState?.navigate(Destination.AccountManagement, NavigationPreference.REPLACE)
+            0 -> destinationState?.navigate(
+                Destination.AccountManagement(isInitialSetup = true),
+                NavigationPreference.REPLACE,
+            )
             1 -> navigateToSessionDestination(loadedAccounts.single().sessionId)
         }
     }

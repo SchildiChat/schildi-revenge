@@ -75,9 +75,12 @@ sealed interface Destination {
     }
 
     @Serializable
-    data object AccountManagement : Destination {
+    data class AccountManagement(
+        val isInitialSetup: Boolean = false,
+    ) : Destination {
         override val destinationId = DestinationEnum.AccountManagement
         override val category = DestinationCategory.SETTINGS
+        @Transient
         override val title = StringResourceHolder(Res.string.manage_accounts)
     }
 

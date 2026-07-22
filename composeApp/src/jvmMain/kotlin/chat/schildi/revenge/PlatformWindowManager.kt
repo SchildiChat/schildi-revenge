@@ -9,6 +9,11 @@ import kotlinx.coroutines.flow.StateFlow
 expect val platformWindowManager: PlatformWindowManager
 
 interface PlatformWindowManager {
+    /**
+     * Whether all windows are created and destroyed by us (desktop -> `true`),
+     * or via some system components we can only observe (Android -> `false`).
+     **/
+    val appOwnsWindows: Boolean
     val windows: StateFlow<ImmutableList<WindowState>>
     val minimizedToTray: StateFlow<Boolean>
     fun openWindow(destination: Destination, preferNewTask: Boolean, initialTitle: ComposableStringHolder? = null)

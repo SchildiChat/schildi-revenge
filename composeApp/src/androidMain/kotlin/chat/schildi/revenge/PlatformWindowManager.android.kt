@@ -32,6 +32,8 @@ actual val platformWindowManager: PlatformWindowManager = androidWindowManager
 class AndroidWindowManager : PlatformWindowManager {
     private val scope = CoroutineScope(Dispatchers.Default)
 
+    override val appOwnsWindows = false
+
     private val androidWindows =
         MutableStateFlow<ImmutableMap<WindowId, AndroidWindowState>>(persistentMapOf())
     var currentActivity: WeakReference<MainActivity>? = null

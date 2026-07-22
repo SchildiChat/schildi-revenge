@@ -26,6 +26,8 @@ data class DesktopWindowState(
 @OptIn(ExperimentalAtomicApi::class)
 actual val platformWindowManager = object : PlatformWindowManager {
 
+    override val appOwnsWindows = true
+
     private val windowCounter = AtomicInt(0)
     private val _windows = MutableStateFlow<ImmutableList<DesktopWindowState>>(
         persistentListOf(

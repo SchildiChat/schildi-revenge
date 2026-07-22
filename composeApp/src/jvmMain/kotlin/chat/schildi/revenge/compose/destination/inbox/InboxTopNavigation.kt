@@ -25,7 +25,7 @@ fun InboxTopNavigation(title: String?) {
                 Icons.Default.AccountCircle,
                 stringResource(Res.string.manage_accounts)
             ) {
-                destinationState.navigate(Destination.AccountManagement)
+                destinationState.navigate(Destination.AccountManagement())
             }
             TopNavigationIcon(
                 Icons.Default.Settings,

@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.Anim
+import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.NavigationPreference
@@ -41,6 +42,7 @@ import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.compose.search.SearchBar
 import chat.schildi.revenge.compose.search.SearchProvider
+import chat.schildi.revenge.platformWindowManager
 import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.action_close
@@ -92,10 +94,21 @@ fun TopNavigationIcon(
 
 @Composable
 fun TopNavigationCloseOrNavigateToInboxIcon(modifier: Modifier = Modifier) {
-    val hasInboxOpen = UiState.hasInboxOpen.collectAsState().value
     val destinationState = LocalDestinationState.current
     val keyHandler = LocalKeyboardActionHandler.current
-    val showInboxIcon = destinationState != null && !hasInboxOpen
+    val showInboxIcon = when {
+        // Can't, this case shouldn't happen
+        destinationState == null -> false
+        // Can we reliably tell if there's an inbox open, or may it be hidden in some system backstack?
+        // Except when we're in initial account management setup, then there might be none in backstack.
+        !platformWindowManager.appOwnsWindows -> {
+            (destinationState.state.collectAsState().value.destination as? Destination.AccountManagement)?.isInitialSetup == true
+        }
+        // Inbox already open in a different window, prefer closing this one than navigating back
+        UiState.hasInboxOpen.collectAsState().value -> false
+        // No window open with inbox, suggest to navigate back to inbox instead of closing this window.
+        else -> true
+    }
     AnimatedContent(showInboxIcon) {
         if (it) {
             TopNavigationIcon(

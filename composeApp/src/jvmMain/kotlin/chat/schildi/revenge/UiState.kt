@@ -245,7 +245,7 @@ object UiState {
 
         if (!hasClearedSplashScreen) {
             val destination = if (sessions.isEmpty()) {
-                Destination.AccountManagement
+                Destination.AccountManagement(isInitialSetup = true)
             } else {
                 getInboxDestination()
             }

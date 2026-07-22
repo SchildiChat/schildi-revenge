@@ -75,7 +75,7 @@ private inline fun String.toDestinationOrNull(
 ): Destination? {
     return when (this.toDestinationEnum()) {
         DestinationEnum.Splash -> Destination.Splash
-        DestinationEnum.AccountManagement -> Destination.AccountManagement
+        DestinationEnum.AccountManagement -> Destination.AccountManagement()
         DestinationEnum.Inbox -> Destination.Inbox
         DestinationEnum.Conversation -> {
             tryOrNull {
