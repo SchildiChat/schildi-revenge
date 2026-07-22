@@ -3,6 +3,9 @@ package chat.schildi.revenge
 import android.app.Application
 import ca.gosyer.appdirs.impl.attachAppDirs
 import chat.schildi.revenge.glue.AndroidSyncOrchestrationAppStateProvider
+import chat.schildi.revenge.preferences.RevengePrefs
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.matrix.rustcomponents.sdk.LogLevel
 import org.matrix.rustcomponents.sdk.TracingConfiguration
 import org.matrix.rustcomponents.sdk.initPlatform
@@ -28,5 +31,10 @@ class RevengeApplication : Application() {
             ),
             useLightweightTokioRuntime = false,
         )
+
+        val initScope = ScCoroutines.scope(Dispatchers.IO, "AppInit")
+        initScope.launch {
+            RevengePrefs.prefetch()
+        }
     }
 }
