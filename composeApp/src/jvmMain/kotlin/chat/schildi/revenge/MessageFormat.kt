@@ -31,6 +31,7 @@ import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.compose.components.LocalSessionId
 import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.util.tryOrNull
+import chat.schildi.theme.LocalMessageStyle
 import chat.schildi.theme.scExposures
 import com.beeper.android.messageformat.DefaultMatrixBodyStyledFormatter
 import com.beeper.android.messageformat.DrawPosition
@@ -110,7 +111,7 @@ val LocalMatrixBodyDrawStyle = compositionLocalOf { MatrixBodyDrawStyle() }
 fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
     val density = LocalDensity.current
     val textMeasurer = rememberTextMeasurer()
-    val textStyle = Dimens.Conversation.textMessageStyle
+    val textStyle = LocalMessageStyle.current.textStyle
     val linkColor = MaterialTheme.scExposures.linkColor
     val mentionColor = MaterialTheme.scExposures.mentionFg
     val mentionHighlightColor = MaterialTheme.scExposures.mentionFgHighlight

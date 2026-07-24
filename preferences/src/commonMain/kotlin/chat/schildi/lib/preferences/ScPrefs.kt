@@ -107,6 +107,7 @@ import shire.res.generated.resources.pref_category_general
 import shire.res.generated.resources.pref_category_general_appearance
 import shire.res.generated.resources.pref_category_general_behaviour
 import shire.res.generated.resources.pref_category_general_summary
+import shire.res.generated.resources.pref_category_message_appearance
 import shire.res.generated.resources.pref_category_message_authenticity_warnings
 import shire.res.generated.resources.pref_category_timeline_event_visibility
 import shire.res.generated.resources.pref_category_unread_counts
@@ -124,6 +125,10 @@ import shire.res.generated.resources.pref_indicate_unread_count_underestimates_s
 import shire.res.generated.resources.pref_indicate_unread_count_underestimates_title
 import shire.res.generated.resources.pref_locale
 import shire.res.generated.resources.pref_locale_follow_system
+import shire.res.generated.resources.pref_message_max_width_summary
+import shire.res.generated.resources.pref_message_max_width_title
+import shire.res.generated.resources.pref_message_other_side_margin_summary
+import shire.res.generated.resources.pref_message_other_side_margin_title
 import shire.res.generated.resources.pref_pin_favorites_summary
 import shire.res.generated.resources.pref_pin_favorites_title
 import shire.res.generated.resources.pref_render_silent_unread_summary
@@ -282,7 +287,6 @@ object ScPrefs {
     ))
 
     // Timeline
-    val MESSAGE_FONT_SIZE = ScIntPref("MESSAGE_FONT_SIZE", 14, Res.string.pref_message_font_size_title, Res.string.pref_message_font_size_summary, minValue = 8, maxValue = 24)
     val THREAD_REPLIES_IN_MAIN_TIMELINE = ScBoolPref("THREAD_REPLIES_IN_MAIN_TIMELINE", true, Res.string.pref_threaded_replies_in_main_timeline_title, Res.string.pref_threaded_replies_in_main_timeline_summary)
     val HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS = ScBoolPref("HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS", false, Res.string.pref_hide_message_authenticity_warnings_in_bridged_chats_title, Res.string.pref_hide_message_authenticity_warnings_in_bridged_chats_summary)
     val HIDE_AUTHENTICITY_NOT_GUARANTEED = ScBoolPref("HIDE_AUTHENTICITY_NOT_GUARANTEED", false, Res.string.pref_hide_message_authenticity_not_guaranteed_title, Res.string.pref_hide_message_authenticity_not_guaranteed_summary)
@@ -306,6 +310,11 @@ object ScPrefs {
     val URL_PREVIEWS = ScBoolPref("URL_PREVIEWS", false, Res.string.pref_url_previews_title, Res.string.pref_url_previews_summary)
     val URL_PREVIEWS_IN_E2EE_ROOMS = ScBoolPref("URL_PREVIEWS_IN_E2EE_ROOMS", false, Res.string.pref_url_previews_in_e2ee_rooms_title, Res.string.pref_url_previews_in_e2ee_rooms_summary, dependencies = URL_PREVIEWS.asDependencies(), disabledValue = false)
     val URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS = ScBoolPref("URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS", true, Res.string.pref_url_previews_require_explicit_links_title, Res.string.pref_url_previews_require_explicit_links_summary, dependencies = URL_PREVIEWS.asDependencies(), disabledValue = null)
+
+    // Message rendering
+    val MESSAGE_FONT_SIZE = ScIntPref("MESSAGE_FONT_SIZE", 14, Res.string.pref_message_font_size_title, Res.string.pref_message_font_size_summary, minValue = 8, maxValue = 24)
+    val MESSAGE_OTHER_SIDE_MARGIN = ScIntPref("MESSAGE_OTHER_SIDE_MARGIN", 48, Res.string.pref_message_other_side_margin_title, Res.string.pref_message_other_side_margin_summary, minValue = 0, maxValue = 200)
+    val MESSAGE_MAX_WIDTH = ScIntPref("MESSAGE_MAX_WIDTH", 1400, Res.string.pref_message_max_width_title, Res.string.pref_message_max_width_summary, minValue = 200, maxValue = 4000)
 
     // Composer
     val AUTO_HIDE_COMPOSER = ScBoolPref("AUTO_HIDE_COMPOSER", false, Res.string.pref_auto_hide_composer_title, Res.string.pref_auto_hide_composer_summary, dependencies = MINIMAL_MODE.asDependencies())
@@ -358,7 +367,6 @@ object ScPrefs {
             )),
         )),
         ScPrefScreen("CONVERSATION", Res.string.pref_category_conversation, Res.string.pref_category_conversation_summary, listOf(
-            MESSAGE_FONT_SIZE,
             THREAD_REPLIES_IN_MAIN_TIMELINE,
             ScPrefCategory("TIMELINE_EVENT_VISIBILITY", Res.string.pref_category_timeline_event_visibility, null, listOf(
                 VIEW_REDACTIONS,
@@ -382,6 +390,11 @@ object ScPrefs {
             ScPrefCategory("MESSAGE_AUTHENTICITY", Res.string.pref_category_message_authenticity_warnings, null, listOf(
                 HIDE_AUTHENTICITY_NOT_GUARANTEED,
                 HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS,
+            )),
+            ScPrefCategory("MESSAGE_APPEARANCE", Res.string.pref_category_message_appearance, null, listOf(
+                MESSAGE_FONT_SIZE,
+                MESSAGE_MAX_WIDTH,
+                MESSAGE_OTHER_SIDE_MARGIN,
             )),
         )),
         ScPrefScreen("SPACES", Res.string.pref_category_spaces, Res.string.pref_category_spaces_summary, listOf(

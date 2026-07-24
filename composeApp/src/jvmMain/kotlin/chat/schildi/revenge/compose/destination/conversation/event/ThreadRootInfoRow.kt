@@ -16,6 +16,7 @@ import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.buildNavigationActionProvider
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.focus.keyFocusable
+import chat.schildi.theme.LocalMessageStyle
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
@@ -46,13 +47,13 @@ fun ColumnScope.ThreadRootInfoRow(
             .padding(
                 top = Dimens.Conversation.threadInfoPaddingVertical,
                 start = if (messageIsOwn)
-                    Dimens.Conversation.otherSidePadding
+                    LocalMessageStyle.current.otherSideMargin
                 else
                     Dimens.Conversation.avatarReservation,
                 end = if (messageIsOwn)
                     0.dp
                 else
-                    Dimens.Conversation.otherSidePadding,
+                    LocalMessageStyle.current.otherSideMargin,
             )
             .align(alignment)
             .keyFocusable(

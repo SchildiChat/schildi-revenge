@@ -7,12 +7,14 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
 import chat.schildi.revenge.Dimens
+import chat.schildi.theme.LocalMessageStyle
 
 @Composable
 fun MessageLayout(
@@ -75,9 +77,11 @@ fun MessageLayoutNormal(
                     senderAvatar()
                 }
             }
+            val messageStyle = LocalMessageStyle.current
             Column(
                 Modifier
-                    .padding(end = Dimens.Conversation.otherSidePadding)
+                    .padding(end = messageStyle.otherSideMargin)
+                    .widthIn(max = messageStyle.maxWidth),
             ) {
                 Column(Modifier.fillMaxWidth()) {
                     if (!isOwn) {

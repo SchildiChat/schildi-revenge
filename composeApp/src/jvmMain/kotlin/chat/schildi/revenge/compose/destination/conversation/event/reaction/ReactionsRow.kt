@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.model.conversation.ConversationViewModel
+import chat.schildi.theme.LocalMessageStyle
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
@@ -33,13 +34,13 @@ fun ColumnScope.ReactionsRow(
             .padding(
                 top = Dimens.Conversation.reactionPaddingVertical,
                 start = if (messageIsOwn)
-                    Dimens.Conversation.otherSidePadding
+                    LocalMessageStyle.current.otherSideMargin
                 else
                     Dimens.Conversation.avatarReservation,
                 end = if (messageIsOwn)
                     0.dp
                 else
-                    Dimens.Conversation.otherSidePadding,
+                    LocalMessageStyle.current.otherSideMargin,
             )
             .align(alignment),
         verticalArrangement = Arrangement.spacedBy(Dimens.Conversation.reactionPaddingVertical),

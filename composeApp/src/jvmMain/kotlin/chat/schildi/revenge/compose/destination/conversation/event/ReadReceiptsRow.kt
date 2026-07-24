@@ -24,6 +24,7 @@ import chat.schildi.revenge.compose.components.UserTimestampItem
 import chat.schildi.revenge.compose.components.WithUserTimestampListPopup
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.focus.rememberFocusId
+import chat.schildi.theme.LocalMessageStyle
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.RoomMember
@@ -61,7 +62,7 @@ fun ColumnScope.ReadReceiptsRow(
         modifier = modifier.padding(
             top = Dimens.Conversation.receiptPaddingVertical,
             start = 0.dp,
-            end = Dimens.Conversation.otherSidePadding,
+            end = LocalMessageStyle.current.otherSideMargin,
         ).clip(RoundedCornerShape(Dimens.Conversation.receiptSize / 2)),
     ) {
         FlowRow(

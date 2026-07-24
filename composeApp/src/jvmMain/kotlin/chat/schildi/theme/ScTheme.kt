@@ -5,6 +5,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -13,11 +14,41 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDirection
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import chat.schildi.lib.preferences.ScPref
 import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.lib.preferences.safeLookup
+import chat.schildi.revenge.preferences.LocalScPreferencesStore
 import chat.schildi.revenge.preferences.value
 
-val LocalMessageTextStyle = compositionLocalOf { TextStyle.Default }
+data class MessageStyle(
+    val textStyle: TextStyle = TextStyle.Default.copy(textDirection = TextDirection.Content),
+    val otherSideMargin: Dp = ScPrefs.MESSAGE_OTHER_SIDE_MARGIN.defaultValue.dp,
+    val maxWidth: Dp = ScPrefs.MESSAGE_MAX_WIDTH.defaultValue.dp,
+) {
+    companion object {
+        fun from(
+            bodyMedium: TextStyle,
+            lookup: (ScPref<*>) -> Any?
+        ): MessageStyle {
+            val fontSize = ScPrefs.MESSAGE_FONT_SIZE.safeLookup(lookup)
+            val textStyle = bodyMedium.copy(
+                fontSize = fontSize.sp,
+                lineHeight = bodyMedium.lineHeight * (fontSize / bodyMedium.fontSize.value),
+                textDirection = TextDirection.Content,
+            )
+            return MessageStyle(
+                textStyle = textStyle,
+                otherSideMargin = ScPrefs.MESSAGE_OTHER_SIDE_MARGIN.safeLookup(lookup).dp,
+                maxWidth = ScPrefs.MESSAGE_MAX_WIDTH.safeLookup(lookup).dp,
+            )
+        }
+    }
+}
+
+val LocalMessageStyle = compositionLocalOf { MessageStyle() }
 internal val LocalScExposures = staticCompositionLocalOf { scdExposures }
 
 fun getThemeExposures(darkTheme: Boolean) = when {
@@ -72,18 +103,20 @@ fun ScTheme(
     }
 
     // Message font size via setting
+    val scPreferencesStore = LocalScPreferencesStore.current
     val bodyMedium = typography.bodyMedium
-    val messageFontSize = ScPrefs.MESSAGE_FONT_SIZE.value()
-    val messageTextStyle = bodyMedium.copy(
-        fontSize = messageFontSize.sp,
-        lineHeight = bodyMedium.lineHeight * (messageFontSize / bodyMedium.fontSize.value),
-        textDirection = TextDirection.Content,
-    )
+    val messageStyle = scPreferencesStore.combinedSettingFlow { lookup ->
+        MessageStyle.from(bodyMedium, lookup)
+    }.collectAsState(
+        MessageStyle.from(bodyMedium) {
+            scPreferencesStore.getCachedOrDefaultValue(it)
+        }
+    ).value
 
     CompositionLocalProvider(
         LocalScExposures provides currentExposures,
         LocalContentColor provides colorScheme.onSurfaceVariant,
-        LocalMessageTextStyle provides messageTextStyle,
+        LocalMessageStyle provides messageStyle,
         //androidx.compose.material.LocalContentColor provides colorScheme.onSurfaceVariant,
     ) {
         MaterialTheme(

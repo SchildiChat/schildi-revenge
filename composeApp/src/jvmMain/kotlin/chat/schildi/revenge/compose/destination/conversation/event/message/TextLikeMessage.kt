@@ -43,6 +43,7 @@ import chat.schildi.revenge.compose.media.rememberAnimatedImageTransform
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.revenge.compose.util.EmojiUtil.containsOnlyEmojis
 import chat.schildi.revenge.model.conversation.MessageMetadata
+import chat.schildi.theme.LocalMessageStyle
 import coil3.compose.LocalPlatformContext
 import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
@@ -166,7 +167,7 @@ fun TextLikeMessageContent(
     val textStyle = if (isEmojiOnly) {
         Dimens.Conversation.emojiOnlyMessageStyle
     } else {
-        Dimens.Conversation.textMessageStyle
+        LocalMessageStyle.current.textStyle
     }
     TextLikeMessageContent(
         text = text,

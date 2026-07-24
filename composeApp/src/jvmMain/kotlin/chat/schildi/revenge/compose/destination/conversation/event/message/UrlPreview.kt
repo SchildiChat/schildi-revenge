@@ -41,6 +41,7 @@ import chat.schildi.revenge.compose.components.thenIf
 import chat.schildi.revenge.compose.media.rememberAnimatedImageTransform
 import chat.schildi.revenge.compose.media.imageLoader
 import chat.schildi.revenge.model.conversation.extractUrls
+import chat.schildi.theme.LocalMessageStyle
 import coil3.compose.AsyncImagePainter
 import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.SubcomposeAsyncImageContent
@@ -105,6 +106,7 @@ fun UrlPreviewView(
     ) {
         val titleColumnHeight = remember { mutableIntStateOf(0) }
         val density = LocalDensity.current
+        val textStyle = LocalMessageStyle.current.textStyle
         Row {
             urlPreview.imageUrl?.let { imageUrl ->
                 SubcomposeAsyncImage(
@@ -141,7 +143,7 @@ fun UrlPreviewView(
                 urlPreview.title?.let { title ->
                     Text(
                         text = title.trim(),
-                        style = Dimens.Conversation.textMessageStyle,
+                        style = textStyle,
                         color = MaterialTheme.colorScheme.secondary,
                         maxLines = 4,
                         overflow = TextOverflow.Ellipsis,
@@ -150,7 +152,7 @@ fun UrlPreviewView(
                 urlPreview.siteName?.let { site ->
                     Text(
                         text = site.trim(),
-                        style = Dimens.Conversation.textMessageStyle,
+                        style = textStyle,
                         color = MaterialTheme.colorScheme.secondary,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -163,7 +165,7 @@ fun UrlPreviewView(
             var expanded by remember { mutableStateOf(false) }
             Text(
                 text = sanitized,
-                style = Dimens.Conversation.textMessageStyle,
+                style = textStyle,
                 color = MaterialTheme.colorScheme.secondary,
                 maxLines = if (expanded) 50 else 2,
                 overflow = TextOverflow.Ellipsis,

@@ -7,7 +7,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import chat.schildi.revenge.Dimens
+import chat.schildi.theme.LocalMessageStyle
 import chat.schildi.theme.scExposures
 import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
@@ -19,7 +19,7 @@ fun RoomBeginning(modifier: Modifier = Modifier) {
         Text(
             stringResource(Res.string.event_placeholder_room_beginning),
             color = MaterialTheme.scExposures.accentColor,
-            style = Dimens.Conversation.textMessageStyle,
+            style = LocalMessageStyle.current.textStyle,
         )
     }
 }
