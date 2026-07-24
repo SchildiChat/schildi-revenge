@@ -237,7 +237,7 @@ fun RoomDetailsScreen(
                                 EditableText(
                                     "$viewModelKey/roomName",
                                     currentValue = info.rawName?.let(EditTextValue::Plain),
-                                    role = FocusRole.LIST_ITEM_EDITABLE,
+                                    role = FocusRole.LIST_ITEM_EDITABLE_SINGLE_LINE,
                                     modifier = Modifier.fillMaxWidth(),
                                     renderColor = MaterialTheme.colorScheme.onSurface,
                                     style = MaterialTheme.typography.bodyLarge,
@@ -262,7 +262,7 @@ fun RoomDetailsScreen(
                                     currentValue = topic?.let {
                                         EditTextValue.AutoFormatted(info.topic ?: topic.text.text, topic)
                                     } ?: info.topic?.let(EditTextValue::Plain),
-                                    role = FocusRole.LIST_ITEM_EDITABLE,
+                                    role = FocusRole.LIST_ITEM_EDITABLE_MULTI_LINE,
                                     modifier = Modifier.fillMaxWidth(),
                                     renderColor = MaterialTheme.colorScheme.onSurface,
                                     persist = viewModel::setRoomTopic,
@@ -281,7 +281,7 @@ fun RoomDetailsScreen(
                             EditableText(
                                 "$viewModelKey/roomNamePrivate",
                                 currentValue = info.privateRoomName?.let(EditTextValue::Plain),
-                                role = FocusRole.LIST_ITEM_EDITABLE,
+                                role = FocusRole.LIST_ITEM_EDITABLE_SINGLE_LINE,
                                 modifier = Modifier.fillMaxWidth(),
                                 renderColor = MaterialTheme.colorScheme.onSurface,
                                 style = MaterialTheme.typography.bodyLarge,

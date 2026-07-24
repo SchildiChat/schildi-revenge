@@ -81,7 +81,7 @@ private fun LazyListScope.devToolsListSection(
                 EditableText(
                     editId = entry.type,
                     currentValue = EditTextValue.Json(entry.content),
-                    role = FocusRole.LIST_ITEM_EDITABLE,
+                    role = FocusRole.LIST_ITEM_EDITABLE_MULTI_LINE,
                     modifier = Modifier.fillMaxWidth(),
                     renderColor = MaterialTheme.colorScheme.onSurface,
                     persist = {

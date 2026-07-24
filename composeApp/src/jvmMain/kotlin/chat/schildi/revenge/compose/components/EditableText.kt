@@ -38,6 +38,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.actions.FOCUSABLE_SINGLE_LINE_EDIT_ITEMS
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
@@ -82,6 +83,7 @@ fun EditableText(
     emptyFallbackText: String = stringResource(Res.string.hint_not_set),
     emptyFallbackFontStyle: FontStyle = FontStyle.Italic,
     previewMaxLines: Int = Integer.MAX_VALUE,
+    singleLine: Boolean = role in FOCUSABLE_SINGLE_LINE_EDIT_ITEMS,
     editMaxHeight: Dp? = null,
     header: @Composable () -> Unit = {},
 ) {
@@ -132,10 +134,14 @@ fun EditableText(
                             TextFieldValue(it, TextRange(it.length))
                         },
                     onValueChange = { editState.value = it },
+                    singleLine = singleLine,
                     colors = editColors,
                     style = style,
                     modifier = Modifier.weight(1f).keyFocusable(
-                        role = FocusRole.AUX_ITEM_EDITABLE,
+                        role = if (singleLine)
+                            FocusRole.AUX_ITEM_EDITABLE_SINGLE_LINE
+                        else
+                            FocusRole.AUX_ITEM_EDITABLE_MULTI_LINE,
                     ).let {
                         if (editMaxHeight == null) {
                             it
@@ -257,6 +263,7 @@ private fun EditableTextField(
     onValueChange: (TextFieldValue) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    singleLine: Boolean = false,
     style: TextStyle = LocalTextStyle.current,
     colors: TextFieldColors = TextFieldDefaults.colors(),
 ) {
@@ -271,6 +278,7 @@ private fun EditableTextField(
         modifier = modifier.focusRequester(focusRequester),
         textStyle = style,
         colors = colors,
+        singleLine = singleLine,
         enabled = enabled,
     )
 }

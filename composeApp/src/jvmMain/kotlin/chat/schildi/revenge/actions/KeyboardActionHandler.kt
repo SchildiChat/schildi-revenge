@@ -187,9 +187,11 @@ enum class FocusRole(
     val autoRequestFocus: Boolean = false,
 ) {
     LIST_ITEM,
-    LIST_ITEM_EDITABLE(consumesKeyWhitelistDuringEdit = AllowedTextFieldBindingKeys),
+    LIST_ITEM_EDITABLE_SINGLE_LINE(consumesKeyWhitelistDuringEdit = AllowedSingleLineTextFieldBindingKeys),
+    LIST_ITEM_EDITABLE_MULTI_LINE(consumesKeyWhitelistDuringEdit = AllowedTextFieldBindingKeys),
     AUX_ITEM,
-    AUX_ITEM_EDITABLE(consumesKeyWhitelistDuringEdit = AllowedTextFieldBindingKeys),
+    AUX_ITEM_EDITABLE_SINGLE_LINE(consumesKeyWhitelistDuringEdit = AllowedSingleLineTextFieldBindingKeys),
+    AUX_ITEM_EDITABLE_MULTI_LINE(consumesKeyWhitelistDuringEdit = AllowedTextFieldBindingKeys),
     NESTED_AUX_ITEM,
     CONTEXT_MENU_ENTRY_WITH_SUBMENU,
     DESTINATION_ROOT_CONTAINER,
@@ -203,7 +205,17 @@ enum class FocusRole(
     COMMAND_BAR(autoRequestFocus = true), // Does not need to consume plain keys, key handler has a special mode for that
 }
 
-val FOCUSABLE_LIST_ITEMS = arrayOf(FocusRole.LIST_ITEM, FocusRole.LIST_ITEM_EDITABLE)
+val FOCUSABLE_LIST_ITEMS = arrayOf(
+    FocusRole.LIST_ITEM,
+    FocusRole.LIST_ITEM_EDITABLE_SINGLE_LINE,
+    FocusRole.LIST_ITEM_EDITABLE_MULTI_LINE,
+)
+
+val FOCUSABLE_SINGLE_LINE_EDIT_ITEMS = arrayOf(
+    FocusRole.LIST_ITEM_EDITABLE_SINGLE_LINE,
+    FocusRole.AUX_ITEM_EDITABLE_SINGLE_LINE,
+    FocusRole.TEXT_FIELD_SINGLE_LINE,
+)
 
 sealed interface CommandHolder {
     val command: String
