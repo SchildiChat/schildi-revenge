@@ -15,7 +15,7 @@ import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.destination.conversation.event.EventHighlight
 import chat.schildi.revenge.compose.destination.conversation.event.EventRow
-import chat.schildi.revenge.compose.destination.conversation.virtual.DayHeader
+import chat.schildi.revenge.compose.destination.conversation.virtual.DayHeaderRow
 import chat.schildi.revenge.compose.destination.conversation.virtual.NewMessagesLine
 import chat.schildi.revenge.compose.destination.conversation.virtual.PagingIndicator
 import chat.schildi.revenge.compose.destination.conversation.virtual.RoomBeginning
@@ -66,7 +66,7 @@ fun ConversationItemRow(
         when (item.item) {
             is MatrixTimelineItem.Virtual -> {
                 when (val virtualItem = item.item.virtual) {
-                    is VirtualTimelineItem.DayDivider -> DayHeader(virtualItem)
+                    is VirtualTimelineItem.DayDivider -> DayHeaderRow(virtualItem)
                     is VirtualTimelineItem.LoadingIndicator -> PagingIndicator()
                     VirtualTimelineItem.ReadMarker -> NewMessagesLine(isReal = isRealUnreadLine)
                     VirtualTimelineItem.RoomBeginning -> RoomBeginning()

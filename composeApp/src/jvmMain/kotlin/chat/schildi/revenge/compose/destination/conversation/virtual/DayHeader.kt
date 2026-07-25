@@ -12,7 +12,7 @@ import chat.schildi.revenge.Dimens
 import io.element.android.libraries.matrix.api.timeline.item.virtual.VirtualTimelineItem
 
 @Composable
-fun DayHeader(item: VirtualTimelineItem.DayDivider, modifier: Modifier = Modifier) {
+fun DayHeaderRow(item: VirtualTimelineItem.DayDivider, modifier: Modifier = Modifier) {
     Box(
         modifier.fillMaxWidth()
             .padding(
@@ -21,6 +21,14 @@ fun DayHeader(item: VirtualTimelineItem.DayDivider, modifier: Modifier = Modifie
             ),
         contentAlignment = Alignment.Center,
     ) {
-        Text(DateTimeFormat.formatTimestampAsDate(item.timestamp))
+        DayHeader(item.timestamp)
     }
+}
+
+@Composable
+fun DayHeader(
+    timestamp: Long,
+    modifier: Modifier = Modifier,
+) {
+    Text(DateTimeFormat.formatTimestampAsDate(timestamp), modifier)
 }

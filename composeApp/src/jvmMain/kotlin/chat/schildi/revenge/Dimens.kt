@@ -113,6 +113,12 @@ object Dimens {
 
         val fileIconSize = 36.dp
 
+        object FloatingDate {
+            val topMargin = 8.dp
+            val contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+            val shape = RoundedCornerShape(6.dp)
+        }
+
         object Composer {
             val buttonWidth = 48.dp
             val buttonHeight = 48.dp

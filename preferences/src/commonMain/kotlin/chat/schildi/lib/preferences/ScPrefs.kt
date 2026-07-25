@@ -150,6 +150,8 @@ import shire.res.generated.resources.pseudo_space_unread
 import shire.res.generated.resources.pref_pseudo_spaces_summary
 import shire.res.generated.resources.pref_pseudo_spaces_title
 import shire.res.generated.resources.pref_render_space_order_keys_title
+import shire.res.generated.resources.pref_sc_floating_date_summary
+import shire.res.generated.resources.pref_sc_floating_date_title
 import shire.res.generated.resources.pref_sdk_sqlite_max_pool_size_summary
 import shire.res.generated.resources.pref_sdk_sqlite_max_pool_size_title
 import shire.res.generated.resources.pref_skiko_vsync_summary
@@ -311,6 +313,7 @@ object ScPrefs {
     val URL_PREVIEWS = ScBoolPref("URL_PREVIEWS", false, Res.string.pref_url_previews_title, Res.string.pref_url_previews_summary)
     val URL_PREVIEWS_IN_E2EE_ROOMS = ScBoolPref("URL_PREVIEWS_IN_E2EE_ROOMS", false, Res.string.pref_url_previews_in_e2ee_rooms_title, Res.string.pref_url_previews_in_e2ee_rooms_summary, dependencies = URL_PREVIEWS.asDependencies(), disabledValue = false)
     val URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS = ScBoolPref("URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS", true, Res.string.pref_url_previews_require_explicit_links_title, Res.string.pref_url_previews_require_explicit_links_summary, dependencies = URL_PREVIEWS.asDependencies(), disabledValue = null)
+    val FLOATING_DATE = ScBoolPref("FLOATING_DATE", true, Res.string.pref_sc_floating_date_title, Res.string.pref_sc_floating_date_summary)
 
     // Message rendering
     val MESSAGE_FONT_SIZE = ScIntPref("MESSAGE_FONT_SIZE", 14, Res.string.pref_message_font_size_title, Res.string.pref_message_font_size_summary, minValue = 8, maxValue = 24)
@@ -370,6 +373,7 @@ object ScPrefs {
         )),
         ScPrefScreen("CONVERSATION", Res.string.pref_category_conversation, Res.string.pref_category_conversation_summary, listOf(
             THREAD_REPLIES_IN_MAIN_TIMELINE,
+            FLOATING_DATE,
             ScPrefCategory("TIMELINE_EVENT_VISIBILITY", Res.string.pref_category_timeline_event_visibility, null, listOf(
                 VIEW_REDACTIONS,
                 VIEW_MEMBERSHIP_EVENTS_IN_PUBLIC_ROOMS,

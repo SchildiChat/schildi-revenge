@@ -8,6 +8,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,13 +34,13 @@ import androidx.compose.ui.draganddrop.DragAndDropTarget
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.viewmodel.compose.viewModel
+import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.Anim
 import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.LocalMatrixBodyDrawStyle
 import chat.schildi.revenge.LocalMatrixBodyFormatter
 import chat.schildi.revenge.actions.FocusRole
-import chat.schildi.revenge.actions.KeyboardActionMode
 import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
@@ -60,6 +61,7 @@ import chat.schildi.revenge.matrixBodyFormatter
 import chat.schildi.revenge.model.CheckpointLoadState
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.conversation.EventJumpTarget
+import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
 import co.touchlab.kermit.Logger
@@ -67,6 +69,7 @@ import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.toPersistentList
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -244,44 +247,58 @@ fun ConversationScreen(
                 ),
             ) {
                 ConversationTopNavigation(viewModel, hasTimeline = true)
-                // Double reverse helps with stick-to-bottom while paging backwards or receiving messages
-                LazyColumn(
+
+                // Box for list + floating header overlay
+                Box(
                     Modifier.fillMaxWidth().weight(1f),
-                    reverseLayout = true,
-                    state = listState,
                 ) {
-                    val renderedItems = timelineItems.reversed()
-                    itemsIndexed(
-                        renderedItems,
-                        key = { index, item ->
-                            when (item.item) {
-                                is MatrixTimelineItem.Event -> item.item.eventId ?: item.item.transactionId ?: index
-                                MatrixTimelineItem.Other -> index
-                                is MatrixTimelineItem.Virtual -> item.item.uniqueId
+                    // Reverse layout helps with stick-to-bottom while paging backwards or receiving messages
+                    val renderedItems = remember(timelineItems) {
+                        timelineItems.reversed().toPersistentList()
+                    }
+                    LazyColumn(
+                        Modifier.fillMaxWidth(),
+                        reverseLayout = true,
+                        state = listState,
+                    ) {
+                        itemsIndexed(
+                            renderedItems,
+                            key = { index, item ->
+                                when (item.item) {
+                                    is MatrixTimelineItem.Event -> item.item.eventId ?: item.item.transactionId ?: index
+                                    MatrixTimelineItem.Other -> index
+                                    is MatrixTimelineItem.Virtual -> item.item.uniqueId
+                                }
+                            },
+                        ) { index, item ->
+                            // Reversed list, let's not confuse us too much and still say "previous = older"
+                            val next = renderedItems.getOrNull(index - 1)
+                            val previous = renderedItems.getOrNull(index + 1)
+                            val highlight = when {
+                                item.item !is MatrixTimelineItem.Event -> EventHighlight.NONE
+                                highlightedActionEventId is EventOrTransactionId.Event &&
+                                        item.item.eventId == highlightedActionEventId.eventId -> EventHighlight.ACTION_TARGET
+
+                                highlightedActionEventId is EventOrTransactionId.Transaction &&
+                                        item.item.transactionId == highlightedActionEventId.id -> EventHighlight.ACTION_TARGET
+
+                                highlightedJumpTargetEventId != null && item.item.eventId == highlightedJumpTargetEventId -> EventHighlight.JUMP_TARGET
+                                else -> EventHighlight.NONE
                             }
-                        },
-                    ) { index, item ->
-                        // Reversed list, let's not confuse us too much and still say "previous = older"
-                        val next = renderedItems.getOrNull(index - 1)
-                        val previous = renderedItems.getOrNull(index + 1)
-                        val highlight = when {
-                            item.item !is MatrixTimelineItem.Event -> EventHighlight.NONE
-                            highlightedActionEventId is EventOrTransactionId.Event &&
-                                    item.item.eventId == highlightedActionEventId.eventId -> EventHighlight.ACTION_TARGET
-                            highlightedActionEventId is EventOrTransactionId.Transaction &&
-                                    item.item.transactionId == highlightedActionEventId.id -> EventHighlight.ACTION_TARGET
-                            highlightedJumpTargetEventId != null && item.item.eventId == highlightedJumpTargetEventId -> EventHighlight.JUMP_TARGET
-                            else -> EventHighlight.NONE
+                            ConversationItemRow(
+                                viewModel = viewModel,
+                                item = item,
+                                next = next,
+                                previous = previous,
+                                roomMembersById = roomMembersById.value,
+                                highlight = highlight,
+                                timestampSettings = timestampSettings,
+                            )
                         }
-                        ConversationItemRow(
-                            viewModel = viewModel,
-                            item = item,
-                            next = next,
-                            previous = previous,
-                            roomMembersById = roomMembersById.value,
-                            highlight = highlight,
-                            timestampSettings = timestampSettings,
-                        )
+                    }
+
+                    if (ScPrefs.FLOATING_DATE.value()) {
+                        FloatingDateHeader(listState, renderedItems)
                     }
                 }
 
