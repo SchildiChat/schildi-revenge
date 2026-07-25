@@ -34,6 +34,7 @@ object Dimens {
 
     object Inbox {
         val avatar = 48.dp
+        val avatarItemPadding = 12.dp
         val accountAvatar = 16.dp
         val spaceAvatar = 24.dp
         val spaceShape = RoundedCornerShape(4.dp)
@@ -53,7 +54,7 @@ object Dimens {
 
     object Conversation {
         val avatarForState = 16.dp
-        val avatarItemPadding = 16.dp
+        val avatarItemPadding = 12.dp
         val virtualItemPadding = 8.dp
         val messageBubbleCornerRadius = 10.dp
         val messageBubbleShape = RoundedCornerShape(messageBubbleCornerRadius)

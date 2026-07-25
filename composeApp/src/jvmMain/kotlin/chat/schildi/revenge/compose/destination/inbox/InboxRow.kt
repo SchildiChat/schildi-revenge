@@ -163,7 +163,7 @@ fun InboxRow(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = Dimens.horizontalItemPadding)
+                        .padding(start = Dimens.Inbox.avatarItemPadding)
                 ) {
                     Row(modifier = Modifier.fillMaxWidth()) {
                         ScNameAndTimestampRow(room.summary, hasDraft)
