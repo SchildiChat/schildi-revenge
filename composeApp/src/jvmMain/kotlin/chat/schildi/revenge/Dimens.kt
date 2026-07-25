@@ -87,7 +87,7 @@ object Dimens {
             @Composable get() = MaterialTheme.typography.headlineLarge.copy(textDirection = TextDirection.Content)
                 .merge(fontFamily = rememberEmojiFontFamily())
         val messageTimestampStyle
-            @Composable get() = MaterialTheme.typography.bodyMedium
+            @Composable get() = MaterialTheme.typography.bodySmall
 
         val imageMinWidth = 48.dp
         val imageMinHeight = 48.dp
