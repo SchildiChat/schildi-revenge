@@ -195,7 +195,6 @@ import java.awt.Desktop
 import java.io.File
 import java.lang.IllegalArgumentException
 import java.util.concurrent.atomic.AtomicReference
-import kotlin.io.path.toPath
 import kotlin.math.max
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -268,6 +267,30 @@ interface RoomPreviewViewModel {
     val roomPreview: StateFlow<RoomPreviewInfo?>
     val roomContextSuggestionsProvider: RoomContextSuggestionsProvider
     val roomActionProvider: RoomActionProvider
+}
+
+data class FullyReadEventState(
+    val readMarker: EventId?,
+    val renderedEvent: EventId? = readMarker,
+    val usedAsJumpTarget: Boolean = false,
+    val awaitingRender: Boolean = false,
+) {
+    fun has(eventId: EventId?) = eventId != null && (readMarker == eventId || renderedEvent == eventId)
+    companion object {
+        suspend fun from(
+            eventId: EventId?,
+            timeline: Timeline?,
+            asJumpTarget: Boolean,
+        ): FullyReadEventState {
+            val renderedEvent = eventId?.let { timeline?.resolveEventToRendered(eventId) }
+            return FullyReadEventState(
+                readMarker = eventId,
+                renderedEvent = renderedEvent,
+                usedAsJumpTarget = asJumpTarget,
+                awaitingRender = asJumpTarget && eventId != null && renderedEvent == null,
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -470,7 +493,6 @@ class ConversationViewModel(
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     override fun onCleared() {
-        super.onCleared()
         if (shouldSendTypingIndicators.value) {
             val room = joinedRoom.value
             if (room != null) {
@@ -494,22 +516,30 @@ class ConversationViewModel(
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val rawTimelineItems = activeTimeline.flatMapLatest {
-        it?.timelineItems?.onEach {
+    private val rawTimelineItems = activeTimeline.flatMapLatest { timeline ->
+        timeline?.timelineItems?.onEach {
             loadStateHolder.set(LoadCheckPoint.TimelineItems, it.asCheckpointLoadedOrPending())
+            if (it.isNotEmpty() && cachedFullyRead.value?.awaitingRender == true) {
+                refetchFullyRead(timeline)
+            }
         } ?: flowOf(null).also {
             loadStateHolder.set(LoadCheckPoint.TimelineItems, CheckpointLoadState.PENDING)
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    private val _cachedFullyRead = MutableStateFlow<EventId?>(null)
+    private val _cachedFullyRead = MutableStateFlow<FullyReadEventState?>(null)
     val cachedFullyRead = _cachedFullyRead.asStateFlow()
-    private suspend fun refetchFullyRead(timeline: Timeline? = activeTimeline.value): EventId? {
+
+    private suspend fun refetchFullyRead(
+        timeline: Timeline? = activeTimeline.value,
+        awaitingRender: Boolean = cachedFullyRead.value?.awaitingRender ?: false,
+    ): FullyReadEventState? {
         timeline ?: return null
         return timeline.fullyReadEventId()?.let {
             val eventId = EventId(it)
-            _cachedFullyRead.value = eventId
-            eventId
+            FullyReadEventState.from(eventId, timeline, awaitingRender).also {
+                _cachedFullyRead.value = it
+            }
         }
     }
 
@@ -1423,7 +1453,9 @@ class ConversationViewModel(
                     action.name,
                     StringResourceHolder(Res.string.command_event_name_fully_read_marker),
                 ) {
-                    refetchFullyRead()
+                    refetchFullyRead(awaitingRender = true)?.let {
+                        it.renderedEvent ?: it.readMarker
+                    }
                 }
 
                 Action.Conversation.JumpToBottom -> {
@@ -1792,7 +1824,8 @@ class ConversationViewModel(
     ): ActionResult = launchActionAsync(
         actionName,
         viewModelScope,
-        Dispatchers.IO
+        Dispatchers.IO,
+        appMessageId,
     ) {
         publishMessage(
             AppMessage(
@@ -1812,7 +1845,7 @@ class ConversationViewModel(
             focusOnEvent(eventId).toActionResult().also {
                 dismissMessage(appMessageId)
             }
-        } ?: ActionResult.Failure("Could not find $eventName")
+        } ?: ActionResult.Failure("Could not find ${eventName.renderSuspend()}")
     }
 
     private fun ActionContext.redactWithConfirmation(
@@ -1880,8 +1913,9 @@ class ConversationViewModel(
         )
             .onFailure { log.e("Failed to focus on event $eventId", it) }
             .onSuccess {
+                val targetEventId = activeTimeline.value?.resolveEventToRendered(eventId) ?: eventId
                 _targetEvent.update {
-                    EventJumpTarget.Event(eventId).navigateFrom(it)
+                    EventJumpTarget.Event(targetEventId).navigateFrom(it)
                 }
             }
     }
@@ -2014,7 +2048,7 @@ class ConversationViewModel(
                     Action.Event.MarkEventFullyRead -> eventId?.let {
                         markEventAsRead(eventId, ReceiptType.FULLY_READ).also {
                             if (it is ActionResult.Success) {
-                                _cachedFullyRead.value = eventId
+                                _cachedFullyRead.value = FullyReadEventState(eventId)
                             }
                         }
                     } ?: ActionResult.Inapplicable

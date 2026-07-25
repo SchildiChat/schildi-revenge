@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -41,15 +42,17 @@ fun ConversationItemRow(
     modifier: Modifier = Modifier,
 ) {
     val fullyReadEvent = viewModel.cachedFullyRead.collectAsState().value
+    LaunchedEffect(fullyReadEvent) { timber.log.Timber.w("SC_DBG $fullyReadEvent")}
     Column(modifier.fillMaxWidth()) {
         if (previous == null) {
             Spacer(Modifier.height(Dimens.windowPadding))
         }
-        val isRealUnreadLine = if (fullyReadEvent != null && (previous?.item as? MatrixTimelineItem.Event)?.eventId == fullyReadEvent) {
+        val isRealUnreadLine = if (fullyReadEvent != null && fullyReadEvent.has((previous?.item as? MatrixTimelineItem.Event)?.eventId)) {
             if ((item.item as? MatrixTimelineItem.Virtual)?.virtual is VirtualTimelineItem.ReadMarker) {
                 true
             } else {
                 if (
+                    fullyReadEvent.usedAsJumpTarget ||
                     (item.item as? MatrixTimelineItem.Virtual)?.virtual !is VirtualTimelineItem.TypingNotification &&
                     (item.item as? MatrixTimelineItem.Event)?.event?.isOwn != true
                 ) {

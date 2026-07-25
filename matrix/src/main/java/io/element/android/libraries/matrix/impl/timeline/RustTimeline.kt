@@ -762,6 +762,11 @@ class RustTimeline(
     override suspend fun latestUserReceiptEventId(userId: String): String? {
         return runCatching { inner.latestUserReadReceiptEventId(userId) }.getOrNull()
     }
+    override suspend fun resolveEventToRendered(eventId: EventId): EventId? = withContext(dispatcher) {
+        runCatchingExceptions {
+            inner.resolveEventToRendered(eventId.value)?.let(::EventId)
+        }.getOrNull()
+    }
     // SC end
 
     override suspend fun loadReplyDetails(eventId: EventId): InReplyTo = withContext(dispatcher) {
