@@ -48,7 +48,7 @@ fun <T : UserListItem>UserListRow(
         leadingContent()
         AvatarImage(
             source = item.avatarUrl?.let { MediaSource(it) },
-            size = Dimens.Conversation.avatar,
+            size = Dimens.Inbox.avatar,
             shape = Dimens.avatarShape,
             displayName = item.displayName ?: item.userId.value,
             modifier = modifier,

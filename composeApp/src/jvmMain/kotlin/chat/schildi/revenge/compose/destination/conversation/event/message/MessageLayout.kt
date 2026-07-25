@@ -67,20 +67,20 @@ fun MessageLayoutNormal(
         Row(
             modifier.fillMaxWidth()
         ) {
+            val messageStyle = LocalMessageStyle.current
             if (!isOwn) {
                 BoxWithDirection(
                     mainLayoutDirection,
                     Modifier
                         .padding(end = Dimens.Conversation.avatarItemPadding)
-                        .width(Dimens.Conversation.avatar)
+                        .width(messageStyle.avatarSize)
                 ) {
                     senderAvatar()
                 }
             }
-            val messageStyle = LocalMessageStyle.current
             Column(
                 Modifier
-                    .padding(end = messageStyle.otherSideMargin)
+                    .padding(end = messageStyle.otherSideMargin(isOwn))
                     .widthIn(max = messageStyle.maxWidth),
             ) {
                 Column(Modifier.fillMaxWidth()) {

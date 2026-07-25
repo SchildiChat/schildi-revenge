@@ -447,6 +447,8 @@
     <string name="pref_message_other_side_margin_summary">How much additional space a message bubble should leave towards the other side of the screen.</string>
     <string name="pref_message_max_width_title">Max width</string>
     <string name="pref_message_max_width_summary">Maximum message bubble width</string>
+    <string name="pref_message_avatar_size_title">Message avatar size</string>
+    <string name="pref_message_avatar_size_summary">Size of sender avatars next to received messages</string>
 
     <string name="nameless_space_fallback_title">Nameless space</string>
 

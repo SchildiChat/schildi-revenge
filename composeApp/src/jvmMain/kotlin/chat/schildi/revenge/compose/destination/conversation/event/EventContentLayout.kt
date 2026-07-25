@@ -31,6 +31,7 @@ import chat.schildi.revenge.compose.destination.conversation.event.sender.Sender
 import chat.schildi.revenge.compose.destination.conversation.event.sender.SenderName
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.conversation.MessageMetadata
+import chat.schildi.theme.LocalMessageStyle
 import com.beeper.android.messageformat.MatrixFormatInteractionState
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.CreateTimelineParams
@@ -92,7 +93,7 @@ fun EventContentLayout(
             isOwn = isOwn,
             senderAvatar = {
                 if (!isSameAsPreviousSender) {
-                    SenderAvatar(senderProfile, senderId)
+                    SenderAvatar(senderProfile, senderId, LocalMessageStyle.current.avatarSize)
                 }
             },
             senderName = {

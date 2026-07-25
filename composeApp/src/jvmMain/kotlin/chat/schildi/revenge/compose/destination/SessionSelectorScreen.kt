@@ -199,7 +199,7 @@ private fun SessionSelectorRow(
     ) {
         AvatarImage(
             source = account.user.avatarUrl?.let { MediaSource(it) },
-            size = Dimens.Conversation.avatar,
+            size = Dimens.Inbox.avatar,
             sessionId = account.sessionId,
             shape = Dimens.ownAccountAvatarShape,
             displayName = displayName,

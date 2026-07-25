@@ -34,9 +34,9 @@ fun ColumnScope.ReactionsRow(
             .padding(
                 top = Dimens.Conversation.reactionPaddingVertical,
                 start = if (messageIsOwn)
-                    LocalMessageStyle.current.otherSideMargin
+                    LocalMessageStyle.current.otherSideMarginOutgoing
                 else
-                    Dimens.Conversation.avatarReservation,
+                    LocalMessageStyle.current.avatarReservation,
                 end = if (messageIsOwn)
                     0.dp
                 else

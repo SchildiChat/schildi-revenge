@@ -125,6 +125,7 @@ import shire.res.generated.resources.pref_indicate_unread_count_underestimates_s
 import shire.res.generated.resources.pref_indicate_unread_count_underestimates_title
 import shire.res.generated.resources.pref_locale
 import shire.res.generated.resources.pref_locale_follow_system
+import shire.res.generated.resources.pref_message_avatar_size_title
 import shire.res.generated.resources.pref_message_max_width_summary
 import shire.res.generated.resources.pref_message_max_width_title
 import shire.res.generated.resources.pref_message_other_side_margin_summary
@@ -315,6 +316,7 @@ object ScPrefs {
     val MESSAGE_FONT_SIZE = ScIntPref("MESSAGE_FONT_SIZE", 14, Res.string.pref_message_font_size_title, Res.string.pref_message_font_size_summary, minValue = 8, maxValue = 24)
     val MESSAGE_OTHER_SIDE_MARGIN = ScIntPref("MESSAGE_OTHER_SIDE_MARGIN", 48, Res.string.pref_message_other_side_margin_title, Res.string.pref_message_other_side_margin_summary, minValue = 0, maxValue = 200)
     val MESSAGE_MAX_WIDTH = ScIntPref("MESSAGE_MAX_WIDTH", 1400, Res.string.pref_message_max_width_title, Res.string.pref_message_max_width_summary, minValue = 200, maxValue = 4000)
+    val MESSAGE_AVATAR_SIZE = ScIntPref("MESSAGE_AVATAR_SIZE", 48, Res.string.pref_message_avatar_size_title, Res.string.pref_message_font_size_summary, minValue = 18, maxValue = 96)
 
     // Composer
     val AUTO_HIDE_COMPOSER = ScBoolPref("AUTO_HIDE_COMPOSER", false, Res.string.pref_auto_hide_composer_title, Res.string.pref_auto_hide_composer_summary, dependencies = MINIMAL_MODE.asDependencies())
@@ -395,6 +397,7 @@ object ScPrefs {
                 MESSAGE_FONT_SIZE,
                 MESSAGE_MAX_WIDTH,
                 MESSAGE_OTHER_SIDE_MARGIN,
+                MESSAGE_AVATAR_SIZE,
             )),
         )),
         ScPrefScreen("SPACES", Res.string.pref_category_spaces, Res.string.pref_category_spaces_summary, listOf(

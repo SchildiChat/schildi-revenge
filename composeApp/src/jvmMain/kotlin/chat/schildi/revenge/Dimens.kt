@@ -52,10 +52,8 @@ object Dimens {
         @Composable get() = suggestionsTextStyle.merge(fontFamily = rememberEmojiFontFamily())
 
     object Conversation {
-        val avatar = 48.dp
         val avatarForState = 16.dp
         val avatarItemPadding = 16.dp
-        val avatarReservation = avatar + avatarItemPadding
         val virtualItemPadding = 8.dp
         val messageBubbleCornerRadius = 10.dp
         val messageBubbleShape = RoundedCornerShape(messageBubbleCornerRadius)

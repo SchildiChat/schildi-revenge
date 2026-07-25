@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import chat.schildi.lib.preferences.ScPref
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.lib.preferences.safeLookup
+import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.preferences.LocalScPreferencesStore
 import chat.schildi.revenge.preferences.value
 
@@ -27,7 +28,15 @@ data class MessageStyle(
     val textStyle: TextStyle = TextStyle.Default.copy(textDirection = TextDirection.Content),
     val otherSideMargin: Dp = ScPrefs.MESSAGE_OTHER_SIDE_MARGIN.defaultValue.dp,
     val maxWidth: Dp = ScPrefs.MESSAGE_MAX_WIDTH.defaultValue.dp,
+    val avatarSize: Dp = ScPrefs.MESSAGE_AVATAR_SIZE.defaultValue.dp,
 ) {
+    val avatarReservation: Dp
+        get() = avatarSize + Dimens.Conversation.avatarItemPadding
+    val otherSideMarginOutgoing: Dp
+        get() = otherSideMargin + avatarReservation
+
+    fun otherSideMargin(isOwn: Boolean) = if (isOwn) otherSideMarginOutgoing else otherSideMargin
+
     companion object {
         fun from(
             bodyMedium: TextStyle,
@@ -43,6 +52,7 @@ data class MessageStyle(
                 textStyle = textStyle,
                 otherSideMargin = ScPrefs.MESSAGE_OTHER_SIDE_MARGIN.safeLookup(lookup).dp,
                 maxWidth = ScPrefs.MESSAGE_MAX_WIDTH.safeLookup(lookup).dp,
+                avatarSize = ScPrefs.MESSAGE_AVATAR_SIZE.safeLookup(lookup).dp,
             )
         }
     }

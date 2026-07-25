@@ -22,8 +22,8 @@ import io.element.android.libraries.matrix.api.timeline.item.event.getDisplayNam
 fun SenderAvatar(
     senderProfile: ProfileDetails,
     senderId: UserId,
+    size: Dp,
     modifier: Modifier = Modifier,
-    size: Dp = Dimens.Conversation.avatar,
     shape: Shape = Dimens.avatarShape,
 ) {
     val avatarUrl = when (senderProfile) {
