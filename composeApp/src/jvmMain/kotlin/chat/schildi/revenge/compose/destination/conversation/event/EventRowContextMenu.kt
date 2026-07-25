@@ -3,6 +3,7 @@ package chat.schildi.revenge.compose.destination.conversation.event
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.filled.AddReaction
+import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
@@ -11,6 +12,8 @@ import androidx.compose.material.icons.filled.EmojiPeople
 import androidx.compose.material.icons.filled.Gesture
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.OpenWith
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.PublicOff
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -18,6 +21,8 @@ import androidx.compose.ui.input.key.Key
 import chat.schildi.revenge.compose.components.ContextMenuActionEntry
 import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.resources.toStringHolder
+import chat.schildi.revenge.compose.components.ContextMenuSubmenuEntry
+import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 import io.element.android.libraries.matrix.api.core.RoomId
@@ -34,6 +39,10 @@ import shire.res.generated.resources.action_download
 import shire.res.generated.resources.action_download_and_open
 import shire.res.generated.resources.action_edit
 import shire.res.generated.resources.action_jump_to_replied_to_message
+import shire.res.generated.resources.action_mark_as_read
+import shire.res.generated.resources.action_mark_as_read_type_read_marker
+import shire.res.generated.resources.action_mark_as_read_type_read_receipt_private
+import shire.res.generated.resources.action_mark_as_read_type_read_receipt_public
 import shire.res.generated.resources.action_react
 import shire.res.generated.resources.action_redact
 import shire.res.generated.resources.action_reply
@@ -114,6 +123,35 @@ fun EventTimelineItem.contextMenu(
             Action.Event.CopyContent,
             keyboardShortcut = Key.Y,
         ).takeIf { messageContent.body.isNotBlank() },
+        ContextMenuSubmenuEntry(
+            Res.string.action_mark_as_read.toStringHolder(),
+            rememberVectorPainter(Icons.Default.Visibility),
+            rememberFocusId(),
+            persistentListOf(
+                ContextMenuActionEntry(
+                    Res.string.action_mark_as_read_type_read_receipt_public.toStringHolder(),
+                    rememberVectorPainter(Icons.Default.Public),
+                    Action.Event.MarkEventRead,
+                    keyboardShortcut = Key.R,
+                    dismissParentsOnAutoClose = true,
+                ),
+                ContextMenuActionEntry(
+                    Res.string.action_mark_as_read_type_read_receipt_private.toStringHolder(),
+                    rememberVectorPainter(Icons.Default.PublicOff),
+                    Action.Event.MarkEventReadPrivate,
+                    keyboardShortcut = Key.P,
+                    dismissParentsOnAutoClose = true,
+                ),
+                ContextMenuActionEntry(
+                    Res.string.action_mark_as_read_type_read_marker.toStringHolder(),
+                    rememberVectorPainter(Icons.Default.Checklist),
+                    Action.Event.MarkEventFullyRead,
+                    keyboardShortcut = Key.M,
+                    dismissParentsOnAutoClose = true,
+                ),
+            ),
+            keyboardShortcut = Key.M,
+        ),
         ContextMenuActionEntry(
             Res.string.action_redact.toStringHolder(),
             rememberVectorPainter(Icons.Default.Delete),

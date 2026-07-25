@@ -334,11 +334,13 @@ data class ContextMenuFocus(
         menuId == this.menuId || parentMenu?.hasMenu(menuId) == true
     fun find(menuId: Uuid): ContextMenuFocus? =
         this.takeIf { menuId == this.menuId } ?: parentMenu?.find(menuId)
-    fun dismiss(menuId: Uuid): ContextMenuFocus? {
+    fun dismiss(menuId: Uuid, dismissParents: Boolean): ContextMenuFocus? {
         val toDismiss = find(menuId)
         return if (toDismiss == null) {
             // Not found, not dismissing self
             this
+        } else if (dismissParents) {
+            null
         } else {
             // Dismiss up to parent menu if exists
             toDismiss.parentMenu
@@ -993,7 +995,7 @@ class KeyboardActionHandler(
             }
         }
         if (entry.autoCloseMenu) {
-            dismissContextMenu(menuId)
+            dismissContextMenu(menuId, dismissParents = entry.dismissParentsOnAutoClose)
         }
     }
 
@@ -2484,10 +2486,10 @@ class KeyboardActionHandler(
         }
     }
 
-    fun dismissContextMenu(id: Uuid): Boolean {
+    fun dismissContextMenu(id: Uuid, dismissParents: Boolean = false): Boolean {
         var dismissed = false
         _currentOpenContextMenu.update { current ->
-            current?.dismiss(id).also {
+            current?.dismiss(id, dismissParents).also {
                 dismissed = it != current
             }
         }

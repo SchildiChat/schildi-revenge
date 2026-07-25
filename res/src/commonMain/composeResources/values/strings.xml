@@ -87,6 +87,9 @@
     <string name="action_context_low_priority_toggle">Low priority</string>
     <string name="action_mark_as_read">Mark as read</string>
     <string name="action_mark_as_unread">Mark as unread</string>
+    <string name="action_mark_as_read_type_read_receipt_public">Shared read receipt</string>
+    <string name="action_mark_as_read_type_read_receipt_private">Private read receipt</string>
+    <string name="action_mark_as_read_type_read_marker">Fully read marker</string>
     <string name="action_leave">Leave</string>
     <string name="action_reply">Reply</string>
     <string name="action_edit">Edit</string>

@@ -61,6 +61,7 @@ sealed interface ContextMenuEntry {
     val critical: Boolean
     val enabled: Boolean
     val autoCloseMenu: Boolean
+    val dismissParentsOnAutoClose: Boolean
 }
 
 sealed interface ContextMenuDecoration {
@@ -79,6 +80,7 @@ data class ContextMenuActionEntry(
     override val critical: Boolean = false,
     override val enabled: Boolean = true,
     override val autoCloseMenu: Boolean = decoration == null,
+    override val dismissParentsOnAutoClose: Boolean = false,
 ) : ContextMenuEntry
 
 data class ContextMenuCallbackEntry(
@@ -90,6 +92,7 @@ data class ContextMenuCallbackEntry(
     override val critical: Boolean = false,
     override val enabled: Boolean = true,
     override val autoCloseMenu: Boolean = decoration == null,
+    override val dismissParentsOnAutoClose: Boolean = false,
 ) : ContextMenuEntry
 
 data class ContextMenuSubmenuEntry(
@@ -103,6 +106,7 @@ data class ContextMenuSubmenuEntry(
     override val enabled: Boolean = true,
 ) : ContextMenuEntry {
     override val autoCloseMenu = false
+    override val dismissParentsOnAutoClose: Boolean = false
 }
 
 /**
@@ -201,7 +205,12 @@ fun WithContextMenu(
             )
         },
         popupContent = {
-            (entries + globalContextMenuEntries()).forEach { entry ->
+            val effectiveEntries = if (parentMenuId == null) {
+                entries + globalContextMenuEntries()
+            } else {
+                entries
+            }
+            effectiveEntries.forEach { entry ->
                 ContextMenuDropdownMenuItem(
                     entry = entry,
                     focusId = focusId,
