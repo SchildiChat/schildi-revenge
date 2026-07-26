@@ -38,6 +38,7 @@ import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.Anim
 import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.Destination
+import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalMatrixBodyDrawStyle
 import chat.schildi.revenge.LocalMatrixBodyFormatter
 import chat.schildi.revenge.actions.FocusRole
@@ -246,7 +247,11 @@ fun ConversationScreen(
                     target = fileDragTarget,
                 ),
             ) {
-                ConversationTopNavigation(viewModel, hasTimeline = true)
+                ConversationTopNavigation(
+                    viewModel,
+                    hasTimeline = true,
+                    compact = this@BoxWithConstraints.maxWidth < Dimens.compactActionBarThreshold,
+                )
 
                 // Box for list + floating header overlay
                 Box(

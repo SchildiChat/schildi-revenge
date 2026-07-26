@@ -17,6 +17,7 @@ import shire.res.generated.resources.action_close
 @Composable
 fun ConversationDetailsTopNavigation(
     title: String,
+    additionalIcons: @Composable () -> Unit = {},
 ) {
     val destinationState = LocalDestinationState.current
     val keyHandler = LocalKeyboardActionHandler.current
@@ -27,6 +28,7 @@ fun ConversationDetailsTopNavigation(
         } else {
             TopNavigationTitle(title)
         }
+        additionalIcons()
         TopNavigationIcon(
             Icons.Default.Close,
             stringResource(Res.string.action_close),

@@ -2,6 +2,7 @@ package chat.schildi.revenge.compose.destination.conversation
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraintsScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -62,7 +63,7 @@ import shire.res.generated.resources.room_preview_membership_left
 import shire.res.generated.resources.room_type_space
 
 @Composable
-fun RoomPreviewScreen(
+fun BoxWithConstraintsScope.RoomPreviewScreen(
     roomInfo: RoomInfo?,
     roomPreview: RoomPreviewInfo?,
     viewModel: RoomPreviewViewModel,
@@ -87,7 +88,11 @@ fun RoomPreviewScreen(
         modifier = modifier.fillMaxSize(),
     ) {
         Column(contentModifier.fillMaxSize()) {
-            ConversationTopNavigation(viewModel, hasTimeline = false)
+            ConversationTopNavigation(
+                viewModel,
+                hasTimeline = false,
+                compact = this@RoomPreviewScreen.maxWidth < Dimens.compactActionBarThreshold,
+            )
             Box(
                 Modifier.fillMaxWidth().padding(Dimens.windowPadding).weight(1f),
                 contentAlignment = Alignment.Center,

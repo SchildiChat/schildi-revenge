@@ -1,10 +1,10 @@
 package chat.schildi.revenge.compose.destination.conversation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Pin
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.runtime.Composable
@@ -41,6 +41,7 @@ import shire.res.generated.resources.thread
 fun ConversationTopNavigation(
     viewModel: RoomPreviewViewModel,
     hasTimeline: Boolean,
+    compact: Boolean,
 ) {
     val roomInfo = viewModel.roomInfo.collectAsState(null).value
     val title = roomInfo?.name ?: ""
@@ -56,7 +57,7 @@ fun ConversationTopNavigation(
                 if (avatar != null) {
                     AvatarImage(
                         source = avatar,
-                        size = 36.dp,
+                        size = Dimens.topAppBarIconSize,
                         displayName = title,
                         modifier = Modifier.padding(
                             start = Dimens.windowPadding,
@@ -66,22 +67,29 @@ fun ConversationTopNavigation(
                     )
                 }
                 if (hasTimeline) {
-                    TopNavigationSearchOrTitle(title)
-                } else {
-                    TopNavigationTitle(title)
-                }
-                if (focusParent != null) {
-                    TopNavigationIcon(
-                        Icons.Default.Info,
-                        stringResource(Res.string.room_details_title),
-                    ) {
+                    TopNavigationSearchOrTitle(title) {
                         destinationState?.navigate(Destination.RoomDetails(viewModel.sessionId, viewModel.roomId))
                     }
-                    TopNavigationIcon(
-                        Icons.Default.Group,
-                        stringResource(Res.string.action_show_room_members),
-                    ) {
-                        destinationState?.navigate(Destination.RoomMembers(viewModel.sessionId, viewModel.roomId))
+                } else {
+                    TopNavigationTitle(title) {
+                        destinationState?.navigate(Destination.RoomDetails(viewModel.sessionId, viewModel.roomId))
+                    }
+                }
+                if (focusParent != null) {
+                    // In compact mode, hide what can be reached via room click or room details anyway
+                    if (!compact) {
+                        TopNavigationIcon(
+                            Icons.Default.Info,
+                            stringResource(Res.string.room_details_title),
+                        ) {
+                            destinationState?.navigate(Destination.RoomDetails(viewModel.sessionId, viewModel.roomId))
+                        }
+                        TopNavigationIcon(
+                            Icons.Default.Group,
+                            stringResource(Res.string.action_show_room_members),
+                        ) {
+                            destinationState?.navigate(Destination.RoomMembers(viewModel.sessionId, viewModel.roomId))
+                        }
                     }
                     if (hasTimeline) {
                         if (!roomInfo?.pinnedEventIds.isNullOrEmpty()) {

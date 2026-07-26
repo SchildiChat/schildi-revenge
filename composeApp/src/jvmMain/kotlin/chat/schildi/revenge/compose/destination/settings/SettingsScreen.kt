@@ -151,7 +151,7 @@ fun SettingsScreen(
             TopNavigation {
                 val destinationState = LocalDestinationState.current
                 if (viewModel.isRootPreferences) {
-                    TopNavigationSearchOrTitle(stringResource(viewModel.prefScreen.value.prefScreen.titleRes))
+                    TopNavigationSearchOrTitle(stringResource(viewModel.prefScreen.collectAsState().value.prefScreen.titleRes))
                     TopNavigationIcon(
                         Icons.Default.BugReport,
                         stringResource(Res.string.diagnostics)
@@ -166,7 +166,7 @@ fun SettingsScreen(
                     }
                     TopNavigationCloseOrNavigateToInboxIcon()
                 } else {
-                    TopNavigationTitle(stringResource(viewModel.prefScreen.value.prefScreen.titleRes))
+                    TopNavigationTitle(stringResource(viewModel.prefScreen.collectAsState().value.prefScreen.titleRes))
                     TopNavigationIcon(
                         Icons.Default.Close,
                         stringResource(Res.string.action_close),

@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.NoEncryption
 import androidx.compose.material.icons.filled.Person
@@ -70,6 +71,8 @@ import chat.schildi.revenge.compose.destination.conversation.userlist.Conversati
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.resources.toStringHolder
+import chat.schildi.revenge.LocalDestinationState
+import chat.schildi.revenge.compose.components.TopNavigationIcon
 import chat.schildi.revenge.matrixBodyDrawStyle
 import chat.schildi.revenge.matrixBodyFormatter
 import chat.schildi.revenge.model.RoomDetailsViewModel
@@ -85,6 +88,7 @@ import io.element.android.libraries.matrix.api.room.join.JoinRule
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_show_room_members
 import shire.res.generated.resources.empty_screen_placeholder_unexpected
 import shire.res.generated.resources.hint_canonical_room_alias
 import shire.res.generated.resources.hint_connected_bridges
@@ -178,8 +182,16 @@ fun RoomDetailsScreen(
         val topic = viewModel.topic.collectAsState().value
         val permissions = viewModel.roomSettingsPermissions.collectAsState().value ?: RoomSettingsPermissions()
         val predecessorRoom = viewModel.predecessorRoom.collectAsState().value
-        Column(contentModifier.fillMaxSize().padding(Dimens.windowPadding)) {
-            ConversationDetailsTopNavigation(stringResource(Res.string.room_details_title))
+        val destinationState = LocalDestinationState.current
+        Column(contentModifier.fillMaxSize()) {
+            ConversationDetailsTopNavigation(stringResource(Res.string.room_details_title)) {
+                TopNavigationIcon(
+                    Icons.Default.Group,
+                    stringResource(Res.string.action_show_room_members),
+                ) {
+                    destinationState?.navigate(Destination.RoomMembers(viewModel.sessionId, viewModel.roomId))
+                }
+            }
             if (info == null) {
                 EmptyListScreen(
                     title = Res.string.empty_screen_placeholder_unexpected.toStringHolder(),
@@ -187,11 +199,11 @@ fun RoomDetailsScreen(
                     isSearching = false,
                     isLoading = true,
                     loadState = viewModel.loadState,
-                    modifier = Modifier.fillMaxWidth().weight(1f),
+                    modifier = Modifier.fillMaxSize().padding(Dimens.windowPadding),
                 )
             } else {
                 Box(
-                    Modifier.fillMaxWidth().weight(1f),
+                    Modifier.fillMaxSize().padding(Dimens.windowPadding),
                     contentAlignment = Alignment.Center,
                 ) {
                     LazyColumn(

@@ -10,9 +10,12 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -60,7 +63,12 @@ fun TopNavigation(content: @Composable RowScope.() -> Unit) {
         exit = slideOutVertically(tween(Anim.DURATION)) { -it } +
                 shrinkVertically(tween(Anim.DURATION), shrinkTowards = Alignment.Top),
     ) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            Modifier
+                .heightIn(min = Dimens.topAppBarMinHeight)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
             content()
         }
     }
@@ -131,26 +139,39 @@ fun TopNavigationCloseOrNavigateToInboxIcon(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun RowScope.TopNavigationTitle(title: String, modifier: Modifier = Modifier) {
-    AnimatedContent(
-        title,
-        modifier.weight(1f),
-        transitionSpec = {
-            fadeIn(
-                animationSpec = Dimens.tweenSmooth()
-            ) togetherWith fadeOut(
-                animationSpec = Dimens.tweenSmooth()
-            )
-        },
-    ) { title ->
-        Text(
+fun RowScope.TopNavigationTitle(
+    title: String,
+    modifier: Modifier = Modifier,
+    onTitleClick: (() -> Unit)? = null,
+) {
+    Box(
+        modifier.heightIn(min = Dimens.topAppBarMinHeight)
+            .weight(1f)
+            .thenIf(onTitleClick != null) {
+                clickable(onClick = onTitleClick ?: {})
+            },
+        contentAlignment = Alignment.CenterStart,
+    ) {
+        AnimatedContent(
             title,
-            Modifier.padding(horizontal = Dimens.windowPadding),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            style = MaterialTheme.typography.bodyLarge,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-        )
+            Modifier.fillMaxWidth(),
+            transitionSpec = {
+                fadeIn(
+                    animationSpec = Dimens.tweenSmooth()
+                ) togetherWith fadeOut(
+                    animationSpec = Dimens.tweenSmooth()
+                )
+            },
+        ) { title ->
+            Text(
+                title,
+                Modifier.padding(horizontal = Dimens.windowPadding),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        }
     }
 }
 
@@ -162,6 +183,7 @@ fun RowScope.TopNavigationSearchOrTitle(
         throw IllegalStateException("Called TopNavigationSearchOrTitle without search provider")
     },
     searchFocusContainer: Uuid? = null,
+    onTitleClick: (() -> Unit)? = null,
 ) {
     val keyHandler = LocalKeyboardActionHandler.current
     val searchBarVisible = keyHandler.needsKeyboardSearchBar(searchProvider).collectAsState().value
@@ -179,7 +201,7 @@ fun RowScope.TopNavigationSearchOrTitle(
                     showClearButton = true,
                 )
             } else {
-                TopNavigationTitle(title, Modifier.weight(1f))
+                TopNavigationTitle(title, Modifier.weight(1f), onTitleClick)
                 TopNavigationIcon(
                     Icons.Default.Search,
                     stringResource(Res.string.hint_search)
