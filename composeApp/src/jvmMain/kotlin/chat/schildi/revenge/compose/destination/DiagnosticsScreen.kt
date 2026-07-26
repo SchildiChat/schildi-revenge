@@ -42,6 +42,7 @@ import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.model.DiagnosticsSnapshot
 import chat.schildi.revenge.model.DiagnosticsViewModel
 import chat.schildi.revenge.model.ProcessDiagnosticsSnapshot
+import chat.schildi.revenge.model.ProcessPssDiagnosticsSnapshot
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.util.formatBytes
 import chat.schildi.revenge.viewModelKey
@@ -50,13 +51,18 @@ import shire.res.generated.resources.Res
 import shire.res.generated.resources.diagnostics
 import shire.res.generated.resources.diagnostics_committed
 import shire.res.generated.resources.diagnostics_current
+import shire.res.generated.resources.diagnostics_dalvik
 import shire.res.generated.resources.diagnostics_jvm_heap
 import shire.res.generated.resources.diagnostics_jvm_non_heap
 import shire.res.generated.resources.diagnostics_max
+import shire.res.generated.resources.diagnostics_native
 import shire.res.generated.resources.diagnostics_native_estimated
+import shire.res.generated.resources.diagnostics_other
+import shire.res.generated.resources.diagnostics_process_pss
 import shire.res.generated.resources.diagnostics_process_rss
 import shire.res.generated.resources.diagnostics_render_api
 import shire.res.generated.resources.diagnostics_system_info
+import shire.res.generated.resources.diagnostics_total
 import shire.res.generated.resources.diagnostics_unavailable
 
 @Composable
@@ -112,16 +118,25 @@ fun DiagnosticsScreen(
                             snapshot = state.jvmHeap,
                         )
                     }
-                    item(key = "nonHeap") {
-                        MemorySection(
-                            title = stringResource(Res.string.diagnostics_jvm_non_heap),
-                            snapshot = state.jvmNonHeap,
-                        )
+                    state.jvmNonHeap?.let { jvmNonHeap ->
+                        item(key = "nonHeap") {
+                            MemorySection(
+                                title = stringResource(Res.string.diagnostics_jvm_non_heap),
+                                snapshot = jvmNonHeap,
+                            )
+                        }
                     }
-                    item(key = "process") {
-                        ProcessMemorySection(
-                            snapshot = state.process,
-                        )
+                    if (state.showProcessMetrics) {
+                        item(key = "process") {
+                            ProcessMemorySection(
+                                snapshot = state.process,
+                            )
+                        }
+                    }
+                    state.processPss?.let { processPss ->
+                        item(key = "processPss") {
+                            ProcessPssSection(snapshot = processPss)
+                        }
                     }
                 }
             }
@@ -150,6 +165,34 @@ private fun ProcessMemorySection(
         MetricLine(
             label = stringResource(Res.string.diagnostics_current),
             value = snapshot?.estimatedNativeBytes?.formatBytes() ?: stringResource(Res.string.diagnostics_unavailable),
+        )
+    }
+}
+
+@Composable
+private fun ProcessPssSection(
+    snapshot: ProcessPssDiagnosticsSnapshot,
+    modifier: Modifier = Modifier,
+) {
+    MetricCard(
+        title = stringResource(Res.string.diagnostics_process_pss),
+        modifier = modifier,
+    ) {
+        MetricLine(
+            label = stringResource(Res.string.diagnostics_total),
+            value = snapshot.totalBytes.formatBytes(),
+        )
+        MetricLine(
+            label = stringResource(Res.string.diagnostics_dalvik),
+            value = snapshot.dalvikBytes.formatBytes(),
+        )
+        MetricLine(
+            label = stringResource(Res.string.diagnostics_native),
+            value = snapshot.nativeBytes.formatBytes(),
+        )
+        MetricLine(
+            label = stringResource(Res.string.diagnostics_other),
+            value = snapshot.otherBytes.formatBytes(),
         )
     }
 }

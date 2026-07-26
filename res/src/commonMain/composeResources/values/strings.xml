@@ -44,7 +44,12 @@
     <string name="diagnostics_jvm_heap">JVM heap</string>
     <string name="diagnostics_jvm_non_heap">JVM non-heap</string>
     <string name="diagnostics_process_rss">Process RSS</string>
+    <string name="diagnostics_process_pss">Process PSS</string>
     <string name="diagnostics_native_estimated">Native / other (estimated)</string>
+    <string name="diagnostics_total">Total</string>
+    <string name="diagnostics_dalvik">Dalvik</string>
+    <string name="diagnostics_native">Native</string>
+    <string name="diagnostics_other">Other</string>
     <string name="diagnostics_unavailable">Unavailable</string>
     <string name="diagnostics_current">Current</string>
     <string name="diagnostics_committed">Committed</string>
