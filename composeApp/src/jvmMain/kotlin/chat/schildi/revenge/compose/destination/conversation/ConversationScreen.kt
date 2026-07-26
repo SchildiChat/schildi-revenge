@@ -262,7 +262,7 @@ fun ConversationScreen(
                         timelineItems.reversed().toPersistentList()
                     }
                     LazyColumn(
-                        Modifier.fillMaxWidth(),
+                        Modifier.fillMaxSize(),
                         reverseLayout = true,
                         state = listState,
                     ) {
