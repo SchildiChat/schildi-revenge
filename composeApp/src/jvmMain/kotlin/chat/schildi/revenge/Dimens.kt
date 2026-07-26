@@ -55,7 +55,8 @@ object Dimens {
     object Conversation {
         val avatarForState = 16.dp
         val avatarItemPadding = 12.dp
-        val virtualItemPadding = 8.dp
+        val unreadLinePadding = 8.dp
+        val dayHeaderPadding = 16.dp
         val messageBubbleCornerRadius = 10.dp
         val messageBubbleShape = RoundedCornerShape(messageBubbleCornerRadius)
         val replyContentShape = RoundedCornerShape(6.dp)

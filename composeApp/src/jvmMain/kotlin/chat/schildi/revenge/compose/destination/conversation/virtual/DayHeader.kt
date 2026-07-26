@@ -3,10 +3,12 @@ package chat.schildi.revenge.compose.destination.conversation.virtual
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import chat.schildi.revenge.DateTimeFormat
 import chat.schildi.revenge.Dimens
 import io.element.android.libraries.matrix.api.timeline.item.virtual.VirtualTimelineItem
@@ -16,7 +18,7 @@ fun DayHeaderRow(item: VirtualTimelineItem.DayDivider, modifier: Modifier = Modi
     Box(
         modifier.fillMaxWidth()
             .padding(
-                vertical = Dimens.Conversation.virtualItemPadding,
+                vertical = Dimens.Conversation.dayHeaderPadding,
                 horizontal = Dimens.windowPadding,
             ),
         contentAlignment = Alignment.Center,
@@ -30,5 +32,11 @@ fun DayHeader(
     timestamp: Long,
     modifier: Modifier = Modifier,
 ) {
-    Text(DateTimeFormat.formatTimestampAsDate(timestamp), modifier)
+    Text(
+        DateTimeFormat.formatTimestampAsDate(timestamp),
+        modifier,
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onSurface,
+        fontWeight = FontWeight.Bold,
+    )
 }

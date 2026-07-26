@@ -34,7 +34,7 @@ fun NewMessagesLine(
             MaterialTheme.scExposures.accentColor.copy(alpha = 0.3f),
         modifier
             .padding(
-                vertical = Dimens.Conversation.virtualItemPadding,
+                vertical = Dimens.Conversation.unreadLinePadding,
                 horizontal = Dimens.windowPadding,
             )
     )
