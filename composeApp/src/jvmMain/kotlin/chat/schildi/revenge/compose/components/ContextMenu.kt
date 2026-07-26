@@ -205,12 +205,7 @@ fun WithContextMenu(
             )
         },
         popupContent = {
-            val effectiveEntries = if (parentMenuId == null) {
-                entries + globalContextMenuEntries()
-            } else {
-                entries
-            }
-            effectiveEntries.forEach { entry ->
+            entries.forEach { entry ->
                 ContextMenuDropdownMenuItem(
                     entry = entry,
                     focusId = focusId,
@@ -224,14 +219,12 @@ fun WithContextMenu(
     )
 }
 
-// Always append command mode option to context menus - TODO make setting (maybe disable together with other non-advanced-user stuff)
+// Re-usable action for command mode
 @Composable
-fun globalContextMenuEntries() = listOf(
-    ContextMenuActionEntry(
-        Res.string.action_enter_command_mode.toStringHolder(),
-        rememberVectorPainter(Icons.Default.RocketLaunch),
-        Action.Global.Command,
-    )
+fun enterCommandModeContextMenuAction() = ContextMenuActionEntry(
+    Res.string.action_enter_command_mode.toStringHolder(),
+    rememberVectorPainter(Icons.Default.RocketLaunch),
+    Action.Global.Command,
 )
 
 @Composable

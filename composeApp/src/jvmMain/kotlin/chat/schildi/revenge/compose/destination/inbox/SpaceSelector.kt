@@ -68,6 +68,7 @@ import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.resources.toStringHolder
+import chat.schildi.revenge.compose.components.enterCommandModeContextMenuAction
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.config.keybindings.SpaceCatchAllMode
@@ -644,6 +645,7 @@ fun SpaceListDataSource.AbstractSpaceHierarchyItem.spaceContextMenu(): Immutable
                     critical = true,
                     keyboardShortcut = Key.V,
                 ),
+                enterCommandModeContextMenuAction(),
             ).toImmutableList()
         }
         else -> persistentListOf()

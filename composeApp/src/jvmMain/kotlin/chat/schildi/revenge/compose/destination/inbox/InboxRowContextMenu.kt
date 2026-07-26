@@ -22,6 +22,7 @@ import chat.schildi.revenge.compose.components.isAllowed
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.UiState
+import chat.schildi.revenge.compose.components.enterCommandModeContextMenuAction
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.ActionRoomNotificationSetting
 import chat.schildi.revenge.model.InboxViewModel
@@ -83,6 +84,7 @@ fun ScopedRoomSummary.contextMenu(inboxViewModel: InboxViewModel, focusId: Uuid)
                 enabled = PendingAction.RoomLeave(summary.roomId).isAllowed(),
                 keyboardShortcut = Key.R,
             ),
+            enterCommandModeContextMenuAction(),
         ).toPersistentList()
     } else {
         val keyHandler = LocalKeyboardActionHandler.current
@@ -189,6 +191,7 @@ fun ScopedRoomSummary.contextMenu(inboxViewModel: InboxViewModel, focusId: Uuid)
                 enabled = PendingAction.RoomLeave(summary.roomId).isAllowed(),
                 keyboardShortcut = Key.V,
             ),
+            enterCommandModeContextMenuAction(),
         ).toPersistentList()
     }
 }

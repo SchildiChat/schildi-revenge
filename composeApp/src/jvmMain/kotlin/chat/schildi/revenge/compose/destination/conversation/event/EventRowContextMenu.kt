@@ -22,6 +22,7 @@ import chat.schildi.revenge.compose.components.ContextMenuActionEntry
 import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.compose.components.ContextMenuSubmenuEntry
+import chat.schildi.revenge.compose.components.enterCommandModeContextMenuAction
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.DestinationEnum
@@ -159,5 +160,6 @@ fun EventTimelineItem.contextMenu(
             critical = true,
             keyboardShortcut = Key.D,
         ).takeIf { canRedact },
+        enterCommandModeContextMenuAction(),
     ).toPersistentList()
 }
