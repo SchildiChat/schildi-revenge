@@ -7,9 +7,10 @@
         android:name="chat.schildi.revenge.RevengeApplication"
         android:icon="@mipmap/ic_launcher"
         android:label="SchildiChat Revenge"
-        android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        android:theme="@style/Theme.Schildi">
         <activity
             android:name="chat.schildi.revenge.MainActivity"
+            android:theme="@style/Theme.Schildi.Splash"
             android:windowSoftInputMode="adjustResize"
             android:exported="true">
             <intent-filter>

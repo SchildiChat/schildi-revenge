@@ -29,6 +29,7 @@ clikt = "5.1.0"
 blurhash = "0.3.0"
 androidx-core = "1.19.0"
 androidx-activity = "1.13.0"
+androidx-core-splashscreen = "1.2.0"
 desugarJdkLibs = "2.1.5"
 
 [libraries]
@@ -78,6 +79,7 @@ dbus-java-transport-native-unixsocket = { module = "com.github.hypfvieh:dbus-jav
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 vanniktech-blurhash = { module = "com.vanniktech:blurhash", version.ref = "blurhash" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
+androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-core-splashscreen" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
 desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 coil3-gif = { group = "io.coil-kt.coil3", name = "coil-gif", version.ref = "coil" }

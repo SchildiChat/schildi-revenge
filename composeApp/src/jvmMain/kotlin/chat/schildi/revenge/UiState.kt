@@ -78,7 +78,8 @@ object UiState {
     var headlessKeyboardActionHandler: KeyboardActionHandler? = null
         private set
 
-    private var hasClearedSplashScreen = false
+    private val _initialClientRestoreComplete = MutableStateFlow(false)
+    val initialClientRestoreComplete = _initialClientRestoreComplete.asStateFlow()
     val minimizedToTray = platformWindowManager.minimizedToTray
 
     private val _forceRecreationCounter = MutableStateFlow(0)
@@ -243,14 +244,14 @@ object UiState {
         val finishedTs = System.currentTimeMillis()
         log.i("${sessions.size} sessions restored in ${finishedTs - startTs} ms")
 
-        if (!hasClearedSplashScreen) {
+        if (!initialClientRestoreComplete.value) {
             val destination = if (sessions.isEmpty()) {
                 Destination.AccountManagement(isInitialSetup = true)
             } else {
                 getInboxDestination()
             }
             clearSplashScreen(destination)
-            hasClearedSplashScreen = true
+            _initialClientRestoreComplete.value = true
         }
         sessions.associateBy { it.sessionId }.toPersistentHashMap()
     }.stateIn(scope, SharingStarted.Eagerly, persistentHashMapOf())
