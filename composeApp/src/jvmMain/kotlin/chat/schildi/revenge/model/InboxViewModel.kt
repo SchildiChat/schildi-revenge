@@ -178,7 +178,7 @@ class InboxViewModel(
                 else -> true
             }
         }
-    }.flowOn(Dispatchers.IO)
+    }.flowOn(Dispatchers.Default)
 
     private val spacesFilteredByAccount = combine(
         spaceListDataSource.allSpacesHierarchical,
@@ -191,7 +191,7 @@ class InboxViewModel(
                     selectedAccounts.isEmpty() && !hiddenAccounts.containsAll(sessionIds) ||
                     sessionIds.any { it in selectedAccounts }
         }.toImmutableList()
-    }.flowOn(Dispatchers.IO)
+    }.flowOn(Dispatchers.Default)
 
     private val spaceAggregationDataSource = SpaceAggregationDataSource(
         spacesFilteredByAccount,
@@ -209,7 +209,7 @@ class InboxViewModel(
                     selectedAccounts.isEmpty() && !hiddenAccounts.containsAll(sessionIds) ||
                     sessionIds.any { it in selectedAccounts }
         }?.toImmutableList()
-    }.flowOn(Dispatchers.IO)
+    }.flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     private val _spaceSelection = MutableStateFlow<ImmutableList<String>>(persistentListOf())
@@ -264,7 +264,7 @@ class InboxViewModel(
             )
         }
     }
-        .flowOn(Dispatchers.IO)
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -299,7 +299,7 @@ class InboxViewModel(
         },
         onEmpty = { persistentHashMapOf() },
     )
-        .flowOn(Dispatchers.IO)
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val accountsSorted = combine(
@@ -310,7 +310,7 @@ class InboxViewModel(
             comparator.compare(l.user.userId, r.user.userId)
         }?.toPersistentList()
     }
-        .flowOn(Dispatchers.IO)
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val accountUnreadCounts = spaceAggregationDataSource.state.map {
@@ -319,21 +319,25 @@ class InboxViewModel(
         }?.associate {
             it.sessionId to (it.unreadCounts ?: SpaceAggregationDataSource.SpaceUnreadCounts())
         }.orEmpty().toPersistentHashMap()
-    }.flowOn(Dispatchers.IO)
+    }
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Lazily, persistentHashMapOf())
 
     val roomsByRoomId = allRooms.map {
         it.groupBy { it.summary.roomId }.toPersistentHashMap()
     }
-        .flowOn(Dispatchers.IO)
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Lazily, persistentHashMapOf())
 
     val dmsByHeroes = allRooms.map {
         it.filter { it.summary.isDm }.groupBy { it.summary.info.heroes }.toPersistentHashMap()
     }
-        .flowOn(Dispatchers.IO)
+        .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Lazily, persistentHashMapOf())
 
+    val spaceSummariesByKey = spaceListDataSource.spaceSummariesByKey
+        .flowOn(Dispatchers.Default)
+        .stateIn(viewModelScope, SharingStarted.Lazily, persistentHashMapOf())
 
     init {
         log.d { "Init" }
@@ -379,7 +383,7 @@ class InboxViewModel(
             .onEach {
                 appStateStore.persistInboxState(it)
             }
-            .flowOn(Dispatchers.IO)
+            .flowOn(Dispatchers.Default)
             .launchIn(viewModelScope)
     }
 

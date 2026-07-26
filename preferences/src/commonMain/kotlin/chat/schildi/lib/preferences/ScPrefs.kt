@@ -99,6 +99,8 @@ import shire.res.generated.resources.pref_compact_root_spaces_summary
 import shire.res.generated.resources.pref_compact_root_spaces_title
 import shire.res.generated.resources.pref_bury_low_priority_summary
 import shire.res.generated.resources.pref_bury_low_priority_title
+import shire.res.generated.resources.pref_canonical_space_parent_avatar_fallback_summary
+import shire.res.generated.resources.pref_canonical_space_parent_avatar_fallback_title
 import shire.res.generated.resources.pref_category_advanced_configuration
 import shire.res.generated.resources.pref_category_advanced_configuration_summary
 import shire.res.generated.resources.pref_category_chat_sorting
@@ -150,8 +152,8 @@ import shire.res.generated.resources.pseudo_space_unread
 import shire.res.generated.resources.pref_pseudo_spaces_summary
 import shire.res.generated.resources.pref_pseudo_spaces_title
 import shire.res.generated.resources.pref_render_space_order_keys_title
-import shire.res.generated.resources.pref_sc_floating_date_summary
-import shire.res.generated.resources.pref_sc_floating_date_title
+import shire.res.generated.resources.pref_floating_date_summary
+import shire.res.generated.resources.pref_floating_date_title
 import shire.res.generated.resources.pref_sdk_sqlite_max_pool_size_summary
 import shire.res.generated.resources.pref_sdk_sqlite_max_pool_size_title
 import shire.res.generated.resources.pref_skiko_vsync_summary
@@ -254,6 +256,7 @@ object ScPrefs {
         )
     )
     val DUAL_MENTION_UNREAD_COUNTS = ScBoolPref("DUAL_MENTION_UNREAD_COUNTS", false, Res.string.pref_dual_mention_unread_counts_title, Res.string.pref_dual_mention_unread_counts_summary)
+    val CANONICAL_PARENT_SPACE_AVATAR_FALLBACK = ScBoolPref("CANONICAL_PARENT_SPACE_AVATAR_FALLBACK", true, Res.string.pref_canonical_space_parent_avatar_fallback_title, Res.string.pref_canonical_space_parent_avatar_fallback_summary)
     val PREFER_DUAL_PANE_INBOX = ScBoolPref("PREFER_DUAL_PANE_INBOX", true, Res.string.pref_prefer_dual_pane_inbox_title, Res.string.pref_prefer_dual_pane_inbox_summary)
     val PREFER_CONVERSATION_DETAILS_SPLIT = ScBoolPref("PREFER_CONVERSATION_DETAILS_SPLIT", true, Res.string.pref_conversation_details_split_title, Res.string.pref_conversation_details_split_summary)
     val ALLOW_THREADS_IN_DETAILS_PANE = ScBoolPref("ALLOW_THREADS_IN_DETAILS_PANE", true, Res.string.pref_threads_as_details_title, Res.string.pref_threads_as_details_summary)
@@ -313,7 +316,7 @@ object ScPrefs {
     val URL_PREVIEWS = ScBoolPref("URL_PREVIEWS", false, Res.string.pref_url_previews_title, Res.string.pref_url_previews_summary)
     val URL_PREVIEWS_IN_E2EE_ROOMS = ScBoolPref("URL_PREVIEWS_IN_E2EE_ROOMS", false, Res.string.pref_url_previews_in_e2ee_rooms_title, Res.string.pref_url_previews_in_e2ee_rooms_summary, dependencies = URL_PREVIEWS.asDependencies(), disabledValue = false)
     val URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS = ScBoolPref("URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS", true, Res.string.pref_url_previews_require_explicit_links_title, Res.string.pref_url_previews_require_explicit_links_summary, dependencies = URL_PREVIEWS.asDependencies(), disabledValue = null)
-    val FLOATING_DATE = ScBoolPref("FLOATING_DATE", true, Res.string.pref_sc_floating_date_title, Res.string.pref_sc_floating_date_summary)
+    val FLOATING_DATE = ScBoolPref("FLOATING_DATE", true, Res.string.pref_floating_date_title, Res.string.pref_floating_date_summary)
 
     // Message rendering
     val MESSAGE_FONT_SIZE = ScIntPref("MESSAGE_FONT_SIZE", 14, Res.string.pref_message_font_size_title, Res.string.pref_message_font_size_summary, minValue = 8, maxValue = 24)
@@ -359,6 +362,7 @@ object ScPrefs {
             )),
         )),
         ScPrefScreen("INBOX", Res.string.pref_category_inbox, Res.string.pref_category_inbox_summary, listOf(
+            CANONICAL_PARENT_SPACE_AVATAR_FALLBACK,
             ScPrefCategory("INBOX_SORT", Res.string.pref_category_chat_sorting, null, listOf(
                 SORT_BY_UNREAD,
                 SORT_WITH_SILENT_UNREAD,

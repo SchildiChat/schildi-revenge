@@ -75,6 +75,7 @@ data class RoomInfo(
     val spaceChildren: List<MatrixSpaceChildInfo> = emptyList(),
     val spaceCatchAll: SpaceCatchAllInfo? = null,
     val canUserManageSpaces: Boolean = false,
+    val canonicalSpaceParent: String? = null,
     val unreadCount: Long = 0,
     val bridgeState: List<BridgeState> = emptyList(),
     val unreadCountUnderestimate: Boolean = false,

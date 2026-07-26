@@ -78,6 +78,7 @@ class RoomInfoMapper {
             spaceChildren = it.spaceChildren.map(MatrixSpaceChildInfoMapper::map),
             spaceCatchAll = it.spaceCatchAll?.let(::mapRustSpaceCatchAll),
             canUserManageSpaces = it.canUserManageSpaces,
+            canonicalSpaceParent = it.canonicalSpaceParent,
             unreadCount = it.unreadCount.toLong(),
             bridgeState = it.bridgeStates.map(::mapRustBridgeState),
             unreadCountUnderestimate = it.hasIncompleteUnreadCount,

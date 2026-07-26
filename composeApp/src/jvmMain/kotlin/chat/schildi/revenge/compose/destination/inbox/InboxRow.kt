@@ -65,6 +65,8 @@ import chat.schildi.revenge.model.InboxViewModel
 import chat.schildi.revenge.model.PendingAction
 import chat.schildi.revenge.model.ScopedRoomKey
 import chat.schildi.theme.scExposures
+import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import io.element.android.libraries.matrix.api.roomlist.LatestEventValue
@@ -131,10 +133,15 @@ fun InboxRow(
                         .firstOrNull { it.protocol?.avatarUrl != null }
                         ?.protocol
                     AvatarImage(
-                        source = room.summary.info.avatarUrl?.let { MediaSource(it) }
-                            ?: room.summary.info.heroes.takeIf { it.size == 1 }?.firstOrNull()?.avatarUrl?.let {
-                                MediaSource(it)
-                            },
+                        source = room.summary.info.avatarUrl?.let(::MediaSource)
+                            ?: room.summary.info.heroes.singleOrNull()?.avatarUrl?.let(::MediaSource)
+                            ?: room.summary.info.canonicalSpaceParent
+                                ?.takeIf { ScPrefs.CANONICAL_PARENT_SPACE_AVATAR_FALLBACK.value() }
+                                ?.let {
+                                    viewModel.spaceSummariesByKey.collectAsState().value
+                                        .deriveCanonicalSpaceAvatarRecursive(room.sessionId, it)
+                                        ?.let(::MediaSource)
+                                },
                         size = Dimens.Inbox.avatar,
                         displayName = room.summary.info.name ?: "",
                         fallbackColorSource = bridgeProtocol?.avatarUrl?.let(::MediaSource),
@@ -496,4 +503,17 @@ private fun inboxRowKeyboardActionProvider(
         viewModel.getKeyboardActionProviderForRoom(room.sessionId, room.roomId, isInvite)
     }
     return ownHandler.hierarchicalKeyboardActionProvider()
+}
+
+private fun Map<ScopedRoomKey, RoomSummary>.deriveCanonicalSpaceAvatarRecursive(
+    sessionId: SessionId,
+    canonicalSpaceParent: String?
+): String? {
+    canonicalSpaceParent ?: return null
+    val key = ScopedRoomKey(sessionId, RoomId(canonicalSpaceParent))
+    val summary = get(key)
+    summary?.info?.avatarUrl?.let {
+        return it
+    }
+    return deriveCanonicalSpaceAvatarRecursive(sessionId, summary?.info?.canonicalSpaceParent)
 }

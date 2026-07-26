@@ -46,6 +46,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toImmutableSet
+import kotlinx.collections.immutable.toPersistentHashMap
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -142,6 +143,10 @@ class SpaceListDataSource(
         },
         onEmpty = { emptyList() },
     ).flowOn(Dispatchers.IO)
+
+    val spaceSummariesByKey = allSpacesFlat.map {
+        it.associate { it.id to it.summary }.toPersistentHashMap()
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val accounts = combinedSessions.flatMergeCombinedWith(

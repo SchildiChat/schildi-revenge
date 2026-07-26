@@ -443,8 +443,10 @@
     <string name="pref_composer_max_lines_unfocused_summary">Limit the rendered height of the message composer while not focused</string>
     <string name="pref_view_membership_events_in_public_rooms_title">Membership changes in public rooms</string>
     <string name="pref_view_membership_events_in_public_rooms_summary">Render in the timeline of public rooms when members join, leave or change their profile. Private rooms will render these changes independently of this setting.</string>
-    <string name="pref_sc_floating_date_title">Floating date</string>
-    <string name="pref_sc_floating_date_summary">Show the date on top of messages while scrolling</string>
+    <string name="pref_floating_date_title">Floating date</string>
+    <string name="pref_floating_date_summary">Show the date on top of messages while scrolling</string>
+    <string name="pref_canonical_space_parent_avatar_fallback_title">Space parent avatar fallback</string>
+    <string name="pref_canonical_space_parent_avatar_fallback_summary">For chats without an avatar but with a canonical parent space set, render the space avatar as fallback.</string>
 
     <string name="pref_message_font_size_title">Message font size</string>
     <string name="pref_message_font_size_summary">Scaled pixel text size for messages (while respecting global render and font scale settings)</string>
