@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
@@ -58,7 +60,15 @@ fun ReactionsBubble(
         modifier = modifier,
         tooltipPrefix = reaction.shortcode?.plus(" ") ?: "",
         leadingItemContent = {
-            ReactionContent(reaction.key, reaction.shortcode, MaterialTheme.typography.headlineSmall)
+            ReactionContent(
+                reaction.key,
+                reaction.shortcode,
+                MaterialTheme.typography.headlineSmall,
+                modifier = LocalDensity.current.run {
+                    // Popup content needs explicit width to avoid intrinsic width crash
+                    Modifier.size(MaterialTheme.typography.headlineSmall.lineHeight.toDp())
+                },
+            )
         }
     ) {
         val includesSelf = reaction.senders.any { it.senderId == LocalSessionId.current }
