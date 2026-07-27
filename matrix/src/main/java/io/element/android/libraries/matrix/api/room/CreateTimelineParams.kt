@@ -10,11 +10,18 @@ package io.element.android.libraries.matrix.api.room
 
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.ThreadId
+import kotlinx.serialization.Serializable
 
+@Serializable
 sealed interface CreateTimelineParams {
+    @Serializable
     data class Focused(val focusedEventId: EventId) : CreateTimelineParams
+    @Serializable
     data object MediaOnly : CreateTimelineParams
+    @Serializable
     data class MediaOnlyFocused(val focusedEventId: EventId) : CreateTimelineParams
+    @Serializable
     data object PinnedOnly : CreateTimelineParams
+    @Serializable
     data class Threaded(val threadRootEventId: ThreadId) : CreateTimelineParams
 }
