@@ -27,6 +27,7 @@ import chat.schildi.revenge.config.ScAppDirs
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -118,7 +119,7 @@ class DefaultScPreferencesStore() : ScRevengePreferencesStore {
                     isEnabled(prefs, scPref)
                 }
             )
-        }
+        }.distinctUntilChanged()
     }
 
     override fun <T>getCachedOrDefaultValue(scPref: ScPref<T>): T {
