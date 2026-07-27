@@ -46,16 +46,20 @@ fun EventContent.messageMetadata(
     parser: MatrixHtmlParser = MessageFormatDefaults.parser,
     style: MatrixBodyPreFormatStyle = MessageFormatDefaults.parseStyle,
 ): MessageMetadata {
-    val (formattedBody, plaintext) = when (val type = (this as? MessageContent)?.type) {
-        is TextLikeMessageType -> Pair(type.formatted, type.body)
-        is MessageTypeWithAttachment -> Pair(type.formattedCaption, type.caption)
-        else -> Pair(null, null)
+    val (formattedBody, plaintext, allowEmpty) = when (val type = (this as? MessageContent)?.type) {
+        is TextLikeMessageType -> Triple(type.formatted, type.body, true)
+        is MessageTypeWithAttachment -> Triple(type.formattedCaption, type.caption, false)
+        else -> Triple(null, null, false)
     }
     val allowRoomMention = (this as? CanMentionRoom)?.isRoomMention ?: true
-    val preFormattedContent = formattedBody?.takeIf { it.format == MessageFormat.HTML }?.let {
-        parser.parseHtml(it.body, style, allowRoomMention)
-    } ?: plaintext?.let {
-        parser.parsePlaintext(it, style, allowRoomMention)
+    val preFormattedContent = when {
+        formattedBody?.format == MessageFormat.HTML -> {
+            parser.parseHtml(formattedBody.body, style, allowRoomMention)
+        }
+        plaintext != null && (allowEmpty || plaintext.isNotEmpty()) -> {
+            parser.parsePlaintext(plaintext, style, allowRoomMention)
+        }
+        else -> null
     }
     return MessageMetadata(preFormattedContent)
 }
