@@ -192,11 +192,9 @@ fun EventContentLayout(
         }
 
         is StickerContent -> EventMessageLayout {
-            val caption = content.body?.takeIf { content.filename.isNotEmpty() && content.filename != it }
             ImageMessage(
                 source = content.source,
                 messageMetadata = messageMetadata,
-                caption = caption,
                 isOwn = isOwn,
                 timestamp = timestamp,
                 inReplyTo = inReplyTo,

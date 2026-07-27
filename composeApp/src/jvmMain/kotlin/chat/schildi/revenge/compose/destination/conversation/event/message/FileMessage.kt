@@ -22,7 +22,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
@@ -68,7 +67,6 @@ fun FileMessage(
         },
         messageMetadata = messageMetadata,
         filename = file.filename,
-        caption = file.caption,
         isOwn = isOwn,
         timestamp = timestamp,
         inReplyTo = inReplyTo,
@@ -82,7 +80,6 @@ fun FileMessage(
     type: FileMessageRenderType,
     messageMetadata: MessageMetadata?,
     filename: String,
-    caption: String?,
     isOwn: Boolean,
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
@@ -97,7 +94,7 @@ fun FileMessage(
         padding = PaddingValues(Dimens.Conversation.messageBubbleInnerPadding),
         contentTextLayoutResult = captionLayoutResult.value,
         verticalArrangement = Arrangement.spacedBy(Dimens.Conversation.captionPadding),
-        nonTextWidth = if (caption == null) Dimens.Conversation.fileIconSize + Dimens.horizontalItemPadding else 0.dp,
+        nonTextWidth = if (messageMetadata?.preFormattedContent == null) Dimens.Conversation.fileIconSize + Dimens.horizontalItemPadding else 0.dp,
         allowTimestampOverlay = messageMetadata?.preFormattedContent?.allowTimestampOverlay() != false,
     ) {
         inReplyTo?.let {
@@ -107,7 +104,6 @@ fun FileMessage(
             type = type,
             messageMetadata = messageMetadata,
             filename = filename,
-            caption = caption?.let { AnnotatedString(it) },
         ) {
             captionLayoutResult.value = it
         }
@@ -119,7 +115,6 @@ fun ColumnScope.FileMessageContent(
     type: FileMessageRenderType,
     messageMetadata: MessageMetadata?,
     filename: String,
-    caption: AnnotatedString? = null,
     onCaptionTextLayout: (TextLayoutResult?) -> Unit = {},
 ) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Dimens.horizontalArrangement) {
@@ -134,12 +129,12 @@ fun ColumnScope.FileMessageContent(
         TextLikeMessageContent(
             MatrixBodyParseResult(filename),
             allowBigEmojiOnly = false,
-            onTextLayout = if (caption == null) onCaptionTextLayout else {{}},
+            onTextLayout = if (messageMetadata?.preFormattedContent == null) onCaptionTextLayout else {{}},
         )
     }
-    if (caption != null) {
+    if (messageMetadata?.preFormattedContent != null) {
         TextLikeMessageContent(
-            messageMetadata?.preFormattedContent ?: MatrixBodyParseResult(caption),
+            messageMetadata.preFormattedContent,
             allowBigEmojiOnly = false,
             modifier = Modifier.padding(top = Dimens.Conversation.captionPadding),
             onTextLayout = onCaptionTextLayout,

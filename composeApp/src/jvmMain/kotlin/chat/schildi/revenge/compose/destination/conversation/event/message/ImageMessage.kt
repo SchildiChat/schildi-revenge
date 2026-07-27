@@ -58,7 +58,6 @@ fun ImageMessage(
         width = image.info?.width,
         height = image.info?.height,
         messageMetadata = messageMetadata,
-        caption = image.caption,
         isOwn = isOwn,
         timestamp = timestamp,
         inReplyTo = inReplyTo,
@@ -75,7 +74,6 @@ fun ImageMessage(
     width: Long? = null,
     height: Long? = null,
     messageMetadata: MessageMetadata?,
-    caption: String?,
     isOwn: Boolean,
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
@@ -84,7 +82,7 @@ fun ImageMessage(
     modifier: Modifier = Modifier,
 ) {
     val captionLayoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
-    val isTransparent = isSticker && caption == null && inReplyTo == null
+    val isTransparent = isSticker && messageMetadata?.preFormattedContent == null && inReplyTo == null
     MessageBubble(
         isOwn = isOwn,
         timestamp = timestamp,
@@ -103,7 +101,7 @@ fun ImageMessage(
             )
         }
         val topRadius = if (inReplyTo == null) Dimens.Conversation.messageBubbleCornerRadius else 0.dp
-        val bottomRadius = if (caption == null && messageMetadata?.preFormattedContent == null)
+        val bottomRadius = if (messageMetadata?.preFormattedContent == null)
             Dimens.Conversation.messageBubbleCornerRadius
         else
             0.dp
@@ -125,7 +123,7 @@ fun ImageMessage(
                 MessageRenderContext.NORMAL -> Dimens.Conversation.imageMaxHeight
                 MessageRenderContext.IN_REPLY_TO -> Dimens.Conversation.imageRepliedToMaxHeight
             },
-            caption = caption?.let { messageMetadata?.preFormattedContent ?: MatrixBodyParseResult(it) },
+            caption = messageMetadata?.preFormattedContent,
             shape = shape,
             onCaptionTextLayout = { captionLayoutResult.value = it }
         )

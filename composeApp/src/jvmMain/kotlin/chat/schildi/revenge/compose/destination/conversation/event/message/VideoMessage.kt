@@ -44,7 +44,6 @@ fun VideoMessage(
         width = video.info?.width,
         height = video.info?.height,
         messageMetadata = messageMetadata,
-        caption = video.caption,
         isOwn = isOwn,
         timestamp = timestamp,
         inReplyTo = inReplyTo,
@@ -60,7 +59,6 @@ fun VideoMessage(
     width: Long? = null,
     height: Long? = null,
     messageMetadata: MessageMetadata?,
-    caption: String?,
     isOwn: Boolean,
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
@@ -85,7 +83,7 @@ fun VideoMessage(
             )
         }
         val topRadius = if (inReplyTo == null) Dimens.Conversation.messageBubbleCornerRadius else 0.dp
-        val bottomRadius = if (caption == null && messageMetadata?.preFormattedContent == null)
+        val bottomRadius = if (messageMetadata?.preFormattedContent == null)
             Dimens.Conversation.messageBubbleCornerRadius
         else
             0.dp
@@ -107,7 +105,7 @@ fun VideoMessage(
                 MessageRenderContext.NORMAL -> Dimens.Conversation.imageMaxHeight
                 MessageRenderContext.IN_REPLY_TO -> Dimens.Conversation.imageRepliedToMaxHeight
             },
-            caption = caption?.let { messageMetadata?.preFormattedContent ?: MatrixBodyParseResult(it) },
+            caption = messageMetadata?.preFormattedContent,
             shape = shape,
             onCaptionTextLayout = { captionLayoutResult.value = it }
         )

@@ -29,7 +29,6 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -68,7 +67,6 @@ fun AudioMessage(
         details = null,
         messageMetadata = messageMetadata,
         filename = audio.filename,
-        caption = audio.caption,
         type = FileMessageRenderType.AUDIO,
         isOwn = isOwn,
         timestamp = timestamp,
@@ -94,7 +92,6 @@ fun VoiceMessage(
         details = voice.details,
         messageMetadata = messageMetadata,
         filename = voice.filename,
-        caption = voice.caption,
         type = FileMessageRenderType.VOICE,
         isOwn = isOwn,
         timestamp = timestamp,
@@ -112,7 +109,6 @@ fun AudioLikeMessage(
     messageMetadata: MessageMetadata?,
     filename: String,
     type: FileMessageRenderType,
-    caption: String?,
     isOwn: Boolean,
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
@@ -129,7 +125,7 @@ fun AudioLikeMessage(
         padding = PaddingValues(Dimens.Conversation.messageBubbleInnerPadding),
         contentTextLayoutResult = captionLayoutResult.value,
         verticalArrangement = Arrangement.spacedBy(Dimens.Conversation.captionPadding),
-        nonTextWidth = if (caption.isNullOrBlank()) {
+        nonTextWidth = if (messageMetadata?.preFormattedContent == null) {
             Dimens.Conversation.fileIconSize + Dimens.horizontalItemPadding +
                     if (info?.duration != null) {
                         durationWidth.value + Dimens.horizontalItemPadding
@@ -151,7 +147,6 @@ fun AudioLikeMessage(
             messageMetadata = messageMetadata,
             filename = filename,
             type = type,
-            caption = caption?.let { AnnotatedString(it) },
             onDurationMeasure = { durationWidth.value = density.run { it.size.width.toDp() } }
         ) {
             captionLayoutResult.value = it
@@ -167,7 +162,6 @@ fun ColumnScope.AudioLikeMessageContent(
     messageMetadata: MessageMetadata?,
     filename: String,
     type: FileMessageRenderType,
-    caption: AnnotatedString? = null,
     onDurationMeasure: (LayoutCoordinates) -> Unit = {},
     onCaptionTextLayout: (TextLayoutResult?) -> Unit = {},
 ) {
@@ -219,7 +213,7 @@ fun ColumnScope.AudioLikeMessageContent(
             TextLikeMessageContent(
                 MatrixBodyParseResult(renderedFilename),
                 allowBigEmojiOnly = false,
-                onTextLayout = if (caption.isNullOrBlank()) onCaptionTextLayout else {{}},
+                onTextLayout = if (messageMetadata?.preFormattedContent == null) onCaptionTextLayout else {{}},
                 modifier = Modifier.weight(1f, fill = false).thenIf(info?.duration != null) { alignByBaseline() },
                 maxLines = 1,
             )
@@ -235,9 +229,9 @@ fun ColumnScope.AudioLikeMessageContent(
             )
         }
     }
-    if (!caption.isNullOrBlank()) {
+    if (messageMetadata?.preFormattedContent != null) {
         TextLikeMessageContent(
-            messageMetadata?.preFormattedContent ?: MatrixBodyParseResult(caption),
+            messageMetadata.preFormattedContent,
             allowBigEmojiOnly = false,
             modifier = Modifier.padding(top = Dimens.Conversation.captionPadding),
             onTextLayout = onCaptionTextLayout,
