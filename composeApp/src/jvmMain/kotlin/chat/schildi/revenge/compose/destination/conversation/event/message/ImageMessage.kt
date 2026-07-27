@@ -2,10 +2,9 @@ package chat.schildi.revenge.compose.destination.conversation.event.message
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -18,9 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextLayoutResult
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import chat.schildi.lib.preferences.ScPrefs
@@ -145,7 +143,6 @@ fun ColumnScope.ImageMessageContent(
     onCaptionTextLayout: (TextLayoutResult?) -> Unit = {},
     overlay: @Composable () -> Unit = {},
 ) {
-    val mediaSize = rememberMediaDisplaySize(width, height, minWidth, minHeight, maxWidth, maxHeight)
     Box(
         modifier = Modifier.align(Alignment.CenterHorizontally),
         contentAlignment = Alignment.Center,
@@ -157,28 +154,34 @@ fun ColumnScope.ImageMessageContent(
             onState = ::onAsyncImageState,
             transform = rememberAnimatedImageTransform(),
             filterQuality = FilterQuality.High,
-            modifier = Modifier
-                .then(
-                    mediaSize?.let { Modifier.size(it) } ?: Modifier.sizeIn(
-                        minWidth = minWidth,
-                        minHeight = minHeight,
-                        maxWidth = maxWidth,
-                        maxHeight = maxHeight,
-                    )
-                )
-                .clip(shape),
+            contentScale = ContentScale.Fit,
+            modifier = Modifier.clip(shape),
         ) {
             if (blurhash != null && ScPrefs.FORCE_RENDER_BLURHASH.value()) {
                 BlurHashPlaceholder(
                     blurHash = blurhash,
                     width = width,
                     height = height,
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.boundedMediaSize(
+                        minWidth,
+                        minHeight,
+                        maxWidth,
+                        maxHeight,
+                        aspectRatioOrNull(width, height),
+                    ),
                 )
                 return@SubcomposeAsyncImage
             }
             when (painter.state.collectAsState().value) {
-                is AsyncImagePainter.State.Success -> SubcomposeAsyncImageContent()
+                is AsyncImagePainter.State.Success -> SubcomposeAsyncImageContent(
+                    modifier = Modifier.boundedMediaSize(
+                        minWidth,
+                        minHeight,
+                        maxWidth,
+                        maxHeight,
+                        painter.intrinsicSize.width / painter.intrinsicSize.height,
+                    ),
+                )
                 AsyncImagePainter.State.Empty,
                 is AsyncImagePainter.State.Loading,
                 is AsyncImagePainter.State.Error -> {
@@ -186,7 +189,13 @@ fun ColumnScope.ImageMessageContent(
                         blurHash = blurhash,
                         width = width,
                         height = height,
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.boundedMediaSize(
+                            minWidth,
+                            minHeight,
+                            maxWidth,
+                            maxHeight,
+                            aspectRatioOrNull(width, height),
+                        ),
                     )
                 }
             }
@@ -212,58 +221,26 @@ fun ColumnScope.ImageMessageContent(
     }
 }
 
-@Composable
-private fun rememberMediaDisplaySize(
-    width: Long?,
-    height: Long?,
-    minWidth: Dp,
-    minHeight: Dp,
-    maxWidth: Dp,
-    maxHeight: Dp,
-): DpSize? {
-    val density = LocalDensity.current
-    return remember(width, height, minWidth, minHeight, maxWidth, maxHeight, density) {
-        boundedMediaDisplaySize(
-            width = width,
-            height = height,
-            minWidth = minWidth,
-            minHeight = minHeight,
-            maxWidth = maxWidth,
-            maxHeight = maxHeight,
-            density = density,
-        )
-    }
-}
-
-private fun boundedMediaDisplaySize(
-    width: Long?,
-    height: Long?,
-    minWidth: Dp,
-    minHeight: Dp,
-    maxWidth: Dp,
-    maxHeight: Dp,
-    density: androidx.compose.ui.unit.Density,
-): DpSize? {
+private fun aspectRatioOrNull(width: Long?, height: Long?): Float? {
     val safeWidth = width?.takeIf { it > 0 } ?: return null
     val safeHeight = height?.takeIf { it > 0 } ?: return null
-    var targetWidth = with(density) { safeWidth.toFloat().toDp() }
-    var targetHeight = with(density) { safeHeight.toFloat().toDp() }
-
-    if (targetWidth > maxWidth || targetHeight > maxHeight) {
-        val downscale = minOf(maxWidth / targetWidth, maxHeight / targetHeight)
-        targetWidth *= downscale
-        targetHeight *= downscale
-    }
-
-    if (targetWidth < minWidth || targetHeight < minHeight) {
-        val upscale = maxOf(minWidth / targetWidth, minHeight / targetHeight)
-        val upscaledWidth = targetWidth * upscale
-        val upscaledHeight = targetHeight * upscale
-        if (upscaledWidth <= maxWidth && upscaledHeight <= maxHeight) {
-            targetWidth = upscaledWidth
-            targetHeight = upscaledHeight
-        }
-    }
-
-    return DpSize(targetWidth, targetHeight)
+    return safeWidth.toFloat() / safeHeight
 }
+
+private fun Modifier.boundedMediaSize(
+    minWidth: Dp,
+    minHeight: Dp,
+    maxWidth: Dp,
+    maxHeight: Dp,
+    aspectRatio: Float? = null,
+): Modifier = sizeIn(
+    minWidth = minWidth,
+    minHeight = minHeight,
+    maxWidth = maxWidth,
+    maxHeight = maxHeight,
+).then(
+    aspectRatio
+        ?.takeIf { it.isFinite() && it > 0f }
+        ?.let { Modifier.aspectRatio(it) }
+        ?: Modifier,
+)
