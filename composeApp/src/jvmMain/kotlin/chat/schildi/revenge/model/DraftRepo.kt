@@ -180,10 +180,9 @@ data class DraftValue(
         DraftType.TEXT,
         DraftType.NOTICE,
         DraftType.EMOTE,
-        DraftType.EDIT -> preferredFormat
-        // TODO I haven't taught captions to not do auto-markdown on the SDK side yet
+        DraftType.EDIT,
         DraftType.ATTACHMENT,
-        DraftType.EDIT_CAPTION -> preferredFormat.takeIf { it != ComposerFormat.PLAIN } ?: ComposerFormat.MARKDOWN
+        DraftType.EDIT_CAPTION -> preferredFormat
         else -> ComposerFormat.PLAIN
     }
     val body: String

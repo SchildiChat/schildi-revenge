@@ -81,6 +81,7 @@ import org.matrix.rustcomponents.sdk.PollData
 import org.matrix.rustcomponents.sdk.SendAttachmentJoinHandle
 import org.matrix.rustcomponents.sdk.UploadParameters
 import org.matrix.rustcomponents.sdk.UploadSource
+import org.matrix.rustcomponents.sdk.createCaptionEdit
 import org.matrix.rustcomponents.sdk.use
 import timber.log.Timber
 import uniffi.matrix_sdk.PaginationStatus
@@ -403,11 +404,12 @@ class RustTimeline(
         plaintext: Boolean,  // SC
     ): Result<Unit> = withContext(dispatcher) {
         runCatchingExceptions<Unit> {
-            val editedContent = EditedContent.MediaCaption(
+            val editedContent = createCaptionEdit(
                 caption = caption,
                 formattedCaption = formattedCaption?.let {
                     FormattedBody(body = it, format = MessageFormat.Html)
                 },
+                skipCaptionAutoformat = plaintext, // SC
                 mentions = null,
             )
             withContext(Dispatchers.IO) {
@@ -461,6 +463,7 @@ class RustTimeline(
                     formattedCaption = formattedCaption?.let {
                         FormattedBody(body = it, format = MessageFormat.Html)
                     },
+                    skipCaptionAutoformat = plaintext, // SC
                     mentions = null,
                     inReplyTo = inReplyToEventId?.value,
                 ),
@@ -488,6 +491,7 @@ class RustTimeline(
                     formattedCaption = formattedCaption?.let {
                         FormattedBody(body = it, format = MessageFormat.Html)
                     },
+                    skipCaptionAutoformat = plaintext, // SC
                     mentions = null,
                     inReplyTo = inReplyToEventId?.value,
                 ),
@@ -516,6 +520,7 @@ class RustTimeline(
                     formattedCaption = formattedCaption?.let {
                         FormattedBody(body = it, format = MessageFormat.Html)
                     },
+                    skipCaptionAutoformat = plaintext, // SC
                     mentions = null,
                     inReplyTo = inReplyToEventId?.value,
                 ),
@@ -547,6 +552,7 @@ class RustTimeline(
                     formattedCaption = formattedCaption?.let {
                         FormattedBody(body = it, format = MessageFormat.Html)
                     },
+                    skipCaptionAutoformat = plaintext, // SC
                     mentions = null,
                     inReplyTo = inReplyToEventId?.value,
                 ),
@@ -572,6 +578,7 @@ class RustTimeline(
                     formattedCaption = formattedCaption?.let {
                         FormattedBody(body = it, format = MessageFormat.Html)
                     },
+                    skipCaptionAutoformat = plaintext, // SC
                     mentions = null,
                     inReplyTo = inReplyToEventId?.value,
                 ),
@@ -630,6 +637,7 @@ class RustTimeline(
                     // Maybe allow a caption in the future?
                     caption = null,
                     formattedCaption = null,
+                    skipCaptionAutoformat = false, // SC
                     mentions = null,
                     inReplyTo = inReplyToEventId?.value,
                 ),
