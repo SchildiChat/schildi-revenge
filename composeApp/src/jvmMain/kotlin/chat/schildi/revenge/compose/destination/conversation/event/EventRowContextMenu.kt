@@ -26,6 +26,7 @@ import chat.schildi.revenge.compose.components.enterCommandModeContextMenuAction
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.DestinationEnum
+import chat.schildi.revenge.model.conversation.ConversationPermissions
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
@@ -55,11 +56,14 @@ import shire.res.generated.resources.action_view_read_receipts
 fun EventTimelineItem.contextMenu(
     sessionId: SessionId,
     roomId: RoomId,
+    permissions: ConversationPermissions?,
 ): ImmutableList<ContextMenuEntry> {
     val messageContent = content as? MessageContent ?: return persistentListOf()
-    val canSendMessages = true // TODO from permissions
-    val canSendReactions = true // TODO from permissions
-    val canRedact = isOwn // TODO from power levels
+    val canRedact = if (isOwn) {
+        permissions?.canRedactOwn ?: true
+    } else {
+        permissions?.canRedactOther ?: false
+    }
     return listOfNotNull(
         ContextMenuActionEntry(
             Res.string.action_download_and_open.toStringHolder(),
@@ -84,7 +88,7 @@ fun EventTimelineItem.contextMenu(
             rememberVectorPainter(Icons.AutoMirrored.Default.Reply),
             Action.Event.ComposeReply,
             keyboardShortcut = Key.R,
-        ).takeIf { canSendMessages },
+        ).takeIf { permissions?.canSendMessages ?: false },
         ContextMenuActionEntry(
             Res.string.action_thread.toStringHolder(),
             rememberVectorPainter(Icons.Default.Gesture),
@@ -97,13 +101,13 @@ fun EventTimelineItem.contextMenu(
             rememberVectorPainter(Icons.Default.Edit),
             Action.Event.ComposeEdit,
             keyboardShortcut = Key.E,
-        ).takeIf { isOwn && canSendMessages },
+        ).takeIf { isOwn && (permissions?.canSendMessages ?: true) },
         ContextMenuActionEntry(
             Res.string.action_react.toStringHolder(),
             rememberVectorPainter(Icons.Default.AddReaction),
             Action.Event.ComposeReaction,
             keyboardShortcut = Key.C,
-        ).takeIf { canSendReactions },
+        ).takeIf { permissions?.canSendReactions ?: false },
         ContextMenuActionEntry(
             Res.string.action_view_reactions.toStringHolder(),
             rememberVectorPainter(Icons.Default.EmojiPeople),

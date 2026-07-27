@@ -404,7 +404,7 @@ class ConversationViewModel(
     private val _highlightedActionEventId = MutableStateFlow<EventOrTransactionId?>(null)
     val highlightedActionEventId = _highlightedActionEventId.asStateFlow()
 
-    private val roomPermissions = joinedRoom.flatMapLatest { room ->
+    val roomPermissions = joinedRoom.flatMapLatest { room ->
         room?.permissionsFlow(null) {
             ConversationPermissions(
                 canSendMessages = it.canOwnUserSendMessage(MessageEventType.RoomMessage),

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -71,9 +72,10 @@ fun EventRow(
     val formatInteractionState = messageMetadata?.preFormattedContent?.let {
         rememberMatrixFormatInteractionState(it)
     }
+    val roomPermissions = viewModel.roomPermissions.collectAsState().value
     WithContextMenu(
         focusId,
-        event.contextMenu(viewModel.sessionId, viewModel.roomId),
+        event.contextMenu(viewModel.sessionId, viewModel.roomId, roomPermissions),
     ) { openContextMenu ->
         Column(
             modifier
