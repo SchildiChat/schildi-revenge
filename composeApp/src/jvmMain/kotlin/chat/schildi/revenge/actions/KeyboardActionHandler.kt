@@ -404,7 +404,7 @@ class KeyboardActionHandler(
     private val _editPersistInProgress = MutableStateFlow<ImmutableSet<Any>>(persistentSetOf())
     val editPersistInProgress = _editPersistInProgress.asStateFlow()
 
-    private val _keyboardPrimary = MutableStateFlow(true)
+    private val _keyboardPrimary = MutableStateFlow(false)
     val keyboardPrimary = combine(
         _keyboardPrimary,
         RevengePrefs.settingFlow(ScPrefs.ALWAYS_SHOW_KEYBOARD_FOCUS),
@@ -540,7 +540,6 @@ class KeyboardActionHandler(
         parentId: Uuid? = null,
         vararg roles: FocusRole,
     ): Boolean {
-        _keyboardPrimary.value = true
         val filtered = if (parentId == null && roles.isEmpty()) {
             focusableTargets.values
         } else {
@@ -867,6 +866,7 @@ class KeyboardActionHandler(
             }
 
             KeyMapped.Enter -> {
+                _keyboardPrimary.value = true
                 updateMode { mode.copy(navigating = true) }
                 windowCoordinates?.let {
                     focusClosestTo(it.topCenter, allowPartial = true, roles = FOCUSABLE_LIST_ITEMS)
@@ -1503,6 +1503,7 @@ class KeyboardActionHandler(
             action: Action.Focus,
             args: List<String>
         ): ActionResult {
+            _keyboardPrimary.value = true
             return when (action) {
                 Action.Focus.FocusUp -> moveFocus(FocusDirection.Up, context.focused())
                 Action.Focus.FocusDown -> moveFocus(FocusDirection.Down, context.focused())

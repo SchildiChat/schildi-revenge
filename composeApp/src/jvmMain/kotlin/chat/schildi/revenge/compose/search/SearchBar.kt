@@ -51,7 +51,7 @@ fun SearchBar(
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
             .keyFocusable(role = FocusRole.SEARCH_BAR),
-        maxLines = 1,
+        singleLine = true,
         keyboardActions = KeyboardActions {
             handler.onSearchEnter(searchProvider, searchFocusContainer)
         },
