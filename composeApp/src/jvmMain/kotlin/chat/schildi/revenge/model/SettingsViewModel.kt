@@ -6,10 +6,10 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.lib.preferences.AbstractScPref
 import chat.schildi.lib.preferences.ScPrefContainer
-import chat.schildi.revenge.preferences.ScPrefFilter
+import chat.schildi.lib.preferences.ScPrefFilter
 import chat.schildi.lib.preferences.ScPrefScreen
 import chat.schildi.lib.preferences.ScPrefs
-import chat.schildi.revenge.preferences.filteredBy
+import chat.schildi.lib.preferences.filteredBy
 import chat.schildi.lib.preferences.findPreferenceContainer
 import chat.schildi.revenge.preferences.hasDirectChild
 import chat.schildi.revenge.Destination

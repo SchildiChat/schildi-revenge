@@ -4,6 +4,7 @@ import chat.schildi.resources.toStringHolder
 import chat.schildi.resources.AvailableLocales
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.runBlocking
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.hint_composer_format_html
 import shire.res.generated.resources.hint_composer_format_markdown
@@ -204,13 +205,13 @@ object ScPrefs {
     val LAYOUT_WEIGHT_SETTINGS_ROOT = ScIntPref("LAYOUT_WEIGHT_SETTINGS_ROOT", 80, Res.string.pref_layout_weight_settings_root_title, minValue = 20, maxValue = 1000, allowLiveSliderChange = false)
 
     // Notifications
-    val DESKTOP_NOTIFICATIONS = ScBoolPref("DESKTOP_NOTIFICATIONS", true, Res.string.pref_desktop_notifications_title, Res.string.pref_desktop_notifications_summary)
+    val DESKTOP_NOTIFICATIONS = ScBoolPref("DESKTOP_NOTIFICATIONS", true, Res.string.pref_desktop_notifications_title, Res.string.pref_desktop_notifications_summary, supportedOnPlatform = scPrefPlatformSupport.desktopOnly)
 
     // Tray icon
-    val CLOSE_TO_TRAY = ScBoolPref("CLOSE_TO_TRAY", true, Res.string.pref_close_to_tray_title, Res.string.pref_close_to_tray_summary)
+    val CLOSE_TO_TRAY = ScBoolPref("CLOSE_TO_TRAY", true, Res.string.pref_close_to_tray_title, Res.string.pref_close_to_tray_summary, supportedOnPlatform = scPrefPlatformSupport.desktopOnly)
 
     // Keyboard navigation
-    val MINIMAL_MODE = ScBoolPref("MINIMAL_MODE", false, Res.string.pref_minimal_mode_title, Res.string.pref_minimal_mode_summary)
+    val MINIMAL_MODE = ScBoolPref("MINIMAL_MODE", false, Res.string.pref_minimal_mode_title, Res.string.pref_minimal_mode_summary, supportedOnPlatform = scPrefPlatformSupport.desktopOnly)
     val ALWAYS_SHOW_KEYBOARD_FOCUS = ScBoolPref("ALWAYS_SHOW_KEYBOARD_FOCUS", false, Res.string.pref_always_show_keyboard_focus)
     val FOCUS_FOLLOWS_MOUSE = ScBoolPref("FOCUS_FOLLOWS_MOUSE", false, Res.string.pref_focus_follows_mouse_title, Res.string.pref_focus_follows_mouse_summary)
 
@@ -229,12 +230,12 @@ object ScPrefs {
 
     // Appearance
     val LOCALE = ScStringListPref("LOCALE", "", availableLocaleSettings, Res.string.pref_locale, allowNonEntryValues = true)
-    val INITIAL_WINDOW_WIDTH = ScIntPref("INITIAL_WINDOW_WIDTH", 900, Res.string.pref_initial_window_width_title, Res.string.pref_initial_window_width_summary, minValue = 600, maxValue = 3840)
-    val INITIAL_WINDOW_HEIGHT = ScIntPref("INITIAL_WINDOW_HEIGHT", 1200, Res.string.pref_initial_window_height_title, Res.string.pref_initial_window_height_summary, minValue = 600, maxValue = 2160)
-    val HIDE_WINDOW_DECORATION = ScBoolPref("HIDE_WINDOW_DECORATION", false, Res.string.pref_hide_window_decoration_title, Res.string.pref_hide_window_decoration_summary, requiresWindowRecreation = true)
-    val ANIMATE_AVATARS = ScBoolPref("ANIMATE_AVATARS", false, Res.string.pref_animate_avatars_title, Res.string.pref_animate_avatars_summary)
-    val BACKGROUND_ALPHA_LIGHT = ScFloatPref("BACKGROUND_ALPHA_LIGHT", 1f, Res.string.pref_window_transparency_title, Res.string.pref_window_transparency_summary, minValue = 0f, maxValue = 1f, dependencies = HIDE_WINDOW_DECORATION.asDependencies(), stepSize = 0.01f, stringFormat = "%.2f")
-    val BACKGROUND_ALPHA_DARK = ScFloatPref("BACKGROUND_ALPHA_DARK", 1f, Res.string.pref_window_transparency_title, Res.string.pref_window_transparency_summary, minValue = 0f, maxValue = 1f, dependencies = HIDE_WINDOW_DECORATION.asDependencies(), stepSize = 0.01f, stringFormat = "%.2f")
+    val INITIAL_WINDOW_WIDTH = ScIntPref("INITIAL_WINDOW_WIDTH", 900, Res.string.pref_initial_window_width_title, Res.string.pref_initial_window_width_summary, minValue = 600, maxValue = 3840, supportedOnPlatform = scPrefPlatformSupport.desktopOnly)
+    val INITIAL_WINDOW_HEIGHT = ScIntPref("INITIAL_WINDOW_HEIGHT", 1200, Res.string.pref_initial_window_height_title, Res.string.pref_initial_window_height_summary, minValue = 600, maxValue = 2160, supportedOnPlatform = scPrefPlatformSupport.desktopOnly)
+    val HIDE_WINDOW_DECORATION = ScBoolPref("HIDE_WINDOW_DECORATION", false, Res.string.pref_hide_window_decoration_title, Res.string.pref_hide_window_decoration_summary, requiresWindowRecreation = true, supportedOnPlatform = scPrefPlatformSupport.desktopOnly)
+    val ANIMATE_AVATARS = ScBoolPref("ANIMATE_AVATARS", false, Res.string.pref_animate_avatars_title, Res.string.pref_animate_avatars_summary, supportedOnPlatform = scPrefPlatformSupport.desktopOnly)
+    val BACKGROUND_ALPHA_LIGHT = ScFloatPref("BACKGROUND_ALPHA_LIGHT", 1f, Res.string.pref_window_transparency_title, Res.string.pref_window_transparency_summary, minValue = 0f, maxValue = 1f, dependencies = HIDE_WINDOW_DECORATION.asDependencies(), stepSize = 0.01f, stringFormat = "%.2f", supportedOnPlatform = scPrefPlatformSupport.desktopOnly)
+    val BACKGROUND_ALPHA_DARK = ScFloatPref("BACKGROUND_ALPHA_DARK", 1f, Res.string.pref_window_transparency_title, Res.string.pref_window_transparency_summary, minValue = 0f, maxValue = 1f, dependencies = HIDE_WINDOW_DECORATION.asDependencies(), stepSize = 0.01f, stringFormat = "%.2f", supportedOnPlatform = scPrefPlatformSupport.desktopOnly)
     val THEME_FOLLOW_SYSTEM = ScBoolPref("THEME_FOLLOW_SYSTEM", true, Res.string.pref_theme_follow_system_title, Res.string.pref_theme_follow_system_summary)
     val THEME_DARK = ScBoolPref("THEME_DARK", false, Res.string.pref_dark_theme_title, dependencies = listOf(THEME_FOLLOW_SYSTEM.toDependency(expect = false)))
 
@@ -325,15 +326,15 @@ object ScPrefs {
     val MESSAGE_AVATAR_SIZE = ScIntPref("MESSAGE_AVATAR_SIZE", 48, Res.string.pref_message_avatar_size_title, Res.string.pref_message_font_size_summary, minValue = 18, maxValue = 96)
 
     // Composer
-    val AUTO_HIDE_COMPOSER = ScBoolPref("AUTO_HIDE_COMPOSER", false, Res.string.pref_auto_hide_composer_title, Res.string.pref_auto_hide_composer_summary, dependencies = MINIMAL_MODE.asDependencies())
+    val AUTO_HIDE_COMPOSER = ScBoolPref("AUTO_HIDE_COMPOSER", false, Res.string.pref_auto_hide_composer_title, Res.string.pref_auto_hide_composer_summary, dependencies = MINIMAL_MODE.asDependencies(), supportedOnPlatform = scPrefPlatformSupport.desktopOnly)
     val SEND_TYPING_NOTICE = ScBoolPref("SEND_TYPING_NOTICE", true, Res.string.pref_send_typing_notice_title, Res.string.pref_send_typing_notice_summary)
     val DISABLE_SEND_TYPING_NOTICE_IN_PUBLIC_ROOMS = ScBoolPref("DISABLE_SEND_TYPING_NOTICE_IN_PUBLIC_ROOMS", false, Res.string.pref_disable_typing_notice_in_public_rooms_title, Res.string.pref_disable_typing_notice_in_public_rooms_summary, dependencies = SEND_TYPING_NOTICE.asDependencies())
 
     // Advanced / low-level stuff
-    val SKIKO_VSYNC = ScBoolPref("SKIKO_VSYNC", true, Res.string.pref_skiko_vsync_title, Res.string.pref_skiko_vsync_summary, requiresWindowRecreation = true)
+    val SKIKO_VSYNC = ScBoolPref("SKIKO_VSYNC", true, Res.string.pref_skiko_vsync_title, Res.string.pref_skiko_vsync_summary, requiresWindowRecreation = true, supportedOnPlatform = scPrefPlatformSupport.desktopOnly)
     val SDK_SQLITE_MAX_POOL_SIZE = ScIntPref("SDK_SQLITE_MAX_POOL_SIZE", 8, Res.string.pref_sdk_sqlite_max_pool_size_title, Res.string.pref_sdk_sqlite_max_pool_size_summary, minValue = 2, maxValue = 64)
 
-    val rootPrefs = ScPrefScreen("ROOT", Res.string.hint_settings, null, listOf<AbstractScPref>(
+    val rootPrefsAllPlatforms = ScPrefScreen("ROOT", Res.string.hint_settings, null, listOf<AbstractScPref>(
         ScPrefScreen("GENERAL", Res.string.pref_category_general, Res.string.pref_category_general_summary, listOf(
             LOCALE,
             CLOSE_TO_TRAY,
@@ -466,6 +467,15 @@ object ScPrefs {
             FRAME_DROP_SPINNER,
         )),
     ))
+
+    // filteredBy is suspend to allow filters with suspend functions, but we don't actually have that here
+    val rootPrefs = runBlocking {
+        rootPrefsAllPlatforms.filteredBy(
+            ScPrefFilter(
+                predicate = { it.supportedOnPlatform },
+            )
+        )
+    }
 
     val validSettingKeys = rootPrefs.prefs.collectScPrefs().map { it.sKey }.toSet()
     val validCategoryKeys = buildList {

@@ -16,6 +16,7 @@ sealed interface AbstractScPref {
     val summaryRes: StringResource?
 
     val dependencies: List<ScPrefDependency>
+    val supportedOnPlatform: Boolean
 }
 
 sealed interface ScPref<T> : AbstractScPref {
@@ -44,6 +45,7 @@ data class ScPrefScreen(
     override val summaryRes: StringResource?,
     override val prefs: List<AbstractScPref>,
     override val dependencies: List<ScPrefDependency> = emptyList(),
+    override val supportedOnPlatform: Boolean = true,
 ) : ScPrefContainer {
     override fun copyWithPrefs(prefs: List<AbstractScPref>) = copy(prefs = prefs)
 }
@@ -54,6 +56,7 @@ data class ScPrefCategory(
     override val summaryRes: StringResource?,
     override val prefs: List<AbstractScPref>,
     override val dependencies: List<ScPrefDependency> = emptyList(),
+    override val supportedOnPlatform: Boolean = true,
 ) : ScPrefContainer {
     override fun copyWithPrefs(prefs: List<AbstractScPref>) = copy(prefs = prefs)
 }
@@ -67,6 +70,7 @@ data class ScPrefCategoryCollapsed(
     override val disabledValue: Boolean = defaultValue,
     override val prefs: List<AbstractScPref>,
     override val dependencies: List<ScPrefDependency> = emptyList(),
+    override val supportedOnPlatform: Boolean = true,
 ) : ScPrefContainer, ScPref<Boolean> {
     override val key = booleanPreferencesKey(sKey)
     override fun ensureType(value: Any?): Boolean? {
@@ -86,6 +90,7 @@ data class ScPrefCollection(
     override val titleRes: StringResource,
     override val prefs: List<AbstractScPref>,
     override val dependencies: List<ScPrefDependency> = emptyList(),
+    override val supportedOnPlatform: Boolean = true,
 ) : ScPrefContainer {
     override val summaryRes: StringResource? = null
     override fun copyWithPrefs(prefs: List<AbstractScPref>) = copy(prefs = prefs)
@@ -98,6 +103,7 @@ data class ScBoolPref(
     override val summaryRes: StringResource? = null,
     override val disabledValue: Boolean? = defaultValue,
     override val dependencies: List<ScPrefDependency> = emptyList(),
+    override val supportedOnPlatform: Boolean = true,
     override val requiresWindowRecreation: Boolean = false,
 ): ScPref<Boolean> {
     override val key = booleanPreferencesKey(sKey)
@@ -119,6 +125,7 @@ data class ScIntPref(
     override val summaryRes: StringResource? = null,
     override val disabledValue: Int? = defaultValue,
     override val dependencies: List<ScPrefDependency> = emptyList(),
+    override val supportedOnPlatform: Boolean = true,
     override val requiresWindowRecreation: Boolean = false,
     val minValue: Int = Int.MIN_VALUE,
     val maxValue: Int = Int.MAX_VALUE,
@@ -145,6 +152,7 @@ data class ScFloatPref(
     override val summaryRes: StringResource? = null,
     override val disabledValue: Float? = defaultValue,
     override val dependencies: List<ScPrefDependency> = emptyList(),
+    override val supportedOnPlatform: Boolean = true,
     override val requiresWindowRecreation: Boolean = false,
     val minValue: Float = Float.MIN_VALUE,
     val maxValue: Float = Float.MAX_VALUE,
@@ -172,6 +180,7 @@ data class ScStringPref(
     override val summaryRes: StringResource? = null,
     override val disabledValue: String = defaultValue,
     override val dependencies: List<ScPrefDependency> = emptyList(),
+    override val supportedOnPlatform: Boolean = true,
     override val requiresWindowRecreation: Boolean = false,
 ): ScPref<String> {
     override val key = stringPreferencesKey(sKey)
@@ -205,6 +214,7 @@ data class ScStringListPref(
     override val summaryRes: StringResource? = null,
     override val disabledValue: String = defaultValue,
     override val dependencies: List<ScPrefDependency> = emptyList(),
+    override val supportedOnPlatform: Boolean = true,
     override val requiresWindowRecreation: Boolean = false,
     val allowNonEntryValues: Boolean = false,
 ): ScListPref<String> {
@@ -228,6 +238,7 @@ data class ScColorPref(
     override val defaultValue: Int = FOLLOW_THEME_VALUE,
     override val disabledValue: Int = defaultValue,
     override val dependencies: List<ScPrefDependency> = emptyList(),
+    override val supportedOnPlatform: Boolean = true,
 ): ScPref<Int> {
     override val key = intPreferencesKey(sKey)
     override fun ensureType(value: Any?): Int? {
