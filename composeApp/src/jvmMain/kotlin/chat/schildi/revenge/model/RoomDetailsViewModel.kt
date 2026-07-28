@@ -16,6 +16,7 @@ import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.resources.ComposableStringHolder
 import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.util.flowClosable
+import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -35,6 +36,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 
 data class RoomSettingsPermissions(
     val canEditName: Boolean = false,
@@ -167,6 +171,23 @@ class RoomDetailsViewModel(
     val predecessorRoom = baseRoom.map { room ->
         room?: return@map null
         room.predecessorRoom()
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val roomType = baseRoom.map { room ->
+        room ?: return@map null
+        room.getRawState("m.room.create", "")
+            .onFailure { log.e("Failed to get room creation event", it) }
+            .getOrNull()
+            ?.let { rawEvent ->
+                tryOrNull {
+                    Json.parseToJsonElement(rawEvent)
+                        .jsonObject["content"]
+                        ?.jsonObject
+                        ?.get("type")
+                        ?.jsonPrimitive
+                        ?.contentOrNull
+                }
+            }
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val actionProvider = RoomActionProvider(

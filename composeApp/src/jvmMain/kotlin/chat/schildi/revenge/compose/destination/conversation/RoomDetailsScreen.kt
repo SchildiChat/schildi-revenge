@@ -104,6 +104,7 @@ import shire.res.generated.resources.hint_public_room
 import shire.res.generated.resources.hint_room_id
 import shire.res.generated.resources.hint_room_name_private
 import shire.res.generated.resources.hint_room_predecessor
+import shire.res.generated.resources.hint_room_type
 import shire.res.generated.resources.hint_room_version
 import shire.res.generated.resources.hint_topic
 import shire.res.generated.resources.history_visibility_custom
@@ -182,6 +183,7 @@ fun RoomDetailsScreen(
         val topic = viewModel.topic.collectAsState().value
         val permissions = viewModel.roomSettingsPermissions.collectAsState().value ?: RoomSettingsPermissions()
         val predecessorRoom = viewModel.predecessorRoom.collectAsState().value
+        val roomType = viewModel.roomType.collectAsState().value
         val destinationState = LocalDestinationState.current
         Column(contentModifier.fillMaxSize()) {
             ConversationDetailsTopNavigation(stringResource(Res.string.room_details_title)) {
@@ -365,6 +367,14 @@ fun RoomDetailsScreen(
                                 viewModel.roomId.value,
                                 monospace = true,
                             )
+                        }
+                        roomType?.let { roomType ->
+                            item {
+                                RoomInfoAdvancedInfoField(
+                                    stringResource(Res.string.hint_room_type),
+                                    roomType,
+                                )
+                            }
                         }
                         info.roomVersion?.let { roomVersion ->
                             item {
