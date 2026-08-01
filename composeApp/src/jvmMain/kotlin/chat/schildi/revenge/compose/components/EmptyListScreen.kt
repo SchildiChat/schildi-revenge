@@ -33,12 +33,13 @@ fun EmptyListScreen(
     title: ComposableStringHolder,
     icon: Painter,
     renderedSearchTerm: String?,
+    modifier: Modifier = Modifier,
     isLoading: Boolean = false,
     searchProvider: SearchProvider = LocalSearchProvider.current ?: run {
         throw IllegalStateException("No search provider for EmptyListScreen with rendered search term detection")
     },
-    modifier: Modifier = Modifier,
     loadState: StateFlow<LoadState>? = null,
+    actionContent: @Composable () -> Unit = {},
 ) {
     val currentSearchTerm = LocalKeyboardActionHandler.current
         .searchQueryForDestination(searchProvider).collectAsState(null).value
@@ -52,6 +53,7 @@ fun EmptyListScreen(
         isLoading = isLoading,
         modifier = modifier,
         loadState = loadState,
+        actionContent = actionContent,
     )
 }
 
@@ -60,10 +62,11 @@ fun EmptyListScreen(
     title: ComposableStringHolder,
     icon: Painter,
     isSearching: Boolean,
+    modifier: Modifier = Modifier,
     isSearchInProgress: Boolean = false,
     isLoading: Boolean = false,
-    modifier: Modifier = Modifier,
     loadState: StateFlow<LoadState>? = null,
+    actionContent: @Composable () -> Unit = {},
 ) {
     if (isSearching) {
         EmptySearchListScreen(
@@ -79,6 +82,7 @@ fun EmptyListScreen(
             title = title,
             icon = icon,
             modifier = modifier,
+            actionContent = actionContent,
         )
     }
 }
@@ -87,6 +91,7 @@ fun EmptyListScreen(
 fun EmptySearchListScreen(
     modifier: Modifier = Modifier,
     inProgress: Boolean = false,
+    actionContent: @Composable () -> Unit = {},
 ) {
     EmptyListScreen(
         title = if (inProgress)
@@ -95,6 +100,7 @@ fun EmptySearchListScreen(
             Res.string.empty_screen_placeholder_search.toStringHolder(),
         icon = rememberVectorPainter(Icons.Default.Search),
         modifier = modifier,
+        actionContent = actionContent,
     )
 }
 
@@ -103,6 +109,7 @@ fun EmptyListScreen(
     title: ComposableStringHolder,
     icon: Painter,
     modifier: Modifier = Modifier,
+    actionContent: @Composable () -> Unit = {},
 ) {
     Box(
         modifier,
@@ -123,6 +130,7 @@ fun EmptyListScreen(
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+            actionContent()
         }
     }
 }

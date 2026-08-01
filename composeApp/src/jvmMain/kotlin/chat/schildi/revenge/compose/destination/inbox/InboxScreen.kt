@@ -24,6 +24,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Inbox
 import androidx.compose.material.icons.filled.TravelExplore
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -52,6 +54,9 @@ import chat.schildi.revenge.compose.components.EmptyListScreen
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.resources.toStringHolder
+import chat.schildi.revenge.actions.InteractionAction
+import chat.schildi.revenge.actions.actionProvider
+import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.DraftRepo
 import chat.schildi.revenge.model.InboxViewModel
 import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_NO_FILTER
@@ -60,10 +65,13 @@ import chat.schildi.revenge.model.spaces.filterByVisible
 import chat.schildi.revenge.model.spaces.resolveSelection
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
+import chat.schildi.theme.scExposures
 import kotlinx.collections.immutable.persistentSetOf
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
+import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_account_management
 import shire.res.generated.resources.empty_screen_placeholder_inbox
 import shire.res.generated.resources.empty_screen_placeholder_space
 
@@ -209,7 +217,25 @@ fun InboxScreen(
                             renderedSearchTerm = roomsState?.searchTerm,
                             isLoading = roomsState == null,
                             modifier = Modifier.fillMaxSize(),
-                        )
+                        ) {
+                            if (accounts != null && accounts.isEmpty()) {
+                                Text(
+                                    stringResource(Res.string.action_account_management),
+                                    color = MaterialTheme.scExposures.accentColor,
+                                    style = MaterialTheme.typography.labelLarge,
+                                    modifier = Modifier
+                                        .padding(Dimens.listPadding)
+                                        .keyFocusable(
+                                            role = FocusRole.AUX_ITEM,
+                                            actionProvider = actionProvider(
+                                                primaryAction = InteractionAction.Navigate {
+                                                    Destination.AccountManagement()
+                                                }
+                                            ),
+                                        ),
+                                )
+                            }
+                        }
                     }
                 } else {
                     LazyColumn(
