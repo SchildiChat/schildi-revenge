@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
@@ -380,7 +381,8 @@ private fun NewLogin(viewModel: AccountManagementViewModel) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Dimens.windowPadding),
+            .padding(horizontal = Dimens.windowPadding)
+            .imePadding(),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         val error = loginError.value ?: hsDetails?.exceptionOrNull()?.let {
