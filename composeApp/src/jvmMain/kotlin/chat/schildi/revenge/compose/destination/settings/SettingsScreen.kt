@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Info
@@ -63,8 +64,8 @@ import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.about
 import shire.res.generated.resources.action_close
-import shire.res.generated.resources.diagnostics
 import shire.res.generated.resources.empty_screen_placeholder_unexpected
+import shire.res.generated.resources.manage_accounts
 
 private val LocalRootPreferenceViewModel = compositionLocalOf<MutableState<SettingsViewModel?>?> { null }
 
@@ -153,16 +154,16 @@ fun SettingsScreen(
                 if (viewModel.isRootPreferences) {
                     TopNavigationSearchOrTitle(stringResource(viewModel.prefScreen.collectAsState().value.prefScreen.titleRes))
                     TopNavigationIcon(
-                        Icons.Default.BugReport,
-                        stringResource(Res.string.diagnostics)
-                    ) {
-                        destinationState?.navigate(Destination.Diagnostics)
-                    }
-                    TopNavigationIcon(
                         Icons.Default.Info,
                         stringResource(Res.string.about)
                     ) {
                         destinationState?.navigate(Destination.About)
+                    }
+                    TopNavigationIcon(
+                        Icons.Default.AccountCircle,
+                        stringResource(Res.string.manage_accounts)
+                    ) {
+                        destinationState?.navigate(Destination.AccountManagement())
                     }
                     TopNavigationCloseOrNavigateToInboxIcon()
                 } else {
