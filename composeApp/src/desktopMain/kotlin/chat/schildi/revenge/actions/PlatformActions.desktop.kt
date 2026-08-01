@@ -15,3 +15,9 @@ internal actual fun platformOpenFile(file: File, mimeType: String?): ActionResul
     Desktop.getDesktop().open(file)
     return ActionResult.Success()
 }
+
+@Suppress("UNUSED_PARAMETER")
+internal actual fun platformPersistDownload(file: File, filename: String?, mimeType: String?): ActionResult {
+    Desktop.getDesktop().open(file.parentFile)
+    return ActionResult.Success()
+}

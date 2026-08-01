@@ -40,6 +40,7 @@ import chat.schildi.revenge.actions.orActionInapplicable
 import chat.schildi.revenge.actions.orActionValidationError
 import chat.schildi.revenge.actions.parseRoomStateSnapshot
 import chat.schildi.revenge.actions.platformOpenFile
+import chat.schildi.revenge.actions.platformPersistDownload
 import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.resources.StringResourceHolder
@@ -194,7 +195,6 @@ import shire.res.generated.resources.command_loading_event
 import shire.res.generated.resources.command_loading_timeline_at
 import shire.res.generated.resources.toast_attachment_download_path_success
 import shire.res.generated.resources.toast_attachment_download_success
-import java.awt.Desktop
 import java.io.File
 import java.lang.IllegalArgumentException
 import java.util.concurrent.atomic.AtomicReference
@@ -2431,13 +2431,11 @@ class ConversationViewModel(
         event: EventTimelineItem,
     ) = context.downloadFile(event) { file ->
         try {
-            // View in file explorer
-            val desktop = Desktop.getDesktop()
-            desktop.open(file.parentFile)
+            platformPersistDownload(file, event.mediaFilename(), event.mediaMimetype())
         } catch (t: Throwable) {
-            log.e("Failed to open file explorer", t)
+            log.e("Failed to persist downloaded file", t)
+            ActionResult.Failure(t.message ?: "Failed to persist downloaded file")
         }
-        ActionResult.Success()
     }
 
     fun downloadFileAndOpen(
@@ -2474,6 +2472,11 @@ class ConversationViewModel(
             )
             val file = result.getOrNull()
             if (file != null) {
+                onSuccess(file).also {
+                    if (it !is ActionResult.Success) {
+                        return@launchActionAsync it
+                    }
+                }
                 publishMessage(
                     AppMessage(
                         if (platformHasUserFacingFilePaths) {
@@ -2486,11 +2489,6 @@ class ConversationViewModel(
                         uniqueId = appMessageId,
                     )
                 )
-                onSuccess(file).also {
-                    if (it !is ActionResult.Success) {
-                        return@launchActionAsync it
-                    }
-                }
             }
             result.toActionResult(notifySuccess = false)
         }
