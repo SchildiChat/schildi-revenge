@@ -9,6 +9,7 @@ import chat.schildi.matrixsdk.ImagePackImageSource
 import chat.schildi.matrixsdk.ImagePackImageWithRawInfo
 import chat.schildi.lib.preferences.ComposerFormat
 import chat.schildi.revenge.model.conversation.ConversationPermissions
+import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.ThreadId
@@ -286,6 +287,7 @@ data class DraftTheme(
 // TODO may add some persistent storage to this one to survive restarts & crashes
 @OptIn(ExperimentalAtomicApi::class)
 object DraftRepo {
+    private val log = Logger.withTag("DraftRepo")
     private val drafts = MutableStateFlow<ImmutableMap<DraftKey, DraftValue>>(persistentMapOf())
     private val globalDraftTheme = AtomicReference(DraftTheme.uninitialized)
 
@@ -294,12 +296,13 @@ object DraftRepo {
     }
 
     fun update(draftKey: DraftKey, draftValue: DraftValue, allowWhileSendInProgress: Boolean = false) {
+        val newValue = draftValue.sanitized()
         drafts.update {
             val oldValue = it[draftKey]
             if (oldValue?.isSendInProgress == true && !allowWhileSendInProgress) {
                 return@update it
             }
-            (it + (draftKey to maintainAnnotations(draftValue, oldValue))).toPersistentMap()
+            (it + (draftKey to maintainAnnotations(newValue, oldValue))).toPersistentMap()
         }
     }
 
@@ -315,7 +318,7 @@ object DraftRepo {
                 updated = false
                 return@update it
             }
-            val value = transform(oldValue)
+            val value = transform(oldValue)?.sanitized()
             updated = value != oldValue
             if (value == null) {
                 it - draftKey
@@ -424,5 +427,44 @@ object DraftRepo {
                 }
             }
         }
+    }
+
+    private fun DraftValue.sanitized(): DraftValue {
+        var result = this
+        // Enforce draft type were it's clear, rather than dropping the reference on accident
+        if (attachment != null && type != DraftType.ATTACHMENT) {
+            log.w("Unexpected attachment for draft type $type, enforce attachment")
+            result = result.copy(type = DraftType.ATTACHMENT)
+        }
+        // Clear draft types with insufficient information
+        val isDraftTypeFulfilled = when (type) {
+            DraftType.TEXT,
+            DraftType.NOTICE,
+            DraftType.EMOTE,
+            DraftType.STICKER -> true
+            DraftType.EDIT,
+            DraftType.EDIT_CAPTION -> editEventId != null
+            DraftType.REACTION -> inReplyTo != null
+            DraftType.ATTACHMENT -> attachment != null
+            DraftType.CUSTOM_EVENT,
+            DraftType.CUSTOM_STATE_EVENT -> customEventType != null
+        }
+        if (!isDraftTypeFulfilled) {
+            log.e("Unsatisfied draft type $type, fall back to text")
+            result = result.copy(type = DraftType.TEXT)
+        }
+        // initial body sanity
+        val expectInitialBody = if (type == DraftType.REACTION) {
+            ":"
+        } else if (editEventId == null) {
+            ""
+        } else {
+            null
+        }
+        if (expectInitialBody != null && initialBody != expectInitialBody) {
+            log.w("Unexpected initial body for draft type $type, edit $editEventId, correcting")
+            result = result.copy(initialBody = expectInitialBody)
+        }
+        return result
     }
 }

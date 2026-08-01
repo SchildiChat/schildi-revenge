@@ -118,7 +118,7 @@ fun ComposerRow(
         if (draftState.inReplyTo != null) {
             Row(Modifier.padding(horizontal = Dimens.windowPadding), verticalAlignment = Alignment.CenterVertically) {
                 ReplyContent(draftState.inReplyTo, null, Modifier.weight(1f))
-                ClearReplyButton(Modifier.padding(start = Dimens.horizontalItemPadding)) {
+                ClearButton(Modifier.padding(start = Dimens.horizontalItemPadding)) {
                     viewModel.onComposerUpdate(draftState.copy(inReplyTo = null))
                 }
             }
@@ -290,6 +290,10 @@ fun ComposerRow(
                             color = MaterialTheme.scExposures.accentColor,
                         )
                     }
+                } else if (draftState.type.needsClearButton() && draftState.isEmpty()) {
+                    ClearButton {
+                        viewModel.onComposerUpdate(draftState.copy(type = DraftType.TEXT))
+                    }
                 } else {
                     SendButton(
                         enabled = draftState.canSend() && bodyValidationError == null,
@@ -299,6 +303,22 @@ fun ComposerRow(
             }
         }
     }
+}
+
+private fun DraftType.needsClearButton() = when (this) {
+    // Default composer type
+    DraftType.TEXT,
+    // Can be cleared via dedicated UI already
+    DraftType.EDIT,
+    DraftType.ATTACHMENT,
+    DraftType.EDIT_CAPTION,
+    DraftType.STICKER -> false
+    // Non-standard composer types, non-keyboard users may get lost without clear button
+    DraftType.NOTICE,
+    DraftType.EMOTE,
+    DraftType.REACTION,
+    DraftType.CUSTOM_EVENT,
+    DraftType.CUSTOM_STATE_EVENT -> true
 }
 
 @Composable
@@ -376,7 +396,7 @@ fun SendButton(enabled: Boolean, onClick: () -> Unit, modifier: Modifier = Modif
 }
 
 @Composable
-fun ClearReplyButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
+fun ClearButton(modifier: Modifier = Modifier, onClick: () -> Unit) {
     IconButton(onClick = onClick, modifier = modifier) {
         Icon(
             Icons.Default.Clear,
