@@ -1,6 +1,8 @@
 package chat.schildi.revenge.media
 
 import chat.schildi.revenge.config.ScAppDirs
+import chat.schildi.revenge.util.toSafeAsciiPathComponent
+import chat.schildi.revenge.util.toSafeFilename
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import kotlinx.datetime.LocalDateTime
@@ -48,40 +50,17 @@ object MediaPersistencePaths {
         mxcUrl: String,
         filename: String?
     ): File {
-        val sessionDir = File(attachmentBaseDir, sessionId.value.toSafeFilename())
+        val sessionDir = File(attachmentBaseDir, sessionId.value.toSafeAsciiPathComponent())
         val dir = if (roomId == null) {
             sessionDir
         } else {
-            File(sessionDir, roomId.value.toSafeFilename())
+            File(sessionDir, roomId.value.toSafeAsciiPathComponent())
         }
         dir.mkdirs()
-        val filenameAppend = filename?.let { "_$it" } ?: ""
-        val safeUrl = mxcUrl.removePrefix("mxc://").toSafeFilename()
+        val filenameAppend = filename?.toSafeFilename()?.let { "_$it" } ?: ""
+        val safeUrl = mxcUrl.removePrefix("mxc://").toSafeAsciiPathComponent()
         val filename = "${formatTimePrefix(timestamp)}_${timestamp}_$safeUrl$filenameAppend"
+            .toSafeFilename()
         return File(dir, filename)
-    }
-
-    private val safeFilenameRegex = Regex("[^A-Za-z0-9._-]+")
-    private fun String.toSafeFilename(
-        replacement: String = "_",
-        maxLength: Int = 255
-    ): String {
-        // Replace any run of disallowed chars with replacement
-        var normalized = this.replace(safeFilenameRegex, replacement)
-
-        // Trim replacement chars from ends
-        normalized = normalized.trim(replacement.first())
-
-        // Use fallback if everything was removed
-        if (normalized.isEmpty()) {
-            normalized = "file"
-        }
-
-        // Trim to max length
-        if (normalized.length > maxLength) {
-            normalized = normalized.take(maxLength)
-        }
-
-        return normalized
     }
 }

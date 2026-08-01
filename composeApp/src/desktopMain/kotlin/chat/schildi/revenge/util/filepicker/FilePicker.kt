@@ -1,5 +1,6 @@
 package chat.schildi.revenge.util.filepicker
 
+import chat.schildi.revenge.WindowId
 import chat.schildi.revenge.dbus.FreedesktopPortal
 import chat.schildi.revenge.util.OperatingSystem
 import chat.schildi.revenge.util.SystemInfo
@@ -8,24 +9,23 @@ import kotlinx.coroutines.swing.Swing
 import kotlinx.coroutines.withContext
 import java.awt.FileDialog
 import java.awt.Frame
-import java.io.File
 
 actual object FilePicker {
 
-    actual suspend fun requestFilePicker(title: String): Result<List<File>?> = when (SystemInfo.getOs()) {
+    actual suspend fun requestFilePicker(title: String, windowId: WindowId): Result<FilePickerResult?> = when (SystemInfo.getOs()) {
         OperatingSystem.Linux -> runCatching {
-            FreedesktopPortal.requestFiles(title)
+            FreedesktopPortal.requestFile(title)?.let(::FilePickerResult)
         }
         else -> awtAttachmentPicker(title)
     }
 
-    private suspend fun awtAttachmentPicker(title: String): Result<List<File>> = withContext(Dispatchers.Swing) {
+    private suspend fun awtAttachmentPicker(title: String): Result<FilePickerResult?> = withContext(Dispatchers.Swing) {
         runCatching {
             val dialog = FileDialog(null as Frame?, title, FileDialog.LOAD)
             dialog.isMultipleMode = false
             dialog.isVisible = true
 
-            return@runCatching dialog.files.toList()
+            dialog.files.singleOrNull()?.let(::FilePickerResult)
         }
     }
 }

@@ -105,6 +105,9 @@ class AndroidWindowManager : PlatformWindowManager {
         }
     }
 
+    fun getActivity(windowId: WindowId): MainActivity? =
+        androidWindows.value[windowId]?.activity?.get()
+
     fun onResume(activity: MainActivity) {
         currentActivity = WeakReference(activity)
     }

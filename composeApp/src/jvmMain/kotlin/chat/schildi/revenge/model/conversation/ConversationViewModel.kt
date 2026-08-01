@@ -103,6 +103,7 @@ import io.element.android.libraries.matrix.api.media.AudioInfo
 import io.element.android.libraries.matrix.api.media.FileInfo
 import io.element.android.libraries.matrix.api.media.ImageInfo
 import io.element.android.libraries.matrix.api.media.MediaSource
+import io.element.android.libraries.matrix.api.media.MediaUploadHandler
 import io.element.android.libraries.matrix.api.media.ThumbnailInfo
 import io.element.android.libraries.matrix.api.media.VideoInfo
 import io.element.android.libraries.matrix.api.room.CreateTimelineParams
@@ -931,7 +932,7 @@ class ConversationViewModel(
                                     formattedCaption = formattedCaption,
                                     plaintext = draft.shouldSendAsPlaintext,
                                     inReplyToEventId = draft.inReplyTo?.eventId,
-                                )
+                                ).scheduleAttachmentCleanup(attachment)
                             }
 
                             is Attachment.Generic -> {
@@ -942,7 +943,7 @@ class ConversationViewModel(
                                     formattedCaption = formattedCaption,
                                     plaintext = draft.shouldSendAsPlaintext,
                                     inReplyToEventId = draft.inReplyTo?.eventId,
-                                )
+                                ).scheduleAttachmentCleanup(attachment)
                             }
 
                             is Attachment.Image -> {
@@ -954,7 +955,7 @@ class ConversationViewModel(
                                     formattedCaption = formattedCaption,
                                     plaintext = draft.shouldSendAsPlaintext,
                                     inReplyToEventId = draft.inReplyTo?.eventId,
-                                )
+                                ).scheduleAttachmentCleanup(attachment)
                             }
 
                             is Attachment.Video -> {
@@ -966,7 +967,7 @@ class ConversationViewModel(
                                     formattedCaption = formattedCaption,
                                     plaintext = draft.shouldSendAsPlaintext,
                                     inReplyToEventId = draft.inReplyTo?.eventId,
-                                )
+                                ).scheduleAttachmentCleanup(attachment)
                             }
 
                             null -> Result.failure(IllegalStateException("No attachment attached"))
@@ -1034,11 +1035,34 @@ class ConversationViewModel(
 
     override fun clearAttachment() {
         draftKey ?: return
+        var removedAttachment: Attachment? = null
         DraftRepo.update(draftKey) {
+            removedAttachment = it?.attachment
             it?.copy(
                 attachment = null,
                 type = it.type.takeIf { it != DraftType.ATTACHMENT } ?: DraftType.TEXT,
             )?.takeIf { !it.isEmpty() }
+        }
+        removedAttachment?.deleteIfAppOwned()
+    }
+
+    private fun Result<MediaUploadHandler>.scheduleAttachmentCleanup(
+        attachment: Attachment,
+    ): Result<MediaUploadHandler> = also { result ->
+        if (attachment.isFileAppOwned) {
+            result.getOrNull()?.let { uploadHandler ->
+                GlobalActionsScope.launch(Dispatchers.IO) {
+                    uploadHandler.await()
+                        .onFailure { log.w("Failed to upload attachment in $roomId", it) }
+                    attachment.file.parentFile?.delete()
+                }
+            }
+        }
+    }
+
+    private fun Attachment.deleteIfAppOwned() {
+        if (isFileAppOwned && file.parentFile?.deleteRecursively() == false) {
+            log.w("Failed to delete composer attachment ${file.absolutePath}")
         }
     }
 
@@ -1710,32 +1734,51 @@ class ConversationViewModel(
         viewModelScope,
         Dispatchers.IO
     ) {
-        val fileResult = FilePicker.requestFilePicker(getString(Res.string.action_add_attachment))
+        val fileResult = FilePicker.requestFilePicker(
+            getString(Res.string.action_add_attachment),
+            context.windowId,
+        )
         if (fileResult.isFailure) {
             return@launchActionAsync fileResult.toActionResult()
         }
-        val files = fileResult.getOrNull()
+        val selectedFile = fileResult.getOrNull()
         return@launchActionAsync try {
-            if (files?.size == 1) {
-                loadAttachmentFileIntoComposer(files[0])
-            } else if ((files?.size ?: 0) > 1) {
-                ActionResult.Failure("Selecting multiple attachments at once is not supported")
+            if (selectedFile != null) {
+                val result = loadAttachmentFileIntoComposer(
+                    file = selectedFile.file,
+                    mimeType = selectedFile.mimeType,
+                    isFileAppOwned = selectedFile.isAppOwned,
+                )
+                if (result !is ActionResult.Success && selectedFile.isAppOwned) {
+                    selectedFile.file.parentFile?.deleteRecursively()
+                }
+                result
             } else {
                 log.d("Attachment selection cancelled")
                 ActionResult.Success()
             }
         } catch (t: Throwable) {
+            selectedFile?.takeIf { it.isAppOwned }?.file?.parentFile?.deleteRecursively()
             log.e("Failed to open native file picker", t)
             ActionResult.Failure("Failed to open native file picker")
         }
     }
 
-    suspend fun loadAttachmentFileIntoComposer(file: File): ActionResult = withContext(Dispatchers.IO) {
+    suspend fun loadAttachmentFileIntoComposer(
+        file: File,
+        mimeType: String? = null,
+        isFileAppOwned: Boolean = false,
+    ): ActionResult = withContext(Dispatchers.IO) {
         draftKey ?: return@withContext ActionResult.Inapplicable
         if (!file.exists()) {
             return@withContext ActionResult.Failure("File does not exist: ${file.absolutePath}")
         }
-        val mimetype = MimeUtil.detectMimeType(file)
+        val mimetype = mimeType
+            ?.substringBefore(';')
+            ?.trim()
+            ?.lowercase()
+            ?.takeUnless { it.isEmpty() || it == "application/octet-stream" }
+            ?: MimeUtil.detectMimeType(file)
         val attachmentType = MimeUtil.classifyFromMime(mimetype)
         val fileSize = file.length()
         val attachment = when (attachmentType) {
@@ -1754,6 +1797,7 @@ class ConversationViewModel(
                         thumbnailSource = null,
                         blurhash = blurhash,
                     ),
+                    isFileAppOwned = isFileAppOwned,
                 )
             }
             MimeUtil.AttachmentKind.VIDEO -> {
@@ -1780,6 +1824,7 @@ class ConversationViewModel(
                         thumbnailSource = null,
                         blurhash = blurhash,
                     ),
+                    isFileAppOwned = isFileAppOwned,
                 )
             }
             MimeUtil.AttachmentKind.AUDIO -> {
@@ -1790,7 +1835,8 @@ class ConversationViewModel(
                         duration = measures.durationMs?.milliseconds,
                         size = fileSize,
                         mimetype = mimetype,
-                    )
+                    ),
+                    isFileAppOwned = isFileAppOwned,
                 )
             }
             MimeUtil.AttachmentKind.OTHER -> {
@@ -1801,7 +1847,8 @@ class ConversationViewModel(
                         size = fileSize,
                         thumbnailInfo = null,
                         thumbnailSource = null,
-                    )
+                    ),
+                    isFileAppOwned = isFileAppOwned,
                 )
             }
         }

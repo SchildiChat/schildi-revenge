@@ -16,7 +16,7 @@ import java.io.File
 import java.net.URI
 
 object FreedesktopPortal {
-    suspend fun requestFiles(title: String): List<File>? = sendRequest { connection ->
+    suspend fun requestFile(title: String): File? = sendRequest { connection ->
         val fileChooser = connection.getRemoteObject(
             PORTAL_BUS_NAME,
             PORTAL_OBJECT_PATH,
@@ -84,11 +84,11 @@ object FreedesktopPortal {
         }
     }
 
-    private fun Request.Response.toFileChooserResult(): List<File>? {
+    private fun Request.Response.toFileChooserResult(): File? {
         return when (response.toInt()) {
             0 -> {
                 val uris = results["uris"]?.value.asStringList()
-                uris.mapNotNull { uri ->
+                uris.firstNotNullOfOrNull { uri ->
                     runCatching { File(URI(uri)) }.getOrNull()
                 }
             }

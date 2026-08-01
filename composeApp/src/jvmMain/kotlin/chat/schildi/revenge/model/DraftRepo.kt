@@ -73,23 +73,33 @@ fun DraftType.shouldSendTypingIndicator() = when (this) {
 
 sealed interface Attachment {
     val file: File
+    val isFileAppOwned: Boolean
 
     sealed interface VisualAttachment : Attachment {
         val thumbnail: InMemoryMediaThumbnail?
     }
 
-    // TODO metadata as appropriate?
-    data class Audio(override val file: File, val audioInfo: AudioInfo) : Attachment
-    data class Generic(override val file: File, val fileInfo: FileInfo) : Attachment // Not called "File" to make it less confusing with java File
+    data class Audio(
+        override val file: File,
+        val audioInfo: AudioInfo,
+        override val isFileAppOwned: Boolean = false,
+    ) : Attachment
+    data class Generic(
+        override val file: File,
+        val fileInfo: FileInfo,
+        override val isFileAppOwned: Boolean = false,
+    ) : Attachment // Not called "File" to make it less confusing with java File
     data class Image(
         override val file: File,
         override val thumbnail: InMemoryMediaThumbnail?,
         val imageInfo: ImageInfo,
+        override val isFileAppOwned: Boolean = false,
     ) : VisualAttachment
     data class Video(
         override val file: File,
         override val thumbnail: InMemoryMediaThumbnail?,
         val videoInfo: VideoInfo,
+        override val isFileAppOwned: Boolean = false,
     ) : VisualAttachment
 }
 

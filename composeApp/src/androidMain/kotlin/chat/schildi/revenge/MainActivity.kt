@@ -27,6 +27,7 @@ import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.WindowContent
 import chat.schildi.revenge.compose.components.rememberScaledDensity
 import chat.schildi.revenge.compose.media.LocalImageLoaderHolder
+import chat.schildi.revenge.util.filepicker.AndroidFilePickerLauncher
 import chat.schildi.theme.prefersDarkTheme
 import chat.schildi.theme.scdMaterialColorScheme
 import chat.schildi.theme.sclMaterialColorScheme
@@ -36,6 +37,7 @@ import kotlin.random.Random
 @OptIn(ExperimentalComposeUiApi::class)
 class MainActivity : ComponentActivity() {
     private val log = Logger.withTag("MainActivity")
+    internal val filePickerLauncher = AndroidFilePickerLauncher(this)
     private var windowId: WindowId = Random.nextInt()
     private var destinationStateHolder: DestinationStateHolder? = null
 
@@ -130,6 +132,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        filePickerLauncher.close()
         androidWindowManager.unregister(windowId)
         super.onDestroy()
     }

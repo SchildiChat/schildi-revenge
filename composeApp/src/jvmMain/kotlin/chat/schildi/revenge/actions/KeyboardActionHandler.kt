@@ -1205,6 +1205,7 @@ class KeyboardActionHandler(
         currentDestinationType: DestinationEnum? = focused?.destinationStateHolder?.state?.value?.destination?.destinationId,
         asyncCallback: ActionResultCallback? = null,
     ) = object : InternalActionContext {
+        override val windowId = this@KeyboardActionHandler.windowId
         override fun publishMessage(message: AbstractAppMessage) =
             this@KeyboardActionHandler.publishMessage(message)
         override fun dismissMessage(uniqueId: String) =
@@ -3376,6 +3377,7 @@ fun checkArguments(
 }
 
 interface ActionContext {
+    val windowId: WindowId
     fun publishMessage(message: AbstractAppMessage)
     fun dismissMessage(uniqueId: String)
     fun copyToClipboard(content: String, description: ComposableStringHolder? = null): ActionResult
