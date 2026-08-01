@@ -2,17 +2,20 @@ package chat.schildi.revenge
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.geometry.toRect
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalDensity
@@ -24,6 +27,9 @@ import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.WindowContent
 import chat.schildi.revenge.compose.components.rememberScaledDensity
 import chat.schildi.revenge.compose.media.LocalImageLoaderHolder
+import chat.schildi.theme.prefersDarkTheme
+import chat.schildi.theme.scdMaterialColorScheme
+import chat.schildi.theme.sclMaterialColorScheme
 import co.touchlab.kermit.Logger
 import kotlin.random.Random
 
@@ -58,6 +64,22 @@ class MainActivity : ComponentActivity() {
         this.destinationStateHolder = destinationStateHolder
 
         setContent {
+            val darkTheme = prefersDarkTheme()
+            val navigationBarColor = (if (darkTheme) {
+                scdMaterialColorScheme
+            } else {
+                sclMaterialColorScheme
+            }).surface.copy(alpha = 0.5f).toArgb()
+            SideEffect {
+                enableEdgeToEdge(
+                    navigationBarStyle = if (darkTheme) {
+                        SystemBarStyle.dark(navigationBarColor)
+                    } else {
+                        SystemBarStyle.light(navigationBarColor, navigationBarColor)
+                    },
+                )
+            }
+
             val scope = rememberCoroutineScope()
             val handler = remember { KeyboardActionHandler(scope, windowId) }
             LaunchedEffect(handler) { keyHandler = handler }
