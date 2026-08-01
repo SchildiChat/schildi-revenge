@@ -211,7 +211,7 @@ Additional arguments may be optional or mandatory depending on the selected acti
 
 ### Build dependencies
 
-- JDK 21, [Jetbrains JDK](https://github.com/JetBrains/JetBrainsRuntime) recommended - vanilla OpenJDK can cause some launcher crashes
+- JDK 25, [Jetbrains JDK](https://github.com/JetBrains/JetBrainsRuntime) recommended - vanilla OpenJDK can cause some launcher crashes
 - Rust toolchain / `cargo`
 
 Windows-specific hints for my own notes:
@@ -322,7 +322,7 @@ git subtree merge --prefix=matrix skeleton/main
 git stash pop
 pushd matrix-rust-sdk
 git fetch origin
-git merge origin/main
+git checkout origin/main
 ```
 
 

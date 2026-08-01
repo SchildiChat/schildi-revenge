@@ -1946,7 +1946,7 @@ class KeyboardActionHandler(
                         "createDm",
                         notifyProcessing = true,
                     ) {
-                        val result = client.createDM(userId)
+                        val result = client.createDM(userId, isEncrypted = true)
                         if (result.isSuccess) {
                             publishMessage(
                                 AppMessage(
