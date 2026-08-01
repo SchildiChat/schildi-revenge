@@ -40,7 +40,7 @@ kotlin {
     android {
         namespace = "chat.schildi.revenge.compose"
         compileSdk = 37
-        minSdk = 24
+        minSdk = 26
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
         }
@@ -110,6 +110,7 @@ kotlin {
             dependencies {
                 implementation(projects.matrix)
                 implementation(libs.androidx.activity.compose)
+                implementation(libs.androidx.core.ktx)
                 implementation(libs.androidx.core.splashscreen)
                 implementation(libs.androidx.lifecycle.process)
                 // Provides attachAppDirs(), which initializes AppDirs with the Android context.

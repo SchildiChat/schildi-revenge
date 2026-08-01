@@ -39,6 +39,7 @@ import chat.schildi.revenge.actions.mapActionResult
 import chat.schildi.revenge.actions.orActionInapplicable
 import chat.schildi.revenge.actions.orActionValidationError
 import chat.schildi.revenge.actions.parseRoomStateSnapshot
+import chat.schildi.revenge.actions.platformOpenFile
 import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.resources.StringResourceHolder
@@ -52,6 +53,7 @@ import chat.schildi.revenge.media.MediaDownloadRepo
 import chat.schildi.revenge.model.Attachment
 import chat.schildi.revenge.model.CheckpointLoadState
 import chat.schildi.lib.preferences.ComposerFormat
+import chat.schildi.revenge.actions.platformHasUserFacingFilePaths
 import chat.schildi.revenge.model.ComposerRoomInfo
 import chat.schildi.revenge.model.ComposerSuggestion
 import chat.schildi.revenge.model.ComposerSuggestionsProvider
@@ -191,6 +193,7 @@ import shire.res.generated.resources.command_fetching_state
 import shire.res.generated.resources.command_loading_event
 import shire.res.generated.resources.command_loading_timeline_at
 import shire.res.generated.resources.toast_attachment_download_path_success
+import shire.res.generated.resources.toast_attachment_download_success
 import java.awt.Desktop
 import java.io.File
 import java.lang.IllegalArgumentException
@@ -2442,9 +2445,7 @@ class ConversationViewModel(
         event: EventTimelineItem,
     ) = context.downloadFile(event) { file ->
         try {
-            val desktop = Desktop.getDesktop()
-            desktop.open(file)
-            ActionResult.Success()
+            platformOpenFile(file, event.mediaMimetype())
         } catch (t: Throwable) {
             log.e("Failed to open file", t)
             ActionResult.Failure(t.message ?: "Failed to open file")
@@ -2475,10 +2476,13 @@ class ConversationViewModel(
             if (file != null) {
                 publishMessage(
                     AppMessage(
-                        StringResourceHolder(
-                            Res.string.toast_attachment_download_path_success,
-                            file.path.toStringHolder()
-                        ),
+                        if (platformHasUserFacingFilePaths) {
+                            Res.string.toast_attachment_download_path_success.toStringHolder(
+                                file.path.toStringHolder()
+                            )
+                        } else {
+                            Res.string.toast_attachment_download_success.toStringHolder()
+                        },
                         uniqueId = appMessageId,
                     )
                 )

@@ -47,7 +47,7 @@ android {
 
     defaultConfig {
         applicationId = "chat.schildi.revenge"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 37
         versionCode = 1
         versionName = "0.1"
