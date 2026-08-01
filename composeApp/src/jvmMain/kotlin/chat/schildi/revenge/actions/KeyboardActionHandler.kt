@@ -566,7 +566,6 @@ class KeyboardActionHandler(
     }
 
     fun focusByRole(role: FocusRole): Boolean {
-        _keyboardPrimary.value = true
         val focusRequester = findClosestByRole(role)?.focusRequester
         return if (focusRequester != null) {
             // Don't immediately request focus, it causes issues where text fields
