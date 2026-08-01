@@ -105,6 +105,7 @@ import io.element.android.libraries.matrix.api.createroom.CreateRoomParameters
 import io.element.android.libraries.matrix.api.createroom.RoomPreset
 import io.element.android.libraries.matrix.api.roomdirectory.RoomVisibility
 import io.element.android.libraries.matrix.api.verification.VerificationRequest
+import io.element.android.libraries.sessionstorage.api.SessionData
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
@@ -137,6 +138,8 @@ import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.action_cancel
+import shire.res.generated.resources.action_logout
+import shire.res.generated.resources.action_logout_session_prompt
 import shire.res.generated.resources.action_processing
 import shire.res.generated.resources.action_processing_done
 import shire.res.generated.resources.command_ambiguous
@@ -2104,8 +2107,61 @@ class KeyboardActionHandler(
                         oAuthRepo.handleOAuthLoginCallback(path)
                     }
                 }
+                Action.Global.Logout -> {
+                    val sessionIdString = args.firstOrNull().orActionValidationError()
+                    val sessionId = SessionId(sessionIdString)
+                    withCriticalActionConfirmation(
+                        context as? InternalActionContext,
+                        prompt = Res.string.action_logout_session_prompt.toStringHolder(sessionIdString.toStringHolder()),
+                        confirmText = Res.string.action_logout.toStringHolder(),
+                    ) {
+                        context.launchActionAsync(
+                            "logout/$sessionIdString",
+                            GlobalActionsScope,
+                            Dispatchers.IO,
+                            "logout/$sessionIdString",
+                            notifyProcessing = true,
+                        ) {
+                            logout(sessionId, deleteOnRestoreFailure = false)
+                        }
+                    }
+                }
+                Action.Global.LogoutOrDelete -> {
+                    val sessionIdString = args.firstOrNull().orActionValidationError()
+                    val sessionId = SessionId(sessionIdString)
+                    withCriticalActionConfirmation(
+                        context as? InternalActionContext,
+                        prompt = Res.string.action_logout_session_prompt.toStringHolder(sessionIdString.toStringHolder()),
+                        confirmText = Res.string.action_logout.toStringHolder(),
+                    ) {
+                        context.launchActionAsync(
+                            "logout/$sessionIdString",
+                            GlobalActionsScope,
+                            Dispatchers.IO,
+                            "logout/$sessionIdString",
+                            notifyProcessing = true,
+                        ) {
+                            logout(sessionId, deleteOnRestoreFailure = true)
+                        }
+                    }
+                }
             }
         }
+    }
+
+    suspend fun logout(sessionId: SessionId, deleteOnRestoreFailure: Boolean): ActionResult {
+        val sessionCache = UiState.appGraph.sessionCache
+        val sessionStore = UiState.appGraph.sessionStore
+        val restoreFailed = sessionCache.getOrRestore(sessionId)
+            .getOrElse {
+                if (!deleteOnRestoreFailure) return it.toActionResult() else null
+            }
+            ?.logout(userInitiated = true, ignoreSdkError = deleteOnRestoreFailure) == null
+        if (restoreFailed && deleteOnRestoreFailure) {
+            log.e { "Failed to logout session for $sessionId, deleting anyway" }
+            sessionStore.removeSession(sessionId.value)
+        }
+        return ActionResult.Success()
     }
 
     private fun consumeLink(link: MatrixToLink) {
@@ -2677,13 +2733,13 @@ class KeyboardActionHandler(
     }
 
     private fun withCriticalActionConfirmation(
-        context: InternalActionContext,
+        context: InternalActionContext?,
         prompt: ComposableStringHolder,
         confirmText: ComposableStringHolder,
-        onDismiss: () -> Unit,
+        onDismiss: () -> Unit = {},
         action: () -> ActionResult
     ): ActionResult {
-        return if (context.criticalActionRequiresConfirmation) {
+        return if (context?.criticalActionRequiresConfirmation != false) {
             publishMessage(
                 ConfirmActionAppMessage(
                     prompt,

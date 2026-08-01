@@ -42,6 +42,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -55,17 +56,20 @@ import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
+import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
+import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.currentActionContext
-import chat.schildi.revenge.compose.components.IconButtonWithConfirmation
 import chat.schildi.revenge.compose.components.TopNavigation
 import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInboxIcon
 import chat.schildi.revenge.compose.components.TopNavigationTitle
 import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
+import chat.schildi.revenge.compose.focus.rememberFocusId
+import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.model.account.AccountManagementData
 import chat.schildi.revenge.model.account.AccountManagementViewModel
 import chat.schildi.revenge.model.account.LoginVariant
@@ -104,6 +108,7 @@ import shire.res.generated.resources.verification_cancelled
 import shire.res.generated.resources.verification_status_not_verified
 import shire.res.generated.resources.verification_status_verified
 import shire.res.generated.resources.verified_off_24px
+import kotlin.uuid.Uuid
 
 // TODO redo me with more view model responsibilities, only one account login active at a time etc.
 //  when I have a better idea for how the UI should look
@@ -211,14 +216,22 @@ private fun ExistingLogin(account: AccountManagementData, viewModel: AccountMana
                         },
                     )
                 }
-                IconButtonWithConfirmation(
-                    icon = Icons.AutoMirrored.Default.Logout,
-                    confirmText = stringResource(Res.string.action_logout),
+                val keyboardActionHandler = LocalKeyboardActionHandler.current
+                val logoutFocusId = rememberFocusId()
+                AccountManagementIconButton(
+                    icon = rememberVectorPainter(Icons.AutoMirrored.Default.Logout),
+                    contentDescription = stringResource(Res.string.action_logout),
+                    tint = MaterialTheme.colorScheme.error,
+                    focusId = logoutFocusId,
                 ) {
-                    // TODO view progress, and move all the scope.launch into the viewModel with state tracked in there
-                    scope.launch {
-                        viewModel.logout(account.session, account.session.isTokenValid)
-                    }
+                    keyboardActionHandler.handleAction(
+                        focusItem = logoutFocusId,
+                        action = if (account.session.isTokenValid)
+                            Action.Global.Logout
+                        else
+                            Action.Global.LogoutOrDelete,
+                        args = listOf(account.session.userId),
+                    ) is ActionResult.Actioned
                 }
             }
             if (account.needsVerification) {
@@ -587,7 +600,7 @@ private fun ColumnScope.PasswordLogin(
 private fun AccountManagementButton(
     text: String,
     modifier: Modifier = Modifier,
-    role: FocusRole = FocusRole.AUX_ITEM,
+    role: FocusRole = FocusRole.NESTED_AUX_ITEM,
     enabled: Boolean = true,
     onClick: () -> Boolean,
 ) {
@@ -604,5 +617,38 @@ private fun AccountManagementButton(
             ),
     ) {
         Text(text)
+    }
+}
+
+@Composable
+private fun AccountManagementIconButton(
+    icon: Painter,
+    contentDescription: String?,
+    modifier: Modifier = Modifier,
+    tint: Color = MaterialTheme.colorScheme.onSurface,
+    role: FocusRole = FocusRole.NESTED_AUX_ITEM,
+    enabled: Boolean = true,
+    focusId: Uuid = rememberFocusId(),
+    onClick: () -> Boolean,
+) {
+    IconButton(
+        modifier = modifier
+            .keyFocusable(
+                role = role,
+                id = focusId,
+                actionProvider = actionProvider(
+                    primaryAction = InteractionAction.Invoke(onClick),
+                ),
+                addClickListener = false,
+                enableClicks = enabled,
+            ),
+        onClick = { onClick() },
+        enabled = enabled,
+    ) {
+        Icon(
+            icon,
+            contentDescription = contentDescription,
+            tint = tint,
+        )
     }
 }

@@ -196,7 +196,9 @@ sealed interface Action {
         EnableImagePack(args = listOf(ActionArgumentPrimitive.SessionId, RoomIdRelaxed, StateKey)),
         DisableImagePack(args = listOf(ActionArgumentPrimitive.SessionId, RoomIdRelaxed, StateKey)),
         // Alias is important here, it's what browsers will send us while assuming we speak HTTP
-        HandleOAuthResponse(aliases = listOf("GET"), args = listOf(ActionArgumentPrimitive.OAuthCallbackPath, ActionArgumentRepeatable(ActionArgumentPrimitive.Ignored)))
+        HandleOAuthResponse(aliases = listOf("GET"), args = listOf(ActionArgumentPrimitive.OAuthCallbackPath, ActionArgumentRepeatable(ActionArgumentPrimitive.Ignored))),
+        Logout(args = listOf(ActionArgumentPrimitive.SessionId)),
+        LogoutOrDelete(args = listOf(ActionArgumentPrimitive.SessionId)),
     }
     enum class AppMessage(
         override val aliases: kotlin.collections.List<String> = emptyList(),

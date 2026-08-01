@@ -78,6 +78,7 @@
     <string name="action_reject_room_invite_prompt">Reject room invite?</string>
     <string name="action_kick_user_prompt">Kick %1$s?</string>
     <string name="action_ban_user_prompt">Ban %1$s?</string>
+    <string name="action_logout_session_prompt">Logout %1$s?</string>
 
     <string name="action_redact">Delete</string>
     <string name="action_processing">Processing</string>

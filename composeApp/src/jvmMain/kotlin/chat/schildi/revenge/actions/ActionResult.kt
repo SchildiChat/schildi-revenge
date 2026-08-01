@@ -80,12 +80,13 @@ fun <T>T?.orActionValidationError() = this ?: throw ActionValidationException()
 fun <T>Result<T>.toActionResult(notifySuccess: Boolean = false) = if (isSuccess) {
     ActionResult.Success(notifySuccess = notifySuccess)
 } else {
-    ActionResult.Failure(exceptionOrNull()?.message ?: "Unknown failure")
+    exceptionOrNull()?.toActionResult() ?: ActionResult.Failure("Unknown failure")
 }
+fun Throwable.toActionResult() = ActionResult.Failure(message ?: toString())
 fun Result<ActionResult>.unwrapActionResult(notifySuccess: Boolean = false) = if (isSuccess) {
     getOrNull() ?: ActionResult.Success(notifySuccess = notifySuccess)
 } else {
-    ActionResult.Failure(exceptionOrNull()?.message ?: "Unknown failure")
+    exceptionOrNull()?.toActionResult() ?: ActionResult.Failure("Unknown failure")
 }
 fun <T>Result<T>.mapActionResult(
     notifySuccess: Boolean = false,

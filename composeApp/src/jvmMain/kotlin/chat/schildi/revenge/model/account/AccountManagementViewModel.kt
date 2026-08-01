@@ -11,7 +11,6 @@ import chat.schildi.revenge.flatMergeCombinedWith
 import chat.schildi.revenge.model.verification.RevengeDeviceVerificationProvider
 import chat.schildi.revenge.model.verification.ScOutgoingVerificationRequest
 import co.touchlab.kermit.Logger
-import io.element.android.libraries.matrix.api.auth.MatrixHomeServerDetails
 import io.element.android.libraries.matrix.api.auth.OAuthPrompt
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.encryption.BackupState
@@ -152,18 +151,6 @@ class AccountManagementViewModel(
                 )
             )
             destinationStateHolder.navigate(Destination.VerificationRequest(sessionId))
-        }
-        return Result.success(Unit)
-    }
-
-    suspend fun logout(session: SessionData, isTokenValid: Boolean): Result<Unit> {
-        val sessionId = SessionId(session.userId)
-        val restoreFailed = sessionCache.getOrRestore(sessionId)
-            .getOrElse { if (isTokenValid) return Result.failure(it) else null }
-            ?.logout(userInitiated = true, ignoreSdkError = !isTokenValid) == null
-        if (restoreFailed && !isTokenValid) {
-            log.e { "Failed to logout session for $sessionId, deleting anyway" }
-            sessionStore.removeSession(session.userId)
         }
         return Result.success(Unit)
     }
