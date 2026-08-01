@@ -1,10 +1,10 @@
 [versions]
-androidGradlePlugin = "9.3.0"
-versionsPlugin = "0.54.0"
+androidGradlePlugin = "9.3.1"
+versionsPlugin = "0.58.0"
 dependencyLicenseReport = "3.1.4"
 androidx-lifecycle = "2.11.0"
 androidx-datastore = "1.2.1"
-composeHotReload = "1.1.1"
+composeHotReload = "1.2.0"
 composeMultiplatform = "1.11.1"
 composeMaterial3 = "1.9.0"
 composeMaterialIconsExtended = "1.7.3"
@@ -15,14 +15,14 @@ kotlinx-datetime = "0.8.0"
 jetbrainsKotlinJvm = "2.4.10"
 jna = "5.19.1"
 kotlinxSerialization = "1.11.0"
-metro = "1.3.2"
+metro = "1.4.0"
 coil = "3.5.0"
 kdroidfilterPlatformtools = "0.7.5"
 kdroidfilterComposeNativeTray = "1.3.3"
 kdroidfilterKnotify = "0.4.3"
 ktoml = "0.7.1"
-ktor = "3.5.1"
-jsoup = "1.22.2"
+ktor = "3.5.2"
+jsoup = "1.23.1"
 beeperMessageFormat = "1353e7d5c24bc12c41bd24d05b4362b8ce2ef05f"
 dbusJava = "5.2.0"
 clikt = "5.1.0"
@@ -69,7 +69,7 @@ kdroidfilter_platformtools_darkmodedetector = { group = "io.github.kdroidfilter"
 kdroidfilter_composenativetray = { group = "io.github.kdroidfilter", name = "composenativetray", version.ref = "kdroidfilterComposeNativeTray" }
 kdroidfilter_knotify = { group = "io.github.kdroidfilter", name = "knotify", version.ref = "kdroidfilterKnotify" }
 kdroidfilter_knotify_compose = { group = "io.github.kdroidfilter", name = "knotify-compose", version.ref = "kdroidfilterKnotify" }
-kodein-emojiKt = { group = "org.kodein.emoji", name = "emoji-kt", version = "2.4.0" }
+kodein-emojiKt = { group = "org.kodein.emoji", name = "emoji-kt", version = "2.5.0" }
 ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 #beeper-messageformat = { module = "com.beeper.android.messageformat:messageformat-jvm", version = "1.0" }
 beeper-messageformat = { module = "com.github.beeper.matrix-messageformat-compose:messageformat", version.ref = "beeperMessageFormat" }
@@ -88,7 +88,7 @@ coil3-gif = { group = "io.coil-kt.coil3", name = "coil-gif", version.ref = "coil
 androidLibrary = { id = "com.android.library", version.ref = "androidGradlePlugin" }
 androidApplication = { id = "com.android.application", version.ref = "androidGradlePlugin" }
 androidKotlinMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.library", version.ref = "androidGradlePlugin" }
-versions = { id = "com.github.ben-manes.versions", version.ref = "versionsPlugin" }
+versions = { id = "io.github.ben-manes.versions", version.ref = "versionsPlugin" }
 dependencyLicenseReport = { id = "com.github.jk1.dependency-license-report", version.ref = "dependencyLicenseReport" }
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }
 composeMultiplatform = { id = "org.jetbrains.compose", version.ref = "composeMultiplatform" }
