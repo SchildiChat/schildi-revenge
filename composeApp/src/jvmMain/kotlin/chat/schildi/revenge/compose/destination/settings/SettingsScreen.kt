@@ -217,7 +217,11 @@ private fun DestinationStateHolder.wrapped(
         accessDetails = { destination.details },
         createPlaceholder = { Destination.MultiPaneSettingsPlaceholder },
         mainDestination = DestinationEnum.SettingsRoot,
-        allowedDetailsDestinations = listOf(DestinationEnum.SettingsDetails, DestinationEnum.SplitSettingsDetailsPlaceholder),
+        allowedDetailsDestinations = listOf(
+            DestinationEnum.SettingsDetails,
+            DestinationEnum.SplitSettingsDetailsPlaceholder,
+            DestinationEnum.AccountManagement,
+        ),
         allowedDetailsCategories = listOf(),
     )
 }
