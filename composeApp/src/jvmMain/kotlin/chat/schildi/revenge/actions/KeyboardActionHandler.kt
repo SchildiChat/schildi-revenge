@@ -90,6 +90,8 @@ import chat.schildi.revenge.model.spaces.RevengeSpaceListDataSource
 import chat.schildi.revenge.notification.NotifiableRoomSubscriber
 import chat.schildi.revenge.toDestination
 import chat.schildi.revenge.toPrettyJson
+import chat.schildi.revenge.util.ExternalViewCache
+import chat.schildi.revenge.util.MimeUtil
 import chat.schildi.revenge.util.matrix.MatrixLinkPatterns
 import chat.schildi.revenge.util.matrix.updateAccountData
 import chat.schildi.revenge.util.tryOrNull
@@ -105,7 +107,6 @@ import io.element.android.libraries.matrix.api.createroom.CreateRoomParameters
 import io.element.android.libraries.matrix.api.createroom.RoomPreset
 import io.element.android.libraries.matrix.api.roomdirectory.RoomVisibility
 import io.element.android.libraries.matrix.api.verification.VerificationRequest
-import io.element.android.libraries.sessionstorage.api.SessionData
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableSet
 import kotlinx.collections.immutable.persistentListOf
@@ -151,7 +152,6 @@ import shire.res.generated.resources.command_external_application_launched
 import shire.res.generated.resources.command_not_applicable
 import shire.res.generated.resources.command_not_found
 import shire.res.generated.resources.toast_room_created
-import java.awt.Desktop
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.io.File
@@ -2780,31 +2780,24 @@ class KeyboardActionHandler(
     }
 
     fun viewInExternalApp(context: ActionContext, content: String, fileExtension: String = ".txt"): ActionResult {
-        if (!Desktop.isDesktopSupported()) {
-            return ActionResult.Failure("Desktop integration is not available")
-        }
-        val desktop = Desktop.getDesktop()
-        if (!desktop.isSupported(Desktop.Action.OPEN)) {
-            return ActionResult.Failure("Opening files is not supported")
-        }
         return context.launchActionAsync(
             "viewInExternalApp",
             scope,
             Dispatchers.IO,
         ) {
             try {
-                val tempFile = Files.createTempFile("schildi-revenge-", fileExtension).toFile().apply {
-                    deleteOnExit()
-                }
+                val tempFile = ExternalViewCache.createFile(fileExtension)
                 Files.writeString(tempFile.toPath(), content, StandardCharsets.UTF_8)
-                desktop.open(tempFile)
-                publishMessage(
-                    AppMessage(
-                        Res.string.command_external_application_launched.toStringHolder(),
-                        uniqueId = "external-app",
+                val result = platformOpenFile(tempFile, MimeUtil.detectMimeType(tempFile))
+                if (result is ActionResult.Success) {
+                    publishMessage(
+                        AppMessage(
+                            Res.string.command_external_application_launched.toStringHolder(),
+                            uniqueId = "external-app",
+                        )
                     )
-                )
-                ActionResult.Success()
+                }
+                result
             } catch (t: Throwable) {
                 log.e("Failed to open plaintext content", t)
                 ActionResult.Failure(t.message ?: "Failed to open external viewer")

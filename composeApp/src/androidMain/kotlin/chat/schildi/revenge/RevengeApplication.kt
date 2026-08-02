@@ -4,6 +4,7 @@ import android.app.Application
 import ca.gosyer.appdirs.impl.attachAppDirs
 import chat.schildi.revenge.glue.AndroidSyncOrchestrationAppStateProvider
 import chat.schildi.revenge.preferences.RevengePrefs
+import chat.schildi.revenge.util.ExternalViewCache
 import chat.schildi.revenge.util.filepicker.ComposerAttachmentCache
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -20,8 +21,9 @@ class RevengeApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
-        ComposerAttachmentCache.clear()
         attachAppDirs()
+        ComposerAttachmentCache.clear()
+        ExternalViewCache.clear()
         AndroidSyncOrchestrationAppStateProvider.start(this)
         initPlatform(
             config = TracingConfiguration(

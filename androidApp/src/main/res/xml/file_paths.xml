@@ -3,4 +3,7 @@
     <cache-path
         name="attachments"
         path="attachments/" />
+    <cache-path
+        name="external-view"
+        path="external-view/" />
 </paths>

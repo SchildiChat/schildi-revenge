@@ -40,7 +40,12 @@ object MimeUtil {
         "ogg" to "audio/ogg",
         "oga" to "audio/ogg",
         "opus" to "audio/opus",
-        "amr" to "audio/amr"
+        "amr" to "audio/amr",
+
+        // Text
+        "txt" to "text/plain",
+        "json" to "application/json",
+        "md" to "text/markdown",
     )
 
     fun detectMimeType(file: File): String {

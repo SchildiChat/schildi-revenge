@@ -10,6 +10,7 @@ import co.touchlab.kermit.Severity
 import co.touchlab.kermit.Tag
 import co.touchlab.kermit.platformLogWriter
 import chat.schildi.revenge.ipc.SingleInstance
+import chat.schildi.revenge.util.ExternalViewCache
 import chat.schildi.revenge.util.SystemInfo
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.core.context
@@ -90,6 +91,7 @@ class MainCommand : CliktCommand("schildi-revenge") {
         SingleInstance.ensureSingleInstanceOrExit(
             openExistingInstance = initialCommand == null && !startInTray,
         )
+        ExternalViewCache.clear()
         ComposeApp.main(startInTray, initialCommand)
     }
 }

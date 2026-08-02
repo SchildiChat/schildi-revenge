@@ -12,12 +12,23 @@ internal actual val platformOpenUri: (suspend (String) -> Unit)? =
 
 @Suppress("UNUSED_PARAMETER")
 internal actual fun platformOpenFile(file: File, mimeType: String?): ActionResult {
-    Desktop.getDesktop().open(file)
-    return ActionResult.Success()
+    return try {
+        if (!Desktop.isDesktopSupported()) {
+            return ActionResult.Failure("Desktop integration is not available")
+        }
+        val desktop = Desktop.getDesktop()
+        if (!desktop.isSupported(Desktop.Action.OPEN)) {
+            return ActionResult.Failure("Opening files is not supported")
+        }
+        desktop.open(file)
+        ActionResult.Success()
+    } catch (t: Throwable) {
+        t.toActionResult()
+    }
 }
 
 @Suppress("UNUSED_PARAMETER")
 internal actual fun platformPersistDownload(file: File, filename: String?, mimeType: String?): ActionResult {
-    Desktop.getDesktop().open(file.parentFile)
-    return ActionResult.Success()
+    val parent = file.parentFile ?: return ActionResult.Failure("File has no parent directory")
+    return platformOpenFile(parent, mimeType)
 }
