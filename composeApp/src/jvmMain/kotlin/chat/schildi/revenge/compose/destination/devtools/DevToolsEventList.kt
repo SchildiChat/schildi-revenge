@@ -77,7 +77,7 @@ private fun LazyListScope.devToolsListSection(
                     )
                 }
             }
-            items(section.entries, key = { it.type }) { entry ->
+            items(section.entries, key = { it.type.renderKey }) { entry ->
                 EditableText(
                     editId = entry.type,
                     currentValue = EditTextValue.Json(entry.content),

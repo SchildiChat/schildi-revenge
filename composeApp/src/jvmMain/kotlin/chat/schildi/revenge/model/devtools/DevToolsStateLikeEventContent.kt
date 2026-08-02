@@ -4,16 +4,25 @@ import chat.schildi.resources.ComposableStringHolder
 import io.element.android.libraries.matrix.api.core.RoomId
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.serialization.Serializable
 
+@Serializable
 sealed interface StateLikeType {
+    val renderKey: String
     fun matchesSearch(lower: String): Boolean
+    @Serializable
     data class AccountData(val eventType: String) : StateLikeType {
+        override val renderKey = "a/$eventType"
         override fun matchesSearch(lower: String) = eventType.lowercase().contains(lower)
     }
+    @Serializable
     data class RoomAccountData(val roomId: RoomId, val eventType: String) : StateLikeType {
+        override val renderKey = "ra/$roomId/$eventType"
         override fun matchesSearch(lower: String) = eventType.lowercase().contains(lower)
     }
+    @Serializable
     data class RoomState(val roomId: RoomId, val eventType: String, val stateKey: String) : StateLikeType {
+        override val renderKey = "r/$roomId/$eventType/$stateKey"
         override fun matchesSearch(lower: String) = eventType.lowercase().contains(lower) || stateKey.lowercase().contains(lower)
     }
 }
