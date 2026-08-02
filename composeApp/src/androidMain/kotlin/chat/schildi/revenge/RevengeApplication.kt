@@ -22,8 +22,9 @@ class RevengeApplication : Application() {
         super.onCreate()
         instance = this
         attachAppDirs()
-        ComposerAttachmentCache.clear()
-        ExternalViewCache.clear()
+        val initScope = ScCoroutines.scope(Dispatchers.IO, "AppInit")
+        ComposerAttachmentCache.clearAsync(initScope)
+        ExternalViewCache.clearAsync(initScope)
         AndroidSyncOrchestrationAppStateProvider.start(this)
         initPlatform(
             config = TracingConfiguration(
@@ -36,7 +37,6 @@ class RevengeApplication : Application() {
             useLightweightTokioRuntime = false,
         )
 
-        val initScope = ScCoroutines.scope(Dispatchers.IO, "AppInit")
         initScope.launch {
             RevengePrefs.prefetch()
         }

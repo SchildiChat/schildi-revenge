@@ -8,9 +8,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import chat.schildi.revenge.RevengeApplication
 import chat.schildi.revenge.WindowId
 import chat.schildi.revenge.androidWindowManager
+import chat.schildi.revenge.util.StartupCacheCleaner
 import chat.schildi.revenge.util.toSafeFilename
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
@@ -97,13 +99,19 @@ actual object FilePicker {
 internal object ComposerAttachmentCache {
     private val baseDir: File
         get() = File(RevengeApplication.instance.cacheDir, "composerAttachments")
-
-    fun createImportDir(): File = File(baseDir, Uuid.random().toString()).also {
-        check(it.mkdirs()) { "Failed to create composer attachment cache directory" }
+    private val startupCleaner = StartupCacheCleaner {
+        baseDir.deleteRecursively()
     }
 
-    fun clear() {
-        baseDir.deleteRecursively()
+    suspend fun createImportDir(): File {
+        startupCleaner.awaitClear()
+        return File(baseDir, Uuid.random().toString()).also {
+            check(it.mkdirs()) { "Failed to create composer attachment cache directory" }
+        }
+    }
+
+    fun clearAsync(scope: CoroutineScope) {
+        startupCleaner.clearAsync(scope)
     }
 }
 

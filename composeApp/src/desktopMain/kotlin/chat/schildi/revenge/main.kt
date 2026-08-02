@@ -19,6 +19,7 @@ import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.arguments.multiple
 import com.github.ajalt.clikt.parameters.options.flag
 import com.github.ajalt.clikt.parameters.options.option
+import kotlinx.coroutines.Dispatchers
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import kotlin.system.exitProcess
@@ -91,7 +92,7 @@ class MainCommand : CliktCommand("schildi-revenge") {
         SingleInstance.ensureSingleInstanceOrExit(
             openExistingInstance = initialCommand == null && !startInTray,
         )
-        ExternalViewCache.clear()
+        ExternalViewCache.clearAsync(ScCoroutines.scope(Dispatchers.IO, "ExternalViewCache"))
         ComposeApp.main(startInTray, initialCommand)
     }
 }
