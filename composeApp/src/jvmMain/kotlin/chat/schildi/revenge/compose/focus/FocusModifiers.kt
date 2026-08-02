@@ -87,6 +87,7 @@ fun FocusRole.allowsFocusable() = when (this) {
     FocusRole.DESTINATION_ROOT_CONTAINER,
     FocusRole.NESTING_DESTINATION_ROOT_CONTAINER,
     FocusRole.CONTAINER -> true
+    FocusRole.SHADOW_ITEM,
     FocusRole.CONTEXT_MENU_ENTRY_WITH_SUBMENU,
     FocusRole.TEXT_FIELD_SINGLE_LINE,
     FocusRole.TEXT_FIELD_MULTI_LINE,
@@ -99,6 +100,7 @@ fun FocusRole.preferFocusChildren() = when (this) {
     FocusRole.DESTINATION_ROOT_CONTAINER,
     FocusRole.NESTING_DESTINATION_ROOT_CONTAINER,
     FocusRole.CONTAINER -> true
+    FocusRole.SHADOW_ITEM,
     FocusRole.CONTEXT_MENU_ENTRY_WITH_SUBMENU,
     FocusRole.CONTAINER_ITEM,
     FocusRole.LIST_ITEM,

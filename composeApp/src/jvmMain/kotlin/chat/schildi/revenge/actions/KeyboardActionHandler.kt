@@ -199,6 +199,7 @@ enum class FocusRole(
     CONTEXT_MENU_ENTRY_WITH_SUBMENU,
     DESTINATION_ROOT_CONTAINER,
     NESTING_DESTINATION_ROOT_CONTAINER,
+    SHADOW_ITEM, // Not meant to be keyboard-focusable but still hooking into the framework
     CONTAINER,
     CONTAINER_ITEM, // Can both like AUX_ITEM and CONTAINER
     TEXT_FIELD_SINGLE_LINE(consumesKeyWhitelist = AllowedSingleLineTextFieldBindingKeys),

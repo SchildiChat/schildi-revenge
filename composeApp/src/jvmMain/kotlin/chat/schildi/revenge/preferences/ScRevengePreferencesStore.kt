@@ -263,6 +263,8 @@ val LocalScPreferencesStore = NotExactlyACompositionLocal<ScPreferencesStore>(Re
 
 @Composable
 fun <T>ScPref<T>.value(): T = LocalScPreferencesStore.current.settingState(this).value
+@Composable
+fun <T>ScPref<T>.isEnabled() = LocalScPreferencesStore.current.enabledState(this).value
 
 /*
 @Composable

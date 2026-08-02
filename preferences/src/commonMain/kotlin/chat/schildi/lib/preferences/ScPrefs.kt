@@ -120,6 +120,8 @@ import shire.res.generated.resources.pref_composer_max_lines_summary
 import shire.res.generated.resources.pref_composer_max_lines_title
 import shire.res.generated.resources.pref_composer_max_lines_unfocused_summary
 import shire.res.generated.resources.pref_composer_max_lines_unfocused_title
+import shire.res.generated.resources.pref_dev_quick_options_summary
+import shire.res.generated.resources.pref_dev_quick_options_title
 import shire.res.generated.resources.pref_dual_mention_unread_counts_summary
 import shire.res.generated.resources.pref_dual_mention_unread_counts_title
 import shire.res.generated.resources.pref_force_render_blurhash_summary
@@ -175,6 +177,7 @@ import shire.res.generated.resources.pref_url_previews_require_explicit_links_su
 import shire.res.generated.resources.pref_url_previews_require_explicit_links_title
 import shire.res.generated.resources.pref_url_previews_summary
 import shire.res.generated.resources.pref_url_previews_title
+import shire.res.generated.resources.pref_view_hidden_events_summary
 import shire.res.generated.resources.pref_view_membership_events_in_public_rooms_summary
 import shire.res.generated.resources.pref_view_membership_events_in_public_rooms_title
 
@@ -225,6 +228,7 @@ object ScPrefs {
     val RENDER_AVATAR_STATES = ScBoolPref("RENDER_AVATAR_STATES", false, Res.string.pref_debug_avatar_render_states_title)
     val RENDER_SPACE_ORDER_KEYS = ScBoolPref("RENDER_SPACE_ORDER_KEYS", false, Res.string.pref_render_space_order_keys_title)
     val SHOW_DEV_INFOS = ScBoolPref("SHOW_DEV_INFOS", false, Res.string.pref_show_dev_infos_title, Res.string.pref_show_dev_infos_summary)
+    val DEV_QUICK_OPTIONS = ScBoolPref("DEV_QUICK_OPTIONS", false, Res.string.pref_dev_quick_options_title, Res.string.pref_dev_quick_options_summary)
     val FORCE_RENDER_BLURHASH = ScBoolPref("FORCE_RENDER_BLURHASH", false, Res.string.pref_force_render_blurhash_title, Res.string.pref_force_render_blurhash_summary)
     val FRAME_DROP_SPINNER = ScBoolPref("FRAME_DROP_SPINNER", false, Res.string.pref_framed_rop_spinner_title, Res.string.pref_framed_rop_spinner_summary)
 
@@ -297,7 +301,7 @@ object ScPrefs {
     val THREAD_REPLIES_IN_MAIN_TIMELINE = ScBoolPref("THREAD_REPLIES_IN_MAIN_TIMELINE", true, Res.string.pref_threaded_replies_in_main_timeline_title, Res.string.pref_threaded_replies_in_main_timeline_summary)
     val HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS = ScBoolPref("HIDE_MESSAGE_AUTHENTICITY_WARNINGS_IN_BRIDGED_CHATS", false, Res.string.pref_hide_message_authenticity_warnings_in_bridged_chats_title, Res.string.pref_hide_message_authenticity_warnings_in_bridged_chats_summary)
     val HIDE_AUTHENTICITY_NOT_GUARANTEED = ScBoolPref("HIDE_AUTHENTICITY_NOT_GUARANTEED", false, Res.string.pref_hide_message_authenticity_not_guaranteed_title, Res.string.pref_hide_message_authenticity_not_guaranteed_summary)
-    val VIEW_HIDDEN_EVENTS = ScBoolPref("VIEW_HIDDEN_EVENTS", false, Res.string.pref_view_hidden_events_title)
+    val VIEW_HIDDEN_EVENTS = ScBoolPref("VIEW_HIDDEN_EVENTS", false, Res.string.pref_view_hidden_events_title, Res.string.pref_view_hidden_events_summary)
     val VIEW_REDACTIONS = ScBoolPref("VIEW_REDACTIONS", false, Res.string.pref_view_redactions_title, dependencies = listOf(VIEW_HIDDEN_EVENTS.toDependency(expect = false)), disabledValue = true)
     val VIEW_MEMBERSHIP_EVENTS_IN_PUBLIC_ROOMS = ScBoolPref("VIEW_MEMBERSHIP_EVENTS_IN_PUBLIC_ROOMS", true, Res.string.pref_view_membership_events_in_public_rooms_title, Res.string.pref_view_membership_events_in_public_rooms_summary, dependencies = listOf(VIEW_HIDDEN_EVENTS.toDependency(expect = false)), disabledValue = true)
     val PREFERRED_MESSAGE_FORMAT = ScStringListPref(
@@ -459,11 +463,12 @@ object ScPrefs {
             SDK_SQLITE_MAX_POOL_SIZE,
         )),
         ScPrefScreen("DEVELOPER", Res.string.pref_category_developer_options, null, prefs = listOf(
-            RENDER_AVATAR_STATES,
+            DEV_QUICK_OPTIONS,
+            SHOW_DEV_INFOS,
             VIEW_HIDDEN_EVENTS,
             RENDER_SPACE_ORDER_KEYS,
-            SHOW_DEV_INFOS,
             FORCE_RENDER_BLURHASH,
+            RENDER_AVATAR_STATES,
             FRAME_DROP_SPINNER,
         )),
     ))

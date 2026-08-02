@@ -4,7 +4,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.filled.AddReaction
 import androidx.compose.material.icons.filled.Checklist
+import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.CopyAll
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
@@ -17,7 +19,10 @@ import androidx.compose.material.icons.filled.PublicOff
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.platform.LocalInputModeManager
+import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.compose.components.ContextMenuActionEntry
 import chat.schildi.revenge.compose.components.ContextMenuEntry
 import chat.schildi.resources.toStringHolder
@@ -27,6 +32,8 @@ import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.model.conversation.ConversationPermissions
+import chat.schildi.revenge.model.conversation.MessageMetadata
+import chat.schildi.revenge.preferences.value
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
@@ -37,6 +44,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.action_copy_body
+import shire.res.generated.resources.action_copy_event_source
 import shire.res.generated.resources.action_download
 import shire.res.generated.resources.action_download_and_open
 import shire.res.generated.resources.action_edit
@@ -49,6 +57,7 @@ import shire.res.generated.resources.action_react
 import shire.res.generated.resources.action_redact
 import shire.res.generated.resources.action_reply
 import shire.res.generated.resources.action_thread
+import shire.res.generated.resources.action_view_event_source
 import shire.res.generated.resources.action_view_reactions
 import shire.res.generated.resources.action_view_read_receipts
 
@@ -57,20 +66,22 @@ fun EventTimelineItem.contextMenu(
     sessionId: SessionId,
     roomId: RoomId,
     permissions: ConversationPermissions?,
+    messageMetadata: MessageMetadata?,
 ): ImmutableList<ContextMenuEntry> {
-    val messageContent = content as? MessageContent ?: return persistentListOf()
+    val messageContent = content as? MessageContent ?: return eventDevToolsOptions()
     val canRedact = if (isOwn) {
         permissions?.canRedactOwn ?: true
     } else {
         permissions?.canRedactOther ?: false
     }
+    val usesKeyboard = LocalInputModeManager.current.inputMode == InputMode.Keyboard
     return listOfNotNull(
         ContextMenuActionEntry(
             Res.string.action_download_and_open.toStringHolder(),
             rememberVectorPainter(Icons.Default.OpenWith),
             Action.Event.DownloadFileAndOpen,
             keyboardShortcut = Key.O,
-        ).takeIf { messageContent.type is MessageTypeWithAttachment },
+        ).takeIf { messageContent.type is MessageTypeWithAttachment && usesKeyboard }, // Non-keyboard users can just do a primary click on the message instead
         ContextMenuActionEntry(
             Res.string.action_download.toStringHolder(),
             rememberVectorPainter(Icons.Default.Download),
@@ -127,7 +138,7 @@ fun EventTimelineItem.contextMenu(
             rememberVectorPainter(Icons.Default.ContentCopy),
             Action.Event.CopyContent,
             keyboardShortcut = Key.Y,
-        ).takeIf { messageContent.body.isNotBlank() },
+        ).takeIf { messageMetadata != null },
         ContextMenuSubmenuEntry(
             Res.string.action_mark_as_read.toStringHolder(),
             rememberVectorPainter(Icons.Default.Visibility),
@@ -164,6 +175,26 @@ fun EventTimelineItem.contextMenu(
             critical = true,
             keyboardShortcut = Key.D,
         ).takeIf { canRedact },
+        *eventDevToolsOptions().toTypedArray(),
         enterCommandModeContextMenuAction(),
     ).toPersistentList()
+}
+
+@Composable
+private fun eventDevToolsOptions() = if (ScPrefs.DEV_QUICK_OPTIONS.value()) {
+    persistentListOf(
+        ContextMenuActionEntry(
+            Res.string.action_view_event_source.toStringHolder(),
+            rememberVectorPainter(Icons.Default.Code),
+            Action.Event.ViewEventSource,
+            keyboardShortcut = Key.S,
+        ),
+        ContextMenuActionEntry(
+            Res.string.action_copy_event_source.toStringHolder(),
+            rememberVectorPainter(Icons.Default.CopyAll),
+            Action.Event.CopyEventSource,
+        ),
+    )
+} else {
+    persistentListOf()
 }

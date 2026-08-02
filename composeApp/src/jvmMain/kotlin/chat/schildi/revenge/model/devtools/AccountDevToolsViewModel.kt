@@ -29,9 +29,9 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import shire.res.generated.resources.Res
+import shire.res.generated.resources.account_dev_tools_title
 import shire.res.generated.resources.dual_title_format
 import shire.res.generated.resources.hint_account_data
-import shire.res.generated.resources.room_dev_tools_title
 
 class AccountDevToolsViewModel(
     private val sessionId: SessionId,
@@ -128,7 +128,7 @@ class AccountDevToolsViewModel(
 
         fun windowTitle(sessionId: SessionId) = StringResourceHolder(
             Res.string.dual_title_format,
-            Res.string.room_dev_tools_title.toStringHolder(),
+            Res.string.account_dev_tools_title.toStringHolder(),
             sessionId.value.toStringHolder(),
         )
     }

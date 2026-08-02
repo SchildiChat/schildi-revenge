@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircleOutline
 import androidx.compose.material.icons.filled.CloudOff
+import androidx.compose.material.icons.filled.DeveloperBoard
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material.icons.filled.Stop
@@ -64,6 +65,7 @@ import shire.res.generated.resources.Res
 import shire.res.generated.resources.action_context_account_hide
 import shire.res.generated.resources.action_context_account_select
 import shire.res.generated.resources.action_mute
+import shire.res.generated.resources.dev_tools_title
 import shire.res.generated.resources.hint_sync_state_error
 import shire.res.generated.resources.hint_sync_state_idle
 import shire.res.generated.resources.hint_sync_state_offline
@@ -152,6 +154,16 @@ fun AccountButton(
                     keyboardShortcut = Key.V,
                     critical = true,
                 ).takeIf { account.sessionVerifiedStatus?.isVerified() != true },
+                ContextMenuActionEntry(
+                    Res.string.dev_tools_title.toStringHolder(),
+                    rememberVectorPainter(Icons.Default.DeveloperBoard),
+                    Action.Navigation.NavigateAuto,
+                    persistentListOf(
+                        DestinationEnum.AccountDevTools.destName,
+                        account.user.userId.value,
+                    ),
+                    keyboardShortcut = Key.D,
+                ).takeIf { ScPrefs.DEV_QUICK_OPTIONS.value() },
             ).toPersistentList(),
         ) { openContextMenu ->
             Row(

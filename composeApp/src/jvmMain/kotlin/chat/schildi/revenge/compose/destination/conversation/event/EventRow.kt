@@ -75,7 +75,7 @@ fun EventRow(
     val roomPermissions = viewModel.roomPermissions.collectAsState().value
     WithContextMenu(
         focusId,
-        event.contextMenu(viewModel.sessionId, viewModel.roomId, roomPermissions),
+        event.contextMenu(viewModel.sessionId, viewModel.roomId, roomPermissions, messageMetadata),
     ) { openContextMenu ->
         Column(
             modifier

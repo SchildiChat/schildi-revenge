@@ -16,6 +16,7 @@
     </plurals>
     <string name="message_reactions_title">Message reactions</string>
     <string name="message_read_receipts_title">Message read receipts</string>
+    <string name="dev_tools_title">Dev tools</string>
     <string name="account_dev_tools_title">Account dev tools</string>
     <string name="room_dev_tools_title">Room dev tools</string>
     <string name="select_account">Select account</string>
@@ -140,6 +141,8 @@
     <string name="action_change">Change</string>
     <string name="action_enter_command_mode">Command…</string>
     <string name="action_account_management">Manage accounts</string>
+    <string name="action_view_event_source">View event source</string>
+    <string name="action_copy_event_source">Copy event source</string>
 
     <string name="command_success">Success: %1$s</string>
     <string name="command_loading_event">Loading %1$s</string>
@@ -410,7 +413,10 @@
     <string name="pref_theme_follow_system_summary">Choose dark or light theme based on system settings</string>
     <string name="pref_dark_theme_title">Dark theme</string>
     <string name="pref_view_hidden_events_title">View hidden events</string>
+    <string name="pref_view_hidden_events_title_short">Hidden events</string>
+    <string name="pref_view_hidden_events_summary">Show all timeline events, including those that are usually not surfaced to users</string>
     <string name="pref_view_redactions_title">Show deleted messages</string>
+    <string name="pref_view_redactions_title_short">Redactions</string>
     <string name="pref_minimal_mode_title">Minimal mode</string>
     <string name="pref_minimal_mode_summary">Hides navigation elements and the message composer while not in use. Only useful if you have setup custom keybindings and/or know command mode well enough to get around.</string>
     <string name="pref_desktop_notifications_title">Notifications</string>
@@ -419,6 +425,8 @@
     <string name="pref_close_to_tray_summary">Closing the last window keeps the application running and possible to re-open from the tray icon</string>
     <string name="pref_show_dev_infos_title">Show dev infos</string>
     <string name="pref_show_dev_infos_summary">Render additional debugging infos with unfinished UI in various places</string>
+    <string name="pref_dev_quick_options_title">Dev quick options</string>
+    <string name="pref_dev_quick_options_summary">Quick access to various developer tools</string>
     <string name="pref_hide_message_authenticity_not_guaranteed_title">Hide "message authenticity not guaranteed" warnings</string>
     <string name="pref_hide_message_authenticity_not_guaranteed_summary">Do not show the warning icon next to the timestamp if the message authenticity cannot be guaranteed</string>
     <string name="pref_hide_message_authenticity_warnings_in_bridged_chats_title">Hide message authenticity warnings in bridged chats</string>
