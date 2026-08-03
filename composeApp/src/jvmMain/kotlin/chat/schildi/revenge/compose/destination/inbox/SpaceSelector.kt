@@ -640,7 +640,7 @@ private fun spaceTabUnreadBadgeOffset(compact: Boolean) = 6.dp
 
 @Composable
 fun SpaceListDataSource.AbstractSpaceHierarchyItem.spaceContextMenu(): ImmutableList<ContextMenuEntry> {
-    val showDebugOptions = ScPrefs.SHOW_DEV_INFOS.value()
+    val showDebugOptions = ScPrefs.DEV_QUICK_OPTIONS.value()
     return when (this) {
         is SpaceListDataSource.SpaceHierarchyItem -> {
             val allowCatchAll = room.summary.info.canUserManageSpaces && room.summary.info.isPublic == false
