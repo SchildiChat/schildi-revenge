@@ -31,6 +31,7 @@ kotlin {
             )
             dependencies {
                 api(projects.matrixRustBindings)
+                compileOnly(project(mapOf("path" to ":matrixRustBindings", "configuration" to "jvmApiElements")))
                 // Compatibility classes for Android specifics that we don't care about but got from Element X files,
                 // so we don't need to change those classes too much.
                 // In some cases used as supertype so mark as api().
@@ -56,6 +57,7 @@ kotlin {
             )
             dependencies {
                 api(projects.matrixRustBindings)
+                compileOnly(project(mapOf("path" to ":matrixRustBindings", "configuration" to "androidApiElements")))
                 api(projects.shim)
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.kotlinx.coroutines.test)
