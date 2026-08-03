@@ -3,7 +3,6 @@ package chat.schildi.revenge.compose.destination.inbox
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -29,7 +28,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,10 +41,22 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.layout.FirstBaseline
+import androidx.compose.ui.layout.LastBaseline
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.Placeable
+import androidx.compose.ui.layout.layoutId
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastFirst
 import chat.schildi.lib.util.formatUnreadCount
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.preferences.value
@@ -91,6 +101,7 @@ import shire.res.generated.resources.action_catch_space_orphans
 import shire.res.generated.resources.action_leave
 import shire.res.generated.resources.action_navigate_debug_timeline
 import shire.res.generated.resources.pref_space_all_rooms_title
+import kotlin.math.max
 import kotlin.uuid.Uuid
 
 @Composable
@@ -303,12 +314,25 @@ private fun AbstractSpaceTab(
         focusId = focusId,
         entries = contextMenu,
     ) { openContextMenu ->
+        val tabModifier = Modifier.keyFocusable(
+            id = focusId,
+            role = FocusRole.AUX_ITEM,
+            actionProvider = actionProvider(
+                primaryAction = InteractionAction.Invoke {
+                    onClick()
+                    true
+                },
+                secondaryAction = openContextMenu,
+            ),
+        ).semantics {
+            contentDescription = text
+            role = Role.Tab
+            this.selected = selected
+        }
         if (compact) {
             WithTooltip(text) {
                 Box(
-                    Modifier
-                        .spaceTabModifier(focusId, openContextMenu, onClick)
-                        .clickable(onClick = onClick)
+                    tabModifier
                         .padding(vertical = 8.dp, horizontal = 16.dp)
                 ) {
                     icon()
@@ -323,33 +347,69 @@ private fun AbstractSpaceTab(
                 }
             }
         } else {
-            Tab(
+            SpaceTabLayout(
                 text = { SpaceTabText(text, selected, expandable) },
                 icon = icon.takeIf { !collapsed },
-                selected = selected,
-                onClick = onClick,
-                modifier = Modifier.spaceTabModifier(focusId, openContextMenu, onClick),
+                modifier = tabModifier,
             )
         }
     }
 }
 
+// Based on androidx / material3 Tab
 @Composable
-fun Modifier.spaceTabModifier(
-    focusId: Uuid,
-    openContextMenu: InteractionAction.ContextMenu? = null,
-    onClick: () -> Unit,
-) = keyFocusable(
-    id = focusId,
-    role = FocusRole.AUX_ITEM,
-    actionProvider = actionProvider(
-        primaryAction = InteractionAction.Invoke {
-            onClick()
-            true
+private fun SpaceTabLayout(
+    text: @Composable () -> Unit,
+    icon: (@Composable () -> Unit)?,
+    modifier: Modifier = Modifier,
+) {
+    Layout(
+        modifier = modifier,
+        content = {
+            Box(Modifier.layoutId("text").padding(horizontal = 16.dp)) { text() }
+            if (icon != null) {
+                Box(Modifier.layoutId("icon")) { icon() }
+            }
         },
-        secondaryAction = openContextMenu,
-    ),
-)
+    ) { measurables, constraints ->
+        val textPlaceable = measurables.fastFirst { it.layoutId == "text" }
+            .measure(constraints.copy(minHeight = 0))
+        val iconPlaceable = icon?.let {
+            measurables.fastFirst { it.layoutId == "icon" }.measure(constraints)
+        }
+        val tabWidth = max(textPlaceable.width, iconPlaceable?.width ?: 0)
+        val minimumHeight = if (iconPlaceable == null) SpaceTabHeight else SpaceTabHeightWithIcon
+        val tabHeight = max(
+            minimumHeight.roundToPx(),
+            textPlaceable.height + (iconPlaceable?.height ?: 0) + SpaceTabIconBaselineDistance.roundToPx(),
+        )
+
+        layout(tabWidth, tabHeight) {
+            if (iconPlaceable == null) {
+                textPlaceable.placeRelative(0, (tabHeight - textPlaceable.height) / 2)
+            } else {
+                placeSpaceTabTextAndIcon(textPlaceable, iconPlaceable, tabWidth, tabHeight)
+            }
+        }
+    }
+}
+
+private fun Placeable.PlacementScope.placeSpaceTabTextAndIcon(
+    textPlaceable: Placeable,
+    iconPlaceable: Placeable,
+    tabWidth: Int,
+    tabHeight: Int,
+) {
+    val textPlaceableY = tabHeight - textPlaceable[LastBaseline] - SpaceTabTextBaselineOffset.roundToPx()
+    val iconOffset = iconPlaceable.height + SpaceTabIconBaselineDistance.roundToPx() - textPlaceable[FirstBaseline]
+    textPlaceable.placeRelative((tabWidth - textPlaceable.width) / 2, textPlaceableY)
+    iconPlaceable.placeRelative((tabWidth - iconPlaceable.width) / 2, textPlaceableY - iconOffset)
+}
+
+private val SpaceTabHeight = 48.dp
+private val SpaceTabHeightWithIcon = 72.dp
+private val SpaceTabIconBaselineDistance = 20.sp
+private val SpaceTabTextBaselineOffset = 17.dp
 
 @Composable
 private fun SpaceTab(
