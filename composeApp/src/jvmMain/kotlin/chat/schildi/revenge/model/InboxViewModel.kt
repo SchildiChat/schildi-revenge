@@ -644,7 +644,7 @@ class InboxViewModel(
                     ActionResult.NoOp
                 }
             }
-        } ?: ActionResult.Failure("Space with ID $spaceSelection not found")
+        } ?: ActionResult.Failure("Space with ID $spaceId not found")
     }
 
     private fun findSessionIdForAccountAction(parameter: String): SessionId? {
