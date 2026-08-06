@@ -37,6 +37,7 @@ import io.element.android.libraries.matrix.impl.media.MediaUploadHandlerImpl
 import io.element.android.libraries.matrix.impl.media.map
 import io.element.android.libraries.matrix.impl.poll.toInner
 import io.element.android.libraries.matrix.impl.room.RoomContentForwarder
+import io.element.android.libraries.matrix.impl.room.map as mapMentions
 import io.element.android.libraries.matrix.impl.room.location.into
 import io.element.android.libraries.matrix.impl.timeline.item.event.EventTimelineItemMapper
 import io.element.android.libraries.matrix.impl.timeline.item.event.TimelineEventContentMapper
@@ -401,6 +402,7 @@ class RustTimeline(
         eventOrTransactionId: EventOrTransactionId,
         caption: String?,
         formattedCaption: String?,
+        intentionalMentions: List<IntentionalMention>, // SC
         plaintext: Boolean,  // SC
     ): Result<Unit> = withContext(dispatcher) {
         runCatchingExceptions<Unit> {
@@ -410,7 +412,7 @@ class RustTimeline(
                     FormattedBody(body = it, format = MessageFormat.Html)
                 },
                 skipCaptionAutoformat = plaintext, // SC
-                mentions = null,
+                mentions = intentionalMentions.mapMentions(), // SC
             )
             withContext(Dispatchers.IO) {
                 inner.edit(
@@ -451,6 +453,7 @@ class RustTimeline(
         imageInfo: ImageInfo,
         caption: String?,
         formattedCaption: String?,
+        intentionalMentions: List<IntentionalMention>, // SC
         plaintext: Boolean,  // SC
         inReplyToEventId: EventId?,
     ): Result<MediaUploadHandler> {
@@ -464,7 +467,7 @@ class RustTimeline(
                         FormattedBody(body = it, format = MessageFormat.Html)
                     },
                     skipCaptionAutoformat = plaintext, // SC
-                    mentions = null,
+                    mentions = intentionalMentions.mapMentions(), // SC
                     inReplyTo = inReplyToEventId?.value,
                 ),
                 thumbnailSource = thumbnailFile?.path?.let(UploadSource::File),
@@ -479,6 +482,7 @@ class RustTimeline(
         videoInfo: VideoInfo,
         caption: String?,
         formattedCaption: String?,
+        intentionalMentions: List<IntentionalMention>, // SC
         plaintext: Boolean,  // SC
         inReplyToEventId: EventId?,
     ): Result<MediaUploadHandler> {
@@ -492,7 +496,7 @@ class RustTimeline(
                         FormattedBody(body = it, format = MessageFormat.Html)
                     },
                     skipCaptionAutoformat = plaintext, // SC
-                    mentions = null,
+                    mentions = intentionalMentions.mapMentions(), // SC
                     inReplyTo = inReplyToEventId?.value,
                 ),
                 thumbnailSource = thumbnailFile?.path?.let(UploadSource::File),
@@ -508,6 +512,7 @@ class RustTimeline(
         videoInfo: VideoInfo,
         caption: String?,
         formattedCaption: String?,
+        intentionalMentions: List<IntentionalMention>, // SC
         plaintext: Boolean,
         inReplyToEventId: EventId?,
     ): Result<MediaUploadHandler> {
@@ -521,7 +526,7 @@ class RustTimeline(
                         FormattedBody(body = it, format = MessageFormat.Html)
                     },
                     skipCaptionAutoformat = plaintext, // SC
-                    mentions = null,
+                    mentions = intentionalMentions.mapMentions(), // SC
                     inReplyTo = inReplyToEventId?.value,
                 ),
                 thumbnailSource = thumbnail?.let {
@@ -540,6 +545,7 @@ class RustTimeline(
         audioInfo: AudioInfo,
         caption: String?,
         formattedCaption: String?,
+        intentionalMentions: List<IntentionalMention>, // SC
         plaintext: Boolean,  // SC
         inReplyToEventId: EventId?,
     ): Result<MediaUploadHandler> {
@@ -553,7 +559,7 @@ class RustTimeline(
                         FormattedBody(body = it, format = MessageFormat.Html)
                     },
                     skipCaptionAutoformat = plaintext, // SC
-                    mentions = null,
+                    mentions = intentionalMentions.mapMentions(), // SC
                     inReplyTo = inReplyToEventId?.value,
                 ),
                 audioInfo = audioInfo.map(),
@@ -566,6 +572,7 @@ class RustTimeline(
         fileInfo: FileInfo,
         caption: String?,
         formattedCaption: String?,
+        intentionalMentions: List<IntentionalMention>, // SC
         plaintext: Boolean,  // SC
         inReplyToEventId: EventId?,
     ): Result<MediaUploadHandler> {
@@ -579,7 +586,7 @@ class RustTimeline(
                         FormattedBody(body = it, format = MessageFormat.Html)
                     },
                     skipCaptionAutoformat = plaintext, // SC
-                    mentions = null,
+                    mentions = intentionalMentions.mapMentions(), // SC
                     inReplyTo = inReplyToEventId?.value,
                 ),
                 fileInfo = fileInfo.map(),
@@ -651,6 +658,7 @@ class RustTimeline(
         items: List<GalleryItemInfo>,
         caption: String?,
         formattedCaption: String?,
+        intentionalMentions: List<IntentionalMention>, // SC
         inReplyToEventId: EventId?,
     ): Result<MediaUploadHandler> {
         Timber.d("Sending gallery with ${items.size} items")
@@ -669,7 +677,7 @@ class RustTimeline(
                     formattedCaption = formattedCaption?.let {
                         FormattedBody(body = it, format = MessageFormat.Html)
                     },
-                    mentions = null,
+                    mentions = intentionalMentions.mapMentions(), // SC
                     inReplyTo = inReplyToEventId?.value,
                 ),
                 itemInfos = items.map { it.map() },

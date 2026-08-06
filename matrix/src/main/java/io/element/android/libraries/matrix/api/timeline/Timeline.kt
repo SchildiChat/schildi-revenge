@@ -109,6 +109,7 @@ interface Timeline : AutoCloseable {
         eventOrTransactionId: EventOrTransactionId,
         caption: String?,
         formattedCaption: String?,
+        intentionalMentions: List<IntentionalMention>, // SC
         plaintext: Boolean = false,  // SC
     ): Result<Unit>
 
@@ -128,6 +129,7 @@ interface Timeline : AutoCloseable {
         imageInfo: ImageInfo,
         caption: String?,
         formattedCaption: String?,
+        intentionalMentions: List<IntentionalMention>, // SC
         plaintext: Boolean = false,  // SC
         inReplyToEventId: EventId?,
     ): Result<MediaUploadHandler>
@@ -138,6 +140,7 @@ interface Timeline : AutoCloseable {
         videoInfo: VideoInfo,
         caption: String?,
         formattedCaption: String?,
+        intentionalMentions: List<IntentionalMention>, // SC
         plaintext: Boolean = false,  // SC
         inReplyToEventId: EventId?,
     ): Result<MediaUploadHandler>
@@ -149,6 +152,7 @@ interface Timeline : AutoCloseable {
         videoInfo: VideoInfo,
         caption: String?,
         formattedCaption: String?,
+        intentionalMentions: List<IntentionalMention>, // SC
         plaintext: Boolean = false,
         inReplyToEventId: EventId?,
     ): Result<MediaUploadHandler>
@@ -158,6 +162,7 @@ interface Timeline : AutoCloseable {
         audioInfo: AudioInfo,
         caption: String?,
         formattedCaption: String?,
+        intentionalMentions: List<IntentionalMention>, // SC
         plaintext: Boolean = false,  // SC
         inReplyToEventId: EventId?,
     ): Result<MediaUploadHandler>
@@ -167,6 +172,7 @@ interface Timeline : AutoCloseable {
         fileInfo: FileInfo,
         caption: String?,
         formattedCaption: String?,
+        intentionalMentions: List<IntentionalMention>, // SC
         plaintext: Boolean = false,  // SC
         inReplyToEventId: EventId?,
     ): Result<MediaUploadHandler>
@@ -203,6 +209,7 @@ interface Timeline : AutoCloseable {
         items: List<GalleryItemInfo>,
         caption: String?,
         formattedCaption: String?,
+        intentionalMentions: List<IntentionalMention>, // SC
         inReplyToEventId: EventId?,
     ): Result<MediaUploadHandler>
 

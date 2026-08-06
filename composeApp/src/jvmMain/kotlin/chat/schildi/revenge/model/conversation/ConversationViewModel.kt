@@ -886,6 +886,7 @@ class ConversationViewModel(
                             eventOrTransactionId = editEventId,
                             caption = draft.body,
                             formattedCaption = draft.htmlBody,
+                            intentionalMentions = draft.intentionalMentions,
                             plaintext = draft.shouldSendAsPlaintext,
                         )
                     }
@@ -930,6 +931,7 @@ class ConversationViewModel(
                                     audioInfo = attachment.audioInfo,
                                     caption = caption,
                                     formattedCaption = formattedCaption,
+                                    intentionalMentions = draft.intentionalMentions,
                                     plaintext = draft.shouldSendAsPlaintext,
                                     inReplyToEventId = draft.inReplyTo?.eventId,
                                 ).scheduleAttachmentCleanup(attachment)
@@ -941,6 +943,7 @@ class ConversationViewModel(
                                     fileInfo = attachment.fileInfo,
                                     caption = caption,
                                     formattedCaption = formattedCaption,
+                                    intentionalMentions = draft.intentionalMentions,
                                     plaintext = draft.shouldSendAsPlaintext,
                                     inReplyToEventId = draft.inReplyTo?.eventId,
                                 ).scheduleAttachmentCleanup(attachment)
@@ -953,6 +956,7 @@ class ConversationViewModel(
                                     imageInfo = attachment.imageInfo,
                                     caption = caption,
                                     formattedCaption = formattedCaption,
+                                    intentionalMentions = draft.intentionalMentions,
                                     plaintext = draft.shouldSendAsPlaintext,
                                     inReplyToEventId = draft.inReplyTo?.eventId,
                                 ).scheduleAttachmentCleanup(attachment)
@@ -965,6 +969,7 @@ class ConversationViewModel(
                                     videoInfo = attachment.videoInfo,
                                     caption = caption,
                                     formattedCaption = formattedCaption,
+                                    intentionalMentions = draft.intentionalMentions,
                                     plaintext = draft.shouldSendAsPlaintext,
                                     inReplyToEventId = draft.inReplyTo?.eventId,
                                 ).scheduleAttachmentCleanup(attachment)
