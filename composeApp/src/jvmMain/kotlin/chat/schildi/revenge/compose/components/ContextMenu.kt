@@ -263,6 +263,7 @@ private fun ContextMenuDropdownMenuItemContent(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val keyboardShortcutsEnabled = LocalKeyboardActionHandler.current.keyboardPrimary.collectAsState().value
     val primaryColor = if (entry.critical) {
         MaterialTheme.colorScheme.error
     } else {
@@ -317,9 +318,9 @@ private fun ContextMenuDropdownMenuItemContent(
         },
         text = {
             val title = entry.title.render()
-            val text = remember(entry, title) {
+            val text = remember(entry, title, keyboardShortcutsEnabled) {
                 val keyboardShortcut = entry.keyboardShortcut
-                if (keyboardShortcut == null) {
+                if (keyboardShortcut == null || !keyboardShortcutsEnabled) {
                     AnnotatedString(title)
                 } else {
                     val keyText = keyboardShortcut.displayName().lowercase()

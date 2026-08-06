@@ -777,7 +777,7 @@ class KeyboardActionHandler(
         val trigger = event.toTrigger() ?: return false
         val focused = currentFocused()
         val contextMenu = _currentOpenContextMenu.value
-        val contextMenuEntries = contextMenu?.let {
+        val contextMenuEntries = contextMenu?.takeIf { keyboardPrimary.value }?.let {
             it.resolveMenuEntries(focusableTargets[it.focusId])
         }?.takeIf { it.isNotEmpty() }
         // Disallow plain keybindings of keys handled by text fields
