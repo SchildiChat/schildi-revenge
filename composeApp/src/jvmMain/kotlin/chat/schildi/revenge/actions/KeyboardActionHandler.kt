@@ -227,6 +227,12 @@ sealed interface CommandHolder {
     val impliedArguments: List<Pair<ActionArgumentPrimitive, String>>
 }
 
+data class ActionableSnapshot(
+    val actionHandlers: List<KeyboardActionProvider<*>>,
+    val destinationStateHolder: DestinationStateHolder?,
+    val destinationType: DestinationEnum?,
+)
+
 data class IpcCommand(
     override val command: String,
 ) : CommandHolder {
@@ -249,6 +255,7 @@ sealed interface KeyboardActionMode {
         val suggestionsProvider: CommandSuggestionsProvider,
         val selectedSuggestion: String?,
         override val impliedArguments: List<Pair<ActionArgumentPrimitive, String>>,
+        val actionableSnapshot: ActionableSnapshot,
         val forSearch: Search?,
     ) : KeyboardActionMode, CommandHolder {
         override val command = query.text
@@ -1203,6 +1210,8 @@ class KeyboardActionHandler(
         criticalActionRequiresConfirmation: Boolean,
         keybindingConfig: KeybindingConfig? = UiState.keybindingsConfig.value,
         currentDestinationType: DestinationEnum? = focused?.destinationStateHolder?.state?.value?.destination?.destinationId,
+        destinationStateHolder: DestinationStateHolder? = focused?.destinationStateHolder,
+        implicitArgs: CommandArgContext = getCurrentKeyActionHandlers(focused).flatMap { it.impliedArguments() }.distinct(),
         asyncCallback: ActionResultCallback? = null,
     ) = object : InternalActionContext {
         override val windowId = this@KeyboardActionHandler.windowId
@@ -1269,12 +1278,12 @@ class KeyboardActionHandler(
         override val criticalActionRequiresConfirmation = criticalActionRequiresConfirmation
         override val keybindingConfig = keybindingConfig
         override val currentDestinationType = currentDestinationType
-        override val destinationStateHolder = focused?.destinationStateHolder
-        override val implicitArgs = getCurrentKeyActionHandlers(focused).flatMap { it.impliedArguments() }.distinct()
+        override val destinationStateHolder = destinationStateHolder
+        override val implicitArgs = implicitArgs
     }
 
     private fun navigationItemActionHandler(
-        focused: FocusTarget,
+        destinationStateHolder: DestinationStateHolder?,
         navigationActionable: InteractionAction.NavigationAction,
     ) =
         object : KeyboardActionProvider<Action.NavigationItem> {
@@ -1297,7 +1306,7 @@ class KeyboardActionHandler(
                 val destination = navigationActionable.buildDestination()
                 return when (action) {
                     Action.NavigationItem.NavigateCurrent -> {
-                        val destinationStateHolder = focused.destinationStateHolder ?: return ActionResult.Inapplicable
+                        destinationStateHolder ?: return ActionResult.Inapplicable
                         updateMode { KeyboardActionMode.Navigation }
                         navigateCurrentDestination(destination, destinationStateHolder)
                     }
@@ -1568,14 +1577,14 @@ class KeyboardActionHandler(
                     context.launchActionAsync("navigateCurrent", scope) {
                         val extraArgs = args.subList(1, args.size)
                         val destination = args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
-                        navigateCurrentDestination(context.focused()?.destinationStateHolder) { destination }
+                        navigateCurrentDestination(context.destinationStateHolder) { destination }
                     }
                 }
                 Action.Navigation.NavigateAuto -> {
                     context.launchActionAsync("navigateAuto", scope) {
                         val extraArgs = args.subList(1, args.size)
                         val destination = args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
-                        navigateAuto(destination, context.focused()?.destinationStateHolder)
+                        navigateAuto(destination, context.destinationStateHolder)
                     }
                 }
                 Action.Navigation.NavigateInNewWindow -> {
@@ -1596,7 +1605,7 @@ class KeyboardActionHandler(
                             args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
                         }
                         navigateCurrentDestination(
-                            destinationStateHolder = context.focused()?.destinationStateHolder,
+                            destinationStateHolder = context.destinationStateHolder,
                             invalidateHolderId = true,
                         ) { destinationState ->
                             Destination.SplitHorizontal(
@@ -1617,7 +1626,7 @@ class KeyboardActionHandler(
                             args[0].toDestinationOrNull(extraArgs, context.implicitArgs).orActionValidationError()
                         }
                         navigateCurrentDestination(
-                            destinationStateHolder = context.focused()?.destinationStateHolder,
+                            destinationStateHolder = context.destinationStateHolder,
                             invalidateHolderId = true,
                         ) { destinationState ->
                             Destination.SplitVertical(
@@ -2209,7 +2218,7 @@ class KeyboardActionHandler(
             appMessageHandler,
             focused?.actions?.keyActions,
             (focused?.actions?.primaryAction as? InteractionAction.NavigationAction)?.let {
-                navigationItemActionHandler(focused, it)
+                navigationItemActionHandler(focused.destinationStateHolder, it)
             },
             (focused?.actions?.editActions ?: _activeEditAble.value)?.let {
                 editableActionHandler(it)
@@ -2590,10 +2599,15 @@ class KeyboardActionHandler(
         command: CommandHolder,
         asyncCallback: ActionResultCallback? = null,
     ): ActionResult {
-        val focused = command.focused?.let {
-            focusableTargets[it]
-        } ?: focusableTargets.values.find { it.role == FocusRole.DESTINATION_ROOT_CONTAINER }
-        val commandParser = CommandParser(getCurrentKeyActionHandlers(focused))
+        val actionableSnapshot = (command as? KeyboardActionMode.Command)?.actionableSnapshot
+        val focused = when (command) {
+            is KeyboardActionMode.Command -> command.focused?.let { focusableTargets[it] }
+            is IpcCommand -> focusableTargets.values.find { it.role == FocusRole.DESTINATION_ROOT_CONTAINER }
+        }
+        val actionHandlers = focused?.let { getCurrentKeyActionHandlers(it) }
+            ?: actionableSnapshot?.actionHandlers
+            ?: getCurrentKeyActionHandlers(null)
+        val commandParser = CommandParser(actionHandlers)
         val (mainCommand, args) = commandParser.parseCommandString(command.command) ?: run {
             log.i("Ignoring empty command")
             return ActionResult.Inapplicable
@@ -2631,6 +2645,11 @@ class KeyboardActionHandler(
                     focused,
                     keybindingConfig = null,
                     criticalActionRequiresConfirmation = false,
+                    currentDestinationType = focused?.destinationStateHolder?.state?.value?.destination?.destinationId
+                        ?: actionableSnapshot?.destinationType,
+                    destinationStateHolder = focused?.destinationStateHolder
+                        ?: actionableSnapshot?.destinationStateHolder,
+                    implicitArgs = command.impliedArguments,
                     asyncCallback = asyncCallback,
                 )
                 val result = try {
@@ -2711,6 +2730,7 @@ class KeyboardActionHandler(
                     ?: currentFocus.value?.let { focusableTargets[it] }
                     ?: focusableTargets.values.find { it.role == FocusRole.DESTINATION_ROOT_CONTAINER }
                 val actionHandlers = getCurrentKeyActionHandlers(focusTarget)
+                val destinationStateHolder = focusTarget?.destinationStateHolder
                 KeyboardActionMode.Command(
                     query = query,
                     focused = focusTarget?.id,
@@ -2723,6 +2743,11 @@ class KeyboardActionHandler(
                     ),
                     selectedSuggestion = null,
                     impliedArguments = actionHandlers.flatMap { it.impliedArguments() }.distinct(),
+                    actionableSnapshot = ActionableSnapshot(
+                        actionHandlers = actionHandlers,
+                        destinationStateHolder = destinationStateHolder,
+                        destinationType = destinationStateHolder?.state?.value?.destination?.destinationId,
+                    ),
                     forSearch = mode.asSearchMode(),
                 )
             }.also {
