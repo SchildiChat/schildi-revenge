@@ -86,7 +86,7 @@ object NotificationEventTextFormat {
             NotificationContent.MessageLike.KeyVerificationDone -> getString(Res.string.message_placeholder_key_verification)
             is NotificationContent.MessageLike.ReactionContent -> getString(Res.string.message_placeholder_reaction)
             NotificationContent.MessageLike.RoomEncrypted -> getString(Res.string.message_placeholder_encrypted_message)
-            is NotificationContent.MessageLike.RoomMessage -> EventTextFormat.messageTypeToText(content.messageType, stripNewlines)
+            is NotificationContent.MessageLike.RoomMessage -> EventTextFormat.messageTypeToText(content.messageType, stripNewlines) { getString(it) }
             is NotificationContent.MessageLike.RoomRedaction -> {
                 if (content.reason.isNullOrBlank()) {
                     getString(Res.string.message_placeholder_message_redacted)

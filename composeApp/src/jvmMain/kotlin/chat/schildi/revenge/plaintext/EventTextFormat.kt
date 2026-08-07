@@ -31,13 +31,19 @@ import io.element.android.libraries.matrix.api.timeline.item.event.UnknownConten
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisambiguatedDisplayName
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisplayName
 import io.element.android.libraries.matrix.api.room.join.JoinRule
+import io.element.android.libraries.matrix.api.timeline.item.event.AudioMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.FileMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.FormattedBody
 import io.element.android.libraries.matrix.api.timeline.item.event.GalleryMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.ImageMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.LiveLocationContent
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageFormat
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
+import io.element.android.libraries.matrix.api.timeline.item.event.StickerMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.TextLikeMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.VideoMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.VoiceMessageType
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
@@ -67,8 +73,13 @@ import shire.res.generated.resources.membership_change_none
 import shire.res.generated.resources.membership_change_not_implemented
 import shire.res.generated.resources.membership_change_unbanned
 import shire.res.generated.resources.membership_reason
+import shire.res.generated.resources.message_placeholder_audio_message
 import shire.res.generated.resources.message_placeholder_call
+import shire.res.generated.resources.message_placeholder_file
+import shire.res.generated.resources.message_placeholder_gallery
+import shire.res.generated.resources.message_placeholder_image
 import shire.res.generated.resources.message_placeholder_live_location
+import shire.res.generated.resources.message_placeholder_location
 import shire.res.generated.resources.message_placeholder_message_failed_to_parse
 import shire.res.generated.resources.message_placeholder_message_redacted
 import shire.res.generated.resources.message_placeholder_state_event
@@ -97,10 +108,13 @@ import shire.res.generated.resources.message_placeholder_state_event_room_topic_
 import shire.res.generated.resources.message_placeholder_state_event_room_user_power_levels
 import shire.res.generated.resources.message_placeholder_state_event_space_child
 import shire.res.generated.resources.message_placeholder_state_event_space_parent
+import shire.res.generated.resources.message_placeholder_sticker
 import shire.res.generated.resources.message_placeholder_unable_to_decrypt
 import shire.res.generated.resources.message_placeholder_unknown
+import shire.res.generated.resources.message_placeholder_video
 import shire.res.generated.resources.message_placeholder_video_call
 import shire.res.generated.resources.message_placeholder_voice_call
+import shire.res.generated.resources.message_placeholder_voice_message
 import shire.res.generated.resources.profile_update_avatar
 import shire.res.generated.resources.profile_update_cleared_name
 import shire.res.generated.resources.profile_update_name
@@ -156,7 +170,7 @@ object EventTextFormat {
             return preformattedContentToString(it, stripNewlines)
         }
         return when (content) {
-            is MessageContent -> messageTypeToText(content.type, stripNewlines)
+            is MessageContent -> messageTypeToText(content.type, stripNewlines, getString)
             is StickerContent -> content.bestDescription
             is CallNotifyContent -> callContentToText(content, getFormatString)
             LegacyCallInviteContent -> getString(Res.string.message_placeholder_call)
@@ -173,22 +187,49 @@ object EventTextFormat {
         }
     }
 
-    fun messageTypeToText(type: MessageType, stripNewlines: Boolean): String {
+    inline fun messageTypeToText(
+        type: MessageType,
+        stripNewlines: Boolean,
+        getString: (StringResource) -> String,
+    ): String {
         return when (type) {
-            is TextLikeMessageType -> formattedBodyToText(type.formatted, type.body, stripNewlines)
-            is MessageTypeWithAttachment -> formattedBodyToText(type.formattedCaption, type.bestDescription, stripNewlines)
-            is GalleryMessageType -> formattedBodyToText(type.formatted, type.body, stripNewlines)
-            is LocationMessageType -> type.body
-            is OtherMessageType -> type.body
+            is TextLikeMessageType -> formattedBodyToText(
+                type.formatted,
+                type.body,
+                "",
+                stripNewlines
+            )
+            is MessageTypeWithAttachment -> formattedBodyToText(
+                type.formattedCaption,
+                type.bestDescription,
+                when (type) {
+                    is AudioMessageType -> getString(Res.string.message_placeholder_audio_message)
+                    is FileMessageType -> getString(Res.string.message_placeholder_file)
+                    is ImageMessageType -> getString(Res.string.message_placeholder_image)
+                    is StickerMessageType -> getString(Res.string.message_placeholder_sticker)
+                    is VideoMessageType -> getString(Res.string.message_placeholder_video)
+                    is VoiceMessageType -> getString(Res.string.message_placeholder_voice_message)
+                },
+                stripNewlines,
+            )
+            is GalleryMessageType -> formattedBodyToText(
+                type.formatted,
+                type.body,
+                getString(Res.string.message_placeholder_gallery),
+                stripNewlines,
+            )
+            is LocationMessageType -> type.body.takeIf { it.isNotBlank() } ?: getString(Res.string.message_placeholder_location)
+            is OtherMessageType -> type.body.takeIf { it.isNotBlank() } ?: getString(Res.string.message_placeholder_unknown)
         }
     }
 
-    private fun formattedBodyToText(
+    fun formattedBodyToText(
         formattedBody: FormattedBody?,
         bestDescription: String,
+        fallback: String,
         stripNewlines: Boolean,
     ): String {
-        return formattedBody?.takeIf { it.format == MessageFormat.HTML }
+        return formattedBody?.takeIf { it.format == MessageFormat.HTML && it.body.isNotBlank() }
             ?.let {
                 preformattedContentToString(
                     MessageFormatDefaults.parser.parseHtml(
@@ -198,7 +239,7 @@ object EventTextFormat {
                     ),
                     stripNewlines,
                 )
-            } ?: bestDescription
+            } ?: bestDescription.takeIf { it.isNotBlank() } ?: fallback
     }
 
     @Composable

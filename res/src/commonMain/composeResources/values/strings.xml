@@ -280,6 +280,10 @@
     <string name="message_placeholder_video_call">Video call</string>
     <string name="message_placeholder_audio_message">Audio message</string>
     <string name="message_placeholder_voice_message">Voice message</string>
+    <string name="message_placeholder_image">Image</string>
+    <string name="message_placeholder_video">Video</string>
+    <string name="message_placeholder_file">File</string>
+    <string name="message_placeholder_gallery">Gallery</string>
     <string name="message_placeholder_sticker">Sticker</string>
     <string name="message_placeholder_reaction">Reacted to a message</string>
     <string name="message_placeholder_encrypted_message">Encrypted message</string>
@@ -317,6 +321,7 @@
     <string name="message_placeholder_state_event_room_user_power_levels">%1$s changed user power levels</string>
     <string name="message_placeholder_state_event_space_child">%1$s changed the space children</string>
     <string name="message_placeholder_state_event_space_parent">%1$s changed the space parents</string>
+    <string name="message_placeholder_location">Location</string>
     <string name="message_placeholder_live_location">Live location</string>
     <string name="message_placeholder_state_event_beacon_info">%1$s updated live location sharing</string>
     <string name="message_placeholder_beacon">Live location update</string>
