@@ -4,6 +4,9 @@ import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 plugins {
@@ -41,6 +44,13 @@ require(unknownAndroidAbis.isEmpty()) {
     "Unsupported Android ABI(s): ${unknownAndroidAbis.joinToString()}. Supported ABIs: ${supportedAndroidAbis.joinToString()}"
 }
 
+val calVer = ZonedDateTime.now(ZoneOffset.UTC)
+    .format(DateTimeFormatter.ofPattern("yy.MM.dd"))
+val androidVersionNameOverride = providers.gradleProperty("androidVersionName")
+val androidVersionCodeOverride = providers.gradleProperty("androidVersionCode").map(String::toInt)
+val androidVersionName = androidVersionNameOverride.getOrElse(calVer)
+val androidVersionCode = androidVersionCodeOverride.getOrElse("${calVer.replace(".", "")}00".toInt())
+
 android {
     namespace = "chat.schildi.revenge"
     compileSdk = 37
@@ -49,8 +59,8 @@ android {
         applicationId = "chat.schildi.revenge"
         minSdk = 26
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.1"
+        versionCode = androidVersionCode
+        versionName = androidVersionName
     }
     buildTypes {
         debug {
@@ -88,6 +98,10 @@ val syncReleaseNativeLibraries = tasks.register<SyncNativeLibraries>("syncReleas
 
 androidComponents {
     onVariants(selector().withBuildType("debug")) { variant ->
+        variant.outputs.forEach { output ->
+            output.versionCode.set(androidVersionCodeOverride.orElse(1))
+            output.versionName.set(androidVersionNameOverride.orElse("HEAD-$calVer"))
+        }
         variant.sources.jniLibs?.addGeneratedSourceDirectory(syncDebugNativeLibraries, SyncNativeLibraries::outputDirectory)
     }
     onVariants(selector().withBuildType("release")) { variant ->

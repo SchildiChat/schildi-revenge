@@ -328,8 +328,13 @@ val generateBuildInfo = tasks.register<GenerateBuildInfoTask>("generateBuildInfo
     rustProfileValue.set(rustProfile)
     packageName.set(pkg)
 
-    buildTimestamp.set(LocalDateTime.now()
-        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")))
+    buildTimestamp.set(
+        providers.gradleProperty("buildTimestamp").orElse(
+            providers.provider {
+                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+            },
+        ),
+    )
 
     val gitExt = project.extensions.getByName("git")
     @Suppress("UNCHECKED_CAST")
