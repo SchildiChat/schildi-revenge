@@ -6,7 +6,7 @@
     <application
         android:name="chat.schildi.revenge.RevengeApplication"
         android:icon="@mipmap/ic_launcher"
-        android:label="SchildiChat Revenge"
+        android:label="@string/android_app_title_full"
         android:theme="@style/Theme.Schildi">
         <provider
             android:name="androidx.core.content.FileProvider"
@@ -19,6 +19,7 @@
         </provider>
         <activity
             android:name="chat.schildi.revenge.MainActivity"
+            android:label="@string/android_app_title_short"
             android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
             android:theme="@style/Theme.Schildi.Splash"
             android:windowSoftInputMode="adjustResize"

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- AndroidManifest doesn't like multiplatform resources? -->
+    <string name="android_app_title_full" translatable="false">SchildiChat Revenge</string>
+    <string name="android_app_title_short" translatable="false">SchildiChat</string>
+</resources>
