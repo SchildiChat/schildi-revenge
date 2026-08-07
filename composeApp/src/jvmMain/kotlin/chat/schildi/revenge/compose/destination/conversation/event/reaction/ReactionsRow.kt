@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -50,7 +51,9 @@ fun ColumnScope.ReactionsRow(
         ),
     ) {
         reactions.forEach { reaction ->
-            ReactionsBubble(viewModel, eventOrTransactionId, reaction, roomMembersById)
+            key(reaction.key) {
+                ReactionsBubble(viewModel, eventOrTransactionId, reaction, roomMembersById)
+            }
         }
     }
 }

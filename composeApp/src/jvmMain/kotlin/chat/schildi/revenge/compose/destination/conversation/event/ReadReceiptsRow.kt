@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -83,11 +84,13 @@ fun ColumnScope.ReadReceiptsRow(
             ),
         ) {
             receipts.take(MAX_RECEIPTS).forEachIndexed { index, receipt ->
-                ReadReceiptItem(
-                    receipt = receipt,
-                    member = roomMembersById[receipt.userId],
-                    modifier = Modifier.zIndex(-index.toFloat())
-                )
+                key(receipt.userId) {
+                    ReadReceiptItem(
+                        receipt = receipt,
+                        member = roomMembersById[receipt.userId],
+                        modifier = Modifier.zIndex(-index.toFloat())
+                    )
+                }
             }
             if (receipts.size > MAX_RECEIPTS) {
                 ReadReceiptOverflowItem(
