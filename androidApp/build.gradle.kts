@@ -70,7 +70,23 @@ android {
             ndk.abiFilters += selectedAndroidAbis ?: listOf("arm64-v8a")
         }
         release {
+            isMinifyEnabled = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
             ndk.abiFilters += selectedAndroidAbis ?: supportedAndroidAbis
+        }
+        // Optimizations like release, package and signing like debug
+        create("PerfDebug") {
+            initWith(getByName("release"))
+            applicationIdSuffix = ".debug"
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += listOf("release")
+            ndk.abiFilters.clear()
+            ndk.abiFilters += selectedAndroidAbis ?: listOf("arm64-v8a")
+            // ART runtime punishes debuggable...
+            isDebuggable = false
         }
     }
     compileOptions {
@@ -102,11 +118,18 @@ androidComponents {
     onVariants(selector().withBuildType("debug")) { variant ->
         variant.outputs.forEach { output ->
             output.versionCode.set(androidVersionCodeOverride.orElse(1))
-            output.versionName.set(androidVersionNameOverride.orElse("HEAD-$calVer"))
+            output.versionName.set(androidVersionNameOverride.orElse("debug-$calVer"))
         }
         variant.sources.jniLibs?.addGeneratedSourceDirectory(syncDebugNativeLibraries, SyncNativeLibraries::outputDirectory)
     }
     onVariants(selector().withBuildType("release")) { variant ->
+        variant.sources.jniLibs?.addGeneratedSourceDirectory(syncReleaseNativeLibraries, SyncNativeLibraries::outputDirectory)
+    }
+    onVariants(selector().withBuildType("PerfDebug")) { variant ->
+        variant.outputs.forEach { output ->
+            output.versionCode.set(androidVersionCodeOverride.orElse(1))
+            output.versionName.set(androidVersionNameOverride.orElse("perfdebug-$calVer"))
+        }
         variant.sources.jniLibs?.addGeneratedSourceDirectory(syncReleaseNativeLibraries, SyncNativeLibraries::outputDirectory)
     }
 }
