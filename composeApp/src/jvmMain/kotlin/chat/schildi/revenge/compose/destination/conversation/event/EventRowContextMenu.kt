@@ -68,7 +68,11 @@ fun EventTimelineItem.contextMenu(
     permissions: ConversationPermissions?,
     messageMetadata: MessageMetadata?,
 ): ImmutableList<ContextMenuEntry> {
-    val messageContent = content as? MessageContent ?: return eventDevToolsOptions()
+    val messageContent = content as? MessageContent
+    val showDevTools = ScPrefs.DEV_QUICK_OPTIONS.value()
+    if (messageContent == null && !showDevTools) {
+        return persistentListOf()
+    }
     val canRedact = if (isOwn) {
         permissions?.canRedactOwn ?: true
     } else {
@@ -81,44 +85,44 @@ fun EventTimelineItem.contextMenu(
             rememberVectorPainter(Icons.Default.OpenWith),
             Action.Event.DownloadFileAndOpen,
             keyboardShortcut = Key.O,
-        ).takeIf { messageContent.type is MessageTypeWithAttachment && usesKeyboard }, // Non-keyboard users can just do a primary click on the message instead
+        ).takeIf { messageContent?.type is MessageTypeWithAttachment && usesKeyboard }, // Non-keyboard users can just do a primary click on the message instead
         ContextMenuActionEntry(
             Res.string.action_download.toStringHolder(),
             rememberVectorPainter(Icons.Default.Download),
             Action.Event.DownloadFile,
             keyboardShortcut = Key.L,
-        ).takeIf { messageContent.type is MessageTypeWithAttachment },
+        ).takeIf { messageContent?.type is MessageTypeWithAttachment },
         ContextMenuActionEntry(
             Res.string.action_jump_to_replied_to_message.toStringHolder(),
             rememberVectorPainter(Icons.Default.Navigation),
             Action.Event.JumpToRepliedTo,
             keyboardShortcut = Key.J,
-        ).takeIf { messageContent.inReplyTo != null },
+        ).takeIf { messageContent?.inReplyTo != null },
         ContextMenuActionEntry(
             Res.string.action_reply.toStringHolder(),
             rememberVectorPainter(Icons.AutoMirrored.Default.Reply),
             Action.Event.ComposeReply,
             keyboardShortcut = Key.R,
-        ).takeIf { permissions?.canSendMessages ?: false },
+        ).takeIf { messageContent != null && permissions?.canSendMessages ?: false },
         ContextMenuActionEntry(
             Res.string.action_thread.toStringHolder(),
             rememberVectorPainter(Icons.Default.Gesture),
             Action.Navigation.NavigateAuto,
             actionArgs = persistentListOf(DestinationEnum.ConversationThread.destName, sessionId.value, roomId.value, eventId?.value ?: ""),
             keyboardShortcut = Key.T,
-        ).takeIf { eventId != null },
+        ).takeIf { eventId != null && messageContent != null },
         ContextMenuActionEntry(
             Res.string.action_edit.toStringHolder(),
             rememberVectorPainter(Icons.Default.Edit),
             Action.Event.ComposeEdit,
             keyboardShortcut = Key.E,
-        ).takeIf { isOwn && (permissions?.canSendMessages ?: true) },
+        ).takeIf { messageContent != null && isOwn && (permissions?.canSendMessages ?: true) },
         ContextMenuActionEntry(
             Res.string.action_react.toStringHolder(),
             rememberVectorPainter(Icons.Default.AddReaction),
             Action.Event.ComposeReaction,
             keyboardShortcut = Key.C,
-        ).takeIf { permissions?.canSendReactions ?: false },
+        ).takeIf { messageContent != null && permissions?.canSendReactions ?: false },
         ContextMenuActionEntry(
             Res.string.action_view_reactions.toStringHolder(),
             rememberVectorPainter(Icons.Default.EmojiPeople),
@@ -138,7 +142,7 @@ fun EventTimelineItem.contextMenu(
             rememberVectorPainter(Icons.Default.ContentCopy),
             Action.Event.CopyContent,
             keyboardShortcut = Key.Y,
-        ).takeIf { messageMetadata != null },
+        ).takeIf { messageMetadata?.preFormattedContent != null },
         ContextMenuSubmenuEntry(
             Res.string.action_mark_as_read.toStringHolder(),
             rememberVectorPainter(Icons.Default.Visibility),
@@ -175,13 +179,15 @@ fun EventTimelineItem.contextMenu(
             critical = true,
             keyboardShortcut = Key.D,
         ).takeIf { canRedact },
-        *eventDevToolsOptions().toTypedArray(),
+        *eventDevToolsOptions(showDevTools).toTypedArray(),
         enterCommandModeContextMenuAction(),
     ).toPersistentList()
 }
 
 @Composable
-private fun eventDevToolsOptions() = if (ScPrefs.DEV_QUICK_OPTIONS.value()) {
+private fun eventDevToolsOptions(
+    enabled: Boolean,
+) = if (enabled) {
     persistentListOf(
         ContextMenuActionEntry(
             Res.string.action_view_event_source.toStringHolder(),
