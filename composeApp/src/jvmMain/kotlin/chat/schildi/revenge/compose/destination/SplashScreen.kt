@@ -2,7 +2,7 @@ package chat.schildi.revenge.compose.destination
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -22,7 +22,7 @@ fun SplashScreen(
     contentModifier: Modifier = Modifier,
 ) {
     FocusContainer(
-        modifier = modifier.safeContentPadding().fillMaxSize(),
+        modifier = modifier.safeDrawingPadding().fillMaxSize(),
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
     ) {
         SplashScreenContent(contentModifier, UiState.globalLoadState.state)

@@ -12,7 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -80,7 +80,7 @@ fun ConversationScreen(
     contentModifier: Modifier = Modifier,
 ) {
     BoxWithConstraints(
-        modifier.safeContentPadding().fillMaxSize(),
+        modifier.safeDrawingPadding().fillMaxSize(),
         contentAlignment = Alignment.Center,
     ) {
         val contentHeight = maxHeight

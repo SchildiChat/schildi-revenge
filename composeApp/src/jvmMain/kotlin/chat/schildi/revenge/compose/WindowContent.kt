@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -60,7 +60,7 @@ fun WindowContent(
                 .thenIf(showsBottomContent) {
                     // If we're showing bottom bar content, we need to consume safe insets here already,
                     // otherwise we can delegate to destination content to allow edge-to-edge rendering
-                    safeContentPadding()
+                    safeDrawingPadding()
                 }
         ) {
             Column(
@@ -111,7 +111,7 @@ fun WindowContent(
                 }
             }
             if (ScPrefs.FRAME_DROP_SPINNER.value()) {
-                CircularProgressIndicator(Modifier.safeContentPadding())
+                CircularProgressIndicator(Modifier.safeDrawingPadding())
             }
         }
     }

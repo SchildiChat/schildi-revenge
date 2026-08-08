@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.safeContentPadding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -104,7 +104,7 @@ fun VerificationRequestScreen(
 
     val verificationFlowState = viewModel.verificationFlowState.collectAsState().value
     FocusContainer(
-        modifier = modifier.safeContentPadding(),
+        modifier = modifier.safeDrawingPadding(),
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
     ) {
         Column {
