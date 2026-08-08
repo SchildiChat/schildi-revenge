@@ -3,9 +3,16 @@
 
 # SchildiChat Revenge
 
-A desktop Matrix client written in kotlin / Compose Multiplatform based on the Matrix Rust SDK.  
-Currently still in its alpha stage, so expect bugs and missing functionality, but feel free to open issues if you're
-noticing/missing something particular that's not already tracked below or in an existing issue.
+A desktop & Android Matrix client written in kotlin / Jetpack Compose, based on the Matrix Rust SDK.  
+Currently still in its beta phase, so you should still expect some missing functionality, but feel free to open issues if you're
+noticing/missing something particular that's not already tracked in an existing issue.
+
+## Downloads
+
+- Desktop: [GitHub releases](https://github.com/SchildiChat/schildi-revenge/releases)
+- Android: [SpiritCroc F-Droid repo](https://s2.spiritcroc.de/fdroid/repo/)
+- Known third-party packages:
+    - AUR: [schildichat-revenge-git](https://aur.archlinux.org/packages/schildichat-revenge-git)
 
 ## Main goals
 
@@ -19,8 +26,9 @@ noticing/missing something particular that's not already tracked below or in an 
 - Multi-window
     - For individual chats
     - To have multiple inbox views open to allow viewing separate filters at once
-- Design in the tradition of SchildiChat clients
-- Long-term: Good enough for non-power-users to use mouse-only / intuitively
+- Should work fine for both big desktop screens and small phone screens
+- Primarily targeted at power users initially, in that it doesn't try to hide Matrix internals too much but tries to give
+  great dev tools instead. But in the long run hopefully also intuitive enough to recommend to "normal" users.
 
 
 ## Screenshots
@@ -28,137 +36,37 @@ noticing/missing something particular that's not already tracked below or in an 
 <img src="https://raw.githubusercontent.com/SchildiChat/schildi-revenge/refs/heads/main/screenshots/inbox_2.png" height="500"/> <img src="https://raw.githubusercontent.com/SchildiChat/schildi-revenge/refs/heads/main/screenshots/conversation_2.png" height="500"/> <img src="https://raw.githubusercontent.com/SchildiChat/schildi-revenge/refs/heads/main/screenshots/conversation_1.png" height="500"/>
 
 
-## Initial implementation checklist
+## Features
 
-This is a rough collection of features that I consider important for core use, to help with the initial bringup.
-This list is not sufficient to consider the client feature-complete in any way.
+- Complete formatted message rendering support
+- Configurable key bindings
+- Send formatted text messages and attachment captions as Markdown, HTML or plaintext
+- Hierarchical space navigation
+- Send sticker packs & custom emotes (assuming you configured them on another client using stable spec identifier)
+- Intentional mentions
+- Threads
+- Dev tools for room state & account data
+- Encryption
+- Cheap message search (just the ones loaded in memory, not proper indexed search)
+- Lots more
 
-<details>
-<summary>Checklist</summary>
 
-- [x] Schildi theme
-- [x] Initial config hooked in
-    - [x] Accounts with username+homeserver (not: password and secrets)
-    - [x] Configurable key bindings
-- [x] Initial account management UI
-    - [x] Login via password
-    - [x] Enter recovery code
-    - [x] Logout / delete account
-- [x] ScPrefs
-    - [x] Via toml
-    - [x] Datastore for user prefs
-    - [x] Datastore for other app state
-    - [x] UI
-- [x] Lock to avoid running multiple instances in parallel, but instead bring to foreground?
-- [x] Inbox
-    - [x] List all chats
-    - [x] Make it look nice
-    - [x] Unread counts
-    - [x] Spaces navigation
-    - [x] Filter by spaces
-    - [x] Filter by account
-    - [x] Search
-    - [x] Handle invites
-        - [x] Join
-        - [x] Reject
-- [ ] Conversation view
-    - [x] Render plain text and notices
-    - [x] Render formatted text and notices
-    - [x] Send text messages
-    - [x] Render read receipts
-    - [x] Render media thumbnails & placeholders (+ open with external applications for advanced playback)
-        - [x] Images
-        - [x] Video thumbnails if provided in the message event
-        - [x] Audio
-        - [x] Files
-    - [x] Render reactions
-    - [x] Render joins/leaves
-    - [x] Render link previews
-    - [x] Render typing indicators
-    - [x] Mechanism to select messages (for replies, edits, reactions...)
-    - [x] Send replies
-    - [x] Send reactions (just text input is enough for first run, can use `:` shortcodes)
-    - [x] Send mentions
-    - [x] Send attachments
-        - [x] Via file picker
-        - [x] Via drag&drop ([broken from some wayland
-          windows](https://gitlab.freedesktop.org/wlroots/wlroots/-/merge_requests/841), sorry)
-        - [x] Via copy&paste (if configured in key bindings)
-    - [x] Send typing indicators
-    - [x] Delete messages
-    - [x] Mark as read (via command)
-    - [x] Mark as unread (via command)
-    - [x] Kick/ban users (via command)
-    - [x] Devtools
-        - [x] Copy room state to clipboard
-        - [x] Copy room account state to clipboard
-        - [x] Send custom events
-        - [x] Send room state
-    - [x] User trust MVP
-        - [x] Message authenticity shields
-        - [x] Identity resets
-    - [ ] Failed message send retries: `EventTimelineHandler.sendHandleProvider()`
-- [x] Room member list
-- [x] Commands
-    - [x] Create room
-    - [x] Start DM
-    - [x] Invite user
-    - [x] Kick/ban user
-    - [x] Set room notification settings
-    - [x] Copy room ID, room link
-    - [x] Set favorite / low priority
-    - [x] Copy account state to clipboard
-- [x] Account data devtools
-- [ ] Account management screen polish
-- [ ] Notifications
-    - [x] Show desktop notifications
-    - [x] Allow muting individual accounts
-    - [x] Include sender avatar in notification
-    - [ ] Cancel notifications / test behavior on various OSes
-    - [ ] Allow clicking notifications to open the room
-    - [ ] Improve notification reliability for sliding sync?
-- [x] App icon
-- [x] Tray icon with unread count
-    - [x] Optional minimize to tray: last window close request doesn't discard window but just sets minimized
-- [x] Mouse-user-friendly mode
-  - [x] All screens accessible via mouse
-  - [x] Important features accessible via mouse (e.g. search)
-- [x] Add release flavor that builds release variant of Rust SDK
-- [x] Release builds ready to install on various OSes
+## Known main gaps
 
-### Feature-wishlist post-MVP
+Following features are expected to be still missing:
 
-- [x] Split layouts
-    - [x] Vim-style splits for arbitrary destination splitting
-    - [x] Multi-pane inbox & conversation
-    - [x] Multi-pane conversation & conversation details
-- [ ] Mark as read automatically while you scroll
-- [x] Verify other devices via emoji
-- [x] Verify self via emoji
-- [x] Verify other users via emoji (initiated via command)
-- [ ] Ignore users (including invite reject & ignore)
-- [x] Next-gen-auth (login with browser)
-- [ ] Next-gen-auth: Support generating QR for quick sign in of mobile devices
-- [x] Threads (optional thread view, will want to show threaded messages in the main timeline by default as well)
-- [x] Expose command line message interface
-- [ ] More UI for "advanced" features
-    - [ ] Account settings
-        - [ ] Own user profile settings
-        - [ ] Change user password
-        - [ ] Reset user identity
-        - [ ] Key recovery setup
-        - [ ] Session management to rename or log out other devices (probably just link to next-gen-auth website :( )
-    - [x] Room settings
-    - [ ] Invite/kick/ban user UI
-    - [x] Create new rooms with all the settings (room visibility, history, ...)
-    - [ ] Media viewer
-    - [ ] ...
-- [ ] Custom theming
-- [x] Send / render blurhashes
-- [x] Generate & send media thumbnails (requires ffmpeg installed for video thumbnails)
-- [x] Send custom emotes & stickers
-
-</details>
+- Automatically marking chats read on open / while scrolling
+  (you can still manually mark them as read)
+- Notifications on Windows & Android
+- Lots of settings
+    - User profile settings
+    - UI to start direct chats
+    - UI to invite/kick/kan users from chats
+    - UI to configure power levers
+    - Allow setting room avatars
+    - Sticker packs
+- Location messages
+- Polls
 
 
 ## Customizable keybindings
@@ -208,6 +116,8 @@ Additional arguments may be optional or mandatory depending on the selected acti
 
 
 ## Building
+
+For Android, check [ANDROID.md](ANDROID.md).
 
 ### Build dependencies
 
