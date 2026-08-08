@@ -33,13 +33,15 @@ abstract class SyncNativeLibraries : DefaultTask() {
 }
 
 val supportedAndroidAbis = listOf("arm64-v8a", "armeabi", "armeabi-v7a", "x86", "x86_64")
-val injectedAndroidAbis = providers.gradleProperty("android.injected.build.abi").orNull
+val selectedAndroidAbis = providers.gradleProperty("androidAbi")
+    .orElse(providers.gradleProperty("android.injected.build.abi"))
+    .orNull
     ?.split(',')
     ?.map(String::trim)
     ?.filter(String::isNotEmpty)
     ?.distinct()
     ?.takeIf(List<String>::isNotEmpty)
-val unknownAndroidAbis = injectedAndroidAbis.orEmpty() - supportedAndroidAbis
+val unknownAndroidAbis = selectedAndroidAbis.orEmpty() - supportedAndroidAbis
 require(unknownAndroidAbis.isEmpty()) {
     "Unsupported Android ABI(s): ${unknownAndroidAbis.joinToString()}. Supported ABIs: ${supportedAndroidAbis.joinToString()}"
 }
@@ -65,10 +67,10 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
-            ndk.abiFilters += injectedAndroidAbis ?: listOf("arm64-v8a")
+            ndk.abiFilters += selectedAndroidAbis ?: listOf("arm64-v8a")
         }
         release {
-            ndk.abiFilters += injectedAndroidAbis ?: supportedAndroidAbis
+            ndk.abiFilters += selectedAndroidAbis ?: supportedAndroidAbis
         }
     }
     compileOptions {

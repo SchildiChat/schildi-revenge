@@ -71,7 +71,9 @@ val abiTargets = linkedMapOf(
 )
 
 fun selectedAbis(buildType: String): List<String> {
-    val injectedAbis = providers.gradleProperty("android.injected.build.abi").orNull
+    val configuredAbis = providers.gradleProperty("androidAbi")
+        .orElse(providers.gradleProperty("android.injected.build.abi"))
+        .orNull
         ?.split(',')
         ?.map(String::trim)
         ?.filter(String::isNotEmpty)
@@ -80,7 +82,7 @@ fun selectedAbis(buildType: String): List<String> {
             if (abi == "armeabi") "armeabi-v7a" else abi
         }
         ?.distinct()
-    val selected = injectedAbis?.takeIf(List<String>::isNotEmpty)
+    val selected = configuredAbis?.takeIf(List<String>::isNotEmpty)
         ?: if (buildType == "release") abiTargets.keys.toList() else listOf("arm64-v8a")
     val unknown = selected - abiTargets.keys
     require(unknown.isEmpty()) {
