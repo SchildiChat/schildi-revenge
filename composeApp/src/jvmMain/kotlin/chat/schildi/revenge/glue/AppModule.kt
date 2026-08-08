@@ -23,8 +23,6 @@ import kotlinx.coroutines.Dispatchers
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import java.io.File
-import java.lang.System
-import kotlin.String
 
 @BindingContainer
 @ContributesTo(AppScope::class)
@@ -32,11 +30,10 @@ object AppModule {
     val okHttpClient = OkHttpClient.Builder().apply {
         addInterceptor(
             Interceptor { chain ->
-                val appVersion: String = System.getProperty("jpackage.app-version") ?: "0.0.0-dev"
                 chain.proceed(
                     chain.request()
                         .newBuilder()
-                        .header("User-Agent", "SchildiChat Revenge $appVersion")
+                        .header("User-Agent", "SchildiChat Revenge $platformVersionName")
                         .build()
                 )
             }
@@ -58,7 +55,6 @@ object AppModule {
     @Provides
     @SingleIn(AppScope::class)
     fun providesBuildMeta(): BuildMeta {
-        val appVersion: String = System.getProperty("jpackage.app-version") ?: "0.0.0-dev"
         return BuildMeta(
             buildType = if (BuildInfo.DEBUG) BuildType.DEBUG_SC else BuildType.RELEASE_SC,
             isDebuggable = true,
@@ -66,8 +62,8 @@ object AppModule {
             productionApplicationName = "SchildiRevenge",
             applicationId = platformApplicationId,
             lowPrivacyLoggingEnabled = false,
-            versionName = appVersion,
-            versionCode = 1,
+            versionName = platformVersionName,
+            versionCode = platformVersionCode,
             gitRevision = BuildInfo.SOURCE_REVISION,
             gitBranchName = "",
             flavorDescription = "",

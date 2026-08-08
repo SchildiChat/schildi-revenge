@@ -64,6 +64,7 @@ import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.compose.util.appendUrlText
+import chat.schildi.revenge.glue.platformVersionName
 import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.model.about.AboutViewModel
 import chat.schildi.revenge.model.about.AppLink
@@ -295,9 +296,8 @@ private fun AboutHeader(modifier: Modifier = Modifier) {
                 modifier = Modifier.alignByBaseline(),
             )
 
-            val appVersion: String = System.getProperty("jpackage.app-version") ?: "0.0.0-dev"
             Text(
-                appVersion,
+                platformVersionName,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.alignByBaseline(),
             )
