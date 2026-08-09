@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import chat.schildi.revenge.UiState
+import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.FlowId
 import io.element.android.libraries.matrix.api.core.RoomId
@@ -39,6 +40,7 @@ sealed interface NotificationId {
 }
 
 object Notifier {
+    private val log = Logger.withTag("Notifier")
 
     suspend fun initialize() {
         NotificationInitializer.configure(
@@ -64,17 +66,21 @@ object Notifier {
                 }
             }
         }
-        sendComposeNotification(
-            title = title,
-            message = message,
-            largeIcon = image?.let {{
-                Image(
-                    bitmap = image,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize(),
-                )
-            }}
-        )
+        try {
+            sendComposeNotification(
+                title = title,
+                message = message,
+                largeIcon = image?.let {{
+                    Image(
+                        bitmap = image,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }}
+            )
+        } catch (t: Throwable) {
+            log.e("Failed to send notification", t)
+        }
     }
 }
