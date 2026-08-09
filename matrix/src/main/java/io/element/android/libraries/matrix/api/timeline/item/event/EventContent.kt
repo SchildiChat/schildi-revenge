@@ -38,6 +38,7 @@ data class MessageContent(
     val threadInfo: EventThreadInfo?,
     val type: MessageType,
     override val isRoomMention: Boolean? = null, // SC
+    val perMessageProfile: PerMessageProfile? = null, // SC
 ) : EventContent, EventCanBeEdited, CanMentionRoom
 
 data object RedactedContent : EventContent
@@ -49,6 +50,7 @@ data class StickerContent(
     val source: MediaSource,
     val threadInfo: EventThreadInfo?,
     val inReplyTo: InReplyTo?, // SC
+    val perMessageProfile: PerMessageProfile? = null, // SC
 ) : EventContent {
     val bestDescription: String
         get() = body ?: filename
@@ -165,5 +167,14 @@ fun MessageContent.mediaSources(): List<MediaSource> {
         }
         is GalleryMessageType -> messageType.items.flatMap { it.mediaSources() }
         else -> emptyList()
+    }
+}
+
+// SC
+fun EventContent.perMessageProfile(): PerMessageProfile? {
+    return when (this) {
+        is MessageContent -> perMessageProfile
+        is StickerContent -> perMessageProfile
+        else -> null
     }
 }

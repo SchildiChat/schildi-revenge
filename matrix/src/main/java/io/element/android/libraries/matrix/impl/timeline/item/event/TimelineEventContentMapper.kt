@@ -111,6 +111,7 @@ class TimelineEventContentMapper(
                                 source = kind.source.map(),
                                 threadInfo = extractThreadInfo(it.content),
                                 inReplyTo = eventMessageMapper.mapInReplyTo(it.content.inReplyTo), // SC
+                                perMessageProfile = kind.perMessageProfile?.map(), // SC
                             )
                         }
                         is MsgLikeKind.LiveLocation -> {

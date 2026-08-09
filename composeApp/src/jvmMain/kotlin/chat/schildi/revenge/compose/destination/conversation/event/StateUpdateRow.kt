@@ -33,6 +33,7 @@ fun StateUpdateRow(
             SenderAvatar(
                 senderProfile = senderProfile,
                 senderId = senderId,
+                perMessageProfile = null,
                 size = Dimens.Conversation.avatarForState,
             )
         }

@@ -63,6 +63,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.UnableToDecry
 import io.element.android.libraries.matrix.api.timeline.item.event.UnknownContent
 import io.element.android.libraries.matrix.api.timeline.item.event.VideoMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.VoiceMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.perMessageProfile
 import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.message_placeholder_message_failed_to_parse
@@ -93,7 +94,12 @@ fun EventContentLayout(
             isOwn = isOwn,
             senderAvatar = {
                 if (!isSameAsPreviousSender) {
-                    SenderAvatar(senderProfile, senderId, LocalMessageStyle.current.avatarSize)
+                    SenderAvatar(
+                        senderProfile,
+                        senderId,
+                        content.perMessageProfile(),
+                        LocalMessageStyle.current.avatarSize,
+                    )
                 }
             },
             senderName = {
@@ -106,7 +112,7 @@ fun EventContentLayout(
                             horizontalArrangement = Arrangement.spacedBy(4.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            SenderName(senderId, senderProfile)
+                            SenderName(senderId, senderProfile, content.perMessageProfile())
                             // Threaded message indicator
                             WithTooltip(stringResource(Res.string.message_thread)) {
                                 Icon(
@@ -126,7 +132,7 @@ fun EventContentLayout(
                             }
                         }
                     } else {
-                        SenderName(senderId, senderProfile)
+                        SenderName(senderId, senderProfile, content.perMessageProfile())
                     }
                 }
             },

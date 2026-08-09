@@ -80,7 +80,8 @@ object MessageFormatDefaults {
             it.alt?.takeIf { it.length == 1 }
                 ?: it.title?.takeIf { it.length == 1 }
                 ?: INLINE_IMAGE_PLACEHOLDER
-        }
+        },
+        stripPerMessageProfileFallback = true,
     )
     val plaintextFormatter = object : MatrixBodyStyledFormatter() {
         override fun formatHeading(tag: String, context: FormatContext) = listOf(ParagraphStyle())

@@ -50,6 +50,7 @@ class EventMessageMapper {
             threadInfo = threadInfo,
             type = type,
             isRoomMention = it.content.mentions?.room,
+            perMessageProfile = it.content.perMessageProfile?.map(), // SC
         )
     }
 

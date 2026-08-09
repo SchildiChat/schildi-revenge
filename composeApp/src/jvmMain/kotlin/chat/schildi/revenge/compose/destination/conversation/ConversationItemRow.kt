@@ -26,6 +26,7 @@ import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
+import io.element.android.libraries.matrix.api.timeline.item.event.perMessageProfile
 import io.element.android.libraries.matrix.api.timeline.item.virtual.VirtualTimelineItem
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentListOf
@@ -83,7 +84,8 @@ fun ConversationItemRow(
                 val previousEvent = (previous?.item as? MatrixTimelineItem.Event)?.event
                 val previousSender = previousEvent?.sender
                 val isSameAsPreviousSender = previousSender == item.item.event.sender &&
-                        previousEvent.content is MessageContent
+                        previousEvent.content is MessageContent &&
+                        previousEvent.content.perMessageProfile() == item.item.event.content.perMessageProfile()
                 val padding = when (previousSender) {
                     null -> 0.dp
                     item.item.event.sender -> Dimens.Conversation.messageSameSenderPadding
