@@ -16,7 +16,7 @@ data class BuildMeta(
     val applicationId: String,
     val lowPrivacyLoggingEnabled: Boolean,
     val versionName: String,
-    val versionCode: Long,
+    val versionCode: Long?,
     val gitRevision: String,
     val gitBranchName: String,
     val flavorDescription: String,

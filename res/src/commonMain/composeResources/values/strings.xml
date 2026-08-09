@@ -29,6 +29,8 @@
     <string name="about_website">Website</string>
     <string name="about_source_code">Source Code</string>
     <string name="about_build_info">Build info</string>
+    <string name="about_version_name">Version: %1$s</string>
+    <string name="about_version_code">Version code: %1$d</string>
     <string name="about_build_date">Build date: %1$s</string>
     <string name="about_revision">Source revision: %1$s</string>
     <string name="about_kotlin_base_revision">SDK base: %1$s</string>

@@ -64,6 +64,7 @@ import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.compose.util.appendUrlText
+import chat.schildi.revenge.glue.platformVersionCode
 import chat.schildi.revenge.glue.platformVersionName
 import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.model.about.AboutViewModel
@@ -94,6 +95,8 @@ import shire.res.generated.resources.about_revision
 import shire.res.generated.resources.about_rust_release_variant
 import shire.res.generated.resources.about_rust_revision
 import shire.res.generated.resources.about_system_info
+import shire.res.generated.resources.about_version_code
+import shire.res.generated.resources.about_version_name
 import shire.res.generated.resources.action_show_less
 import shire.res.generated.resources.action_show_more
 import shire.res.generated.resources.app_title_full
@@ -202,6 +205,14 @@ fun AboutScreen(
 
                             item(key = "build_info") {
                                 AboutSectionHeader(stringResource(Res.string.about_build_info))
+                            }
+                            buildInfoItem("version_name") {
+                                stringResource(Res.string.about_version_name, platformVersionName)
+                            }
+                            platformVersionCode?.let { versionCode ->
+                                buildInfoItem("version_code") {
+                                    stringResource(Res.string.about_version_code, versionCode)
+                                }
                             }
                             buildInfoItem("release_variant") {
                                 stringResource(Res.string.about_release_variant, BuildInfo.BUILD_TYPE)

@@ -8,4 +8,4 @@ internal expect val platformApplicationId: String
 
 internal expect val platformVersionName: String
 
-internal expect val platformVersionCode: Long
+internal expect val platformVersionCode: Long?

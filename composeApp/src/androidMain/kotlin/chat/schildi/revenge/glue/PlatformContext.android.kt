@@ -24,5 +24,5 @@ private val packageInfo by lazy {
 internal actual val platformVersionName: String
     get() = packageInfo.versionName ?: "0.0.0-dev"
 
-internal actual val platformVersionCode: Long
+internal actual val platformVersionCode: Long?
     get() = PackageInfoCompat.getLongVersionCode(packageInfo)
