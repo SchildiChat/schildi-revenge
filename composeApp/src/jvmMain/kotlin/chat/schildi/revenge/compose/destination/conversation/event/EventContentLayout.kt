@@ -180,7 +180,8 @@ fun EventContentLayout(
                     }
                     is OtherMessageType -> {
                         MessageFallback(
-                            stringResource(Res.string.message_placeholder_unknown),
+                            contentType.body.takeIf(String::isNotBlank)
+                                ?: stringResource(Res.string.message_placeholder_unknown),
                             isOwn,
                             timestamp,
                             inReplyTo,
