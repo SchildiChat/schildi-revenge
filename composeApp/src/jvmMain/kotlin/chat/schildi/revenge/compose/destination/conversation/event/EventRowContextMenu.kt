@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.EmojiPeople
 import androidx.compose.material.icons.filled.Gesture
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.OpenWith
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.PublicOff
 import androidx.compose.material.icons.filled.Visibility
@@ -60,6 +61,7 @@ import shire.res.generated.resources.action_thread
 import shire.res.generated.resources.action_view_event_source
 import shire.res.generated.resources.action_view_reactions
 import shire.res.generated.resources.action_view_read_receipts
+import shire.res.generated.resources.action_view_user
 
 @Composable
 fun EventTimelineItem.contextMenu(
@@ -137,6 +139,13 @@ fun EventTimelineItem.contextMenu(
             actionArgs = persistentListOf(DestinationEnum.MessageReadReceipts.destName, sessionId.value, roomId.value, eventId?.value ?: ""),
             keyboardShortcut = Key.P,
         ).takeIf { receipts.isNotEmpty() && eventId != null },
+        ContextMenuActionEntry(
+            Res.string.action_view_user.toStringHolder(),
+            rememberVectorPainter(Icons.Default.Person),
+            Action.Navigation.NavigateAuto,
+            actionArgs = persistentListOf(DestinationEnum.UserDetails.destName, sessionId.value, sender.value, roomId.value),
+            keyboardShortcut = Key.U,
+        ),
         ContextMenuActionEntry(
             Res.string.action_copy_body.toStringHolder(),
             rememberVectorPainter(Icons.Default.ContentCopy),

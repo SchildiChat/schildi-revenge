@@ -107,6 +107,7 @@
     <string name="action_view">View</string>
     <string name="action_view_reactions">View reactions</string>
     <string name="action_view_read_receipts">View read receipts</string>
+    <string name="action_view_user">View user</string>
     <string name="action_copy_body">Copy text</string>
     <string name="action_navigate_in_current">Open in current window</string>
     <string name="action_navigate_in_new_window">Open in new window</string>
