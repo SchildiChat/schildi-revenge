@@ -66,7 +66,7 @@ fun SenderAvatar(
             source = avatarSource,
             size = size,
             shape = shape,
-            displayName = senderProfile.getDisplayName() ?: senderId.value,
+            displayName = perMessageProfile?.displayName ?: senderProfile.getDisplayName() ?: senderId.value,
         )
         if (avatarUrl != null && (perMessageProfile?.avatarFile != null ||
             perMessageProfile?.avatarUrl != null && perMessageProfile.avatarUrl != avatarUrl)) {
