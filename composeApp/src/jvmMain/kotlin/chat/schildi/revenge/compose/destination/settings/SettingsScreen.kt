@@ -64,6 +64,7 @@ import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.about
 import shire.res.generated.resources.action_close
+import shire.res.generated.resources.diagnostics
 import shire.res.generated.resources.empty_screen_placeholder_unexpected
 import shire.res.generated.resources.manage_accounts
 
@@ -168,6 +169,14 @@ fun SettingsScreen(
                     TopNavigationCloseOrNavigateToInboxIcon()
                 } else {
                     TopNavigationTitle(stringResource(viewModel.prefScreen.collectAsState().value.prefScreen.titleRes))
+                    if (prefScreen.sKey == ScPrefs.devPrefs.sKey) {
+                        TopNavigationIcon(
+                            Icons.Default.BugReport,
+                            stringResource(Res.string.diagnostics),
+                        ) {
+                            destinationState?.navigate(Destination.Diagnostics)
+                        }
+                    }
                     TopNavigationIcon(
                         Icons.Default.Close,
                         stringResource(Res.string.action_close),

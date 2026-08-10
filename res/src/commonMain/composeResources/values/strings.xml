@@ -45,6 +45,14 @@
     <string name="diagnostics">Diagnostics</string>
     <string name="diagnostics_system_info">System info</string>
     <string name="diagnostics_render_api">Render API</string>
+    <string name="diagnostics_app_directories">App directories</string>
+    <string name="diagnostics_user_data_dir">User data</string>
+    <string name="diagnostics_user_config_dir">User config</string>
+    <string name="diagnostics_user_cache_dir">User cache</string>
+    <string name="diagnostics_site_data_dir">Site data</string>
+    <string name="diagnostics_site_config_dir">Site config</string>
+    <string name="diagnostics_user_log_dir">User logs</string>
+    <string name="diagnostics_shared_dir">Shared</string>
     <string name="diagnostics_jvm_heap">JVM heap</string>
     <string name="diagnostics_jvm_non_heap">JVM non-heap</string>
     <string name="diagnostics_process_rss">Process RSS</string>

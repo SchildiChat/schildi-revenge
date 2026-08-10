@@ -84,7 +84,7 @@ internal class RustRoomListService(
         innerRoomListService.syncIndicator()
             .map { it.toSyncIndicator() }
             .onEach { syncIndicator ->
-                Timber.d("SyncIndicator = $syncIndicator")
+                //Timber.d("SyncIndicator = $syncIndicator")
             }
             .distinctUntilChanged()
             .stateIn(sessionCoroutineScope, SharingStarted.Eagerly, RoomListService.SyncIndicator.Hide)
@@ -93,7 +93,7 @@ internal class RustRoomListService(
         innerRoomListService.stateFlow()
             .map { it.toRoomListState() }
             .onEach { state ->
-                Timber.d("RoomList state=$state")
+                //Timber.d("RoomList state=$state")
                 if (state == RoomListService.State.Running) {
                     _isInitialSyncDone.set(true)
                 }

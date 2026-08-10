@@ -343,6 +343,18 @@ object ScPrefs {
     val SKIKO_VSYNC = ScBoolPref("SKIKO_VSYNC", true, Res.string.pref_skiko_vsync_title, Res.string.pref_skiko_vsync_summary, requiresWindowRecreation = true, supportedOnPlatform = scPrefPlatformSupport.desktopOnly)
     val SDK_SQLITE_MAX_POOL_SIZE = ScIntPref("SDK_SQLITE_MAX_POOL_SIZE", 8, Res.string.pref_sdk_sqlite_max_pool_size_title, Res.string.pref_sdk_sqlite_max_pool_size_summary, minValue = 2, maxValue = 64)
 
+    val devPrefs =
+        ScPrefScreen("DEVELOPER", Res.string.pref_category_developer_options, null, prefs = listOf(
+            DEV_QUICK_OPTIONS,
+            SHOW_DEV_INFOS,
+            VIEW_HIDDEN_EVENTS,
+            RENDER_SPACE_ORDER_KEYS,
+            FORCE_RENDER_BLURHASH,
+            RENDER_AVATAR_STATES,
+            FRAME_DROP_SPINNER,
+            SHOW_ADVANCED_ROOM_CREATION_PARAMETERS,
+        ))
+
     val rootPrefsAllPlatforms = ScPrefScreen("ROOT", Res.string.hint_settings, null, listOf<AbstractScPref>(
         ScPrefScreen("GENERAL", Res.string.pref_category_general, Res.string.pref_category_general_summary, listOf(
             LOCALE,
@@ -467,16 +479,7 @@ object ScPrefs {
             SKIKO_VSYNC,
             SDK_SQLITE_MAX_POOL_SIZE,
         )),
-        ScPrefScreen("DEVELOPER", Res.string.pref_category_developer_options, null, prefs = listOf(
-            DEV_QUICK_OPTIONS,
-            SHOW_DEV_INFOS,
-            VIEW_HIDDEN_EVENTS,
-            RENDER_SPACE_ORDER_KEYS,
-            FORCE_RENDER_BLURHASH,
-            RENDER_AVATAR_STATES,
-            FRAME_DROP_SPINNER,
-            SHOW_ADVANCED_ROOM_CREATION_PARAMETERS,
-        )),
+        devPrefs,
     ))
 
     // filteredBy is suspend to allow filters with suspend functions, but we don't actually have that here

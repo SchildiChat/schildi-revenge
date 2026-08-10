@@ -199,6 +199,7 @@ sealed interface Action {
         HandleOAuthResponse(aliases = listOf("GET"), args = listOf(ActionArgumentPrimitive.OAuthCallbackPath, ActionArgumentRepeatable(ActionArgumentPrimitive.Ignored))),
         Logout(args = listOf(ActionArgumentPrimitive.SessionId)),
         LogoutOrDelete(args = listOf(ActionArgumentPrimitive.SessionId)),
+        Crash,
     }
     enum class AppMessage(
         override val aliases: kotlin.collections.List<String> = emptyList(),

@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Card
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +40,7 @@ import chat.schildi.revenge.compose.components.TopNavigation
 import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInboxIcon
 import chat.schildi.revenge.compose.components.TopNavigationTitle
 import chat.schildi.revenge.compose.focus.FocusContainer
+import chat.schildi.revenge.config.ScAppDirs
 import chat.schildi.revenge.model.DiagnosticsSnapshot
 import chat.schildi.revenge.model.DiagnosticsViewModel
 import chat.schildi.revenge.model.ProcessDiagnosticsSnapshot
@@ -49,6 +51,7 @@ import chat.schildi.revenge.viewModelKey
 import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.diagnostics
+import shire.res.generated.resources.diagnostics_app_directories
 import shire.res.generated.resources.diagnostics_committed
 import shire.res.generated.resources.diagnostics_current
 import shire.res.generated.resources.diagnostics_dalvik
@@ -61,9 +64,16 @@ import shire.res.generated.resources.diagnostics_other
 import shire.res.generated.resources.diagnostics_process_pss
 import shire.res.generated.resources.diagnostics_process_rss
 import shire.res.generated.resources.diagnostics_render_api
+import shire.res.generated.resources.diagnostics_shared_dir
+import shire.res.generated.resources.diagnostics_site_config_dir
+import shire.res.generated.resources.diagnostics_site_data_dir
 import shire.res.generated.resources.diagnostics_system_info
 import shire.res.generated.resources.diagnostics_total
 import shire.res.generated.resources.diagnostics_unavailable
+import shire.res.generated.resources.diagnostics_user_cache_dir
+import shire.res.generated.resources.diagnostics_user_config_dir
+import shire.res.generated.resources.diagnostics_user_data_dir
+import shire.res.generated.resources.diagnostics_user_log_dir
 
 @Composable
 fun DiagnosticsScreen(
@@ -136,6 +146,40 @@ fun DiagnosticsScreen(
                     state.processPss?.let { processPss ->
                         item(key = "processPss") {
                             ProcessPssSection(snapshot = processPss)
+                        }
+                    }
+                    item(key = "appDirectories") {
+                        MetricCard(
+                            title = stringResource(Res.string.diagnostics_app_directories),
+                        ) {
+                            MetricLine(
+                                label = stringResource(Res.string.diagnostics_user_data_dir),
+                                value = remember { ScAppDirs.getUserDataDir() },
+                            )
+                            MetricLine(
+                                label = stringResource(Res.string.diagnostics_user_config_dir),
+                                value = remember { ScAppDirs.getUserConfigDir() },
+                            )
+                            MetricLine(
+                                label = stringResource(Res.string.diagnostics_user_cache_dir),
+                                value = remember { ScAppDirs.getUserCacheDir() },
+                            )
+                            MetricLine(
+                                label = stringResource(Res.string.diagnostics_site_data_dir),
+                                value = remember { ScAppDirs.getSiteDataDir() },
+                            )
+                            MetricLine(
+                                label = stringResource(Res.string.diagnostics_site_config_dir),
+                                value = remember { ScAppDirs.getSiteConfigDir() },
+                            )
+                            MetricLine(
+                                label = stringResource(Res.string.diagnostics_user_log_dir),
+                                value = remember { ScAppDirs.getUserLogDir() },
+                            )
+                            MetricLine(
+                                label = stringResource(Res.string.diagnostics_shared_dir),
+                                value = remember { ScAppDirs.getSharedDir() },
+                            )
                         }
                     }
                 }
@@ -248,17 +292,19 @@ private fun MetricLine(
     label: String,
     value: String,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyLarge,
-            fontFamily = FontFamily.Monospace,
-        )
+    SelectionContainer {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodyLarge,
+                fontFamily = FontFamily.Monospace,
+            )
+        }
     }
 }
 

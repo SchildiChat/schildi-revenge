@@ -33,7 +33,7 @@ class RoomSummaryListProcessor(
 
     suspend fun postUpdate(updates: List<RoomListEntriesUpdate>) {
         updateRoomSummaries(updates) {
-            Timber.v("Update rooms from postUpdates (with ${updates.size} items) on ${Thread.currentThread()}")
+            //Timber.v("Update rooms from postUpdates (with ${updates.size} items) on ${Thread.currentThread()}")
             updates.forEach { update ->
                 applyUpdate(update)
             }

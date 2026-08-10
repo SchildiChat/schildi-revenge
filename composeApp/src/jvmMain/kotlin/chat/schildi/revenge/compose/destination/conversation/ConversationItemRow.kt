@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -43,7 +42,6 @@ fun ConversationItemRow(
     modifier: Modifier = Modifier,
 ) {
     val fullyReadEvent = viewModel.cachedFullyRead.collectAsState().value
-    LaunchedEffect(fullyReadEvent) { timber.log.Timber.w("SC_DBG $fullyReadEvent")}
     Column(modifier.fillMaxWidth()) {
         if (previous == null) {
             Spacer(Modifier.height(Dimens.windowPadding))

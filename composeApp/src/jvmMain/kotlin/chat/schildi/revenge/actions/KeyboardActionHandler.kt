@@ -2157,6 +2157,9 @@ class KeyboardActionHandler(
                         }
                     }
                 }
+                Action.Global.Crash -> {
+                    throw RuntimeException("Crash requested by user")
+                }
             }
         }
     }
@@ -2994,7 +2997,11 @@ fun <A: Action>List<Binding<A>>.execute(
             Logger.e("Error executing action", e)
             ActionResult.Failure(e.message ?: "Exception occurred trying to execute action")
         }
-        Logger.i("Action binding $action yielded $actionResult")
+        if (actionResult is ActionResult.Success) {
+            Logger.v("Action binding $action yielded $actionResult")
+        } else {
+            Logger.i("Action binding $action yielded $actionResult")
+        }
         if (actionResult.shouldExit) {
             return actionResult
         }

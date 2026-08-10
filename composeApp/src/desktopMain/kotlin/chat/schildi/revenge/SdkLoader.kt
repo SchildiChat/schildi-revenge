@@ -69,8 +69,8 @@ object SdkLoader {
                     logLevel = LogLevel.INFO,
                     traceLogPacks = emptyList(),
                     extraTargets = emptyList(),
-                    writeToStdoutOrSystem = true,
-                    writeToFiles = null,
+                    writeToStdoutOrSystem = false,
+                    writeToFiles = createSdkTracingFileConfiguration(),
                 ),
                 useLightweightTokioRuntime = false
             )
