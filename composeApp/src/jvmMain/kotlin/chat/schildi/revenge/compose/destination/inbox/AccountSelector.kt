@@ -45,8 +45,11 @@ import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.resources.toStringHolder
+import chat.schildi.revenge.Destination
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.DestinationEnum
+import chat.schildi.revenge.model.ActiveInboxAccount
+import chat.schildi.revenge.model.FailedInboxAccount
 import chat.schildi.revenge.model.InboxAccount
 import chat.schildi.revenge.model.InboxViewModel
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
@@ -88,7 +91,7 @@ fun AccountSelectorRow(
         contentPadding = PaddingValues(horizontal = Dimens.windowPadding),
     ) {
         items(accounts) { account ->
-            AccountButton(viewModel, account, unreadCounts[account.user.userId])
+            AccountButton(viewModel, account, unreadCounts[account.sessionId])
         }
     }
 }
@@ -113,7 +116,7 @@ fun AccountButton(
         else
             MaterialTheme.colorScheme.surfaceDim
     ).value
-    WithTooltip(account.user.userId.value) {
+    WithTooltip(account.sessionId.value) {
         val focusId = rememberFocusId()
         WithContextMenu(
             focusId,
@@ -122,26 +125,26 @@ fun AccountButton(
                     Res.string.action_context_account_select.toStringHolder(),
                     rememberVectorPainter(Icons.Default.Visibility),
                     Action.Inbox.SetAccountSelected,
-                    persistentListOf(account.user.userId.value, (!account.isSelected).toString()),
+                    persistentListOf(account.sessionId.value, (!account.isSelected).toString()),
                     keyboardShortcut = Key.S,
                     decoration = ContextMenuDecoration.Toggle(account.isSelected),
                     autoCloseMenu = false,
-                ),
+                ).takeIf { account is ActiveInboxAccount },
                 ContextMenuActionEntry(
                     Res.string.action_context_account_hide.toStringHolder(),
                     rememberVectorPainter(Icons.Default.VisibilityOff),
                     Action.Inbox.SetAccountHidden,
-                    persistentListOf(account.user.userId.value, (!account.isHidden).toString()),
+                    persistentListOf(account.sessionId.value, (!account.isHidden).toString()),
                     decoration = ContextMenuDecoration.Toggle(account.isHidden && !account.isSelected),
                     keyboardShortcut = Key.H,
                     enabled = !account.isSelected,
                     autoCloseMenu = false,
-                ),
+                ).takeIf { account is ActiveInboxAccount },
                 ContextMenuActionEntry(
                     Res.string.action_mute.toStringHolder(),
                     rememberVectorPainter(Icons.Default.NotificationsOff),
                     Action.Inbox.SetAccountMuted,
-                    persistentListOf(account.user.userId.value, (!account.isMuted).toString()),
+                    persistentListOf(account.sessionId.value, (!account.isMuted).toString()),
                     decoration = ContextMenuDecoration.Toggle(account.isMuted),
                     keyboardShortcut = Key.M,
                     autoCloseMenu = false,
@@ -153,17 +156,17 @@ fun AccountButton(
                     persistentListOf(DestinationEnum.AccountManagement.destName),
                     keyboardShortcut = Key.V,
                     critical = true,
-                ).takeIf { account.sessionVerifiedStatus?.isVerified() != true },
+                ).takeIf { account is ActiveInboxAccount && account.sessionVerifiedStatus?.isVerified() != true },
                 ContextMenuActionEntry(
                     Res.string.dev_tools_title.toStringHolder(),
                     rememberVectorPainter(Icons.Default.DeveloperBoard),
                     Action.Navigation.NavigateAuto,
                     persistentListOf(
                         DestinationEnum.AccountDevTools.destName,
-                        account.user.userId.value,
+                        account.sessionId.value,
                     ),
                     keyboardShortcut = Key.D,
-                ).takeIf { ScPrefs.DEV_QUICK_OPTIONS.value() },
+                ).takeIf { account is ActiveInboxAccount && ScPrefs.DEV_QUICK_OPTIONS.value() },
             ).toPersistentList(),
         ) { openContextMenu ->
             Row(
@@ -171,13 +174,18 @@ fun AccountButton(
                     .keyFocusable(
                         id = focusId,
                         actionProvider = actionProvider(
-                            primaryAction = InteractionAction.Invoke {
-                                viewModel.setAccountExclusivelySelected(account.user.userId, !account.isSelected)
-                                true
+                            primaryAction = when (account) {
+                                is ActiveInboxAccount -> InteractionAction.Invoke {
+                                    viewModel.setAccountExclusivelySelected(account.sessionId, !account.isSelected)
+                                    true
+                                }
+                                is FailedInboxAccount -> InteractionAction.Navigate {
+                                    Destination.AccountManagement()
+                                }
                             },
                             secondaryAction = openContextMenu,
-                            copyActions = plainTextCopyActionWithUserId(account.user.userId) { account.user.displayName },
-                        )
+                            copyActions = plainTextCopyActionWithUserId(account.sessionId) { account.displayName },
+                        ),
                     )
                     .background(backgroundColor, RoundedCornerShape(50))
                     .border(1.dp, outlineColor, RoundedCornerShape(50))
@@ -208,12 +216,12 @@ fun AccountButton(
                 }
                 SpaceUnreadCountBox(renderedUnreadCounts, 4.dp) {
                     AvatarImage(
-                        source = account.user.avatarUrl?.let { MediaSource(it) },
+                        source = account.avatarUrl?.let { MediaSource(it) },
                         size = 24.dp,
-                        sessionId = account.user.userId,
+                        sessionId = account.sessionId,
                         shape = Dimens.ownAccountAvatarShape,
-                        displayName = account.user.displayName ?: account.user.userId.value,
-                        contentDescription = account.user.userId.value,
+                        displayName = account.displayName ?: account.sessionId.value,
+                        contentDescription = account.sessionId.value,
                     )
                 }
                 val icon = if (account.isHidden && !account.isSelected)

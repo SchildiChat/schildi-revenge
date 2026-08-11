@@ -211,6 +211,8 @@ object UiState {
 
     // Allow temporarily disabling sessions on clear cache, in order to rebuild the client afterward.
     private val disabledSessions = MutableStateFlow(emptySet<SessionId>())
+    private val _failedSessions = MutableStateFlow(emptyMap<SessionId, Throwable>())
+    val failedSessions = _failedSessions.asStateFlow()
 
     val matrixClients = combine(
         disabledSessions,
@@ -230,8 +232,12 @@ object UiState {
                     val sessionId = SessionId(sessionData.userId)
                     log.i("Restoring session for $sessionId")
                     getOrRestoreInBatch(sessionId)
-                        .onFailure {
-                            log.e("Failed to restore session for $sessionId", it)
+                        .onFailure { e ->
+                            log.e("Failed to restore session for $sessionId", e)
+                            _failedSessions.update { it + (sessionId to e) }
+                        }
+                        .onSuccess {
+                            _failedSessions.update { it - sessionId }
                         }
                         .also {
                             globalLoadState.handleResult(LoadCheckPoint.Client(sessionId), it)

@@ -93,18 +93,51 @@ data class ScopedRoomKey(
     val roomId: RoomId,
 )
 
-data class InboxAccount(
-    val user: MatrixUser,
-    val roomListState: RoomListService.State,
-    val syncState: SyncState,
-    val sessionVerifiedStatus: SessionVerifiedStatus?,
-    val isHidden: Boolean,
-    val isSelected: Boolean,
-    val isCurrentlyVisible: Boolean,
-    val isMuted: Boolean,
-) {
+sealed interface InboxAccount {
+    val sessionId: SessionId
+    val isHidden: Boolean
+    val isSelected: Boolean
+    val isCurrentlyVisible: Boolean
+    val isMuted: Boolean
+    val displayName: String?
+    val avatarUrl: String?
     val shouldHideErrors: Boolean
         get() = isMuted && !isCurrentlyVisible
+    val syncState: SyncState
+    val roomListState: RoomListService.State
+    val sessionVerifiedStatus: SessionVerifiedStatus?
+}
+
+data class ActiveInboxAccount(
+    val user: MatrixUser,
+    override val roomListState: RoomListService.State,
+    override val syncState: SyncState,
+    override val sessionVerifiedStatus: SessionVerifiedStatus?,
+    override val isHidden: Boolean,
+    override val isSelected: Boolean,
+    override val isCurrentlyVisible: Boolean,
+    override val isMuted: Boolean,
+) : InboxAccount {
+    override val sessionId: SessionId
+        get() = user.userId
+    override val displayName: String?
+        get() = user.displayName
+    override val avatarUrl: String?
+        get() = user.avatarUrl
+}
+
+data class FailedInboxAccount(
+    override val sessionId: SessionId,
+    override val isMuted: Boolean,
+) : InboxAccount {
+    override val isHidden = true
+    override val isSelected = false
+    override val isCurrentlyVisible = false
+    override val displayName = null
+    override val avatarUrl = null
+    override val syncState = SyncState.Terminated
+    override val roomListState = RoomListService.State.Terminated
+    override val sessionVerifiedStatus = null
 }
 
 private data class InboxSettings(
@@ -282,7 +315,7 @@ class InboxViewModel(
                 val isHidden = user.userId in hiddenAccounts
                 val isSelected = user.userId in selectedAccounts
                 val isMuted = user.userId in mutedAccounts.orEmpty()
-                InboxAccount(
+                ActiveInboxAccount(
                     user = user,
                     roomListState = roomListState,
                     syncState = syncState,
@@ -302,13 +335,25 @@ class InboxViewModel(
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
+    val disabledAccounts = combine(
+        UiState.failedSessions,
+        UiState.mutedAccounts,
+    ) { sessions, mutedAccounts ->
+        sessions.map { (sessionId, error) ->
+            val isMuted = sessionId in mutedAccounts.orEmpty()
+            FailedInboxAccount(sessionId, isMuted)
+        }
+    }
+
     val accountsSorted = combine(
         accounts,
+        disabledAccounts,
         sessionIdComparatorFlow
-    ) { it, comparator ->
-        it?.values?.sortedWith { l, r ->
-            comparator.compare(l.user.userId, r.user.userId)
-        }?.toPersistentList()
+    ) { active, disabled, comparator ->
+        active ?: return@combine null
+        (active.values + disabled).sortedWith { l, r ->
+            comparator.compare(l.sessionId, r.sessionId)
+        }.toPersistentList()
     }
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
@@ -652,18 +697,18 @@ class InboxViewModel(
         val currentAccounts = accountsSorted.value ?: return null
         return if (index != null) {
             if (index > 0 && index <= currentAccounts.size) {
-                currentAccounts[index-1].user.userId
+                currentAccounts[index-1].sessionId
             } else {
                 log.e("Invalid index for account action: $index")
                 null
             }
         } else {
-            val found = currentAccounts.find { it.user.userId.value == parameter }
+            val found = currentAccounts.find { it.sessionId.value == parameter }
             if (found == null) {
                 log.e("Cannot find account by ID: $parameter")
                 null
             } else {
-                found.user.userId
+                found.sessionId
             }
         }
     }

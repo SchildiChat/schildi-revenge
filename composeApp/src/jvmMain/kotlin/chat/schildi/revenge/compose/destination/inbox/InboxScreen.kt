@@ -123,7 +123,7 @@ fun InboxScreen(
         Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
             InboxTopNavigation(
                 viewModel.windowTitle.collectAsState(null).value?.render(),
-                preferredSessionId = accountsSorted?.singleOrNull { it.isCurrentlyVisible }?.user?.userId,
+                preferredSessionId = accountsSorted?.singleOrNull { it.isCurrentlyVisible }?.sessionId,
             )
             val roomsState = viewModel.filteredRooms.collectAsState().value
             val rooms = roomsState?.rooms
