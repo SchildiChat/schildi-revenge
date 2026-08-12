@@ -24,21 +24,23 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import java.io.File
 
+val RevengeOkHttpClient = OkHttpClient.Builder().apply {
+    addInterceptor(
+        Interceptor { chain ->
+            chain.proceed(
+                chain.request()
+                    .newBuilder()
+                    .header("User-Agent", "SchildiChat Revenge $platformVersionName")
+                    .build()
+            )
+        }
+    )
+}.build()
+
 @BindingContainer
 @ContributesTo(AppScope::class)
 object AppModule {
-    val okHttpClient = OkHttpClient.Builder().apply {
-        addInterceptor(
-            Interceptor { chain ->
-                chain.proceed(
-                    chain.request()
-                        .newBuilder()
-                        .header("User-Agent", "SchildiChat Revenge $platformVersionName")
-                        .build()
-                )
-            }
-        )
-    }.build()
+    val okHttpClient = RevengeOkHttpClient
 
     @Provides
     @BaseDirectory

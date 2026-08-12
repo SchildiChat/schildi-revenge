@@ -56,6 +56,7 @@ import chat.schildi.resources.StringResourceHolder
 import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.HEADLESS_WINDOW_ID
 import chat.schildi.revenge.WindowId
+import chat.schildi.revenge.bugreport.RevengeBugReporter
 import chat.schildi.revenge.config.keybindings.ALLOWED_DESTINATION_STRINGS
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.ActionArgument
@@ -143,6 +144,8 @@ import shire.res.generated.resources.action_logout
 import shire.res.generated.resources.action_logout_session_prompt
 import shire.res.generated.resources.action_processing
 import shire.res.generated.resources.action_processing_done
+import shire.res.generated.resources.action_send
+import shire.res.generated.resources.action_send_bug_report_prompt
 import shire.res.generated.resources.command_ambiguous
 import shire.res.generated.resources.command_ambiguous_none_valid
 import shire.res.generated.resources.command_copied_content_to_clipboard
@@ -151,6 +154,7 @@ import shire.res.generated.resources.command_copy_name_full_account_data
 import shire.res.generated.resources.command_external_application_launched
 import shire.res.generated.resources.command_not_applicable
 import shire.res.generated.resources.command_not_found
+import shire.res.generated.resources.toast_bug_report_progress
 import shire.res.generated.resources.toast_room_created
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
@@ -2160,6 +2164,38 @@ class KeyboardActionHandler(
                 Action.Global.Crash -> {
                     throw RuntimeException("Crash requested by user")
                 }
+                Action.Global.ReportBugWithLogs -> {
+                    val description = args.joinToString(" ")
+                    withCriticalActionConfirmation(
+                        context as? InternalActionContext,
+                        prompt = Res.string.action_send_bug_report_prompt.toStringHolder(),
+                        confirmText = Res.string.action_send.toStringHolder(),
+                        canBypassConfirmation = false,
+                    ) {
+                        context.launchActionAsync(
+                            "bugReport",
+                            GlobalActionsScope,
+                            Dispatchers.IO,
+                            "bugReport",
+                            notifyProcessing = true,
+                        ) {
+                            RevengeBugReporter.sendBugReport(
+                                description,
+                                context.implicitArgs,
+                            ) { progress ->
+                                publishMessage(
+                                    AppMessage(
+                                        message = Res.string.toast_bug_report_progress.toStringHolder(
+                                            progress.toString().toStringHolder()
+                                        ),
+                                        uniqueId = "bugReport",
+                                        autoDismissDuration = null,
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -2767,10 +2803,11 @@ class KeyboardActionHandler(
         context: InternalActionContext?,
         prompt: ComposableStringHolder,
         confirmText: ComposableStringHolder,
+        canBypassConfirmation: Boolean = true,
         onDismiss: () -> Unit = {},
         action: () -> ActionResult
     ): ActionResult {
-        return if (context?.criticalActionRequiresConfirmation != false) {
+        return if (context?.criticalActionRequiresConfirmation != false || !canBypassConfirmation) {
             publishMessage(
                 ConfirmActionAppMessage(
                     prompt,
@@ -3053,6 +3090,7 @@ fun checkArgument(
         ActionArgumentPrimitive.ServerName,
         ActionArgumentPrimitive.SpaceOrder,
         ActionArgumentPrimitive.Text,
+        ActionArgumentPrimitive.BugDescription,
         ActionArgumentPrimitive.Ignored -> null
         ActionArgumentPrimitive.MatrixLink -> {
             try {

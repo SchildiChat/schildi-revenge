@@ -8,6 +8,8 @@ import coil3.PlatformContext
 
 internal actual fun applicationPlatformContext(): PlatformContext = RevengeApplication.instance
 
+internal actual val platformOsDebugName: String = "Android ${Build.VERSION.RELEASE} (${Build.VERSION.SDK_INT})"
+
 internal actual val platformApplicationId: String
     get() = RevengeApplication.instance.packageName
 

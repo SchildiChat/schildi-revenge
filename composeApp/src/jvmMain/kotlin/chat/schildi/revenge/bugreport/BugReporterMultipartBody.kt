@@ -12,7 +12,7 @@
     "SpellCheckingInspection",
 )
 
-package io.element.android.features.rageshake.impl.reporter
+package chat.schildi.revenge.bugreport
 
 import kotlinx.collections.immutable.toImmutableList
 import okhttp3.Headers

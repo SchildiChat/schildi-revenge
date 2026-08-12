@@ -1,8 +1,11 @@
 package chat.schildi.revenge.glue
 
 import coil3.PlatformContext
+import org.jetbrains.skiko.hostId
 
 internal actual fun applicationPlatformContext(): PlatformContext = PlatformContext.INSTANCE
+
+internal actual val platformOsDebugName: String = "Desktop/$hostId"
 
 internal actual val platformApplicationId: String = "chat.schildi.revenge"
 

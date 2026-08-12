@@ -6,8 +6,9 @@
  * Please see LICENSE files in the repository root for full details.
  */
 
-package io.element.android.libraries.androidutils.file
+package chat.schildi.revenge.bugreport
 
+import io.element.android.libraries.androidutils.file.safeDelete
 import timber.log.Timber
 import java.io.File
 import java.util.zip.GZIPOutputStream

@@ -54,6 +54,7 @@ enum class ActionRoomNotificationSetting(val aliases: List<String> = emptyList()
 
 enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: Boolean = false) : ActionArgument {
     Text,
+    BugDescription(consumesTrailingArgsWithSpace = true),
     Ignored,
     Reason(consumesTrailingArgsWithSpace = true),
     Boolean,
@@ -200,6 +201,7 @@ sealed interface Action {
         Logout(args = listOf(ActionArgumentPrimitive.SessionId)),
         LogoutOrDelete(args = listOf(ActionArgumentPrimitive.SessionId)),
         Crash,
+        ReportBugWithLogs(aliases = listOf("SendBugReportWithLogs"), args = listOf(ActionArgumentPrimitive.BugDescription))
     }
     enum class AppMessage(
         override val aliases: kotlin.collections.List<String> = emptyList(),

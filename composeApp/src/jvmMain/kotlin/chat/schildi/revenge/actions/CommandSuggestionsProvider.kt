@@ -448,6 +448,7 @@ class CommandSuggestionsProvider(
                 }
                 ActionArgumentPrimitive.PseudoSpaceId -> pseudoSpaceSuggestions.value
                 ActionArgumentPrimitive.Text,
+                ActionArgumentPrimitive.BugDescription,
                 ActionArgumentPrimitive.Ignored,
                 ActionArgumentPrimitive.Reason,
                 ActionArgumentPrimitive.Integer,

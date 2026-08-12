@@ -1,12 +1,13 @@
 /*
  * Copyright (c) 2025 Element Creations Ltd.
  * Copyright 2024, 2025 New Vector Ltd.
+ * Copyright 2024, 2026 SchildiChat
  *
- * SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Element-Commercial.
+ * SPDX-License-Identifier: AGPL-3.0-only
  * Please see LICENSE files in the repository root for full details.
  */
 
-package io.element.android.appconfig
+package chat.schildi.revenge.bugreport
 
 object RageshakeConfig {
     /**
@@ -19,7 +20,7 @@ object RageshakeConfig {
      * Identifier for the application (eg 'riot-web').
      * Should correspond to a mapping configured in the configuration file for github issue reporting to work.
      */
-    const val BUG_REPORT_APP_NAME = "schildichat-android-next"
+    const val BUG_REPORT_APP_NAME = "schildi-revenge"
 
     /**
      * The maximum size of the upload request. Default value is just below CloudFlare's max request size.

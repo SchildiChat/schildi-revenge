@@ -6,7 +6,7 @@
  * Please see LICENSE files in the repository root for full details.
  */
 
-package io.element.android.features.rageshake.impl.reporter
+package chat.schildi.revenge.bugreport
 
 fun interface BugReporterMultipartBodyListener {
     /**

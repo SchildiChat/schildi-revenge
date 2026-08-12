@@ -4,6 +4,8 @@ import coil3.PlatformContext
 
 internal expect fun applicationPlatformContext(): PlatformContext
 
+internal expect val platformOsDebugName: String
+
 internal expect val platformApplicationId: String
 
 internal expect val platformVersionName: String
