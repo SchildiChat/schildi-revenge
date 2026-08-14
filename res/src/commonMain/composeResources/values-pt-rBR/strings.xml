@@ -368,4 +368,15 @@
     <string name="membership_change_unbanned">%1$s desbaniu %2$s</string>
     <string name="membership_change_invitation_revoked">%1$s reivindicou o convite de %2$s</string>
     <string name="message_placeholder_location">Localização</string>
+    <string name="diagnostics_dalvik">Dalvik</string>
+    <string name="hint_room_type">Tipo de sala</string>
+    <string name="toast_attachment_download_success">Anexo baixado</string>
+    <string name="action_copy_event_source">Copiar fonte de evento</string>
+    <string name="action_view_event_source">Visualizar fonte de evento</string>
+    <string name="action_create">Criar</string>
+    <string name="hint_room_name">Nome</string>
+    <string name="message_placeholder_image">Imagem</string>
+    <string name="message_placeholder_video">Vídeo</string>
+    <string name="message_placeholder_file">Arquivo</string>
+    <string name="message_placeholder_gallery">Galeria</string>
 </resources>
