@@ -341,4 +341,7 @@
     <string name="action_account_management">Gerenciar contas</string>
     <string name="diagnostics_native_estimated">Nativo / outro (estimado)</string>
     <string name="diagnostics_total">Total</string>
+    <string name="pref_message_other_side_margin_summary">Quanto espaço adicional uma bolha de mensagem deve deixar para o outro lado da tela.</string>
+    <string name="pref_message_max_width_title">Largura máxima</string>
+    <string name="pref_message_max_width_summary">Largura máxima de mensagens em bolha</string>
 </resources>
