@@ -65,7 +65,7 @@
     <string name="message_placeholder_sticker">Figurinha</string>
     <string name="join_rule_public">Público</string>
     <string name="join_rule_knock">Bater</string>
-    <string name="pref_locale">Localização</string>
+    <string name="pref_locale">Local</string>
     <string name="pref_category_dimensions">Dimensões</string>
     <string name="pref_category_split_screen">Tela dividida</string>
     <string name="pref_category_inbox">Caixa de entrada</string>
@@ -364,4 +364,8 @@
     <string name="pref_canonical_space_parent_avatar_fallback_title">Reserva de avatar do espaço pai</string>
     <string name="pref_floating_date_summary">Mostrar a data em cima das mensagens durante a rodagem</string>
     <string name="pref_floating_date_title">Data flutuante</string>
+    <string name="membership_change_invitation_accepted">%1$s se juntou por convite</string>
+    <string name="membership_change_unbanned">%1$s desbaniu %2$s</string>
+    <string name="membership_change_invitation_revoked">%1$s reivindicou o convite de %2$s</string>
+    <string name="message_placeholder_location">Localização</string>
 </resources>
