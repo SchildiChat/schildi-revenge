@@ -381,4 +381,18 @@
     <string name="message_placeholder_gallery">Galeria</string>
     <string name="about_version_name">Versão: %1$s</string>
     <string name="about_version_code">Código de versão: %1$d</string>
+    <string name="action_enter_command_mode">Comando…</string>
+    <string name="command_event_name_reply">responder</string>
+    <string name="command_insufficient_room_permissions">Permissões de sala insuficiente</string>
+    <string name="hint_search">Pesquisar</string>
+    <string name="hint_enabled">Ativado</string>
+    <string name="hint_disabled">Desativado</string>
+    <string name="message_placeholder_invite_by">Convidado por %1$s</string>
+    <string name="message_placeholder_invite_by_disambiguated">Convidado por %1$s (%2$s)</string>
+    <string name="message_placeholder_call">Chamada</string>
+    <string name="message_placeholder_voice_call">Chamada de voz</string>
+    <string name="message_placeholder_video_call">Chamada de vídeo</string>
+    <string name="message_placeholder_audio_message">Mensagem de áudio</string>
+    <string name="message_placeholder_voice_message">Mensagem de voz</string>
+    <string name="message_placeholder_reaction">Reagiu à mensagem</string>
 </resources>
