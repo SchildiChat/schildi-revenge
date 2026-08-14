@@ -344,4 +344,7 @@
     <string name="pref_message_other_side_margin_summary">Quanto espaço adicional uma bolha de mensagem deve deixar para o outro lado da tela.</string>
     <string name="pref_message_max_width_title">Largura máxima</string>
     <string name="pref_message_max_width_summary">Largura máxima de mensagens em bolha</string>
+    <string name="pref_category_message_appearance">Aparência de mensagens</string>
+    <string name="pref_message_other_side_margin_title">Margem para outro lado</string>
+    <string name="action_mark_as_read_type_read_marker">Marcador de totalmente lido</string>
 </resources>
