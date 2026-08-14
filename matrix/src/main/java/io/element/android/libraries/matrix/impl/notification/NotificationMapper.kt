@@ -42,6 +42,7 @@ class NotificationMapper(
                     eventId = eventId,
                     threadId = item.threadId?.let(::ThreadId),
                     roomId = roomId,
+                    senderId = item.event.senderId(), // SC
                     senderAvatarUrl = item.senderInfo.avatarUrl,
                     senderDisplayName = item.senderInfo.displayName,
                     senderIsNameAmbiguous = item.senderInfo.isNameAmbiguous,

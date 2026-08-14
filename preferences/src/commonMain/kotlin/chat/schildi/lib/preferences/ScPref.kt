@@ -230,6 +230,30 @@ data class ScStringListPref(
     override fun autoSuggestionValues() = items.map { it.value }
 }
 
+data class ScViewOnlyPref(
+    val kind: Kind,
+    override val titleRes: StringResource,
+    override val summaryRes: StringResource? = null,
+    override val dependencies: List<ScPrefDependency> = emptyList(),
+    override val supportedOnPlatform: Boolean = true,
+) : AbstractScPref {
+    enum class Kind {
+        PUSH_REGISTRATIONS;
+        operator fun invoke(
+            titleRes: StringResource,
+            summaryRes: StringResource? = null,
+            dependencies: List<ScPrefDependency> = emptyList(),
+            supportedOnPlatform: Boolean = true,
+        ) = ScViewOnlyPref(
+            kind = this,
+            titleRes = titleRes,
+            summaryRes = summaryRes,
+            dependencies = dependencies,
+            supportedOnPlatform = supportedOnPlatform,
+        )
+    }
+}
+
 /*
 data class ScColorPref(
     override val sKey: String,

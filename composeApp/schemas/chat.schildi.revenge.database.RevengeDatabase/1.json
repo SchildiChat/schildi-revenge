@@ -1,0 +1,124 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 1,
+    "identityHash": "20530dfbc2ce6a941b04587a86053b37",
+    "entities": [
+      {
+        "tableName": "PushRegistration",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`sessionId` TEXT NOT NULL, `clientSecret` TEXT NOT NULL, `endpoint` TEXT, `gateway` TEXT, `homeserverRegistered` INTEGER NOT NULL, PRIMARY KEY(`sessionId`))",
+        "fields": [
+          {
+            "fieldPath": "sessionId",
+            "columnName": "sessionId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "clientSecret",
+            "columnName": "clientSecret",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "endpoint",
+            "columnName": "endpoint",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "gateway",
+            "columnName": "gateway",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "homeserverRegistered",
+            "columnName": "homeserverRegistered",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "sessionId"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_PushRegistration_clientSecret",
+            "unique": false,
+            "columnNames": [
+              "clientSecret"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_PushRegistration_clientSecret` ON `${TABLE_NAME}` (`clientSecret`)"
+          }
+        ]
+      },
+      {
+        "tableName": "PushNotificationEvent",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`sessionId` TEXT NOT NULL, `roomId` TEXT NOT NULL, `eventId` TEXT NOT NULL, `failureCount` INTEGER NOT NULL, `lastFailure` TEXT, `pushSource` TEXT NOT NULL, `timestamp` INTEGER NOT NULL, `resolvedTimestamp` INTEGER, PRIMARY KEY(`sessionId`, `roomId`, `eventId`))",
+        "fields": [
+          {
+            "fieldPath": "sessionId",
+            "columnName": "sessionId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "roomId",
+            "columnName": "roomId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "eventId",
+            "columnName": "eventId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "failureCount",
+            "columnName": "failureCount",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "lastFailure",
+            "columnName": "lastFailure",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "pushSource",
+            "columnName": "pushSource",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "timestamp",
+            "columnName": "timestamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "resolvedTimestamp",
+            "columnName": "resolvedTimestamp",
+            "affinity": "INTEGER"
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "sessionId",
+            "roomId",
+            "eventId"
+          ]
+        }
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '20530dfbc2ce6a941b04587a86053b37')"
+    ]
+  }
+}

@@ -454,6 +454,8 @@
     <string name="pref_minimal_mode_summary">Hides navigation elements and the message composer while not in use. Only useful if you have setup custom keybindings and/or know command mode well enough to get around.</string>
     <string name="pref_desktop_notifications_title">Notifications</string>
     <string name="pref_desktop_notifications_summary">Send desktop notifications for new messages from accounts that you have not muted.</string>
+    <string name="pref_push_notifications_title">Push notifications</string>
+    <string name="pref_push_notifications_summary">Receive notifications while the app is in background. Requires a supported push backend.</string>
     <string name="pref_close_to_tray_title">Close to tray</string>
     <string name="pref_close_to_tray_summary">Closing the last window keeps the application running and possible to re-open from the tray icon</string>
     <string name="pref_show_dev_infos_title">Show dev infos</string>
@@ -498,6 +500,8 @@
     <string name="pref_canonical_space_parent_avatar_fallback_summary">For chats without an avatar but with a canonical parent space set, render the space avatar as fallback.</string>
     <string name="pref_show_advanced_room_creation_parameters_title">Advanced room creation parameters</string>
     <string name="pref_show_advanced_room_creation_parameters_summary">Show advanced settings when creating new rooms</string>
+    <string name="pref_debug_notifications_title">Debug notifications</string>
+    <string name="pref_debug_notifications_summary">Post unresolved pushes as notifications</string>
 
     <string name="pref_message_font_size_title">Message font size</string>
     <string name="pref_message_font_size_summary">Scaled pixel text size for messages (while respecting global render and font scale settings)</string>
@@ -565,6 +569,9 @@
     <string name="pref_category_chat_sorting">Sort order</string>
     <string name="pref_category_unread_counts">Unread counts</string>
     <string name="pref_category_composer">Message composer</string>
+    <string name="pref_category_notifications">Notifications</string>
+    <string name="pref_category_notifications_summary">Get notified about new messages</string>
+    <string name="pref_category_push_registrations">Push registrations</string>
 
     <string name="pref_url_previews_title">Link previews</string>
     <string name="pref_url_previews_summary">Query and render previews for links included in messages</string>
@@ -572,6 +579,9 @@
     <string name="pref_url_previews_in_e2ee_rooms_summary">Leak partial message content to your homeserver by also allowing link previews in encrypted rooms</string>
     <string name="pref_url_previews_require_explicit_links_title">Require explicit links for previews</string>
     <string name="pref_url_previews_require_explicit_links_summary">Only query previews for links explicitly starting with "https://"</string>
+
+    <string name="pref_push_registrations_info_none">No active push registrations</string>
+    <string name="pref_push_registrations_info_summary">Endpoint: %1$s\nGateway: %2$s\nRegistered: %3$s</string>
 
     <string name="toast_key_config_reload_success">Key bindings reloaded</string>
     <string name="toast_key_config_reload_error">Failed parsing key bindings config: %1$s</string>
@@ -699,5 +709,8 @@
         <item quantity="one">%1$d shared room: %2$s</item>
         <item quantity="other">%1$d shared rooms: %2$s</item>
     </plurals>
+
+    <string name="notification_channel_group_chat_messages">Chat messages</string>
+    <string name="notification_channel_app_notices">App notices</string>
 
 </resources>

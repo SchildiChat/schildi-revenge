@@ -1,15 +1,19 @@
 package chat.schildi.revenge.compose.destination.settings
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -32,6 +36,7 @@ import chat.schildi.lib.preferences.ScPrefCollection
 import chat.schildi.lib.preferences.ScPrefContainer
 import chat.schildi.lib.preferences.ScPrefScreen
 import chat.schildi.lib.preferences.ScStringListPref
+import chat.schildi.lib.preferences.ScViewOnlyPref
 import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
@@ -44,12 +49,16 @@ import chat.schildi.revenge.compose.components.keyboardShortcutFromIndex
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.config.keybindings.Action
+import chat.schildi.revenge.database.revengeDatabase
 import chat.schildi.theme.scExposures
 import co.touchlab.kermit.Logger
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.pref_push_registrations_info_none
+import shire.res.generated.resources.pref_push_registrations_info_summary
 import kotlin.math.roundToInt
 
 fun LazyListScope.renderPref(
@@ -62,6 +71,17 @@ fun LazyListScope.renderPref(
         is ScPref<*> -> {
             item(key = pref.sKey) {
                 pref.AutoRendered()
+            }
+        }
+        is ScViewOnlyPref -> {
+            item {
+                ScPrefCategoryHeader(
+                    title = stringResource(pref.titleRes),
+                    isFirst = isFirst,
+                )
+            }
+            item(key = pref.kind.name) {
+                pref.Rendered()
             }
         }
         is ScPrefContainer -> {
@@ -287,5 +307,39 @@ fun <T> ScListPref<T>.Rendered() {
             selectionAsSummary = true,
             clickAction = { openContextMenu },
         )
+    }
+}
+
+
+@Composable
+fun ScViewOnlyPref.Rendered() {
+    when (kind) {
+        ScViewOnlyPref.Kind.PUSH_REGISTRATIONS -> {
+            val registrations = revengeDatabase.pushNotificationDao().followPushRegistrations()
+                .collectAsState(null).value
+            if (registrations == null) {
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator()
+                }
+            } else if (registrations.isEmpty()) {
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    Text(stringResource(Res.string.pref_push_registrations_info_none))
+                }
+            } else {
+                Column {
+                    registrations.forEach { registration ->
+                        ScPrefLayout(
+                            title = registration.sessionId,
+                            secondaryText = stringResource(
+                                Res.string.pref_push_registrations_info_summary,
+                                registration.endpoint ?: "",
+                                registration.gateway ?: "",
+                                registration.homeserverRegistered.toString(),
+                            )
+                        )
+                    }
+                }
+            }
+        }
     }
 }

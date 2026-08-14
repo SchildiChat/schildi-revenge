@@ -10,6 +10,7 @@ composeMaterial3 = "1.9.0"
 composeMaterialIconsExtended = "1.7.3"
 junit = "4.13.2"
 kotlin = "2.4.10"
+ksp = "2.3.10"
 kotlinx-coroutines = "1.11.0"
 kotlinx-datetime = "0.8.0"
 jetbrainsKotlinJvm = "2.4.10"
@@ -30,6 +31,11 @@ blurhash = "0.3.0"
 androidx-core = "1.19.0"
 androidx-activity = "1.13.0"
 androidx-core-splashscreen = "1.2.0"
+androidx-work = "2.11.2"
+unifiedpush = "3.3.3"
+unifiedpush-embedded-fcm = "3.1.0"
+room3 = "3.0.1"
+sqlite = "2.7.0"
 desugarJdkLibs = "2.1.5"
 
 [libraries]
@@ -83,6 +89,12 @@ androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", versi
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
 desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 coil3-gif = { group = "io.coil-kt.coil3", name = "coil-gif", version.ref = "coil" }
+androidx-work-runtime = { module = "androidx.work:work-runtime-ktx", version.ref = "androidx-work" }
+androidx-sqlite-bundled = { module = "androidx.sqlite:sqlite-bundled", version.ref = "sqlite" }
+androidx-room3-compiler = { module = "androidx.room3:room3-compiler", version.ref = "room3" }
+androidx-room3-runtime = { module = "androidx.room3:room3-runtime", version.ref = "room3" }
+unifiedpush-connector = { module = "org.unifiedpush.android:connector", version.ref = "unifiedpush" }
+unifiedpush-fcm = { module = "org.unifiedpush.android:embedded-fcm-distributor", version.ref = "unifiedpush-embedded-fcm" }
 
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "androidGradlePlugin" }
@@ -98,3 +110,5 @@ jetbrainsKotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "jetbrains
 kotlinxSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 metro = { id = "dev.zacsweers.metro", version.ref = "metro" }
 kotlinParcelize = { id = "org.jetbrains.kotlin.plugin.parcelize", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+androidx-room3 = { id = "androidx.room3", version.ref = "room3" }

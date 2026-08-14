@@ -30,8 +30,15 @@ plugins {
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.metro)
     alias(libs.plugins.kotlinxSerialization)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.androidx.room3)
     id("GitOperations")
 }
+
+room3 {
+    schemaDirectory("$projectDir/schemas")
+}
+
 kotlin {
     compilerOptions {
         optIn.add("kotlin.uuid.ExperimentalUuidApi")
@@ -41,6 +48,7 @@ kotlin {
         namespace = "chat.schildi.revenge.compose"
         compileSdk = 37
         minSdk = 26
+        androidResources.enable = true
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
         }
@@ -74,6 +82,7 @@ kotlin {
             implementation(libs.ktor.core)
             implementation(libs.beeper.messageformat)
             implementation(libs.vanniktech.blurhash)
+            implementation(libs.androidx.room3.runtime)
 
             implementation(projects.preferences)
             implementation(projects.res)
@@ -94,15 +103,16 @@ kotlin {
         val desktopMain by getting {
             dependsOn(jvmMain)
             dependencies {
-            implementation(projects.matrix)
-            implementation(libs.kdroidfilter.composenativetray)
-            implementation(libs.kdroidfilter.knotify)
-            implementation(libs.kdroidfilter.knotify.compose)
-            implementation(libs.clikt)
-            implementation(compose.desktop.currentOs)
-            implementation(libs.kotlinx.coroutines.swing)
-            implementation(libs.dbus.java.core)
-            implementation(libs.dbus.java.transport.native.unixsocket)
+                implementation(projects.matrix)
+                implementation(libs.androidx.sqlite.bundled)
+                implementation(libs.kdroidfilter.composenativetray)
+                implementation(libs.kdroidfilter.knotify)
+                implementation(libs.kdroidfilter.knotify.compose)
+                implementation(libs.clikt)
+                implementation(compose.desktop.currentOs)
+                implementation(libs.kotlinx.coroutines.swing)
+                implementation(libs.dbus.java.core)
+                implementation(libs.dbus.java.transport.native.unixsocket)
             }
         }
         val androidMain by getting {
@@ -113,11 +123,19 @@ kotlin {
                 implementation(libs.androidx.core.ktx)
                 implementation(libs.androidx.core.splashscreen)
                 implementation(libs.androidx.lifecycle.process)
+                implementation(libs.unifiedpush.connector)
+                implementation(libs.unifiedpush.fcm)
+                implementation(libs.androidx.work.runtime)
                 // Provides attachAppDirs(), which initializes AppDirs with the Android context.
                 implementation(libs.appdirs)
             }
         }
     }
+}
+
+dependencies {
+    add("kspAndroid", libs.androidx.room3.compiler)
+    add("kspDesktop", libs.androidx.room3.compiler)
 }
 
 // --- Build variant info (debug/release) and codegen for BuildInfo ---
@@ -372,6 +390,11 @@ tasks.named("compileKotlinDesktop").configure {
     dependsOn(generateBuildInfo)
 }
 tasks.named("compileAndroidMain").configure {
+    dependsOn(generateBuildInfo)
+}
+tasks.matching {
+    it.name == "kspKotlinDesktop" || it.name == "kspAndroidMain"
+}.configureEach {
     dependsOn(generateBuildInfo)
 }
 

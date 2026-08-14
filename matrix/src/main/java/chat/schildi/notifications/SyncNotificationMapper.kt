@@ -6,8 +6,8 @@ import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.ThreadId
-import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.impl.notification.NotificationContentMapper
+import io.element.android.libraries.matrix.impl.notification.senderId
 import io.element.android.libraries.matrix.impl.room.join.map
 import org.matrix.rustcomponents.sdk.Action
 import org.matrix.rustcomponents.sdk.NotificationEvent
@@ -60,12 +60,6 @@ class SyncNotificationMapper(
         }
     }
 }
-
-private fun NotificationEvent.senderId(): UserId =
-    when (this) {
-        is NotificationEvent.Timeline -> UserId(event.senderId())
-        is NotificationEvent.Invite -> UserId(sender)
-    }
 
 private fun NotificationEvent.eventIdOrNull(): EventId? =
     when (this) {

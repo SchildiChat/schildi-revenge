@@ -7,10 +7,6 @@ import androidx.compose.ui.graphics.toComposeImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import chat.schildi.revenge.UiState
 import co.touchlab.kermit.Logger
-import io.element.android.libraries.matrix.api.core.EventId
-import io.element.android.libraries.matrix.api.core.FlowId
-import io.element.android.libraries.matrix.api.core.RoomId
-import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.github.kdroidfilter.knotify.builder.AppConfig
 import io.github.kdroidfilter.knotify.builder.ExperimentalNotificationsApi
@@ -22,24 +18,7 @@ import org.jetbrains.skia.Image
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.app_title_short
 
-sealed interface NotificationId {
-    val sessionId: SessionId?
-    data class Event(
-        override val sessionId: SessionId,
-        val roomId: RoomId,
-        val eventId: EventId,
-    ) : NotificationId
-    data class Room(
-        override val sessionId: SessionId,
-        val roomId: RoomId,
-    ) : NotificationId
-    data class VerificationRequest(
-        override val sessionId: SessionId,
-        val flowId: FlowId,
-    ) : NotificationId
-}
-
-object Notifier {
+object DesktopNotifier {
     private val log = Logger.withTag("Notifier")
 
     suspend fun initialize() {

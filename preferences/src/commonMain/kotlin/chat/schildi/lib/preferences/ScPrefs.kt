@@ -112,6 +112,9 @@ import shire.res.generated.resources.pref_category_general_behaviour
 import shire.res.generated.resources.pref_category_general_summary
 import shire.res.generated.resources.pref_category_message_appearance
 import shire.res.generated.resources.pref_category_message_authenticity_warnings
+import shire.res.generated.resources.pref_category_notifications
+import shire.res.generated.resources.pref_category_notifications_summary
+import shire.res.generated.resources.pref_category_push_registrations
 import shire.res.generated.resources.pref_category_timeline_event_visibility
 import shire.res.generated.resources.pref_category_unread_counts
 import shire.res.generated.resources.pref_client_side_sort_by_unread_summary
@@ -120,6 +123,8 @@ import shire.res.generated.resources.pref_composer_max_lines_summary
 import shire.res.generated.resources.pref_composer_max_lines_title
 import shire.res.generated.resources.pref_composer_max_lines_unfocused_summary
 import shire.res.generated.resources.pref_composer_max_lines_unfocused_title
+import shire.res.generated.resources.pref_debug_notifications_summary
+import shire.res.generated.resources.pref_debug_notifications_title
 import shire.res.generated.resources.pref_dev_quick_options_summary
 import shire.res.generated.resources.pref_dev_quick_options_title
 import shire.res.generated.resources.pref_dual_mention_unread_counts_summary
@@ -157,6 +162,8 @@ import shire.res.generated.resources.pref_pseudo_spaces_title
 import shire.res.generated.resources.pref_render_space_order_keys_title
 import shire.res.generated.resources.pref_floating_date_summary
 import shire.res.generated.resources.pref_floating_date_title
+import shire.res.generated.resources.pref_push_notifications_summary
+import shire.res.generated.resources.pref_push_notifications_title
 import shire.res.generated.resources.pref_sdk_sqlite_max_pool_size_summary
 import shire.res.generated.resources.pref_sdk_sqlite_max_pool_size_title
 import shire.res.generated.resources.pref_show_advanced_room_creation_parameters_summary
@@ -210,7 +217,9 @@ object ScPrefs {
     val LAYOUT_WEIGHT_SETTINGS_ROOT = ScIntPref("LAYOUT_WEIGHT_SETTINGS_ROOT", 80, Res.string.pref_layout_weight_settings_root_title, minValue = 20, maxValue = 1000, allowLiveSliderChange = false)
 
     // Notifications
-    val DESKTOP_NOTIFICATIONS = ScBoolPref("DESKTOP_NOTIFICATIONS", true, Res.string.pref_desktop_notifications_title, Res.string.pref_desktop_notifications_summary, supportedOnPlatform = scPrefPlatformSupport.desktopOnly)
+    val DESKTOP_NOTIFICATIONS = ScBoolPref("DESKTOP_NOTIFICATIONS", true, Res.string.pref_desktop_notifications_title, Res.string.pref_desktop_notifications_summary, supportedOnPlatform = scPrefPlatformSupport.desktopNotifications)
+    val PUSH_NOTIFICATIONS = ScBoolPref("PUSH_NOTIFICATIONS", true, Res.string.pref_push_notifications_title, Res.string.pref_push_notifications_summary, supportedOnPlatform = scPrefPlatformSupport.pushNotifications)
+    val PUSH_REGISTRATIONS_LIST = ScViewOnlyPref.Kind.PUSH_REGISTRATIONS(Res.string.pref_category_push_registrations, supportedOnPlatform = scPrefPlatformSupport.pushNotifications)
 
     // Tray icon
     val CLOSE_TO_TRAY = ScBoolPref("CLOSE_TO_TRAY", true, Res.string.pref_close_to_tray_title, Res.string.pref_close_to_tray_summary, supportedOnPlatform = scPrefPlatformSupport.desktopOnly)
@@ -233,6 +242,7 @@ object ScPrefs {
     val DEV_QUICK_OPTIONS = ScBoolPref("DEV_QUICK_OPTIONS", false, Res.string.pref_dev_quick_options_title, Res.string.pref_dev_quick_options_summary)
     val FORCE_RENDER_BLURHASH = ScBoolPref("FORCE_RENDER_BLURHASH", false, Res.string.pref_force_render_blurhash_title, Res.string.pref_force_render_blurhash_summary)
     val FRAME_DROP_SPINNER = ScBoolPref("FRAME_DROP_SPINNER", false, Res.string.pref_framed_rop_spinner_title, Res.string.pref_framed_rop_spinner_summary)
+    val DEBUG_NOTIFICATIONS = ScBoolPref("DEBUG_NOTIFICATIONS", false, Res.string.pref_debug_notifications_title, Res.string.pref_debug_notifications_summary, supportedOnPlatform = scPrefPlatformSupport.pushNotifications)
 
     // Appearance
     val LOCALE = ScStringListPref("LOCALE", "", availableLocaleSettings, Res.string.pref_locale, allowNonEntryValues = true)
@@ -353,13 +363,13 @@ object ScPrefs {
             RENDER_AVATAR_STATES,
             FRAME_DROP_SPINNER,
             SHOW_ADVANCED_ROOM_CREATION_PARAMETERS,
+            DEBUG_NOTIFICATIONS,
         ))
 
     val rootPrefsAllPlatforms = ScPrefScreen("ROOT", Res.string.hint_settings, null, listOf<AbstractScPref>(
         ScPrefScreen("GENERAL", Res.string.pref_category_general, Res.string.pref_category_general_summary, listOf(
             LOCALE,
             CLOSE_TO_TRAY,
-            DESKTOP_NOTIFICATIONS,
             ScPrefCategory("UI_SCALE", Res.string.pref_category_scale, null, listOf(
                 RENDER_SCALE,
                 FONT_SCALE,
@@ -383,6 +393,11 @@ object ScPrefs {
                 ALWAYS_SHOW_KEYBOARD_FOCUS,
             )),
         )),
+        ScPrefScreen("NOTIFICATIONS", Res.string.pref_category_notifications, Res.string.pref_category_notifications_summary, listOf(
+            DESKTOP_NOTIFICATIONS,
+            PUSH_NOTIFICATIONS,
+            PUSH_REGISTRATIONS_LIST
+        ), supportedOnPlatform = scPrefPlatformSupport.notifications),
         ScPrefScreen("INBOX", Res.string.pref_category_inbox, Res.string.pref_category_inbox_summary, listOf(
             CANONICAL_PARENT_SPACE_AVATAR_FALLBACK,
             ScPrefCategory("INBOX_SORT", Res.string.pref_category_chat_sorting, null, listOf(
@@ -487,6 +502,7 @@ object ScPrefs {
         rootPrefsAllPlatforms.filteredBy(
             ScPrefFilter(
                 predicate = { it.supportedOnPlatform },
+                viewOnlyPredicate = { it.supportedOnPlatform },
             )
         )
     }

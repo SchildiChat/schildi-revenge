@@ -1,5 +1,6 @@
 package chat.schildi.revenge.util
 
+import chat.schildi.lib.util.SystemInfo
 import com.vanniktech.blurhash.BlurHash
 import io.element.android.libraries.matrix.api.timeline.InMemoryMediaThumbnail
 import kotlinx.serialization.json.Json

@@ -201,7 +201,8 @@ sealed interface Action {
         Logout(args = listOf(ActionArgumentPrimitive.SessionId)),
         LogoutOrDelete(args = listOf(ActionArgumentPrimitive.SessionId)),
         Crash,
-        ReportBugWithLogs(aliases = listOf("SendBugReportWithLogs"), args = listOf(ActionArgumentPrimitive.BugDescription))
+        ReportBugWithLogs(aliases = listOf("SendBugReportWithLogs"), args = listOf(ActionArgumentPrimitive.BugDescription)),
+        ForgetPushRegistrations,
     }
     enum class AppMessage(
         override val aliases: kotlin.collections.List<String> = emptyList(),

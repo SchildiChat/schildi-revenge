@@ -26,7 +26,6 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -75,7 +74,7 @@ import chat.schildi.revenge.model.about.REVENGE_SDK_SOURCE_URL
 import chat.schildi.revenge.model.about.REVENGE_SOURCE_URL
 import chat.schildi.revenge.model.about.SCHILDI_NEXT_SOURCE_URL
 import chat.schildi.revenge.model.about.ThirdPartyAcknowledgement
-import chat.schildi.revenge.util.SystemInfo
+import chat.schildi.lib.util.SystemInfo
 import chat.schildi.revenge.viewModelKey
 import chat.schildi.theme.scExposures
 import chat.schildi.theme.scLinkStyle

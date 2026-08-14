@@ -34,6 +34,7 @@ fun List<AbstractScPref>.collectScPrefs(predicate: (ScPref<*>) -> Boolean = { tr
             }
         }
         is ScPref<*> -> listOf(pref).filter(predicate)
+        is ScViewOnlyPref -> emptyList()
     }
 }
 

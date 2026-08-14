@@ -1,5 +1,6 @@
 package chat.schildi.revenge
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -118,6 +119,20 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         keyHandler?.onWindowFocusChanged(true)
         androidWindowManager.onResume(this)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        intent.getStringExtra(EXTRA_DESTINATION)?.let {
+            Destination.deserializedFromString(it)
+                .onSuccess { destination ->
+                    destinationStateHolder?.navigate(destination, NavigationPreference.AUTO)
+                }
+                .onFailure { failure ->
+                    log.e("Failed to deserialize new intent destination", failure)
+                }
+        }
     }
 
     override fun onPause() {

@@ -8,6 +8,7 @@
 
 package io.element.android.libraries.matrix.impl.auth
 
+import chat.schildi.lib.platform.platformDeviceName
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -16,7 +17,6 @@ import io.element.android.features.enterprise.api.ClientEnterpriseHook
 import io.element.android.features.enterprise.api.EnterpriseService
 import io.element.android.libraries.androidutils.crypto.ClientSecret
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
-import io.element.android.libraries.core.data.tryOrNull
 import io.element.android.libraries.core.extensions.mapFailure
 import io.element.android.libraries.core.extensions.runCatchingExceptions
 import io.element.android.libraries.core.meta.BuildMeta
@@ -65,8 +65,6 @@ import org.matrix.rustcomponents.sdk.SecretsBundleWithUserId
 import timber.log.Timber
 import uniffi.matrix_sdk.OAuthAuthorizationData
 import kotlin.time.Duration.Companion.seconds
-
-import java.net.InetAddress
 
 @Inject
 @ContributesBinding(AppScope::class)
@@ -155,10 +153,7 @@ class RustMatrixAuthenticationService(
 
     private fun initialDeviceName(): String = buildString {
         append(buildMeta.applicationName)
-        val deviceName = tryOrNull { InetAddress.getLocalHost().hostName }
-            ?: System.getenv("HOST")
-            ?: System.getenv("HOSTNAME")
-            ?: System.getenv("COMPUTERNAME")
+        val deviceName = platformDeviceName
         if (deviceName != null) {
             append(" (")
             append(deviceName)

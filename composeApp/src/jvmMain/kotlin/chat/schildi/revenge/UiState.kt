@@ -22,6 +22,7 @@ import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.createGraphFactory
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import io.element.android.x.di.AppGraph
 import kotlinx.collections.immutable.persistentHashMapOf
 import kotlinx.collections.immutable.persistentListOf
@@ -30,6 +31,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -63,6 +65,9 @@ private const val MESSAGE_ID_KEY_CONFIG = "keyConfig"
 // For KeyboardActionHandler via headless IPC
 const val HEADLESS_WINDOW_ID = -1
 
+// Allow accessing this one outside of UI state, so we don't need  full UI state for push notifications.
+val RevengeAppGraph = createGraphFactory<AppGraph.Factory>().create()
+
 @OptIn(ExperimentalAtomicApi::class)
 object UiState {
     private val log = Logger.withTag("UiState")
@@ -72,7 +77,7 @@ object UiState {
     @Suppress("ConstantLocale")
     private val initialLocale = Locale.getDefault()
 
-    val appGraph: AppGraph = createGraphFactory<AppGraph.Factory>().create()
+    val appGraph: AppGraph = RevengeAppGraph
 
     private var exitApplication: (() -> Unit)? = null
     var headlessKeyboardActionHandler: KeyboardActionHandler? = null
@@ -160,9 +165,10 @@ object UiState {
     fun getConversationDestinationFromInbox(
         sessionId: SessionId,
         roomId: RoomId,
+        timelineParams: CreateTimelineParams? = null,
         preferMultiPane: Boolean = RevengePrefs.getCachedOrDefaultValue(ScPrefs.PREFER_CONVERSATION_DETAILS_SPLIT),
     ): Destination {
-        val conversation = Destination.Conversation(sessionId, roomId)
+        val conversation = Destination.Conversation(sessionId, roomId, timelineParams)
         return if (preferMultiPane) {
             Destination.ConversationDetailsMultiPane(conversation)
         } else {
@@ -213,6 +219,10 @@ object UiState {
     private val disabledSessions = MutableStateFlow(emptySet<SessionId>())
     private val _failedSessions = MutableStateFlow(emptyMap<SessionId, Throwable>())
     val failedSessions = _failedSessions.asStateFlow()
+
+    val knownSessionIds: Flow<List<SessionId>> = appGraph.sessionStore.sessionsFlow().map {
+        it.map { SessionId(it.userId) }
+    }.distinctUntilChanged()
 
     val matrixClients = combine(
         disabledSessions,

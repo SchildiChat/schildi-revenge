@@ -3,7 +3,9 @@ package chat.schildi.revenge
 import android.app.Application
 import ca.gosyer.appdirs.impl.attachAppDirs
 import chat.schildi.revenge.glue.AndroidSyncOrchestrationAppStateProvider
+import chat.schildi.revenge.notification.AndroidNotifier
 import chat.schildi.revenge.preferences.RevengePrefs
+import chat.schildi.revenge.push.AndroidPushRegistrationHandler
 import chat.schildi.revenge.util.ExternalViewCache
 import chat.schildi.revenge.util.filepicker.ComposerAttachmentCache
 import co.touchlab.kermit.Logger
@@ -56,5 +58,9 @@ class RevengeApplication : Application() {
         initScope.launch {
             RevengePrefs.prefetch()
         }
+        initScope.launch {
+            AndroidNotifier.launchCreateNotificationChannelsLoop(initScope, this@RevengeApplication)
+        }
+        AndroidPushRegistrationHandler.launch()
     }
 }

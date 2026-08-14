@@ -1,8 +1,8 @@
 package chat.schildi.revenge.plaintext
 
-import chat.schildi.notifications.SyncNotification
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.notification.NotificationContent
+import io.element.android.libraries.matrix.api.notification.NotificationData
 import io.element.android.libraries.matrix.api.room.RoomMembershipState
 import org.jetbrains.compose.resources.getString
 import shire.res.generated.resources.Res
@@ -45,13 +45,31 @@ import shire.res.generated.resources.message_placeholder_sticker
 
 object NotificationEventTextFormat {
 
-    suspend fun notificationToText(notification: SyncNotification, stripNewlines: Boolean = false): String {
-        return when (val content = notification.content) {
-            is NotificationContent.Invite -> getString(Res.string.message_placeholder_invite_by, notification.senderName().sanitizeDirection())
+    suspend fun notificationToText(
+        notification: NotificationData,
+        stripNewlines: Boolean = false,
+    ) = notificationToText(
+        content = notification.content,
+        senderId = notification.senderId,
+        senderName = notification.getDisambiguatedDisplayName(notification.senderId),
+        roomDisplayName = notification.roomDisplayName,
+        isDirect = notification.isDirect,
+        stripNewlines = stripNewlines,
+    )
+
+    suspend fun notificationToText(
+        content: NotificationContent,
+        senderId: UserId,
+        senderName: String,
+        roomDisplayName: String?,
+        isDirect: Boolean,
+        stripNewlines: Boolean = false,
+    ): String {
+        return when (content) {
+            is NotificationContent.Invite -> getString(Res.string.message_placeholder_invite_by, senderName.sanitizeDirection())
             is NotificationContent.MessageLike -> {
                 val textContent = messageLikeToText(content, stripNewlines).sanitizeDirection()
-                val senderName = notification.senderName()
-                if (notification.roomInfo.isDirect && senderName == notification.roomInfo.displayName) {
+                if (isDirect && senderName == roomDisplayName) {
                     textContent
                 } else {
                     "${senderName.sanitizeDirection()}: $textContent"
@@ -59,13 +77,11 @@ object NotificationEventTextFormat {
             }
             is NotificationContent.StateEvent -> stateEventToText(
                 content,
-                notification.senderId,
-                notification.senderName().sanitizeDirection(),
+                senderId,
+                senderName.sanitizeDirection(),
             )
         }
     }
-
-    private fun SyncNotification.senderName() = senderInfo.displayName ?: senderId.value
 
     private suspend fun messageLikeToText(
         content: NotificationContent.MessageLike,

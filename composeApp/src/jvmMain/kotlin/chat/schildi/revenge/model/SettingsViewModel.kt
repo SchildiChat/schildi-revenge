@@ -82,6 +82,8 @@ class SettingsViewModel(
                 predicate = ::prefLookupMatches,
                 // Include pref categories in full that match
                 prePredicate = ::prefLookupMatches,
+                // Hide aux prefs while searching
+                viewOnlyPredicate = { false },
             )
             rootPrefs.filteredBy(filter)
         }

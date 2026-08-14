@@ -9,6 +9,8 @@ data class ScPrefFilter(
     // Condition for containers to evaluate after having their children filtered, if we still want to have
     // the container included anyway. Usually we can just drop empty containers.
     val postPredicate: suspend (ScPrefContainer) -> Boolean = { it.prefs.isNotEmpty() },
+    // Whether to allow view-only prefs
+    val viewOnlyPredicate: suspend (ScViewOnlyPref) -> Boolean = { true },
 )
 
 suspend fun ScPrefContainer.filteredBy(filter: ScPrefFilter): ScPrefContainer {
@@ -29,6 +31,7 @@ suspend fun List<AbstractScPref>.filteredBy(filter: ScPrefFilter): List<Abstract
                     it.copyWithPrefs(it.prefs.filteredBy(filter)).takeIf { filter.postPredicate(it) }
                 }
             }
+            is ScViewOnlyPref -> it.takeIf { filter.viewOnlyPredicate(it) }
         }
     }
 }

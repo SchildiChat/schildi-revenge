@@ -79,6 +79,7 @@ import chat.schildi.revenge.config.keybindings.SpaceCatchAllMode
 import chat.schildi.revenge.config.keybindings.findAll
 import chat.schildi.revenge.config.keybindings.maxArgsSize
 import chat.schildi.revenge.config.keybindings.minArgsSize
+import chat.schildi.revenge.database.revengeDatabase
 import chat.schildi.revenge.model.account.OAuthRepo
 import chat.schildi.revenge.model.verification.RevengeDeviceVerificationProvider
 import chat.schildi.revenge.model.account.RevengeOAUthRepo
@@ -2197,6 +2198,18 @@ class KeyboardActionHandler(
                                 )
                             }
                         }
+                    }
+                }
+                Action.Global.ForgetPushRegistrations -> {
+                    context.launchActionAsync(
+                        "forgetPushRegistrations",
+                        GlobalActionsScope,
+                        Dispatchers.IO,
+                        "forgetPushRegistrations",
+                        notifyProcessing = true,
+                    ) {
+                        revengeDatabase.pushNotificationDao().deleteAllPushRegistrations()
+                        ActionResult.Success()
                     }
                 }
             }

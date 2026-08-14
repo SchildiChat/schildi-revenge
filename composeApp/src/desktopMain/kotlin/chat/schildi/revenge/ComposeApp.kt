@@ -31,8 +31,8 @@ import chat.schildi.revenge.compose.components.rememberScaledDensity
 import chat.schildi.revenge.compose.media.LocalImageLoaderHolder
 import chat.schildi.revenge.dbus.TrayWatcher
 import chat.schildi.revenge.model.verification.RevengeDeviceVerificationProvider
-import chat.schildi.revenge.notification.NotificationProcessor
-import chat.schildi.revenge.notification.Notifier
+import chat.schildi.revenge.notification.SyncingNotificationProcessor
+import chat.schildi.revenge.notification.DesktopNotifier
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.painterResource
 import shire.res.generated.resources.Res
@@ -45,7 +45,7 @@ object ComposeApp {
     fun main(startInTray: Boolean, initialCommand: String? = null) {
         SdkLoader.ensureLoaded()
         TrayWatcher.start()
-        NotificationProcessor.observeNotifications()
+        SyncingNotificationProcessor.observeNotifications()
         RevengeDeviceVerificationProvider.observe()
         application(exitProcessOnExit = false) {
             // Blocking initialization
@@ -57,7 +57,7 @@ object ComposeApp {
             }
             LaunchedEffect(Unit) {
                 RevengePrefs.prefetch()
-                Notifier.initialize()
+                DesktopNotifier.initialize()
                 if (initialCommand != null) {
                     UiState.headlessKeyboardActionHandler?.executeCommandFromIpc(initialCommand)
                 }

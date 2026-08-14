@@ -1,7 +1,7 @@
 package chat.schildi.revenge
 
-import chat.schildi.revenge.util.OperatingSystem
-import chat.schildi.revenge.util.SystemInfo
+import chat.schildi.lib.util.OperatingSystem
+import chat.schildi.lib.util.SystemInfo
 import co.touchlab.kermit.Logger
 import org.matrix.rustcomponents.sdk.LogLevel
 import org.matrix.rustcomponents.sdk.TracingConfiguration

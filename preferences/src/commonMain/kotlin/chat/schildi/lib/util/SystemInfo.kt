@@ -1,4 +1,4 @@
-package chat.schildi.revenge.util
+package chat.schildi.lib.util
 
 enum class OperatingSystem {
     Linux,

@@ -9,7 +9,8 @@ import chat.schildi.revenge.flatMerge
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.LoadStateHolder
 import chat.schildi.revenge.model.asCheckpointLoadedOrPending
-import chat.schildi.revenge.notification.platformNotifyIncomingVerificationRequest
+import chat.schildi.revenge.notification.platformNotify
+import chat.schildi.revenge.notification.toNotificationId
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.verification.SessionVerificationServiceListener
@@ -95,7 +96,13 @@ class DeviceVerificationProvider(
                 request = verificationRequest,
             )
             if (UiState.postIncomingVerificationRequest(request)) {
-                platformNotifyIncomingVerificationRequest(request)
+                scope.launch {
+                    platformNotify(
+                        id = request.toNotificationId(),
+                        title = request.title.renderSuspend(),
+                        message = request.summary.renderSuspend(),
+                    )
+                }
             } else {
                 log.e("Could not post notification request $request, queue full?")
             }

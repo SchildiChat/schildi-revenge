@@ -1,7 +1,7 @@
 package chat.schildi.revenge.actions
 
 import chat.schildi.revenge.dbus.FreedesktopPortal
-import chat.schildi.revenge.util.SystemInfo
+import chat.schildi.lib.util.SystemInfo
 import java.awt.Desktop
 import java.io.File
 
