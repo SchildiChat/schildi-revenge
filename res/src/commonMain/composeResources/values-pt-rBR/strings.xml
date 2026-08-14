@@ -81,7 +81,7 @@
     <string name="pref_category_general_appearance">Aparência</string>
     <string name="pref_category_general_behaviour">Comportamento</string>
     <string name="power_level_user_role_creator">Criador(a)</string>
-    <string name="power_level_user_role_owner">Criador(a)</string>
+    <string name="power_level_user_role_owner">Dono(a)</string>
     <string name="power_level_user_role_admin">Administrador(a)</string>
     <string name="power_level_user_role_moderator">Moderador(a)</string>
     <string name="power_level_user_role_default">Padrão</string>
@@ -379,4 +379,6 @@
     <string name="message_placeholder_video">Vídeo</string>
     <string name="message_placeholder_file">Arquivo</string>
     <string name="message_placeholder_gallery">Galeria</string>
+    <string name="about_version_name">Versão: %1$s</string>
+    <string name="about_version_code">Código de versão: %1$d</string>
 </resources>
