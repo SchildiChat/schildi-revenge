@@ -326,4 +326,7 @@
     <string name="action_login_with_browser">Entrar com navegador</string>
     <string name="action_login_with_password">Entrar com senha</string>
     <string name="pref_message_font_size_title">Tamanho da fonte de mensagens</string>
+    <string name="pref_message_font_size_summary">Tamanho de texto dimensionado em pixeis para mensagens (respeitando configurações globais de renderização e escala de fontes)</string>
+    <string name="message_placeholder_beacon">Atualização de localização em tempo real</string>
+    <string name="message_placeholder_state_event_beacon_info">%1$s atualizou o compartilhamento de localização em tempo real</string>
 </resources>
