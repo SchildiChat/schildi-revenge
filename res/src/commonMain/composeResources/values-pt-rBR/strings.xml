@@ -351,4 +351,14 @@
     <string name="oauth_login_success_message">Você já pode fechar essa página e voltar para o SchilidiChat.</string>
     <string name="verification_status_verified">Verificado</string>
     <string name="verification_status_not_verified">Não verificado</string>
+    <string name="login_not_supported">Nenhum método de login suportado foi encontrado</string>
+    <string name="history_visibility_world_readable">Público</string>
+    <string name="account_status_invalid_token">Token de login inválido</string>
+    <string name="toast_room_creation_success">Sala criada</string>
+    <string name="toast_room_creation_error">Falha ao criar sala</string>
+    <string name="toast_room_created">Sala %1$s criada</string>
+    <string name="membership_change_banned">%1$s baniu %2$s</string>
+    <string name="membership_change_kicked">%1$s expulsou %2$s</string>
+    <string name="membership_change_invited">%1$s convidou %2$s</string>
+    <string name="membership_change_kicked_and_banned">%1$s expulsou e baniu %2$s</string>
 </resources>
