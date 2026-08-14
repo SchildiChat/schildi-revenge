@@ -329,4 +329,16 @@
     <string name="pref_message_font_size_summary">Tamanho de texto dimensionado em pixeis para mensagens (respeitando configurações globais de renderização e escala de fontes)</string>
     <string name="message_placeholder_beacon">Atualização de localização em tempo real</string>
     <string name="message_placeholder_state_event_beacon_info">%1$s atualizou o compartilhamento de localização em tempo real</string>
+    <string name="create_room">Criar nova sala</string>
+    <string name="pinned_messages">Mensagens fixadas</string>
+    <string name="dev_tools_title">Ferramentas de desenvolvedor</string>
+    <string name="select_account">Selecionar conta</string>
+    <string name="diagnostics_native">Nativo</string>
+    <string name="diagnostics_other">Outro</string>
+    <string name="action_logout_session_prompt">Desconectar %1$s?</string>
+    <string name="action_view_user">Ver usuário</string>
+    <string name="action_notifications_default">Padrão</string>
+    <string name="action_account_management">Gerenciar contas</string>
+    <string name="diagnostics_native_estimated">Nativo / outro (estimado)</string>
+    <string name="diagnostics_total">Total</string>
 </resources>
