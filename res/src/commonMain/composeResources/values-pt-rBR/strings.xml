@@ -361,4 +361,7 @@
     <string name="membership_change_kicked">%1$s expulsou %2$s</string>
     <string name="membership_change_invited">%1$s convidou %2$s</string>
     <string name="membership_change_kicked_and_banned">%1$s expulsou e baniu %2$s</string>
+    <string name="pref_canonical_space_parent_avatar_fallback_title">Reserva de avatar do espaço pai</string>
+    <string name="pref_floating_date_summary">Mostrar a data em cima das mensagens durante a rodagem</string>
+    <string name="pref_floating_date_title">Data flutuante</string>
 </resources>
