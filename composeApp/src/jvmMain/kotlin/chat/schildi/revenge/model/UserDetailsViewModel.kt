@@ -21,8 +21,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
-private const val MAX_ROOMS_IN_COMMON = 50
-
 class UserDetailsViewModel(
     val sessionId: SessionId,
     val userId: UserId,
@@ -59,44 +57,15 @@ class UserDetailsViewModel(
             ?.getOrNull()
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val mutualRooms = if (userId == sessionId) flowOf(null) else client.map { client ->
-        // No need to page, just do a few rooms in common and then stop
-        client?.getMutualRooms(userId)
-            ?.also { loadStateHolder.handleResult(LoadCheckPoint.RoomsInCommon, it) }
-            ?.getOrNull()
-    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val mutualRoomsPreview = combine(
-        mutualRooms,
-        client,
-    ) { a, b ->
-        Pair(a, b)
-    }.flatMapLatest { (mutualRoomsInfo, client) ->
-        client ?: return@flatMapLatest flowOf(null)
-        val roomInfoFlows = mutualRoomsInfo?.joined
-            ?.take(MAX_ROOMS_IN_COMMON)
-            ?.mapNotNull { roomId ->
-                if (roomId == this.roomId) {
-                    // No need to preview twice
-                    null
-                } else {
-                    client.getRoom(roomId)?.roomInfoFlow
-                }
-            } ?: return@flatMapLatest flowOf(null)
-        combine(roomInfoFlows) { infos ->
-            infos.sortedWith(
-                compareBy(
-                    // Show rooms with name first
-                    { it.name == null },
-                    // Show tombstoned rooms last
-                    { it.successorRoom != null },
-                    // Show non-space rooms first
-                    { it.isSpace }
-                )
-            ).toPersistentList()
-        }
-    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+    private val mutualRoomsProvider = MutualRoomsProvider(
+        sessionId = sessionId,
+        userId = flowOf(userId),
+        scope = viewModelScope,
+        client = client,
+        loadStateHolder = loadStateHolder,
+    )
+    val mutualRooms = mutualRoomsProvider.mutualRooms
+    val mutualRoomsPreview = mutualRoomsProvider.mutualRoomsPreview
 
     @OptIn(ExperimentalCoroutinesApi::class)
     private val identityChanges = room.flatMapLatest {

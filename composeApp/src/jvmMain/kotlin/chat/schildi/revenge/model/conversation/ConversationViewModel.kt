@@ -68,6 +68,7 @@ import chat.schildi.revenge.model.DraftValue
 import chat.schildi.revenge.model.ImagePackProvider
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.LoadStateHolder
+import chat.schildi.revenge.model.MutualRoomsProvider
 import chat.schildi.revenge.model.PendingAction
 import chat.schildi.revenge.model.PendingActionState
 import chat.schildi.revenge.model.PendingGlobalActions
@@ -198,6 +199,7 @@ import shire.res.generated.resources.toast_attachment_download_path_success
 import shire.res.generated.resources.toast_attachment_download_success
 import java.io.File
 import java.lang.IllegalArgumentException
+import java.net.URI
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.max
 import kotlin.time.Duration.Companion.milliseconds
@@ -271,6 +273,7 @@ interface RoomPreviewViewModel {
     val roomPreview: StateFlow<RoomPreviewInfo?>
     val roomContextSuggestionsProvider: RoomContextSuggestionsProvider
     val roomActionProvider: RoomActionProvider
+    val inviterMutualRoomsProvider: MutualRoomsProvider?
 }
 
 data class FullyReadEventState(
@@ -404,6 +407,14 @@ class ConversationViewModel(
     override val roomPreview: StateFlow<RoomPreviewInfo?> = notJoinedRoom
         .map { it?.previewInfo }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    override val inviterMutualRoomsProvider = MutualRoomsProvider(
+        sessionId = sessionId,
+        userId = roomInfo.map { it?.inviter?.userId },
+        scope = viewModelScope,
+        client = clientFlow,
+        loadStateHolder = loadStateHolder,
+    )
 
     private val _highlightedActionEventId = MutableStateFlow<EventOrTransactionId?>(null)
     val highlightedActionEventId = _highlightedActionEventId.asStateFlow()
@@ -1073,7 +1084,7 @@ class ConversationViewModel(
 
     override fun attachFile(context: ActionContext, path: String): Boolean {
         val file = try {
-            File(java.net.URI(path))
+            File(URI(path))
         } catch (e: Exception) {
             log.w("Failed to parse file uri: $path", e)
             return false

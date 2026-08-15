@@ -27,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,9 +61,12 @@ import chat.schildi.revenge.model.UserDetailsViewModel
 import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.viewModelKey
 import chat.schildi.theme.scExposures
+import io.element.android.libraries.matrix.api.MutualRoomsPagedInfo
+import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.encryption.identity.IdentityState
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.RoomInfo
+import kotlinx.collections.immutable.ImmutableList
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.pluralStringResource
 import org.jetbrains.compose.resources.stringResource
@@ -254,97 +258,125 @@ fun UserDetailsScreen(
                         }
                         if (mutualRoomsInfo != null) {
                             item {
-                                Box(
-                                    Modifier.fillMaxWidth().keyFocusable(
-                                        role = FocusRole.LIST_ITEM,
-                                        actionProvider = actionProvider(
-                                            primaryAction = InteractionAction.Invoke {
-                                                expandRoomPreviews.value = !expandRoomPreviews.value
-                                                true
-                                            }
-                                        ),
-                                    ),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    val text = if (mutualRoomsPreview.isNullOrEmpty()) {
-                                        pluralStringResource(
-                                            Res.plurals.n_mutual_rooms,
-                                            mutualRoomsInfo.count.toInt(),
-                                            mutualRoomsInfo.count,
-                                        )
-                                    } else if (expandRoomPreviews.value) {
-                                        pluralStringResource(
-                                            Res.plurals.n_mutual_rooms_header,
-                                            mutualRoomsInfo.count.toInt(),
-                                            mutualRoomsInfo.count,
-                                        )
-                                    } else {
-                                        pluralStringResource(
-                                            Res.plurals.n_mutual_rooms_such_as,
-                                            mutualRoomsInfo.count.toInt(),
-                                            mutualRoomsInfo.count,
-                                            mutualRoomsPreview.joinToString(limit = 3) {
-                                                it.privateRoomName ?: it.name ?: it.id.value
-                                            },
-                                        )
-                                    }
-                                    Text(
-                                        text,
-                                        color = if (expandRoomPreviews.value && !mutualRoomsPreview.isNullOrEmpty())
-                                            MaterialTheme.scExposures.accentColor
-                                        else
-                                            MaterialTheme.colorScheme.onSurfaceVariant,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        textAlign = TextAlign.Center,
-                                    )
-                                }
+                                MutualRoomsExpandHeader(
+                                    expandRoomPreviews,
+                                    mutualRoomsInfo,
+                                    mutualRoomsPreview,
+                                    Modifier.fillMaxSize(),
+                                )
                             }
                         }
                         if (expandRoomPreviews.value && mutualRoomsPreview != null) {
                             items(mutualRoomsPreview, key = { "mutual_room_preview_${it.id}" }) { preview ->
-                                Box(
-                                    Modifier.fillMaxWidth().keyFocusable(
-                                        role = FocusRole.LIST_ITEM,
-                                        actionProvider = actionProvider(
-                                            primaryAction = InteractionAction.OpenWindow(
-                                                preferNewTask = false,
-                                                initialTitle = {
-                                                    ConversationViewModel.windowTitle(
-                                                        preview,
-                                                        sessionId = viewModel.sessionId,
-                                                    )
-                                                },
-                                            ) {
-                                                if (preview.isSpace) {
-                                                    // TODO what's the best destination for viewing spaces?
-                                                    Destination.RoomMembers(
-                                                        sessionId = viewModel.sessionId,
-                                                        roomId = preview.id,
-                                                    )
-                                                } else {
-                                                    Destination.Conversation(
-                                                        sessionId = viewModel.sessionId,
-                                                        roomId = preview.id,
-                                                    )
-                                                }
-                                            }
-                                        )
-                                    ),
-                                    contentAlignment = Alignment.Center,
-                                ) {
-                                    Text(
-                                        preview.toTitle(),
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        textAlign = TextAlign.Center,
-                                    )
-                                }
+                                MutualRoomsListItem(
+                                    viewModel.sessionId,
+                                    preview,
+                                    Modifier.fillMaxWidth(),
+                                )
                             }
                         }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun MutualRoomsExpandHeader(
+    expandRoomPreviews: MutableState<Boolean>,
+    mutualRoomsInfo: MutualRoomsPagedInfo,
+    mutualRoomsPreview: ImmutableList<RoomInfo>?,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier.keyFocusable(
+            role = FocusRole.LIST_ITEM,
+            actionProvider = actionProvider(
+                primaryAction = InteractionAction.Invoke {
+                    expandRoomPreviews.value = !expandRoomPreviews.value
+                    true
+                }
+            ),
+        ),
+        contentAlignment = Alignment.Center,
+    ) {
+        val text = if (mutualRoomsPreview.isNullOrEmpty()) {
+            pluralStringResource(
+                Res.plurals.n_mutual_rooms,
+                mutualRoomsInfo.count.toInt(),
+                mutualRoomsInfo.count,
+            )
+        } else if (expandRoomPreviews.value) {
+            pluralStringResource(
+                Res.plurals.n_mutual_rooms_header,
+                mutualRoomsInfo.count.toInt(),
+                mutualRoomsInfo.count,
+            )
+        } else {
+            pluralStringResource(
+                Res.plurals.n_mutual_rooms_such_as,
+                mutualRoomsInfo.count.toInt(),
+                mutualRoomsInfo.count,
+                mutualRoomsPreview.joinToString(limit = 3) {
+                    it.privateRoomName ?: it.name ?: it.id.value
+                },
+            )
+        }
+        Text(
+            text,
+            color = if (expandRoomPreviews.value && !mutualRoomsPreview.isNullOrEmpty())
+                MaterialTheme.scExposures.accentColor
+            else
+                MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+        )
+    }
+}
+
+@Composable
+fun MutualRoomsListItem(
+    sessionId: SessionId,
+    preview: RoomInfo,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier.keyFocusable(
+            role = FocusRole.LIST_ITEM,
+            actionProvider = actionProvider(
+                primaryAction = InteractionAction.OpenWindow(
+                    preferNewTask = false,
+                    initialTitle = {
+                        ConversationViewModel.windowTitle(
+                            preview,
+                            sessionId = sessionId,
+                        )
+                    },
+                ) {
+                    if (preview.isSpace) {
+                        // TODO what's the best destination for viewing spaces?
+                        Destination.RoomMembers(
+                            sessionId = sessionId,
+                            roomId = preview.id,
+                        )
+                    } else {
+                        Destination.Conversation(
+                            sessionId = sessionId,
+                            roomId = preview.id,
+                        )
+                    }
+                }
+            )
+        ),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            preview.toTitle(),
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 

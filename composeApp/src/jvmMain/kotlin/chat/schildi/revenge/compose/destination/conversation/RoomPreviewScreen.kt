@@ -9,12 +9,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -79,6 +82,10 @@ fun BoxWithConstraintsScope.RoomPreviewScreen(
     val currentUserMembership = roomInfo?.currentUserMembership ?: roomPreview?.membership
     val inviter = roomInfo?.inviter
     val roomType = roomPreview?.roomType
+
+    val inviterMutualRoomsInfo = viewModel.inviterMutualRoomsProvider?.mutualRooms?.collectAsState(null)?.value
+    val inviterMutualRoomsPreview = viewModel.inviterMutualRoomsProvider?.mutualRoomsPreview?.collectAsState()?.value
+    val expandInviterMutualRoomPreviews = remember { mutableStateOf(false) }
 
     FocusContainer(
         LocalListActionProvider provides listAction,
@@ -267,6 +274,25 @@ fun BoxWithConstraintsScope.RoomPreviewScreen(
                                     invitedBy,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     style = MaterialTheme.typography.bodyLarge,
+                                )
+                            }
+                        }
+                        if (inviterMutualRoomsInfo != null) {
+                            item {
+                                MutualRoomsExpandHeader(
+                                    expandInviterMutualRoomPreviews,
+                                    inviterMutualRoomsInfo,
+                                    inviterMutualRoomsPreview,
+                                    Modifier.fillMaxSize(),
+                                )
+                            }
+                        }
+                        if (expandInviterMutualRoomPreviews.value && inviterMutualRoomsPreview != null) {
+                            items(inviterMutualRoomsPreview, key = { "mutual_room_preview_${it.id}" }) { preview ->
+                                MutualRoomsListItem(
+                                    viewModel.sessionId,
+                                    preview,
+                                    Modifier.fillMaxWidth(),
                                 )
                             }
                         }
