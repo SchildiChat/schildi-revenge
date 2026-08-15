@@ -24,6 +24,7 @@ data class StateEventCompletionSnapshot(
     val eventType: String,
     val stateKey: String,
     val content: String,
+    val raw: String,
 )
 
 class RoomContextSuggestionsProvider(
@@ -68,6 +69,7 @@ fun List<String>.parseRoomStateSnapshot(log: Logger) = mapNotNull {
             eventType = parsed["type"]!!.jsonPrimitive.content,
             stateKey = parsed["state_key"]!!.jsonPrimitive.content,
             content = PrettyJson.encodeToString(parsed["content"]),
+            raw = PrettyJson.encodeToString(parsed),
         )
     } catch (e: Exception) {
         log.e("Failed to parse state event", e)

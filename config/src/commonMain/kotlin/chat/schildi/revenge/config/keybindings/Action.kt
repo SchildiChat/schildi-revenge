@@ -343,8 +343,10 @@ sealed interface Action {
         InviteOrKickUser(aliases = listOf("kickOrInvite"), args = listOf(ActionArgumentPrimitive.UserId, OptionalReason)),
         CopyLoadedTimeline(aliases = listOf("copyTimeline", "copyLoadedMessages")),
         ViewLoadedTimeline(aliases = listOf("viewTimeline", "viewLoadedMessages")),
-        CopyFullRoomState(aliases = listOf("roomState", "copyRoomState")),
-        ViewFullRoomState(aliases = listOf("viewRoomState")),
+        CopyRoomState(aliases = listOf("roomState", "copyRoomState")),
+        ViewRoomState(aliases = listOf("viewRoomState")),
+        CopyFullRoomState,
+        ViewFullRoomState,
     }
     enum class Room(
         override val aliases: kotlin.collections.List<String> = emptyList(),

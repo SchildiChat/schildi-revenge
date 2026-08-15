@@ -1666,14 +1666,12 @@ class ConversationViewModel(
                     }
                 }
 
+                Action.Conversation.CopyRoomState,
+                Action.Conversation.ViewRoomState,
                 Action.Conversation.CopyFullRoomState,
                 Action.Conversation.ViewFullRoomState -> {
                     val room = baseRoom.value ?: return@run ActionResult.Failure("Room not ready")
-                    val appMessageId = if (action == Action.Conversation.CopyFullRoomState) {
-                        "copyFullRemoteState"
-                    } else {
-                        "viewFullRemoteState"
-                    }
+                    val appMessageId = "viewRoomState"
                     publishMessage(
                         AppMessage(
                             Res.string.command_fetching_state.toStringHolder(),
@@ -1681,7 +1679,7 @@ class ConversationViewModel(
                         )
                     )
                     launchActionAsync(
-                        if (action == Action.Conversation.CopyFullRoomState) "copyFullRoomState" else "viewFullRoomState",
+                        "viewRoomState",
                         GlobalActionsScope,
                         Dispatchers.IO,
                         notifyProcessing = true,
@@ -1692,16 +1690,28 @@ class ConversationViewModel(
                         if (result.isSuccess) {
                             val joined = result.getOrNull()?.parseRoomStateSnapshot(log).formatEventContentDump(
                                 eventType = { it.eventType },
-                                content = { it.content },
+                                content = {
+                                    when (action) {
+                                        Action.Conversation.CopyRoomState,
+                                        Action.Conversation.ViewRoomState -> it.content
+                                        Action.Conversation.CopyFullRoomState,
+                                        Action.Conversation.ViewFullRoomState -> it.raw
+                                    }
+                                },
                                 stateKey = { it.stateKey.ifEmpty { null } },
                             )
-                            if (action == Action.Conversation.CopyFullRoomState) {
-                                context.copyToClipboard(
-                                    joined,
-                                    Res.string.command_copy_name_full_room_state.toStringHolder()
-                                )
-                            } else {
-                                context.viewInExternalApp(joined, ".md")
+                            when (action) {
+                                Action.Conversation.CopyRoomState,
+                                Action.Conversation.CopyFullRoomState -> {
+                                    context.copyToClipboard(
+                                        joined,
+                                        Res.string.command_copy_name_full_room_state.toStringHolder()
+                                    )
+                                }
+                                Action.Conversation.ViewRoomState,
+                                Action.Conversation.ViewFullRoomState -> {
+                                    context.viewInExternalApp(joined, ".md")
+                                }
                             }
                         } else {
                             result.toActionResult()
