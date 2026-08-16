@@ -12,6 +12,7 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.DestinationCategory
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.LocalDestinationState
+import chat.schildi.revenge.NavigationPreference
 import chat.schildi.revenge.compose.components.PlatformBackHandler
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 
@@ -28,7 +29,10 @@ fun InboxConversationMultiPaneScreen(
             destination.conversation.state.collectAsState().value.destination !is Destination.MultiPaneConversationPlaceholder
         val shouldHidePlaceholders = ScPrefs.HIDE_EMPTY_INBOX_PANE.value()
         PlatformBackHandler(enabled = hasConversation) {
-            destination.conversation.navigate(Destination.MultiPaneConversationPlaceholder)
+            destination.conversation.navigate(
+                Destination.MultiPaneConversationPlaceholder,
+                NavigationPreference.REPLACE,
+            )
         }
         MultiPaneLayout(
             outerDestination = destination.destinationId,
