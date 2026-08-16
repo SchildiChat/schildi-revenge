@@ -11,8 +11,12 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.components.PlatformBackHandler
@@ -33,11 +37,15 @@ fun SearchBar(
     showClearButton: Boolean = false,
 ) {
     val handler = LocalKeyboardActionHandler.current
-    PlatformBackHandler(enabled = !showClearButton) {
+    val isFocused = remember { mutableStateOf(false) }
+    val searchValue = handler.globalSearchQuery.collectAsState("").value
+    val focusManager = LocalFocusManager.current
+    PlatformBackHandler(enabled = searchValue.isNotEmpty() || isFocused.value) {
         handler.clearSearch()
+        focusManager.clearFocus()
     }
     TextField(
-        value = handler.globalSearchQuery.collectAsState("").value,
+        value = searchValue,
         onValueChange = {
             handler.onSearchType(it, searchProvider, searchFocusContainer)
         },
@@ -50,6 +58,9 @@ fun SearchBar(
         modifier = modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
+            .onFocusChanged {
+                isFocused.value = it.isFocused
+            }
             .keyFocusable(role = FocusRole.SEARCH_BAR),
         singleLine = true,
         keyboardActions = KeyboardActions {
