@@ -548,6 +548,7 @@
     <string name="pref_render_silent_unread_title">Show silent unread counts</string>
     <string name="pref_render_silent_unread_summary">Render unread message counts also for muted chats</string>
     <string name="pref_threaded_replies_in_main_timeline_title">Thread replies in main timeline</string>
+    <string name="pref_threaded_replies_in_main_timeline_title_short">Thread replies</string>
     <string name="pref_threaded_replies_in_main_timeline_summary">Whether to show threaded replies the main timeline</string>
     <string name="pref_threads_as_details_title">Threads as details</string>
     <string name="pref_threads_as_details_summary">Allow opening threads in the details pane of a conversation, instead of opening a new window</string>

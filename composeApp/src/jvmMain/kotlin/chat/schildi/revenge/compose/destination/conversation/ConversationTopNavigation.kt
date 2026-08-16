@@ -48,6 +48,7 @@ import shire.res.generated.resources.action_show_room_members
 import shire.res.generated.resources.dev_tools_title
 import shire.res.generated.resources.keep_24px
 import shire.res.generated.resources.pinned_messages
+import shire.res.generated.resources.pref_threaded_replies_in_main_timeline_title_short
 import shire.res.generated.resources.pref_view_hidden_events_title_short
 import shire.res.generated.resources.pref_view_redactions_title_short
 import shire.res.generated.resources.room_details_title
@@ -144,6 +145,17 @@ fun ConversationTopNavigation(
                                     keyboardShortcut = Key.H,
                                     decoration = ContextMenuDecoration.Toggle(ScPrefs.VIEW_HIDDEN_EVENTS.value()),
                                     enabled = ScPrefs.VIEW_HIDDEN_EVENTS.isEnabled(),
+                                ),
+                                ContextMenuActionEntry(
+                                    Res.string.pref_threaded_replies_in_main_timeline_title_short.toStringHolder(),
+                                    null,
+                                    Action.Global.ToggleSetting,
+                                    persistentListOf(
+                                        ScPrefs.THREAD_REPLIES_IN_MAIN_TIMELINE.sKey,
+                                    ),
+                                    keyboardShortcut = Key.T,
+                                    decoration = ContextMenuDecoration.Toggle(ScPrefs.THREAD_REPLIES_IN_MAIN_TIMELINE.value()),
+                                    enabled = ScPrefs.THREAD_REPLIES_IN_MAIN_TIMELINE.isEnabled(),
                                 ),
                             ),
                         ) { openContextMenu ->
