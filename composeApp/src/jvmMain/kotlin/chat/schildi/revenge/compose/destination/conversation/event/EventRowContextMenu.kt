@@ -37,6 +37,7 @@ import chat.schildi.revenge.model.conversation.MessageMetadata
 import chat.schildi.revenge.preferences.value
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.core.ThreadId
 import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
@@ -70,6 +71,7 @@ fun EventTimelineItem.contextMenu(
     roomId: RoomId,
     permissions: ConversationPermissions?,
     messageMetadata: MessageMetadata?,
+    currentThreadId: ThreadId?,
 ): ImmutableList<ContextMenuEntry> {
     val messageContent = content as? MessageContent
     val showDevTools = ScPrefs.DEV_QUICK_OPTIONS.value()
@@ -114,7 +116,7 @@ fun EventTimelineItem.contextMenu(
             Action.Navigation.NavigateAuto,
             actionArgs = persistentListOf(DestinationEnum.ConversationThread.destName, sessionId.value, roomId.value, threadRootId ?: ""),
             keyboardShortcut = Key.T,
-        ).takeIf { threadRootId != null && messageContent != null },
+        ).takeIf { threadRootId != null && threadRootId != currentThreadId?.value && messageContent != null },
         ContextMenuActionEntry(
             Res.string.action_edit.toStringHolder(),
             rememberVectorPainter(Icons.Default.Edit),
