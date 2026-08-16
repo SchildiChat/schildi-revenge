@@ -37,6 +37,8 @@ import chat.schildi.revenge.model.conversation.MessageMetadata
 import chat.schildi.revenge.preferences.value
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.core.ThreadId
+import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
@@ -69,6 +71,7 @@ fun EventTimelineItem.contextMenu(
     roomId: RoomId,
     permissions: ConversationPermissions?,
     messageMetadata: MessageMetadata?,
+    currentThreadId: ThreadId?,
 ): ImmutableList<ContextMenuEntry> {
     val messageContent = content as? MessageContent
     val showDevTools = ScPrefs.DEV_QUICK_OPTIONS.value()
@@ -81,6 +84,7 @@ fun EventTimelineItem.contextMenu(
         permissions?.canRedactOther ?: false
     }
     val usesKeyboard = LocalInputModeManager.current.inputMode == InputMode.Keyboard
+    val threadRootId = (threadInfo() as? EventThreadInfo.ThreadResponse)?.threadRootId?.value ?: eventId?.value
     return listOfNotNull(
         ContextMenuActionEntry(
             Res.string.action_download_and_open.toStringHolder(),
@@ -110,9 +114,9 @@ fun EventTimelineItem.contextMenu(
             Res.string.action_thread.toStringHolder(),
             rememberVectorPainter(Icons.Default.Gesture),
             Action.Navigation.NavigateAuto,
-            actionArgs = persistentListOf(DestinationEnum.ConversationThread.destName, sessionId.value, roomId.value, eventId?.value ?: ""),
+            actionArgs = persistentListOf(DestinationEnum.ConversationThread.destName, sessionId.value, roomId.value, threadRootId ?: ""),
             keyboardShortcut = Key.T,
-        ).takeIf { eventId != null && messageContent != null },
+        ).takeIf { threadRootId != null && threadRootId != currentThreadId?.value && messageContent != null },
         ContextMenuActionEntry(
             Res.string.action_edit.toStringHolder(),
             rememberVectorPainter(Icons.Default.Edit),
