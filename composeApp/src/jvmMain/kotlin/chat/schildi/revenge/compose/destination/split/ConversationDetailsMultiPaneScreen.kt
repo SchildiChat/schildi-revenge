@@ -13,6 +13,7 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.DestinationCategory
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.LocalDestinationState
+import chat.schildi.revenge.NavigationPreference
 import chat.schildi.revenge.compose.components.PlatformBackHandler
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 
@@ -29,7 +30,7 @@ fun ConversationDetailsMultiPaneScreen(
             destination.details.state.collectAsState().value.destination !is Destination.MultiPaneRoomInfoPlaceholder
         val shouldHidePlaceholders = ScPrefs.HIDE_EMPTY_CONVERSATION_DETAILS_PANE.value()
         PlatformBackHandler(enabled = hasDetails) {
-            destination.details.navigate(Destination.MultiPaneRoomInfoPlaceholder)
+            destination.details.navigate(Destination.MultiPaneRoomInfoPlaceholder, NavigationPreference.REPLACE)
         }
         MultiPaneLayout(
             outerDestination = destination.destinationId,

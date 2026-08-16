@@ -39,6 +39,7 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.DestinationStateHolder
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
+import chat.schildi.revenge.NavigationPreference
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
@@ -97,7 +98,7 @@ fun SettingsScreen(
                     .collectAsState(null).value != null
             }
             PlatformBackHandler(enabled = hasDetails) {
-                destination.details.navigate(Destination.MultiPaneSettingsPlaceholder)
+                destination.details.navigate(Destination.MultiPaneSettingsPlaceholder, NavigationPreference.REPLACE)
             }
             MultiPaneLayout(
                 outerDestination = destination.destinationId,
