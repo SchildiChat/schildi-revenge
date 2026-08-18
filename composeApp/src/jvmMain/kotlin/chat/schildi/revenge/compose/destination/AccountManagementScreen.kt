@@ -268,9 +268,11 @@ private fun ExistingLogin(account: AccountManagementData, viewModel: AccountMana
                 }
             }
             if (ScPrefs.SHOW_DEV_INFOS.value()) {
+                Text("Device ID: ${account.session.deviceId}")
                 Text("Verification state: ${account.sessionVerifiedStatus}")
                 Text("Backup state: ${account.backupState}")
                 Text("Recovery state: ${account.recoveryState}")
+                Text("Login type: ${account.session.loginType}")
             }
         }
     }
