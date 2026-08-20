@@ -404,7 +404,7 @@ compose.desktop {
             targetFormats(
                 TargetFormat.Exe,
                 TargetFormat.Msi,
-                // TargetFormat.Dmg, // Needs Apple volunteers
+                TargetFormat.Dmg,
             )
             packageName = nativePackageName
             packageVersion = calVer
@@ -446,6 +446,14 @@ compose.desktop {
 
             macOS {
                 appCategory = "public.app-category.social-networking"
+                minimumSystemVersion = "11.0"
+
+                infoPlist {
+                    extraKeysRawXml = """
+                        <key>NSLocalNetworkUsageDescription</key>
+                        <string>SchildiChat Revenge can connect to Matrix homeservers on your local network.</string>
+                    """.trimIndent()
+                }
             }
         }
     }
