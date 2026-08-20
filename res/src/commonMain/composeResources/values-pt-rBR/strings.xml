@@ -395,4 +395,6 @@
     <string name="message_placeholder_audio_message">Mensagem de áudio</string>
     <string name="message_placeholder_voice_message">Mensagem de voz</string>
     <string name="message_placeholder_reaction">Reagiu à mensagem</string>
+    <string name="diagnostics_user_data_dir">Dados de usuário</string>
+    <string name="diagnostics_user_config_dir">Configurações de usuário</string>
 </resources>
