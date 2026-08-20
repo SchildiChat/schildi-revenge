@@ -446,6 +446,33 @@ compose.desktop {
 
             macOS {
                 appCategory = "public.app-category.social-networking"
+                infoPlist {
+                    extraKeysRawXml = """
+                        <key>CFBundleURLTypes</key>
+                        <array>
+                            <dict>
+                                <key>CFBundleTypeRole</key>
+                                <string>Viewer</string>
+                                <key>CFBundleURLName</key>
+                                <string>Matrix URI</string>
+                                <key>CFBundleURLSchemes</key>
+                                <array>
+                                    <string>matrix</string>
+                                </array>
+                            </dict>
+                            <dict>
+                                <key>CFBundleTypeRole</key>
+                                <string>Viewer</string>
+                                <key>CFBundleURLName</key>
+                                <string>SchildiChat Legacy URI</string>
+                                <key>CFBundleURLSchemes</key>
+                                <array>
+                                    <string>schildichat</string>
+                                </array>
+                            </dict>
+                        </array>
+                    """.trimIndent()
+                }
             }
         }
     }
