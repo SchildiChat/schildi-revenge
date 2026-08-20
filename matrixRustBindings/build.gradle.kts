@@ -23,23 +23,40 @@ val isDesktopReleaseBuild = run {
 }
 
 val desktopRustProfile = if (isDesktopReleaseBuild) "release" else "debug"
+val desktopHostOs = org.gradle.internal.os.OperatingSystem.current()
 val desktopLibraryName = when {
-    org.gradle.internal.os.OperatingSystem.current().isWindows -> "matrix_sdk_ffi.dll"
-    org.gradle.internal.os.OperatingSystem.current().isMacOsX -> "libmatrix_sdk_ffi.dylib"
+    desktopHostOs.isWindows -> "matrix_sdk_ffi.dll"
+    desktopHostOs.isMacOsX -> "libmatrix_sdk_ffi.dylib"
     else -> "libmatrix_sdk_ffi.so"
 }
 val desktopLibrary = rustSdkDir.file("target/$desktopRustProfile/$desktopLibraryName")
+val macosInstallName = "@rpath/libmatrix_sdk_ffi.dylib"
 
 val buildDesktopSdk = tasks.register<Exec>("buildDesktopSdk") {
     description = "Build matrix-sdk-ffi for the desktop host"
     group = "build"
     workingDir = rustSdkDir.asFile
-    commandLine(
-        listOf("cargo", "build") +
-            (if (isDesktopReleaseBuild) listOf("--release") else emptyList()) +
-            listOf("--package", "matrix-sdk-ffi"),
-    )
+    val cargoCommand = buildList {
+        add("cargo")
+        add(if (desktopHostOs.isMacOsX) "rustc" else "build")
+        if (isDesktopReleaseBuild) add("--release")
+        addAll(listOf("--package", "matrix-sdk-ffi"))
+        if (desktopHostOs.isMacOsX) {
+            addAll(
+                listOf(
+                    "--lib",
+                    "--",
+                    "-C",
+                    "link-arg=-Wl,-install_name,$macosInstallName",
+                )
+            )
+        }
+    }
+    commandLine(cargoCommand)
     inputs.files(rustSdkDir.file("Cargo.toml"), rustSdkDir.file("Cargo.lock"))
+    if (desktopHostOs.isMacOsX) {
+        inputs.property("macosInstallName", macosInstallName)
+    }
     outputs.file(desktopLibrary)
 }
 
