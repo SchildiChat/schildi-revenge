@@ -35,7 +35,11 @@ object SdkLoader {
                 } else {
                     // When installed natively
                     val resourcesDir = System.getProperty("compose.application.resources.dir")
-                    add(File(resourcesDir))
+                    if (SystemInfo.getOs() == OperatingSystem.Mac) {
+                        add(File(resourcesDir).parentFile.parentFile.resolve("Frameworks"))
+                    } else {
+                        add(File(resourcesDir))
+                    }
                 }
             }
 
