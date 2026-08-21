@@ -397,4 +397,5 @@
     <string name="message_placeholder_reaction">Reagiu à mensagem</string>
     <string name="diagnostics_user_data_dir">Dados de usuário</string>
     <string name="diagnostics_user_config_dir">Configurações de usuário</string>
+    <string name="pref_threaded_replies_in_main_timeline_title_short">Respostas em tópico</string>
 </resources>
