@@ -34,7 +34,7 @@ import kotlinx.coroutines.CoroutineScope
 
 @BindingContainer
 @ContributesTo(SessionScope::class)
-object SessionMatrixModule {
+object SessionMatrixBindingContainer {
     @Provides
     fun providesSessionId(matrixClient: MatrixClient): SessionId {
         return matrixClient.sessionId
