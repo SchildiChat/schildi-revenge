@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.theme.scExposures
@@ -57,6 +58,8 @@ fun SenderName(
                 text = renderedName,
                 color = MaterialTheme.scExposures.accentColor,
                 style = MaterialTheme.typography.labelLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
