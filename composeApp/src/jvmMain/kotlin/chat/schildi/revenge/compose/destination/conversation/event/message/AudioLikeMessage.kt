@@ -193,7 +193,7 @@ fun ColumnScope.AudioLikeMessageContent(
                 modifier = Modifier
                     .height(32.dp)
                     .widthIn(max = Dimens.Conversation.AudioWaveform.maxWidth(waveform.size))
-                    .fillMaxWidth(),
+                    .weight(1f),
             ) {
                 canvasSize = size.toDpSize()
                 canvasSizePx = size
