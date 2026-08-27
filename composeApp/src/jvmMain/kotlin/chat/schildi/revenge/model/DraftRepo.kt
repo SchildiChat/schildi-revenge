@@ -9,6 +9,7 @@ import chat.schildi.matrixsdk.ImagePackImageSource
 import chat.schildi.matrixsdk.ImagePackImageWithRawInfo
 import chat.schildi.lib.preferences.ComposerFormat
 import chat.schildi.revenge.model.conversation.ConversationPermissions
+import chat.schildi.revenge.util.escapeHtml
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -126,7 +127,7 @@ data class DraftMention(
     override fun formatContentToHtml(content: String): String = when (mention) {
         IntentionalMention.Room -> "@room"
         is IntentionalMention.User -> {
-            "<a href=\"https://matrix.to/#/${mention.userId.value.encodeURLPath()}\">$content</a>"
+            "<a href=\"https://matrix.to/#/${mention.userId.value.encodeURLPath()}\">${content.escapeHtml()}</a>"
         }
     }
     override fun formatContentToPlaintext(content: String) = when (mention) {

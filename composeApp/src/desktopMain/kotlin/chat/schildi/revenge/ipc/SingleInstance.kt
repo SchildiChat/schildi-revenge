@@ -5,6 +5,7 @@ import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.DeferredActionResultCallback
 import chat.schildi.revenge.config.ScAppDirs
 import chat.schildi.revenge.config.keybindings.Action
+import chat.schildi.revenge.util.escapeHtml
 import co.touchlab.kermit.Logger
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -216,21 +217,6 @@ object SingleInstance {
     private fun renderTemplate(template: String, values: Map<String, String>): String {
         return values.entries.fold(template) { rendered, (key, value) ->
             rendered.replace("{{$key}}", value.escapeHtml())
-        }
-    }
-
-    private fun String.escapeHtml(): String = buildString(length) {
-        this@escapeHtml.forEach { char ->
-            append(
-                when (char) {
-                    '&' -> "&amp;"
-                    '<' -> "&lt;"
-                    '>' -> "&gt;"
-                    '"' -> "&quot;"
-                    '\'' -> "&#39;"
-                    else -> char
-                }
-            )
         }
     }
 
