@@ -33,6 +33,8 @@ import chat.schildi.revenge.dbus.TrayWatcher
 import chat.schildi.revenge.model.verification.RevengeDeviceVerificationProvider
 import chat.schildi.revenge.notification.NotificationProcessor
 import chat.schildi.revenge.notification.Notifier
+import chat.schildi.revenge.util.OperatingSystem
+import chat.schildi.revenge.util.SystemInfo
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.painterResource
 import shire.res.generated.resources.Res
@@ -58,6 +60,12 @@ object ComposeApp {
             LaunchedEffect(Unit) {
                 RevengePrefs.prefetch()
                 Notifier.initialize()
+                if (SystemInfo.getOs() == OperatingSystem.Mac) {
+                    val actionHandler = checkNotNull(UiState.headlessKeyboardActionHandler)
+                    MacOpenUriHandler.install { command ->
+                        actionHandler.executeCommandFromIpc(command)
+                    }
+                }
                 if (initialCommand != null) {
                     UiState.headlessKeyboardActionHandler?.executeCommandFromIpc(initialCommand)
                 }

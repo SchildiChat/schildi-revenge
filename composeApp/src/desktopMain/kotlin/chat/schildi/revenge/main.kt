@@ -46,12 +46,10 @@ class MainCommand : CliktCommand("schildi-revenge") {
         if (command.isEmpty()) {
             launchMainApp()
         } else {
-            var allowLaunchFromCommand = false
+            val deeplinkCommand = command.singleOrNull()?.let(::deeplinkCommandOrNull)
+            val allowLaunchFromCommand = deeplinkCommand != null
             val joinedCommand = when {
-                isSupportedDeeplink(command) -> {
-                    allowLaunchFromCommand = true
-                    "${Action.Global.ConsumeLink.name} ${command.first()}"
-                }
+                deeplinkCommand != null -> deeplinkCommand
                 else -> command.joinToString(separator = " ")
             }
             val success = SingleInstance.notifyExistingInstance(joinedCommand)
@@ -66,13 +64,6 @@ class MainCommand : CliktCommand("schildi-revenge") {
         }
     }
 
-    private fun isSupportedDeeplink(args: List<String>) = checkArguments(
-        Action.Global.ConsumeLink,
-        args = args,
-        implicitArgs = emptyList(),
-        validSessionIds = null,
-    ) == null
-
     private fun launchMainApp(
         startInTray: Boolean = this.startInTray,
         initialCommand: String? = null,
@@ -83,4 +74,14 @@ class MainCommand : CliktCommand("schildi-revenge") {
         ExternalViewCache.clearAsync(ScCoroutines.scope(Dispatchers.IO, "ExternalViewCache"))
         ComposeApp.main(startInTray, initialCommand)
     }
+}
+
+internal fun deeplinkCommandOrNull(uri: String): String? {
+    val validationError = checkArguments(
+        Action.Global.ConsumeLink,
+        args = listOf(uri),
+        implicitArgs = emptyList(),
+        validSessionIds = null,
+    )
+    return if (validationError == null) "${Action.Global.ConsumeLink.name} $uri" else null
 }
