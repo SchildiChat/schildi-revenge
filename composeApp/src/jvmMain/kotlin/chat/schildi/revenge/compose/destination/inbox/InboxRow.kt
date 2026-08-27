@@ -28,10 +28,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.preferences.value
@@ -286,9 +290,9 @@ private fun RowScope.ScLastMessageAndIndicatorRow(
             } else {
                 stringResource(Res.string.message_placeholder_invite_by, inviter.userId.value)
             }
-        } ?: stringResource(Res.string.message_placeholder_invite)
+        }?.let(::AnnotatedString) ?: AnnotatedString(stringResource(Res.string.message_placeholder_invite))
     } else if (room.info.successorRoom != null) {
-        stringResource(Res.string.message_placeholder_tombstone)
+        AnnotatedString(stringResource(Res.string.message_placeholder_tombstone))
     } else {
         when (val event = room.latestEvent) {
             is LatestEventValue.Local -> EventTextFormat.eventToText(
@@ -296,7 +300,7 @@ private fun RowScope.ScLastMessageAndIndicatorRow(
                 scopedRoom.latestEventMessageMetadata,
                 event.senderProfile,
                 event.senderId
-            )
+            ).let(::AnnotatedString)
             LatestEventValue.None -> null
             is LatestEventValue.Remote -> {
                 val eventText = EventTextFormat.eventToText(
@@ -306,10 +310,17 @@ private fun RowScope.ScLastMessageAndIndicatorRow(
                     event.senderId,
                 )
                 if (event.isOwn || room.isDm) {
-                    eventText
+                    AnnotatedString(eventText)
                 } else {
-                    val senderName = event.senderProfile.getDisambiguatedDisplayName(event.senderId).sanitizeDirection()
-                    "$senderName: ${eventText.sanitizeDirection()}"
+                    val senderName = event.senderProfile.getDisplayName() ?: event.senderId.value
+                    .sanitizeDirection()
+                    buildAnnotatedString {
+                        withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
+                            append(senderName.sanitizeDirection())
+                            append(": ")
+                        }
+                        append(eventText.sanitizeDirection())
+                    }
                 }
             }
             is LatestEventValue.RoomInvite -> event.inviterId?.let { inviterId ->
@@ -319,9 +330,9 @@ private fun RowScope.ScLastMessageAndIndicatorRow(
                         inviterId,
                         it
                     )
-                }
-            } ?: stringResource(Res.string.message_placeholder_invite)
-        } ?: ""
+                }?.let(::AnnotatedString)
+            } ?: AnnotatedString(stringResource(Res.string.message_placeholder_invite))
+        } ?: AnnotatedString("")
     }
     Row(
         modifier = Modifier
