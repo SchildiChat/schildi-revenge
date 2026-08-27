@@ -443,6 +443,10 @@ compose.desktop {
                 debMaintainer = "SpiritCroc <shire@spiritcroc.de>"
                 rpmLicenseType = "AGPL-3.0-only"
             }
+
+            macOS {
+                appCategory = "public.app-category.social-networking"
+            }
         }
     }
 }
