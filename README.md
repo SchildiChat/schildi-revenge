@@ -174,6 +174,12 @@ For Windows releases:
 ./gradlew packageReleaseMsi
 ```
 
+For macOS releases:
+
+```
+./gradlew packageReleaseDmg
+```
+
 ## Running as Flatpak
 
 While there is no plan to release SchildiChat on Flathub for the moment, if you prefer to run it as a Flatpak you can use the
