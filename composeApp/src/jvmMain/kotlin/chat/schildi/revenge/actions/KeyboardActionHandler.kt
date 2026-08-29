@@ -692,6 +692,7 @@ class KeyboardActionHandler(
             NavigationPreference.REPLACE,
             invalidateHolderId = invalidateHolderId,
         )
+        dismissAllContextMenus()
         return ActionResult.Success()
     }
 
@@ -700,6 +701,7 @@ class KeyboardActionHandler(
         invalidateHolderId: Boolean = false,
         buildDestination: (DestinationState) -> Destination?
     ): ActionResult {
+        dismissAllContextMenus()
         return destinationStateHolder?.state?.value?.let { destinationState ->
             buildDestination(destinationState)?.let {
                 navigateCurrentDestination(
@@ -728,6 +730,7 @@ class KeyboardActionHandler(
             NavigationPreference.AUTO,
             invalidateHolderId = invalidateHolderId,
         )
+        dismissAllContextMenus()
         return ActionResult.Success()
     }
 
@@ -2592,6 +2595,15 @@ class KeyboardActionHandler(
         updateMode {
             it.takeIf { it !is KeyboardActionMode.Command } ?: it.asSearchMode() ?: KeyboardActionMode.Navigation
         }
+    }
+
+    fun dismissAllContextMenus(): Boolean {
+        var dismissed = false
+        _currentOpenContextMenu.update {
+            dismissed = it != null
+            null
+        }
+        return dismissed
     }
 
     fun dismissContextMenu(id: Uuid, dismissParents: Boolean = false): Boolean {
