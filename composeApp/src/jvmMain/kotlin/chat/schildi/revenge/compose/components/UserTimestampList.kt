@@ -12,7 +12,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.DateTimeFormat
+import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.actions.FocusRole
+import chat.schildi.revenge.actions.InteractionAction
+import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
+import chat.schildi.revenge.actions.actionProvider
+import chat.schildi.revenge.compose.focus.keyFocusable
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.media.MediaSource
 import kotlinx.collections.immutable.ImmutableList
@@ -72,11 +78,11 @@ fun <T>WithUserTimestampListPopup(
 }
 
 @Composable
-fun <T>UserTimestampList(
+private fun <T>UserTimestampList(
     users: ImmutableList<UserTimestampItem<T>>,
+    modifier: Modifier = Modifier,
     leadingItemContent: @Composable (T) -> Unit = {},
     trailingItemContent: @Composable (T) -> Unit = {},
-    modifier: Modifier = Modifier,
 ) {
     // TODO popups don't like lazy columns, but the fixed size is ugly too. Normal column could be expensive in huge rooms.
     Column(modifier) {
@@ -96,12 +102,29 @@ fun <T>UserTimestampList(
 @Composable
 private fun <T> UserTimestampListItem(
     user: UserTimestampItem<T>,
+    modifier: Modifier = Modifier,
     leadingItemContent: @Composable (T) -> Unit = {},
     trailingItemContent: @Composable (T) -> Unit = {},
-    modifier: Modifier = Modifier,
 ) {
+    val sessionId = LocalSessionId.current
+    val roomId = LocalRoomContextSuggestionsProvider.current?.roomId
     Row(
-        modifier.padding(horizontal = Dimens.horizontalItemPadding, vertical = Dimens.listPadding),
+        modifier
+            .keyFocusable(
+                role = FocusRole.LIST_ITEM,
+                actionProvider = actionProvider(
+                    primaryAction = sessionId?.let {
+                        InteractionAction.Navigate {
+                            Destination.UserDetails(
+                                sessionId = sessionId,
+                                userId = user.userId,
+                                roomId = roomId,
+                            )
+                        }
+                    }
+                ),
+            )
+            .padding(horizontal = Dimens.horizontalItemPadding, vertical = Dimens.listPadding),
         horizontalArrangement = Dimens.horizontalArrangement,
         verticalAlignment = Alignment.CenterVertically,
     ) {
