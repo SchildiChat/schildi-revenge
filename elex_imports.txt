@@ -5,6 +5,8 @@ appconfig/src/main/kotlin/io/element/android/appconfig/TimelineConfig.kt
 appconfig/src/main/kotlin/io/element/android/appconfig/TimelineConfig.kt==>src/main/java/io/element/android/appconfig/TimelineConfig.kt
 appnav/src/main/kotlin/io/element/android/appnav/di/
 appnav/src/main/kotlin/io/element/android/appnav/di/==>src/main/java/io/element/android/appnav/di/
+appnav/src/main/kotlin/io/element/android/appnav/session/
+appnav/src/main/kotlin/io/element/android/appnav/session/==>src/main/java/io/element/android/appnav/session/
 features/messages/impl/src/main/kotlin/io/element/android/features/messages/impl/timeline/ScReadState.kt
 features/messages/impl/src/main/kotlin/io/element/android/features/messages/impl/timeline/ScReadState.kt==>matrix/src/main/java/io/element/android/features/messages/impl/timeline/ScReadState.kt
 features/messages/impl/src/main/kotlin/io/element/android/features/messages/impl/timeline/TimelineController.kt
