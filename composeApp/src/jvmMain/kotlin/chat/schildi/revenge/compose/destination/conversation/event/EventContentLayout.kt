@@ -232,7 +232,7 @@ fun EventContentLayout(
         LegacyCallInviteContent -> EventMessageFallback("LEGACY CALL INVITE")
         is PollContent -> EventMessageFallback("POLL")
         is LiveLocationContent -> EventMessageFallback("LIVE LOCATION")
-        RedactedContent -> EventMessageFallback(stringResource(Res.string.message_placeholder_message_redacted)) // TODO can I tell if user deleted themselves or someone else?
+        is RedactedContent -> EventMessageFallback(stringResource(Res.string.message_placeholder_message_redacted)) // TODO can I tell if user deleted themselves or someone else?
         is UnableToDecryptContent -> {
             val message = when (val data = content.data) {
                 is UnableToDecryptContent.Data.MegolmV1AesSha2 -> buildString {

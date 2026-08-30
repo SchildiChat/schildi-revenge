@@ -213,7 +213,7 @@ object NotificationEventTextFormat {
                     Res.string.message_placeholder_state_event_space_parent,
                     senderName,
                 )
-            NotificationContent.StateEvent.BeaconInfo ->
+            is NotificationContent.StateEvent.BeaconInfo ->
                 getString(
                     Res.string.message_placeholder_state_event_beacon_info,
                     senderName,

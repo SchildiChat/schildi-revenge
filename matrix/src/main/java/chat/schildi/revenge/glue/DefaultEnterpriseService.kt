@@ -8,5 +8,5 @@ import io.element.android.features.enterprise.api.EnterpriseService
 object DefaultEnterpriseService : EnterpriseService {
     override val isEnterpriseBuild: Boolean = false
 
-    override suspend fun tweakMasUrl(url: String, homeserver: String): String = url
+    override suspend fun tweakMasUrl(url: String, urlContentFetcher: Any): String = url
 }

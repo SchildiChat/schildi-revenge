@@ -179,7 +179,7 @@ object EventTextFormat {
             is FailedToParseStateContent -> getString(Res.string.message_placeholder_message_failed_to_parse)
             is PollContent -> content.question
             is ProfileChangeContent -> profileChangeToText(content, senderProfile, senderId, getFormatString)
-            RedactedContent -> getString(Res.string.message_placeholder_message_redacted)
+            is RedactedContent -> getString(Res.string.message_placeholder_message_redacted)
             is RoomMembershipContent -> roomMembershipToText(content, senderProfile, senderId, getFormatString)
             is StateContent -> stateEventToText(content, senderProfile, senderId, getString, getFormatString)
             is UnableToDecryptContent -> getString(Res.string.message_placeholder_unable_to_decrypt)

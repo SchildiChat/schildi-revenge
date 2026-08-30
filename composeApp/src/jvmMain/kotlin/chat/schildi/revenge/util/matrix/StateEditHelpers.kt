@@ -13,7 +13,7 @@ suspend fun MatrixClient.updateAccountData(
     eventType: String,
     update: (JsonObject?) -> JsonObject?,
 ): ActionResult {
-    val data = getAccountData(eventType)?.let {
+    val data = getAccountData(eventType).getOrNull()?.let {
         try {
             Json.parseToJsonElement(it).jsonObject
         } catch (e: Exception) {

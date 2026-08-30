@@ -41,7 +41,9 @@ data class MessageContent(
     val perMessageProfile: PerMessageProfile? = null, // SC
 ) : EventContent, EventCanBeEdited, CanMentionRoom
 
-data object RedactedContent : EventContent
+data class RedactedContent(
+    val threadInfo: EventThreadInfo?,
+) : EventContent
 
 data class StickerContent(
     val filename: String,

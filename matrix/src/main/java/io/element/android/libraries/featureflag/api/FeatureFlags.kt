@@ -5,4 +5,5 @@ object FeatureFlags {
     object Threads : Feature { override val defaultValue = false }
     object OnlySignedDeviceIsolationMode : Feature { override val defaultValue = false }
     object AutomaticBackPagination : Feature { override val defaultValue = true }
+    object MessageSearch : Feature { override val defaultValue = false }
 }

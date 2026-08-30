@@ -8,7 +8,11 @@
 
 package io.element.android.libraries.matrix.api.auth
 
+/**
+ * Provides the redirect URL registered for OAuth login, which the authentication server sends the user back to once they have signed in.
+ */
 interface OAuthRedirectUrlProvider {
-    // SC suspend
+    // SC: suspend
+    /** Returns the redirect URL, built from the app's custom URL scheme so that the system hands the callback back to the app. */
     suspend fun provide(): String
 }

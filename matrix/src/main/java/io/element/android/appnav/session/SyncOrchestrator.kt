@@ -6,7 +6,7 @@
  * Please see LICENSE files in the repository root for full details.
  */
 
-package io.element.android.appnav.di
+package io.element.android.appnav.session
 
 import chat.schildi.matrixsdk.ScSyncOrchestrationAppStateProvider
 import dev.zacsweers.metro.Assisted
@@ -14,7 +14,7 @@ import dev.zacsweers.metro.AssistedFactory
 import dev.zacsweers.metro.AssistedInject
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
 import io.element.android.libraries.core.coroutine.childScope
-import io.element.android.libraries.matrix.api.sync.SyncService
+import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.sync.SyncState
 import io.element.android.services.analytics.api.AnalyticsService
 import io.element.android.services.analytics.api.recordTransaction
@@ -35,7 +35,7 @@ import kotlin.time.Duration.Companion.seconds
 
 @AssistedInject
 class SyncOrchestrator(
-    @Assisted private val syncService: SyncService,
+    @Assisted private val matrixClient: MatrixClient,
     @Assisted sessionCoroutineScope: CoroutineScope,
     private val scSyncOrchestrationAppStateProvider: ScSyncOrchestrationAppStateProvider,
     dispatchers: CoroutineDispatchers,
@@ -44,12 +44,14 @@ class SyncOrchestrator(
     @AssistedFactory
     interface Factory {
         fun create(
-            syncService: SyncService,
+            matrixClient: MatrixClient,
             sessionCoroutineScope: CoroutineScope,
         ): SyncOrchestrator
     }
 
     private val tag = "SyncOrchestrator"
+
+    private val syncService = matrixClient.syncService
 
     private val coroutineScope = sessionCoroutineScope.childScope(dispatchers.io, tag)
 
@@ -92,7 +94,7 @@ class SyncOrchestrator(
             appForegroundStateService.isInCall,
             appForegroundStateService.isSyncingNotificationEvent,
             appForegroundStateService.hasRingingCall,
-            appForegroundStateService.isSharingLiveLocation
+            appForegroundStateService.isSharingLiveLocation,
         )
         val isAppActiveFlow = combine(isAppActiveFlows) { actives -> actives.any { it } }
          */
@@ -102,6 +104,11 @@ class SyncOrchestrator(
             scSyncOrchestrationAppStateProvider.isNetworkAvailable,
             scSyncOrchestrationAppStateProvider.isAppActive,
         ) { syncState, networkState, isAppActive ->
+            if (matrixClient.isShuttingDown) {
+                Timber.tag(tag).d("Matrix client is shutting down, no need to start the sync service again")
+                return@combine SyncStateAction.NoOp
+            }
+
             val isNetworkAvailable = networkState //== NetworkStatus.Connected
 
             Timber.tag(tag).d("isAppActive=$isAppActive, isNetworkAvailable=$isNetworkAvailable")

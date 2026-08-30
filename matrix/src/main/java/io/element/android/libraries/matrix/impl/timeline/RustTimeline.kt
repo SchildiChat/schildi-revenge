@@ -432,7 +432,7 @@ class RustTimeline(
         fromNotification: Boolean,
         msgType: MsgType,
     ): Result<Unit> = withContext(dispatcher) {
-        runCatchingExceptions {
+        runCatchingExceptions<Unit> {
             val msg = MessageEventContent.from(
                 body = body,
                 htmlBody = htmlBody,

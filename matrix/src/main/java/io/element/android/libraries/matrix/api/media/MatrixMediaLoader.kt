@@ -10,6 +10,9 @@ package io.element.android.libraries.matrix.api.media
 
 import java.io.File
 
+/**
+ * Fetches media content from the homeserver, decrypting it on the way when the room is encrypted.
+ */
 interface MatrixMediaLoader {
     val baseCacheDirectory: File // SC
 

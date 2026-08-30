@@ -13,8 +13,10 @@ import dev.zacsweers.metro.ContributesTo
 import dev.zacsweers.metro.Provides
 import io.element.android.libraries.di.SessionScope
 import io.element.android.libraries.di.annotations.SessionCoroutineScope
+import io.element.android.libraries.matrix.api.ClientUrlContentFetcher
 import io.element.android.libraries.matrix.api.HomeserverCapabilitiesProvider
 import io.element.android.libraries.matrix.api.MatrixClient
+import io.element.android.libraries.matrix.api.core.DeviceId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.encryption.EncryptionService
 import io.element.android.libraries.matrix.api.media.MatrixMediaLoader
@@ -24,6 +26,7 @@ import io.element.android.libraries.matrix.api.room.RoomMembershipObserver
 import io.element.android.libraries.matrix.api.roomdirectory.RoomDirectoryService
 import io.element.android.libraries.matrix.api.roomlist.RoomListService
 import io.element.android.libraries.matrix.api.scanner.ContentScanner
+import io.element.android.libraries.matrix.api.search.MessageSearchService
 import io.element.android.libraries.matrix.api.spaces.SpaceService
 import io.element.android.libraries.matrix.api.sync.SyncService
 import io.element.android.libraries.matrix.api.verification.SessionVerificationService
@@ -31,10 +34,15 @@ import kotlinx.coroutines.CoroutineScope
 
 @BindingContainer
 @ContributesTo(SessionScope::class)
-object SessionMatrixModule {
+object SessionMatrixBindingContainer {
     @Provides
     fun providesSessionId(matrixClient: MatrixClient): SessionId {
         return matrixClient.sessionId
+    }
+
+    @Provides
+    fun providesDeviceId(matrixClient: MatrixClient): DeviceId {
+        return matrixClient.deviceId
     }
 
     @Provides
@@ -48,7 +56,7 @@ object SessionMatrixModule {
     }
 
     @Provides
-    fun provideRoomMembershipObserver(matrixClient: MatrixClient): RoomMembershipObserver {
+    fun providesRoomMembershipObserver(matrixClient: MatrixClient): RoomMembershipObserver {
         return matrixClient.roomMembershipObserver
     }
 
@@ -101,5 +109,15 @@ object SessionMatrixModule {
     @Provides
     fun providesContentScanner(matrixClient: MatrixClient): ContentScanner? {
         return matrixClient.contentScanner
+    }
+
+    @Provides
+    fun providesClientUrlContentFetcher(matrixClient: MatrixClient): ClientUrlContentFetcher {
+        return matrixClient
+    }
+
+    @Provides
+    fun providesMessageSearchService(matrixClient: MatrixClient): MessageSearchService {
+        return matrixClient.messageSearchService
     }
 }

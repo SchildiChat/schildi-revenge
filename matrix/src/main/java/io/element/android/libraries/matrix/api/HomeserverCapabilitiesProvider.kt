@@ -12,6 +12,8 @@ import org.matrix.rustcomponents.sdk.RoomVersions
 /**
  * Provides information about the capabilities of the homeserver.
  *
+ * The getters read a snapshot held by the SDK rather than querying the server on each call, so [refresh] must be used to pick up server-side changes.
+ *
  * Spec: https://spec.matrix.org/latest/client-server-api/#capabilities-negotiation
  */
 interface HomeserverCapabilitiesProvider {

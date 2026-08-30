@@ -6,7 +6,7 @@
  * Please see LICENSE files in the repository root for full details.
  */
 
-package io.element.android.appnav.di
+package io.element.android.appnav.session
 
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
@@ -144,7 +144,7 @@ class MatrixSessionCache(
 
     private fun onNewMatrixClient(matrixClient: MatrixClient) {
         val syncOrchestrator = syncOrchestratorFactory.create(
-            syncService = matrixClient.syncService,
+            matrixClient = matrixClient,
             sessionCoroutineScope = matrixClient.sessionCoroutineScope,
         )
         sessionIdsToMatrixSession[matrixClient.sessionId] = InMemoryMatrixSession(
