@@ -18,7 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 
 @BindingContainer
 @ContributesTo(RoomScope::class)
-object RoomModule {
+object RoomBindingContainer {
     @RoomCoroutineScope
     @Provides
     fun providesSessionCoroutineScope(room: BaseRoom): CoroutineScope {
