@@ -62,10 +62,12 @@ object AndroidPushRegistrationHandler {
             RevengePrefs.settingFlow(ScPrefs.PUSH_NOTIFICATIONS),
             androidWindowManager.windows.map { it.isEmpty() }.distinctUntilChanged(),
             UiState.knownSessionIds,
-        ) { enabled, backgrounded, sessionIds ->
-            if (backgrounded || sessionIds.isEmpty()) {
+            UiState.mutedAccounts,
+        ) { enabled, backgrounded, sessionIds, muted ->
+            if (backgrounded || muted == null) {
                 return@combine
             }
+            val currentSessions = sessionIds.mapNotNull { if (it in muted) null else it.value }.toSet()
             val activity = androidWindowManager.currentActivity?.get() ?: return@combine
 
             val currentRegistrations = pushDao.getPushRegistrations()
@@ -79,7 +81,6 @@ object AndroidPushRegistrationHandler {
             }
 
             val registeredSessions = currentRegistrations.map { it.sessionId }.toSet()
-            val currentSessions = sessionIds.map { it.value }.toSet()
             val needsRegistration = currentSessions - registeredSessions
             val newRegistrations = needsRegistration.map { sessionId ->
                 PushRegistrationEntity(
