@@ -145,7 +145,7 @@ class RustRoomFactory(
                                 filter = timelineFilter.scTimelineFilter(scTimelineFilterSettings),
                                 internalIdPrefix = "live",
                                 dateDividerMode = DateDividerMode.DAILY,
-                                trackReadReceipts = TimelineReadReceiptTracking.ALL_EVENTS,
+                                trackReadReceipts = if (scTimelineFilterSettings.showHiddenEvents) TimelineReadReceiptTracking.ALL_EVENTS else TimelineReadReceiptTracking.MESSAGE_LIKE_EVENTS,
                                 reportUtds = false,
                             )
                         )
