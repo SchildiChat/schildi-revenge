@@ -14,6 +14,7 @@ import chat.schildi.revenge.preferences.RevengePrefs
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.pusher.SetHttpPusherData
+import io.element.android.libraries.matrix.api.pusher.UnsetHttpPusherData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -40,6 +41,8 @@ val DEFINITE_NON_GATEWAY_CODES = setOf(401, 403, 404, 405, 406)
 object AndroidPushRegistrationHandler {
 
     private val log = Logger.withTag("AndroidPushRegistration")
+
+    private val pushAppId = RevengeApplication.instance.packageName
 
     private val isLaunched = AtomicBoolean(false)
     private val scope = ScCoroutines.scope(Dispatchers.IO, "AndroidPushRegistration")
@@ -124,9 +127,35 @@ object AndroidPushRegistrationHandler {
 
     fun onNewEndpoint(endpoint: PushEndpoint, instance: String) {
         log.i { "Received UnifiedPush endpoint for instance=$instance: ${endpoint.url}" }
-        scope.launch {
+        scope.launch(Dispatchers.IO) {
             pushDao.updateEndpoint(instance, endpoint.url)
             registerHomeserverPush(instance)
+        }
+    }
+
+    fun onPushUnregistered(instance: String) {
+        log.i { "UnifiedPush unregistered for instance=$instance" }
+        scope.launch(Dispatchers.IO) {
+            val registration = pushDao.getPushRegistration(instance) ?: run {
+                log.i { "Did not find UnifiedPush registration for instance=$instance that just unregistered" }
+                return@launch
+            }
+            pushDao.deletePushRegistration(registration)
+            val pushKey = registration.endpoint ?: return@launch
+            val client = UiState.currentClientFor(SessionId(registration.sessionId)) ?: run {
+                log.w { "Skip Matrix push unregistration for ${registration.sessionId}, no client yet" }
+                return@launch
+            }
+            client.pushersService.unsetHttpPusher(
+                UnsetHttpPusherData(
+                    appId = pushAppId,
+                    pushKey = pushKey,
+                )
+            ).onSuccess {
+                log.i { "Matrix push unregistration successful for ${registration.sessionId}" }
+            }.onFailure {
+                log.e("Matrix push unregistration failed for ${registration.sessionId}", it)
+            }
         }
     }
 
@@ -152,7 +181,7 @@ object AndroidPushRegistrationHandler {
             client.pushersService.setHttpPusher(
                 SetHttpPusherData(
                     pushKey = registration.endpoint,
-                    appId = RevengeApplication.instance.packageName,
+                    appId = pushAppId,
                     url = gateway,
                     appDisplayName = "SchildiChat Revenge",
                     deviceDisplayName = deviceName,

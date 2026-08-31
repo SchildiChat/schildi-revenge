@@ -71,4 +71,11 @@ interface PushNotificationDao {
         LIMIT 1
     """)
     suspend fun getPendingPushRegistration(instance: String): PushRegistrationEntity?
+
+    @Query("""
+        SELECT * FROM PushRegistration
+        WHERE clientSecret = :instance
+        LIMIT 1
+    """)
+    suspend fun getPushRegistration(instance: String): PushRegistrationEntity?
 }
