@@ -308,14 +308,12 @@ object UiState {
         scope.launch {
             val restoredMutedAccounts = appStateStore.config.filterNotNull().first().mutedAccounts
             log.d { "Restoring ${restoredMutedAccounts.size} muted accounts" }
-            if (restoredMutedAccounts.isNotEmpty()) {
-                _mutedAccounts.update {
-                    if (it == null) {
-                        restoredMutedAccounts.map { SessionId(it) }.toSet()
-                    } else {
-                        log.w { "Race condition restoring muted accounts" }
-                        it
-                    }
+            _mutedAccounts.update {
+                if (it == null) {
+                    restoredMutedAccounts.map { SessionId(it) }.toSet()
+                } else {
+                    log.w { "Race condition restoring muted accounts" }
+                    it
                 }
             }
 

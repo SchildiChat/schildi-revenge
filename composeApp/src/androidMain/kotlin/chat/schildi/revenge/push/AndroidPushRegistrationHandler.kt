@@ -1,6 +1,10 @@
 package chat.schildi.revenge.push
 
+import android.Manifest
 import android.app.Activity
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.core.content.ContextCompat
 import chat.schildi.lib.platform.platformDeviceName
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.RevengeApplication
@@ -22,6 +26,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -40,11 +45,14 @@ val DEFINITE_NON_GATEWAY_CODES = setOf(401, 403, 404, 405, 406)
 @OptIn(ExperimentalAtomicApi::class)
 object AndroidPushRegistrationHandler {
 
+    private const val NOTIFICATION_PERMISSION_REQUEST_CODE = 1
+
     private val log = Logger.withTag("AndroidPushRegistration")
 
     private val pushAppId = RevengeApplication.instance.packageName
 
     private val isLaunched = AtomicBoolean(false)
+    private val notificationPermissionRequested = AtomicBoolean(false)
     private val scope = ScCoroutines.scope(Dispatchers.IO, "AndroidPushRegistration")
 
     private val pushDao = revengeDatabase.pushNotificationDao()
@@ -67,7 +75,7 @@ object AndroidPushRegistrationHandler {
             if (backgrounded || muted == null) {
                 return@combine
             }
-            val currentSessions = sessionIds.mapNotNull { if (it in muted) null else it.value }.toSet()
+            val notifiableSessions = sessionIds.mapNotNull { if (it in muted) null else it.value }.toSet()
             val activity = androidWindowManager.currentActivity?.get() ?: return@combine
 
             val currentRegistrations = pushDao.getPushRegistrations()
@@ -80,8 +88,12 @@ object AndroidPushRegistrationHandler {
                 return@combine
             }
 
+            if (notifiableSessions.isNotEmpty()) {
+                requestNotificationPermissionIfNeeded(activity)
+            }
+
             val registeredSessions = currentRegistrations.map { it.sessionId }.toSet()
-            val needsRegistration = currentSessions - registeredSessions
+            val needsRegistration = notifiableSessions - registeredSessions
             val newRegistrations = needsRegistration.map { sessionId ->
                 PushRegistrationEntity(
                     sessionId = sessionId,
@@ -89,9 +101,9 @@ object AndroidPushRegistrationHandler {
                 )
             }
             val needsEndpoint = currentRegistrations.filter {
-                it.sessionId in currentSessions && it.endpoint == null
+                it.sessionId in notifiableSessions && it.endpoint == null
             } + newRegistrations
-            val needsUnregistration = currentRegistrations.filter { it.sessionId !in currentSessions }
+            val needsUnregistration = currentRegistrations.filter { it.sessionId !in notifiableSessions }
             log.v { "Push state: registered=${registeredSessions.size}, adding=${needsRegistration.size}, removing=${needsUnregistration.size}" }
             if (needsEndpoint.isNotEmpty()) {
                 log.i { "Try registering push endpoints for ${needsEndpoint.size} sessions" }
@@ -115,6 +127,22 @@ object AndroidPushRegistrationHandler {
                 }
             }
         }.launchIn(scope)
+    }
+
+    private suspend fun requestNotificationPermissionIfNeeded(activity: Activity) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            ContextCompat.checkSelfPermission(activity, Manifest.permission.POST_NOTIFICATIONS) ==
+            PackageManager.PERMISSION_GRANTED ||
+            notificationPermissionRequested.exchange(true)
+        ) {
+            return
+        }
+        withContext(Dispatchers.Main.immediate) {
+            activity.requestPermissions(
+                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                NOTIFICATION_PERMISSION_REQUEST_CODE,
+            )
+        }
     }
 
     private suspend fun tryUseCurrentOrDefaultDistributor(activity: Activity): Boolean =
