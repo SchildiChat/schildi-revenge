@@ -71,6 +71,10 @@ interface LoadCheckPoint {
         override val name = "Timeline items".toStringHolder()
     }
 
+    data object ReadMarker : LoadCheckPoint {
+        override val name = "Read marker".toStringHolder()
+    }
+
     data object AccountData : LoadCheckPoint {
         override val name = "Account data".toStringHolder()
     }
@@ -139,7 +143,31 @@ class LoadStateHolder(
 
     val state: StateFlow<LoadState> = _state.asStateFlow()
 
-    fun addExpected(vararg checkpoints: LoadCheckPoint) {
+    fun addExpected(vararg checkpoints: LoadCheckPoint) = addExpected(
+        insertionStrategy = { oldState, newCheckpoints ->
+            (oldState + newCheckpoints).toImmutableList()
+        },
+        *checkpoints,
+    )
+
+    fun addExpectedBefore(before: LoadCheckPoint, vararg checkpoints: LoadCheckPoint) = addExpected(
+        insertionStrategy = { oldState, newCheckpoints ->
+            val insertionIndex = oldState.indexOfFirst { it.checkpoint == before }
+            if (insertionIndex >= 0) {
+                oldState.toMutableList()
+                    .apply { addAll(insertionIndex, newCheckpoints) }
+                    .toImmutableList()
+            } else {
+                (oldState + newCheckpoints).toImmutableList()
+            }
+        },
+        *checkpoints,
+    )
+
+    private fun addExpected(
+        insertionStrategy: (old: ImmutableList<LoadStateEntry>, new: List<LoadStateEntry>) -> ImmutableList<LoadStateEntry>,
+        vararg checkpoints: LoadCheckPoint
+    ) {
         _state.update { oldState ->
             val newCheckpoints = (checkpoints.toSet() - oldState.map { it.checkpoint }.toSet()).map {
                 LoadStateEntry(it, CheckpointLoadState.PENDING)
@@ -147,7 +175,7 @@ class LoadStateHolder(
             if (newCheckpoints.isEmpty()) {
                 oldState
             } else {
-                (oldState + newCheckpoints).toImmutableList()
+                insertionStrategy(oldState, newCheckpoints)
             }
         }
     }

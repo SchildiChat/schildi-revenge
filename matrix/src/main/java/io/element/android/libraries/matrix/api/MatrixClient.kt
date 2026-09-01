@@ -143,7 +143,7 @@ interface MatrixClient : ClientUrlContentFetcher {
     fun getImagePackFlow(roomIds: List<RoomId>): Flow<List<RoomImagePackStateEvent>>
     suspend fun getGlobalAccountData(): Result<List<AccountDataRawEvent>>
     suspend fun getRoomAccountData(roomId: RoomId): Result<List<AccountDataRawEvent>>
-    suspend fun getRoomAccountData(roomId: RoomId, eventType: String): String?
+    suspend fun getRoomAccountData(roomId: RoomId, eventType: String): Result<String?>
     suspend fun setRoomAccountData(roomId: RoomId, eventType: String, content: String): Result<Unit>
     suspend fun getUrlPreviewJson(url: String): String
     suspend fun getMutualRooms(userId: UserId, from: String? = null): Result<MutualRoomsPagedInfo>

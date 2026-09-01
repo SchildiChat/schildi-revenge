@@ -412,10 +412,10 @@ class RustMatrixClient(
 
     // SC additions
     override fun syncNotifications(): Flow<SyncNotification> = syncNotificationService.notifications
-    override suspend fun getRoomAccountData(roomId: RoomId, eventType: String): String? = withContext(sessionDispatcher) {
+    override suspend fun getRoomAccountData(roomId: RoomId, eventType: String): Result<String?> = withContext(sessionDispatcher) {
         runCatching {
             innerClient.roomAccountData(roomId.value, eventType)
-        }.getOrNull()
+        }
     }
     override suspend fun setRoomAccountData(roomId: RoomId, eventType: String, content: String) = withContext(sessionDispatcher) {
         runCatching {

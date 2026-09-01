@@ -148,8 +148,10 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentHashMap
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -158,6 +160,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
@@ -310,7 +313,7 @@ class ConversationViewModel(
 ) : ViewModel(), TitleProvider, SearchProvider, UserIdSuggestionsProvider, ComposerViewModel, RoomPreviewViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
 
-    val initialTargetEvent: EventId? =
+    private val initialTargetEvent: EventId? =
         (timelineParams as? CreateTimelineParams.Focused)?.focusedEventId
     val threadId = (timelineParams as? CreateTimelineParams.Threaded)?.threadRootEventId
 
@@ -325,6 +328,32 @@ class ConversationViewModel(
     private val searchQuery = MutableStateFlow<String?>(null)
 
     private val clientFlow = UiState.selectClient(sessionId, viewModelScope, loadStateHolder)
+
+    private val effectiveInitialEventId = viewModelScope.async {
+        if (timelineParams == null && scPreferencesStore.getSetting(ScPrefs.OPEN_AT_UNREAD)) {
+            loadStateHolder.addExpectedBefore(LoadCheckPoint.Timeline, LoadCheckPoint.ReadMarker)
+            val client = clientFlow.filterNotNull().first()
+            // Rust SDK requires
+            val fullyReadEventId = client.getRoomAccountData(roomId, "m.fully_read")
+                .mapCatching {
+                    it?.let {
+                        Json.parseToJsonElement(it).jsonObject["event_id"]?.jsonPrimitive?.contentOrNull
+                            ?.let(::EventId)
+                    }
+                }
+                .also { loadStateHolder.handleResult(LoadCheckPoint.ReadMarker, it) }
+                .getOrNull()
+            if (fullyReadEventId != null) {
+                _targetEvent.emit(EventJumpTarget.Event(fullyReadEventId, highlight = false))
+                fullyReadEventId
+            } else {
+                null
+            }
+        } else {
+            initialTargetEvent
+        }
+    }
+
 
     private val _targetEvent = MutableStateFlow<EventJumpTarget?>(
         initialTargetEvent?.let(EventJumpTarget::Event) ?: EventJumpTarget.Index(0)
@@ -492,7 +521,20 @@ class ConversationViewModel(
     private val timelineController = if (timelineParams == null) {
         joinedRoom.map { room ->
             room ?: return@map null
-            TimelineController(room)
+            val initialEventId = effectiveInitialEventId.await()
+                ?: return@map TimelineController(room)
+            room.createTimeline(
+                CreateTimelineParams.Focused(initialEventId),
+                timelineFilterSettings.value.preferHideThreadedEvents
+                    ?: ScPrefs.THREAD_REPLIES_IN_MAIN_TIMELINE.defaultValue,
+            ).onFailure {
+                if (it is CancellationException) throw it
+            }.map {
+                TimelineController(room, initialDetachedTimeline = it)
+            }.getOrElse {
+                log.e("Failed to focus on event $initialEventId", it)
+                TimelineController(room)
+            }
         }
     } else {
         combine(
@@ -1976,8 +2018,11 @@ class ConversationViewModel(
         }
     }
 
-    suspend fun focusOnEvent(eventId: EventId): Result<EventFocusResult> {
-        val controller = timelineController.value ?: run {
+    suspend fun focusOnEvent(
+        eventId: EventId,
+        controller: TimelineController? = timelineController.value,
+    ): Result<EventFocusResult> {
+        controller ?: run {
             log.e("No timeline controller to execute action")
             return Result.failure(RuntimeException("No TimelineController available"))
         }

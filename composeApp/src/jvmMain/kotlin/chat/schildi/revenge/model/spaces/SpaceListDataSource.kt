@@ -306,6 +306,7 @@ class SpaceListDataSource(
         // Build the actual immutable recursive data structures that replicate the hierarchy
         return rootSpaces.map { space ->
             val order = space.client.getRoomAccountData(space.summary.roomId, ROOM_ACCOUNT_DATA_SPACE_ORDER)
+                .getOrNull()
                 ?.let { SpaceOrderSerializer.deserializeContent(it) }?.getOrNull()?.order
                 .let { SpaceOrder.AccountData(it, space.client.sessionId) }
             createSpaceHierarchyItem(

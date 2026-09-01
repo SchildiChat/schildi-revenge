@@ -503,6 +503,8 @@
     <string name="pref_show_advanced_room_creation_parameters_summary">Show advanced settings when creating new rooms</string>
     <string name="pref_debug_notifications_title">Debug notifications</string>
     <string name="pref_debug_notifications_summary">Post unresolved pushes as notifications</string>
+    <string name="pref_open_at_unread_title">Open at unread</string>
+    <string name="pref_open_at_unread_summary">Open conversations at the last fully read message</string>
 
     <string name="pref_message_font_size_title">Message font size</string>
     <string name="pref_message_font_size_summary">Scaled pixel text size for messages (while respecting global render and font scale settings)</string>

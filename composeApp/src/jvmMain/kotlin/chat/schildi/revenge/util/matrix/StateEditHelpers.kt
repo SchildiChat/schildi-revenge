@@ -37,7 +37,7 @@ suspend fun MatrixClient.updateRoomAccountData(
     eventType: String,
     update: (JsonObject?) -> JsonObject?,
 ): ActionResult {
-    val data = getRoomAccountData(roomId, eventType)?.let {
+    val data = getRoomAccountData(roomId, eventType).getOrNull()?.let {
         try {
             Json.parseToJsonElement(it).jsonObject
         } catch (e: Exception) {

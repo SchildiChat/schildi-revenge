@@ -20,6 +20,7 @@ import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
+import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.room.RoomMembershipState
 import io.element.android.libraries.matrix.api.room.roomMembers
@@ -28,6 +29,7 @@ import io.element.android.libraries.matrix.api.timeline.Timeline
 import io.element.android.libraries.matrix.api.timeline.item.event.ReactionSender
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.SharingStarted
@@ -85,12 +87,12 @@ class MessageReactionListViewModel(
     }.flowClosable().stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
 
-    private val timelineController = roomFlow.map {
-        it?.let {
-            TimelineController(it).apply {
-                focusOnEvent(eventId, null, hideThreadedEvents = false)
-            }
-        }
+    private val timelineController = roomFlow.map { room ->
+        room ?: return@map null
+        room.createTimeline(CreateTimelineParams.Focused(eventId), preferHideThreadedEvents = false)
+            .onFailure { if (it is CancellationException) throw it }
+            .map { TimelineController(room, initialDetachedTimeline = it) }
+            .getOrElse { TimelineController(room) }
     }
         .flowClosable()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)

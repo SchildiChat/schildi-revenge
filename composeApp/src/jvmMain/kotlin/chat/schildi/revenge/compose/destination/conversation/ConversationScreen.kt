@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -154,13 +155,17 @@ fun ConversationScreen(
         var initialListOffset by remember { mutableStateOf(Triple(0, 0, -1)) }
         var scrolledToEvent by remember { mutableStateOf<EventJumpTarget?>(null) }
         val targetEvent = viewModel.targetEvent.collectAsState().value
-        LaunchedEffect(targetEvent, timelineItems) {
+        var allowPaginateAfterInitialLoad by remember(targetEvent) {
+            Logger.withTag("ConversationScreen").w("Loading for $targetEvent ($scrolledToEvent)")
+            mutableStateOf(targetEvent == null || targetEvent == scrolledToEvent)
+        }
+        SideEffect(targetEvent, timelineItems) {
             if (targetEvent == scrolledToEvent || timelineItems.isEmpty()) {
-                return@LaunchedEffect
+                return@SideEffect
             }
             if (targetEvent == null) {
                 // Ignore / keep last
-                return@LaunchedEffect
+                return@SideEffect
             }
             val index = when(targetEvent) {
                 is EventJumpTarget.Event -> timelineItems.indexOfFirst { item ->
@@ -180,38 +185,47 @@ fun ConversationScreen(
             if (index == null) {
                 Logger.withTag("ConversationScreen").w("Cannot find target event $targetEvent in ${timelineItems.size} items")
             } else {
+                Logger.withTag("ConversationScreen").d("Targetting $index for $targetEvent")
                 val offset = density.run { contentHeight.roundToPx() } / 2
                 initialListOffset = Triple(index, -offset, targetEvent.renavigationCount)
                 scrolledToEvent = targetEvent
             }
+            allowPaginateAfterInitialLoad = true
         }
 
         val listState = key(initialListOffset) {
+            Logger.withTag("ConversationScreen").w("Init list state for $initialListOffset")
             rememberLazyListState(
                 initialFirstVisibleItemIndex = initialListOffset.first,
                 initialFirstVisibleItemScrollOffset = initialListOffset.second,
             )
         }
 
-        LaunchedEffect(listState, backwardPaginationStatus, timelineItems) {
-            snapshotFlow {
-                listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
-            }
-                .collect { lastVisibleIndex ->
-                    if (lastVisibleIndex != null && lastVisibleIndex >= timelineItems.size - 3 && backwardPaginationStatus?.canPaginate == true) {
-                        viewModel.paginateBackward()
-                    }
+        if (allowPaginateAfterInitialLoad) {
+            LaunchedEffect(listState, backwardPaginationStatus, timelineItems) {
+                snapshotFlow {
+                    listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
                 }
-        }
-        LaunchedEffect(listState, forwardPaginationStatus, timelineItems) {
-            snapshotFlow {
-                listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index
-            }
-                .collect { firstVisibleIndex ->
-                    if (firstVisibleIndex != null && firstVisibleIndex <= 3 && forwardPaginationStatus?.canPaginate == true) {
-                        viewModel.paginateForward()
+                    .collect { lastVisibleIndex ->
+                        if (lastVisibleIndex != null && lastVisibleIndex >= timelineItems.size - 3 && backwardPaginationStatus?.canPaginate == true) {
+                            Logger.withTag("ConversationScreen")
+                                .d("Paginate backwards via $lastVisibleIndex/${timelineItems.size}, $backwardPaginationStatus")
+                            viewModel.paginateBackward()
+                        }
                     }
+            }
+            LaunchedEffect(listState, forwardPaginationStatus, timelineItems) {
+                snapshotFlow {
+                    listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index
                 }
+                    .collect { firstVisibleIndex ->
+                        if (allowPaginateAfterInitialLoad && firstVisibleIndex != null && firstVisibleIndex <= 3 && forwardPaginationStatus?.canPaginate == true) {
+                            Logger.withTag("ConversationScreen")
+                                .d("Paginate forward via $firstVisibleIndex/${timelineItems.size}, $forwardPaginationStatus")
+                            viewModel.paginateForward()
+                        }
+                    }
+            }
         }
 
         val listAction = remember(listState) { ListActions(listState, isReverseList = true) }

@@ -50,11 +50,12 @@ import java.util.Optional
 class TimelineController(
     private val room: JoinedRoom,
     @LiveTimeline private val liveTimeline: Timeline = room.liveTimeline,
+    initialDetachedTimeline: Timeline? = null, // SC
 ) : Closeable, TimelineProvider {
     private val coroutineScope = CoroutineScope(SupervisorJob())
 
     private val liveTimelineFlow = flowOf(liveTimeline)
-    private val detachedTimelineFlow = MutableStateFlow<Optional<Timeline>>(Optional.empty())
+    private val detachedTimelineFlow = MutableStateFlow(Optional.ofNullable(initialDetachedTimeline))
 
     // SC start
     val scReadState = ScReadState(
@@ -151,7 +152,7 @@ class TimelineController(
             detached.isPresent -> detached.get()
             else -> live
         }
-    }.stateIn(coroutineScope, SharingStarted.Eagerly, room.liveTimeline)
+    }.stateIn(coroutineScope, SharingStarted.Eagerly, initialDetachedTimeline ?: liveTimeline)
 
     override fun activeTimelineFlow(): StateFlow<Timeline> {
         return currentTimelineFlow
