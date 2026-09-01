@@ -534,6 +534,7 @@ class ConversationViewModel(
     private val rawTimelineItems = activeTimeline.flatMapLatest { timeline ->
         timeline?.timelineItems?.onEach {
             loadStateHolder.set(LoadCheckPoint.TimelineItems, it.asCheckpointLoadedOrPending())
+            resolveTargetEvent(timeline, it)
             if (it.isNotEmpty() && cachedFullyRead.value?.awaitingRender == true) {
                 refetchFullyRead(timeline)
             }
@@ -541,6 +542,16 @@ class ConversationViewModel(
             loadStateHolder.set(LoadCheckPoint.TimelineItems, CheckpointLoadState.PENDING)
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    private suspend fun resolveTargetEvent(timeline: Timeline, timelineItems: List<MatrixTimelineItem>) {
+        val target = _targetEvent.value as? EventJumpTarget.Event ?: return
+        if (timelineItems.any { (it as? MatrixTimelineItem.Event)?.eventId == target.eventId }) return
+
+        val renderedEvent = timeline.resolveEventToRendered(target.eventId) ?: return
+        _targetEvent.update { current ->
+            if (current == target) target.copy(eventId = renderedEvent) else current
+        }
+    }
 
     private val _cachedFullyRead = MutableStateFlow<FullyReadEventState?>(null)
     val cachedFullyRead = _cachedFullyRead.asStateFlow()
@@ -1989,9 +2000,8 @@ class ConversationViewModel(
         )
             .onFailure { log.e("Failed to focus on event $eventId", it) }
             .onSuccess {
-                val targetEventId = activeTimeline.value?.resolveEventToRendered(eventId) ?: eventId
                 _targetEvent.update {
-                    EventJumpTarget.Event(targetEventId).navigateFrom(it)
+                    EventJumpTarget.Event(eventId).navigateFrom(it)
                 }
             }
     }
