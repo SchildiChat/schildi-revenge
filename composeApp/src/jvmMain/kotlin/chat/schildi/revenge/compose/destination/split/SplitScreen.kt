@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,7 +47,7 @@ fun SplitHorizontal(
     contentModifier: Modifier = Modifier,
 ) {
     AdaptiveRow(
-        modifier.then(contentModifier).fillMaxSize(),
+        modifier.safeDrawingPadding().then(contentModifier).fillMaxSize(),
     ) {
         val primaryFocusId = rememberFocusId()
         val secondaryFocusId = rememberFocusId()
@@ -74,7 +75,7 @@ fun SplitVertical(
     contentModifier: Modifier = Modifier,
 ) {
     AdaptiveColumn(
-        modifier.then(contentModifier).fillMaxSize(),
+        modifier.safeDrawingPadding().then(contentModifier).fillMaxSize(),
     ) {
         val primaryFocusId = rememberFocusId()
         val secondaryFocusId = rememberFocusId()

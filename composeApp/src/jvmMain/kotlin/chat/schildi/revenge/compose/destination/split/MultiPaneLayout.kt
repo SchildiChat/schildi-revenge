@@ -1,6 +1,7 @@
 package chat.schildi.revenge.compose.destination.split
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.key
@@ -16,6 +17,7 @@ import chat.schildi.revenge.actions.KeyboardActionHandler
 import chat.schildi.revenge.compose.components.AdaptiveRow
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.resources.ComposableStringHolder
+import chat.schildi.revenge.compose.components.thenIf
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 import kotlin.uuid.Uuid
 
@@ -38,7 +40,7 @@ fun MultiPaneLayout(
         Pair(modifier.then(contentModifier), Modifier)
     }
     AdaptiveRow(
-        outerModifier.fillMaxSize(),
+        outerModifier.thenIf(innerDestinations.size > 1) { safeDrawingPadding() }.fillMaxSize(),
     ) {
         innerDestinations.forEachIndexed { index, destinationHolder ->
             key(destinationHolder.state.collectAsState().value.holderId) {
