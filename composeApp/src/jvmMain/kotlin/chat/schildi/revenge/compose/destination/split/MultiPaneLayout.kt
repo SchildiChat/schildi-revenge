@@ -3,7 +3,9 @@ package chat.schildi.revenge.compose.destination.split
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -27,6 +29,8 @@ private data class MultiPaneLayoutTarget(
     val role: SplitRole,
 )
 
+val LocalMultiPaneContentIndex = compositionLocalOf { -1 }
+
 @Composable
 fun MultiPaneLayout(
     outerDestination: DestinationEnum,
@@ -43,28 +47,32 @@ fun MultiPaneLayout(
         outerModifier.thenIf(innerDestinations.size > 1) { safeDrawingPadding() }.fillMaxSize(),
     ) {
         innerDestinations.forEachIndexed { index, destinationHolder ->
-            key(destinationHolder.state.collectAsState().value.holderId) {
-                val focusId = rememberFocusId()
-                val target = remember(destinationHolder, focusId, index, innerDestinations.size) {
-                    MultiPaneLayoutTarget(
-                        destinationHolder = destinationHolder,
-                        focusId = focusId,
-                        role = when {
-                            innerDestinations.size == 1 -> SplitRole.Singular
-                            index == 0 -> SplitRole.Start
-                            index == innerDestinations.size - 1 -> SplitRole.End
-                            else -> SplitRole.Horizontal
-                        }
+            CompositionLocalProvider(
+                LocalMultiPaneContentIndex provides index,
+            ) {
+                key(destinationHolder.state.collectAsState().value.holderId) {
+                    val focusId = rememberFocusId()
+                    val target = remember(destinationHolder, focusId, index, innerDestinations.size) {
+                        MultiPaneLayoutTarget(
+                            destinationHolder = destinationHolder,
+                            focusId = focusId,
+                            role = when {
+                                innerDestinations.size == 1 -> SplitRole.Singular
+                                index == 0 -> SplitRole.Start
+                                index == innerDestinations.size - 1 -> SplitRole.End
+                                else -> SplitRole.Horizontal
+                            }
+                        )
+                    }
+                    SplitScreenDestination(
+                        focusId = target.focusId,
+                        splitRole = target.role,
+                        splitType = outerDestination,
+                        destinationHolder = target.destinationHolder,
+                        contentModifier = innerContentModifier,
+                        actionProvider = multiPaneKeyboardActionProvider(target.destinationHolder)
                     )
                 }
-                SplitScreenDestination(
-                    focusId = target.focusId,
-                    splitRole = target.role,
-                    splitType = outerDestination,
-                    destinationHolder = target.destinationHolder,
-                    contentModifier = innerContentModifier,
-                    actionProvider = multiPaneKeyboardActionProvider(target.destinationHolder)
-                )
             }
         }
     }
