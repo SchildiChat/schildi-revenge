@@ -8,4 +8,5 @@ actual val scPrefPlatformSupport = object : ScPrefPlatformSupport {
     override val desktopNotifications = !SystemInfo.isWindows()
     override val pushNotifications = false
     override val androidOnly = false
+    override val preferTouch = false
 }

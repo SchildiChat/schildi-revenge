@@ -7,6 +7,7 @@ interface ScPrefPlatformSupport {
     val desktopNotifications: Boolean
     val pushNotifications: Boolean
     val androidOnly: Boolean
+    val preferTouch: Boolean
 }
 
 expect val scPrefPlatformSupport: ScPrefPlatformSupport

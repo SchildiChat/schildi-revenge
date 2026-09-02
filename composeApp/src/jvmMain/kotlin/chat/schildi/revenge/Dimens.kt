@@ -130,6 +130,12 @@ object Dimens {
             val buttonHeight = 48.dp
         }
 
+        object MessageSwipe {
+            val maxOffset = 128.dp
+            val threshold = 48.dp
+            const val touchSlopMultiplier = 4f
+        }
+
         object AudioWaveform {
             val lineWidth = 2.dp
             val linePadding = 2.dp

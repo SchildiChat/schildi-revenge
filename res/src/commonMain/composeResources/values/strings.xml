@@ -105,6 +105,7 @@
     <string name="action_context_favorite_toggle">Favorite</string>
     <string name="action_context_low_priority_toggle">Low priority</string>
     <string name="action_mark_as_read">Mark as read</string>
+    <string name="action_mark_as_read_private">Mark as read (private)</string>
     <string name="action_mark_as_unread">Mark as unread</string>
     <string name="action_mark_as_read_type_read_receipt_public">Shared read receipt</string>
     <string name="action_mark_as_read_type_read_receipt_private">Private read receipt</string>
@@ -158,6 +159,7 @@
     <string name="action_view_event_source">View event source</string>
     <string name="action_copy_event_source">Copy event source</string>
     <string name="action_create">Create</string>
+    <string name="action_none">None</string>
 
     <string name="command_success">Success: %1$s</string>
     <string name="command_loading_event">Loading %1$s</string>
@@ -408,6 +410,7 @@
     <string name="pref_category_message_authenticity_warnings">Message authenticity warnings</string>
     <string name="pref_category_message_appearance">Message appearance</string>
     <string name="pref_category_advanced_room_settings">Advanced room settings</string>
+    <string name="pref_category_message_actions">Message actions</string>
 
     <string name="pref_skiko_vsync_title">Enable skiko VSync</string>
     <string name="pref_skiko_vsync_summary">Try disabling VSync if you notice intermittent laggyness when having multiple windows open</string>
@@ -505,6 +508,8 @@
     <string name="pref_debug_notifications_summary">Post unresolved pushes as notifications</string>
     <string name="pref_open_at_unread_title">Open at unread</string>
     <string name="pref_open_at_unread_summary">Open conversations at the last fully read message</string>
+    <string name="pref_message_swipe_action_left_title">Left message swipe action</string>
+    <string name="pref_message_swipe_action_right_title">Right message swipe action</string>
 
     <string name="pref_message_font_size_title">Message font size</string>
     <string name="pref_message_font_size_summary">Scaled pixel text size for messages (while respecting global render and font scale settings)</string>

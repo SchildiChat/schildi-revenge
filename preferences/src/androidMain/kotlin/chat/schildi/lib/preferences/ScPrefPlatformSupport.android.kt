@@ -5,4 +5,5 @@ actual val scPrefPlatformSupport = object : ScPrefPlatformSupport {
     override val desktopNotifications = false
     override val pushNotifications = true
     override val androidOnly = true
+    override val preferTouch = true
 }

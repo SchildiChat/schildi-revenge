@@ -17,7 +17,6 @@ import chat.schildi.revenge.actions.CopyActions
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.InteractionAction
-import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
 import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
@@ -102,21 +101,24 @@ fun EventRow(
                 ConversationDividerLine(MaterialTheme.colorScheme.error)
             }
             val threadInfo = event.threadInfo()
-            EventContentLayout(
-                content = event.content,
-                messageMetadata = messageMetadata,
-                formatInteractionState = formatInteractionState,
-                senderId = event.sender,
-                senderProfile = event.senderProfile,
-                isOwn = event.isOwn,
-                timestamp = remember(event, timestampSettings) {
-                    event.timestampOverlayContent(timestampSettings)
-                },
-                isSameAsPreviousSender = isSameAsPreviousSender,
-                inReplyTo = event.inReplyTo(),
-                threadInfo = threadInfo,
-                timelineItemDebugInfoProvider = event.timelineItemDebugInfoProvider,
-            )
+            EventSwipeable(focusId) { modifier ->
+                EventContentLayout(
+                    content = event.content,
+                    messageMetadata = messageMetadata,
+                    formatInteractionState = formatInteractionState,
+                    senderId = event.sender,
+                    senderProfile = event.senderProfile,
+                    isOwn = event.isOwn,
+                    timestamp = remember(event, timestampSettings) {
+                        event.timestampOverlayContent(timestampSettings)
+                    },
+                    isSameAsPreviousSender = isSameAsPreviousSender,
+                    inReplyTo = event.inReplyTo(),
+                    threadInfo = threadInfo,
+                    timelineItemDebugInfoProvider = event.timelineItemDebugInfoProvider,
+                    modifier = modifier,
+                )
+            }
             ReactionsRow(
                 viewModel = viewModel,
                 eventOrTransactionId = EventOrTransactionId.from(event.eventId, event.transactionId),

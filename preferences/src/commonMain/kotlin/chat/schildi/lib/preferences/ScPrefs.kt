@@ -6,6 +6,11 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.runBlocking
 import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_mark_as_read
+import shire.res.generated.resources.action_mark_as_read_private
+import shire.res.generated.resources.action_none
+import shire.res.generated.resources.action_react
+import shire.res.generated.resources.action_reply
 import shire.res.generated.resources.hint_composer_format_html
 import shire.res.generated.resources.hint_composer_format_markdown
 import shire.res.generated.resources.hint_composer_format_plain
@@ -110,6 +115,7 @@ import shire.res.generated.resources.pref_category_general
 import shire.res.generated.resources.pref_category_general_appearance
 import shire.res.generated.resources.pref_category_general_behaviour
 import shire.res.generated.resources.pref_category_general_summary
+import shire.res.generated.resources.pref_category_message_actions
 import shire.res.generated.resources.pref_category_message_appearance
 import shire.res.generated.resources.pref_category_message_authenticity_warnings
 import shire.res.generated.resources.pref_category_notifications
@@ -162,6 +168,8 @@ import shire.res.generated.resources.pref_pseudo_spaces_title
 import shire.res.generated.resources.pref_render_space_order_keys_title
 import shire.res.generated.resources.pref_floating_date_summary
 import shire.res.generated.resources.pref_floating_date_title
+import shire.res.generated.resources.pref_message_swipe_action_left_title
+import shire.res.generated.resources.pref_message_swipe_action_right_title
 import shire.res.generated.resources.pref_open_at_unread_summary
 import shire.res.generated.resources.pref_open_at_unread_title
 import shire.res.generated.resources.pref_push_notifications_summary
@@ -338,6 +346,33 @@ object ScPrefs {
     val FLOATING_DATE = ScBoolPref("FLOATING_DATE", true, Res.string.pref_floating_date_title, Res.string.pref_floating_date_summary)
     val OPEN_AT_UNREAD = ScBoolPref("OPEN_AT_UNREAD", false, Res.string.pref_open_at_unread_title, Res.string.pref_open_at_unread_summary)
 
+    enum class MessageSwipeAction {
+        NONE,
+        REPLY,
+        REACT,
+        MARK_READ,
+        MARK_READ_PRIVATE,
+    }
+    private val messageSwipeActionEntries = persistentListOf(
+        ScListPrefEntry(MessageSwipeAction.NONE.name, Res.string.action_none.toStringHolder()),
+        ScListPrefEntry(MessageSwipeAction.REPLY.name, Res.string.action_reply.toStringHolder()),
+        ScListPrefEntry(MessageSwipeAction.REACT.name, Res.string.action_react.toStringHolder()),
+        ScListPrefEntry(MessageSwipeAction.MARK_READ.name, Res.string.action_mark_as_read.toStringHolder()),
+        ScListPrefEntry(MessageSwipeAction.MARK_READ_PRIVATE.name, Res.string.action_mark_as_read_private.toStringHolder()),
+    )
+    val MESSAGE_SWIPE_ACTION_LEFT = ScStringListPref(
+        "MESSAGE_SWIPE_ACTION_LEFT",
+        MessageSwipeAction.NONE.name,
+        messageSwipeActionEntries,
+        Res.string.pref_message_swipe_action_left_title,
+    )
+    val MESSAGE_SWIPE_ACTION_RIGHT = ScStringListPref(
+        "MESSAGE_SWIPE_ACTION_RIGHT",
+        if (scPrefPlatformSupport.preferTouch) MessageSwipeAction.REPLY.name else MessageSwipeAction.NONE.name,
+        messageSwipeActionEntries,
+        Res.string.pref_message_swipe_action_right_title,
+    )
+
     // Message rendering
     val MESSAGE_FONT_SIZE = ScIntPref("MESSAGE_FONT_SIZE", 14, Res.string.pref_message_font_size_title, Res.string.pref_message_font_size_summary, minValue = 8, maxValue = 24)
     val MESSAGE_OTHER_SIDE_MARGIN = ScIntPref("MESSAGE_OTHER_SIDE_MARGIN", 48, Res.string.pref_message_other_side_margin_title, Res.string.pref_message_other_side_margin_summary, minValue = 0, maxValue = 200)
@@ -419,6 +454,10 @@ object ScPrefs {
             OPEN_AT_UNREAD,
             THREAD_REPLIES_IN_MAIN_TIMELINE,
             FLOATING_DATE,
+            ScPrefCategory("MESSAGE_ACTIONS", Res.string.pref_category_message_actions, null, listOf(
+                MESSAGE_SWIPE_ACTION_LEFT,
+                MESSAGE_SWIPE_ACTION_RIGHT,
+            )),
             ScPrefCategory("TIMELINE_EVENT_VISIBILITY", Res.string.pref_category_timeline_event_visibility, null, listOf(
                 VIEW_REDACTIONS,
                 VIEW_MEMBERSHIP_EVENTS_IN_PUBLIC_ROOMS,
