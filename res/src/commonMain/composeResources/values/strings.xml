@@ -130,6 +130,7 @@
     <string name="action_close_window">Close window</string>
     <string name="action_jump_to_unread">Jump to unread</string>
     <string name="action_jump_to_replied_to_message">Jump to replied-to message</string>
+    <string name="action_jump_to_bottom">Jump to bottom</string>
     <string name="action_download">Download</string>
     <string name="action_download_and_open">Open</string>
     <string name="action_acknowledge">Acknowledge</string>

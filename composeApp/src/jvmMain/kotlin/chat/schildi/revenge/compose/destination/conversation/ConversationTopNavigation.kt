@@ -2,8 +2,11 @@ package chat.schildi.revenge.compose.destination.conversation
 
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.MoveDown
 import androidx.compose.material.icons.filled.PestControlRodent
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.filled.Visibility
@@ -42,6 +45,7 @@ import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_jump_to_bottom
 import shire.res.generated.resources.action_jump_to_unread
 import shire.res.generated.resources.action_mark_as_read
 import shire.res.generated.resources.action_show_room_members
@@ -192,6 +196,15 @@ fun ConversationTopNavigation(
                             keyHandler.handleAction(
                                 focusItem = focusParent.uuid,
                                 action = Action.Conversation.JumpToFullyRead,
+                            )
+                        }
+                        TopNavigationIcon(
+                            Icons.Default.ArrowDownward,
+                            stringResource(Res.string.action_jump_to_bottom),
+                        ) {
+                            keyHandler.handleAction(
+                                focusItem = focusParent.uuid,
+                                action = Action.Conversation.JumpToBottom,
                             )
                         }
                         TopNavigationIcon(
