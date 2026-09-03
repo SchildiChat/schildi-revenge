@@ -19,7 +19,7 @@ import androidx.compose.ui.window.ApplicationScope
 import chat.schildi.revenge.model.GlobalUnreadCountsSource
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
 import chat.schildi.theme.scExposures
-import com.kdroid.composetray.tray.api.Tray
+import dev.nucleusframework.composenativetray.tray.api.Tray
 import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res

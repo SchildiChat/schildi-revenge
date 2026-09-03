@@ -1,30 +1,30 @@
 [versions]
-androidGradlePlugin = "9.3.1"
-versionsPlugin = "0.58.0"
+androidGradlePlugin = "9.4.0"
+versionsPlugin = "0.61.0"
 dependencyLicenseReport = "3.1.4"
 androidx-lifecycle = "2.11.0"
 androidx-datastore = "1.2.1"
 composeHotReload = "1.2.0"
-composeMultiplatform = "1.11.1"
+composeMultiplatform = "1.12.0"
 composeMaterial3 = "1.9.0"
 composeMaterialIconsExtended = "1.7.3"
 junit = "4.13.2"
 kotlin = "2.4.10"
-ksp = "2.3.10"
+ksp = "2.3.11"
 kotlinx-coroutines = "1.11.0"
 kotlinx-datetime = "0.8.0"
 jetbrainsKotlinJvm = "2.4.10"
 jna = "5.19.1"
 kotlinxSerialization = "1.11.0"
-metro = "1.4.0"
-coil = "3.5.0"
+metro = "1.4.2"
+coil = "3.6.1"
 kdroidfilterPlatformtools = "0.7.5"
-kdroidfilterComposeNativeTray = "1.3.3"
+kdroidfilterComposeNativeTray = "2.1.6"
 kdroidfilterKnotify = "0.4.3"
 ktoml = "0.7.1"
 ktor = "3.5.2"
-jsoup = "1.23.1"
-beeperMessageFormat = "f2ca54219612fbbe5a0137fdac4ee6d7692b28b9"
+jsoup = "1.23.2"
+beeperMessageFormat = "da7f5358377a851148a90a9a3b70943ff9f6886d"
 dbusJava = "5.2.0"
 clikt = "5.1.0"
 blurhash = "0.3.0"
@@ -32,9 +32,9 @@ androidx-core = "1.19.0"
 androidx-activity = "1.13.0"
 androidx-core-splashscreen = "1.2.0"
 androidx-work = "2.11.2"
-unifiedpush = "3.3.3"
+unifiedpush = "3.3.5"
 unifiedpush-embedded-fcm = "3.1.0"
-room3 = "3.0.1"
+room3 = "3.0.2"
 sqlite = "2.7.0"
 desugarJdkLibs = "2.1.5"
 
@@ -63,7 +63,7 @@ kermit = "co.touchlab:kermit:2.1.0"
 appdirs = "ca.gosyer:kotlin-multiplatform-appdirs:2.0.0"
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 kotlinx-serialization-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
-kotlinx-collections-immutable = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable", version = "0.5.1" }
+kotlinx-collections-immutable = { group = "org.jetbrains.kotlinx", name = "kotlinx-collections-immutable", version = "0.5.2" }
 ktoml-core = { module = "com.akuleshov7:ktoml-core", version.ref = "ktoml" }
 metro_gradle_plugin = { module = "dev.zacsweers.metro:gradle-plugin", version.ref = "metro" }
 metro_runtime = { module = "dev.zacsweers.metro:runtime", version.ref = "metro" }
@@ -72,7 +72,7 @@ coil3_okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", versi
 coil3_svg = { group = "io.coil-kt.coil3", name = "coil-svg", version.ref = "coil" }
 kdroidfilter_platformtools_core = { group = "io.github.kdroidfilter", name = "platformtools.core", version.ref = "kdroidfilterPlatformtools" }
 kdroidfilter_platformtools_darkmodedetector = { group = "io.github.kdroidfilter", name = "platformtools.darkmodedetector", version.ref = "kdroidfilterPlatformtools" }
-kdroidfilter_composenativetray = { group = "io.github.kdroidfilter", name = "composenativetray", version.ref = "kdroidfilterComposeNativeTray" }
+kdroidfilter_composenativetray = { group = "dev.nucleusframework", name = "composenativetray", version.ref = "kdroidfilterComposeNativeTray" }
 kdroidfilter_knotify = { group = "io.github.kdroidfilter", name = "knotify", version.ref = "kdroidfilterKnotify" }
 kdroidfilter_knotify_compose = { group = "io.github.kdroidfilter", name = "knotify-compose", version.ref = "kdroidfilterKnotify" }
 kodein-emojiKt = { group = "org.kodein.emoji", name = "emoji-kt", version = "2.5.0" }

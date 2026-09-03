@@ -100,6 +100,7 @@ android {
 dependencies {
     implementation(projects.composeApp)
     implementation(projects.res)
+    implementation(libs.androidx.core.ktx)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 }
 
