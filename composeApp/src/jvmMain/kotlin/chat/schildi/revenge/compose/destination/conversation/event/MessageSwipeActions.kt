@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.filled.AddReaction
 import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -84,7 +85,7 @@ fun ScStringListPref.swipeActionValue(focusId: Uuid): MessageSwipeActionSpec? {
             keyHandler.handleAction(focusId, Action.Event.MarkEventRead)
             keyHandler.handleAction(focusId, Action.Event.MarkEventFullyRead)
         }
-        ScPrefs.MessageSwipeAction.MARK_READ_PRIVATE -> MessageSwipeActionSpec(kind, Icons.Default.Visibility) {
+        ScPrefs.MessageSwipeAction.MARK_READ_PRIVATE -> MessageSwipeActionSpec(kind, Icons.Outlined.Visibility) {
             keyHandler.handleAction(focusId, Action.Event.MarkEventReadPrivate)
             keyHandler.handleAction(focusId, Action.Event.MarkEventFullyRead)
         }
