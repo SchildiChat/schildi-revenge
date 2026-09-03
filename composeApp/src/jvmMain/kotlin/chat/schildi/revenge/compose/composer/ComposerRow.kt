@@ -292,7 +292,7 @@ fun ComposerRow(
                     }
                 } else if (draftState.type.needsClearButton() && draftState.isEmpty()) {
                     ClearButton {
-                        viewModel.onComposerUpdate(draftState.copy(type = DraftType.TEXT))
+                        viewModel.onComposerUpdate(DraftValue())
                     }
                 } else {
                     SendButton(
@@ -309,11 +309,11 @@ private fun DraftType.needsClearButton() = when (this) {
     // Default composer type
     DraftType.TEXT,
     // Can be cleared via dedicated UI already
-    DraftType.EDIT,
     DraftType.ATTACHMENT,
-    DraftType.EDIT_CAPTION,
     DraftType.STICKER -> false
     // Non-standard composer types, non-keyboard users may get lost without clear button
+    DraftType.EDIT,
+    DraftType.EDIT_CAPTION,
     DraftType.NOTICE,
     DraftType.EMOTE,
     DraftType.REACTION,
