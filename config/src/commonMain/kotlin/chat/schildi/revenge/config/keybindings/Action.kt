@@ -173,7 +173,7 @@ sealed interface Action {
         Search,
         Command,
         SetSetting(args = listOf(ActionArgumentPrimitive.SettingKey, OptionalSettingValue), aliases = listOf("set")),
-        ResetSetting(args = listOf(ActionArgumentPrimitive.SettingKey), aliases = listOf("reset")),
+        ResetSetting(args = listOf(ActionArgumentPrimitive.SettingKey), aliases = listOf("reset", "unset")),
         ToggleSetting(args = listOf(ActionArgumentPrimitive.SettingKey, OptionalSettingValue, OptionalSettingValue, OptionalSettingValue, OptionalSettingValue, OptionalSettingValue, OptionalSettingValue, OptionalSettingValue, OptionalSettingValue), aliases = listOf("toggle")),
         Exit(aliases = listOf("quit")),
         SetMinimized(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.Boolean)), aliases = listOf("minimize")),
