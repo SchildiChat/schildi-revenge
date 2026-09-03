@@ -101,7 +101,7 @@ fun EventRow(
                 ConversationDividerLine(MaterialTheme.colorScheme.error)
             }
             val threadInfo = event.threadInfo()
-            EventSwipeable(focusId) { modifier ->
+            EventSwipeable(focusId, event.isOwn) { modifier ->
                 EventContentLayout(
                     content = event.content,
                     messageMetadata = messageMetadata,

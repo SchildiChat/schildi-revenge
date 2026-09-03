@@ -6,6 +6,7 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.runBlocking
 import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_edit
 import shire.res.generated.resources.action_mark_as_read
 import shire.res.generated.resources.action_mark_as_read_private
 import shire.res.generated.resources.action_none
@@ -352,6 +353,7 @@ object ScPrefs {
         REACT,
         MARK_READ,
         MARK_READ_PRIVATE,
+        EDIT,
     }
     private val messageSwipeActionEntries = persistentListOf(
         ScListPrefEntry(MessageSwipeAction.NONE.name, Res.string.action_none.toStringHolder()),
@@ -359,6 +361,7 @@ object ScPrefs {
         ScListPrefEntry(MessageSwipeAction.REACT.name, Res.string.action_react.toStringHolder()),
         ScListPrefEntry(MessageSwipeAction.MARK_READ.name, Res.string.action_mark_as_read.toStringHolder()),
         ScListPrefEntry(MessageSwipeAction.MARK_READ_PRIVATE.name, Res.string.action_mark_as_read_private.toStringHolder()),
+        ScListPrefEntry(MessageSwipeAction.EDIT.name, Res.string.action_edit.toStringHolder()),
     )
     val MESSAGE_SWIPE_ACTION_LEFT = ScStringListPref(
         "MESSAGE_SWIPE_ACTION_LEFT",

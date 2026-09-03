@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.filled.AddReaction
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material3.Icon
@@ -63,7 +64,10 @@ enum class MessageSwipePosition {
 }
 
 @Composable
-fun ScStringListPref.swipeActionValue(focusId: Uuid): MessageSwipeActionSpec? {
+fun ScStringListPref.swipeActionValue(
+    focusId: Uuid,
+    isOwn: Boolean,
+): MessageSwipeActionSpec? {
     val rawValue = value()
     val kind = remember(rawValue) {
         try {
@@ -89,6 +93,9 @@ fun ScStringListPref.swipeActionValue(focusId: Uuid): MessageSwipeActionSpec? {
             keyHandler.handleAction(focusId, Action.Event.MarkEventReadPrivate)
             keyHandler.handleAction(focusId, Action.Event.MarkEventFullyRead)
         }
+        ScPrefs.MessageSwipeAction.EDIT -> if (isOwn) MessageSwipeActionSpec(kind, Icons.Default.Edit) {
+            keyHandler.handleAction(focusId, Action.Event.ComposeEdit)
+        } else null
         ScPrefs.MessageSwipeAction.NONE,
         null -> null
     }
@@ -97,11 +104,12 @@ fun ScStringListPref.swipeActionValue(focusId: Uuid): MessageSwipeActionSpec? {
 @Composable
 fun EventSwipeable(
     focusId: Uuid,
+    isOwn: Boolean,
     modifier: Modifier = Modifier,
     content: @Composable (Modifier) -> Unit,
 ) {
-    val swipeActionLeft = ScPrefs.MESSAGE_SWIPE_ACTION_LEFT.swipeActionValue(focusId)
-    val swipeActionRight = ScPrefs.MESSAGE_SWIPE_ACTION_RIGHT.swipeActionValue(focusId)
+    val swipeActionLeft = ScPrefs.MESSAGE_SWIPE_ACTION_LEFT.swipeActionValue(focusId, isOwn)
+    val swipeActionRight = ScPrefs.MESSAGE_SWIPE_ACTION_RIGHT.swipeActionValue(focusId, isOwn)
     val hasSwipeAction = swipeActionLeft != null || swipeActionRight != null
     val maxSwipe = LocalDensity.current.run { Dimens.Conversation.MessageSwipe.maxOffset.toPx() }
     val threshold = LocalDensity.current.run { Dimens.Conversation.MessageSwipe.threshold.toPx() }
