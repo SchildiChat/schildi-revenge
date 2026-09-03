@@ -57,8 +57,6 @@ import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.compose.components.PlatformBackHandler
-import chat.schildi.revenge.compose.components.platformHasBackHandler
-import chat.schildi.revenge.compose.destination.split.LocalMultiPaneContentIndex
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.model.SettingsViewModel
 import chat.schildi.revenge.publishTitle
@@ -180,13 +178,11 @@ fun SettingsScreen(
                             destinationState?.navigate(Destination.Diagnostics)
                         }
                     }
-                    if (!platformHasBackHandler || LocalMultiPaneContentIndex.current > 0) {
-                        TopNavigationIcon(
-                            Icons.Default.Close,
-                            stringResource(Res.string.action_close),
-                        ) {
-                            destinationState?.navigate(Destination.SettingsPane(viewModel.parentPreferenceKey))
-                        }
+                    TopNavigationIcon(
+                        Icons.Default.Close,
+                        stringResource(Res.string.action_close),
+                    ) {
+                        destinationState?.navigate(Destination.SettingsPane(viewModel.parentPreferenceKey))
                     }
                 }
             }

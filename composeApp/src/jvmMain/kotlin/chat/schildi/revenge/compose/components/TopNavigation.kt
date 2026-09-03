@@ -42,7 +42,6 @@ import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.NavigationPreference
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
-import chat.schildi.revenge.compose.destination.split.LocalMultiPaneContentIndex
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.revenge.compose.search.SearchBar
 import chat.schildi.revenge.compose.search.SearchProvider
@@ -127,7 +126,7 @@ fun TopNavigationCloseOrNavigateToInboxIcon(modifier: Modifier = Modifier) {
             ) {
                 destinationState?.navigate(UiState.getInboxDestination(), NavigationPreference.REPLACE)
             }
-        } else if (!platformHasBackHandler || LocalMultiPaneContentIndex.current > 0) {
+        } else {
             TopNavigationIcon(
                 Icons.Default.Close,
                 stringResource(Res.string.action_close),

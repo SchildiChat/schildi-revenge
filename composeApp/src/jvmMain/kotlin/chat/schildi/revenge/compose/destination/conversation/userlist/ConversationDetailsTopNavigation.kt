@@ -9,8 +9,6 @@ import chat.schildi.revenge.compose.components.TopNavigation
 import chat.schildi.revenge.compose.components.TopNavigationIcon
 import chat.schildi.revenge.compose.components.TopNavigationSearchOrTitle
 import chat.schildi.revenge.compose.components.TopNavigationTitle
-import chat.schildi.revenge.compose.components.platformHasBackHandler
-import chat.schildi.revenge.compose.destination.split.LocalMultiPaneContentIndex
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
@@ -31,13 +29,11 @@ fun ConversationDetailsTopNavigation(
             TopNavigationTitle(title)
         }
         additionalIcons()
-        if (!platformHasBackHandler || LocalMultiPaneContentIndex.current > 0) {
-            TopNavigationIcon(
-                Icons.Default.Close,
-                stringResource(Res.string.action_close),
-            ) {
-                destinationState?.closeScreen(keyHandler)
-            }
+        TopNavigationIcon(
+            Icons.Default.Close,
+            stringResource(Res.string.action_close),
+        ) {
+            destinationState?.closeScreen(keyHandler)
         }
     }
 }
