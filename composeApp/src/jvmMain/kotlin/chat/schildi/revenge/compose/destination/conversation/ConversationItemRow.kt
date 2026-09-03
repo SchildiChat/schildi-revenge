@@ -15,6 +15,7 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.destination.conversation.event.EventHighlight
 import chat.schildi.revenge.compose.destination.conversation.event.EventRow
 import chat.schildi.revenge.compose.destination.conversation.virtual.DayHeaderRow
+import chat.schildi.revenge.compose.destination.conversation.virtual.NewMessageLineInstance
 import chat.schildi.revenge.compose.destination.conversation.virtual.NewMessagesLine
 import chat.schildi.revenge.compose.destination.conversation.virtual.PagingIndicator
 import chat.schildi.revenge.compose.destination.conversation.virtual.RoomBeginning
@@ -55,7 +56,10 @@ fun ConversationItemRow(
                     (item.item as? MatrixTimelineItem.Virtual)?.virtual !is VirtualTimelineItem.TypingNotification &&
                     (item.item as? MatrixTimelineItem.Event)?.event?.isOwn != true
                 ) {
-                    NewMessagesLine(isReal = false, isHint = true)
+                    NewMessagesLine(
+                        instance = NewMessageLineInstance.ReadMarkerOnly,
+                        isThreadedTimeline = viewModel.threadId != null,
+                    )
                 }
                 false
             }
@@ -67,7 +71,10 @@ fun ConversationItemRow(
                 when (val virtualItem = item.item.virtual) {
                     is VirtualTimelineItem.DayDivider -> DayHeaderRow(virtualItem)
                     is VirtualTimelineItem.LoadingIndicator -> PagingIndicator()
-                    VirtualTimelineItem.ReadMarker -> NewMessagesLine(isReal = isRealUnreadLine)
+                    VirtualTimelineItem.ReadMarker -> NewMessagesLine(
+                        instance = if (isRealUnreadLine) NewMessageLineInstance.Matched else NewMessageLineInstance.SdkOnly,
+                        isThreadedTimeline = viewModel.threadId != null,
+                    )
                     VirtualTimelineItem.RoomBeginning -> RoomBeginning()
                     // Not sure if we're supposed to render something for that one
                     VirtualTimelineItem.LastForwardIndicator -> {}

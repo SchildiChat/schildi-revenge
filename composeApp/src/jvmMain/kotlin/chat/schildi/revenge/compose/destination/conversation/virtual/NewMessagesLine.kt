@@ -15,23 +15,44 @@ import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.theme.scExposures
 
+enum class NewMessageLineInstance {
+    Matched,
+    ReadMarkerOnly,
+    SdkOnly,
+}
+
 @Composable
 fun NewMessagesLine(
-    isReal: Boolean = true,
-    isHint: Boolean = false,
+    instance: NewMessageLineInstance,
+    isThreadedTimeline: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val debugUnreadLine = ScPrefs.SHOW_DEV_INFOS.value()
-    if (!debugUnreadLine && isHint) {
-        return
+    if (!debugUnreadLine) {
+        val shouldRender = when (instance) {
+            // Everyone agrees this is the correct unread line.
+            NewMessageLineInstance.Matched -> true
+            // Fully read event says this is unread, this is to be trusted as truth in non-threaded timelines.
+            NewMessageLineInstance.ReadMarkerOnly -> !isThreadedTimeline
+            // SDK says this is unread, but doesn't match what the m.fully_read marker says.
+            // Only trust in threaded timelines.
+            NewMessageLineInstance.SdkOnly -> isThreadedTimeline
+        }
+        if (!shouldRender) {
+            return
+        }
+    }
+    val color = if (debugUnreadLine) {
+        when (instance) {
+            NewMessageLineInstance.Matched -> MaterialTheme.scExposures.accentColor
+            NewMessageLineInstance.ReadMarkerOnly -> MaterialTheme.scExposures.linkColor
+            NewMessageLineInstance.SdkOnly -> MaterialTheme.scExposures.accentColor.copy(alpha = 0.3f)
+        }
+    } else {
+        MaterialTheme.scExposures.accentColor
     }
     ConversationDividerLine(
-        if (isReal || !debugUnreadLine) // fully read event ID matches where the SDK inserted it
-            MaterialTheme.scExposures.accentColor
-        else if (isHint) // this is where the fully read event ID was last time we checked, but Rust SDK didn't insert an unread line here
-            MaterialTheme.scExposures.linkColor
-        else // Rust SDK inserted it here but it may not be accurate
-            MaterialTheme.scExposures.accentColor.copy(alpha = 0.3f),
+        color,
         modifier
             .padding(
                 vertical = Dimens.Conversation.unreadLinePadding,
