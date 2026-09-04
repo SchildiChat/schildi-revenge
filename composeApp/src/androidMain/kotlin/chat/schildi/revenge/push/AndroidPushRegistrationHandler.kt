@@ -82,8 +82,7 @@ object AndroidPushRegistrationHandler {
 
             if (!enabled) {
                 currentRegistrations.forEach {
-                    UnifiedPush.unregister(activity, it.clientSecret)
-                    pushDao.deletePushRegistration(it)
+                    unregisterPush(it)
                 }
                 return@combine
             }
@@ -122,8 +121,7 @@ object AndroidPushRegistrationHandler {
             if (needsUnregistration.isNotEmpty()) {
                 needsUnregistration.forEach { registration ->
                     log.i { "Unregistering push for ${registration.sessionId}" }
-                    UnifiedPush.unregister(RevengeApplication.instance, registration.clientSecret)
-                    pushDao.deletePushRegistration(registration)
+                    unregisterPush(registration)
                 }
             }
         }.launchIn(scope)
@@ -169,22 +167,39 @@ object AndroidPushRegistrationHandler {
                 log.i { "Did not find UnifiedPush registration for instance=$instance that just unregistered" }
                 return@launch
             }
-            pushDao.deletePushRegistration(registration)
-            val pushKey = registration.endpoint ?: return@launch
-            val client = UiState.currentClientFor(SessionId(registration.sessionId)) ?: run {
-                log.w { "Skip Matrix push unregistration for ${registration.sessionId}, no client yet" }
-                return@launch
-            }
-            client.pushersService.unsetHttpPusher(
-                UnsetHttpPusherData(
-                    appId = pushAppId,
-                    pushKey = pushKey,
-                )
-            ).onSuccess {
-                log.i { "Matrix push unregistration successful for ${registration.sessionId}" }
-            }.onFailure {
-                log.e("Matrix push unregistration failed for ${registration.sessionId}", it)
-            }
+            unregisterPush(registration, unregisterUnifiedPush = false)
+        }
+    }
+
+    private suspend fun unregisterPush(
+        registration: PushRegistrationEntity,
+        unregisterUnifiedPush: Boolean = true,
+    ) {
+        unregisterPushOnHomeserver(registration)
+        if (unregisterUnifiedPush) {
+            UnifiedPush.unregister(RevengeApplication.instance, registration.clientSecret)
+        }
+        pushDao.deletePushRegistration(registration)
+    }
+
+    private suspend fun unregisterPushOnHomeserver(registration: PushRegistrationEntity) {
+        val pushKey = registration.endpoint ?: run {
+            log.i { "Skip Matrix push unregistration for ${registration.sessionId}, no endpoint" }
+            return
+        }
+        val client = UiState.currentClientFor(SessionId(registration.sessionId)) ?: run {
+            log.w { "Skip Matrix push unregistration for ${registration.sessionId}, no client yet" }
+            return
+        }
+        client.pushersService.unsetHttpPusher(
+            UnsetHttpPusherData(
+                appId = pushAppId,
+                pushKey = pushKey,
+            )
+        ).onSuccess {
+            log.i { "Matrix push unregistration successful for ${registration.sessionId}" }
+        }.onFailure {
+            log.e("Matrix push unregistration failed for ${registration.sessionId}", it)
         }
     }
 
