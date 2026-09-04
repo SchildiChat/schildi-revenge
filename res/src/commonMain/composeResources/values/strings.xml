@@ -507,7 +507,7 @@
     <string name="pref_debug_notifications_title">Debug notifications</string>
     <string name="pref_debug_notifications_summary">Post unresolved pushes as notifications</string>
     <string name="pref_open_at_unread_title">Open at unread</string>
-    <string name="pref_open_at_unread_summary">Open conversations at the last fully read message</string>
+    <string name="pref_open_at_unread_summary">Open conversations at the last fully read message. Can slow down room open</string>
     <string name="pref_message_swipe_action_left_title">Left message swipe action</string>
     <string name="pref_message_swipe_action_right_title">Right message swipe action</string>
 
