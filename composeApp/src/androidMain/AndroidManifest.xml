@@ -13,7 +13,7 @@
         </service>
 
         <receiver
-            android:name="chat.schildi.revenge.push.PushServiceImpl"
+            android:name="chat.schildi.revenge.push.FossFcmDistributor"
             android:enabled="true"
             android:exported="false">
             <intent-filter>

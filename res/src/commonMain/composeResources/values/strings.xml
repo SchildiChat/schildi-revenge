@@ -466,6 +466,8 @@
     <string name="pref_show_dev_infos_summary">Render additional debugging infos with unfinished UI in various places</string>
     <string name="pref_dev_quick_options_title">Dev quick options</string>
     <string name="pref_dev_quick_options_summary">Quick access to various developer tools</string>
+    <string name="pref_force_fcm_distributor_title">Force FCM distributor</string>
+    <string name="pref_force_fcm_distributor_summary">Use the built-in FCM distributor even when another UnifiedPush distributor is available. Will only apply to new registrations.</string>
     <string name="pref_hide_message_authenticity_not_guaranteed_title">Hide "message authenticity not guaranteed" warnings</string>
     <string name="pref_hide_message_authenticity_not_guaranteed_summary">Do not show the warning icon next to the timestamp if the message authenticity cannot be guaranteed</string>
     <string name="pref_hide_message_authenticity_warnings_in_bridged_chats_title">Hide message authenticity warnings in bridged chats</string>

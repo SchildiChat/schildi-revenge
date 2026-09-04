@@ -7,6 +7,7 @@ import android.os.Build
 import androidx.core.content.ContextCompat
 import chat.schildi.lib.platform.platformDeviceName
 import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.lib.preferences.safeLookup
 import chat.schildi.revenge.RevengeApplication
 import chat.schildi.revenge.ScCoroutines
 import chat.schildi.revenge.UiState
@@ -67,11 +68,16 @@ object AndroidPushRegistrationHandler {
 
     private fun loopRegisterUnifiedPush() {
         combine(
-            RevengePrefs.settingFlow(ScPrefs.PUSH_NOTIFICATIONS),
+            RevengePrefs.combinedSettingFlow { lookup ->
+                Pair(
+                    ScPrefs.PUSH_NOTIFICATIONS.safeLookup(lookup),
+                    ScPrefs.FORCE_FCM_DISTRIBUTOR.safeLookup(lookup),
+                )
+            },
             androidWindowManager.windows.map { it.isEmpty() }.distinctUntilChanged(),
             UiState.knownSessionIds,
             UiState.mutedAccounts,
-        ) { enabled, backgrounded, sessionIds, muted ->
+        ) { (enabled, forceFcm), backgrounded, sessionIds, muted ->
             if (backgrounded || muted == null) {
                 return@combine
             }
@@ -106,7 +112,13 @@ object AndroidPushRegistrationHandler {
             log.v { "Push state: registered=${registeredSessions.size}, adding=${needsRegistration.size}, removing=${needsUnregistration.size}" }
             if (needsEndpoint.isNotEmpty()) {
                 log.i { "Try registering push endpoints for ${needsEndpoint.size} sessions" }
-                if (tryUseCurrentOrDefaultDistributor(activity)) {
+                val selected = if (forceFcm) {
+                    UnifiedPush.saveDistributor(RevengeApplication.instance, pushAppId)
+                    true
+                } else {
+                    tryUseCurrentOrDefaultDistributor(activity)
+                }
+                if (selected) {
                     newRegistrations.forEach { registration ->
                         pushDao.insertPushRegistration(registration)
                     }

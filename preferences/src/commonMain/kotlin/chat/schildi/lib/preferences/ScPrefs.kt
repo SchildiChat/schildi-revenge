@@ -136,6 +136,8 @@ import shire.res.generated.resources.pref_dev_quick_options_summary
 import shire.res.generated.resources.pref_dev_quick_options_title
 import shire.res.generated.resources.pref_dual_mention_unread_counts_summary
 import shire.res.generated.resources.pref_dual_mention_unread_counts_title
+import shire.res.generated.resources.pref_force_fcm_distributor_summary
+import shire.res.generated.resources.pref_force_fcm_distributor_title
 import shire.res.generated.resources.pref_force_render_blurhash_summary
 import shire.res.generated.resources.pref_force_render_blurhash_title
 import shire.res.generated.resources.pref_indicate_unread_count_underestimates_summary
@@ -230,6 +232,7 @@ object ScPrefs {
     // Notifications
     val DESKTOP_NOTIFICATIONS = ScBoolPref("DESKTOP_NOTIFICATIONS", true, Res.string.pref_desktop_notifications_title, Res.string.pref_desktop_notifications_summary, supportedOnPlatform = scPrefPlatformSupport.desktopNotifications)
     val PUSH_NOTIFICATIONS = ScBoolPref("PUSH_NOTIFICATIONS", true, Res.string.pref_push_notifications_title, Res.string.pref_push_notifications_summary, supportedOnPlatform = scPrefPlatformSupport.pushNotifications)
+    val FORCE_FCM_DISTRIBUTOR = ScBoolPref("FORCE_FCM_DISTRIBUTOR", false, Res.string.pref_force_fcm_distributor_title, Res.string.pref_force_fcm_distributor_summary, supportedOnPlatform = scPrefPlatformSupport.androidOnly, dependencies = PUSH_NOTIFICATIONS.asDependencies(), disabledValue = null)
     val PUSH_REGISTRATIONS_LIST = ScViewOnlyPref.Kind.PUSH_REGISTRATIONS(Res.string.pref_category_push_registrations, supportedOnPlatform = scPrefPlatformSupport.pushNotifications)
 
     // Tray icon
@@ -437,6 +440,7 @@ object ScPrefs {
         ScPrefScreen("NOTIFICATIONS", Res.string.pref_category_notifications, Res.string.pref_category_notifications_summary, listOf(
             DESKTOP_NOTIFICATIONS,
             PUSH_NOTIFICATIONS,
+            FORCE_FCM_DISTRIBUTOR,
             PUSH_REGISTRATIONS_LIST
         ), supportedOnPlatform = scPrefPlatformSupport.notifications),
         ScPrefScreen("INBOX", Res.string.pref_category_inbox, Res.string.pref_category_inbox_summary, listOf(
