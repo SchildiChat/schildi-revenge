@@ -20,9 +20,7 @@ import chat.schildi.revenge.store.AppStateStore
 import chat.schildi.revenge.util.throttleLatest
 import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.createGraphFactory
-import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
-import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import io.element.android.x.di.AppGraph
 import kotlinx.collections.immutable.persistentHashMapOf
 import kotlinx.collections.immutable.persistentListOf
@@ -125,57 +123,6 @@ object UiState {
         .stateIn(scope, SharingStarted.Eagerly, null)
 
 
-    private val preferMultiPaneInbox = RevengePrefs
-        .settingFlow(ScPrefs.PREFER_DUAL_PANE_INBOX)
-        .distinctUntilChanged()
-        .onEach { preferMultiPane ->
-            // Recreate any potential inbox destinations to apply the new setting
-            platformWindowManager.windows.value.forEach { window ->
-                val destination = window.destinationHolder.state.value.destination
-                if (destination.category == DestinationCategory.INBOX) {
-                    val newDestination = getInboxDestination(preferMultiPane)
-                    if (newDestination.destinationId != destination.destinationId) {
-                        window.destinationHolder.navigate(newDestination, NavigationPreference.REPLACE)
-                    }
-                }
-            }
-        }
-        .stateIn(
-            scope,
-            SharingStarted.Eagerly,
-            RevengePrefs.getCachedOrDefaultValue(ScPrefs.PREFER_DUAL_PANE_INBOX),
-        )
-
-    private val preferMultiPaneConversation = RevengePrefs
-        .settingFlow(ScPrefs.PREFER_CONVERSATION_DETAILS_SPLIT)
-        .stateIn(
-            scope,
-            SharingStarted.Eagerly,
-            RevengePrefs.getCachedOrDefaultValue(ScPrefs.PREFER_CONVERSATION_DETAILS_SPLIT),
-        )
-
-    fun getInboxDestination(
-        preferMultiPane: Boolean = preferMultiPaneInbox.value
-    ): Destination = if (preferMultiPane) {
-        Destination.InboxConversationMultiPane()
-    } else {
-        Destination.Inbox
-    }
-
-    fun getConversationDestinationFromInbox(
-        sessionId: SessionId,
-        roomId: RoomId,
-        timelineParams: CreateTimelineParams? = null,
-        preferMultiPane: Boolean = RevengePrefs.getCachedOrDefaultValue(ScPrefs.PREFER_CONVERSATION_DETAILS_SPLIT),
-    ): Destination {
-        val conversation = Destination.Conversation(sessionId, roomId, timelineParams)
-        return if (preferMultiPane) {
-            Destination.ConversationDetailsMultiPane(conversation)
-        } else {
-            conversation
-        }
-    }
-
     val hasInboxOpen = platformWindowManager.windows.flatMerge(
         map = {
             it.destinationHolder.state
@@ -264,7 +211,7 @@ object UiState {
             val destination = if (sessions.isEmpty()) {
                 Destination.AccountManagement(isInitialSetup = true)
             } else {
-                getInboxDestination()
+                Destination.Inbox
             }
             clearSplashScreen(destination)
             _initialClientRestoreComplete.value = true
@@ -407,12 +354,7 @@ object UiState {
         preferNewTask: Boolean,
         initialTitle: ComposableStringHolder? = null,
     ) {
-        val effectiveDestination = if (destination is Destination.Conversation && preferMultiPaneConversation.value) {
-            Destination.ConversationDetailsMultiPane(destination)
-        } else {
-            destination
-        }
-        platformWindowManager.openWindow(effectiveDestination, preferNewTask, initialTitle)
+        platformWindowManager.openWindow(destination, preferNewTask, initialTitle)
     }
 
     fun closeWindow(windowId: WindowId, closeUnlessLast: Boolean = false): Boolean {

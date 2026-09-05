@@ -28,6 +28,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
@@ -54,9 +55,13 @@ import chat.schildi.revenge.compose.components.EmptyListScreen
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.resources.toStringHolder
+import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.actionProvider
+import chat.schildi.revenge.compose.destination.split.LocalMultiPaneMeta
+import chat.schildi.revenge.compose.destination.split.requireSinglePaneLayout
 import chat.schildi.revenge.compose.focus.keyFocusable
+import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.model.DraftRepo
 import chat.schildi.revenge.model.InboxViewModel
 import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_NO_FILTER
@@ -82,6 +87,14 @@ fun InboxScreen(
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
 ) {
+    if (requireSinglePaneLayout(DestinationEnum.InboxConversationSplit, ScPrefs.PREFER_DUAL_PANE_INBOX) { inbox ->
+        Destination.InboxConversationMultiPane(
+            inbox = inbox,
+        )
+    }) {
+        return
+    }
+
     val viewModel: InboxViewModel = viewModel(
         key = viewModelKey(destination),
         factory = viewModelFactory { initializer { InboxViewModel() } }

@@ -85,7 +85,7 @@ class AndroidWindowManager : PlatformWindowManager {
 
     fun register(windowId: Int, initialDestination: Destination?, activity: MainActivity): DestinationStateHolder {
         val destinationHolder =
-            DestinationStateHolder.forInitialDestination(initialDestination ?: UiState.getInboxDestination())
+            DestinationStateHolder.forInitialDestination(initialDestination ?: Destination.Inbox)
         androidWindows.update {
             (
                 it + (windowId to AndroidWindowState(

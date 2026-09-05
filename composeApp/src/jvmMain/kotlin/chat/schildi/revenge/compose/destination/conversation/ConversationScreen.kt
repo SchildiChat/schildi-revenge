@@ -55,9 +55,11 @@ import chat.schildi.revenge.compose.composer.ComposerRow
 import chat.schildi.revenge.compose.destination.SplashScreenContent
 import chat.schildi.revenge.compose.destination.conversation.event.EventHighlight
 import chat.schildi.revenge.compose.destination.conversation.event.message.LocalUrlPreviewStateProvider
+import chat.schildi.revenge.compose.destination.split.requireSinglePaneLayout
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.shouldAutoRequestFocus
 import chat.schildi.revenge.compose.search.LocalSearchProvider
+import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.matrixBodyDrawStyle
 import chat.schildi.revenge.matrixBodyFormatter
 import chat.schildi.revenge.model.CheckpointLoadState
@@ -80,6 +82,14 @@ fun ConversationScreen(
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
 ) {
+    if (!destination.preferDetailsPane && requireSinglePaneLayout(DestinationEnum.ConversationDetailsSplit, ScPrefs.PREFER_CONVERSATION_DETAILS_SPLIT) { conversation ->
+            Destination.ConversationDetailsMultiPane(
+                conversation = conversation,
+            )
+        }) {
+        return
+    }
+
     BoxWithConstraints(
         modifier.safeDrawingPadding().fillMaxSize(),
         contentAlignment = Alignment.Center,

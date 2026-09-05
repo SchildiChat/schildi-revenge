@@ -122,7 +122,7 @@ fun InboxRow(
                             secondaryAction = openContextMenu,
                             copyActions = plainTextCopyAction { room.summary.info.name },
                         ) {
-                            UiState.getConversationDestinationFromInbox(room.sessionId, room.summary.roomId)
+                            Destination.Conversation(room.sessionId, room.summary.roomId)
                         },
                     )
                     .padding(

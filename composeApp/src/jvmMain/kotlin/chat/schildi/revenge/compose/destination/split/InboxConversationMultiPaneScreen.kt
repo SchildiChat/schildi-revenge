@@ -22,6 +22,12 @@ fun InboxConversationMultiPaneScreen(
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
 ) {
+    if (requireMultiPaneLayout(ScPrefs.PREFER_DUAL_PANE_INBOX) {
+        destination.inbox.state.value
+    }) {
+        return
+    }
+
     BoxWithConstraints(modifier) {
         val minSplitWidth = ScPrefs.INBOX_CONVERSATION_SPLIT_MIN_WIDTH.value().dp
         val collapseSinglePane = maxWidth < minSplitWidth

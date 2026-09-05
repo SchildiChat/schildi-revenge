@@ -1,7 +1,6 @@
 package chat.schildi.revenge
 
 import chat.schildi.resources.ComposableStringHolder
-import chat.schildi.revenge.UiState.getInboxDestination
 import chat.schildi.revenge.actions.ActionResult
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -61,7 +60,7 @@ actual val platformWindowManager = object : PlatformWindowManager {
             _windows.update {
                 if (it.isEmpty()) {
                     changed = true
-                    persistentListOf(createWindow(getInboxDestination()))
+                    persistentListOf(createWindow(Destination.Inbox))
                 } else {
                     it
                 }

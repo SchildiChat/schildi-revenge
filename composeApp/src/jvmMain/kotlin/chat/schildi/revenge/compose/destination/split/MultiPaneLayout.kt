@@ -3,10 +3,14 @@ package chat.schildi.revenge.compose.destination.split
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import chat.schildi.lib.preferences.ScBoolPref
+import chat.schildi.revenge.DefaultDestinationStateHolder
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.DestinationCategory
 import chat.schildi.revenge.DestinationState
@@ -17,8 +21,10 @@ import chat.schildi.revenge.actions.KeyboardActionHandler
 import chat.schildi.revenge.compose.components.AdaptiveRow
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.resources.ComposableStringHolder
+import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.compose.components.thenIf
 import chat.schildi.revenge.config.keybindings.DestinationEnum
+import chat.schildi.revenge.preferences.value
 import kotlin.uuid.Uuid
 
 private data class MultiPaneLayoutTarget(
@@ -26,6 +32,55 @@ private data class MultiPaneLayoutTarget(
     val focusId: Uuid,
     val role: SplitRole,
 )
+
+data class MultiPaneMeta(
+    val childIndex: Int,
+    val parent: DestinationEnum,
+    val parentMeta: MultiPaneMeta?,
+)
+val LocalMultiPaneMeta = compositionLocalOf<MultiPaneMeta?> { null }
+
+@Composable
+fun requireSinglePaneLayout(
+    multiPaneType: DestinationEnum,
+    pref: ScBoolPref,
+    toMultiPaneDestination: (DestinationStateHolder) -> Destination,
+): Boolean {
+    if (LocalMultiPaneMeta.current?.parent != multiPaneType) {
+        val preferMultiPane = pref.value()
+        if (preferMultiPane) {
+            val destinationState = LocalDestinationState.current
+            SideEffect(destinationState) {
+                destinationState ?: return@SideEffect
+                val childState = destinationState.state.value
+                destinationState.replaceWith(
+                    DestinationState(
+                        holderId = Uuid.random(),
+                        destination = toMultiPaneDestination(DefaultDestinationStateHolder(childState)),
+                    )
+                )
+            }
+            return true
+        }
+    }
+    return false
+}
+
+@Composable
+fun requireMultiPaneLayout(
+    pref: ScBoolPref,
+    toSinglePaneDestination: () -> DestinationState,
+): Boolean {
+    val preferMultiPane = pref.value()
+    if (!preferMultiPane) {
+        val destinationState = LocalDestinationState.current
+        SideEffect(destinationState) {
+            destinationState?.replaceWith(toSinglePaneDestination())
+        }
+        return true
+    }
+    return false
+}
 
 @Composable
 fun MultiPaneLayout(
@@ -63,7 +118,12 @@ fun MultiPaneLayout(
                     splitType = outerDestination,
                     destinationHolder = target.destinationHolder,
                     contentModifier = innerContentModifier,
-                    actionProvider = multiPaneKeyboardActionProvider(target.destinationHolder)
+                    actionProvider = multiPaneKeyboardActionProvider(target.destinationHolder),
+                    meta = MultiPaneMeta(
+                        childIndex = index,
+                        parent = outerDestination,
+                        parentMeta = LocalMultiPaneMeta.current,
+                    ),
                 )
             }
         }

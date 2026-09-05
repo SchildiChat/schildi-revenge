@@ -57,6 +57,11 @@ fun SplitHorizontal(
             splitType = destination.destinationId,
             destinationHolder = destination.primary,
             actionProvider = splitKeyboardActionProvider(true),
+            meta = MultiPaneMeta(
+                childIndex = 0,
+                parent = destination.destinationId,
+                parentMeta = LocalMultiPaneMeta.current,
+            ),
         )
         SplitScreenDestination(
             focusId = secondaryFocusId,
@@ -64,6 +69,11 @@ fun SplitHorizontal(
             splitType = destination.destinationId,
             destinationHolder = destination.secondary,
             actionProvider = splitKeyboardActionProvider(false),
+            meta = MultiPaneMeta(
+                childIndex = 1,
+                parent = destination.destinationId,
+                parentMeta = LocalMultiPaneMeta.current,
+            ),
         )
     }
 }
@@ -85,6 +95,11 @@ fun SplitVertical(
             splitType = destination.destinationId,
             destinationHolder = destination.primary,
             actionProvider = splitKeyboardActionProvider(true),
+            meta = MultiPaneMeta(
+                childIndex = 0,
+                parent = destination.destinationId,
+                parentMeta = LocalMultiPaneMeta.current,
+            ),
         )
         SplitScreenDestination(
             focusId = secondaryFocusId,
@@ -92,6 +107,11 @@ fun SplitVertical(
             splitType = destination.destinationId,
             destinationHolder = destination.secondary,
             actionProvider = splitKeyboardActionProvider(false),
+            meta = MultiPaneMeta(
+                childIndex = 1,
+                parent = destination.destinationId,
+                parentMeta = LocalMultiPaneMeta.current,
+            ),
         )
     }
 }
@@ -105,6 +125,7 @@ fun SplitScreenDestination(
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
     actionProvider: HierarchicalKeyboardActionProvider,
+    meta: MultiPaneMeta,
 ) {
     val keyHandler = LocalKeyboardActionHandler.current
     val focusedContainers = keyHandler.currentFocusedNestingDestinations.collectAsState(persistentListOf())
@@ -129,6 +150,7 @@ fun SplitScreenDestination(
     // Actual content
     FlatFocusContainer(
         LocalKeyboardActionProvider provides actionProvider,
+        LocalMultiPaneMeta provides meta,
         role = FocusRole.NESTING_DESTINATION_ROOT_CONTAINER,
         focusId = focusId,
         modifier = modifier.splitContainerDecoration(

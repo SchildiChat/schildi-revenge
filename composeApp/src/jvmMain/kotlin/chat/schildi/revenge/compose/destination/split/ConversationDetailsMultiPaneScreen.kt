@@ -23,6 +23,12 @@ fun ConversationDetailsMultiPaneScreen(
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
 ) {
+    if (requireMultiPaneLayout(ScPrefs.PREFER_CONVERSATION_DETAILS_SPLIT) {
+        destination.conversation.state.value
+    }) {
+        return
+    }
+
     BoxWithConstraints(modifier) {
         val minSplitWidth = ScPrefs.CONVERSATION_DETAILS_SPLIT_MIN_WIDTH.value().dp
         val collapseSinglePane = maxWidth < minSplitWidth
