@@ -41,6 +41,7 @@ class MainActivity : ComponentActivity() {
     internal val filePickerLauncher = AndroidFilePickerLauncher(this)
     private var windowId: WindowId = Random.nextInt()
     private var destinationStateHolder: DestinationStateHolder? = null
+    private var pendingLink: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -66,6 +67,10 @@ class MainActivity : ComponentActivity() {
             androidWindowManager.register(windowId, destination, this)
         this.destinationStateHolder = destinationStateHolder
 
+        if (savedInstanceState == null) {
+            handleViewIntent(intent)
+        }
+
         setContent {
             val darkTheme = prefersDarkTheme()
             val navigationBarColor = (if (darkTheme) {
@@ -85,7 +90,11 @@ class MainActivity : ComponentActivity() {
 
             val scope = rememberCoroutineScope()
             val handler = remember { KeyboardActionHandler(scope, windowId) }
-            LaunchedEffect(handler) { keyHandler = handler }
+            LaunchedEffect(handler) {
+                keyHandler = handler
+                pendingLink?.let(handler::consumeLink)
+                pendingLink = null
+            }
             val focusManager = LocalFocusManager.current
             val clipboard = LocalClipboard.current
             val uriHandler = LocalUriHandler.current
@@ -123,6 +132,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        handleViewIntent(intent)
         setIntent(intent)
         intent.getStringExtra(EXTRA_DESTINATION)?.let {
             Destination.deserializedFromString(it)
@@ -133,6 +143,15 @@ class MainActivity : ComponentActivity() {
                     log.e("Failed to deserialize new intent destination", failure)
                 }
         }
+    }
+
+    private fun handleViewIntent(intent: Intent) {
+        if (intent.action != Intent.ACTION_VIEW) return
+        val link = intent.dataString ?: return
+        // Prevent from consuming twice
+        intent.action = null
+        intent.data = null
+        keyHandler?.consumeLink(link) ?: run { pendingLink = link }
     }
 
     override fun onPause() {

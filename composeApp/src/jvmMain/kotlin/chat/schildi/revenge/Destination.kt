@@ -3,6 +3,7 @@ package chat.schildi.revenge
 import chat.schildi.resources.ComposableStringHolder
 import chat.schildi.resources.StringResourceHolder
 import chat.schildi.revenge.config.keybindings.DestinationEnum
+import com.beeper.android.messageformat.MatrixToLink
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -250,13 +251,29 @@ sealed interface Destination {
 
     @Serializable
     data class SessionSelector(
-        val description: ComposableStringHolder?,
-        val destinationBuilder: suspend (SessionId) -> Result<Destination>,
+        val selectionType: SessionSelectorType,
     ) : Destination {
+        @Serializable
+        sealed interface SessionSelectorType {
+            suspend fun buildDestination(sessionId: SessionId): Result<Destination>
+            @Serializable
+            data class MatrixLink(
+                val link: MatrixToLink,
+            ) : SessionSelectorType {
+                override suspend fun buildDestination(sessionId: SessionId): Result<Destination> {
+                    return when (link) {
+                        is MatrixToLink.MessageLink -> link.toDestination(sessionId)
+                        is MatrixToLink.RoomLink -> link.toDestination(sessionId)
+                        is MatrixToLink.UserMention -> Result.success(link.toDestination(sessionId, null))
+                    }
+                }
+            }
+        }
         override val destinationId = DestinationEnum.SessionSelector
         override val category = DestinationCategory.WILDCARD
         @Transient
         override val title = StringResourceHolder(Res.string.select_account)
+        suspend fun build(sessionId: SessionId) = selectionType.buildDestination(sessionId)
     }
 
     @Serializable

@@ -2052,14 +2052,7 @@ class KeyboardActionHandler(
                     }
                 }
                 Action.Global.ConsumeLink -> {
-                    val rawLink = args.firstOrNull().orActionValidationError()
-                    val link = MatrixLinkPatterns.parseMatrixLink(rawLink)
-                        .also {
-                            log.e { "Consuming matrix link: $rawLink -> $it" }
-                        }
-                        .orActionValidationError()
-                    consumeLink(link)
-                    ActionResult.Success()
+                    consumeLink(args.firstOrNull().orActionValidationError())
                 }
                 Action.Global.EnableImagePack -> {
                     val sessionId = SessionId(args.firstOrNull().orActionValidationError())
@@ -2231,14 +2224,20 @@ class KeyboardActionHandler(
         return ActionResult.Success()
     }
 
-    private fun consumeLink(link: MatrixToLink) {
-        val destination = Destination.SessionSelector(link.rawUrl.toStringHolder()) { sessionId ->
-            when (link) {
-                is MatrixToLink.MessageLink -> link.toDestination(sessionId)
-                is MatrixToLink.RoomLink -> link.toDestination(sessionId)
-                is MatrixToLink.UserMention -> Result.success(link.toDestination(sessionId, null))
+    fun consumeLink(rawLink: String): ActionResult {
+        val link = MatrixLinkPatterns.parseMatrixLink(rawLink)
+            .also {
+                log.e { "Consuming matrix link: $rawLink -> $it" }
             }
-        }
+            ?: return ActionResult.Failure("Invalid Matrix link")
+        consumeLink(link)
+        return ActionResult.Success()
+    }
+
+    private fun consumeLink(link: MatrixToLink) {
+        val destination = Destination.SessionSelector(
+            Destination.SessionSelector.SessionSelectorType.MatrixLink(link),
+        )
         UiState.openWindow(destination, false)
     }
 

@@ -88,7 +88,7 @@ fun SessionSelectorScreen(
 
     suspend fun navigateToSessionDestination(sessionId: SessionId) {
         didNavigate.value = true
-        val result = destination.destinationBuilder(sessionId)
+        val result = destination.build(sessionId)
         val destination = result.getOrNull()
         if (result.isFailure || destination == null) {
             error.value = result.exceptionOrNull()?.message ?: getString(Res.string.failed_to_resolve_room)
@@ -123,15 +123,16 @@ fun SessionSelectorScreen(
                 TopNavigationSearchOrTitle(stringResource(Res.string.select_account))
                 TopNavigationCloseOrNavigateToInboxIcon()
             }
-            destination.description?.let {
-                Text(
-                    it.render(),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.fillMaxWidth().padding(Dimens.windowPadding),
-                    textAlign = TextAlign.Center,
-                )
+            val description = when (val type = destination.selectionType) {
+                is Destination.SessionSelector.SessionSelectorType.MatrixLink -> type.link.rawUrl
             }
+            Text(
+                description,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.fillMaxWidth().padding(Dimens.windowPadding),
+                textAlign = TextAlign.Center,
+            )
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 val renderedAccounts = filteredAccounts?.accounts
                 if (renderedAccounts.isNullOrEmpty()) {
