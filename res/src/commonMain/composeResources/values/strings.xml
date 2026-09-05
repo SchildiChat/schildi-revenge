@@ -269,6 +269,7 @@
     <string name="hint_room_directory_visibility">Room directory visibility</string>
     <string name="hint_enabled">Enabled</string>
     <string name="hint_disabled">Disabled</string>
+    <string name="hint_message_in_room">Message in %1$s</string>
 
     <string name="reply_failed_to_load">Failed to load replied-to message</string>
 

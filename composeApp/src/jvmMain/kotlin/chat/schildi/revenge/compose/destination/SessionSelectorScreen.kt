@@ -57,6 +57,7 @@ import chat.schildi.revenge.model.SessionSelectorAccount
 import chat.schildi.revenge.model.SessionSelectorViewModel
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
+import com.beeper.android.messageformat.MatrixToLink
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.media.MediaSource
 import kotlinx.coroutines.launch
@@ -65,6 +66,7 @@ import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.action_processing
 import shire.res.generated.resources.failed_to_resolve_room
+import shire.res.generated.resources.hint_message_in_room
 import shire.res.generated.resources.select_account
 
 @Composable
@@ -124,7 +126,11 @@ fun SessionSelectorScreen(
                 TopNavigationCloseOrNavigateToInboxIcon()
             }
             val description = when (val type = destination.selectionType) {
-                is Destination.SessionSelector.SessionSelectorType.MatrixLink -> type.link.rawUrl
+                is Destination.SessionSelector.SessionSelectorType.MatrixLink -> when (val link = type.link) {
+                    is MatrixToLink.MessageLink -> stringResource(Res.string.hint_message_in_room, link.roomId)
+                    is MatrixToLink.RoomLink -> link.roomId
+                    is MatrixToLink.UserMention -> link.userId
+                }
             }
             Text(
                 description,
