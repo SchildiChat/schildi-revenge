@@ -47,14 +47,18 @@ object NotificationEventTextFormat {
 
     suspend fun notificationToText(
         notification: NotificationData,
+        prefixSenderInGroupChats: Boolean = true,
         stripNewlines: Boolean = false,
+        attachmentMode: AttachmentFormatMode = AttachmentFormatMode.Auto,
     ) = notificationToText(
         content = notification.content,
         senderId = notification.senderId,
         senderName = notification.getDisambiguatedDisplayName(notification.senderId),
         roomDisplayName = notification.roomDisplayName,
         isDirect = notification.isDirect,
+        prefixSenderInGroupChats = prefixSenderInGroupChats,
         stripNewlines = stripNewlines,
+        attachmentMode = attachmentMode,
     )
 
     suspend fun notificationToText(
@@ -63,13 +67,15 @@ object NotificationEventTextFormat {
         senderName: String,
         roomDisplayName: String?,
         isDirect: Boolean,
+        prefixSenderInGroupChats: Boolean = true,
         stripNewlines: Boolean = false,
+        attachmentMode: AttachmentFormatMode = AttachmentFormatMode.Auto,
     ): String {
         return when (content) {
             is NotificationContent.Invite -> getString(Res.string.message_placeholder_invite_by, senderName.sanitizeDirection())
             is NotificationContent.MessageLike -> {
-                val textContent = messageLikeToText(content, stripNewlines).sanitizeDirection()
-                if (isDirect && senderName == roomDisplayName) {
+                val textContent = messageLikeToText(content, stripNewlines, attachmentMode).sanitizeDirection()
+                if (!prefixSenderInGroupChats || isDirect && senderName == roomDisplayName) {
                     textContent
                 } else {
                     "${senderName.sanitizeDirection()}: $textContent"
@@ -86,6 +92,7 @@ object NotificationEventTextFormat {
     private suspend fun messageLikeToText(
         content: NotificationContent.MessageLike,
         stripNewlines: Boolean,
+        attachmentMode: AttachmentFormatMode,
     ): String {
         return when (content) {
             NotificationContent.MessageLike.CallAnswer,
@@ -102,7 +109,7 @@ object NotificationEventTextFormat {
             NotificationContent.MessageLike.KeyVerificationDone -> getString(Res.string.message_placeholder_key_verification)
             is NotificationContent.MessageLike.ReactionContent -> getString(Res.string.message_placeholder_reaction)
             NotificationContent.MessageLike.RoomEncrypted -> getString(Res.string.message_placeholder_encrypted_message)
-            is NotificationContent.MessageLike.RoomMessage -> EventTextFormat.messageTypeToText(content.messageType, stripNewlines) { getString(it) }
+            is NotificationContent.MessageLike.RoomMessage -> EventTextFormat.messageTypeToText(content.messageType, stripNewlines, attachmentMode) { getString(it) }
             is NotificationContent.MessageLike.RoomRedaction -> {
                 if (content.reason.isNullOrBlank()) {
                     getString(Res.string.message_placeholder_message_redacted)

@@ -84,6 +84,7 @@ object MediaDownloadRepo {
         mediaSource: MediaSource,
         mimeType: String?,
         filename: String?,
+        mediaLoader: MatrixMediaLoader? = UiState.currentClientFor(sessionId)?.matrixMediaLoader,
     ): Result<File> {
         val resultState = MutableStateFlow<Result<File>?>(null)
         requestAttachmentDownload(
@@ -93,6 +94,7 @@ object MediaDownloadRepo {
             mediaSource = mediaSource,
             mimeType = mimeType,
             filename = filename,
+            mediaLoader = mediaLoader,
             listener = object : MediaDownloadResultListener {
                 override suspend fun onDownloadResult(result: Result<File>) = resultState.emit(result)
 
@@ -108,6 +110,7 @@ object MediaDownloadRepo {
         mediaSource: MediaSource,
         mimeType: String?,
         filename: String?,
+        mediaLoader: MatrixMediaLoader? = UiState.currentClientFor(sessionId)?.matrixMediaLoader,
         listener: MediaDownloadResultListener,
     ) = withContext(Dispatchers.IO) {
         val file = MediaPersistencePaths.getPersistentAttachmentFile(
@@ -121,8 +124,7 @@ object MediaDownloadRepo {
             listener.onDownloadResult(Result.success(file))
             return@withContext
         }
-        val client = UiState.currentClientFor(sessionId)
-        if (client == null) {
+        if (mediaLoader == null) {
             listener.onDownloadResult(Result.failure(IOException("Client not ready")))
             return@withContext
         }
@@ -133,7 +135,6 @@ object MediaDownloadRepo {
                 return@withContext
             }
             val jobInfo = jobs[key]
-            val mediaLoader = client.matrixMediaLoader
             if (jobInfo == null || jobInfo.job.isCancelled) {
                 jobs[key] = JobInfo(
                     job = kickDownload(key, mediaLoader, mediaSource, mimeType, filename, file),

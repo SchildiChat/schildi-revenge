@@ -123,6 +123,12 @@ import shire.res.generated.resources.profile_update_none
 import shire.res.generated.resources.profile_update_set_name
 import shire.res.generated.resources.profile_update_set_name_and_avatar
 
+enum class AttachmentFormatMode {
+    Auto,
+    Caption,
+    FilenameOrFallback,
+}
+
 object EventTextFormat {
     @Composable
     fun eventToText(
@@ -131,12 +137,14 @@ object EventTextFormat {
         senderProfile: ProfileDetails,
         senderId: UserId,
         stripNewlines: Boolean = true,
+        attachmentMode: AttachmentFormatMode = AttachmentFormatMode.Auto,
     ): String = eventToText(
         content = content,
         messageMetadata = messageMetadata,
         senderProfile = senderProfile,
         senderId = senderId,
         stripNewlines = stripNewlines,
+        attachmentMode = attachmentMode,
         getString = { res -> stringResource(res) },
         getFormatString = { res, args -> stringResource(res, *args) },
     )
@@ -147,12 +155,14 @@ object EventTextFormat {
         senderProfile: ProfileDetails,
         senderId: UserId,
         stripNewlines: Boolean = true,
+        attachmentMode: AttachmentFormatMode = AttachmentFormatMode.Auto,
     ): String = eventToText(
         content = content,
         messageMetadata = messageMetadata,
         senderProfile = senderProfile,
         senderId = senderId,
         stripNewlines = stripNewlines,
+        attachmentMode = attachmentMode,
         getString = { res -> getString(res) },
         getFormatString = { res, args -> getString(res, *args) },
     )
@@ -163,6 +173,7 @@ object EventTextFormat {
         senderProfile: ProfileDetails,
         senderId: UserId,
         stripNewlines: Boolean,
+        attachmentMode: AttachmentFormatMode,
         getString: (StringResource) -> String,
         getFormatString: (StringResource, formatArgs: Array<Any>) -> String,
     ): String {
@@ -170,7 +181,7 @@ object EventTextFormat {
             return preformattedContentToString(it, stripNewlines)
         }
         return when (content) {
-            is MessageContent -> messageTypeToText(content.type, stripNewlines, getString)
+            is MessageContent -> messageTypeToText(content.type, stripNewlines, attachmentMode, getString)
             is StickerContent -> content.bestDescription
             is CallNotifyContent -> callContentToText(content, getFormatString)
             LegacyCallInviteContent -> getString(Res.string.message_placeholder_call)
@@ -190,6 +201,7 @@ object EventTextFormat {
     inline fun messageTypeToText(
         type: MessageType,
         stripNewlines: Boolean,
+        attachmentMode: AttachmentFormatMode,
         getString: (StringResource) -> String,
     ): String {
         return when (type) {
@@ -200,7 +212,9 @@ object EventTextFormat {
                 stripNewlines
             )
             is MessageTypeWithAttachment -> formattedBodyToText(
+                type.filename,
                 type.formattedCaption,
+                type.caption,
                 type.bestDescription,
                 when (type) {
                     is AudioMessageType -> getString(Res.string.message_placeholder_audio_message)
@@ -211,16 +225,36 @@ object EventTextFormat {
                     is VoiceMessageType -> getString(Res.string.message_placeholder_voice_message)
                 },
                 stripNewlines,
+                attachmentMode,
             )
             is GalleryMessageType -> formattedBodyToText(
+                null,
                 type.formatted,
+                type.body,
                 type.body,
                 getString(Res.string.message_placeholder_gallery),
                 stripNewlines,
+                attachmentMode,
             )
             is LocationMessageType -> type.body.takeIf { it.isNotBlank() } ?: getString(Res.string.message_placeholder_location)
             is OtherMessageType -> type.body.takeIf { it.isNotBlank() } ?: getString(Res.string.message_placeholder_unknown)
         }
+    }
+
+    fun formattedBodyToText(
+        filename: String?,
+        formattedBody: FormattedBody?,
+        caption: String?,
+        bestDescription: String,
+        fallback: String,
+        stripNewlines: Boolean,
+        attachmentMode: AttachmentFormatMode,
+    ) = when (attachmentMode) {
+        AttachmentFormatMode.Auto -> formattedBodyToText(formattedBody, bestDescription, fallback, stripNewlines)
+        AttachmentFormatMode.Caption -> formattedBodyToText(formattedBody, "", "", stripNewlines).takeIf { it.isNotBlank() }
+            ?: caption?.takeIf { it != filename }
+            ?: ""
+        AttachmentFormatMode.FilenameOrFallback -> filename?.takeIf { it.isNotBlank() } ?: fallback
     }
 
     fun formattedBodyToText(

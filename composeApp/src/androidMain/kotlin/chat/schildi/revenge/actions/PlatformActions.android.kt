@@ -2,6 +2,7 @@ package chat.schildi.revenge.actions
 
 import android.content.ActivityNotFoundException
 import android.content.ContentValues
+import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Environment
@@ -14,11 +15,14 @@ internal actual val platformHasUserFacingFilePaths = false
 
 internal actual val platformOpenUri: (suspend (String) -> Unit)? = null
 
+val Context.fileProviderAuthority: String
+    get() = "${packageName}.fileprovider"
+
 internal actual fun platformOpenFile(file: File, mimeType: String?): ActionResult {
     val context = RevengeApplication.instance
     val uri = FileProvider.getUriForFile(
         context,
-        "${context.packageName}.fileprovider",
+        context.fileProviderAuthority,
         file,
     )
     val resolvedMimeType = mimeType?.takeIf { it.isNotBlank() }

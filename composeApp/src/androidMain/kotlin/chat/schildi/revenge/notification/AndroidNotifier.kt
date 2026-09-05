@@ -9,11 +9,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.net.Uri
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
@@ -21,9 +24,13 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.MainActivity
 import chat.schildi.revenge.RevengeAppGraph
 import chat.schildi.revenge.RevengeApplication
+import chat.schildi.revenge.actions.fileProviderAuthority
 import chat.schildi.revenge.compose.R
+import chat.schildi.revenge.media.MediaDownloadRepo
+import chat.schildi.revenge.plaintext.AttachmentFormatMode
 import chat.schildi.revenge.plaintext.NotificationEventTextFormat
 import chat.schildi.revenge.serializedToString
+import chat.schildi.revenge.util.MimeUtil
 import co.touchlab.kermit.Logger
 import coil3.BitmapImage
 import coil3.request.ImageRequest
@@ -33,8 +40,14 @@ import io.element.android.libraries.androidutils.hash.hash
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.media.MediaSource
+import io.element.android.libraries.matrix.api.notification.NotificationContent
 import io.element.android.libraries.matrix.api.notification.NotificationData
 import io.element.android.libraries.matrix.api.room.CreateTimelineParams
+import io.element.android.libraries.matrix.api.timeline.item.event.ImageLikeMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.ImageMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
+import io.element.android.libraries.matrix.api.timeline.item.event.StickerMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.VideoMessageType
 import io.element.android.libraries.matrix.ui.media.MediaRequestData
 import io.element.android.libraries.matrix.ui.media.animated.allowAnimatedImageDecoding
 import kotlinx.coroutines.CoroutineScope
@@ -144,15 +157,105 @@ object AndroidNotifier {
             .setIcon(senderAvatar?.let(IconCompat::createWithBitmap))
             .build()
 
-        val message = NotificationEventTextFormat.notificationToText(data)
-
         val messagingStyle = existingNotification?.let {
             NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(it)
         } ?: NotificationCompat.MessagingStyle(ownUser)
         messagingStyle
             .setConversationTitle(data.roomDisplayName)
             .setGroupConversation(!data.isDirect)
-            .addMessage(message, data.timestamp, sender)
+
+        val plainMessageText = NotificationEventTextFormat.notificationToText(
+            data,
+            attachmentMode = AttachmentFormatMode.Auto,
+            prefixSenderInGroupChats = true,
+        )
+
+        suspend fun textMessage(
+            attachmentMode: AttachmentFormatMode = AttachmentFormatMode.Auto
+        ): NotificationCompat.MessagingStyle.Message {
+            val text = NotificationEventTextFormat.notificationToText(
+                data,
+                attachmentMode = attachmentMode,
+                prefixSenderInGroupChats = false,
+            )
+            return NotificationCompat.MessagingStyle.Message(text, data.timestamp, sender)
+        }
+
+        when (val content = data.content) {
+            is NotificationContent.MessageLike.RoomMessage -> {
+                when (val messageType = content.messageType) {
+                    is ImageLikeMessageType -> {
+                        // Thumbnail
+                        val messageMedia = messageType.info?.thumbnailSource?.let { thumbnailSource ->
+                            loadNotificationMediaUri(
+                                context,
+                                data,
+                                thumbnailSource,
+                                messageType.info?.thumbnailInfo?.mimetype,
+                                messageType.filename,
+                            )
+                        } ?: loadNotificationMediaUri(
+                            context,
+                            data,
+                            messageType.source,
+                            messageType.info?.mimetype,
+                            messageType.filename,
+                        )
+
+                        // Media message
+                        messagingStyle.addMessage(
+                            textMessage(AttachmentFormatMode.FilenameOrFallback).apply {
+                                messageMedia?.let { (uri, mimeType) ->
+                                    setData(mimeType, uri)
+                                }
+                            }
+                        )
+
+                        // Caption message needs to be separate to be rendered
+                        if (!messageType.caption.isNullOrBlank()) {
+                            messagingStyle.addMessage(textMessage(AttachmentFormatMode.Caption))
+                        }
+                    }
+                    is VideoMessageType -> {
+                        // Thumbnail
+                        val messageMedia = messageType.info?.thumbnailSource?.let { thumbnailSource ->
+                            loadNotificationMediaUri(
+                                context,
+                                data,
+                                thumbnailSource,
+                                messageType.info?.thumbnailInfo?.mimetype,
+                                messageType.filename,
+                            )
+                        }
+
+                        // Media message
+                        messagingStyle.addMessage(
+                            textMessage(AttachmentFormatMode.FilenameOrFallback).apply {
+                                messageMedia?.let { (uri, mimeType) ->
+                                    setData(mimeType, uri)
+                                }
+                            }
+                        )
+
+                        // Caption message needs to be separate to be rendered
+                        if (!messageType.caption.isNullOrBlank()) {
+                            messagingStyle.addMessage(textMessage(AttachmentFormatMode.Caption))
+                        }
+                    }
+                    is MessageTypeWithAttachment -> {
+                        // To make it clear this is an attachment, render both caption (if exists) and filename/fallback
+                        if (messageType.caption.isNullOrBlank()) {
+                            messagingStyle.addMessage(textMessage())
+                        } else {
+                            messagingStyle.addMessage(textMessage(AttachmentFormatMode.FilenameOrFallback))
+                            messagingStyle.addMessage(textMessage(AttachmentFormatMode.Caption))
+                        }
+                    }
+                    else -> messagingStyle.addMessage(textMessage())
+                }
+            }
+            else -> messagingStyle.addMessage(textMessage())
+        }
 
         val shortcut = createConversationShortcut(
             sessionId = id.sessionId,
@@ -182,8 +285,8 @@ object AndroidNotifier {
         val notification = builder
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(data.roomDisplayName)
-            .setContentText(message)
-            .setTicker(message)
+            .setContentText(plainMessageText)
+            .setTicker(plainMessageText)
             .setStyle(messagingStyle)
             .setNumber(messagingStyle.messages.size)
             .setLargeIcon(roomAvatar ?: senderAvatar)
@@ -234,6 +337,44 @@ object AndroidNotifier {
         )
     }
 
+    private suspend fun loadNotificationMediaUri(
+        context: Context,
+        data: NotificationData,
+        source: MediaSource,
+        mimeType: String?,
+        filename: String?,
+    ): Pair<Uri, String?>? {
+        return withTimeoutOrNull(MEDIA_TIMEOUT.milliseconds) {
+            val mediaLoader = RevengeAppGraph.sessionCache.getOrRestore(data.sessionId).getOrNull()
+                ?.matrixMediaLoader
+                ?: return@withTimeoutOrNull null
+            val file = MediaDownloadRepo.requestAttachmentDownload(
+                sessionId = data.sessionId,
+                roomId = data.roomId,
+                sourceTimestamp = data.timestamp,
+                mediaSource = source,
+                mimeType = mimeType,
+                filename = filename,
+                mediaLoader = mediaLoader,
+            ).onFailure { failure ->
+                log.w("Failed to load media for notification ${data.eventId}", failure)
+            }.getOrNull() ?: return@withTimeoutOrNull null
+            val mimeType = mimeType?.takeIf { it.startsWith("image/") }
+                ?: MimeUtil.detectMimeType(file).takeIf { it.startsWith("image/") }
+                ?: return@withTimeoutOrNull null
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && !ImageDecoder.isMimeTypeSupported(mimeType)) {
+                log.d { "Notification media MIME type $mimeType is not supported" }
+                return@withTimeoutOrNull null
+            }
+            val uri = runCatching {
+                FileProvider.getUriForFile(context, context.fileProviderAuthority, file)
+            }.onFailure { failure ->
+                log.w("Failed to expose media for notification ${data.eventId}", failure)
+            }.getOrNull() ?: return@withTimeoutOrNull null
+            Pair(uri, mimeType)
+        }
+    }
+
     private fun createConversationShortcut(
         sessionId: SessionId,
         roomId: RoomId,
@@ -248,7 +389,7 @@ object AndroidNotifier {
             .setIntent(intent)
             .setIsConversation()
             .apply {
-                icon?.let { setIcon(IconCompat.createWithAdaptiveBitmap(it)) }
+                icon?.let { setIcon(IconCompat.createWithBitmap(it)) }
                 person?.let { setPerson(person) }
             }
             .build()
