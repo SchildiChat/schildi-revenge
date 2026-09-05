@@ -1,5 +1,5 @@
 [versions]
-androidGradlePlugin = "9.4.0"
+androidGradlePlugin = "9.3.0"
 versionsPlugin = "0.61.0"
 dependencyLicenseReport = "3.1.4"
 androidx-lifecycle = "2.11.0"
