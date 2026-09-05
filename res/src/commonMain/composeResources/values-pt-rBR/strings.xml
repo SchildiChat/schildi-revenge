@@ -398,4 +398,6 @@
     <string name="diagnostics_user_data_dir">Dados de usuário</string>
     <string name="diagnostics_user_config_dir">Configurações de usuário</string>
     <string name="pref_threaded_replies_in_main_timeline_title_short">Respostas em tópico</string>
+    <string name="pref_push_notifications_title">Notificações em segundo plano</string>
+    <string name="pref_push_notifications_summary">Receber notificações enquanto o programa está em plano de fundo. Requer um backend de push suportado.</string>
 </resources>
