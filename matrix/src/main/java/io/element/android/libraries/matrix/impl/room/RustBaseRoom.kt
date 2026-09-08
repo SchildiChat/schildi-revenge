@@ -45,6 +45,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import org.matrix.rustcomponents.sdk.CallDeclineListener
+import org.matrix.rustcomponents.sdk.ReceiptThread
 import org.matrix.rustcomponents.sdk.RoomInfoListener
 import org.matrix.rustcomponents.sdk.use
 import timber.log.Timber
@@ -261,6 +262,15 @@ class RustBaseRoom(
     override suspend fun forceSendSingleReadReceipt(receiptType: ReceiptType, eventId: EventId): Result<Unit> = withContext(roomDispatcher) {
         runCatchingExceptions {
             innerRoom.forceSendSingleReceipt(receiptType.toRustReceiptType(), eventId.value)
+        }
+    }
+    override suspend fun getOwnReadReceipt(receiptType: ReceiptType) = withContext(roomDispatcher) {
+        runCatchingExceptions {
+            innerRoom.loadUserReceipt(
+                receiptType.toRustReceiptType(),
+                ReceiptThread.Unthreaded,
+                sessionId.value,
+            )?.eventId?.let(::EventId)
         }
     }
     override suspend fun sendRaw(eventType: String, content: String) = withContext(roomDispatcher) {

@@ -88,11 +88,6 @@ data class ScopedRoomSummary(
     val key = ScopedRoomKey(sessionId, summary.roomId)
 }
 
-data class ScopedRoomKey(
-    val sessionId: SessionId,
-    val roomId: RoomId,
-)
-
 sealed interface InboxAccount {
     val sessionId: SessionId
     val isHidden: Boolean

@@ -12,6 +12,7 @@ import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
@@ -27,6 +28,7 @@ import chat.schildi.revenge.RevengeApplication
 import chat.schildi.revenge.actions.fileProviderAuthority
 import chat.schildi.revenge.compose.R
 import chat.schildi.revenge.media.MediaDownloadRepo
+import chat.schildi.revenge.model.ScopedRawRoomId
 import chat.schildi.revenge.plaintext.AttachmentFormatMode
 import chat.schildi.revenge.plaintext.NotificationEventTextFormat
 import chat.schildi.revenge.serializedToString
@@ -37,6 +39,7 @@ import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import coil3.size.Precision
 import io.element.android.libraries.androidutils.hash.hash
+import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.media.MediaSource
@@ -44,9 +47,7 @@ import io.element.android.libraries.matrix.api.notification.NotificationContent
 import io.element.android.libraries.matrix.api.notification.NotificationData
 import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import io.element.android.libraries.matrix.api.timeline.item.event.ImageLikeMessageType
-import io.element.android.libraries.matrix.api.timeline.item.event.ImageMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
-import io.element.android.libraries.matrix.api.timeline.item.event.StickerMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.VideoMessageType
 import io.element.android.libraries.matrix.ui.media.MediaRequestData
 import io.element.android.libraries.matrix.ui.media.animated.allowAnimatedImageDecoding
@@ -72,6 +73,10 @@ object AndroidNotifier {
     private const val CONVERSATION_SHORTCUT_PREFIX = "room_"
     private const val MEDIA_TIMEOUT = 10_000L
     private const val LARGE_ICON_SIZE = 256
+
+    private const val EXTRA_SESSION_ID = "session_id"
+    private const val EXTRA_ROOM_ID = "room_id"
+    private const val EXTRA_LATEST_EVENT_ID = "latest_event_id"
 
     private val log = Logger.withTag("AndroidNotifier")
 
@@ -292,7 +297,16 @@ object AndroidNotifier {
             .setLargeIcon(roomAvatar ?: senderAvatar)
             .setAutoCancel(true)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
-            .apply { shortcut?.let { setShortcutId(it.id) } }
+            .apply {
+                addExtras(
+                    Bundle().apply {
+                        putString(EXTRA_SESSION_ID, id.sessionId.value)
+                        putString(EXTRA_ROOM_ID, id.roomId.value)
+                        putString(EXTRA_LATEST_EVENT_ID, data.eventId.value)
+                    }
+                )
+                shortcut?.let { setShortcutId(it.id) }
+            }
             .build()
 
         try {
@@ -300,6 +314,40 @@ object AndroidNotifier {
         } catch (failure: SecurityException) {
             log.w("Notification permission was revoked before the notification could be posted", failure)
         }
+    }
+
+    fun activeNotificationRooms(): List<ScopedRawRoomId> {
+        val notificationManager = NotificationManagerCompat.from(RevengeApplication.instance)
+        return runCatching {
+            notificationManager.activeNotifications.mapNotNull { active ->
+                val extras = active.notification.extras
+                val sessionId = extras.getString(EXTRA_SESSION_ID)
+                val roomId = extras.getString(EXTRA_ROOM_ID)
+                if (sessionId != null && roomId != null) ScopedRawRoomId(sessionId, roomId) else null
+            }
+        }.onFailure { failure ->
+            log.w("Failed to inspect active notifications", failure)
+        }.getOrDefault(emptyList())
+    }
+
+    fun maybeAutoDismiss(sessionId: String, roomId: String, latestRead: List<String>): Boolean {
+        val notificationManager = NotificationManagerCompat.from(RevengeApplication.instance)
+        val notificationId = NotificationId.Room(SessionId(sessionId), RoomId(roomId)).androidNotificationId()
+        val active = runCatching {
+            notificationManager.activeNotifications.firstOrNull { it.id == notificationId }
+        }.onFailure { failure ->
+            log.w("Failed to inspect active notifications", failure)
+        }.getOrNull() ?: return false
+        val latestPosted = active.notification.extras.getString(EXTRA_LATEST_EVENT_ID) ?: return false
+        log.d { "Comparing posted notification for $sessionId, $roomId, $latestPosted against [${latestRead.joinToString()}]" }
+        if (latestPosted in latestRead) {
+            runCatching { notificationManager.cancel(notificationId) }
+                .onFailure { failure ->
+                    log.w("Failed to cancel auto-dismissed notification for $sessionId/$roomId", failure)
+                }
+            return true
+        }
+        return false
     }
 
     private fun NotificationId.conversationDestination() = when (this) {
