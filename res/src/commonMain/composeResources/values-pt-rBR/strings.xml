@@ -401,4 +401,8 @@
     <string name="pref_push_notifications_title">Notificações em segundo plano</string>
     <string name="pref_push_notifications_summary">Receber notificações enquanto o programa está em plano de fundo. Requer um backend de push suportado.</string>
     <string name="action_jump_to_bottom">Pular para o final</string>
+    <string name="pref_open_at_unread_summary">Abrir conversas na última mensagem totalmente lida. Pode desacelerar a abertura da sala</string>
+    <string name="pref_open_at_unread_title">Abrir em não lido</string>
+    <string name="pref_category_message_actions">Ações de mensagem</string>
+    <string name="action_mark_as_read_private">Marcar como lido (privado)</string>
 </resources>
