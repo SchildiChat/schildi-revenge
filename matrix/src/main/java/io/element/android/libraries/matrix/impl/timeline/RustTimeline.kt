@@ -270,9 +270,11 @@ class RustTimeline(
                     typingNotificationPostProcessor.process(items = items)
                 }
                 // Keep lastForwardIndicatorsPostProcessor last
+                /*
                 .let { items ->
                     lastForwardIndicatorsPostProcessor.process(items = items)
                 }
+                 */
         }
     }.onStart {
         timelineItemsSubscriber.subscribeIfNeeded()
