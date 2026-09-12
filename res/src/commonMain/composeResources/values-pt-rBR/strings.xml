@@ -405,4 +405,7 @@
     <string name="pref_open_at_unread_title">Abrir em não lido</string>
     <string name="pref_category_message_actions">Ações de mensagem</string>
     <string name="action_mark_as_read_private">Marcar como lido (privado)</string>
+    <string name="pref_force_fcm_distributor_summary">Usar o distribuidor FCM embutido mesmo quando outro distribuidor UnifiedPush está disponível. Apenas se aplicará a novas registrações.</string>
+    <string name="pref_force_fcm_distributor_title">Forçar distribuidor FCM</string>
+    <string name="hint_message_in_room">Conversar em %1$s</string>
 </resources>
