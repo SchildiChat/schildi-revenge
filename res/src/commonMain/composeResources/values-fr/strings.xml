@@ -1,3 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="manage_accounts">Comptes</string>
+    <string name="inbox">Boîte de réception</string>
+    <string name="create_room">Créer un nouveau salon</string>
+    <string name="thread">Fil de discussion</string>
+    <string name="pinned_messages">Messages épinglés</string>
+    <string name="room_details_title">Détails du salon</string>
+    <string name="room_members_title_loading">Chargement des membres du salon</string>
+    <plurals name="room_members_title_loaded">
+        <item quantity="one">%1$s membre</item>
+        <item quantity="many">%1$s membres</item>
+        <item quantity="other">%1$s membres</item>
+    </plurals>
+    <string name="message_reactions_title">Réactions</string>
+    <string name="message_read_receipts_title">Confirmation de lecture</string>
+    <string name="dev_tools_title">Outils de développement</string>
+    <string name="select_account">Sélectionner un compte</string>
+    <string name="about">À propos</string>
+    <string name="about_credits">Crédits</string>
+    <string name="about_open_source_licenses">Licences open source</string>
+    <string name="about_privacy_policy">Politique de confidentialité</string>
+    <string name="about_website">Site web</string>
+    <string name="about_source_code">Code source</string>
+    <string name="about_build_info">Informations de version</string>
+    <string name="about_version_name">Version: %1$s</string>
+    <string name="about_version_code">Version code: %1$d</string>
+    <string name="about_build_date">Date de version: %1$s</string>
+    <string name="about_revision">Révision de la source: %1$s</string>
+    <string name="about_kotlin_base_revision">Base du SDK : %1$s</string>
+    <string name="about_rust_revision">Révision du SDK: %1$s</string>
+    <string name="about_system_info">Informations système</string>
+    <string name="diagnostics">Diagnostics</string>
+    <string name="diagnostics_system_info">Informations système</string>
+    <string name="diagnostics_render_api">API de rendu</string>
+    <string name="diagnostics_app_directories">Répertoires d'application</string>
+    <string name="diagnostics_user_data_dir">Données utilisateur</string>
+    <string name="diagnostics_user_config_dir">Configuration utilisateur</string>
+    <string name="diagnostics_user_cache_dir">Cache utilisateur</string>
+    <string name="diagnostics_site_data_dir">Données du site</string>
+    <string name="diagnostics_site_config_dir">Configuration du site</string>
+    <string name="diagnostics_user_log_dir">Journaux d'activité de l'utilisateur</string>
 </resources>
