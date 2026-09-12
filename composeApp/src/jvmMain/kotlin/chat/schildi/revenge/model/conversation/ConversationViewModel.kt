@@ -507,43 +507,38 @@ class ConversationViewModel(
         peekRoom = { baseRoom.value },
     )
 
-    private val specialTimeline = if (timelineParams == null) flowOf(null) else joinedRoom.map { room ->
+    private val timelineController = joinedRoom.map { room ->
         room ?: return@map null
-        val timeline = room.createTimeline(
-            timelineParams
-        )
-        if (timeline.isFailure) {
-            log.e("Failed to get special timeline via $timelineParams", timeline.exceptionOrNull())
-        }
-        timeline.getOrNull()
-    }.flowClosable()
-
-    private val timelineController = if (timelineParams == null) {
-        joinedRoom.map { room ->
-            room ?: return@map null
-            val initialEventId = effectiveInitialEventId.await()
-                ?: return@map TimelineController(room)
-            room.createTimeline(
-                CreateTimelineParams.Focused(initialEventId),
-                timelineFilterSettings.value.preferHideThreadedEvents
-                    ?: ScPrefs.THREAD_REPLIES_IN_MAIN_TIMELINE.defaultValue,
-            ).onFailure {
-                if (it is CancellationException) throw it
-            }.map {
-                TimelineController(room, initialDetachedTimeline = it)
-            }.getOrElse {
-                log.e("Failed to focus on event $initialEventId", it)
-                TimelineController(room)
+        // Focusing on a certain event still uses same live timeline but initially detach,
+        // while media and threads replace the live one too.
+        when (timelineParams) {
+            null,
+            is CreateTimelineParams.Focused -> {
+                val initialEventId = effectiveInitialEventId.await()
+                    ?: return@map TimelineController(room)
+                room.createTimeline(
+                    CreateTimelineParams.Focused(initialEventId),
+                    timelineFilterSettings.value.preferHideThreadedEvents
+                        ?: ScPrefs.THREAD_REPLIES_IN_MAIN_TIMELINE.defaultValue,
+                ).onFailure {
+                    if (it is CancellationException) throw it
+                }.map {
+                    TimelineController(room, initialDetachedTimeline = it)
+                }.getOrElse {
+                    log.e("Failed to focus on event $initialEventId", it)
+                    TimelineController(room)
+                }
             }
-        }
-    } else {
-        combine(
-            specialTimeline,
-            joinedRoom
-        ) { timeline, room ->
-            timeline ?: return@combine null
-            room ?: return@combine null
-            TimelineController(room, timeline)
+            else -> {
+                room.createTimeline(
+                    timelineParams
+                ).onFailure {
+                    if (it is CancellationException) throw it
+                    log.e("Failed to get special timeline via $timelineParams", it)
+                }.map {
+                    TimelineController(room, it)
+                }.getOrNull()
+            }
         }
     }
         .flowClosable()
@@ -1235,6 +1230,10 @@ class ConversationViewModel(
         }
             .flowOn(Dispatchers.IO)
             .launchIn(viewModelScope)
+
+        timelineController.flatMapLatest { it?.isLive() ?: flowOf(null) }.onEach { isLive ->
+            log.d { "Timeline is live: $isLive" }
+        }.launchIn(viewModelScope)
 
         // Typing indicators
         var wasTyping = false
