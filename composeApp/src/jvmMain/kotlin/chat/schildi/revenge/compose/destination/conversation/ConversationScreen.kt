@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
@@ -55,6 +56,7 @@ import chat.schildi.revenge.compose.composer.ComposerRow
 import chat.schildi.revenge.compose.destination.SplashScreenContent
 import chat.schildi.revenge.compose.destination.conversation.event.EventHighlight
 import chat.schildi.revenge.compose.destination.conversation.event.message.LocalUrlPreviewStateProvider
+import chat.schildi.revenge.compose.destination.conversation.virtual.PagingIndicator
 import chat.schildi.revenge.compose.destination.split.requireSinglePaneLayout
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.shouldAutoRequestFocus
@@ -113,6 +115,8 @@ fun ConversationScreen(
         val timelineItems = viewModel.timelineItems.collectAsState().value
         val forwardPaginationStatus = viewModel.forwardPaginationStatus.collectAsState(null).value
         val backwardPaginationStatus = viewModel.backwardPaginationStatus.collectAsState(null).value
+        val showBackwardPagingIndicator = backwardPaginationStatus?.hasMoreToLoad == true
+        val showForwardPagingIndicator = forwardPaginationStatus?.hasMoreToLoad == true
         val timestampSettings = viewModel.timestampSettings.collectAsState().value
 
         val roomInfo = viewModel.roomInfo.collectAsState().value
@@ -322,7 +326,14 @@ fun ConversationScreen(
                                 roomMembersById = roomMembersById.value,
                                 highlight = highlight,
                                 timestampSettings = timestampSettings,
+                                showBackwardPagingIndicator = showBackwardPagingIndicator,
+                                showForwardPagingIndicator = showForwardPagingIndicator,
                             )
+                        }
+                        if (renderedItems.isEmpty() && showBackwardPagingIndicator) {
+                            item {
+                                PagingIndicator(Modifier.padding(vertical = Dimens.windowPadding))
+                            }
                         }
                     }
 

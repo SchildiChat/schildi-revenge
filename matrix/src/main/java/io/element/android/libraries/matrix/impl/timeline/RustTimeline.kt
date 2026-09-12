@@ -240,12 +240,12 @@ class RustTimeline(
     override val timelineItems: Flow<List<MatrixTimelineItem>> = combine(
         _timelineItems,
         backwardPaginationStatus,
-        forwardPaginationStatus,
+        //forwardPaginationStatus,
         joinedRoom.roomInfoFlow.map { RoomTimelineInfo(it.creators, it.isDm, it.joinRule, it.isEncrypted) }.distinctUntilChanged(),
     ) {
         timelineItems,
         backwardPaginationStatus,
-        forwardPaginationStatus,
+        //forwardPaginationStatus,
         roomInfo,
         ->
         withContext(dispatcher) {
@@ -259,6 +259,7 @@ class RustTimeline(
                         hasMoreToLoadBackwards = backwardPaginationStatus.hasMoreToLoad,
                     )
                 }
+                /* All these things upstream added break anchoring...
                 .let { items ->
                     loadingIndicatorsPostProcessor.process(
                         items = items,
@@ -266,6 +267,7 @@ class RustTimeline(
                         hasMoreToLoadForward = forwardPaginationStatus.hasMoreToLoad,
                     )
                 }
+                 */
                 .let { items ->
                     typingNotificationPostProcessor.process(items = items)
                 }

@@ -40,12 +40,17 @@ fun ConversationItemRow(
     previous: ScTimelineItem?,
     highlight: EventHighlight,
     timestampSettings: TimestampSettings,
+    showBackwardPagingIndicator: Boolean,
+    showForwardPagingIndicator: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val fullyReadEvent = viewModel.cachedFullyRead.collectAsState().value
     Column(modifier.fillMaxWidth()) {
         if (previous == null) {
             Spacer(Modifier.height(Dimens.windowPadding))
+            if (showBackwardPagingIndicator) {
+                PagingIndicator()
+            }
         }
         val isRealUnreadLine = if (fullyReadEvent != null && fullyReadEvent.has((previous?.item as? MatrixTimelineItem.Event)?.eventId)) {
             if ((item.item as? MatrixTimelineItem.Virtual)?.virtual is VirtualTimelineItem.ReadMarker) {
@@ -116,6 +121,9 @@ fun ConversationItemRow(
             }
         }
         if (next == null) {
+            if (showForwardPagingIndicator) {
+                PagingIndicator()
+            }
             Spacer(Modifier.height(Dimens.windowPadding))
         }
     }
