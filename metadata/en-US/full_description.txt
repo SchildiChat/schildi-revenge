@@ -1,0 +1,8 @@
+SchildiChat Revenge is the third generation of SchildiChat, a family of clients for the Matrix protocol.
+It features multi-account as a core principle, quick space navigation, a shared codebase for Desktop and Android, and more.
+This client is currently still to be considered beta, so depending on your requirements it may or may not be ready for day-to-day use.
+
+The Matrix protocol is a decentralized approach to modern messaging, allowing you to select a server provider of your choice (or even self-host your own server), enabling you to communicate with end-to-end encryption, shared message history across multiple devices, and more.
+
+SchildiChat is open source: https://github.com/SchildiChat/schildi-revenge
+More information about the Matrix protocol: https://matrix.org/
