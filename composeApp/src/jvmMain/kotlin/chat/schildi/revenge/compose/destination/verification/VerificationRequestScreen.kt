@@ -7,11 +7,18 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -20,6 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -35,7 +43,9 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
+import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
+import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.plainTextCopyAction
 import chat.schildi.revenge.actions.plainTextCopyActionWithMxcUrl
@@ -103,7 +113,10 @@ fun VerificationRequestScreen(
     }
 
     val verificationFlowState = viewModel.verificationFlowState.collectAsState().value
+    val listState = rememberLazyListState()
+    val listAction = remember(listState) { ListActions(listState) }
     FocusContainer(
+        LocalListActionProvider provides listAction,
         modifier = modifier.safeDrawingPadding(),
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
     ) {
@@ -113,23 +126,46 @@ fun VerificationRequestScreen(
                 TopNavigationCloseOrNavigateToInboxIcon()
             }
             Box(contentModifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Column(
-                    Modifier.padding(Dimens.windowPadding),
+                val request = viewModel.activeVerificationRequest.collectAsState().value
+                LazyColumn(
+                    state = listState,
+                    modifier = Modifier.padding(Dimens.windowPadding),
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Dimens.verticalArrangementBig,
+                    contentPadding = WindowInsets.navigationBars
+                        .only(WindowInsetsSides.Bottom)
+                        .asPaddingValues(),
                 ) {
-                    val request = viewModel.activeVerificationRequest.collectAsState().value
                     if (request == null) {
-                        VerificationNoActiveRequestContent(viewModel)
+                        item {
+                            VerificationNoActiveRequestContent(viewModel)
+                        }
                     } else {
                         when (verificationFlowState) {
-                            VerificationFlowState.Initial -> VerificationInitialContent(request, viewModel)
-                            VerificationFlowState.DidAcceptVerificationRequest -> VerificationAcceptedContent(request, viewModel)
-                            VerificationFlowState.DidStartSasVerification -> VerificationSasStartedContent(request, viewModel)
-                            is VerificationFlowState.DidReceiveVerificationData -> VerificationDataContent(verificationFlowState, request, viewModel)
-                            VerificationFlowState.DidFinish -> VerificationFinishedContent(request, viewModel)
-                            VerificationFlowState.DidCancel -> VerificationCancelledContent(request, viewModel)
-                            VerificationFlowState.DidFail -> VerificationFailedContent(request, viewModel)
-                            null -> VerificationNoActiveRequestContent(viewModel)
+                            VerificationFlowState.Initial -> item {
+                                VerificationInitialContent(request, viewModel)
+                            }
+                            VerificationFlowState.DidAcceptVerificationRequest -> item {
+                                VerificationAcceptedContent(request, viewModel)
+                            }
+                            VerificationFlowState.DidStartSasVerification -> item {
+                                VerificationSasStartedContent(request, viewModel)
+                            }
+                            is VerificationFlowState.DidReceiveVerificationData -> item {
+                                VerificationDataContent(verificationFlowState, request, viewModel)
+                            }
+                            VerificationFlowState.DidFinish -> item {
+                                VerificationFinishedContent(request, viewModel)
+                            }
+                            VerificationFlowState.DidCancel -> item {
+                                VerificationCancelledContent(request, viewModel)
+                            }
+                            VerificationFlowState.DidFail -> item {
+                                VerificationFailedContent(request, viewModel)
+                            }
+                            null -> item {
+                                VerificationNoActiveRequestContent(viewModel)
+                            }
                         }
                     }
                 }
@@ -139,7 +175,7 @@ fun VerificationRequestScreen(
 }
 
 @Composable
-private fun ColumnScope.VerificationMetadataInfo(
+private fun VerificationMetadataInfo(
     request: ScVerificationRequest,
     viewModel: VerificationRequestViewModel,
     modifier: Modifier = Modifier,
@@ -151,12 +187,12 @@ private fun ColumnScope.VerificationMetadataInfo(
 }
 
 @Composable
-private fun ColumnScope.OutgoingVerificationMetadataInfo(
+private fun OutgoingVerificationMetadataInfo(
     request: ScOutgoingVerificationRequest,
     viewModel: VerificationRequestViewModel,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier.align(Alignment.CenterHorizontally), verticalArrangement = Dimens.verticalArrangement) {
+    Column(modifier, verticalArrangement = Dimens.verticalArrangement) {
         Text(
             when (request.request) {
                 is VerificationRequest.Outgoing.CurrentSession -> stringResource(Res.string.verification_device_header_type_self)
@@ -184,12 +220,12 @@ private fun ColumnScope.OutgoingVerificationMetadataInfo(
 }
 
 @Composable
-private fun ColumnScope.IncomingVerificationMetadataInfo(
+private fun IncomingVerificationMetadataInfo(
     request: ScIncomingVerificationRequest,
     viewModel: VerificationRequestViewModel,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier.align(Alignment.CenterHorizontally), verticalArrangement = Dimens.verticalArrangement) {
+    Column(modifier, verticalArrangement = Dimens.verticalArrangement) {
         Text(
             when (request.request) {
                 is VerificationRequest.Incoming.OtherSession -> stringResource(Res.string.verification_device_header_type_self)
@@ -346,7 +382,7 @@ private fun VerificationButtonSection(
 }
 
 @Composable
-private fun ColumnScope.VerificationNoActiveRequestContent(
+private fun VerificationNoActiveRequestContent(
     viewModel: VerificationRequestViewModel,
 ) {
     val keyHandler = LocalKeyboardActionHandler.current
@@ -360,7 +396,7 @@ private fun ColumnScope.VerificationNoActiveRequestContent(
 }
 
 @Composable
-private fun ColumnScope.VerificationInitialContent(
+private fun VerificationInitialContent(
     request: ScVerificationRequest,
     viewModel: VerificationRequestViewModel,
 ) {
@@ -385,7 +421,7 @@ private fun ColumnScope.VerificationInitialContent(
 }
 
 @Composable
-private fun ColumnScope.VerificationAcceptedContent(
+private fun VerificationAcceptedContent(
     request: ScVerificationRequest,
     viewModel: VerificationRequestViewModel,
 ) {
@@ -401,7 +437,7 @@ private fun ColumnScope.VerificationAcceptedContent(
 }
 
 @Composable
-private fun ColumnScope.VerificationSasStartedContent(
+private fun VerificationSasStartedContent(
     request: ScVerificationRequest,
     viewModel: VerificationRequestViewModel,
 ) {
@@ -415,7 +451,7 @@ private fun ColumnScope.VerificationSasStartedContent(
 }
 
 @Composable
-private fun ColumnScope.VerificationDataContent(
+private fun VerificationDataContent(
     state: VerificationFlowState.DidReceiveVerificationData,
     request: ScVerificationRequest,
     viewModel: VerificationRequestViewModel,
@@ -488,7 +524,7 @@ private fun VerificationEmojiContent(
 }
 
 @Composable
-private fun ColumnScope.VerificationFinishedContent(
+private fun VerificationFinishedContent(
     request: ScVerificationRequest,
     viewModel: VerificationRequestViewModel,
 ) {
@@ -504,7 +540,7 @@ private fun ColumnScope.VerificationFinishedContent(
 }
 
 @Composable
-private fun ColumnScope.VerificationCancelledContent(
+private fun VerificationCancelledContent(
     request: ScVerificationRequest,
     viewModel: VerificationRequestViewModel,
 ) {
@@ -520,7 +556,7 @@ private fun ColumnScope.VerificationCancelledContent(
 }
 
 @Composable
-private fun ColumnScope.VerificationFailedContent(
+private fun VerificationFailedContent(
     request: ScVerificationRequest,
     viewModel: VerificationRequestViewModel,
 ) {
