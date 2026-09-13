@@ -29,9 +29,12 @@ import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.PublicOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -95,6 +98,9 @@ import shire.res.generated.resources.hint_connected_bridges
 import shire.res.generated.resources.hint_direct_chat
 import shire.res.generated.resources.hint_encrypted
 import shire.res.generated.resources.hint_history_visibility
+import shire.res.generated.resources.hint_hide_membership_events
+import shire.res.generated.resources.hint_enabled
+import shire.res.generated.resources.hint_disabled
 import shire.res.generated.resources.hint_join_rule
 import shire.res.generated.resources.hint_no_room_name
 import shire.res.generated.resources.hint_not_encrypted
@@ -321,6 +327,17 @@ fun RoomDetailsScreen(
                                         } ?: value.toString()
                                 },
                                 enabled = permissions.canSetRoomHistoryVisibility,
+                            )
+                        }
+                        item {
+                            val hideMembershipEvents = viewModel.hideMembershipEvents.collectAsState().value
+                            val coroutineScope = rememberCoroutineScope()
+                            RoomDetailsSwitchSetting(
+                                stringResource(Res.string.hint_hide_membership_events),
+                                hideMembershipEvents,
+                                onValueChange = { hide ->
+                                    coroutineScope.launch { viewModel.setHideMembershipEvents(hide) }
+                                },
                             )
                         }
                         item {
@@ -558,6 +575,58 @@ private fun RoomInfoAdvancedInfoField(
             },
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+    }
+}
+
+@Composable
+private fun RoomDetailsSwitchSetting(
+    headerText: String,
+    currentValue: Boolean,
+    onValueChange: (Boolean) -> Unit,
+    enabled: Boolean = true,
+) {
+    RoomDetailsSection(
+        headerText,
+        modifier = Modifier.keyFocusable(
+            role = FocusRole.LIST_ITEM,
+            actionProvider = actionProvider(
+                primaryAction = if (enabled) {
+                    InteractionAction.Invoke {
+                        onValueChange(!currentValue)
+                        true
+                    }
+                } else {
+                    null
+                },
+            ),
+            enableClicks = enabled,
+        ),
+        color = if (enabled) {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        } else {
+            MaterialTheme.colorScheme.tertiary
+        },
+    ) {
+        Row(
+            horizontalArrangement = Dimens.horizontalArrangementBig,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            SectionText(
+                text = stringResource(
+                    if (currentValue) Res.string.hint_enabled else Res.string.hint_disabled
+                ),
+                color = if (enabled) {
+                    MaterialTheme.colorScheme.onSurface
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+            )
+            Switch(
+                checked = currentValue,
+                onCheckedChange = onValueChange,
+                enabled = enabled,
+            )
+        }
     }
 }
 

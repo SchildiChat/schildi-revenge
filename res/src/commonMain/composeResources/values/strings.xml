@@ -260,6 +260,7 @@
     <string name="hint_room_account_data">Room account data</string>
     <string name="hint_room_state">Room state</string>
     <string name="hint_history_visibility">History visibility</string>
+    <string name="hint_hide_membership_events">Hide membership changes</string>
     <string name="hint_join_rule">Join rule</string>
     <string name="hint_room_via">Via: %1$s</string>
     <string name="hint_nothing_selected">Nothing selected</string>
@@ -501,6 +502,10 @@
     <string name="pref_composer_max_lines_unfocused_summary">Limit the rendered height of the message composer while not focused</string>
     <string name="pref_view_membership_events_in_public_rooms_title">Membership changes in public rooms</string>
     <string name="pref_view_membership_events_in_public_rooms_summary">Render in the timeline of public rooms when members join, leave or change their profile. Private rooms will render these changes independently of this setting.</string>
+    <string name="pref_group_membership_events_title">Group membership changes</string>
+    <string name="pref_group_membership_events_summary">Collapse consecutive join, leave and profile change events into a single expandable summary line</string>
+    <string name="pref_hide_membership_events_in_bridged_chats_title">Hide membership changes in bridged rooms</string>
+    <string name="pref_hide_membership_events_in_bridged_chats_summary">Don't render join, leave and profile change events in rooms bridged to another network</string>
     <string name="pref_floating_date_title">Floating date</string>
     <string name="pref_floating_date_summary">Show the date on top of messages while scrolling</string>
     <string name="pref_canonical_space_parent_avatar_fallback_title">Space parent avatar fallback</string>
@@ -611,6 +616,11 @@
     <plurals name="named_users_typing">
         <item quantity="one">%1$s is typing</item>
         <item quantity="other">Typing: %1$s</item>
+    </plurals>
+
+    <plurals name="membership_event_group_summary">
+        <item quantity="one">%1$d membership change</item>
+        <item quantity="other">%1$d membership changes</item>
     </plurals>
 
     <string name="named_user_verification_verified_summary">%1$s is verified with us.</string>

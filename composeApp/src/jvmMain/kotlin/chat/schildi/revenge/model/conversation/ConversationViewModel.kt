@@ -11,6 +11,8 @@ import chat.schildi.matrixsdk.ScTimelineFilterSettings
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewProvider
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewStateProvider
 import chat.schildi.revenge.preferences.RevengePrefs
+import chat.schildi.revenge.preferences.RevengeRoomTimelinePrefs
+import chat.schildi.revenge.preferences.RoomTimelinePreferencesStore
 import chat.schildi.lib.preferences.ScPref
 import chat.schildi.lib.preferences.ScPreferencesStore
 import chat.schildi.lib.preferences.ScPrefs
@@ -134,6 +136,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWi
 import io.element.android.libraries.matrix.api.timeline.item.event.OtherMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.ProfileChangeContent
 import io.element.android.libraries.matrix.api.timeline.item.event.RedactedContent
+import io.element.android.libraries.matrix.api.timeline.item.event.RoomMembershipContent
 import io.element.android.libraries.matrix.api.timeline.item.event.StickerContent
 import io.element.android.libraries.matrix.api.timeline.item.event.StickerMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.TextLikeMessageType
@@ -311,6 +314,7 @@ class ConversationViewModel(
     override val timelineParams: CreateTimelineParams?,
     override val joinServerNames: ImmutableList<String>?,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
+    private val roomTimelinePreferencesStore: RoomTimelinePreferencesStore = RevengeRoomTimelinePrefs,
 ) : ViewModel(), TitleProvider, SearchProvider, UserIdSuggestionsProvider, ComposerViewModel, RoomPreviewViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
 
@@ -618,10 +622,35 @@ class ConversationViewModel(
         }
     }
 
+    private val hideMembershipEventsInBridgedChats = combine(
+        scPreferencesStore.settingFlow(ScPrefs.HIDE_MEMBERSHIP_EVENTS_IN_BRIDGED_CHATS),
+        roomInfo.map { it?.bridgeState }.distinctUntilChanged(),
+    ) { hide, bridgeState ->
+        hide && !bridgeState.isNullOrEmpty()
+    }
+
+    // Some bridges (e.g. classic IRC bridges) never send `m.bridge` state events, so bridge
+    // detection above can miss them. Allow forcing this on a per-room basis as a fallback
+    // (see RoomDetailsViewModel.setHideMembershipEvents).
+    private val hideMembershipEvents = combine(
+        hideMembershipEventsInBridgedChats,
+        roomTimelinePreferencesStore.hideMembershipEventsFlow(roomId),
+    ) { hideForBridge, hideOverride ->
+        hideForBridge || hideOverride
+    }
+
     val timelineItems = combine(
         rawTimelineItems,
-        searchQuery
-    ) { items, query ->
+        searchQuery,
+        hideMembershipEvents,
+    ) { items, query, hideMembershipEvents ->
+        val items = if (hideMembershipEvents) {
+            items?.filterNot {
+                it is MatrixTimelineItem.Event && (it.event.content is RoomMembershipContent || it.event.content is ProfileChangeContent)
+            }
+        } else {
+            items
+        }
         if (query.isNullOrBlank() || items == null) {
             items
         } else {

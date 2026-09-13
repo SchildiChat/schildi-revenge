@@ -38,6 +38,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.Anim
+import chat.schildi.revenge.model.conversation.ConversationRenderItem
+import chat.schildi.revenge.model.conversation.groupMembershipEvents
 import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
@@ -55,6 +57,7 @@ import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.composer.ComposerRow
 import chat.schildi.revenge.compose.destination.SplashScreenContent
 import chat.schildi.revenge.compose.destination.conversation.event.EventHighlight
+import chat.schildi.revenge.compose.destination.conversation.event.MembershipEventGroupRow
 import chat.schildi.revenge.compose.destination.conversation.event.message.LocalUrlPreviewStateProvider
 import chat.schildi.revenge.compose.destination.conversation.virtual.PagingIndicator
 import chat.schildi.revenge.compose.destination.split.requireSinglePaneLayout
@@ -140,6 +143,14 @@ fun ConversationScreen(
             return@BoxWithConstraints
         }
 
+        // Reverse layout helps with stick-to-bottom while paging backwards or receiving messages.
+        // Computed here (rather than closer to the LazyColumn) since pagination and jump-to-event
+        // logic below need to reason about the same (possibly grouped) list the LazyColumn renders.
+        val groupMembershipEvents = ScPrefs.GROUP_MEMBERSHIP_EVENTS.value()
+        val renderedItems = remember(timelineItems, groupMembershipEvents) {
+            timelineItems.reversed().groupMembershipEvents(groupMembershipEvents).toPersistentList()
+        }
+
         val actionContext = currentActionContext()
         var isDragging by remember { mutableStateOf(false) }
         val dragAlpha = animateFloatAsState(if (isDragging) 0.4f else 1f)
@@ -184,20 +195,27 @@ fun ConversationScreen(
             val index = when(targetEvent) {
                 is EventJumpTarget.Event -> timelineItems.indexOfFirst { item ->
                     (item.item as? MatrixTimelineItem.Event)?.eventId == targetEvent.eventId
-                }.let {
-                    if (it >= 0) {
-                        // Reverse list not applied here yet
-                        timelineItems.size - it - 1
+                }.let { rawIndex ->
+                    if (rawIndex >= 0) {
+                        // Reverse list not applied here yet. Map from the raw (ungrouped) index to
+                        // the rendered (possibly grouped) index, since that's what the LazyColumn uses.
+                        val reversedRawIndex = timelineItems.size - rawIndex - 1
+                        renderedItems.indexOfFirst { renderItem ->
+                            when (renderItem) {
+                                is ConversationRenderItem.Single -> renderItem.item === timelineItems[rawIndex]
+                                is ConversationRenderItem.MembershipGroup -> renderItem.items.any { it === timelineItems[rawIndex] }
+                            }
+                        }.takeIf { it >= 0 } ?: reversedRawIndex.takeIf { it in renderedItems.indices }
                     } else {
                         null
                     }
                 }
                 is EventJumpTarget.Index -> targetEvent.index.takeIf {
-                    forwardPaginationStatus?.hasMoreToLoad == false && it in 0..<timelineItems.size
+                    forwardPaginationStatus?.hasMoreToLoad == false && it in 0..<renderedItems.size
                 }
             }
             if (index == null) {
-                Logger.withTag("ConversationScreen").w("Cannot find target event $targetEvent in ${timelineItems.size} items")
+                Logger.withTag("ConversationScreen").w("Cannot find target event $targetEvent in ${renderedItems.size} items")
             } else {
                 Logger.withTag("ConversationScreen").d("Targetting $index for $targetEvent")
                 val offset = density.run { contentHeight.roundToPx() } / 2
@@ -216,26 +234,26 @@ fun ConversationScreen(
         }
 
         if (allowPaginateAfterInitialLoad) {
-            LaunchedEffect(listState, backwardPaginationStatus, timelineItems) {
+            LaunchedEffect(listState, backwardPaginationStatus, renderedItems) {
                 snapshotFlow {
                     listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index
                 }
                     .collect { lastVisibleIndex ->
-                        if (lastVisibleIndex != null && lastVisibleIndex >= timelineItems.size - 3 && backwardPaginationStatus?.canPaginate == true) {
+                        if (lastVisibleIndex != null && lastVisibleIndex >= renderedItems.size - 3 && backwardPaginationStatus?.canPaginate == true) {
                             Logger.withTag("ConversationScreen")
-                                .d("Paginate backwards via $lastVisibleIndex/${timelineItems.size}, $backwardPaginationStatus")
+                                .d("Paginate backwards via $lastVisibleIndex/${renderedItems.size}, $backwardPaginationStatus")
                             viewModel.paginateBackward()
                         }
                     }
             }
-            LaunchedEffect(listState, forwardPaginationStatus, timelineItems) {
+            LaunchedEffect(listState, forwardPaginationStatus, renderedItems) {
                 snapshotFlow {
                     listState.layoutInfo.visibleItemsInfo.firstOrNull()?.index
                 }
                     .collect { firstVisibleIndex ->
                         if (allowPaginateAfterInitialLoad && firstVisibleIndex != null && firstVisibleIndex <= 3 && forwardPaginationStatus?.canPaginate == true) {
                             Logger.withTag("ConversationScreen")
-                                .d("Paginate forward via $firstVisibleIndex/${timelineItems.size}, $forwardPaginationStatus")
+                                .d("Paginate forward via $firstVisibleIndex/${renderedItems.size}, $forwardPaginationStatus")
                             viewModel.paginateForward()
                         }
                     }
@@ -285,10 +303,6 @@ fun ConversationScreen(
                 Box(
                     Modifier.fillMaxWidth().weight(1f),
                 ) {
-                    // Reverse layout helps with stick-to-bottom while paging backwards or receiving messages
-                    val renderedItems = remember(timelineItems) {
-                        timelineItems.reversed().toPersistentList()
-                    }
                     LazyColumn(
                         Modifier.fillMaxSize(),
                         reverseLayout = true,
@@ -296,39 +310,54 @@ fun ConversationScreen(
                     ) {
                         itemsIndexed(
                             renderedItems,
-                            key = { index, item ->
-                                when (item.item) {
-                                    is MatrixTimelineItem.Event -> item.item.eventId ?: item.item.transactionId ?: index
-                                    MatrixTimelineItem.Other -> index
-                                    is MatrixTimelineItem.Virtual -> item.item.uniqueId
+                            key = { index, renderItem ->
+                                when (renderItem) {
+                                    is ConversationRenderItem.MembershipGroup ->
+                                        renderItem.items.joinToString("|") { (it.item as? MatrixTimelineItem.Event)?.uniqueId?.value ?: index.toString() }
+                                    is ConversationRenderItem.Single -> when (val item = renderItem.item.item) {
+                                        is MatrixTimelineItem.Event -> item.eventId ?: item.transactionId ?: index
+                                        MatrixTimelineItem.Other -> index
+                                        is MatrixTimelineItem.Virtual -> item.uniqueId
+                                    }
                                 }
                             },
-                        ) { index, item ->
+                        ) { index, renderItem ->
                             // Reversed list, let's not confuse us too much and still say "previous = older"
-                            val next = renderedItems.getOrNull(index - 1)
-                            val previous = renderedItems.getOrNull(index + 1)
-                            val highlight = when {
-                                item.item !is MatrixTimelineItem.Event -> EventHighlight.NONE
-                                highlightedActionEventId is EventOrTransactionId.Event &&
-                                        item.item.eventId == highlightedActionEventId.eventId -> EventHighlight.ACTION_TARGET
+                            val next = renderedItems.getOrNull(index - 1)?.lastItem
+                            val previous = renderedItems.getOrNull(index + 1)?.firstItem
+                            when (renderItem) {
+                                is ConversationRenderItem.MembershipGroup -> {
+                                    MembershipEventGroupRow(
+                                        items = renderItem.items,
+                                        timestampSettings = timestampSettings,
+                                    )
+                                }
+                                is ConversationRenderItem.Single -> {
+                                    val item = renderItem.item
+                                    val highlight = when {
+                                        item.item !is MatrixTimelineItem.Event -> EventHighlight.NONE
+                                        highlightedActionEventId is EventOrTransactionId.Event &&
+                                                item.item.eventId == highlightedActionEventId.eventId -> EventHighlight.ACTION_TARGET
 
-                                highlightedActionEventId is EventOrTransactionId.Transaction &&
-                                        item.item.transactionId == highlightedActionEventId.id -> EventHighlight.ACTION_TARGET
+                                        highlightedActionEventId is EventOrTransactionId.Transaction &&
+                                                item.item.transactionId == highlightedActionEventId.id -> EventHighlight.ACTION_TARGET
 
-                                highlightedJumpTargetEventId != null && item.item.eventId == highlightedJumpTargetEventId -> EventHighlight.JUMP_TARGET
-                                else -> EventHighlight.NONE
+                                        highlightedJumpTargetEventId != null && item.item.eventId == highlightedJumpTargetEventId -> EventHighlight.JUMP_TARGET
+                                        else -> EventHighlight.NONE
+                                    }
+                                    ConversationItemRow(
+                                        viewModel = viewModel,
+                                        item = item,
+                                        next = next,
+                                        previous = previous,
+                                        roomMembersById = roomMembersById.value,
+                                        highlight = highlight,
+                                        timestampSettings = timestampSettings,
+                                        showBackwardPagingIndicator = showBackwardPagingIndicator,
+                                        showForwardPagingIndicator = showForwardPagingIndicator,
+                                    )
+                                }
                             }
-                            ConversationItemRow(
-                                viewModel = viewModel,
-                                item = item,
-                                next = next,
-                                previous = previous,
-                                roomMembersById = roomMembersById.value,
-                                highlight = highlight,
-                                timestampSettings = timestampSettings,
-                                showBackwardPagingIndicator = showBackwardPagingIndicator,
-                                showForwardPagingIndicator = showForwardPagingIndicator,
-                            )
                         }
                         if (renderedItems.isEmpty() && showBackwardPagingIndicator) {
                             item {

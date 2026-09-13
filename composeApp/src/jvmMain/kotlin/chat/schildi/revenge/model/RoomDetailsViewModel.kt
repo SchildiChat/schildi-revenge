@@ -15,6 +15,7 @@ import chat.schildi.revenge.actions.RoomContextSuggestionsProvider
 import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.resources.ComposableStringHolder
 import chat.schildi.revenge.model.conversation.ConversationViewModel
+import chat.schildi.revenge.preferences.RevengeRoomTimelinePrefs
 import chat.schildi.revenge.util.flowClosable
 import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
@@ -239,6 +240,13 @@ class RoomDetailsViewModel(
     suspend fun setRoomTopic(topic: String): Result<Unit> {
         val room = joinedRoom.value ?: return Result.failure(IllegalStateException("Room not joined"))
         return room.setTopic(topic)
+    }
+
+    val hideMembershipEvents = RevengeRoomTimelinePrefs.hideMembershipEventsFlow(roomId)
+        .stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    suspend fun setHideMembershipEvents(hide: Boolean) {
+        RevengeRoomTimelinePrefs.setHideMembershipEvents(roomId, hide)
     }
 
     suspend fun setRoomHistoryVisibility(visibility: RoomHistoryVisibility): ActionResult {

@@ -202,6 +202,10 @@ import shire.res.generated.resources.pref_url_previews_title
 import shire.res.generated.resources.pref_view_hidden_events_summary
 import shire.res.generated.resources.pref_view_membership_events_in_public_rooms_summary
 import shire.res.generated.resources.pref_view_membership_events_in_public_rooms_title
+import shire.res.generated.resources.pref_group_membership_events_title
+import shire.res.generated.resources.pref_group_membership_events_summary
+import shire.res.generated.resources.pref_hide_membership_events_in_bridged_chats_title
+import shire.res.generated.resources.pref_hide_membership_events_in_bridged_chats_summary
 
 object ScPrefs {
 
@@ -330,6 +334,8 @@ object ScPrefs {
     val VIEW_HIDDEN_EVENTS = ScBoolPref("VIEW_HIDDEN_EVENTS", false, Res.string.pref_view_hidden_events_title, Res.string.pref_view_hidden_events_summary)
     val VIEW_REDACTIONS = ScBoolPref("VIEW_REDACTIONS", false, Res.string.pref_view_redactions_title, dependencies = listOf(VIEW_HIDDEN_EVENTS.toDependency(expect = false)), disabledValue = true)
     val VIEW_MEMBERSHIP_EVENTS_IN_PUBLIC_ROOMS = ScBoolPref("VIEW_MEMBERSHIP_EVENTS_IN_PUBLIC_ROOMS", true, Res.string.pref_view_membership_events_in_public_rooms_title, Res.string.pref_view_membership_events_in_public_rooms_summary, dependencies = listOf(VIEW_HIDDEN_EVENTS.toDependency(expect = false)), disabledValue = true)
+    val GROUP_MEMBERSHIP_EVENTS = ScBoolPref("GROUP_MEMBERSHIP_EVENTS", true, Res.string.pref_group_membership_events_title, Res.string.pref_group_membership_events_summary)
+    val HIDE_MEMBERSHIP_EVENTS_IN_BRIDGED_CHATS = ScBoolPref("HIDE_MEMBERSHIP_EVENTS_IN_BRIDGED_CHATS", false, Res.string.pref_hide_membership_events_in_bridged_chats_title, Res.string.pref_hide_membership_events_in_bridged_chats_summary)
     val PREFERRED_MESSAGE_FORMAT = ScStringListPref(
         "PREFERRED_MESSAGE_FORMAT",
         defaultValue = ComposerFormat.MARKDOWN.toString(),
@@ -468,6 +474,8 @@ object ScPrefs {
             ScPrefCategory("TIMELINE_EVENT_VISIBILITY", Res.string.pref_category_timeline_event_visibility, null, listOf(
                 VIEW_REDACTIONS,
                 VIEW_MEMBERSHIP_EVENTS_IN_PUBLIC_ROOMS,
+                GROUP_MEMBERSHIP_EVENTS,
+                HIDE_MEMBERSHIP_EVENTS_IN_BRIDGED_CHATS,
             )),
             ScPrefCategory("COMPOSER", Res.string.pref_category_composer, null, listOf(
                 PREFERRED_MESSAGE_FORMAT,

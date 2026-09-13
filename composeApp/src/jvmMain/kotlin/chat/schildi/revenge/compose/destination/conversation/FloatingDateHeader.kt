@@ -20,7 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.destination.conversation.virtual.DayHeader
-import chat.schildi.revenge.model.conversation.ScTimelineItem
+import chat.schildi.revenge.model.conversation.ConversationRenderItem
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.FlowPreview
@@ -32,7 +32,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 @Composable
 fun BoxScope.FloatingDateHeader(
     listState: LazyListState,
-    timelineItems: ImmutableList<ScTimelineItem>?,
+    timelineItems: ImmutableList<ConversationRenderItem>?,
 ) {
     var renderedTimestamp by remember { mutableLongStateOf(0L) }
     var isScrolling by remember { mutableStateOf(false) }
@@ -46,7 +46,7 @@ fun BoxScope.FloatingDateHeader(
             renderedTimestamp = listState.layoutInfo.visibleItemsInfo.asReversed().firstNotNullOfOrNull { info ->
                 val index = info.index
                 (if (index >= 0 && index < timelineItems.size) {
-                    when (val item = timelineItems[index].item) {
+                    when (val item = timelineItems[index].firstItem.item) {
                         is MatrixTimelineItem.Event -> item.event.timestamp
                         //is MatrixTimelineItem.Virtual -> (item.virtual as? VirtualTimelineItem.DayDivider)?.timestamp
                         //MatrixTimelineItem.Other -> null
