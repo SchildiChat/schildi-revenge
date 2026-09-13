@@ -471,6 +471,7 @@ compose.desktop {
             macOS {
                 appCategory = "public.app-category.social-networking"
                 minimumSystemVersion = "11.0"
+                iconFile.set(rootProject.file("graphics/ic_launcher.icns"))
 
                 infoPlist {
                     extraKeysRawXml = """
