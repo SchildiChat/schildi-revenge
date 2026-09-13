@@ -31,6 +31,8 @@ import chat.schildi.revenge.compose.components.rememberScaledDensity
 import chat.schildi.revenge.compose.media.LocalImageLoaderHolder
 import chat.schildi.revenge.dbus.TrayWatcher
 import chat.schildi.revenge.model.verification.RevengeDeviceVerificationProvider
+import chat.schildi.lib.util.OperatingSystem
+import chat.schildi.lib.util.SystemInfo
 import chat.schildi.revenge.notification.SyncingNotificationProcessor
 import chat.schildi.revenge.notification.DesktopNotifier
 import kotlinx.coroutines.runBlocking
@@ -58,6 +60,12 @@ object ComposeApp {
             LaunchedEffect(Unit) {
                 RevengePrefs.prefetch()
                 DesktopNotifier.initialize()
+                if (SystemInfo.getOs() == OperatingSystem.Mac) {
+                    val actionHandler = checkNotNull(UiState.headlessKeyboardActionHandler)
+                    MacOpenUriHandler.install { command ->
+                        actionHandler.executeCommandFromIpc(command)
+                    }
+                }
                 if (initialCommand != null) {
                     UiState.headlessKeyboardActionHandler?.executeCommandFromIpc(initialCommand)
                 }
