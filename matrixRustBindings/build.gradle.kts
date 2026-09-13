@@ -13,6 +13,7 @@ val isDesktopReleaseBuild = run {
     val explicitReleaseFlag = providers.gradleProperty("releaseBuild").orNull?.toBoolean()
     when {
         explicitProfile == "release" -> true
+        explicitProfile == "reldev" -> false
         explicitProfile == "debug" -> false
         explicitReleaseFlag == true -> true
         else -> gradle.startParameter.taskNames.any {
@@ -22,7 +23,7 @@ val isDesktopReleaseBuild = run {
     }
 }
 
-val desktopRustProfile = if (isDesktopReleaseBuild) "release" else "debug"
+val desktopRustProfile = if (isDesktopReleaseBuild) "release" else "reldev"
 val desktopLibraryName = when {
     org.gradle.internal.os.OperatingSystem.current().isWindows -> "matrix_sdk_ffi.dll"
     org.gradle.internal.os.OperatingSystem.current().isMacOsX -> "libmatrix_sdk_ffi.dylib"
@@ -36,7 +37,7 @@ val buildDesktopSdk = tasks.register<Exec>("buildDesktopSdk") {
     workingDir = rustSdkDir.asFile
     commandLine(
         listOf("cargo", "build") +
-            (if (isDesktopReleaseBuild) listOf("--release") else emptyList()) +
+            (if (isDesktopReleaseBuild) listOf("--release") else listOf("--profile", "reldev")) +
             listOf("--package", "matrix-sdk-ffi"),
     )
     inputs.files(rustSdkDir.file("Cargo.toml"), rustSdkDir.file("Cargo.lock"))

@@ -145,6 +145,7 @@ val isReleaseBuild: Boolean = run {
     val explicitReleaseFlag = (project.findProperty("releaseBuild") as String?)?.toBoolean()
     when {
         explicitProfile == "release" -> true
+        explicitProfile == "reldev" -> false
         explicitProfile == "debug" -> false
         explicitReleaseFlag == true -> true
         else -> {
@@ -161,7 +162,7 @@ val isPerfDebugBuild = gradle.startParameter.taskNames.any {
 }
 
 val buildType: String = if (isReleaseBuild) "release" else "debug"
-val rustProfile: String = if (isReleaseBuild || isPerfDebugBuild) "release" else "debug"
+val rustProfile: String = if (isReleaseBuild || isPerfDebugBuild) "release" else "reldev"
 
 val generatedSrcDir = layout.buildDirectory.dir("generated/src/jvmMain/kotlin").get().asFile
 val composeResourcesDir = rootProject.layout.projectDirectory.dir("res/src/commonMain/composeResources")
