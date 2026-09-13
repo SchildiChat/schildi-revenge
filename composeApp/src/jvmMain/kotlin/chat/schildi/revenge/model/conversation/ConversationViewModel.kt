@@ -161,6 +161,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
@@ -516,6 +517,17 @@ class ConversationViewModel(
             is CreateTimelineParams.Focused -> {
                 val initialEventId = effectiveInitialEventId.await()
                     ?: return@map TimelineController(room)
+                val ts = System.currentTimeMillis()
+                room.liveTimeline.resolveEventToRendered(initialEventId)?.let { resolvedEventId ->
+                    if (room.liveTimeline.timelineItems.firstOrNull()?.any { (it as? MatrixTimelineItem.Event)?.eventId == resolvedEventId } == true) {
+                        log.d("Focused event $initialEventId can be resolved live (check took ${System.currentTimeMillis() - ts}ms)")
+                        return@map TimelineController(room)
+                    } else {
+                        log.d("Focused event $initialEventId can be resolved but not looked up live (check took ${System.currentTimeMillis() - ts}ms)")
+                    }
+                } ?: run {
+                    log.d("Focused event $initialEventId can not be resolved live (check took ${System.currentTimeMillis() - ts}ms)")
+                }
                 room.createTimeline(
                     CreateTimelineParams.Focused(initialEventId),
                     timelineFilterSettings.value.preferHideThreadedEvents
