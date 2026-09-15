@@ -304,6 +304,11 @@ class RustBaseRoom(
             innerRoom.setUserDisplayname(displayName)
         }
     }
+    override suspend fun setRoomUserAvatarMxc(avatarUrl: String?): Result<Unit> = withContext(roomDispatcher) {
+        runCatchingExceptions {
+            innerRoom.setUserAvatarMxc(avatarUrl)
+        }
+    }
     // SC end
 
     override suspend fun saveComposerDraft(composerDraft: ComposerDraft, threadRoot: ThreadId?): Result<Unit> = withContext(roomDispatcher) {

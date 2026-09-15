@@ -368,6 +368,7 @@ sealed interface Action {
         CopyRoomId,
         CopyRoomMatrixToLink(aliases = listOf("copyRoomLink", "copyMatrixToLink")),
         SetRoomUserDisplayName(aliases = listOf("myroomnick"), args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.UserName))),
+        SetRoomUserAvatar(aliases = listOf("myroomavatar"), args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.Mxc))),
         SetRoomNotifications(args = listOf(ActionArgumentPrimitive.RoomNotificationSetting)),
         AddToSpace(args = listOf(ActionArgumentPrimitive.NonParentSpaceId), aliases = listOf("assignToSpace")),
         RemoveFromSpace(args = listOf(ActionArgumentPrimitive.ParentSpaceId), aliases = listOf("unassignFromSpace")),

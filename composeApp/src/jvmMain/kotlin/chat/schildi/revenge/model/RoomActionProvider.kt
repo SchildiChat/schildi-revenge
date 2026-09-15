@@ -217,6 +217,10 @@ class RoomActionProvider(
                 val name = args.firstOrNull()
                 room.setRoomUserDisplayName(name).toActionResult()
             }
+            Action.Room.SetRoomUserAvatar -> {
+                val avatar = args.firstOrNull()
+                room.setRoomUserAvatarMxc(avatar).toActionResult()
+            }
             Action.Room.SetRoomNotifications -> {
                 val client = peekClient() ?: return ActionResult.Failure("Client not ready")
                 val modeString = args.firstOrNull().orActionValidationError()
