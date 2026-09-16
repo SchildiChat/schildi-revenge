@@ -95,6 +95,7 @@ data class SpaceOrphanCatcher(
     data class PerSession(
         val sessionId: SessionId,
         val filterIsDirect: Boolean?,
+        val filterIsInvite: Boolean?,
     )
 }
 
@@ -359,6 +360,7 @@ class SpaceListDataSource(
                     SpaceOrphanCatcher.PerSession(
                         sessionId = spaceSummary.id.sessionId,
                         filterIsDirect = it.filterIsDirect,
+                        filterIsInvite = it.filterIsInvite,
                     )
                 )
             )
@@ -429,7 +431,8 @@ class SpaceListDataSource(
                 flattenedRooms.contains(room.key) || orphanCatcher?.let { catcher ->
                     catcher.instances.any {
                         it.sessionId == room.sessionId &&
-                                (it.filterIsDirect == null || it.filterIsDirect == room.summary.info.isDirect)
+                                (it.filterIsDirect == null || it.filterIsDirect == room.summary.info.isDirect) &&
+                                (it.filterIsInvite == null || it.filterIsInvite == (room.summary.info.currentUserMembership == CurrentUserMembership.INVITED))
                     } && !catcher.excludedRooms.contains(room.summary.roomId.value)
                 } == true
             }.toImmutableList()

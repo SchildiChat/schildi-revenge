@@ -75,6 +75,7 @@ import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.config.keybindings.KeyMapped
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.config.keybindings.KeybindingConfig
+import chat.schildi.revenge.config.keybindings.SpaceCatchAllInviteMode
 import chat.schildi.revenge.config.keybindings.SpaceCatchAllMode
 import chat.schildi.revenge.config.keybindings.findAll
 import chat.schildi.revenge.config.keybindings.maxArgsSize
@@ -3385,6 +3386,15 @@ fun checkArgument(
             if (tryOrNull { SpaceCatchAllMode.valueOf(argVal) } == null) {
                 ActionResult.Malformed(
                     "Invalid parameter for $actionName, expected valid SpaceCatchAllMode, got $argVal"
+                )
+            } else {
+                null
+            }
+        }
+        ActionArgumentPrimitive.SpaceCatchAllInviteMode -> {
+            if (tryOrNull { SpaceCatchAllInviteMode.valueOf(argVal) } == null) {
+                ActionResult.Malformed(
+                    "Invalid parameter for $actionName, expected valid SpaceCatchAllInviteMode, got $argVal"
                 )
             } else {
                 null

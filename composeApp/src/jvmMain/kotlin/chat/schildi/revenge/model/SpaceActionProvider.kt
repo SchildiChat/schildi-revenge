@@ -7,8 +7,10 @@ import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
 import chat.schildi.revenge.actions.launchActionAsync
+import chat.schildi.revenge.actions.orActionValidationError
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
+import chat.schildi.revenge.config.keybindings.SpaceCatchAllInviteMode
 import chat.schildi.revenge.config.keybindings.SpaceCatchAllMode
 import chat.schildi.revenge.model.spaces.SpaceListDataSource
 import chat.schildi.revenge.model.spaces.SpaceOrder
@@ -68,30 +70,53 @@ class SpaceActionProvider(
                     }
                 }
                 Action.Space.SetCatchAll -> client.withJoinedRoom { room ->
-                    val rawMode = args.firstOrNull()
-                    val rawModeAsBoolean = rawMode?.toBooleanStrictOrNull()
-                    val mode = if (rawMode == null) null else tryOrNull { SpaceCatchAllMode.valueOf(rawMode) }
+                    val enable = args.firstOrNull()?.let { it.toBooleanStrictOrNull()?.orActionValidationError() } ?: true
                     room.updateRoomState("de.spiritcroc.space.catch_all", "") {
-                        if (rawModeAsBoolean == false || mode == SpaceCatchAllMode.None) {
-                            JsonObject(emptyMap())
-                        } else {
+                        if (enable) {
                             it.orEmpty().toMutableMap().apply {
                                 set("include_orphans", JsonPrimitive(true))
-                                when (mode) {
-                                    SpaceCatchAllMode.All -> {
-                                        remove("filter_is_dm")
-                                    }
-                                    SpaceCatchAllMode.Dms -> {
-                                        set("filter_is_dm", JsonPrimitive(true))
-                                    }
-                                    SpaceCatchAllMode.Groups -> {
-                                        set("filter_is_dm", JsonPrimitive(false))
-                                    }
-                                    // Keep setting
-                                    null -> {}
-                                }
                             }.let(::JsonObject)
+                        } else {
+                            JsonObject(emptyMap())
                         }
+                    }
+                }
+                Action.Space.SetCatchAllFilterMode -> client.withJoinedRoom { room ->
+                    val rawMode = args.firstOrNull()
+                    val mode = if (rawMode == null) SpaceCatchAllMode.All else tryOrNull { SpaceCatchAllMode.valueOf(rawMode) }.orActionValidationError()
+                    room.updateRoomState("de.spiritcroc.space.catch_all", "") {
+                        it.orEmpty().toMutableMap().apply {
+                            when (mode) {
+                                SpaceCatchAllMode.All -> {
+                                    remove("filter_is_dm")
+                                }
+                                SpaceCatchAllMode.Dms -> {
+                                    set("filter_is_dm", JsonPrimitive(true))
+                                }
+                                SpaceCatchAllMode.Groups -> {
+                                    set("filter_is_dm", JsonPrimitive(false))
+                                }
+                            }
+                        }.let(::JsonObject)
+                    }
+                }
+                Action.Space.SetCatchAllInviteFilterMode -> client.withJoinedRoom { room ->
+                    val rawMode = args.firstOrNull()
+                    val mode = if (rawMode == null) SpaceCatchAllInviteMode.All else tryOrNull { SpaceCatchAllInviteMode.valueOf(rawMode) }.orActionValidationError()
+                    room.updateRoomState("de.spiritcroc.space.catch_all", "") {
+                        it.orEmpty().toMutableMap().apply {
+                            when (mode) {
+                                SpaceCatchAllInviteMode.All -> {
+                                    remove("filter_is_invite")
+                                }
+                                SpaceCatchAllInviteMode.Invites -> {
+                                    set("filter_is_invite", JsonPrimitive(true))
+                                }
+                                SpaceCatchAllInviteMode.NonInvites -> {
+                                    set("filter_is_invite", JsonPrimitive(false))
+                                }
+                            }
+                        }.let(::JsonObject)
                     }
                 }
             }

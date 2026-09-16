@@ -103,6 +103,7 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     OAuthCallbackPath,
     SpaceOrder,
     SpaceCatchAllMode,
+    SpaceCatchAllInviteMode,
     FocusRole,
     Empty;
     override fun possiblePrimitives(context: CommandArgContext) = listOf(this)
@@ -390,7 +391,9 @@ sealed interface Action {
     ) : Action {
         CopySortOrder(aliases = listOf("CopySpaceOrder")),
         SetSortOrder(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.SpaceOrder))),
-        SetCatchAll(args = listOf(ActionArgumentOptional(ActionArgumentAnyOf(ActionArgumentPrimitive.SpaceCatchAllMode, ActionArgumentPrimitive.Boolean)))),
+        SetCatchAll(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.Boolean))),
+        SetCatchAllFilterMode(args = listOf(ActionArgumentPrimitive.SpaceCatchAllMode)),
+        SetCatchAllInviteFilterMode(args = listOf(ActionArgumentPrimitive.SpaceCatchAllInviteMode)),
     }
     enum class Event(
         override val aliases: kotlin.collections.List<String> = emptyList(),

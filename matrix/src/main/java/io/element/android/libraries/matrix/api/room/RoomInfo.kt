@@ -98,4 +98,5 @@ data class RoomInfo(
 data class SpaceCatchAllInfo(
     val includeOrphans: Boolean,
     val filterIsDirect: Boolean?,
+    val filterIsInvite: Boolean?,
 )

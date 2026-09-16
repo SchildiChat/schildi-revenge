@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CatchingPokemon
 import androidx.compose.material.icons.filled.Group
+import androidx.compose.material.icons.filled.GroupAdd
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MeetingRoom
 import androidx.compose.material.icons.filled.Navigation
@@ -81,12 +82,14 @@ import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.compose.components.enterCommandModeContextMenuAction
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.DestinationEnum
+import chat.schildi.revenge.config.keybindings.SpaceCatchAllInviteMode
 import chat.schildi.revenge.config.keybindings.SpaceCatchAllMode
 import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_NO_FILTER
 import chat.schildi.revenge.model.spaces.SpaceListDataSource
 import chat.schildi.revenge.model.spaces.SpaceAggregationDataSource
 import chat.schildi.revenge.model.spaces.SpaceOrder
-import chat.schildi.revenge.model.spaces.toSpaceCatchAllMode
+import chat.schildi.revenge.model.spaces.toSpaceCatchAllFilterMode
+import chat.schildi.revenge.model.spaces.toSpaceCatchAllInviteFilterMode
 import chat.schildi.theme.scExposures
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.media.MediaSource
@@ -97,12 +100,13 @@ import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.action_catch_dms_only
 import shire.res.generated.resources.action_catch_groups_only
+import shire.res.generated.resources.action_catch_invites
+import shire.res.generated.resources.action_catch_non_invites
 import shire.res.generated.resources.action_catch_space_orphans
 import shire.res.generated.resources.action_leave
 import shire.res.generated.resources.action_navigate_debug_timeline
 import shire.res.generated.resources.pref_space_all_rooms_title
 import kotlin.math.max
-import kotlin.uuid.Uuid
 
 @Composable
 fun SpaceSelectorRow(
@@ -644,7 +648,9 @@ fun SpaceListDataSource.AbstractSpaceHierarchyItem.spaceContextMenu(): Immutable
     return when (this) {
         is SpaceListDataSource.SpaceHierarchyItem -> {
             val allowCatchAll = room.summary.info.canUserManageSpaces && room.summary.info.isPublic == false
-            val catchAllMode = room.summary.info.spaceCatchAll.toSpaceCatchAllMode()
+            val enableCatchAll = room.summary.info.spaceCatchAll?.includeOrphans == true
+            val catchAllFilterMode = room.summary.info.spaceCatchAll.toSpaceCatchAllFilterMode()
+            val catchAllInviteFilterMode = room.summary.info.spaceCatchAll.toSpaceCatchAllInviteFilterMode()
             listOfNotNull(
                 ContextMenuActionEntry(
                     Res.string.action_navigate_debug_timeline.toStringHolder(),
@@ -662,41 +668,70 @@ fun SpaceListDataSource.AbstractSpaceHierarchyItem.spaceContextMenu(): Immutable
                     rememberVectorPainter(Icons.Default.CatchingPokemon),
                     Action.Space.SetCatchAll,
                     actionArgs = persistentListOf(
-                        // Pass boolean to keep other settings intact
-                        (catchAllMode == SpaceCatchAllMode.None).toString()
+                        (!enableCatchAll).toString(),
                     ),
                     keyboardShortcut = Key.C,
-                    decoration = ContextMenuDecoration.Toggle(catchAllMode != SpaceCatchAllMode.None),
+                    decoration = ContextMenuDecoration.Toggle(enableCatchAll),
                 ).takeIf { allowCatchAll },
                 ContextMenuActionEntry(
                     Res.string.action_catch_dms_only.toStringHolder(),
                     rememberVectorPainter(Icons.Default.Person),
-                    Action.Space.SetCatchAll,
+                    Action.Space.SetCatchAllFilterMode,
                     actionArgs = persistentListOf(
-                        if (catchAllMode == SpaceCatchAllMode.Dms) {
+                        if (catchAllFilterMode == SpaceCatchAllMode.Dms) {
                             SpaceCatchAllMode.All.name
                         } else {
                             SpaceCatchAllMode.Dms.name
                         }
                     ),
-                    enabled = catchAllMode != SpaceCatchAllMode.None,
+                    enabled = enableCatchAll,
                     keyboardShortcut = Key.D,
-                    decoration = ContextMenuDecoration.Toggle(catchAllMode == SpaceCatchAllMode.Dms),
+                    decoration = ContextMenuDecoration.Toggle(catchAllFilterMode == SpaceCatchAllMode.Dms),
                 ).takeIf { allowCatchAll },
                 ContextMenuActionEntry(
                     Res.string.action_catch_groups_only.toStringHolder(),
                     rememberVectorPainter(Icons.Default.Group),
-                    Action.Space.SetCatchAll,
+                    Action.Space.SetCatchAllFilterMode,
                     actionArgs = persistentListOf(
-                        if (catchAllMode == SpaceCatchAllMode.Groups) {
+                        if (catchAllFilterMode == SpaceCatchAllMode.Groups) {
                             SpaceCatchAllMode.All.name
                         } else {
                             SpaceCatchAllMode.Groups.name
                         }
                     ),
-                    enabled = catchAllMode != SpaceCatchAllMode.None,
+                    enabled = enableCatchAll,
                     keyboardShortcut = Key.G,
-                    decoration = ContextMenuDecoration.Toggle(catchAllMode == SpaceCatchAllMode.Groups),
+                    decoration = ContextMenuDecoration.Toggle(catchAllFilterMode == SpaceCatchAllMode.Groups),
+                ).takeIf { allowCatchAll },
+                ContextMenuActionEntry(
+                    Res.string.action_catch_invites.toStringHolder(),
+                    rememberVectorPainter(Icons.Default.MeetingRoom),
+                    Action.Space.SetCatchAllInviteFilterMode,
+                    actionArgs = persistentListOf(
+                        if (catchAllInviteFilterMode == SpaceCatchAllInviteMode.NonInvites) {
+                            SpaceCatchAllInviteMode.All.name
+                        } else {
+                            SpaceCatchAllInviteMode.NonInvites.name
+                        }
+                    ),
+                    enabled = enableCatchAll,
+                    keyboardShortcut = Key.I,
+                    decoration = ContextMenuDecoration.Toggle(catchAllInviteFilterMode != SpaceCatchAllInviteMode.NonInvites),
+                ).takeIf { allowCatchAll },
+                ContextMenuActionEntry(
+                    Res.string.action_catch_non_invites.toStringHolder(),
+                    rememberVectorPainter(Icons.Default.GroupAdd),
+                    Action.Space.SetCatchAllInviteFilterMode,
+                    actionArgs = persistentListOf(
+                        if (catchAllInviteFilterMode == SpaceCatchAllInviteMode.Invites) {
+                            SpaceCatchAllInviteMode.All.name
+                        } else {
+                            SpaceCatchAllInviteMode.Invites.name
+                        }
+                    ),
+                    enabled = enableCatchAll,
+                    keyboardShortcut = Key.N,
+                    decoration = ContextMenuDecoration.Toggle(catchAllInviteFilterMode != SpaceCatchAllInviteMode.Invites),
                 ).takeIf { allowCatchAll },
                 ContextMenuActionEntry(
                     Res.string.action_leave.toStringHolder(),

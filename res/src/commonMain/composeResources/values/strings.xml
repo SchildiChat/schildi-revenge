@@ -146,6 +146,8 @@
     <string name="action_catch_space_orphans">Catch space-orphans</string>
     <string name="action_catch_dms_only">Only catch DMs</string>
     <string name="action_catch_groups_only">Only catch groups</string>
+    <string name="action_catch_invites">Allow catching invites</string>
+    <string name="action_catch_non_invites">Allow catching non-invites</string>
     <string name="action_accept">Accept</string>
     <string name="action_decline">Decline</string>
     <string name="action_verification_match">They match</string>

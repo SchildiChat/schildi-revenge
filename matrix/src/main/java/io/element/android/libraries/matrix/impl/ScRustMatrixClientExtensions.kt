@@ -21,6 +21,7 @@ fun org.matrix.rustcomponents.sdk.BridgeStateProtocolInfo.map() = BridgeState.Pr
 fun mapRustSpaceCatchAll(event: org.matrix.rustcomponents.sdk.SpaceCatchAllInfo) = SpaceCatchAllInfo(
     includeOrphans = event.includeOrphans,
     filterIsDirect = event.filterIsDm,
+    filterIsInvite = event.filterIsInvite,
 )
 
 fun mapRustAccountDataRawEvent(event: org.matrix.rustcomponents.sdk.AccountDataRawEvent) = AccountDataRawEvent(
