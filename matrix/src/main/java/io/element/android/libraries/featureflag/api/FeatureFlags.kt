@@ -4,6 +4,6 @@ package io.element.android.libraries.featureflag.api
 object FeatureFlags {
     object Threads : Feature { override val defaultValue = false }
     object OnlySignedDeviceIsolationMode : Feature { override val defaultValue = false }
-    object AutomaticBackPagination : Feature { override val defaultValue = true }
+    object AutomaticBackPagination : Feature { override val defaultValue = false }
     object MessageSearch : Feature { override val defaultValue = false }
 }
