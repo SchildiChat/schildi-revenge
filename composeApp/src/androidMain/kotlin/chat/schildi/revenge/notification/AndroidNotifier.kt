@@ -297,6 +297,7 @@ object AndroidNotifier {
             .setLargeIcon(roomAvatar ?: senderAvatar)
             .setAutoCancel(true)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            .setWhen(minOf(data.timestamp, System.currentTimeMillis()))
             .apply {
                 addExtras(
                     Bundle().apply {
