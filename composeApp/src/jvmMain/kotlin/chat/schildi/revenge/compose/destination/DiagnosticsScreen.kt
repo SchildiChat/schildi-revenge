@@ -89,6 +89,7 @@ fun DiagnosticsScreen(
         )
     publishTitle(viewModel)
     val state = viewModel.state.collectAsState().value
+    val directorySizes = viewModel.directorySizes.collectAsState().value
     val listState = rememberLazyListState()
     val listAction = remember(listState) { ListActions(listState) }
     FocusContainer(
@@ -152,33 +153,40 @@ fun DiagnosticsScreen(
                         MetricCard(
                             title = stringResource(Res.string.diagnostics_app_directories),
                         ) {
-                            MetricLine(
+                            AppDirectoryMetric(
                                 label = stringResource(Res.string.diagnostics_user_data_dir),
-                                value = remember { ScAppDirs.getUserDataDir() },
+                                path = remember { ScAppDirs.getUserDataDir() },
+                                directorySizes = directorySizes,
                             )
-                            MetricLine(
+                            AppDirectoryMetric(
                                 label = stringResource(Res.string.diagnostics_user_config_dir),
-                                value = remember { ScAppDirs.getUserConfigDir() },
+                                path = remember { ScAppDirs.getUserConfigDir() },
+                                directorySizes = directorySizes,
                             )
-                            MetricLine(
+                            AppDirectoryMetric(
                                 label = stringResource(Res.string.diagnostics_user_cache_dir),
-                                value = remember { ScAppDirs.getUserCacheDir() },
+                                path = remember { ScAppDirs.getUserCacheDir() },
+                                directorySizes = directorySizes,
                             )
-                            MetricLine(
+                            AppDirectoryMetric(
                                 label = stringResource(Res.string.diagnostics_site_data_dir),
-                                value = remember { ScAppDirs.getSiteDataDir() },
+                                path = remember { ScAppDirs.getSiteDataDir() },
+                                directorySizes = directorySizes,
                             )
-                            MetricLine(
+                            AppDirectoryMetric(
                                 label = stringResource(Res.string.diagnostics_site_config_dir),
-                                value = remember { ScAppDirs.getSiteConfigDir() },
+                                path = remember { ScAppDirs.getSiteConfigDir() },
+                                directorySizes = directorySizes,
                             )
-                            MetricLine(
+                            AppDirectoryMetric(
                                 label = stringResource(Res.string.diagnostics_user_log_dir),
-                                value = remember { ScAppDirs.getUserLogDir() },
+                                path = remember { ScAppDirs.getUserLogDir() },
+                                directorySizes = directorySizes,
                             )
-                            MetricLine(
+                            AppDirectoryMetric(
                                 label = stringResource(Res.string.diagnostics_shared_dir),
-                                value = remember { ScAppDirs.getSharedDir() },
+                                path = remember { ScAppDirs.getSharedDir() },
+                                directorySizes = directorySizes,
                             )
                         }
                     }
@@ -283,6 +291,24 @@ private fun MetricCard(
                 style = MaterialTheme.typography.titleMedium,
             )
             content()
+        }
+    }
+}
+
+@Composable
+private fun AppDirectoryMetric(
+    label: String,
+    path: String,
+    directorySizes: Map<String, Long>?,
+) {
+    MetricLine(label = label, value = path)
+    directorySizes?.get(path)?.let { sizeBytes ->
+        SelectionContainer {
+            Text(
+                text = sizeBytes.formatBytes(),
+                style = MaterialTheme.typography.bodyLarge,
+                fontFamily = FontFamily.Monospace,
+            )
         }
     }
 }
