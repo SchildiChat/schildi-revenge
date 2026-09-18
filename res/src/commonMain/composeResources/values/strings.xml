@@ -66,6 +66,10 @@
     <string name="diagnostics_current">Current</string>
     <string name="diagnostics_committed">Committed</string>
     <string name="diagnostics_max">Max</string>
+    <string name="diagnostics_sdk_media_store">Media cache</string>
+    <string name="diagnostics_sdk_state_store">State store</string>
+    <string name="diagnostics_sdk_event_cache_store">Event cache</string>
+    <string name="diagnostics_sdk_crypto_store">Crypto store</string>
 
     <string name="action_login">Login</string>
     <string name="action_check">Check</string>

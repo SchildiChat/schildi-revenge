@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Card
@@ -45,6 +46,7 @@ import chat.schildi.revenge.model.DiagnosticsSnapshot
 import chat.schildi.revenge.model.DiagnosticsViewModel
 import chat.schildi.revenge.model.ProcessDiagnosticsSnapshot
 import chat.schildi.revenge.model.ProcessPssDiagnosticsSnapshot
+import chat.schildi.revenge.model.SdkStoreSizesSnapshot
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.util.formatBytes
 import chat.schildi.revenge.viewModelKey
@@ -64,6 +66,10 @@ import shire.res.generated.resources.diagnostics_other
 import shire.res.generated.resources.diagnostics_process_pss
 import shire.res.generated.resources.diagnostics_process_rss
 import shire.res.generated.resources.diagnostics_render_api
+import shire.res.generated.resources.diagnostics_sdk_crypto_store
+import shire.res.generated.resources.diagnostics_sdk_event_cache_store
+import shire.res.generated.resources.diagnostics_sdk_media_store
+import shire.res.generated.resources.diagnostics_sdk_state_store
 import shire.res.generated.resources.diagnostics_shared_dir
 import shire.res.generated.resources.diagnostics_site_config_dir
 import shire.res.generated.resources.diagnostics_site_data_dir
@@ -90,6 +96,7 @@ fun DiagnosticsScreen(
     publishTitle(viewModel)
     val state = viewModel.state.collectAsState().value
     val directorySizes = viewModel.directorySizes.collectAsState().value
+    val sdkStoreSizes = viewModel.sdkStoreSizes.collectAsState().value
     val listState = rememberLazyListState()
     val listAction = remember(listState) { ListActions(listState) }
     FocusContainer(
@@ -190,6 +197,9 @@ fun DiagnosticsScreen(
                             )
                         }
                     }
+                    items(sdkStoreSizes, key = { it.sessionId }) { entry ->
+                        SdkStoreSection(entry)
+                    }
                 }
             }
         }
@@ -245,6 +255,34 @@ private fun ProcessPssSection(
         MetricLine(
             label = stringResource(Res.string.diagnostics_other),
             value = snapshot.otherBytes.formatBytes(),
+        )
+    }
+}
+
+@Composable
+private fun SdkStoreSection(
+    entry: SdkStoreSizesSnapshot,
+    modifier: Modifier = Modifier,
+) {
+    MetricCard(
+        title = "SDK ${entry.sessionId.value}",
+        modifier = modifier,
+    ) {
+        MetricLine(
+            label = stringResource(Res.string.diagnostics_sdk_media_store),
+            value = entry.mediaStoreBytes?.formatBytes() ?: stringResource(Res.string.diagnostics_unavailable),
+        )
+        MetricLine(
+            label = stringResource(Res.string.diagnostics_sdk_state_store),
+            value = entry.stateStoreBytes?.formatBytes() ?: stringResource(Res.string.diagnostics_unavailable),
+        )
+        MetricLine(
+            label = stringResource(Res.string.diagnostics_sdk_event_cache_store),
+            value = entry.eventCacheStoreBytes?.formatBytes() ?: stringResource(Res.string.diagnostics_unavailable),
+        )
+        MetricLine(
+            label = stringResource(Res.string.diagnostics_sdk_crypto_store),
+            value = entry.cryptoStoreBytes?.formatBytes() ?: stringResource(Res.string.diagnostics_unavailable),
         )
     }
 }
