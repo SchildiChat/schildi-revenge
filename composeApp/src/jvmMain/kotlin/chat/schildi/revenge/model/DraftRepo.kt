@@ -297,7 +297,11 @@ object DraftRepo {
     }
 
     fun update(draftKey: DraftKey, draftValue: DraftValue, allowWhileSendInProgress: Boolean = false) {
-        val newValue = draftValue.sanitized()
+        // isSendInProgress is owned by the send flow (see ConversationViewModel.sendMessage), which
+        // sets it through the transform overload below. Callers here pass composer state snapshots,
+        // which may still carry a stale flag if a send completed in the meantime; never write it back,
+        // or the composer could stay locked until the flag is explicitly cleared again.
+        val newValue = draftValue.copy(isSendInProgress = false).sanitized()
         drafts.update {
             val oldValue = it[draftKey]
             if (oldValue?.isSendInProgress == true && !allowWhileSendInProgress) {
