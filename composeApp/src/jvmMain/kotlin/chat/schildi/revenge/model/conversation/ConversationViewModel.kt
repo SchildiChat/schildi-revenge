@@ -882,225 +882,226 @@ class ConversationViewModel(
             GlobalActionsScope,
             Dispatchers.IO
         ) {
-            // In case user hasn't read the timeline yet, avoid stuck unread bugs caused by bugs
-            // with implicit read receipts and local echos.
-            // Shouldn't really matter if it's a private or public RR since we're about to send a message anyway,
-            // but since this should only do anything at all if we didn't send a RR before, defaulting to private
-            // should be more meaningful in case later actions fail.
-            // TODO this can take a while, can we check if this is really necessary?
-            currentTimeline.markAsRead(ReceiptType.READ_PRIVATE)
-                .onFailure { log.e("Forwarding the RR on message send failed", it) }
-                .onSuccess { log.d("Advanced the RR on message send") }
-            val result = run result@{
-                when (draft.type) {
-                    DraftType.TEXT -> {
-                        if (draft.inReplyTo != null) {
-                            currentTimeline.replyMessage(
-                                repliedToEventId = draft.inReplyTo.eventId,
+            var sent = false
+            try {
+                // In case user hasn't read the timeline yet, avoid stuck unread bugs caused by bugs
+                // with implicit read receipts and local echos.
+                // Shouldn't really matter if it's a private or public RR since we're about to send a message anyway,
+                // but since this should only do anything at all if we didn't send a RR before, defaulting to private
+                // should be more meaningful in case later actions fail.
+                // TODO this can take a while, can we check if this is really necessary?
+                currentTimeline.markAsRead(ReceiptType.READ_PRIVATE)
+                    .onFailure { log.e("Forwarding the RR on message send failed", it) }
+                    .onSuccess { log.d("Advanced the RR on message send") }
+                val result = run result@{
+                    when (draft.type) {
+                        DraftType.TEXT -> {
+                            if (draft.inReplyTo != null) {
+                                currentTimeline.replyMessage(
+                                    repliedToEventId = draft.inReplyTo.eventId,
+                                    body = draft.body,
+                                    htmlBody = draft.htmlBody,
+                                    plaintext = draft.shouldSendAsPlaintext,
+                                    intentionalMentions = draft.intentionalMentions,
+                                )
+                            } else {
+                                currentTimeline.sendMessage(
+                                    body = draft.body,
+                                    htmlBody = draft.htmlBody,
+                                    asPlainText = draft.shouldSendAsPlaintext,
+                                    intentionalMentions = draft.intentionalMentions,
+                                )
+                            }
+                        }
+
+                        DraftType.NOTICE -> {
+                            currentTimeline.sendNotice(
+                                body = draft.body,
+                                htmlBody = draft.htmlBody,
+                                plaintext = draft.shouldSendAsPlaintext,
+                                intentionalMentions = draft.intentionalMentions,
+                                inReplyToEventId = draft.inReplyTo?.eventId,
+                            )
+                        }
+
+                        DraftType.EMOTE -> {
+                            currentTimeline.sendEmote(
+                                body = draft.body,
+                                htmlBody = draft.htmlBody,
+                                plaintext = draft.shouldSendAsPlaintext,
+                                intentionalMentions = draft.intentionalMentions,
+                                inReplyToEventId = draft.inReplyTo?.eventId,
+                            )
+                        }
+
+                        DraftType.EDIT -> {
+                            val editEventId = draft.editEventId ?: run {
+                                return@result Result.failure(
+                                    IllegalArgumentException("Tried to edit message without eventId")
+                                )
+                            }
+                            currentTimeline.editMessage(
+                                eventOrTransactionId = editEventId,
                                 body = draft.body,
                                 htmlBody = draft.htmlBody,
                                 plaintext = draft.shouldSendAsPlaintext,
                                 intentionalMentions = draft.intentionalMentions,
                             )
-                        } else {
-                            currentTimeline.sendMessage(
-                                body = draft.body,
-                                htmlBody = draft.htmlBody,
-                                asPlainText = draft.shouldSendAsPlaintext,
+                        }
+
+                        DraftType.EDIT_CAPTION -> {
+                            val editEventId = draft.editEventId ?: run {
+                                return@result Result.failure(
+                                    IllegalArgumentException("Tried to edit caption without eventId")
+                                )
+                            }
+                            currentTimeline.editCaption(
+                                eventOrTransactionId = editEventId,
+                                caption = draft.body,
+                                formattedCaption = draft.htmlBody,
                                 intentionalMentions = draft.intentionalMentions,
+                                plaintext = draft.shouldSendAsPlaintext,
                             )
                         }
-                    }
 
-                    DraftType.NOTICE -> {
-                        currentTimeline.sendNotice(
-                            body = draft.body,
-                            htmlBody = draft.htmlBody,
-                            plaintext = draft.shouldSendAsPlaintext,
-                            intentionalMentions = draft.intentionalMentions,
-                            inReplyToEventId = draft.inReplyTo?.eventId,
-                        )
-                    }
-
-                    DraftType.EMOTE -> {
-                        currentTimeline.sendEmote(
-                            body = draft.body,
-                            htmlBody = draft.htmlBody,
-                            plaintext = draft.shouldSendAsPlaintext,
-                            intentionalMentions = draft.intentionalMentions,
-                            inReplyToEventId = draft.inReplyTo?.eventId,
-                        )
-                    }
-
-                    DraftType.EDIT -> {
-                        val editEventId = draft.editEventId ?: run {
-                            return@result Result.failure(
-                                IllegalArgumentException("Tried to edit message without eventId")
-                            )
-                        }
-                        currentTimeline.editMessage(
-                            eventOrTransactionId = editEventId,
-                            body = draft.body,
-                            htmlBody = draft.htmlBody,
-                            plaintext = draft.shouldSendAsPlaintext,
-                            intentionalMentions = draft.intentionalMentions,
-                        )
-                    }
-
-                    DraftType.EDIT_CAPTION -> {
-                        val editEventId = draft.editEventId ?: run {
-                            return@result Result.failure(
-                                IllegalArgumentException("Tried to edit caption without eventId")
-                            )
-                        }
-                        currentTimeline.editCaption(
-                            eventOrTransactionId = editEventId,
-                            caption = draft.body,
-                            formattedCaption = draft.htmlBody,
-                            intentionalMentions = draft.intentionalMentions,
-                            plaintext = draft.shouldSendAsPlaintext,
-                        )
-                    }
-
-                    DraftType.REACTION -> {
-                        val relatesToEventId = draft.inReplyTo?.eventId ?: run {
-                            return@result Result.failure(
-                                IllegalArgumentException("Tried to react without message eventId")
-                            )
-                        }
-                        if (draft.isValidReaction) {
-                            currentTimeline.toggleReaction(
-                                emoji = draft.body,
-                                eventOrTransactionId = relatesToEventId.toEventOrTransactionId(),
-                            )
-                        } else {
-                            null
-                        }
-                    }
-
-                    DraftType.STICKER -> {
-                        val sticker = draft.fullBodyCustomEmote?.takeIf { it.source.supportsSticker }
-                        if (sticker != null) {
-                            currentTimeline.sendSticker(
-                                url = sticker.image.url,
-                                body = sticker.image.body ?: "Sticker",
-                                info = sticker.image.info?.let { Json.encodeToString(it) },
-                                inReplyToEventId = draft.inReplyTo?.eventId,
-                            )
-                        } else {
-                            null
-                        }
-                    }
-
-                    DraftType.ATTACHMENT -> {
-                        val caption = draft.body.takeIf { it.isNotBlank() }
-                        val formattedCaption = draft.htmlBody
-                        when (val attachment = draft.attachment) {
-                            is Attachment.Audio -> {
-                                currentTimeline.sendAudio(
-                                    file = attachment.file,
-                                    audioInfo = attachment.audioInfo,
-                                    caption = caption,
-                                    formattedCaption = formattedCaption,
-                                    intentionalMentions = draft.intentionalMentions,
-                                    plaintext = draft.shouldSendAsPlaintext,
-                                    inReplyToEventId = draft.inReplyTo?.eventId,
-                                ).scheduleAttachmentCleanup(attachment)
+                        DraftType.REACTION -> {
+                            val relatesToEventId = draft.inReplyTo?.eventId ?: run {
+                                return@result Result.failure(
+                                    IllegalArgumentException("Tried to react without message eventId")
+                                )
                             }
-
-                            is Attachment.Generic -> {
-                                currentTimeline.sendFile(
-                                    file = attachment.file,
-                                    fileInfo = attachment.fileInfo,
-                                    caption = caption,
-                                    formattedCaption = formattedCaption,
-                                    intentionalMentions = draft.intentionalMentions,
-                                    plaintext = draft.shouldSendAsPlaintext,
-                                    inReplyToEventId = draft.inReplyTo?.eventId,
-                                ).scheduleAttachmentCleanup(attachment)
+                            if (draft.isValidReaction) {
+                                currentTimeline.toggleReaction(
+                                    emoji = draft.body,
+                                    eventOrTransactionId = relatesToEventId.toEventOrTransactionId(),
+                                )
+                            } else {
+                                null
                             }
-
-                            is Attachment.Image -> {
-                                currentTimeline.sendImage(
-                                    file = attachment.file,
-                                    thumbnailFile = null, // TODO?
-                                    imageInfo = attachment.imageInfo,
-                                    caption = caption,
-                                    formattedCaption = formattedCaption,
-                                    intentionalMentions = draft.intentionalMentions,
-                                    plaintext = draft.shouldSendAsPlaintext,
-                                    inReplyToEventId = draft.inReplyTo?.eventId,
-                                ).scheduleAttachmentCleanup(attachment)
-                            }
-
-                            is Attachment.Video -> {
-                                currentTimeline.sendVideoWithInMemoryThumbnail(
-                                    file = attachment.file,
-                                    thumbnail = attachment.thumbnail,
-                                    videoInfo = attachment.videoInfo,
-                                    caption = caption,
-                                    formattedCaption = formattedCaption,
-                                    intentionalMentions = draft.intentionalMentions,
-                                    plaintext = draft.shouldSendAsPlaintext,
-                                    inReplyToEventId = draft.inReplyTo?.eventId,
-                                ).scheduleAttachmentCleanup(attachment)
-                            }
-
-                            null -> Result.failure(IllegalStateException("No attachment attached"))
                         }
-                    }
 
-                    DraftType.CUSTOM_EVENT -> {
-                        val room = joinedRoom.value ?: return@result Result.failure(
-                            IllegalStateException("Room not ready")
-                        )
-                        val eventType = draft.customEventType ?: return@result Result.failure(
-                            IllegalStateException("Tried to send custom event without type")
-                        )
-                        room.sendRaw(
-                            eventType = eventType,
-                            content = draft.body,
-                        )
-                    }
+                        DraftType.STICKER -> {
+                            val sticker = draft.fullBodyCustomEmote?.takeIf { it.source.supportsSticker }
+                            if (sticker != null) {
+                                currentTimeline.sendSticker(
+                                    url = sticker.image.url,
+                                    body = sticker.image.body ?: "Sticker",
+                                    info = sticker.image.info?.let { Json.encodeToString(it) },
+                                    inReplyToEventId = draft.inReplyTo?.eventId,
+                                )
+                            } else {
+                                null
+                            }
+                        }
 
-                    DraftType.CUSTOM_STATE_EVENT -> {
-                        val room = joinedRoom.value ?: return@result Result.failure(
-                            IllegalStateException("Room not ready")
-                        )
-                        val eventType = draft.customEventType ?: return@result Result.failure(
-                            IllegalStateException("Tried to send custom event without type")
-                        )
-                        room.sendRawState(
-                            eventType = eventType,
-                            stateKey = draft.stateKey ?: "",
-                            content = draft.body,
-                        ).also {
-                            if (it.isSuccess) {
-                                roomContextSuggestionsProvider.invalidateCachedState()
+                        DraftType.ATTACHMENT -> {
+                            val caption = draft.body.takeIf { it.isNotBlank() }
+                            val formattedCaption = draft.htmlBody
+                            when (val attachment = draft.attachment) {
+                                is Attachment.Audio -> {
+                                    currentTimeline.sendAudio(
+                                        file = attachment.file,
+                                        audioInfo = attachment.audioInfo,
+                                        caption = caption,
+                                        formattedCaption = formattedCaption,
+                                        intentionalMentions = draft.intentionalMentions,
+                                        plaintext = draft.shouldSendAsPlaintext,
+                                        inReplyToEventId = draft.inReplyTo?.eventId,
+                                    ).scheduleAttachmentCleanup(attachment)
+                                }
+
+                                is Attachment.Generic -> {
+                                    currentTimeline.sendFile(
+                                        file = attachment.file,
+                                        fileInfo = attachment.fileInfo,
+                                        caption = caption,
+                                        formattedCaption = formattedCaption,
+                                        intentionalMentions = draft.intentionalMentions,
+                                        plaintext = draft.shouldSendAsPlaintext,
+                                        inReplyToEventId = draft.inReplyTo?.eventId,
+                                    ).scheduleAttachmentCleanup(attachment)
+                                }
+
+                                is Attachment.Image -> {
+                                    currentTimeline.sendImage(
+                                        file = attachment.file,
+                                        thumbnailFile = null, // TODO?
+                                        imageInfo = attachment.imageInfo,
+                                        caption = caption,
+                                        formattedCaption = formattedCaption,
+                                        intentionalMentions = draft.intentionalMentions,
+                                        plaintext = draft.shouldSendAsPlaintext,
+                                        inReplyToEventId = draft.inReplyTo?.eventId,
+                                    ).scheduleAttachmentCleanup(attachment)
+                                }
+
+                                is Attachment.Video -> {
+                                    currentTimeline.sendVideoWithInMemoryThumbnail(
+                                        file = attachment.file,
+                                        thumbnail = attachment.thumbnail,
+                                        videoInfo = attachment.videoInfo,
+                                        caption = caption,
+                                        formattedCaption = formattedCaption,
+                                        intentionalMentions = draft.intentionalMentions,
+                                        plaintext = draft.shouldSendAsPlaintext,
+                                        inReplyToEventId = draft.inReplyTo?.eventId,
+                                    ).scheduleAttachmentCleanup(attachment)
+                                }
+
+                                null -> Result.failure(IllegalStateException("No attachment attached"))
+                            }
+                        }
+
+                        DraftType.CUSTOM_EVENT -> {
+                            val room = joinedRoom.value ?: return@result Result.failure(
+                                IllegalStateException("Room not ready")
+                            )
+                            val eventType = draft.customEventType ?: return@result Result.failure(
+                                IllegalStateException("Tried to send custom event without type")
+                            )
+                            room.sendRaw(
+                                eventType = eventType,
+                                content = draft.body,
+                            )
+                        }
+
+                        DraftType.CUSTOM_STATE_EVENT -> {
+                            val room = joinedRoom.value ?: return@result Result.failure(
+                                IllegalStateException("Room not ready")
+                            )
+                            val eventType = draft.customEventType ?: return@result Result.failure(
+                                IllegalStateException("Tried to send custom event without type")
+                            )
+                            room.sendRawState(
+                                eventType = eventType,
+                                stateKey = draft.stateKey ?: "",
+                                content = draft.body,
+                            ).also {
+                                if (it.isSuccess) {
+                                    roomContextSuggestionsProvider.invalidateCachedState()
+                                }
                             }
                         }
                     }
                 }
-            }
-            if (result == null) {
-                DraftRepo.update(
-                    draftKey,
-                    draft.copy(isSendInProgress = false),
-                    allowWhileSendInProgress = true
-                )
-                ActionResult.Inapplicable
-            } else if (result.isSuccess) {
-                log.v("Message sent successfully in $roomId")
-                DraftRepo.deleteDraft(draftKey)
-                ActionResult.Success()
-            } else {
-                log.w("Failed to send message in $roomId", result.exceptionOrNull())
-                DraftRepo.update(
-                    draftKey,
-                    draft.copy(isSendInProgress = false),
-                    allowWhileSendInProgress = true
-                )
-                ActionResult.Failure("Failed to send message")
+                if (result == null) {
+                    ActionResult.Inapplicable
+                } else if (result.isSuccess) {
+                    log.v("Message sent successfully in $roomId")
+                    DraftRepo.deleteDraft(draftKey)
+                    sent = true
+                    ActionResult.Success()
+                } else {
+                    log.w("Failed to send message in $roomId", result.exceptionOrNull())
+                    ActionResult.Failure("Failed to send message")
+                }
+            } finally {
+                if (!sent) {
+                    // Always release the store-owned send-in-progress flag, keeping the draft
+                    // content so the user can retry. Otherwise a failed or aborted send leaves the
+                    // composer refusing all input until the app is restarted.
+                    DraftRepo.update(draftKey, draft.copy(isSendInProgress = false), allowWhileSendInProgress = true)
+                }
             }
         }
         if (composerSettings.value.autoHideComposer || draft.type == DraftType.REACTION) {
