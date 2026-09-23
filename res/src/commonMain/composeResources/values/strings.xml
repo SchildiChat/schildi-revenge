@@ -3,6 +3,7 @@
     <string name="inbox">Inbox</string>
     <string name="inbox_search">Inbox search</string>
     <string name="create_room">Create new room</string>
+    <string name="start_chat">Start chat</string>
     <string name="thread">Thread</string>
     <string name="pinned_messages">Pinned messages</string>
     <string name="room_details_title">Room details</string>
@@ -165,6 +166,7 @@
     <string name="action_view_event_source">View event source</string>
     <string name="action_copy_event_source">Copy event source</string>
     <string name="action_create">Create</string>
+    <string name="action_new">New…</string>
     <string name="action_none">None</string>
 
     <string name="command_success">Success: %1$s</string>
@@ -208,6 +210,7 @@
     <string name="hint_password">Password</string>
     <string name="hint_recovery_key">Recovery key</string>
     <string name="hint_search">Search</string>
+    <string name="hint_start_chat_account">Chat as</string>
     <string name="hint_command">Command</string>
     <string name="hint_settings">Settings</string>
     <string name="hint_composer_text">Message</string>
@@ -612,6 +615,8 @@
     <string name="toast_room_created">Created room %1$s</string>
     <string name="toast_room_creation_error">Failed to create room</string>
     <string name="toast_room_creation_success">Room created</string>
+    <string name="toast_start_chat_error">Failed to start chat</string>
+    <string name="toast_start_chat_success">Started chat %1$s</string>
     <string name="toast_bug_report_progress">Sending bug report: %1$s%</string>
 
     <plurals name="named_users_typing">
@@ -659,6 +664,11 @@
     <string name="empty_screen_placeholder_message_reactions">No message reactions</string>
     <string name="empty_screen_placeholder_message_read_receipts">No message read receipts</string>
     <string name="empty_screen_placeholder_unexpected">This screen is unexpectedly empty</string>
+
+    <string name="start_chat_hint_idle">Search for people by name or Matrix ID</string>
+    <string name="start_chat_no_results">No users found. To reach someone on another server, enter their full Matrix ID like @user:example.org</string>
+    <string name="start_chat_results_limited">Not all matching users are shown, refine your search to find more</string>
+    <string name="start_chat_search_error">User search failed</string>
 
     <plurals name="n_threaded_replies">
         <item quantity="one">%1$d thread reply</item>
