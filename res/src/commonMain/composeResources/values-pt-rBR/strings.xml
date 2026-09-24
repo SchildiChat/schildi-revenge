@@ -408,4 +408,6 @@
     <string name="pref_force_fcm_distributor_summary">Usar o distribuidor FCM embutido mesmo quando outro distribuidor UnifiedPush está disponível. Apenas se aplicará a novas registrações.</string>
     <string name="pref_force_fcm_distributor_title">Forçar distribuidor FCM</string>
     <string name="hint_message_in_room">Conversar em %1$s</string>
+    <string name="diagnostics_sdk_media_store">Cache de mídia</string>
+    <string name="diagnostics_sdk_event_cache_store">Cache de eventos</string>
 </resources>
