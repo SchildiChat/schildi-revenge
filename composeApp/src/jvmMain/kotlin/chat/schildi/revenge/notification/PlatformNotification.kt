@@ -29,3 +29,8 @@ expect fun platformActiveNotificationRooms(): List<ScopedRawRoomId>
  * latest shown notification.
  */
 expect fun platformAutoDismissNotification(sessionId: SessionId, roomId: RoomId, latestRead: List<EventId>): Boolean
+
+/**
+ * Remove the messages of the given event from the room's active notification, if it has any.
+ */
+expect fun platformRedactNotificationMessage(sessionId: SessionId, roomId: RoomId, eventId: EventId): Boolean

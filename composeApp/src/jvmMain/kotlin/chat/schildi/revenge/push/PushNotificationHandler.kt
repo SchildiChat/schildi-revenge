@@ -10,6 +10,7 @@ import chat.schildi.revenge.database.revengeDatabase
 import chat.schildi.revenge.notification.NotificationId
 import chat.schildi.revenge.notification.platformActiveNotificationRooms
 import chat.schildi.revenge.notification.platformAutoDismissNotification
+import chat.schildi.revenge.notification.platformRedactNotificationMessage
 import chat.schildi.revenge.notification.platformNotify
 import chat.schildi.revenge.notification.platformNotifyMessage
 import chat.schildi.revenge.preferences.RevengePrefs
@@ -19,6 +20,7 @@ import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.exception.NotificationResolverException
+import io.element.android.libraries.matrix.api.notification.NotificationContent
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -154,7 +156,10 @@ object PushNotificationHandler {
                 val eventResult = results[EventId(push.eventId)]
                 val data = eventResult?.getOrNull() ?: run {
                     val typedException = eventResult?.exceptionOrNull() as? NotificationResolverException
-                    if (typedException != null && typedException !is NotificationResolverException.UnknownError) {
+                    if (typedException is NotificationResolverException.EventRedacted) {
+                        log.d("Got redacted message result for $sessionId/${push.roomId}/${push.eventId}")
+                        platformRedactNotificationMessage(sessionId, RoomId(push.roomId), EventId(push.eventId))
+                    } else if (typedException != null && typedException !is NotificationResolverException.UnknownError) {
                         log.d("Got $typedException result for $sessionId/${push.roomId}/${push.eventId}")
                     } else {
                         log.w(
@@ -166,7 +171,6 @@ object PushNotificationHandler {
                         null -> false
                         NotificationResolverException.EventFilteredOut,
                         NotificationResolverException.EventNotFound,
-                            // TODO dismiss existing notif if exists for redactions?
                         NotificationResolverException.EventRedacted -> true
                         is NotificationResolverException.UnknownError -> false
                     }
@@ -182,15 +186,22 @@ object PushNotificationHandler {
                     return@forEach
                 }
                 log.d("Got notification result for $sessionId/${push.roomId}/${push.eventId}")
-                didNotify = true
-                platformNotifyMessage(
-                    id = NotificationId.Event(
-                        sessionId = data.sessionId,
-                        roomId = data.roomId,
-                        eventId = data.eventId,
-                    ),
-                    data = data,
-                )
+                val redaction = data.content as? NotificationContent.MessageLike.RoomRedaction
+                if (redaction != null) {
+                    redaction.redactedEventId?.let { redactedEventId ->
+                        platformRedactNotificationMessage(data.sessionId, data.roomId, redactedEventId)
+                    }
+                } else {
+                    didNotify = true
+                    platformNotifyMessage(
+                        id = NotificationId.Event(
+                            sessionId = data.sessionId,
+                            roomId = data.roomId,
+                            eventId = data.eventId,
+                        ),
+                        data = data,
+                    )
+                }
                 pushDao.markPushResolved(
                     sessionId = data.sessionId.value,
                     roomId = data.roomId.value,

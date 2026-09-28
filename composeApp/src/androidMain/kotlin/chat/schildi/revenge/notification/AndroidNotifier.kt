@@ -39,7 +39,6 @@ import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import coil3.size.Precision
 import io.element.android.libraries.androidutils.hash.hash
-import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.media.MediaSource
@@ -76,7 +75,7 @@ object AndroidNotifier {
 
     private const val EXTRA_SESSION_ID = "session_id"
     private const val EXTRA_ROOM_ID = "room_id"
-    private const val EXTRA_LATEST_EVENT_ID = "latest_event_id"
+    private const val EXTRA_EVENT_IDS = "event_ids"
 
     private val log = Logger.withTag("AndroidNotifier")
 
@@ -262,6 +261,20 @@ object AndroidNotifier {
             else -> messagingStyle.addMessage(textMessage())
         }
 
+        // Track one event ID per added message, so we can look up by index.
+        // Note that one event may cause multiple notifications to be added (e.g. for attachment captions).
+        val previousMessageCount = messagingStyle.messages.size
+        val previousEventIds =
+            existingNotification?.extras?.getStringArrayList(EXTRA_EVENT_IDS)?.toList()
+                ?: emptyList()
+        val eventIds = if (previousEventIds.size == previousMessageCount) {
+            previousEventIds +
+                    List(messagingStyle.messages.size - previousMessageCount) { data.eventId.value }
+        } else {
+            log.e { "Existing notification for $id has $previousMessageCount messages but tracks $previousEventIds event IDs" }
+            previousEventIds + data.eventId.value
+        }
+
         val shortcut = createConversationShortcut(
             sessionId = id.sessionId,
             roomId = id.roomId,
@@ -303,7 +316,7 @@ object AndroidNotifier {
                     Bundle().apply {
                         putString(EXTRA_SESSION_ID, id.sessionId.value)
                         putString(EXTRA_ROOM_ID, id.roomId.value)
-                        putString(EXTRA_LATEST_EVENT_ID, data.eventId.value)
+                        putStringArrayList(EXTRA_EVENT_IDS, ArrayList(eventIds))
                     }
                 )
                 shortcut?.let { setShortcutId(it.id) }
@@ -339,7 +352,8 @@ object AndroidNotifier {
         }.onFailure { failure ->
             log.w("Failed to inspect active notifications", failure)
         }.getOrNull() ?: return false
-        val latestPosted = active.notification.extras.getString(EXTRA_LATEST_EVENT_ID) ?: return false
+        val latestPosted =
+            active.notification.extras.getStringArrayList(EXTRA_EVENT_IDS)?.lastOrNull() ?: return false
         log.d { "Comparing posted notification for $sessionId, $roomId, $latestPosted against [${latestRead.joinToString()}]" }
         if (latestPosted in latestRead) {
             runCatching { notificationManager.cancel(notificationId) }
@@ -349,6 +363,81 @@ object AndroidNotifier {
             return true
         }
         return false
+    }
+
+    fun redactMessage(
+        sessionId: String,
+        roomId: String,
+        eventId: String,
+        context: Context = RevengeApplication.instance,
+    ): Boolean {
+        val notificationManager = NotificationManagerCompat.from(context)
+        if (!context.canPostNotifications() || !notificationManager.areNotificationsEnabled()) return false
+
+        val notificationId = NotificationId.Room(SessionId(sessionId), RoomId(roomId)).androidNotificationId()
+        val active = runCatching {
+            notificationManager.activeNotifications.firstOrNull { it.id == notificationId }
+        }.onFailure { failure ->
+            log.w("Failed to inspect active notifications", failure)
+        }.getOrNull() ?: return false
+        val extras = active.notification.extras
+
+        val messagingStyle = active.notification?.let {
+            NotificationCompat.MessagingStyle.extractMessagingStyleFromNotification(it)
+        } ?: return false
+        val eventIds = extras.getStringArrayList(EXTRA_EVENT_IDS)
+        if (eventIds == null || eventIds.size != messagingStyle.messages.size) {
+            log.e { "Existing notification for $notificationId has ${messagingStyle.messages.size} messages but tracks ${eventIds?.size} event IDs" }
+            return false
+        }
+        if (eventIds.none { it == eventId }) {
+            return false
+        }
+        if (eventIds.all { it == eventId }) {
+            log.d("Dismissing notification for $sessionId, $roomId, size=${eventIds.size}")
+            runCatching { notificationManager.cancel(notificationId) }
+                .onFailure { failure ->
+                    log.w("Failed to cancel dismissed notification for $sessionId/$roomId", failure)
+                }
+            return true
+        }
+        // MessagingStyle has no remove-message API, so rebuild it without the removed messages
+        val newStyle = NotificationCompat.MessagingStyle(messagingStyle.user)
+            .setConversationTitle(messagingStyle.conversationTitle)
+            .setGroupConversation(messagingStyle.isGroupConversation())
+        messagingStyle.messages.forEachIndexed { index, message ->
+            if (eventIds[index] == eventId) return@forEachIndexed
+            val newMessage = NotificationCompat.MessagingStyle.Message(
+                message.text,
+                message.timestamp,
+                message.person,
+            )
+            message.dataMimeType?.let { mime -> message.dataUri?.let { uri -> newMessage.setData(mime, uri) } }
+            newStyle.addMessage(newMessage)
+        }
+        val remainingIds = ArrayList(eventIds.filter { it != eventId })
+        val notification = NotificationCompat.Builder(context, active.notification)
+            .setStyle(newStyle)
+            .setOnlyAlertOnce(true)
+            .setNumber(newStyle.messages.size)
+            .setContentText(newStyle.messages.last().text)
+            .apply {
+                addExtras(
+                    Bundle().apply {
+                        putString(EXTRA_SESSION_ID, sessionId)
+                        putString(EXTRA_ROOM_ID, roomId)
+                        putStringArrayList(EXTRA_EVENT_IDS, remainingIds)
+                    }
+                )
+            }
+            .build()
+        return try {
+            notificationManager.notify(notificationId, notification)
+            true
+        } catch (failure: SecurityException) {
+            log.w("Failed to repost dismissed notification for $sessionId/$roomId", failure)
+            false
+        }
     }
 
     private fun NotificationId.conversationDestination() = when (this) {

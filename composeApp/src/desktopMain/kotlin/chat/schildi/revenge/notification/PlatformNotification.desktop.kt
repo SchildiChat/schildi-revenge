@@ -37,3 +37,5 @@ actual suspend fun platformNotifyMessage(
 actual fun platformActiveNotificationRooms(): List<ScopedRawRoomId> = emptyList()
 
 actual fun platformAutoDismissNotification(sessionId: SessionId, roomId: RoomId, latestRead: List<EventId>) = false
+
+actual fun platformRedactNotificationMessage(sessionId: SessionId, roomId: RoomId, eventId: EventId) = false
