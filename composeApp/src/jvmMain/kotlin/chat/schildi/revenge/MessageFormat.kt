@@ -188,7 +188,7 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
                                 )
                             )
                         } else {
-                            destinationStateHolder?.navigate(destination)
+                            destinationStateHolder?.navigate(destination, NavigationPreference.NEW_WINDOW_SAME_TASK)
                         }
                     }
                 }
@@ -215,7 +215,7 @@ fun matrixBodyFormatter(): MatrixBodyStyledFormatter {
                                 )
                             )
                         } else {
-                            destinationStateHolder?.navigate(destination)
+                            destinationStateHolder?.navigate(destination, NavigationPreference.NEW_WINDOW_SAME_TASK)
                         }
                     }
                 }
