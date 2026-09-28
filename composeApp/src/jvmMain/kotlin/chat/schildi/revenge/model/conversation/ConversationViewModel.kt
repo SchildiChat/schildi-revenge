@@ -142,7 +142,6 @@ import io.element.android.libraries.matrix.api.timeline.item.event.VoiceMessageT
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisambiguatedDisplayName
 import io.element.android.libraries.matrix.api.timeline.item.event.toEventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.virtual.VirtualTimelineItem
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentHashMapOf
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -272,7 +271,7 @@ interface RoomPreviewViewModel {
     val sessionId: SessionId
     val roomId: RoomId
     val timelineParams: CreateTimelineParams?
-    val joinServerNames: ImmutableList<String>?
+    val joinServerNames: List<String>?
     val roomInfo: StateFlow<RoomInfo?>
     val roomPreview: StateFlow<RoomPreviewInfo?>
     val roomContextSuggestionsProvider: RoomContextSuggestionsProvider
@@ -309,7 +308,7 @@ class ConversationViewModel(
     override val sessionId: SessionId,
     override val roomId: RoomId,
     override val timelineParams: CreateTimelineParams?,
-    override val joinServerNames: ImmutableList<String>?,
+    override val joinServerNames: List<String>?,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
 ) : ViewModel(), TitleProvider, SearchProvider, UserIdSuggestionsProvider, ComposerViewModel, RoomPreviewViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
@@ -723,7 +722,7 @@ class ConversationViewModel(
         val successorRoom = info?.successorRoom ?: return@combine null
         // Need to figure out some via for joining reliably - try sender server for the tombstone event,
         // plus some common servers in this room
-        val via = (listOfNotNull(tombstoneSender?.domainName) + via.orEmpty()).distinct().toImmutableList()
+        val via = (listOfNotNull(tombstoneSender?.domainName) + via.orEmpty()).distinct()
         Destination.Conversation(
             sessionId = sessionId,
             roomId = successorRoom.roomId,
@@ -2672,7 +2671,7 @@ class ConversationViewModel(
             sessionId: SessionId,
             roomId: RoomId,
             timelineParams: CreateTimelineParams?,
-            joinServerNames: ImmutableList<String>?,
+            joinServerNames: List<String>?,
         ) = viewModelFactory {
             initializer {
                 ConversationViewModel(sessionId, roomId, timelineParams, joinServerNames)

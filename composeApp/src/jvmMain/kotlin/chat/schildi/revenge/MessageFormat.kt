@@ -49,7 +49,6 @@ import io.element.android.libraries.matrix.api.core.RoomIdOrAlias
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.CreateTimelineParams
-import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.failed_to_resolve_room
@@ -244,7 +243,7 @@ suspend fun MatrixToLink.RoomLink.toDestination(
         Destination.Conversation(
             sessionId = sessionId,
             roomId = safeRoomId,
-            joinServerNames = via?.toPersistentList(),
+            joinServerNames = via,
         )
     )
 }
@@ -270,7 +269,7 @@ suspend fun MatrixToLink.MessageLink.toDestination(
             sessionId = sessionId,
             roomId = safeRoomId,
             timelineParams = CreateTimelineParams.Focused(EventId(messageId)),
-            joinServerNames = via?.toPersistentList(),
+            joinServerNames = via,
         )
     )
 }

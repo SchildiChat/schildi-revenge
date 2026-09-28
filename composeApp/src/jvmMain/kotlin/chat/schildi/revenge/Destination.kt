@@ -9,7 +9,6 @@ import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.CreateTimelineParams
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -102,7 +101,7 @@ sealed interface Destination {
         override val sessionId: SessionId,
         override val roomId: RoomId,
         val timelineParams: CreateTimelineParams? = null,
-        val joinServerNames: ImmutableList<String>? = null,
+        val joinServerNames: List<String>? = null,
     ) : WithRoom {
         val preferDetailsPane = when (timelineParams) {
             null,
