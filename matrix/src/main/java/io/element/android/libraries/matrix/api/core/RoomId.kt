@@ -11,8 +11,8 @@ package io.element.android.libraries.matrix.api.core
 import io.element.android.libraries.androidutils.metadata.isInDebug
 import java.io.Serializable
 
-@JvmInline
 @kotlinx.serialization.Serializable
+@JvmInline
 value class RoomId(val value: String) : Serializable {
     init {
         if (isInDebug && !MatrixPatterns.isRoomId(value) && false) {
