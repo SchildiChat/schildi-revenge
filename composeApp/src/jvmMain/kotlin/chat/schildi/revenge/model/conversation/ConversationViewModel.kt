@@ -75,6 +75,7 @@ import chat.schildi.revenge.model.PendingGlobalActions
 import chat.schildi.revenge.model.RoomActionProvider
 import chat.schildi.revenge.model.UserActionProvider
 import chat.schildi.revenge.model.asCheckpointLoadedOrPending
+import chat.schildi.revenge.model.canSendEmpty
 import chat.schildi.revenge.model.getCurrentCompletionEntity
 import chat.schildi.revenge.model.shouldSendTypingIndicator
 import chat.schildi.revenge.toDestination
@@ -860,7 +861,10 @@ class ConversationViewModel(
         }
         var currentDraft: DraftValue? = null
         DraftRepo.update(draftKey) {
-            if (it == null || it.isEmpty() || it.isSendInProgress) {
+            if (it == null ||
+                it.isSendInProgress ||
+                (it.isEmpty() && (!it.type.canSendEmpty() || !scPreferencesStore.getCachedOrDefaultValue(ScPrefs.ALLOW_EMPTY_MESSAGE_SEND)))
+            ) {
                 log.w("Refuse to send blank message")
                 it
             } else {

@@ -16,6 +16,8 @@ import shire.res.generated.resources.hint_composer_format_html
 import shire.res.generated.resources.hint_composer_format_markdown
 import shire.res.generated.resources.hint_composer_format_plain
 import shire.res.generated.resources.hint_settings
+import shire.res.generated.resources.pref_allow_empty_message_send_summary
+import shire.res.generated.resources.pref_allow_empty_message_send_title
 import shire.res.generated.resources.pref_always_show_keyboard_focus
 import shire.res.generated.resources.pref_animate_avatars_summary
 import shire.res.generated.resources.pref_animate_avatars_title
@@ -257,6 +259,7 @@ object ScPrefs {
     val FORCE_RENDER_BLURHASH = ScBoolPref("FORCE_RENDER_BLURHASH", false, Res.string.pref_force_render_blurhash_title, Res.string.pref_force_render_blurhash_summary)
     val FRAME_DROP_SPINNER = ScBoolPref("FRAME_DROP_SPINNER", false, Res.string.pref_framed_rop_spinner_title, Res.string.pref_framed_rop_spinner_summary)
     val DEBUG_NOTIFICATIONS = ScBoolPref("DEBUG_NOTIFICATIONS", false, Res.string.pref_debug_notifications_title, Res.string.pref_debug_notifications_summary, supportedOnPlatform = scPrefPlatformSupport.pushNotifications)
+    val ALLOW_EMPTY_MESSAGE_SEND = ScBoolPref("ALLOW_EMPTY_MESSAGE_SEND", false, Res.string.pref_allow_empty_message_send_title, Res.string.pref_allow_empty_message_send_summary)
 
     // Appearance
     val LOCALE = ScStringListPref("LOCALE", "", availableLocaleSettings, Res.string.pref_locale, allowNonEntryValues = true)
@@ -406,6 +409,7 @@ object ScPrefs {
             FORCE_RENDER_BLURHASH,
             RENDER_AVATAR_STATES,
             FRAME_DROP_SPINNER,
+            ALLOW_EMPTY_MESSAGE_SEND,
             SHOW_ADVANCED_ROOM_CREATION_PARAMETERS,
             DEBUG_NOTIFICATIONS,
         ))

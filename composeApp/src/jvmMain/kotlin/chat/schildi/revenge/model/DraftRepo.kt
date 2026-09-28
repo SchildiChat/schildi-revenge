@@ -73,6 +73,17 @@ fun DraftType.shouldSendTypingIndicator() = when (this) {
     DraftType.CUSTOM_STATE_EVENT -> false
 }
 
+// Whether it's *technically* possible to send empty (not whether you *should*).
+fun DraftType.canSendEmpty() = when (this) {
+    DraftType.TEXT,
+    DraftType.NOTICE,
+    DraftType.EMOTE,
+    DraftType.EDIT,
+    DraftType.EDIT_CAPTION -> true
+    else -> false
+}
+
+
 sealed interface Attachment {
     val file: File
     val isFileAppOwned: Boolean
