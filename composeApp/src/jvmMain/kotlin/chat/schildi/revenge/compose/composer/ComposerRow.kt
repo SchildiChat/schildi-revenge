@@ -105,6 +105,7 @@ fun ComposerRow(
 ) {
     val suggestionsState = viewModel.composerSuggestions.collectAsState().value
     val composerInfo = viewModel.composerRoomInfo.collectAsState().value
+    val isSendInProgress = viewModel.isSendInProgress.collectAsState().value
     val draftTheme = MaterialTheme.scExposures.draftTheme
     LaunchedEffect(draftTheme) {
         viewModel.updateDraftTheme(draftTheme)
@@ -143,12 +144,12 @@ fun ComposerRow(
                 WithTooltip(stringResource(Res.string.action_add_attachment)) {
                     ScIconButton(
                         onClick = { viewModel.launchAttachmentPicker(actionContext) },
-                        enabled = !draftState.isSendInProgress,
+                        enabled = !isSendInProgress,
                         minWidth = Dimens.Conversation.Composer.buttonWidth,
                         minHeight = Dimens.Conversation.Composer.buttonHeight,
                     ) {
                         val color = animateColorAsState(
-                            if (draftState.isSendInProgress)
+                            if (isSendInProgress)
                                 MaterialTheme.colorScheme.tertiary
                             else
                                 MaterialTheme.colorScheme.onSurface,
@@ -264,7 +265,7 @@ fun ComposerRow(
                 WithTooltip(stringResource(Res.string.hint_composer_sticker)) {
                     ScIconButton(
                         onClick = { viewModel.toggleStickerMode() },
-                        enabled = !draftState.isSendInProgress,
+                        enabled = !isSendInProgress,
                         minWidth = Dimens.Conversation.Composer.buttonWidth,
                         minHeight = Dimens.Conversation.Composer.buttonHeight,
                     ) {
@@ -282,8 +283,8 @@ fun ComposerRow(
                     }
                 }
             }
-            AnimatedContent(draftState.isSendInProgress) { isSendInProgress ->
-                if (isSendInProgress) {
+            AnimatedContent(isSendInProgress) { sending ->
+                if (sending) {
                     Box(Modifier.minimumInteractiveComponentSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(32.dp),
@@ -296,7 +297,7 @@ fun ComposerRow(
                     }
                 } else {
                     SendButton(
-                        enabled = draftState.canSend() && bodyValidationError == null,
+                        enabled = draftState.canSend() && !isSendInProgress && bodyValidationError == null,
                         onClick = { viewModel.sendMessage(actionContext) }
                     )
                 }

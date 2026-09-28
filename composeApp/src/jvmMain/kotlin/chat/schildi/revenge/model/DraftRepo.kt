@@ -191,7 +191,6 @@ data class DraftValue(
     val spans: ImmutableList<DraftSpan> = persistentListOf(),
     val inReplyTo: InReplyTo.Ready? = null,
     val editEventId: EventOrTransactionId? = null, // Only for DraftType.EDIT and DraftType.EDIT_CAPTION
-    val isSendInProgress: Boolean = false,
     val initialBody: String = "", // For edits the original message content, else empty
     val attachment: Attachment? = null, // Mandatory for DraftType.ATTACHMENT, otherwise unused
     val customEventType: String? = null, // Only for DraftType.CUSTOM_EVENT and DraftType.CUSTOM_STATE_EVENT
@@ -262,7 +261,7 @@ data class DraftValue(
 
     override fun isEmpty() = attachment?.takeIf { type == DraftType.ATTACHMENT } == null &&
             (textFieldValue.text.isBlank() || textFieldValue.text == initialBody)
-    fun canSend() = !isSendInProgress && !isEmpty() && when (type) {
+    fun canSend() = !isEmpty() && when (type) {
         DraftType.STICKER -> isValidSticker
         DraftType.REACTION -> isValidReaction
         else -> true
@@ -301,41 +300,49 @@ data class DraftTheme(
 object DraftRepo {
     private val log = Logger.withTag("DraftRepo")
     private val drafts = MutableStateFlow<ImmutableMap<DraftKey, DraftValue>>(persistentMapOf())
+    private val sendInProgress = MutableStateFlow<Set<DraftKey>>(emptySet())
     private val globalDraftTheme = AtomicReference(DraftTheme.uninitialized)
 
     val roomsWithDrafts = drafts.map {
         it.filter { (k, v) -> !v.isEmpty() }.keys.map { ScopedRoomKey(it.sessionId, it.roomId) }.toSet()
     }
 
-    fun update(draftKey: DraftKey, draftValue: DraftValue, allowWhileSendInProgress: Boolean = false) {
+    fun markSendInProgress(draftKey: DraftKey) {
+        sendInProgress.update { it + draftKey }
+    }
+
+    fun clearSendInProgress(draftKey: DraftKey) {
+        sendInProgress.update { it - draftKey }
+    }
+
+    fun update(draftKey: DraftKey, draftValue: DraftValue) {
         val newValue = draftValue.sanitized()
         drafts.update {
-            val oldValue = it[draftKey]
-            if (oldValue?.isSendInProgress == true && !allowWhileSendInProgress) {
+            if (sendInProgress.value.contains(draftKey)) {
+                log.i { "Drop composer update while send is in progress" }
                 return@update it
             }
-            (it + (draftKey to maintainAnnotations(newValue, oldValue))).toPersistentMap()
+            (it + (draftKey to maintainAnnotations(newValue, it[draftKey]))).toPersistentMap()
         }
     }
 
     fun update(
         draftKey: DraftKey,
-        allowWhileSendInProgress: Boolean = false,
         transform: (DraftValue?) -> DraftValue?,
     ): Boolean {
         var updated = false
         drafts.update {
-            val oldValue = it[draftKey]
-            if (oldValue?.isSendInProgress == true && !allowWhileSendInProgress) {
-                updated = false
+            if (sendInProgress.value.contains(draftKey)) {
+                log.i { "Drop composer update while send is in progress" }
                 return@update it
             }
+            val oldValue = it[draftKey]
             val value = transform(oldValue)?.sanitized()
             updated = value != oldValue
             if (value == null) {
                 it - draftKey
             } else {
-                it + (draftKey to maintainAnnotations(value, it[draftKey]))
+                it + (draftKey to maintainAnnotations(value, oldValue))
             }.toPersistentMap()
         }
         return updated
@@ -417,6 +424,16 @@ object DraftRepo {
 
     fun followDraft(draftKey: DraftKey) = drafts.map {
         it[draftKey]
+    }
+
+    fun isSendInProgress(draftKey: DraftKey) = sendInProgress.value.contains(draftKey)
+
+    fun followSendInProgress(draftKey: DraftKey?): Flow<Boolean> {
+        return if (draftKey == null) {
+            flowOf(false)
+        } else {
+            sendInProgress.map { it.contains(draftKey) }
+        }
     }
 
     fun followComposerState(draftKey: DraftKey?, permissions: Flow<ConversationPermissions?>): Flow<ComposerState?> {

@@ -97,6 +97,7 @@ data class ComposerRoomInfo(
 
 interface ComposerViewModel {
     val composerState: StateFlow<ComposerState>
+    val isSendInProgress: StateFlow<Boolean>
     val composerSuggestions: StateFlow<ComposerSuggestionsState>
     val composerRoomInfo: StateFlow<ComposerRoomInfo?>
     fun onComposerUpdate(value: DraftValue)
