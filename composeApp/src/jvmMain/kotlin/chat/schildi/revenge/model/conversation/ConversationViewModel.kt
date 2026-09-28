@@ -902,9 +902,11 @@ class ConversationViewModel(
                 // but since this should only do anything at all if we didn't send a RR before, defaulting to private
                 // should be more meaningful in case later actions fail.
                 // TODO this can take a while, can we check if this is really necessary?
-                currentTimeline.markAsRead(ReceiptType.READ_PRIVATE)
-                    .onFailure { log.e("Forwarding the RR on message send failed", it) }
-                    .onSuccess { log.d("Advanced the RR on message send") }
+                GlobalActionsScope.launch {
+                    currentTimeline.markAsRead(ReceiptType.READ_PRIVATE)
+                        .onFailure { log.e("Forwarding the RR on message send failed", it) }
+                        .onSuccess { log.d("Advanced the RR on message send") }
+                }
                 val result = run result@{
                     when (draft.type) {
                         DraftType.TEXT -> {
