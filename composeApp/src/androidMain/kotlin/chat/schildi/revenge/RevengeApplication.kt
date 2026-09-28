@@ -46,10 +46,10 @@ class RevengeApplication : Application() {
         AndroidSyncOrchestrationAppStateProvider.start(this)
         initPlatform(
             config = TracingConfiguration(
-                logLevel = LogLevel.INFO,
+                logLevel = LogLevel.DEBUG,
                 traceLogPacks = emptyList(),
                 extraTargets = emptyList(),
-                writeToStdoutOrSystem = false,
+                writeToStdoutOrSystem = BuildInfo.DEBUG,
                 writeToFiles = createSdkTracingFileConfiguration(),
             ),
             useLightweightTokioRuntime = false,

@@ -66,7 +66,7 @@ object SdkLoader {
 
             initPlatform(
                 config = TracingConfiguration(
-                    logLevel = LogLevel.INFO,
+                    logLevel = LogLevel.DEBUG,
                     traceLogPacks = emptyList(),
                     extraTargets = emptyList(),
                     writeToStdoutOrSystem = false,
