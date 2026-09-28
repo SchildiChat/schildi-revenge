@@ -19,6 +19,16 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositories {
+        exclusiveContent {
+            forRepository {
+                maven {
+                    url = URI("https://github.com/rustls/rustls-platform-verifier/raw/maven-archive/android-release-support/maven/")
+                }
+            }
+            filter {
+                includeModule("org.rustls", "rustls-platform-verifier")
+            }
+        }
         google {
             mavenContent {
                 includeGroupAndSubgroups("androidx")
@@ -61,5 +71,4 @@ include(":matrix")
 include(":matrixRustBindings")
 include(":preferences")
 include(":res")
-include(":rustls-tls")
 include(":shim")

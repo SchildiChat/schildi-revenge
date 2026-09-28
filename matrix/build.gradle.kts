@@ -68,7 +68,7 @@ kotlin {
                 implementation(libs.coil3.svg)
                 implementation(libs.coil3.gif)
                 implementation(libs.androidx.core.ktx)
-                implementation(projects.rustlsTls)
+                implementation("${libs.rustls.platform.verifier.get()}@aar")
                 implementation(projects.config)
                 implementation(projects.preferences)
                 implementation(libs.kermit)
