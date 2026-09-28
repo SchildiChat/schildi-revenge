@@ -24,7 +24,7 @@ kotlin {
     android {
         namespace = "chat.schildi.resources"
         compileSdk = 37
-        minSdk = 21
+        minSdk = 26
         androidResources.enable = true
     }
 

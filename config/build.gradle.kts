@@ -13,7 +13,7 @@ kotlin {
     android {
         namespace = "chat.schildi.revenge.config"
         compileSdk = 37
-        minSdk = 21
+        minSdk = 26
         compilerOptions {
             jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
         }

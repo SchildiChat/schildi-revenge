@@ -15,6 +15,8 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.destination.conversation.event.EventHighlight
 import chat.schildi.revenge.compose.destination.conversation.event.EventRow
 import chat.schildi.revenge.compose.destination.conversation.virtual.DayHeaderRow
+import chat.schildi.revenge.compose.destination.conversation.virtual.DebugSeparatorLine
+import chat.schildi.revenge.compose.destination.conversation.virtual.DebugSeparatorLineInstance
 import chat.schildi.revenge.compose.destination.conversation.virtual.NewMessageLineInstance
 import chat.schildi.revenge.compose.destination.conversation.virtual.NewMessagesLine
 import chat.schildi.revenge.compose.destination.conversation.virtual.PagingIndicator
@@ -28,6 +30,7 @@ import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.event.perMessageProfile
 import io.element.android.libraries.matrix.api.timeline.item.virtual.VirtualTimelineItem
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentListOf
 
@@ -43,6 +46,7 @@ fun ConversationItemRow(
     showBackwardPagingIndicator: Boolean,
     showForwardPagingIndicator: Boolean,
     modifier: Modifier = Modifier,
+    debugSeparatorLines: ImmutableList<DebugSeparatorLineInstance> = persistentListOf(),
 ) {
     val fullyReadEvent = viewModel.cachedFullyRead.collectAsState().value
     Column(modifier.fillMaxWidth()) {
@@ -70,6 +74,9 @@ fun ConversationItemRow(
             }
         } else {
             false
+        }
+        debugSeparatorLines.forEach {
+            DebugSeparatorLine(it)
         }
         when (item.item) {
             is MatrixTimelineItem.Virtual -> {

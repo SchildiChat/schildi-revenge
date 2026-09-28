@@ -113,6 +113,11 @@ fun ConversationScreen(
         publishTitle(viewModel)
 
         val timelineItems = viewModel.timelineItems.collectAsState().value
+        val debugLines = if (ScPrefs.SHOW_DEV_INFOS.value()) {
+            viewModel.debugLines.collectAsState().value
+        } else {
+            null
+        }
         val forwardPaginationStatus = viewModel.forwardPaginationStatus.collectAsState(null).value
         val backwardPaginationStatus = viewModel.backwardPaginationStatus.collectAsState(null).value
         val showBackwardPagingIndicator = backwardPaginationStatus?.hasMoreToLoad == true
@@ -318,6 +323,8 @@ fun ConversationScreen(
                                 highlightedJumpTargetEventId != null && item.item.eventId == highlightedJumpTargetEventId -> EventHighlight.JUMP_TARGET
                                 else -> EventHighlight.NONE
                             }
+                            // Reverse list causes reverses indices
+                            val currentDebugLines = debugLines?.get(timelineItems.size - index - 1) ?: persistentListOf()
                             ConversationItemRow(
                                 viewModel = viewModel,
                                 item = item,
@@ -328,6 +335,7 @@ fun ConversationScreen(
                                 timestampSettings = timestampSettings,
                                 showBackwardPagingIndicator = showBackwardPagingIndicator,
                                 showForwardPagingIndicator = showForwardPagingIndicator,
+                                debugSeparatorLines = currentDebugLines,
                             )
                         }
                         if (renderedItems.isEmpty() && showBackwardPagingIndicator) {

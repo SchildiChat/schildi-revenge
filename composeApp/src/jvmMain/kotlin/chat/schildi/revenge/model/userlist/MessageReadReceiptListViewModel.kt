@@ -15,7 +15,7 @@ import chat.schildi.revenge.model.asCheckpointLoadedOrFailed
 import chat.schildi.revenge.model.asCheckpointLoadedOrPending
 import chat.schildi.revenge.util.flowClosable
 import co.touchlab.kermit.Logger
-import io.element.android.features.messages.impl.timeline.TimelineController
+import io.element.android.features.messages.impl.timeline.ScTimelineController
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -87,8 +87,8 @@ class MessageReadReceiptListViewModel(
         room ?: return@map null
         room.createTimeline(CreateTimelineParams.Focused(eventId), preferHideThreadedEvents = false)
             .onFailure { if (it is CancellationException) throw it }
-            .map { TimelineController(room, initialDetachedTimeline = it) }
-            .getOrElse { TimelineController(room) }
+            .map { ScTimelineController(room, initialDetachedTimeline = it) }
+            .getOrElse { ScTimelineController(room) }
     }
         .flowClosable()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)

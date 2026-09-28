@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.destination.conversation.virtual.DayHeader
 import chat.schildi.revenge.model.conversation.ScTimelineItem
+import io.element.android.features.messages.impl.timeline.toDateTimestamp
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.FlowPreview
@@ -46,12 +47,7 @@ fun BoxScope.FloatingDateHeader(
             renderedTimestamp = listState.layoutInfo.visibleItemsInfo.asReversed().firstNotNullOfOrNull { info ->
                 val index = info.index
                 (if (index >= 0 && index < timelineItems.size) {
-                    when (val item = timelineItems[index].item) {
-                        is MatrixTimelineItem.Event -> item.event.timestamp
-                        //is MatrixTimelineItem.Virtual -> (item.virtual as? VirtualTimelineItem.DayDivider)?.timestamp
-                        //MatrixTimelineItem.Other -> null
-                        else -> null
-                    }
+                    timelineItems[index].item.toDateTimestamp()
                 } else {
                     null
                 })

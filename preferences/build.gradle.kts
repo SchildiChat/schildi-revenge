@@ -9,7 +9,7 @@ kotlin {
     android {
         namespace = "chat.schildi.lib.preferences"
         compileSdk = 37
-        minSdk = 21
+        minSdk = 26
     }
 
     sourceSets {

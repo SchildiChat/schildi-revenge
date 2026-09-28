@@ -55,6 +55,7 @@ import chat.schildi.revenge.model.Attachment
 import chat.schildi.revenge.model.CheckpointLoadState
 import chat.schildi.lib.preferences.ComposerFormat
 import chat.schildi.revenge.actions.platformHasUserFacingFilePaths
+import chat.schildi.revenge.compose.destination.conversation.virtual.DebugSeparatorLineInstance
 import chat.schildi.revenge.model.ComposerRoomInfo
 import chat.schildi.revenge.model.ComposerSuggestion
 import chat.schildi.revenge.model.ComposerSuggestionsProvider
@@ -89,7 +90,7 @@ import co.touchlab.kermit.Logger
 import com.beeper.android.messageformat.MatrixFormatInteractionState
 import com.beeper.android.messageformat.MatrixToLink
 import io.element.android.features.messages.impl.timeline.EventFocusResult
-import io.element.android.features.messages.impl.timeline.TimelineController
+import io.element.android.features.messages.impl.timeline.ScTimelineController
 import io.element.android.libraries.core.coroutine.childScope
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.EventId
@@ -143,8 +144,11 @@ import io.element.android.libraries.matrix.api.timeline.item.event.VoiceMessageT
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisambiguatedDisplayName
 import io.element.android.libraries.matrix.api.timeline.item.event.toEventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.virtual.VirtualTimelineItem
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentHashMapOf
 import kotlinx.collections.immutable.persistentListOf
+import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentHashMap
 import kotlinx.collections.immutable.toPersistentList
@@ -516,12 +520,12 @@ class ConversationViewModel(
             null,
             is CreateTimelineParams.Focused -> {
                 val initialEventId = effectiveInitialEventId.await()
-                    ?: return@map TimelineController(room)
+                    ?: return@map ScTimelineController(room)
                 val ts = System.currentTimeMillis()
                 room.liveTimeline.resolveEventToRendered(initialEventId)?.let { resolvedEventId ->
                     if (room.liveTimeline.timelineItems.firstOrNull()?.any { (it as? MatrixTimelineItem.Event)?.eventId == resolvedEventId } == true) {
                         log.d("Focused event $initialEventId can be resolved live (check took ${System.currentTimeMillis() - ts}ms)")
-                        return@map TimelineController(room)
+                        return@map ScTimelineController(room)
                     } else {
                         log.d("Focused event $initialEventId can be resolved but not looked up live (check took ${System.currentTimeMillis() - ts}ms)")
                     }
@@ -535,10 +539,10 @@ class ConversationViewModel(
                 ).onFailure {
                     if (it is CancellationException) throw it
                 }.map {
-                    TimelineController(room, initialDetachedTimeline = it)
+                    ScTimelineController(room, initialDetachedTimeline = it)
                 }.getOrElse {
                     log.e("Failed to focus on event $initialEventId", it)
-                    TimelineController(room)
+                    ScTimelineController(room)
                 }
             }
             else -> {
@@ -548,7 +552,7 @@ class ConversationViewModel(
                     if (it is CancellationException) throw it
                     log.e("Failed to get special timeline via $timelineParams", it)
                 }.map {
-                    TimelineController(room, it)
+                    ScTimelineController(room, it)
                 }.getOrNull()
             }
         }
@@ -569,37 +573,45 @@ class ConversationViewModel(
         currentUrlPreviewStateProvider.getAndSet(null)?.clear()
     }
 
-    val activeTimeline = timelineController.flatMapLatest {
-        it?.activeTimelineFlow() ?: flowOf(null)
-    }.onEach { timeline ->
-        loadStateHolder.set(LoadCheckPoint.Timeline, timeline.asCheckpointLoadedOrPending())
-        if (timeline != null) {
+    private val activeTimelineState = timelineController.flatMapLatest {
+        it?.timelineState ?: flowOf(null)
+    }.onEach { state ->
+        loadStateHolder.set(LoadCheckPoint.Timeline, state.asCheckpointLoadedOrPending())
+        if (state != null) {
             viewModelScope.launch(Dispatchers.IO) {
-                refetchFullyRead(timeline)
+                refetchFullyRead(state.preferredTimeline)
             }
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val rawTimelineItems = activeTimeline.flatMapLatest { timeline ->
-        timeline?.timelineItems?.onEach {
-            loadStateHolder.set(LoadCheckPoint.TimelineItems, it.asCheckpointLoadedOrPending())
-            resolveTargetEvent(timeline, it)
-            if (it.isNotEmpty() && cachedFullyRead.value?.awaitingRender == true) {
-                refetchFullyRead(timeline)
+    private val rawTimelineItems = activeTimelineState.map { state ->
+        loadStateHolder.set(LoadCheckPoint.TimelineItems, state.asCheckpointLoadedOrPending())
+        state?.items?.also { items ->
+            // Try resolving rendered target event ID from each of the backing timelines
+            state.sourceTimelines.firstOrNull {
+                resolveTargetEvent(it, state.items)
             }
-        } ?: flowOf(null).also {
-            loadStateHolder.set(LoadCheckPoint.TimelineItems, CheckpointLoadState.PENDING)
+            if (items.isNotEmpty() && cachedFullyRead.value?.awaitingRender == true) {
+                refetchFullyRead(state.preferredTimeline)
+            }
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    private suspend fun resolveTargetEvent(timeline: Timeline, timelineItems: List<MatrixTimelineItem>) {
-        val target = _targetEvent.value as? EventJumpTarget.Event ?: return
-        if (timelineItems.any { (it as? MatrixTimelineItem.Event)?.eventId == target.eventId }) return
+    val activeTimeline = activeTimelineState.map { it?.preferredTimeline }
+        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-        val renderedEvent = timeline.resolveEventToRendered(target.eventId) ?: return
+    /**
+     * @return Whether successful (nothing to do counts as success), such that false indicates a retry may help later.
+     */
+    private suspend fun resolveTargetEvent(timeline: Timeline, timelineItems: List<MatrixTimelineItem>): Boolean {
+        val target = _targetEvent.value as? EventJumpTarget.Event ?: return true
+        if (timelineItems.any { (it as? MatrixTimelineItem.Event)?.eventId == target.eventId }) return true
+
+        val renderedEvent = timeline.resolveEventToRendered(target.eventId) ?: return false
         _targetEvent.update { current ->
             if (current == target) target.copy(eventId = renderedEvent) else current
         }
+        return true
     }
 
     private val _cachedFullyRead = MutableStateFlow<FullyReadEventState?>(null)
@@ -617,6 +629,12 @@ class ConversationViewModel(
             }
         }
     }
+
+    val debugLines: StateFlow<ImmutableMap<Int?, ImmutableList<DebugSeparatorLineInstance>>> = activeTimelineState.map { state ->
+        persistentMapOf(
+            state?.mergeOffset to persistentListOf(DebugSeparatorLineInstance.LiveTimeline)
+        )
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), persistentMapOf())
 
     val timelineItems = combine(
         rawTimelineItems,
@@ -2042,7 +2060,7 @@ class ConversationViewModel(
 
     suspend fun focusOnEvent(
         eventId: EventId,
-        controller: TimelineController? = timelineController.value,
+        controller: ScTimelineController? = timelineController.value,
     ): Result<EventFocusResult> {
         controller ?: run {
             log.e("No timeline controller to execute action")
