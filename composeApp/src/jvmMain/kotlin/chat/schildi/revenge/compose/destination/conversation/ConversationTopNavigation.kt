@@ -5,8 +5,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.MoveDown
 import androidx.compose.material.icons.filled.PestControlRodent
 import androidx.compose.material.icons.filled.Update
 import androidx.compose.material.icons.filled.Visibility
@@ -52,6 +50,7 @@ import shire.res.generated.resources.action_show_room_members
 import shire.res.generated.resources.dev_tools_title
 import shire.res.generated.resources.keep_24px
 import shire.res.generated.resources.pinned_messages
+import shire.res.generated.resources.pref_show_dev_infos_title
 import shire.res.generated.resources.pref_threaded_replies_in_main_timeline_title_short
 import shire.res.generated.resources.pref_view_hidden_events_title_short
 import shire.res.generated.resources.pref_view_redactions_title_short
@@ -127,6 +126,17 @@ fun ConversationTopNavigation(
                                         viewModel.roomId.value,
                                     ),
                                     keyboardShortcut = Key.D,
+                                ),
+                                ContextMenuActionEntry(
+                                    Res.string.pref_show_dev_infos_title.toStringHolder(),
+                                    null,
+                                    Action.Global.ToggleSetting,
+                                    persistentListOf(
+                                        ScPrefs.SHOW_DEV_INFOS.sKey,
+                                    ),
+                                    keyboardShortcut = Key.I,
+                                    decoration = ContextMenuDecoration.Toggle(ScPrefs.SHOW_DEV_INFOS.value()),
+                                    enabled = ScPrefs.SHOW_DEV_INFOS.isEnabled(),
                                 ),
                                 ContextMenuActionEntry(
                                     Res.string.pref_view_redactions_title_short.toStringHolder(),
