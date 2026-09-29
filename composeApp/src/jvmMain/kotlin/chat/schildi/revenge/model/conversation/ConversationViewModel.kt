@@ -573,7 +573,7 @@ class ConversationViewModel(
         currentUrlPreviewStateProvider.getAndSet(null)?.clear()
     }
 
-    private val activeTimelineState = timelineController.flatMapLatest {
+    val activeTimelineState = timelineController.flatMapLatest {
         it?.timelineState ?: flowOf(null)
     }.onEach { state ->
         loadStateHolder.set(LoadCheckPoint.Timeline, state.asCheckpointLoadedOrPending())

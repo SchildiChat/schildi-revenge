@@ -286,6 +286,8 @@ fun ConversationScreen(
                     compact = this@BoxWithConstraints.maxWidth < Dimens.compactActionBarThreshold,
                 )
 
+                ConversationTopDebugHeader(viewModel, Modifier.fillMaxWidth())
+
                 // Box for list + floating header overlay
                 Box(
                     Modifier.fillMaxWidth().weight(1f),
