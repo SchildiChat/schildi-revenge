@@ -4,6 +4,7 @@
     <string name="inbox_search">Inbox search</string>
     <string name="create_room">Create new room</string>
     <string name="thread">Thread</string>
+    <string name="thread_in">Thread: %1$s</string>
     <string name="pinned_messages">Pinned messages</string>
     <string name="room_details_title">Room details</string>
     <string name="room_members_title_loading">Loading room members</string>

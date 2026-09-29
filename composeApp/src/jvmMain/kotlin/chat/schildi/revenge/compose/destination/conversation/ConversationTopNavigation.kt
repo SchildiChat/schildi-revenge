@@ -34,6 +34,7 @@ import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.DestinationEnum
+import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.model.conversation.RoomPreviewViewModel
 import chat.schildi.revenge.preferences.isEnabled
 import chat.schildi.revenge.preferences.value
@@ -56,6 +57,7 @@ import shire.res.generated.resources.pref_view_hidden_events_title_short
 import shire.res.generated.resources.pref_view_redactions_title_short
 import shire.res.generated.resources.room_details_title
 import shire.res.generated.resources.thread
+import shire.res.generated.resources.thread_in
 
 @Composable
 fun ConversationTopNavigation(
@@ -64,7 +66,13 @@ fun ConversationTopNavigation(
     compact: Boolean,
 ) {
     val roomInfo = viewModel.roomInfo.collectAsState(null).value
-    val title = roomInfo?.name ?: ""
+    val title = if ((viewModel as? ConversationViewModel)?.threadId?.collectAsState()?.value != null) {
+        roomInfo?.name?.let {
+            stringResource(Res.string.thread_in, it)
+        } ?: stringResource(Res.string.thread)
+    } else {
+        roomInfo?.name ?: ""
+    }
     val avatar = roomInfo?.avatarUrl?.let { MediaSource(it) }
     val keyHandler = LocalKeyboardActionHandler.current
     val focusParent = LocalFocusParent.current

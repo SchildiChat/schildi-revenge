@@ -182,6 +182,7 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.action_add_attachment
@@ -203,6 +204,7 @@ import shire.res.generated.resources.command_event_name_reply
 import shire.res.generated.resources.command_fetching_state
 import shire.res.generated.resources.command_loading_event
 import shire.res.generated.resources.command_loading_timeline_at
+import shire.res.generated.resources.thread_in
 import shire.res.generated.resources.toast_attachment_download_path_success
 import shire.res.generated.resources.toast_attachment_download_success
 import java.io.File
@@ -320,7 +322,6 @@ class ConversationViewModel(
 
     private val initialTargetEvent: EventId? =
         (timelineParams as? CreateTimelineParams.Focused)?.focusedEventId
-    val threadId = (timelineParams as? CreateTimelineParams.Threaded)?.threadRootEventId
 
     private val loadStateHolder = LoadStateHolder(
         LoadCheckPoint.Client(sessionId),
@@ -623,6 +624,20 @@ class ConversationViewModel(
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
+    // Thread ID is either decided on room open, or on focused event's thread if not shown in main timeline
+    val threadId = activeTimelineState.map {
+        val mode = it?.preferredTimeline?.mode
+        if (mode == null) {
+            (timelineParams as? CreateTimelineParams.Threaded)?.threadRootEventId
+        } else {
+            (mode as? Timeline.Mode.Thread)?.threadRootId
+        }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        (timelineParams as? CreateTimelineParams.Threaded)?.threadRootEventId
+    )
+
     private val rawTimelineItems = activeTimelineState.map { state ->
         loadStateHolder.set(LoadCheckPoint.TimelineItems, state.asCheckpointLoadedOrPending())
         state?.items?.also { items ->
@@ -789,6 +804,9 @@ class ConversationViewModel(
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
     private val draftKey = when (timelineParams) {
+        // Accepted corner case: focused timelines can sometimes also end up threaded.
+        // As long as sending still uses the timeline that's rendered here, not worth the effort of making
+        // draftKey flowable; better to keep stable for the lifetime of the view model.
         is CreateTimelineParams.Focused,
         null -> DraftKey(sessionId, roomId, null)
         is CreateTimelineParams.Threaded -> DraftKey(sessionId, roomId, timelineParams.threadRootEventId)
@@ -1290,13 +1308,15 @@ class ConversationViewModel(
         roomPreview,
         userProfile,
         roomMembersById,
-    ) { info, preview, user, roomMembers ->
+        threadId,
+    ) { info, preview, user, roomMembers, threadId ->
         windowTitle(
             roomInfo = info,
             roomPreview = preview,
             accountUserDisplayName = user?.displayName,
             roomUserDisplayName = roomMembers[sessionId]?.displayName,
             sessionId = sessionId,
+            isThread = threadId != null,
         )
     }.filterNotNull()
 
@@ -2117,7 +2137,7 @@ class ConversationViewModel(
         }
         return controller.focusOnEvent(
             eventId,
-            threadId,
+            threadId.value,
             timelineFilterSettings.value.preferHideThreadedEvents
                 // Shouldn't happen
                 ?: ScPrefs.THREAD_REPLIES_IN_MAIN_TIMELINE.defaultValue
@@ -2478,7 +2498,7 @@ class ConversationViewModel(
                                         if (destination is Destination.Conversation) {
                                             if (destination.sessionId == sessionId
                                                 && destination.roomId == roomId
-                                                && (timelineParams == null || timelineParams is CreateTimelineParams.Focused)
+                                                && (timelineParams == null || timelineParams is CreateTimelineParams.Focused && threadId.value == null)
                                             ) {
                                                 when (val params = destination.timelineParams) {
                                                     is CreateTimelineParams.Focused -> {
@@ -2618,7 +2638,7 @@ class ConversationViewModel(
                 ActionArgumentPrimitive.SessionId to sessionId.value,
                 ActionArgumentPrimitive.RoomId to roomId.value,
                 eventId?.value?.let { ActionArgumentPrimitive.EventId to it },
-                ((threadId ?: (event.threadInfo() as? EventThreadInfo.ThreadResponse)?.threadRootId)?.value ?: event.eventId?.value)?.let {
+                ((threadId.value ?: (event.threadInfo() as? EventThreadInfo.ThreadResponse)?.threadRootId)?.value ?: event.eventId?.value)?.let {
                     ActionArgumentPrimitive.ThreadId to it
                 },
             )
@@ -2752,10 +2772,11 @@ class ConversationViewModel(
             roomPreview: RoomPreviewInfo? = null,
             accountUserDisplayName: String? = null,
             roomUserDisplayName: String? = null,
-            sessionId: SessionId
+            sessionId: SessionId,
+            isThread: Boolean = false,
         ): ComposableStringHolder? {
             return (roomInfo?.privateRoomName ?: roomInfo?.name ?: roomPreview?.name)?.let { roomName ->
-                buildString {
+                val title = buildString {
                     append(roomName)
                     if (roomInfo?.privateRoomName != null &&
                         roomInfo.name != null &&
@@ -2777,6 +2798,11 @@ class ConversationViewModel(
                         append(sessionId.value)
                     }
                 }.toStringHolder()
+                if (isThread) {
+                    Res.string.thread_in.toStringHolder(title)
+                } else {
+                    title
+                }
             }
         }
     }

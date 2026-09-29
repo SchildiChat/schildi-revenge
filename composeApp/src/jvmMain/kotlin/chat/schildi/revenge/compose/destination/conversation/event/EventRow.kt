@@ -74,7 +74,13 @@ fun EventRow(
     val roomPermissions = viewModel.roomPermissions.collectAsState().value
     WithContextMenu(
         focusId,
-        event.contextMenu(viewModel.sessionId, viewModel.roomId, roomPermissions, messageMetadata, viewModel.threadId),
+        event.contextMenu(
+            viewModel.sessionId,
+            viewModel.roomId,
+            roomPermissions,
+            messageMetadata,
+            viewModel.threadId.collectAsState().value,
+        ),
     ) { openContextMenu ->
         Column(
             modifier
@@ -126,7 +132,8 @@ fun EventRow(
                 roomMembersById = roomMembersById,
                 messageIsOwn = event.isOwn,
             )
-            if (threadInfo is EventThreadInfo.ThreadRoot && event.eventId?.value != viewModel.threadId?.value) {
+            val currentThreadId = viewModel.threadId.collectAsState().value
+            if (threadInfo is EventThreadInfo.ThreadRoot && event.eventId?.value != currentThreadId?.value) {
                 ThreadRootInfoRow(
                     threadInfo = threadInfo,
                     sessionId = viewModel.sessionId,

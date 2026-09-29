@@ -303,12 +303,20 @@ class ScTimelineController(
                         log.i("Forward pagination end reached while not live yet, paginate live backwards")
                         paginate(Timeline.PaginationDirection.BACKWARDS, forceLiveTimeline = true)
                     }
+                } else if (!preferLive && liveTimeline.mode is Timeline.Mode.Thread) {
+                    // Threads keep spinning endless loading indicator at top until fully consumed by live timeline,
+                    // so kick live (thread) timeline backfill too
+                    log.i("Kicking auxiliary backwards live backfill for thread")
+                    paginate(Timeline.PaginationDirection.BACKWARDS, forceLiveTimeline = true)
                 }
             }
             .onFailure {
                 log.i("Pagination failed, live=$preferLive, err=$it")
                 if (direction == Timeline.PaginationDirection.FORWARDS && !preferLive) {
                     log.w("Forward pagination failed while not live yet, attempt paginate live backwards")
+                    paginate(Timeline.PaginationDirection.BACKWARDS, forceLiveTimeline = true)
+                } else if (!preferLive && liveTimeline.mode is Timeline.Mode.Thread) {
+                    log.w("Backward pagination failed while not live yet in thread, attempt paginate live backwards")
                     paginate(Timeline.PaginationDirection.BACKWARDS, forceLiveTimeline = true)
                 }
             }

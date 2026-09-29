@@ -67,7 +67,7 @@ fun ConversationItemRow(
                 ) {
                     NewMessagesLine(
                         instance = NewMessageLineInstance.ReadMarkerOnly,
-                        isThreadedTimeline = viewModel.threadId != null,
+                        isThreadedTimeline = viewModel.threadId.collectAsState().value != null,
                     )
                 }
                 false
@@ -85,7 +85,7 @@ fun ConversationItemRow(
                     is VirtualTimelineItem.LoadingIndicator -> PagingIndicator()
                     VirtualTimelineItem.ReadMarker -> NewMessagesLine(
                         instance = if (isRealUnreadLine) NewMessageLineInstance.Matched else NewMessageLineInstance.SdkOnly,
-                        isThreadedTimeline = viewModel.threadId != null,
+                        isThreadedTimeline = viewModel.threadId.collectAsState().value != null,
                     )
                     VirtualTimelineItem.RoomBeginning -> RoomBeginning()
                     // Not sure if we're supposed to render something for that one
