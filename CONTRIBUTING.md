@@ -4,6 +4,10 @@ Contributions may be accepted as follows:
 - Translations via [Weblate](https://weblate.spiritcroc.de/projects/schildichat/schildi-revenge/)
 - Pull Requests via [GitHub](https://github.com/SchildiChat/schildi-revenge/pulls)
 
+Please write PRs and issue descriptions yourself, to prove you know what you're talking about and there's a human
+involved. If you really want to provide further insights using LLM output, clearly label it as such and put it in a
+quote block.
+
 I aim for Revenge to be very intentional and prefer a slow "do it once, right" development cycle over fast development.
 This somewhat goes against recent rapid AI development practices, but I hope it will ensure a better quality application
 in the long run.

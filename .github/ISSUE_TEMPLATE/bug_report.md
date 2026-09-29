@@ -7,6 +7,12 @@ assignees: ''
 
 ---
 
+<!--
+Please write PRs and issue descriptions yourself, to prove you know what you're talking about and there's a human
+involved. If you really want to provide further insights using LLM output, clearly label it as such and put it in a
+markdown quote block.
+-->
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 
