@@ -134,8 +134,36 @@ class ScTimelineController(
             TimelineItemsState(detachedItems, listOf(detachedTimeline), isLive = false)
         } else if (detachedItems.any { it is MatrixTimelineItem.Event && it.eventId !in liveEventIds }) {
             // Merge!
-            val filteredDetachedItems = detachedItems.filter {
-                it.toDedupeId()?.let { !it.preferLive || it !in liveIds } != false
+            var hadEventSinceLastDateHeader = false
+            var lastDateHeader = -1
+            var detachedAddIndex = 0
+            val dayHeadersToRemove = mutableListOf<Int>()
+            val filteredDetachedItems = detachedItems.filter { item ->
+                val allowedInDetached = item.toDedupeId()?.let { !it.preferLive || it !in liveIds } != false
+                if (allowedInDetached && item is MatrixTimelineItem.Event) {
+                    hadEventSinceLastDateHeader = true
+                } else if ((item as? MatrixTimelineItem.Virtual)?.virtual is VirtualTimelineItem.DayDivider) {
+                    if (!hadEventSinceLastDateHeader && lastDateHeader >= 0) {
+                        dayHeadersToRemove.add(lastDateHeader)
+                    }
+                    lastDateHeader = detachedAddIndex
+                    hadEventSinceLastDateHeader = false
+                }
+                if (allowedInDetached) {
+                    detachedAddIndex++
+                }
+                allowedInDetached
+            }.let {
+                if (dayHeadersToRemove.isEmpty()) {
+                    it
+                } else {
+                    it.toMutableList().apply {
+                        if (!hadEventSinceLastDateHeader && lastDateHeader >= 0 && lastDateHeader !in dayHeadersToRemove) {
+                            removeAt(lastDateHeader)
+                        }
+                        dayHeadersToRemove.asReversed().forEach { removeAt(it) }
+                    }
+                }
             }
             val detachedIds = detachedItems.mapNotNull { it.toDedupeId() }.toSet()
 
