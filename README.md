@@ -132,6 +132,20 @@ Windows-specific hints for my own notes:
     - If it didn't install automatically the first time, can start the installer again from the Downloads directory
     - Select "Desktop Development with C++" from the workloads tab
 
+#### Fix resolving FFI bindings in IntelliJ IDEA / Android Studio
+
+If the build works but your JetBrains IDE shows the UniFFI-generated bindings (e.g. `org.matrix.rustcomponents.sdk`)
+as unresolved, you may need to increase your IDEs file limits to allow indexing the generated `matrix_sdk_ffi.kt`.
+
+To fix, go to Help → "Edit Custom Properties..." and set:
+
+```
+idea.max.intellisense.filesize=50000
+```
+
+Then restart your IDE and do a gradle sync for the change to take effect.
+
+
 ### Build and run in one go
 
 To build and run the development version of the desktop app, use the run configuration from the run widget
