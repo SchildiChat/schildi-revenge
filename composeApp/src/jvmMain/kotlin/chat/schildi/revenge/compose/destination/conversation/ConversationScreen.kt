@@ -213,7 +213,9 @@ fun ConversationScreen(
         }
 
         val listState = key(initialListOffset) {
-            Logger.withTag("ConversationScreen").w("Init list state for $initialListOffset")
+            SideEffect(initialListOffset) {
+                Logger.withTag("ConversationScreen").w("Init list state for $initialListOffset")
+            }
             rememberLazyListState(
                 initialFirstVisibleItemIndex = initialListOffset.first,
                 initialFirstVisibleItemScrollOffset = initialListOffset.second,
