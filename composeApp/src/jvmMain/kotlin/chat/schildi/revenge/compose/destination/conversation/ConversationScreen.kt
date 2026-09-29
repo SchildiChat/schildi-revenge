@@ -176,7 +176,11 @@ fun ConversationScreen(
         val targetEvent = viewModel.targetEvent.collectAsState().value
         var allowPaginateAfterInitialLoad by remember(targetEvent) {
             Logger.withTag("ConversationScreen").w("Loading for $targetEvent ($scrolledToEvent)")
-            mutableStateOf(targetEvent == null || targetEvent == scrolledToEvent)
+            mutableStateOf(
+                targetEvent == null ||
+                        targetEvent == scrolledToEvent ||
+                        (targetEvent as? EventJumpTarget.Index)?.index == 0
+            )
         }
         SideEffect(targetEvent, timelineItems) {
             if (targetEvent == scrolledToEvent || timelineItems.isEmpty()) {
