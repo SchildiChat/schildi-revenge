@@ -521,25 +521,64 @@ class ConversationViewModel(
             is CreateTimelineParams.Focused -> {
                 val initialEventId = effectiveInitialEventId.await()
                     ?: return@map ScTimelineController(room, scPreferencesStore)
-                val ts = System.currentTimeMillis()
-                room.liveTimeline.resolveEventToRendered(initialEventId)?.let { resolvedEventId ->
-                    if (room.liveTimeline.timelineItems.firstOrNull()?.any { (it as? MatrixTimelineItem.Event)?.eventId == resolvedEventId } == true) {
-                        log.d("Focused event $initialEventId can be resolved live (check took ${System.currentTimeMillis() - ts}ms)")
-                        return@map ScTimelineController(room, scPreferencesStore)
-                    } else {
-                        log.d("Focused event $initialEventId can be resolved but not looked up live (check took ${System.currentTimeMillis() - ts}ms)")
+
+                val preferHideThreadedEvents = timelineFilterSettings.value.preferHideThreadedEvents
+                    ?: !ScPrefs.THREAD_REPLIES_IN_MAIN_TIMELINE.defaultValue
+                // Try using live timeline anyway if we're allowed to.
+                // Note that for arbitrary events we may want to switch to thread timeline mode automatically,
+                // so only do this for open-at-unread functionality.
+                val alwaysAllowLiveTimeline = timelineParams == null || !preferHideThreadedEvents
+
+                if (alwaysAllowLiveTimeline) {
+                    val ts = System.currentTimeMillis()
+                    room.liveTimeline.resolveEventToRendered(initialEventId)?.let { resolvedEventId ->
+                        if (room.liveTimeline.timelineItems.firstOrNull()
+                                ?.any { (it as? MatrixTimelineItem.Event)?.eventId == resolvedEventId } == true
+                        ) {
+                            log.d("Focused event $initialEventId can be resolved live (check took ${System.currentTimeMillis() - ts}ms)")
+                            return@map ScTimelineController(room, scPreferencesStore)
+                        } else {
+                            log.d("Focused event $initialEventId can be resolved but not looked up live (check took ${System.currentTimeMillis() - ts}ms)")
+                        }
+                    } ?: run {
+                        log.d("Focused event $initialEventId can not be resolved live (check took ${System.currentTimeMillis() - ts}ms)")
                     }
-                } ?: run {
-                    log.d("Focused event $initialEventId can not be resolved live (check took ${System.currentTimeMillis() - ts}ms)")
                 }
-                room.createTimeline(
-                    CreateTimelineParams.Focused(initialEventId),
-                    timelineFilterSettings.value.preferHideThreadedEvents
-                        ?: ScPrefs.THREAD_REPLIES_IN_MAIN_TIMELINE.defaultValue,
-                ).onFailure {
-                    if (it is CancellationException) throw it
-                }.map {
-                    ScTimelineController(room, scPreferencesStore, initialDetachedTimeline = it)
+
+                if (alwaysAllowLiveTimeline) {
+                    room.createTimeline(
+                        CreateTimelineParams.Focused(initialEventId),
+                        preferHideThreadedEvents,
+                    ).onFailure {
+                        if (it is CancellationException) throw it
+                    }.map {
+                        ScTimelineController(room, scPreferencesStore, initialDetachedTimeline = it)
+                    }
+                } else {
+                    val threadId = room.threadRootIdForEvent(initialEventId)
+                        .onFailure {
+                            if (it is CancellationException) throw it
+                            log.e("Failed to resolve thread ID on initial event $initialEventId", it)
+                        }
+                        .getOrNull()
+                    val liveTimeline = if (threadId == null) {
+                        room.liveTimeline
+                    } else {
+                        room.createTimeline(CreateTimelineParams.Threaded(threadId))
+                            .onFailure {
+                                if (it is CancellationException) throw it
+                                log.e("Failed to create threaded timeline for initial event $initialEventId, thread $threadId", it)
+                            }
+                            .getOrNull() ?: room.liveTimeline
+                    }
+                    room.createTimeline(
+                        CreateTimelineParams.Focused(initialEventId),
+                        preferHideThreadedEvents,
+                    ).onFailure {
+                        if (it is CancellationException) throw it
+                    }.map {
+                        ScTimelineController(room, scPreferencesStore, liveTimeline = liveTimeline, initialDetachedTimeline = it)
+                    }
                 }.getOrElse {
                     log.e("Failed to focus on event $initialEventId", it)
                     ScTimelineController(room, scPreferencesStore)

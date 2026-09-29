@@ -278,6 +278,9 @@ class ScTimelineController(
     override fun close() {
         coroutineScope.cancel()
         closeDetachedTimeline()
+        if (room.liveTimeline != liveTimeline) {
+            liveTimeline.close()
+        }
     }
 
     suspend fun paginate(direction: Timeline.PaginationDirection, forceLiveTimeline: Boolean = false): Result<Boolean> {
