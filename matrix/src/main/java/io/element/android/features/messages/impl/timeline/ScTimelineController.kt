@@ -297,10 +297,14 @@ class ScTimelineController(
         val timeline = if (preferLive) liveTimeline else (detachedTimelineFlow.value.getOrNull() ?: liveTimeline)
         return timeline.paginate(direction)
             .onSuccess { hasReachedEnd ->
-                if (direction == Timeline.PaginationDirection.FORWARDS && hasReachedEnd) {
-                    log.i("Forward pagination reached end, live=$preferLive")
+                if (direction == Timeline.PaginationDirection.FORWARDS) {
+                    if (hasReachedEnd) {
+                        log.i("Forward pagination reached end, live=$preferLive")
+                    }
+                    // We want to merge with live ASAP to avoid stale timelines. hasReachedEnd may not tell us
+                    // if we actually found events so just do always (TODO can we improve that?)
                     if (!preferLive) {
-                        log.i("Forward pagination end reached while not live yet, paginate live backwards")
+                        log.i("Forward pagination while not live yet, paginate live backwards too")
                         paginate(Timeline.PaginationDirection.BACKWARDS, forceLiveTimeline = true)
                     }
                 } else if (!preferLive && liveTimeline.mode is Timeline.Mode.Thread) {

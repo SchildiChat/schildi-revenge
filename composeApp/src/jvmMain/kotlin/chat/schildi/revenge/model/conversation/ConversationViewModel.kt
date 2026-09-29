@@ -823,7 +823,17 @@ class ConversationViewModel(
     }.flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val forwardPaginationStatus = activeTimeline.flatMapLatest { it?.forwardPaginationStatus ?: flowOf(null) }
+    val forwardPaginationStatus = activeTimelineState
+        .map { Pair(it?.preferredTimeline, it?.isLive) }
+        .distinctUntilChanged().flatMapLatest { (preferredTimeline, isLive) ->
+            preferredTimeline?.forwardPaginationStatus?.map {
+                if (!it.hasMoreToLoad && isLive != true) {
+                    it.copy(hasMoreToLoad = true)
+                } else {
+                    it
+                }
+            } ?: flowOf(null)
+        }
     val backwardPaginationStatus = activeTimeline.flatMapLatest { it?.backwardPaginationStatus ?: flowOf(null) }
 
     fun trackSeenMessage(eventId: EventId, renderedItems: List<ScTimelineItem>) {
