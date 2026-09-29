@@ -199,17 +199,21 @@ class JoinedRustRoom(
         val hideThreadedEvents = preferHideThreadedEvents ?: featureFlagService.isFeatureEnabled(FeatureFlags.Threads)
         val focus = when (createTimelineParams) {
             is CreateTimelineParams.PinnedOnly -> TimelineFocus.PinnedEvents
-            is CreateTimelineParams.MediaOnly -> TimelineFocus.Live(hideThreadedEvents = hideThreadedEvents)
+            is CreateTimelineParams.MediaOnly -> TimelineFocus.Live(hideThreadedEvents = false)
             is CreateTimelineParams.Focused -> TimelineFocus.Event(
                 eventId = createTimelineParams.focusedEventId.value,
                 numContextEvents = 50u,
-                threadMode = TimelineEventFocusThreadMode.Automatic(hideThreadedEvents),
+                threadMode = if (hideThreadedEvents) { // SC: not always automatic
+                    TimelineEventFocusThreadMode.Automatic(hideThreadedEvents = true)
+                } else {
+                    TimelineEventFocusThreadMode.ForceMain(hideThreadedEvents = false)
+                },
             )
             is CreateTimelineParams.MediaOnlyFocused -> TimelineFocus.Event(
                 eventId = createTimelineParams.focusedEventId.value,
                 numContextEvents = 50u,
                 // Never hide threaded events in media focused timeline
-                threadMode = TimelineEventFocusThreadMode.Automatic(false),
+                threadMode = TimelineEventFocusThreadMode.ForceMain(hideThreadedEvents = false), // SC: force main
             )
             is CreateTimelineParams.Threaded -> TimelineFocus.Thread(
                 rootEventId = createTimelineParams.threadRootEventId.value,
