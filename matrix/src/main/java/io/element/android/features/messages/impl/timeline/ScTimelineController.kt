@@ -280,8 +280,8 @@ class ScTimelineController(
         closeDetachedTimeline()
     }
 
-    suspend fun paginate(direction: Timeline.PaginationDirection): Result<Boolean> {
-        val preferLive = when (direction) {
+    suspend fun paginate(direction: Timeline.PaginationDirection, forceLiveTimeline: Boolean = false): Result<Boolean> {
+        val preferLive = forceLiveTimeline || when (direction) {
             Timeline.PaginationDirection.BACKWARDS -> {
                 // Prefer live if it almost consumed the detached one already anyway
                 (timelineState.value?.detachedSize ?: 0) > 50
@@ -296,10 +296,18 @@ class ScTimelineController(
             .onSuccess { hasReachedEnd ->
                 if (direction == Timeline.PaginationDirection.FORWARDS && hasReachedEnd) {
                     log.i("Forward pagination reached end, live=$preferLive")
+                    if (!preferLive) {
+                        log.i("Forward pagination end reached while not live yet, paginate live backwards")
+                        paginate(Timeline.PaginationDirection.BACKWARDS, forceLiveTimeline = true)
+                    }
                 }
             }
             .onFailure {
-                log.i("Forward pagination failed, live=$preferLive, err=$it")
+                log.i("Pagination failed, live=$preferLive, err=$it")
+                if (direction == Timeline.PaginationDirection.FORWARDS && !preferLive) {
+                    log.w("Forward pagination failed while not live yet, attempt paginate live backwards")
+                    paginate(Timeline.PaginationDirection.BACKWARDS, forceLiveTimeline = true)
+                }
             }
     }
 
