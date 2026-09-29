@@ -9,6 +9,8 @@
 
 package io.element.android.features.messages.impl.timeline
 
+import chat.schildi.lib.preferences.ScPreferencesStore
+import chat.schildi.lib.preferences.ScPrefs
 import co.touchlab.kermit.Logger
 import io.element.android.features.messages.impl.timeline.di.LiveTimeline
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
@@ -71,11 +73,12 @@ sealed interface DedupeId {
 }
 
 /**
- * This controller is responsible of using the right timeline to display messages and make associated actions.
+ * This controller is responsible for using the right timeline to display messages and make associated actions.
  * It can be focused on the live timeline or on a detached timeline (focusing an unknown event), or a merge of both.
  */
 class ScTimelineController(
     private val room: JoinedRoom,
+    private val scPreferencesStore: ScPreferencesStore?,
     @LiveTimeline private val liveTimeline: Timeline = room.liveTimeline,
     private val initialDetachedTimeline: Timeline? = null,
     @RoomCoroutineScope private val roomCoroutineScope: CoroutineScope = room.roomCoroutineScope,
@@ -93,14 +96,22 @@ class ScTimelineController(
         detachedTimelineFlow.flatMapLatest {
             it.getOrNull()?.let { timeline -> timeline.timelineItems.map { Pair(timeline, it) } } ?: flowOf(null)
         },
-    ) { liveItems, detachedItems ->
+        scPreferencesStore?.settingFlow(ScPrefs.ALLOW_LIVE_TIMELINE_MERGE) ?: flowOf(ScPrefs.ALLOW_LIVE_TIMELINE_MERGE.defaultValue),
+    ) { liveItems, detachedItems, allowMerge ->
         if (detachedItems == null || detachedItems.second.isEmpty()) {
             TimelineItemsState(liveItems, listOf(liveTimeline), isLive = true)
-        } else {
+        } else if (allowMerge) {
             mergeTimelines(
                 liveItems,
                 detachedItems.second,
                 detachedItems.first,
+            )
+        } else {
+            TimelineItemsState(
+                detachedItems.second,
+                listOf(detachedItems.first),
+                isLive = false,
+                mergeOffset = detachedItems.second.size,
             )
         }
     }.stateIn(roomCoroutineScope, SharingStarted.WhileSubscribed(), null)

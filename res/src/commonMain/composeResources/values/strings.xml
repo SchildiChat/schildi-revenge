@@ -475,6 +475,8 @@
     <string name="pref_dev_quick_options_summary">Quick access to various developer tools</string>
     <string name="pref_allow_empty_message_send_title">Allow sending empty messages</string>
     <string name="pref_allow_empty_message_send_summary">Always allow sending empty composer contents if supported by selected message type</string>
+    <string name="pref_allow_live_timeline_merge_title">Merge detached and live timelines</string>
+    <string name="pref_allow_live_timeline_merge_summary">Avoid jumpy timelines on scroll to bottom from a focused event</string>
     <string name="pref_force_fcm_distributor_title">Force FCM distributor</string>
     <string name="pref_force_fcm_distributor_summary">Use the built-in FCM distributor even when another UnifiedPush distributor is available. Will only apply to new registrations.</string>
     <string name="pref_hide_message_authenticity_not_guaranteed_title">Hide "message authenticity not guaranteed" warnings</string>

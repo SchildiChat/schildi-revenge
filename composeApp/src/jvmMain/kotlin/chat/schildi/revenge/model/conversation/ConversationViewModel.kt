@@ -520,12 +520,12 @@ class ConversationViewModel(
             null,
             is CreateTimelineParams.Focused -> {
                 val initialEventId = effectiveInitialEventId.await()
-                    ?: return@map ScTimelineController(room)
+                    ?: return@map ScTimelineController(room, scPreferencesStore)
                 val ts = System.currentTimeMillis()
                 room.liveTimeline.resolveEventToRendered(initialEventId)?.let { resolvedEventId ->
                     if (room.liveTimeline.timelineItems.firstOrNull()?.any { (it as? MatrixTimelineItem.Event)?.eventId == resolvedEventId } == true) {
                         log.d("Focused event $initialEventId can be resolved live (check took ${System.currentTimeMillis() - ts}ms)")
-                        return@map ScTimelineController(room)
+                        return@map ScTimelineController(room, scPreferencesStore)
                     } else {
                         log.d("Focused event $initialEventId can be resolved but not looked up live (check took ${System.currentTimeMillis() - ts}ms)")
                     }
@@ -539,10 +539,10 @@ class ConversationViewModel(
                 ).onFailure {
                     if (it is CancellationException) throw it
                 }.map {
-                    ScTimelineController(room, initialDetachedTimeline = it)
+                    ScTimelineController(room, scPreferencesStore, initialDetachedTimeline = it)
                 }.getOrElse {
                     log.e("Failed to focus on event $initialEventId", it)
-                    ScTimelineController(room)
+                    ScTimelineController(room, scPreferencesStore)
                 }
             }
             else -> {
@@ -552,7 +552,7 @@ class ConversationViewModel(
                     if (it is CancellationException) throw it
                     log.e("Failed to get special timeline via $timelineParams", it)
                 }.map {
-                    ScTimelineController(room, it)
+                    ScTimelineController(room, scPreferencesStore, it)
                 }.getOrNull()
             }
         }

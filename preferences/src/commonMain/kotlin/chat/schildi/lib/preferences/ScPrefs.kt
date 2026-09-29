@@ -18,6 +18,8 @@ import shire.res.generated.resources.hint_composer_format_plain
 import shire.res.generated.resources.hint_settings
 import shire.res.generated.resources.pref_allow_empty_message_send_summary
 import shire.res.generated.resources.pref_allow_empty_message_send_title
+import shire.res.generated.resources.pref_allow_live_timeline_merge_summary
+import shire.res.generated.resources.pref_allow_live_timeline_merge_title
 import shire.res.generated.resources.pref_always_show_keyboard_focus
 import shire.res.generated.resources.pref_animate_avatars_summary
 import shire.res.generated.resources.pref_animate_avatars_title
@@ -260,6 +262,7 @@ object ScPrefs {
     val FRAME_DROP_SPINNER = ScBoolPref("FRAME_DROP_SPINNER", false, Res.string.pref_framed_rop_spinner_title, Res.string.pref_framed_rop_spinner_summary)
     val DEBUG_NOTIFICATIONS = ScBoolPref("DEBUG_NOTIFICATIONS", false, Res.string.pref_debug_notifications_title, Res.string.pref_debug_notifications_summary, supportedOnPlatform = scPrefPlatformSupport.pushNotifications)
     val ALLOW_EMPTY_MESSAGE_SEND = ScBoolPref("ALLOW_EMPTY_MESSAGE_SEND", false, Res.string.pref_allow_empty_message_send_title, Res.string.pref_allow_empty_message_send_summary)
+    val ALLOW_LIVE_TIMELINE_MERGE = ScBoolPref("ALLOW_LIVE_TIMELINE_MERGE", true, Res.string.pref_allow_live_timeline_merge_title, Res.string.pref_allow_live_timeline_merge_summary)
 
     // Appearance
     val LOCALE = ScStringListPref("LOCALE", "", availableLocaleSettings, Res.string.pref_locale, allowNonEntryValues = true)
@@ -410,6 +413,7 @@ object ScPrefs {
             RENDER_AVATAR_STATES,
             FRAME_DROP_SPINNER,
             ALLOW_EMPTY_MESSAGE_SEND,
+            ALLOW_LIVE_TIMELINE_MERGE,
             SHOW_ADVANCED_ROOM_CREATION_PARAMETERS,
             DEBUG_NOTIFICATIONS,
         ))

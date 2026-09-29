@@ -87,8 +87,8 @@ class MessageReadReceiptListViewModel(
         room ?: return@map null
         room.createTimeline(CreateTimelineParams.Focused(eventId), preferHideThreadedEvents = false)
             .onFailure { if (it is CancellationException) throw it }
-            .map { ScTimelineController(room, initialDetachedTimeline = it) }
-            .getOrElse { ScTimelineController(room) }
+            .map { ScTimelineController(room, null, initialDetachedTimeline = it) }
+            .getOrElse { ScTimelineController(room, null) }
     }
         .flowClosable()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
