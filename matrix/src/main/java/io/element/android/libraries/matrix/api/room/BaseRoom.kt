@@ -171,6 +171,7 @@ interface BaseRoom : Closeable {
     suspend fun fetchFullRoomState(): Result<List<String>>
     suspend fun setRoomUserDisplayName(displayName: String?): Result<Unit>
     suspend fun setRoomUserAvatarMxc(avatarUrl: String?): Result<Unit>
+    suspend fun sendMultipleReceipts(receipts: Receipts): Result<Unit>
     // SC end
 
     /**

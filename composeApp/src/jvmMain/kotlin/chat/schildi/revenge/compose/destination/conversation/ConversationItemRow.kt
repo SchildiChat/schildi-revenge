@@ -15,12 +15,14 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.destination.conversation.event.EventHighlight
 import chat.schildi.revenge.compose.destination.conversation.event.EventRow
 import chat.schildi.revenge.compose.destination.conversation.virtual.DayHeaderRow
-import chat.schildi.revenge.compose.destination.conversation.virtual.DebugSeparatorLine
-import chat.schildi.revenge.compose.destination.conversation.virtual.DebugSeparatorLineInstance
+import chat.schildi.revenge.compose.destination.conversation.virtual.DebugLinePosition
+import chat.schildi.revenge.compose.destination.conversation.virtual.TimelineItemDebugLine
+import chat.schildi.revenge.compose.destination.conversation.virtual.TimelineItemDebugLineInstance
 import chat.schildi.revenge.compose.destination.conversation.virtual.NewMessageLineInstance
 import chat.schildi.revenge.compose.destination.conversation.virtual.NewMessagesLine
 import chat.schildi.revenge.compose.destination.conversation.virtual.PagingIndicator
 import chat.schildi.revenge.compose.destination.conversation.virtual.RoomBeginning
+import chat.schildi.revenge.compose.destination.conversation.virtual.drawTimelineItemDebugLineBehind
 import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.model.conversation.ScTimelineItem
 import chat.schildi.revenge.model.conversation.TimestampSettings
@@ -41,12 +43,13 @@ fun ConversationItemRow(
     roomMembersById: ImmutableMap<UserId, RoomMember>,
     next: ScTimelineItem?,
     previous: ScTimelineItem?,
+    previousEvent: MatrixTimelineItem.Event?,
     highlight: EventHighlight,
     timestampSettings: TimestampSettings,
     showBackwardPagingIndicator: Boolean,
     showForwardPagingIndicator: Boolean,
     modifier: Modifier = Modifier,
-    debugSeparatorLines: ImmutableList<DebugSeparatorLineInstance> = persistentListOf(),
+    debugSeparatorLines: ImmutableList<TimelineItemDebugLineInstance> = persistentListOf(),
 ) {
     val fullyReadEvent = viewModel.cachedFullyRead.collectAsState().value
     Column(modifier.fillMaxWidth()) {
@@ -56,27 +59,8 @@ fun ConversationItemRow(
                 PagingIndicator()
             }
         }
-        val isRealUnreadLine = if (fullyReadEvent != null && fullyReadEvent.has((previous?.item as? MatrixTimelineItem.Event)?.eventId)) {
-            if ((item.item as? MatrixTimelineItem.Virtual)?.virtual is VirtualTimelineItem.ReadMarker) {
-                true
-            } else {
-                if (
-                    fullyReadEvent.usedAsJumpTarget ||
-                    (item.item as? MatrixTimelineItem.Virtual)?.virtual !is VirtualTimelineItem.TypingNotification &&
-                    (item.item as? MatrixTimelineItem.Event)?.event?.isOwn != true
-                ) {
-                    NewMessagesLine(
-                        instance = NewMessageLineInstance.ReadMarkerOnly,
-                        isThreadedTimeline = viewModel.threadId.collectAsState().value != null,
-                    )
-                }
-                false
-            }
-        } else {
-            false
-        }
-        debugSeparatorLines.forEach {
-            DebugSeparatorLine(it)
+        debugSeparatorLines.filter { it.position == DebugLinePosition.Above }.forEach {
+            TimelineItemDebugLine(it)
         }
         when (item.item) {
             is MatrixTimelineItem.Virtual -> {
@@ -84,7 +68,7 @@ fun ConversationItemRow(
                     is VirtualTimelineItem.DayDivider -> DayHeaderRow(virtualItem)
                     is VirtualTimelineItem.LoadingIndicator -> PagingIndicator()
                     VirtualTimelineItem.ReadMarker -> NewMessagesLine(
-                        instance = if (isRealUnreadLine) NewMessageLineInstance.Matched else NewMessageLineInstance.SdkOnly,
+                        instance = NewMessageLineInstance.Sdk,
                         isThreadedTimeline = viewModel.threadId.collectAsState().value != null,
                     )
                     VirtualTimelineItem.RoomBeginning -> RoomBeginning()
@@ -98,11 +82,21 @@ fun ConversationItemRow(
             }
 
             is MatrixTimelineItem.Event -> {
-                val previousEvent = (previous?.item as? MatrixTimelineItem.Event)?.event
-                val previousSender = previousEvent?.sender
+                val hasUnreadLine = fullyReadEvent != null &&
+                        (!item.item.event.isOwn || fullyReadEvent.usedAsJumpTarget) &&
+                        fullyReadEvent.has(previousEvent?.eventId)
+                if (hasUnreadLine) {
+                    NewMessagesLine(
+                        instance = NewMessageLineInstance.ReadMarker,
+                        isThreadedTimeline = viewModel.threadId.collectAsState().value != null,
+                    )
+                }
+
+                val directPreviousEvent = (previous?.item as? MatrixTimelineItem.Event)?.event
+                val previousSender = directPreviousEvent?.sender?.takeIf { !hasUnreadLine }
                 val isSameAsPreviousSender = previousSender == item.item.event.sender &&
-                        previousEvent.content is MessageContent &&
-                        previousEvent.content.perMessageProfile() == item.item.event.content.perMessageProfile()
+                        directPreviousEvent.content is MessageContent &&
+                        directPreviousEvent.content.perMessageProfile() == item.item.event.content.perMessageProfile()
                 val padding = when (previousSender) {
                     null -> 0.dp
                     item.item.event.sender -> Dimens.Conversation.messageSameSenderPadding
@@ -117,6 +111,9 @@ fun ConversationItemRow(
                     roomMembersById = roomMembersById,
                     highlight = highlight,
                     timestampSettings = timestampSettings,
+                    modifier = debugSeparatorLines.firstOrNull { it.position == DebugLinePosition.Start }?.let {
+                        Modifier.drawTimelineItemDebugLineBehind(it)
+                    } ?: Modifier,
                 )
             }
 

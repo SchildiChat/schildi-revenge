@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
@@ -71,11 +72,14 @@ import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
 import co.touchlab.kermit.Logger
+import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
+import kotlin.math.absoluteValue
+import kotlin.math.sign
 
 @OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
@@ -111,6 +115,12 @@ fun ConversationScreen(
         )
 
         publishTitle(viewModel)
+
+        DisposableEffect(Unit) {
+            onDispose {
+                viewModel.onUiDispose()
+            }
+        }
 
         val timelineItems = viewModel.timelineItems.collectAsState().value
         val debugLines = if (ScPrefs.SHOW_DEV_INFOS.value()) {
@@ -302,6 +312,36 @@ fun ConversationScreen(
                     val renderedItems = remember(timelineItems) {
                         timelineItems.reversed().toPersistentList()
                     }
+
+                    val shouldTrackLatestRead = when (viewModel.timelineParams) {
+                        null,
+                        is CreateTimelineParams.Focused,
+                        is CreateTimelineParams.Threaded -> true
+                        else -> false
+                    }
+                    if (ScPrefs.AUTO_MARK_AS_READ_TRIGGER.value() != ScPrefs.AutoMarkAsReadTrigger.NEVER.name &&
+                        shouldTrackLatestRead &&
+                        allowPaginateAfterInitialLoad
+                    ) {
+                        LaunchedEffect(listState, renderedItems) {
+                            snapshotFlow {
+                                listState.layoutInfo.visibleItemsInfo
+                                    .sortedBy { it.index }
+                                    .firstNotNullOfOrNull {
+                                        // Require bottom on screen
+                                        if (it.offset < 0)
+                                            null
+                                        else
+                                            (renderedItems.getOrNull(it.index)?.item as? MatrixTimelineItem.Event)?.eventId
+                                    }
+                            }.collect { eventId ->
+                                if (eventId != null) {
+                                    viewModel.trackSeenMessage(eventId, renderedItems)
+                                }
+                            }
+                        }
+                    }
+
                     LazyColumn(
                         Modifier.fillMaxSize(),
                         reverseLayout = true,
@@ -338,12 +378,18 @@ fun ConversationScreen(
                                 item = item,
                                 next = next,
                                 previous = previous,
+                                previousEvent = getNextItem(
+                                    index,
+                                    renderedItems::getOrNull,
+                                ) {
+                                    it.item is MatrixTimelineItem.Event
+                                }.first?.item as? MatrixTimelineItem.Event,
                                 roomMembersById = roomMembersById.value,
                                 highlight = highlight,
                                 timestampSettings = timestampSettings,
                                 showBackwardPagingIndicator = showBackwardPagingIndicator,
                                 showForwardPagingIndicator = showForwardPagingIndicator,
-                                debugSeparatorLines = currentDebugLines,
+                                debugSeparatorLines = currentDebugLines.toPersistentList(),
                             )
                         }
                         if (renderedItems.isEmpty() && showBackwardPagingIndicator) {
@@ -386,4 +432,27 @@ fun ConversationScreen(
             }
         }
     }
+}
+
+private inline fun <T>getNextItem(
+    currentIndex: Int,
+    peek: (Int) -> T?,
+    direction: Int = 1,
+    limit: Int = 100,
+    predicate: (T) -> Boolean = { true },
+): Pair<T?, Int?> {
+    var count = direction.absoluteValue
+    val step = direction.sign
+    var index = currentIndex
+    for (i in 0..limit) {
+        index += step
+        val item = peek(index) ?: return Pair(null, null)
+        if (predicate(item)) {
+            count--
+            if (count == 0) {
+                return Pair(item, index)
+            }
+        }
+    }
+    return Pair(null, null)
 }

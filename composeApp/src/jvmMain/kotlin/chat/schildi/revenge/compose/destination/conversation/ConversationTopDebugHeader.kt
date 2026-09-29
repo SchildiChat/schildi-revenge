@@ -12,6 +12,7 @@ import androidx.compose.ui.unit.dp
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.preferences.value
+import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 
 @Composable
 fun ConversationTopDebugHeader(
@@ -23,11 +24,13 @@ fun ConversationTopDebugHeader(
         return
     }
     val state = viewModel.activeTimelineState.collectAsState().value ?: return
+    val latestRead = viewModel.latestSeenMessage.collectAsState().value
     val text = remember(
         isLiveMergeEnabled,
         state.isLive,
         state.mergeOffset,
         state.items.size,
+        latestRead,
     ) {
         buildString {
             if (!isLiveMergeEnabled) {
@@ -35,8 +38,17 @@ fun ConversationTopDebugHeader(
             }
             when {
                 !state.isLive -> append("detached")
-                state.mergeOffset >= 0 -> append("merged@${state.items.size - state.mergeOffset}")
+                state.mergeOffset >= 0 -> append("merged@${state.items.size - state.mergeOffset - 1}")
                 else -> append("live")
+            }
+            latestRead?.let {
+                append(" TS=")
+                append(it.value.take(13))
+                val index = state.items.indexOfLast { (it as? MatrixTimelineItem.Event)?.eventId == latestRead }
+                if (index >= 0) {
+                    append("@")
+                    append(state.items.size - index - 1)
+                }
             }
         }
     }

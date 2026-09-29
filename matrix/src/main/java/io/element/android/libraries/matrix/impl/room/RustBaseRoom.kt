@@ -18,6 +18,7 @@ import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.ThreadId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.BaseRoom
+import io.element.android.libraries.matrix.api.room.Receipts
 import io.element.android.libraries.matrix.api.room.RoomInfo
 import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.room.RoomMembersState
@@ -45,6 +46,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 import org.matrix.rustcomponents.sdk.CallDeclineListener
+import org.matrix.rustcomponents.sdk.Receipts as RustReceipts
 import org.matrix.rustcomponents.sdk.ReceiptThread
 import org.matrix.rustcomponents.sdk.RoomInfoListener
 import org.matrix.rustcomponents.sdk.use
@@ -307,6 +309,17 @@ class RustBaseRoom(
     override suspend fun setRoomUserAvatarMxc(avatarUrl: String?): Result<Unit> = withContext(roomDispatcher) {
         runCatchingExceptions {
             innerRoom.setUserAvatarMxc(avatarUrl)
+        }
+    }
+    override suspend fun sendMultipleReceipts(receipts: Receipts): Result<Unit> = withContext(roomDispatcher) {
+        runCatchingExceptions {
+            innerRoom.sendMultipleReceipts(
+                RustReceipts(
+                    fullyRead = receipts.fullyRead?.value,
+                    publicReadReceipt = receipts.publicReadReceipt?.value,
+                    privateReadReceipt = receipts.privateReadReceipt?.value,
+                )
+            )
         }
     }
     // SC end

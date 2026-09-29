@@ -594,6 +594,7 @@
     <string name="pref_category_notifications">Notifications</string>
     <string name="pref_category_notifications_summary">Get notified about new messages</string>
     <string name="pref_category_push_registrations">Push registrations</string>
+    <string name="pref_category_read_tracking">Read tracking</string>
 
     <string name="pref_url_previews_title">Link previews</string>
     <string name="pref_url_previews_summary">Query and render previews for links included in messages</string>
@@ -604,6 +605,17 @@
 
     <string name="pref_push_registrations_info_none">No active push registrations</string>
     <string name="pref_push_registrations_info_summary">Endpoint: %1$s\nGateway: %2$s\nRegistered: %3$s</string>
+
+    <string name="pref_read_receipt_type_title">Read receipt type</string>
+    <string name="pref_read_receipt_type_public">Shared</string>
+    <string name="pref_read_receipt_type_private">Private</string>
+    <string name="pref_read_receipt_type_private_in_public_rooms">Shared except in public rooms</string>
+    <string name="pref_auto_mark_read_trigger_title">Mark messages read automatically</string>
+    <string name="pref_auto_mark_read_trigger_live">Immediately while viewing</string>
+    <string name="pref_auto_mark_read_trigger_room_close">On room close</string>
+    <string name="pref_auto_mark_read_trigger_never">Only manually</string>
+    <string name="pref_mark_fully_read_on_message_send_title">Mark fully read on message send</string>
+    <string name="pref_mark_fully_read_on_message_send_summary">Move the fully read marker to the most recent message on message send</string>
 
     <string name="toast_key_config_reload_success">Key bindings reloaded</string>
     <string name="toast_key_config_reload_error">Failed parsing key bindings config: %1$s</string>

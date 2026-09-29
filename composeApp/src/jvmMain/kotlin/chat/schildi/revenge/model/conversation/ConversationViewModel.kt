@@ -55,7 +55,7 @@ import chat.schildi.revenge.model.Attachment
 import chat.schildi.revenge.model.CheckpointLoadState
 import chat.schildi.lib.preferences.ComposerFormat
 import chat.schildi.revenge.actions.platformHasUserFacingFilePaths
-import chat.schildi.revenge.compose.destination.conversation.virtual.DebugSeparatorLineInstance
+import chat.schildi.revenge.compose.destination.conversation.virtual.TimelineItemDebugLineInstance
 import chat.schildi.revenge.model.ComposerRoomInfo
 import chat.schildi.revenge.model.ComposerSuggestion
 import chat.schildi.revenge.model.ComposerSuggestionsProvider
@@ -113,6 +113,7 @@ import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.room.MessageEventType
+import io.element.android.libraries.matrix.api.room.Receipts
 import io.element.android.libraries.matrix.api.room.RoomInfo
 import io.element.android.libraries.matrix.api.room.RoomMembershipState
 import io.element.android.libraries.matrix.api.room.powerlevels.permissionsFlow
@@ -144,7 +145,6 @@ import io.element.android.libraries.matrix.api.timeline.item.event.VoiceMessageT
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisambiguatedDisplayName
 import io.element.android.libraries.matrix.api.timeline.item.event.toEventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.virtual.VirtualTimelineItem
-import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentHashMapOf
 import kotlinx.collections.immutable.persistentListOf
@@ -152,9 +152,11 @@ import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.collections.immutable.toPersistentHashMap
 import kotlinx.collections.immutable.toPersistentList
+import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -162,6 +164,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -182,7 +185,6 @@ import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.getString
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.action_add_attachment
@@ -310,7 +312,7 @@ data class FullyReadEventState(
     }
 }
 
-@OptIn(ExperimentalCoroutinesApi::class)
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 class ConversationViewModel(
     override val sessionId: SessionId,
     override val roomId: RoomId,
@@ -684,10 +686,79 @@ class ConversationViewModel(
         }
     }
 
-    val debugLines: StateFlow<ImmutableMap<Int?, ImmutableList<DebugSeparatorLineInstance>>> = activeTimelineState.map { state ->
-        persistentMapOf(
-            state?.mergeOffset to persistentListOf(DebugSeparatorLineInstance.LiveTimeline)
-        )
+    private val _latestSeenMessage = MutableStateFlow<EventId?>(null)
+    val latestSeenMessage = _latestSeenMessage.asStateFlow()
+    private val latestSentReadReceipt = MutableStateFlow<EventId?>(null)
+
+    private fun getAutoReadReceiptType(setting: String, roomInfo: RoomInfo?): ReceiptType? {
+        val type = tryOrNull { ScPrefs.AutoMarkAsReadReceiptType.valueOf(setting) }
+        if (type == null) {
+            log.e { "Invalid read receipt type setting: $setting" }
+            return null
+        }
+        return when (type) {
+            ScPrefs.AutoMarkAsReadReceiptType.PUBLIC -> ReceiptType.READ
+            ScPrefs.AutoMarkAsReadReceiptType.PRIVATE -> ReceiptType.READ_PRIVATE
+            ScPrefs.AutoMarkAsReadReceiptType.PRIVATE_IN_PUBLIC_ROOMS -> if (roomInfo?.isPublic == false) {
+                ReceiptType.READ
+            } else {
+                ReceiptType.READ_PRIVATE
+            }
+        }
+    }
+
+    fun onUiDispose() {
+        val autoReceiptsTriggerSetting = scPreferencesStore.getCachedOrDefaultValue(ScPrefs.AUTO_MARK_AS_READ_TRIGGER)
+        val autoReceiptsTrigger = tryOrNull {
+            ScPrefs.AutoMarkAsReadTrigger.valueOf(autoReceiptsTriggerSetting)
+        }
+        if (autoReceiptsTrigger == null) {
+            log.e { "Invalid read trigger setting: $autoReceiptsTriggerSetting" }
+            return
+        }
+        if (autoReceiptsTrigger == ScPrefs.AutoMarkAsReadTrigger.NEVER) return
+        val latest = _latestSeenMessage.value ?: return
+        val receiptType = getAutoReadReceiptType(
+            scPreferencesStore.getCachedOrDefaultValue(ScPrefs.AUTO_MARK_AS_READ_READ_RECEIPT_TYPE),
+            roomInfo.value,
+        ) ?: return
+        GlobalActionsScope.launch {
+            // Fresh room so receipts still get sent while the VM gets closed and cleaned up
+            clientFlow.value?.getRoom(roomId)?.use { room ->
+                room.sendMultipleReceipts(
+                    Receipts(
+                        fullyRead = latest,
+                        publicReadReceipt = if (receiptType == ReceiptType.READ) latest else null,
+                        privateReadReceipt = if (receiptType == ReceiptType.READ_PRIVATE) latest else null,
+                    )
+                )
+                    .onFailure { log.e("Failed to set read markers on UI dispose", it) }
+                    .onSuccess { latestSentReadReceipt.value = latest }
+            }
+        }
+    }
+
+    val debugLines: StateFlow<ImmutableMap<Int, List<TimelineItemDebugLineInstance>>> = combine(
+        scPreferencesStore.settingFlow(ScPrefs.SHOW_DEV_INFOS),
+        activeTimelineState,
+        latestSeenMessage,
+        latestSentReadReceipt
+    ) { enabled, state, latestRead, latestSentReceipt ->
+        if (enabled) {
+            val latestSentReceiptIndex = latestSentReceipt?.let {
+                state?.items?.indexOfFirst { (it as? MatrixTimelineItem.Event)?.eventId == latestSentReceipt }
+            }
+            val latestReadIndex = latestRead?.takeIf { it != latestSentReceipt }?.let {
+                state?.items?.indexOfFirst { (it as? MatrixTimelineItem.Event)?.eventId == latestRead }
+            }
+            listOfNotNull(
+                state?.mergeOffset?.let { it to TimelineItemDebugLineInstance.LiveTimeline },
+                latestSentReceiptIndex?.let { it to TimelineItemDebugLineInstance.TrackedRead },
+                latestReadIndex?.let { it to TimelineItemDebugLineInstance.PendingTrackedRead },
+            ).groupBy(keySelector = { it.first }, valueTransform = { it.second }).toPersistentMap()
+        } else {
+            persistentMapOf()
+        }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), persistentMapOf())
 
     val timelineItems = combine(
@@ -738,6 +809,21 @@ class ConversationViewModel(
 
     val forwardPaginationStatus = activeTimeline.flatMapLatest { it?.forwardPaginationStatus ?: flowOf(null) }
     val backwardPaginationStatus = activeTimeline.flatMapLatest { it?.backwardPaginationStatus ?: flowOf(null) }
+
+    fun trackSeenMessage(eventId: EventId, renderedItems: List<ScTimelineItem>) {
+        if (!searchQuery.value.isNullOrBlank()) return
+        val currentIndex = renderedItems.indexOfFirst { (it.item as? MatrixTimelineItem.Event)?.eventId == eventId }
+        if (currentIndex < 0) return
+        val previous = _latestSeenMessage.value
+        if (previous != null && previous != eventId) {
+            // If the previously seen message is no longer part of the list, the new one wins.
+            // (When in doubt, the server will prevent us from moving backwards, assuming behavior similar to MSC4446.)
+            // Else, the more recent (lower index) of both wins, or the previous one if equal.
+            val previousIndex = renderedItems.indexOfFirst { (it.item as? MatrixTimelineItem.Event)?.eventId == previous }
+            if (previousIndex in 0..currentIndex) return
+        }
+        _latestSeenMessage.value = eventId
+    }
 
     private val roomMembersState = joinedRoom.flatMapLatest { joined ->
         joined?.membersStateFlow ?: flowOf()
@@ -978,9 +1064,16 @@ class ConversationViewModel(
                 // should be more meaningful in case later actions fail.
                 // TODO this can take a while, can we check if this is really necessary?
                 GlobalActionsScope.launch {
-                    currentTimeline.markAsRead(ReceiptType.READ_PRIVATE)
+                    // currentTimeline may not be live, but we want to mark the live one as read.
+                    val timeline = joinedRoom.value?.liveTimeline ?: return@launch
+                    timeline.markAsRead(ReceiptType.READ_PRIVATE)
                         .onFailure { log.e("Forwarding the RR on message send failed", it) }
                         .onSuccess { log.d("Advanced the RR on message send") }
+                    if (scPreferencesStore.getSetting(ScPrefs.MARK_FULLY_READ_ON_MESSAGE_SEND)) {
+                        timeline.markAsRead(ReceiptType.FULLY_READ)
+                            .onFailure { log.e("Forwarding the RM on message send failed", it) }
+                            .onSuccess { log.d("Advanced the RM on message send") }
+                    }
                 }
                 val result = run result@{
                     when (draft.type) {
@@ -1334,6 +1427,33 @@ class ConversationViewModel(
 
         timelineController.flatMapLatest { it?.isLive() ?: flowOf(null) }.onEach { isLive ->
             log.d { "Timeline is live: $isLive" }
+        }.launchIn(viewModelScope)
+
+        // Live read tracking
+        combine(
+            scPreferencesStore.combinedSettingFlow { lookup ->
+                Pair(
+                    ScPrefs.AUTO_MARK_AS_READ_TRIGGER.safeLookup(lookup),
+                    ScPrefs.AUTO_MARK_AS_READ_READ_RECEIPT_TYPE.safeLookup(lookup),
+                )
+            },
+            latestSeenMessage.debounce(LIVE_READ_RECEIPT_DEBOUNCE).filterNotNull(),
+            roomInfo,
+        ) { (triggerSetting, receiptTypeSetting), latest, info ->
+            val trigger = tryOrNull { ScPrefs.AutoMarkAsReadTrigger.valueOf(triggerSetting) } ?: run {
+                log.e { "Invalid setting to mark messages as read: $triggerSetting" }
+                return@combine
+            }
+            if (trigger == ScPrefs.AutoMarkAsReadTrigger.LIVE) {
+                activeTimeline.value?.let { timeline ->
+                    val receiptType = getAutoReadReceiptType(receiptTypeSetting, info) ?: return@combine
+                    viewModelScope.launch {
+                        timeline.sendReadReceipt(latest, receiptType)
+                            .onFailure { log.e("Failed to send the live RR", it) }
+                            .onSuccess { latestSentReadReceipt.value = latest }
+                    }
+                }
+            }
         }.launchIn(viewModelScope)
 
         // Typing indicators
@@ -2756,6 +2876,8 @@ class ConversationViewModel(
     }
 
     companion object {
+        private val LIVE_READ_RECEIPT_DEBOUNCE = 1_000.milliseconds
+
         fun factory(
             sessionId: SessionId,
             roomId: RoomId,

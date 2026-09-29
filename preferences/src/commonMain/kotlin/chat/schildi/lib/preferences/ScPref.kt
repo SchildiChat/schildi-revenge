@@ -212,7 +212,7 @@ data class ScStringListPref(
     override val items: ImmutableList<ScListPrefEntry<String>>,
     override val titleRes: StringResource,
     override val summaryRes: StringResource? = null,
-    override val disabledValue: String = defaultValue,
+    override val disabledValue: String? = defaultValue,
     override val dependencies: List<ScPrefDependency> = emptyList(),
     override val supportedOnPlatform: Boolean = true,
     override val requiresWindowRecreation: Boolean = false,

@@ -6,11 +6,11 @@ sealed interface ScPrefDependency {
     fun fulfilledFor(preferences: Preferences): Boolean
 }
 
-data class ScPrefEnabledDependency(
-    val pref: ScPref<Boolean>,
-    val expect: Boolean = true,
+data class ScPrefMatchesDependency<T>(
+    val pref: ScPref<T>,
+    val expect: T,
 ) : ScPrefDependency {
-    private fun fulfilledFor(value: Boolean): Boolean = value == expect
+    private fun fulfilledFor(value: T): Boolean = value == expect
     override fun fulfilledFor(preferences: Preferences): Boolean = fulfilledFor(preferences[pref.key!!] ?: pref.defaultValue)
 }
 
@@ -26,6 +26,6 @@ data class ScPrefNotDependency(
     override fun fulfilledFor(preferences: Preferences): Boolean = !dependency.fulfilledFor(preferences)
 }
 
-fun ScPref<Boolean>.toDependency(expect: Boolean = true): ScPrefDependency = ScPrefEnabledDependency(this, expect)
+fun ScPref<Boolean>.toDependency(expect: Boolean = true): ScPrefDependency = ScPrefMatchesDependency(this, expect)
 fun ScPref<Boolean>.asDependencies(expect: Boolean = true): List<ScPrefDependency> = listOf(toDependency(expect))
 fun ScPrefDependency.not() = ScPrefNotDependency(this)

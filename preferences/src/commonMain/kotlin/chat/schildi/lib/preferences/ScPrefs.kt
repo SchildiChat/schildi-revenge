@@ -25,6 +25,10 @@ import shire.res.generated.resources.pref_animate_avatars_summary
 import shire.res.generated.resources.pref_animate_avatars_title
 import shire.res.generated.resources.pref_auto_hide_composer_summary
 import shire.res.generated.resources.pref_auto_hide_composer_title
+import shire.res.generated.resources.pref_auto_mark_read_trigger_live
+import shire.res.generated.resources.pref_auto_mark_read_trigger_never
+import shire.res.generated.resources.pref_auto_mark_read_trigger_room_close
+import shire.res.generated.resources.pref_auto_mark_read_trigger_title
 import shire.res.generated.resources.pref_category_conversation
 import shire.res.generated.resources.pref_category_conversation_summary
 import shire.res.generated.resources.pref_category_developer_options
@@ -126,6 +130,7 @@ import shire.res.generated.resources.pref_category_message_authenticity_warnings
 import shire.res.generated.resources.pref_category_notifications
 import shire.res.generated.resources.pref_category_notifications_summary
 import shire.res.generated.resources.pref_category_push_registrations
+import shire.res.generated.resources.pref_category_read_tracking
 import shire.res.generated.resources.pref_category_timeline_event_visibility
 import shire.res.generated.resources.pref_category_unread_counts
 import shire.res.generated.resources.pref_client_side_sort_by_unread_summary
@@ -175,12 +180,18 @@ import shire.res.generated.resources.pref_pseudo_spaces_title
 import shire.res.generated.resources.pref_render_space_order_keys_title
 import shire.res.generated.resources.pref_floating_date_summary
 import shire.res.generated.resources.pref_floating_date_title
+import shire.res.generated.resources.pref_mark_fully_read_on_message_send_summary
+import shire.res.generated.resources.pref_mark_fully_read_on_message_send_title
 import shire.res.generated.resources.pref_message_swipe_action_left_title
 import shire.res.generated.resources.pref_message_swipe_action_right_title
 import shire.res.generated.resources.pref_open_at_unread_summary
 import shire.res.generated.resources.pref_open_at_unread_title
 import shire.res.generated.resources.pref_push_notifications_summary
 import shire.res.generated.resources.pref_push_notifications_title
+import shire.res.generated.resources.pref_read_receipt_type_private
+import shire.res.generated.resources.pref_read_receipt_type_private_in_public_rooms
+import shire.res.generated.resources.pref_read_receipt_type_public
+import shire.res.generated.resources.pref_read_receipt_type_title
 import shire.res.generated.resources.pref_sdk_sqlite_max_pool_size_summary
 import shire.res.generated.resources.pref_sdk_sqlite_max_pool_size_title
 import shire.res.generated.resources.pref_show_advanced_room_creation_parameters_summary
@@ -385,6 +396,45 @@ object ScPrefs {
         Res.string.pref_message_swipe_action_right_title,
     )
 
+    enum class AutoMarkAsReadTrigger {
+        LIVE,
+        ROOM_CLOSE,
+        NEVER,
+    }
+    private val autoMarkAsReadTriggerEntries = persistentListOf(
+        ScListPrefEntry(AutoMarkAsReadTrigger.LIVE.name, Res.string.pref_auto_mark_read_trigger_live.toStringHolder()),
+        ScListPrefEntry(AutoMarkAsReadTrigger.ROOM_CLOSE.name, Res.string.pref_auto_mark_read_trigger_room_close.toStringHolder()),
+        ScListPrefEntry(AutoMarkAsReadTrigger.NEVER.name, Res.string.pref_auto_mark_read_trigger_never.toStringHolder()),
+    )
+    enum class AutoMarkAsReadReceiptType {
+        PUBLIC,
+        PRIVATE,
+        PRIVATE_IN_PUBLIC_ROOMS,
+    }
+    private val autoMarkAsReadReceiptTypeEntries = persistentListOf(
+        ScListPrefEntry(AutoMarkAsReadReceiptType.PUBLIC.name, Res.string.pref_read_receipt_type_public.toStringHolder()),
+        ScListPrefEntry(AutoMarkAsReadReceiptType.PRIVATE.name, Res.string.pref_read_receipt_type_private.toStringHolder()),
+        ScListPrefEntry(AutoMarkAsReadReceiptType.PRIVATE_IN_PUBLIC_ROOMS.name, Res.string.pref_read_receipt_type_private_in_public_rooms.toStringHolder()),
+    )
+
+    val AUTO_MARK_AS_READ_TRIGGER = ScStringListPref(
+        "AUTO_MARK_AS_READ_TRIGGER",
+        AutoMarkAsReadTrigger.LIVE.name,
+        autoMarkAsReadTriggerEntries,
+        Res.string.pref_auto_mark_read_trigger_title,
+    )
+    val AUTO_MARK_AS_READ_READ_RECEIPT_TYPE = ScStringListPref(
+        "AUTO_MARK_AS_READ_READ_RECEIPT_TYPE",
+        AutoMarkAsReadReceiptType.PUBLIC.name,
+        autoMarkAsReadReceiptTypeEntries,
+        Res.string.pref_read_receipt_type_title,
+        dependencies = listOf(
+            ScPrefMatchesDependency(AUTO_MARK_AS_READ_TRIGGER, AutoMarkAsReadTrigger.NEVER.name).not()
+        ),
+        disabledValue = null,
+    )
+    val MARK_FULLY_READ_ON_MESSAGE_SEND = ScBoolPref("MARK_FULLY_READ_ON_MESSAGE_SEND", true, Res.string.pref_mark_fully_read_on_message_send_title, Res.string.pref_mark_fully_read_on_message_send_summary)
+
     // Message rendering
     val MESSAGE_FONT_SIZE = ScIntPref("MESSAGE_FONT_SIZE", 14, Res.string.pref_message_font_size_title, Res.string.pref_message_font_size_summary, minValue = 8, maxValue = 24)
     val MESSAGE_OTHER_SIDE_MARGIN = ScIntPref("MESSAGE_OTHER_SIDE_MARGIN", 48, Res.string.pref_message_other_side_margin_title, Res.string.pref_message_other_side_margin_summary, minValue = 0, maxValue = 200)
@@ -472,6 +522,11 @@ object ScPrefs {
             ScPrefCategory("MESSAGE_ACTIONS", Res.string.pref_category_message_actions, null, listOf(
                 MESSAGE_SWIPE_ACTION_LEFT,
                 MESSAGE_SWIPE_ACTION_RIGHT,
+            )),
+            ScPrefCategory("READ_TRACKING", Res.string.pref_category_read_tracking, null, listOf(
+                AUTO_MARK_AS_READ_TRIGGER,
+                AUTO_MARK_AS_READ_READ_RECEIPT_TYPE,
+                MARK_FULLY_READ_ON_MESSAGE_SEND,
             )),
             ScPrefCategory("TIMELINE_EVENT_VISIBILITY", Res.string.pref_category_timeline_event_visibility, null, listOf(
                 VIEW_REDACTIONS,

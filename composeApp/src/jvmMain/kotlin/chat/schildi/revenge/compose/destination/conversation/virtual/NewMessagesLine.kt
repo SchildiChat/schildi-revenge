@@ -16,9 +16,8 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.theme.scExposures
 
 enum class NewMessageLineInstance {
-    Matched,
-    ReadMarkerOnly,
-    SdkOnly,
+    ReadMarker,
+    Sdk,
 }
 
 @Composable
@@ -30,13 +29,11 @@ fun NewMessagesLine(
     val debugUnreadLine = ScPrefs.SHOW_DEV_INFOS.value()
     if (!debugUnreadLine) {
         val shouldRender = when (instance) {
-            // Everyone agrees this is the correct unread line.
-            NewMessageLineInstance.Matched -> true
             // Fully read event says this is unread, this is to be trusted as truth in non-threaded timelines.
-            NewMessageLineInstance.ReadMarkerOnly -> !isThreadedTimeline
+            NewMessageLineInstance.ReadMarker -> !isThreadedTimeline
             // SDK says this is unread, but doesn't match what the m.fully_read marker says.
             // Only trust in threaded timelines.
-            NewMessageLineInstance.SdkOnly -> isThreadedTimeline
+            NewMessageLineInstance.Sdk -> isThreadedTimeline
         }
         if (!shouldRender) {
             return
@@ -44,9 +41,16 @@ fun NewMessagesLine(
     }
     val color = if (debugUnreadLine) {
         when (instance) {
-            NewMessageLineInstance.Matched -> MaterialTheme.scExposures.accentColor
-            NewMessageLineInstance.ReadMarkerOnly -> MaterialTheme.scExposures.linkColor
-            NewMessageLineInstance.SdkOnly -> MaterialTheme.scExposures.accentColor.copy(alpha = 0.3f)
+            NewMessageLineInstance.ReadMarker -> if (isThreadedTimeline) {
+                MaterialTheme.scExposures.accentColor.copy(alpha = 0.3f)
+            } else {
+                MaterialTheme.scExposures.accentColor
+            }
+            NewMessageLineInstance.Sdk -> if (isThreadedTimeline) {
+                MaterialTheme.scExposures.accentColor
+            } else {
+                MaterialTheme.scExposures.accentColor.copy(alpha = 0.3f)
+            }
         }
     } else {
         MaterialTheme.scExposures.accentColor
