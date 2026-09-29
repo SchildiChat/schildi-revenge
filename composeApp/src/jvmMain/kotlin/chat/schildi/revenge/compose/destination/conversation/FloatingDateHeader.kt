@@ -47,7 +47,7 @@ fun BoxScope.FloatingDateHeader(
             renderedTimestamp = listState.layoutInfo.visibleItemsInfo.asReversed().firstNotNullOfOrNull { info ->
                 val index = info.index
                 (if (index >= 0 && index < timelineItems.size) {
-                    timelineItems[index].item.toDateTimestamp()
+                    timelineItems[index].item.toDateTimestamp(allowNonEventTimestamps = false)
                 } else {
                     null
                 })

@@ -144,7 +144,7 @@ class ScTimelineController(
                 it is MatrixTimelineItem.Event || (it as? MatrixTimelineItem.Virtual)?.virtual is VirtualTimelineItem.DayDivider
             } as? MatrixTimelineItem.Virtual)?.virtual as? VirtualTimelineItem.DayDivider
             val lastDetachedTimestamp = filteredDetachedItems.asReversed().firstNotNullOfOrNull {
-                it.toDateTimestamp()
+                it.toDateTimestamp(allowNonEventTimestamps = true)
             }
 
             var hasFilteredLiveDayHeader = firstLiveDay == null || lastDetachedTimestamp == null ||
@@ -276,10 +276,14 @@ class ScTimelineController(
     }
 }
 
-fun MatrixTimelineItem.toDateTimestamp() =
+fun MatrixTimelineItem.toDateTimestamp(allowNonEventTimestamps: Boolean) =
     when (this) {
         is MatrixTimelineItem.Event -> event.timestamp
-        //is MatrixTimelineItem.Virtual -> (item.virtual as? VirtualTimelineItem.DayDivider)?.timestamp
+        is MatrixTimelineItem.Virtual -> if (allowNonEventTimestamps) {
+            (virtual as? VirtualTimelineItem.DayDivider)?.timestamp
+        } else {
+            null
+        }
         //MatrixTimelineItem.Other -> null
         else -> null
     }
