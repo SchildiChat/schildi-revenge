@@ -7,7 +7,6 @@ import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PestControlRodent
 import androidx.compose.material.icons.filled.Update
-import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
@@ -46,7 +45,6 @@ import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.action_jump_to_bottom
 import shire.res.generated.resources.action_jump_to_unread
-import shire.res.generated.resources.action_mark_as_read
 import shire.res.generated.resources.action_show_room_members
 import shire.res.generated.resources.dev_tools_title
 import shire.res.generated.resources.keep_24px
@@ -223,19 +221,6 @@ fun ConversationTopNavigation(
                             keyHandler.handleAction(
                                 focusItem = focusParent.uuid,
                                 action = Action.Conversation.JumpToBottom,
-                            )
-                        }
-                        TopNavigationIcon(
-                            Icons.Default.Visibility,
-                            stringResource(Res.string.action_mark_as_read),
-                        ) {
-                            keyHandler.handleAction(
-                                focusItem = focusParent.uuid,
-                                action = Action.Room.MarkRoomRead,
-                            )
-                            keyHandler.handleAction(
-                                focusItem = focusParent.uuid,
-                                action = Action.Room.MarkRoomFullyRead,
                             )
                         }
                     }
