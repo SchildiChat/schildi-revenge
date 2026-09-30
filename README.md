@@ -1,4 +1,4 @@
-[![Translation status](https://weblate.spiritcroc.de/widget/schildichat/schildi-revenge/svg-badge.svg)](https://weblate.spiritcroc.de/engage/schildichat/)
+[![Translation status](https://weblate.spiritcroc.de/widget/schildichat/schildi-revenge/svg-badge.svg)](https://weblate.spiritcroc.de/projects/schildichat/schildi-revenge/)
 [![Matrix room #revenge:schildi.chat](https://img.shields.io/matrix/revenge:schildi.chat.svg?label=%23revenge:schildi.chat&logo=matrix&server_fqdn=matrix.org)](https://matrix.to/#/#revenge:schildi.chat)
 
 # SchildiChat Revenge
