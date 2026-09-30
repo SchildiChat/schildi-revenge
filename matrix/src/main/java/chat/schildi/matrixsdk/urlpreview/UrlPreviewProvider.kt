@@ -33,6 +33,10 @@ data class UrlPreview(
     val description: String? = null,
     @SerialName("og:site_name")
     val siteName: String? = null,
+    @SerialName("og:image:width")
+    val imageWidth: Int? = null,
+    @SerialName("og:image:height")
+    val imageHeight: Int? = null,
 ) : UrlPreviewLookup
 
 @Serializable

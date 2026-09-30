@@ -219,6 +219,7 @@ import kotlin.math.max
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val TYPING_NOTICE_REPEAT_INTERVAL = 5000L
+private const val URL_PREVIEW_PREFETCH_WINDOW = 5
 
 data class TimestampSettings(
     val renderAuthenticityNotGuaranteed: Boolean = true,
@@ -839,6 +840,20 @@ class ConversationViewModel(
             if (previousIndex in 0..currentIndex) return
         }
         _latestSeenMessage.value = eventId
+    }
+
+    fun prefetchUrlPreviews(visibleLo: Int, visibleHi: Int) {
+        val provider = urlPreviewStateProvider.value ?: return
+        val items = timelineItems.value ?: return
+        val n = items.size
+        if (n == 0) return
+        val requireExplicitHttps = scPreferencesStore.getCachedOrDefaultValue(ScPrefs.URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS)
+        val lo = (visibleLo - URL_PREVIEW_PREFETCH_WINDOW).coerceIn(0, n - 1)
+        val hi = (visibleHi + URL_PREVIEW_PREFETCH_WINDOW).coerceIn(0, n - 1)
+        for (i in lo..hi) {
+            val url = items[n - 1 - i].messageMetadata?.preFormattedContent?.firstPreviewUrl(requireExplicitHttps) ?: continue
+            provider.getStateHolder(url).onRender()
+        }
     }
 
     private val roomMembersState = joinedRoom.flatMapLatest { joined ->

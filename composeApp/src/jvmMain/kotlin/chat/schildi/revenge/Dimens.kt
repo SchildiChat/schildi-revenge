@@ -145,6 +145,24 @@ object Dimens {
             fun maxWidth(waveformLength: Int) =
                 (linePadding + lineWidth) * waveformLength.coerceIn(1, maxRenderedSegments) - linePadding
         }
+
+        object UrlPreview {
+            val cardShape = RoundedCornerShape(6.dp)
+            val cardBorderWidth = 1.dp
+            val cardInnerPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp)
+
+            val imageMaxWidth = 140.dp
+            val imageMinHeight = 80.dp
+            val imageMinSize = 16.dp
+            val imagePadding = PaddingValues(end = 4.dp, top = 4.dp)
+            val imageShape = RoundedCornerShape(4.dp)
+
+            val titlePaddingHorizontal = 4.dp
+
+            val descriptionTopPadding = 4.dp
+            val descriptionShape = RoundedCornerShape(4.dp)
+            val descriptionPaddingHorizontal = 4.dp
+        }
     }
 
     object Split {

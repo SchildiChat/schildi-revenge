@@ -15,6 +15,9 @@ fun MatrixBodyParseResult.extractUrls(): List<String> = text.getStringAnnotation
     it.item
 }
 
+fun MatrixBodyParseResult.firstPreviewUrl(requireExplicitHttps: Boolean): String? =
+    extractUrls().firstOrNull { !requireExplicitHttps || it.startsWith("https://") }
+
 fun MatrixBodyParseResult.extractMatrixToLinks(): List<MatrixToLink> {
     return (
         text.getStringAnnotations(

@@ -263,12 +263,30 @@ fun ConversationScreen(
             }
         }
 
+        // Provider will be null if not allowed via settings
+        val urlPreviewProvider = viewModel.urlPreviewStateProvider.collectAsState().value
+        // Prefetch url preview metadata a window ahead of the visible items so we can avoid some visual jumps
+        if (urlPreviewProvider != null) {
+            LaunchedEffect(listState) {
+                snapshotFlow {
+                    listState.layoutInfo.visibleItemsInfo
+                        .map { it.index }
+                        .takeIf { it.isNotEmpty() }
+                        ?.let { it.min() to it.max() }
+                }.collect { visibleRange ->
+                    visibleRange?.let { (lo, hi) ->
+                        viewModel.prefetchUrlPreviews(lo, hi)
+                    }
+                }
+            }
+        }
+
         val listAction = remember(listState) { ListActions(listState, isReverseList = true) }
         FocusContainer(
             LocalSearchProvider provides viewModel,
             LocalKeyboardActionProvider provides
                     viewModel.actionProvider.hierarchicalKeyboardActionProvider(),
-            LocalUrlPreviewStateProvider provides viewModel.urlPreviewStateProvider.collectAsState().value,
+            LocalUrlPreviewStateProvider provides urlPreviewProvider,
             LocalUserIdSuggestionsProvider provides viewModel,
             LocalRoomContextSuggestionsProvider provides viewModel.roomContextSuggestionsProvider,
             LocalListActionProvider provides listAction,

@@ -1,7 +1,6 @@
 package chat.schildi.matrixsdk.urlpreview
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,9 +38,12 @@ class UrlPreviewStateHolder(
     private fun launchLookup() {
         // Only launch a query if we don't have one already running.
         currentJob.getAndUpdate {
-            it?.takeIf { it.isActive } ?: scope.launch {
-                logger.d("Launch lookup")
-                lookup()
+            it?.takeIf { it.isActive } ?: run {
+                lastQueryTs = System.currentTimeMillis()
+                scope.launch {
+                    logger.d("Launch lookup")
+                    lookup()
+                }
             }
         }
     }
