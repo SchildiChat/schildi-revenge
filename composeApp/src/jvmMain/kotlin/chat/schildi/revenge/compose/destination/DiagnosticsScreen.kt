@@ -41,6 +41,7 @@ import chat.schildi.revenge.compose.components.TopNavigation
 import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInboxIcon
 import chat.schildi.revenge.compose.components.TopNavigationTitle
 import chat.schildi.revenge.compose.focus.FocusContainer
+import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.config.ScAppDirs
 import chat.schildi.revenge.model.DiagnosticsSnapshot
 import chat.schildi.revenge.model.DiagnosticsViewModel
@@ -319,7 +320,7 @@ private fun MetricCard(
     modifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Card(modifier = modifier.fillMaxWidth()) {
+    Card(modifier = modifier.fillMaxWidth().keyFocusable(role = FocusRole.LIST_ITEM)) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
