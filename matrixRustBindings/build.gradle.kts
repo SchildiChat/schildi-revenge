@@ -40,7 +40,10 @@ val buildDesktopSdk = tasks.register<Exec>("buildDesktopSdk") {
             (if (isDesktopReleaseBuild) listOf("--release") else listOf("--profile", "reldev")) +
             listOf("--package", "matrix-sdk-ffi"),
     )
-    inputs.files(rustSdkDir.file("Cargo.toml"), rustSdkDir.file("Cargo.lock"))
+    inputs.dir(rustSdkDir.dir("crates"))
+    inputs.dir(rustSdkDir.dir("bindings"))
+    inputs.file(rustSdkDir.file("Cargo.toml"))
+    inputs.file(rustSdkDir.file("Cargo.lock"))
     outputs.file(desktopLibrary)
 }
 
@@ -115,7 +118,10 @@ fun registerAndroidRustBuild(buildType: String): TaskProvider<Task> {
                     "build",
                 ) + rustProfileArgs + listOf("--package", "matrix-sdk-ffi"),
             )
-            inputs.files(rustSdkDir.file("Cargo.toml"), rustSdkDir.file("Cargo.lock"))
+            inputs.dir(rustSdkDir.dir("crates"))
+            inputs.dir(rustSdkDir.dir("bindings"))
+            inputs.file(rustSdkDir.file("Cargo.toml"))
+            inputs.file(rustSdkDir.file("Cargo.lock"))
             outputs.file(outputDir.map { it.file("$abi/libmatrix_sdk_ffi.so") })
         }
     }

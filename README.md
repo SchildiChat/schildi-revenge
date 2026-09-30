@@ -166,11 +166,10 @@ in your IDE’s toolbar or run it directly from the terminal:
 
 SchildiChat uses the Matrix Rust SDK via FFI bindings. If you properly cloned the repository with the required
 submodules, and you have a working Rust toolchain installed, the bindings should be generated automatically for you.
-This additional SDK compiles will significantly slow down your first build time, but after that will only be needed once
-the SDK changed. Usually the build process will pick up automatically whether to rebuild the SDK based on checking if
-`Cargo.toml` changed. If you do some SDK changes, you may need to manually force a rebuild the SDK. To clean up previous
-SDK compiles, run `cargo clean` in the `matrix-rust-sdk` directory. `./gradlew clean` *will not* clean a previous SDK
-build (which is intended).
+This additional SDK compile will significantly slow down your first build time, but after that will only be needed once
+the SDK changed. Usually the build process will pick up automatically whether to rebuild the SDK, but if you want to
+clean up previous SDK build outputs, run `cargo clean` in the `matrix-rust-sdk` directory. `./gradlew clean` *will
+intentionally not* clean a previous SDK build.
 
 ## Building release builds
 
