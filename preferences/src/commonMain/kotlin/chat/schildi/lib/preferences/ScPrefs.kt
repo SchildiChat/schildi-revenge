@@ -184,6 +184,8 @@ import shire.res.generated.resources.pref_mark_fully_read_on_message_send_summar
 import shire.res.generated.resources.pref_mark_fully_read_on_message_send_title
 import shire.res.generated.resources.pref_message_swipe_action_left_title
 import shire.res.generated.resources.pref_message_swipe_action_right_title
+import shire.res.generated.resources.pref_only_mark_read_when_fully_read_summary
+import shire.res.generated.resources.pref_only_mark_read_when_fully_read_title
 import shire.res.generated.resources.pref_open_at_unread_summary
 import shire.res.generated.resources.pref_open_at_unread_title
 import shire.res.generated.resources.pref_push_notifications_summary
@@ -434,6 +436,15 @@ object ScPrefs {
         disabledValue = null,
     )
     val MARK_FULLY_READ_ON_MESSAGE_SEND = ScBoolPref("MARK_FULLY_READ_ON_MESSAGE_SEND", true, Res.string.pref_mark_fully_read_on_message_send_title, Res.string.pref_mark_fully_read_on_message_send_summary)
+    val ONLY_MARK_READ_WHEN_FULLY_READ = ScBoolPref(
+        "ONLY_MARK_READ_WHEN_FULLY_READ",
+        false,
+        Res.string.pref_only_mark_read_when_fully_read_title,
+        Res.string.pref_only_mark_read_when_fully_read_summary,
+        dependencies = listOf(
+            ScPrefMatchesDependency(AUTO_MARK_AS_READ_TRIGGER, AutoMarkAsReadTrigger.NEVER.name).not()
+        ),
+    )
 
     // Message rendering
     val MESSAGE_FONT_SIZE = ScIntPref("MESSAGE_FONT_SIZE", 14, Res.string.pref_message_font_size_title, Res.string.pref_message_font_size_summary, minValue = 8, maxValue = 24)
@@ -526,6 +537,7 @@ object ScPrefs {
             ScPrefCategory("READ_TRACKING", Res.string.pref_category_read_tracking, null, listOf(
                 AUTO_MARK_AS_READ_TRIGGER,
                 AUTO_MARK_AS_READ_READ_RECEIPT_TYPE,
+                ONLY_MARK_READ_WHEN_FULLY_READ,
                 MARK_FULLY_READ_ON_MESSAGE_SEND,
             )),
             ScPrefCategory("TIMELINE_EVENT_VISIBILITY", Res.string.pref_category_timeline_event_visibility, null, listOf(

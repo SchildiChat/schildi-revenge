@@ -617,6 +617,8 @@
     <string name="pref_auto_mark_read_trigger_never">Only manually</string>
     <string name="pref_mark_fully_read_on_message_send_title">Mark fully read on message send</string>
     <string name="pref_mark_fully_read_on_message_send_summary">Move the fully read marker to the most recent message on message send</string>
+    <string name="pref_only_mark_read_when_fully_read_title">Only mark read when fully read</string>
+    <string name="pref_only_mark_read_when_fully_read_summary">Do not mark messages as read before seeing the very first unread message, typically marked with the unread messages line</string>
 
     <string name="toast_key_config_reload_success">Key bindings reloaded</string>
     <string name="toast_key_config_reload_error">Failed parsing key bindings config: %1$s</string>

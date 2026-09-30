@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -82,10 +83,15 @@ fun ConversationItemRow(
             }
 
             is MatrixTimelineItem.Event -> {
-                val hasUnreadLine = fullyReadEvent != null &&
-                        (!item.item.event.isOwn || fullyReadEvent.usedAsJumpTarget) &&
-                        fullyReadEvent.has(previousEvent?.eventId)
-                if (hasUnreadLine) {
+                val isFirstUnreadEvent = fullyReadEvent?.has(previousEvent?.eventId) == true
+                val showUnreadLine = isFirstUnreadEvent && (!item.item.event.isOwn || fullyReadEvent.usedAsJumpTarget)
+                if (isFirstUnreadEvent) {
+                    val targetEvent = viewModel.targetEvent.collectAsState().value
+                    SideEffect(item.item.eventId, targetEvent) {
+                        viewModel.markUnreadLineSeen()
+                    }
+                }
+                if (showUnreadLine) {
                     NewMessagesLine(
                         instance = NewMessageLineInstance.ReadMarker,
                         isThreadedTimeline = viewModel.threadId.collectAsState().value != null,
@@ -93,7 +99,7 @@ fun ConversationItemRow(
                 }
 
                 val directPreviousEvent = (previous?.item as? MatrixTimelineItem.Event)?.event
-                val previousSender = directPreviousEvent?.sender?.takeIf { !hasUnreadLine }
+                val previousSender = directPreviousEvent?.sender?.takeIf { !showUnreadLine }
                 val isSameAsPreviousSender = previousSender == item.item.event.sender &&
                         directPreviousEvent.content is MessageContent &&
                         directPreviousEvent.content.perMessageProfile() == item.item.event.content.perMessageProfile()

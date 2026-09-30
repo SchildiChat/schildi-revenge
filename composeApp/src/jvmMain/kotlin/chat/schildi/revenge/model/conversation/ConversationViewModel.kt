@@ -693,6 +693,12 @@ class ConversationViewModel(
     private val latestSentReadReceipt = MutableStateFlow<EventId?>(null)
     @OptIn(ExperimentalAtomicApi::class)
     private val bypassMarkReadOnRoomClose = AtomicBoolean(false)
+    private val _hasSeenUnreadLine = MutableStateFlow(false)
+    val hasSeenUnreadLine = _hasSeenUnreadLine.asStateFlow()
+
+    fun markUnreadLineSeen() {
+        _hasSeenUnreadLine.value = true
+    }
 
     private fun getAutoReadReceiptType(setting: String, roomInfo: RoomInfo?): ReceiptType? {
         val type = tryOrNull { ScPrefs.AutoMarkAsReadReceiptType.valueOf(setting) }
@@ -821,6 +827,7 @@ class ConversationViewModel(
 
     fun trackSeenMessage(eventId: EventId, renderedItems: List<ScTimelineItem>) {
         if (!searchQuery.value.isNullOrBlank()) return
+        if (!hasSeenUnreadLine.value && scPreferencesStore.getCachedOrDefaultValue(ScPrefs.ONLY_MARK_READ_WHEN_FULLY_READ)) return
         val currentIndex = renderedItems.indexOfFirst { (it.item as? MatrixTimelineItem.Event)?.eventId == eventId }
         if (currentIndex < 0) return
         val previous = _latestSeenMessage.value
@@ -2263,6 +2270,7 @@ class ConversationViewModel(
         if (timelineItems != null) {
             if (timelineItems.any { item -> (item.item as? MatrixTimelineItem.Event)?.eventId == eventId }) {
                 log.d { "Skip rebuilding timeline, focus item is already in current timeline" }
+                _hasSeenUnreadLine.value = false
                 _targetEvent.update {
                     EventJumpTarget.Event(eventId).navigateFrom(it)
                 }
@@ -2278,6 +2286,7 @@ class ConversationViewModel(
         )
             .onFailure { log.e("Failed to focus on event $eventId", it) }
             .onSuccess {
+                _hasSeenUnreadLine.value = false
                 _targetEvent.update {
                     EventJumpTarget.Event(eventId).navigateFrom(it)
                 }

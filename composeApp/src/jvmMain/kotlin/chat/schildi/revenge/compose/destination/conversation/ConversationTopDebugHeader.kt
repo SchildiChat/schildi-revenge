@@ -25,12 +25,14 @@ fun ConversationTopDebugHeader(
     }
     val state = viewModel.activeTimelineState.collectAsState().value ?: return
     val latestRead = viewModel.latestSeenMessage.collectAsState().value
+    val seenUnread = viewModel.hasSeenUnreadLine.collectAsState().value
     val text = remember(
         isLiveMergeEnabled,
         state.isLive,
         state.mergeOffset,
         state.items.size,
         latestRead,
+        seenUnread,
     ) {
         buildString {
             if (!isLiveMergeEnabled) {
@@ -49,6 +51,8 @@ fun ConversationTopDebugHeader(
                     append("@")
                     append(state.items.size - index - 1)
                 }
+                append(" SR=")
+                append(seenUnread)
             }
         }
     }
