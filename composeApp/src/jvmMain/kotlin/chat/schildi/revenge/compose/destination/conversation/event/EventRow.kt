@@ -9,7 +9,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
@@ -23,7 +26,6 @@ import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.components.WithContextMenu
 import chat.schildi.revenge.compose.destination.conversation.event.message.timestampOverlayContent
 import chat.schildi.revenge.compose.destination.conversation.event.reaction.ReactionsRow
-import chat.schildi.revenge.compose.destination.conversation.virtual.ConversationDividerLine
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.model.conversation.ConversationViewModel
@@ -42,6 +44,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.MessageConten
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
 import io.element.android.libraries.matrix.api.timeline.item.event.UnknownContent
 import kotlinx.collections.immutable.ImmutableMap
+import kotlin.math.min
 
 enum class EventHighlight {
     NONE,
@@ -100,12 +103,9 @@ fun EventRow(
                     ),
                 )
                 .background(backgroundHighlightColor, Dimens.Conversation.messageBubbleShape)
+                .drawJumpTargetDecoration(enabled = highlight == EventHighlight.JUMP_TARGET)
                 .padding(horizontal = Dimens.windowPadding)
         ) {
-            if (highlight == EventHighlight.JUMP_TARGET) {
-                // TODO revise design once there's a better idea
-                ConversationDividerLine(MaterialTheme.colorScheme.error)
-            }
             val threadInfo = event.threadInfo()
             EventSwipeable(focusId, event.isOwn) { modifier ->
                 EventContentLayout(
@@ -208,4 +208,25 @@ private fun EventContent.isPlaintextCopyable() = when (this) {
     // There's literally no content attached to UnknownContent right now, copying doesn't make much sense.
     UnknownContent -> false
     else -> true
+}
+
+@Composable
+fun Modifier.drawJumpTargetDecoration(
+    enabled: Boolean,
+): Modifier = if (enabled) {
+    val color = MaterialTheme.colorScheme.error
+    val paddingPx = LocalDensity.current.run { Dimens.windowPadding.toPx() / 2 }
+    val widthPx = LocalDensity.current.run { Dimens.Conversation.newMessagesLineHeight.toPx() }
+
+    drawBehind {
+        val x = min(size.width/2, paddingPx)
+        drawLine(
+            color = color,
+            start = Offset(x, 0f),
+            end = Offset(x, size.height),
+            strokeWidth = min(widthPx, size.width),
+        )
+    }
+} else {
+    this
 }
