@@ -1285,6 +1285,8 @@ class KeyboardActionHandler(
         override suspend fun onAsyncActionResult(result: ActionResult) {
             asyncCallback?.onActionResult(result)
         }
+        override fun closeWindow() = this@KeyboardActionHandler.closeWindow()
+        override fun closeDestination(): Boolean = destinationStateHolder?.closeScreen(this@KeyboardActionHandler) ?: closeWindow()
         override val focused = focused
         override val criticalActionRequiresConfirmation = criticalActionRequiresConfirmation
         override val keybindingConfig = keybindingConfig
@@ -1663,13 +1665,16 @@ class KeyboardActionHandler(
                         ActionResult.Inapplicable
                     }
                 }
+                Action.Navigation.CloseDestination -> {
+                    context.destinationStateHolder?.closeScreen(this@KeyboardActionHandler)
+                        ?.orActionInapplicable()
+                        ?: ActionResult.Inapplicable
+                }
             }
         }
     }
 
-    fun closeWindow() {
-        UiState.closeWindow(windowId)
-    }
+    fun closeWindow() = UiState.closeWindow(windowId)
 
     private val appMessageHandler = object : KeyboardActionProvider<Action.AppMessage> {
         override fun getPossibleActions() = Action.AppMessage.entries.toSet()
@@ -3502,6 +3507,8 @@ interface ActionContext {
         action: suspend () -> ActionResult,
     ): ActionResult
     suspend fun onAsyncActionResult(result: ActionResult)
+    fun closeWindow(): Boolean
+    fun closeDestination(): Boolean
     val currentDestinationType: DestinationEnum?
     val destinationStateHolder: DestinationStateHolder?
     val keybindingConfig: KeybindingConfig?

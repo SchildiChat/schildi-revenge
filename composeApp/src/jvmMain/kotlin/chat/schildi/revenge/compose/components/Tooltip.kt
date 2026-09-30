@@ -53,7 +53,9 @@ fun WithTooltip(
     content: @Composable () -> Unit
 ) {
     if (text == null) {
-        content()
+        Box(modifier) {
+            content()
+        }
         return
     }
     WithTooltip(

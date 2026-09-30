@@ -135,7 +135,7 @@ class MultiPaneLayoutDestinationStateHolderWrapper(
     val inner: DestinationStateHolder,
     val closeSplit: () -> ActionResult,
     val closeDestination: (DestinationEnum) -> ActionResult,
-    val close: ((KeyboardActionHandler) -> Unit)? = null,
+    val close: ((KeyboardActionHandler) -> Boolean)? = null,
     val interceptNavigation: (Destination) -> Boolean,
 ) : DestinationStateHolder {
 
@@ -227,6 +227,7 @@ fun buildMultiPaneDestinationStateHolderWrapper(
                 createPlaceholder(),
                 NavigationPreference.REPLACE
             )
+            true
         }
     } else if (parent != null) {
         parent::closeScreen

@@ -213,6 +213,8 @@ import java.io.File
 import java.lang.IllegalArgumentException
 import java.net.URI
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.math.max
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -689,6 +691,8 @@ class ConversationViewModel(
     private val _latestSeenMessage = MutableStateFlow<EventId?>(null)
     val latestSeenMessage = _latestSeenMessage.asStateFlow()
     private val latestSentReadReceipt = MutableStateFlow<EventId?>(null)
+    @OptIn(ExperimentalAtomicApi::class)
+    private val bypassMarkReadOnRoomClose = AtomicBoolean(false)
 
     private fun getAutoReadReceiptType(setting: String, roomInfo: RoomInfo?): ReceiptType? {
         val type = tryOrNull { ScPrefs.AutoMarkAsReadReceiptType.valueOf(setting) }
@@ -707,7 +711,12 @@ class ConversationViewModel(
         }
     }
 
+    @OptIn(ExperimentalAtomicApi::class)
     fun onUiDispose() {
+        if (bypassMarkReadOnRoomClose.compareAndSet(expectedValue = true, newValue = false)) {
+            log.i { "One-time skip mark read on dispose" }
+            return
+        }
         val autoReceiptsTriggerSetting = scPreferencesStore.getCachedOrDefaultValue(ScPrefs.AUTO_MARK_AS_READ_TRIGGER)
         val autoReceiptsTrigger = tryOrNull {
             ScPrefs.AutoMarkAsReadTrigger.valueOf(autoReceiptsTriggerSetting)
@@ -1542,6 +1551,7 @@ class ConversationViewModel(
         peekRoom = { baseRoom.value },
     )
 
+    @OptIn(ExperimentalAtomicApi::class)
     private val conversationActionProvider = object : KeyboardActionProvider<Action.Conversation> {
         override fun getPossibleActions() = Action.Conversation.entries.toSet()
         override fun ensureActionType(action: Action) = action as? Action.Conversation
@@ -1990,6 +2000,10 @@ class ConversationViewModel(
                             result.toActionResult()
                         }
                     }
+                }
+                Action.Conversation.CloseConversationBypassingReadTracking -> {
+                    bypassMarkReadOnRoomClose.store(true)
+                    context.closeDestination().orActionInapplicable()
                 }
             }
         }

@@ -223,6 +223,7 @@ sealed interface Action {
         SplitVertical(aliases = listOf("hsplit"), args = optionalNavigationArgs),
         CloseWindow(aliases = listOf("close")),
         CloseWindowUnlessLast,
+        CloseDestination,
     }
     enum class NavigationItem(
         override val aliases: kotlin.collections.List<String> = emptyList(),
@@ -349,6 +350,7 @@ sealed interface Action {
         ViewRoomState(aliases = listOf("viewRoomState")),
         CopyFullRoomState,
         ViewFullRoomState,
+        CloseConversationBypassingReadTracking(aliases = listOf("closeUnread")),
     }
     enum class Room(
         override val aliases: kotlin.collections.List<String> = emptyList(),

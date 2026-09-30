@@ -39,7 +39,7 @@ interface DestinationStateHolder {
         invalidateHolderId: Boolean = false,
         initialTitle: ComposableStringHolder? = null,
     )
-    fun closeScreen(keyHandler: KeyboardActionHandler)
+    fun closeScreen(keyHandler: KeyboardActionHandler): Boolean
     fun isNavigationDestinationApplicable(destination: Destination): Boolean
 
     companion object {
@@ -142,8 +142,9 @@ private sealed interface StringOverrideState {
 fun publishTitle(provider: TitleProvider) {
     val destinationState = LocalDestinationState.current
     val title = provider.windowTitle
-        .map { StringOverrideState.Override(it) }
-        .collectAsState(StringOverrideState.Uninitialized).value
+        .collectAsState(null).value
+        ?.let(StringOverrideState::Override)
+        ?: StringOverrideState.Uninitialized
     LaunchedEffect(title, provider) {
         if (title !is StringOverrideState.Override) return@LaunchedEffect
         destinationState?.publishTitle(title.value, provider::verifyDestination)

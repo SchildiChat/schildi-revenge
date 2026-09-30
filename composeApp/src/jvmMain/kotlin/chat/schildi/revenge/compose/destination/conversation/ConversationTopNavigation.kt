@@ -1,22 +1,29 @@
 package chat.schildi.revenge.compose.destination.conversation
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PestControlRodent
 import androidx.compose.material.icons.filled.Update
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.unit.dp
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.actions.FocusRole
+import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.compose.components.AvatarImage
@@ -43,6 +50,8 @@ import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_close
+import shire.res.generated.resources.action_close_unread
 import shire.res.generated.resources.action_jump_to_bottom
 import shire.res.generated.resources.action_jump_to_unread
 import shire.res.generated.resources.action_show_room_members
@@ -227,6 +236,45 @@ fun ConversationTopNavigation(
                 }
             }
         }
-        TopNavigationCloseOrNavigateToInboxIcon()
+        val canBypassMarkReadOnClose = ScPrefs.AUTO_MARK_AS_READ_TRIGGER.value() == ScPrefs.AutoMarkAsReadTrigger.ROOM_CLOSE.name
+        if (canBypassMarkReadOnClose) {
+            val focusId = rememberFocusId()
+            WithContextMenu(
+                focusId = focusId,
+                entries = persistentListOf(
+                    ContextMenuActionEntry(
+                        Res.string.action_close.toStringHolder(),
+                        null,
+                        Action.Navigation.CloseDestination,
+                        keyboardShortcut = Key.C,
+                    ),
+                    ContextMenuActionEntry(
+                        Res.string.action_close_unread.toStringHolder(),
+                        null,
+                        Action.Conversation.CloseConversationBypassingReadTracking,
+                        keyboardShortcut = Key.U,
+                    ),
+                ),
+            ) { openContextMenu ->
+                // Cannot use TopNavigationIcon / IconButton for longpress actions :/
+                Icon(
+                    Icons.Default.Close,
+                    stringResource(Res.string.action_close),
+                    modifier = Modifier.keyFocusable(
+                        FocusRole.SHADOW_ITEM,
+                        id = focusId,
+                        actionProvider = actionProvider(
+                            primaryAction = InteractionAction.Invoke {
+                                destinationState?.closeScreen(keyHandler)
+                                true
+                            },
+                            secondaryAction = openContextMenu,
+                        ),
+                    ).minimumInteractiveComponentSize().size(24.dp),
+                )
+            }
+        } else {
+            TopNavigationCloseOrNavigateToInboxIcon()
+        }
     }
 }
