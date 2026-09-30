@@ -27,8 +27,8 @@ enum class TimelineItemDebugLineInstance(
     val color: @Composable () -> Color,
 ) {
     LiveTimeline(DebugLinePosition.Above, { MaterialTheme.colorScheme.outline }),
-    PendingTrackedRead(DebugLinePosition.Start, { ScColors.colorAccentLime }),
-    TrackedRead(DebugLinePosition.Start, { MaterialTheme.scExposures.accentColor }),
+    PendingTrackedRead(DebugLinePosition.Start, { ScColors.colorAccentLime.copy(alpha = 0.5f) }),
+    TrackedRead(DebugLinePosition.Start, { ScColors.colorAccentLime }),
 }
 
 @Composable
