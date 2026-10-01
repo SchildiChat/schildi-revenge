@@ -10,7 +10,9 @@ noticing/missing something particular that's not already tracked in an existing 
 ## Downloads
 
 - Desktop: [GitHub releases](https://github.com/SchildiChat/schildi-revenge/releases)
-- Android: [SpiritCroc F-Droid repo](https://s2.spiritcroc.de/fdroid/repo/)
+- Android:
+    - [SpiritCroc F-Droid repo](https://s2.spiritcroc.de/fdroid/repo/)
+    - [Google Play Store](https://play.google.com/store/apps/details?id=chat.schildi.revenge)
 - Known third-party packages:
     - AUR: [schildichat-revenge-git](https://aur.archlinux.org/packages/schildichat-revenge-git)
     - Nixpkgs: [Schildi-Revenge](https://search.nixos.org/packages?channel=unstable&query=schildi-revenge#show=schildi-revenge)
