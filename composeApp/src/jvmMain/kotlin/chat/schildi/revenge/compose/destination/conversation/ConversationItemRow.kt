@@ -85,7 +85,8 @@ fun ConversationItemRow(
             is MatrixTimelineItem.Event -> {
                 val isFirstUnreadEvent = fullyReadEvent?.has(previousEvent?.eventId) == true
                 val showUnreadLine = isFirstUnreadEvent && (!item.item.event.isOwn || fullyReadEvent.usedAsJumpTarget)
-                if (isFirstUnreadEvent) {
+                if (isFirstUnreadEvent || fullyReadEvent?.has(item.item.eventId) == true) {
+                    // Changed target event clears the seen marker, so need to re-set if it changes
                     val targetEvent = viewModel.targetEvent.collectAsState().value
                     SideEffect(item.item.eventId, targetEvent) {
                         viewModel.markUnreadLineSeen()
