@@ -841,7 +841,7 @@ class ConversationViewModel(
         if (!hasSeenUnreadLine.value && scPreferencesStore.getCachedOrDefaultValue(ScPrefs.ONLY_MARK_READ_WHEN_FULLY_READ)) return
         val currentIndex = renderedItems.indexOfFirst { (it.item as? MatrixTimelineItem.Event)?.eventId == eventId }
         if (currentIndex < 0) return
-        val previous = _latestSeenMessage.value
+        val previous = _latestSeenMessage.value ?: cachedFullyRead.value?.renderedEvent
         if (previous != null && previous != eventId) {
             // If the previously seen message is no longer part of the list, the new one wins.
             // (When in doubt, the server will prevent us from moving backwards, assuming behavior similar to MSC4446.)

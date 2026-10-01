@@ -25,7 +25,11 @@ fun ConversationTopDebugHeader(
     }
     val state = viewModel.activeTimelineState.collectAsState().value ?: return
     val latestRead = viewModel.latestSeenMessage.collectAsState().value
-    val seenUnread = viewModel.hasSeenUnreadLine.collectAsState().value
+    val seenUnread = if (ScPrefs.ONLY_MARK_READ_WHEN_FULLY_READ.value()) {
+        viewModel.hasSeenUnreadLine.collectAsState().value
+    } else {
+        null
+    }
     val text = remember(
         isLiveMergeEnabled,
         state.isLive,
@@ -51,6 +55,8 @@ fun ConversationTopDebugHeader(
                     append("@")
                     append(state.items.size - index - 1)
                 }
+            }
+            seenUnread?.let {
                 append(" SR=")
                 append(seenUnread)
             }
