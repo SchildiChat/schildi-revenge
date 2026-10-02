@@ -7,7 +7,6 @@ import com.beeper.android.messageformat.MatrixToLink
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomAlias
 import io.element.android.libraries.matrix.api.core.RoomId
-import io.element.android.libraries.matrix.api.core.RoomIdOrAlias
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.CreateTimelineParams
@@ -20,6 +19,7 @@ import kotlinx.serialization.json.Json
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.about
 import shire.res.generated.resources.account_dev_tools_title
+import shire.res.generated.resources.action_space_discovery
 import shire.res.generated.resources.app_title_short
 import shire.res.generated.resources.diagnostics
 import shire.res.generated.resources.create_room
@@ -106,6 +106,8 @@ sealed interface Destination {
         // For joining new rooms, alias or via would be beneficial
         val alias: RoomAlias? = null,
         val joinServerNames: List<String>? = null,
+        // CV screen handles room previews but for some room types, showing the timeline is not appropriate
+        val allowRoomTypeBasedReNavigation: Boolean = false,
     ) : WithRoom {
         val preferDetailsPane = when (timelineParams) {
             null,
@@ -196,6 +198,17 @@ sealed interface Destination {
         override val destinationId = DestinationEnum.UserDetails
         override val category = DestinationCategory.CONVERSATION_DETAILS
         override val title = null
+    }
+
+    @Serializable
+    data class SpaceDiscovery(
+        override val sessionId: SessionId,
+        override val roomId: RoomId,
+    ) : WithRoom {
+        override val destinationId = DestinationEnum.SpaceDiscovery
+        override val category = DestinationCategory.CONVERSATION
+        @Transient
+        override val title = StringResourceHolder(Res.string.action_space_discovery)
     }
 
     @Serializable
@@ -384,6 +397,25 @@ sealed interface Destination {
         )
 
         override val destinationId = DestinationEnum.ConversationDetailsSplit
+        override val category = DestinationCategory.CONVERSATION
+        @Transient
+        override val title = DEFAULT_WINDOW_APP_TITLE
+    }
+
+    @Serializable
+    data class SpaceDiscoveryDetailsMultiPane(
+        @Serializable(with = DestinationStateHolderSerializer::class)
+        val spaceDiscovery: DestinationStateHolder,
+        @Serializable(with = DestinationStateHolderSerializer::class)
+        val details: DestinationStateHolder = DestinationStateHolder.forInitialDestination(
+            MultiPaneRoomInfoPlaceholder,
+        ),
+    ) : MultiPane {
+        constructor(spaceDiscoveryDestination: SpaceDiscovery) : this(
+            spaceDiscovery = DestinationStateHolder.forInitialDestination(spaceDiscoveryDestination),
+        )
+
+        override val destinationId = DestinationEnum.SpaceDiscoveryDetailsSplit
         override val category = DestinationCategory.CONVERSATION
         @Transient
         override val title = DEFAULT_WINDOW_APP_TITLE

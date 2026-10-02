@@ -45,8 +45,10 @@ import chat.schildi.revenge.Anim
 import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.LocalMatrixBodyDrawStyle
 import chat.schildi.revenge.LocalMatrixBodyFormatter
+import chat.schildi.revenge.NavigationPreference
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
@@ -146,6 +148,22 @@ fun ConversationScreen(
         val roomInfo = viewModel.roomInfo.collectAsState().value
         val roomPreview = viewModel.roomPreview.collectAsState().value
         val loadState = viewModel.loadState.collectAsState().value
+
+        // From room links we may not know if it's a space or other special type of room pre-join,
+        // so allow re-navigating once we know
+        if (destination.allowRoomTypeBasedReNavigation && roomInfo != null) {
+            val destinationStateHolder = LocalDestinationState.current
+            val isSpace = roomInfo.isSpace
+            LaunchedEffect(isSpace, roomInfo.currentUserMembership) {
+                if (isSpace && roomInfo.currentUserMembership == CurrentUserMembership.JOINED) {
+                    destinationStateHolder?.navigate(
+                        Destination.SpaceDiscovery(destination.sessionId, destination.roomId),
+                        NavigationPreference.REPLACE,
+                    )
+                    return@LaunchedEffect
+                }
+            }
+        }
 
         if (timelineItems == null) {
             val isRoomPreview = when {

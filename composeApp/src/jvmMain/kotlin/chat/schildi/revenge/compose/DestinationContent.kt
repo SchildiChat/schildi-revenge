@@ -31,9 +31,11 @@ import chat.schildi.revenge.compose.destination.conversation.userlist.MessageRea
 import chat.schildi.revenge.compose.destination.conversation.userlist.RoomMembersScreen
 import chat.schildi.revenge.compose.destination.inbox.InboxScreen
 import chat.schildi.revenge.compose.destination.settings.SettingsScreen
+import chat.schildi.revenge.compose.destination.space.SpaceDiscoveryScreen
 import chat.schildi.revenge.compose.destination.split.ConversationDetailsMultiPaneScreen
 import chat.schildi.revenge.compose.destination.split.EmptyPaneScreen
 import chat.schildi.revenge.compose.destination.split.InboxConversationMultiPaneScreen
+import chat.schildi.revenge.compose.destination.split.SpaceDiscoveryDetailsMultiPaneScreen
 import chat.schildi.revenge.compose.destination.split.SplitHorizontal
 import chat.schildi.revenge.compose.destination.split.SplitVertical
 import chat.schildi.revenge.compose.destination.verification.VerificationRequestScreen
@@ -64,6 +66,7 @@ fun DestinationContent(
                 is Destination.MessageReactions -> MessageReactionsScreen(destination, baseModifier, contentModifier)
                 is Destination.MessageReadReceipts -> MessageReadReceiptsScreen(destination, baseModifier, contentModifier)
                 is Destination.UserDetails -> UserDetailsScreen(destination, baseModifier, contentModifier)
+                is Destination.SpaceDiscovery -> SpaceDiscoveryScreen(destination, baseModifier, contentModifier)
                 is Destination.AccountDevTools -> AccountDevToolsScreen(destination, baseModifier, contentModifier)
                 is Destination.RoomDevTools -> RoomDevToolsScreen(destination, baseModifier, contentModifier)
                 is Destination.SplitHorizontal -> SplitHorizontal(destination, baseModifier, contentModifier)
@@ -76,6 +79,7 @@ fun DestinationContent(
                 is Destination.SettingsPane -> SettingsScreen(destination, baseModifier, contentModifier)
                 is Destination.InboxConversationMultiPane -> InboxConversationMultiPaneScreen(destination, baseModifier, contentModifier)
                 is Destination.ConversationDetailsMultiPane -> ConversationDetailsMultiPaneScreen(destination, baseModifier, contentModifier)
+                is Destination.SpaceDiscoveryDetailsMultiPane -> SpaceDiscoveryDetailsMultiPaneScreen(destination, baseModifier, contentModifier)
                 is Destination.MultiPaneConversationPlaceholder,
                 is Destination.MultiPaneRoomInfoPlaceholder,
                 is Destination.MultiPaneSettingsPlaceholder -> EmptyPaneScreen(baseModifier, contentModifier)
@@ -109,7 +113,8 @@ private data class DestinationMeasure(
 
 @Composable
 private fun DestinationEnum.measureInfo(): DestinationMeasure = when (this) {
-    DestinationEnum.Inbox -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_INBOX, ScPrefs.LAYOUT_WEIGHT_INBOX)
+    DestinationEnum.Inbox,
+    DestinationEnum.SpaceDiscovery -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_INBOX, ScPrefs.LAYOUT_WEIGHT_INBOX)
     DestinationEnum.Conversation -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_CONVERSATION, ScPrefs.LAYOUT_WEIGHT_CONVERSATION)
     DestinationEnum.SplitRoomDetailsPlaceholder,
     DestinationEnum.RoomDetails,
@@ -142,6 +147,7 @@ private fun DestinationEnum.measureInfo(): DestinationMeasure = when (this) {
     }
     DestinationEnum.InboxConversationSplit -> DestinationEnum.Inbox.measureInfo() + DestinationEnum.SplitConversationPlaceholder.measureInfo()
     DestinationEnum.ConversationDetailsSplit -> DestinationEnum.Conversation.measureInfo() + DestinationEnum.SplitRoomDetailsPlaceholder.measureInfo()
+    DestinationEnum.SpaceDiscoveryDetailsSplit -> DestinationEnum.SpaceDiscovery.measureInfo() + DestinationEnum.SplitRoomDetailsPlaceholder.measureInfo()
     DestinationEnum.SplitHorizontal,
     DestinationEnum.SplitVertical,
     DestinationEnum.AccountDevTools,

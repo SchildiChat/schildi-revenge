@@ -11,6 +11,7 @@ import chat.schildi.resources.ComposableStringHolder
 import chat.schildi.resources.StringResourceHolder
 import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.config.ConfigWatchers
+import chat.schildi.revenge.flatMerge
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.LoadStateHolder
 import chat.schildi.revenge.model.RevengeRoomListDataSource
@@ -21,6 +22,7 @@ import chat.schildi.revenge.util.throttleLatest
 import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.createGraphFactory
 import io.element.android.libraries.matrix.api.core.SessionId
+import io.element.android.libraries.matrix.api.user.MatrixUser
 import io.element.android.x.di.AppGraph
 import kotlinx.collections.immutable.persistentHashMapOf
 import kotlinx.collections.immutable.persistentListOf
@@ -227,6 +229,32 @@ object UiState {
 
     val currentValidSessionIds = combinedSessions.map { it.map { it.client.sessionId.value } }
         .stateIn(scope, SharingStarted.Eagerly, null)
+
+    val ownProfiles = matrixClients.map { it.values.toList() }.flatMerge(
+        map = { it.userProfile },
+        onEmpty = { emptyMap() },
+        merge = { it.associateBy { it.userId } },
+    )
+    val disambiguatedSessionNames = combine(knownSessionIds, ownProfiles) { sessionIds, profiles ->
+        val allUserNames = profiles.values.mapNotNull { it.displayName }
+        val allLocalParts = sessionIds.map { it.extractedDisplayName }
+        val allServerNames = sessionIds.mapNotNull { it.domainName }
+        sessionIds.associateWith { sessionId ->
+            val displayName = profiles[sessionId]?.displayName
+            if (!displayName.isNullOrBlank() && allUserNames.count { it == displayName } == 1) {
+                return@associateWith displayName
+            }
+            val localPart = sessionId.extractedDisplayName
+            if (localPart !in allUserNames && allLocalParts.count { it == localPart } == 1) {
+                return@associateWith localPart
+            }
+            val serverName = sessionId.domainName ?: return@associateWith sessionId.value
+            if (allServerNames.count { it == serverName } == 1) {
+                return@associateWith serverName
+            }
+            return@associateWith sessionId.value
+        }
+    }.stateIn(scope, SharingStarted.WhileSubscribed(1000), null)
 
     val appStateStore = AppStateStore(scope)
     val sessionIdComparator = appStateStore.sessionIdComparator

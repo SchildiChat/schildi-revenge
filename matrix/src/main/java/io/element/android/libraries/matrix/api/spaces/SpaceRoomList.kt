@@ -21,7 +21,7 @@ import java.util.Optional
  *
  * Obtain an instance from [SpaceService.spaceRoomList]; the caller owns it and must call [destroy] when done.
  */
-interface SpaceRoomList {
+interface SpaceRoomList : AutoCloseable {
     sealed interface PaginationStatus {
         data object Loading : PaginationStatus
         data class Idle(val hasMoreToLoad: Boolean) : PaginationStatus
@@ -47,6 +47,9 @@ interface SpaceRoomList {
 
     /** Releases the SDK resources and cancels the internal scope; the list is unusable afterwards. */
     fun destroy()
+
+    // SC: make auto-closable
+    override fun close() = destroy()
 }
 
 /**

@@ -184,6 +184,20 @@ private inline fun String.toDestinationOrNull(
                 Destination.RoomDevTools(sessionId, roomId)
             }
         }
+        DestinationEnum.SpaceDiscovery -> {
+            tryOrNull {
+                val sessionId = args.getOrNull(0)?.let(::SessionId) ?: context!!.ensureSessionId()
+                val roomId = args.getOrNull(1)?.let { resolveRoomId(sessionId, it) } ?: context!!.ensureRoomId()
+                Destination.SpaceDiscovery(sessionId, roomId)
+            }
+        }
+        DestinationEnum.SpaceDiscoveryDetailsSplit -> {
+            tryOrNull {
+                val sessionId = args.getOrNull(0)?.let(::SessionId) ?: context!!.ensureSessionId()
+                val roomId = args.getOrNull(1)?.let { resolveRoomId(sessionId, it) } ?: context!!.ensureRoomId()
+                Destination.SpaceDiscoveryDetailsMultiPane(Destination.SpaceDiscovery(sessionId, roomId))
+            }
+        }
         DestinationEnum.InboxConversationSplit -> Destination.InboxConversationMultiPane()
         // Destinations not reachable via "navigate" action
         DestinationEnum.SplitConversationPlaceholder,

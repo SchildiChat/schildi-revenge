@@ -16,6 +16,7 @@ enum class DestinationEnum(
     MessageReactions("MessageReactions", listOf("reactions")),
     MessageReadReceipts("MessageReadReceipts", listOf("readReceipts", "receipts")),
     UserDetails("UserDetails", listOf("user")),
+    SpaceDiscovery("SpaceDiscovery", listOf("space")),
     Settings("Settings", listOf("settings")),
     SettingsRoot("SettingsRoot"),
     SettingsDetails("SettingsDetails"),
@@ -31,7 +32,8 @@ enum class DestinationEnum(
     SplitRoomDetailsPlaceholder("SplitRoomDetailsPlaceholder"),
     SplitSettingsDetailsPlaceholder("SplitSettingsDetailsPlaceholder"),
     InboxConversationSplit("InboxConversationSplit", listOf("home")),
-    ConversationDetailsSplit("ConversationDetailsSplit", listOf("chatDetails", "conversationDetails"));
+    ConversationDetailsSplit("ConversationDetailsSplit", listOf("chatDetails", "conversationDetails")),
+    SpaceDiscoveryDetailsSplit("SpaceDiscoveryDetailsSplit", listOf("spaceDetails"));
 
     fun allDestinationNames() = aliases + destName
     fun matches(destinationName: String): Boolean {
@@ -69,15 +71,17 @@ val ALLOWED_DESTINATION_STRINGS = listOf(
     DestinationEnum.RoomMembers.allDestinationNames(),
     DestinationEnum.MessageReactions.allDestinationNames(),
     DestinationEnum.MessageReadReceipts.allDestinationNames(),
+    DestinationEnum.SpaceDiscovery.allDestinationNames(),
     DestinationEnum.AccountDevTools.allDestinationNames(),
     DestinationEnum.RoomDevTools.allDestinationNames(),
     //DestinationEnum.VerificationRequest.allDestinationNames(), // Sometimes useful for testing, but most of the time not
     DestinationEnum.InboxConversationSplit.allDestinationNames(),
     DestinationEnum.ConversationDetailsSplit.allDestinationNames(),
+    DestinationEnum.SpaceDiscoveryDetailsSplit.allDestinationNames(),
 ).flatten()
 
-fun String.destinationRequiresSessionId() = this in listOf("chat", "conversation", "room", "roomDetails", "members", "reactions", "chatDetails", "conversationDetails", "accountDevTools", "roomDevTools", "verificationRequest")
-fun String.destinationRequiresResolvableRoom() = this in listOf("chat", "conversation", "room", "roomDetails", "members", "reactions", "chatDetails", "conversationDetails", "roomDevTools")
+fun String.destinationRequiresSessionId() = this in listOf("chat", "conversation", "room", "roomDetails", "members", "reactions", "chatDetails", "conversationDetails", "accountDevTools", "roomDevTools", "spaceDiscovery", "spaceDetails", "verificationRequest")
+fun String.destinationRequiresResolvableRoom() = this in listOf("chat", "conversation", "room", "roomDetails", "members", "reactions", "chatDetails", "conversationDetails", "roomDevTools", "spaceDiscovery", "spaceDetails")
 fun String.destinationRequiresEventId() = this in listOf("reactions")
 
 data object NavigationDestinationSessionId : ActionArgumentContextBased {

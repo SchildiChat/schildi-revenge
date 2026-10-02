@@ -14,7 +14,6 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.ParagraphStyle
 import androidx.compose.ui.text.SpanStyle
@@ -22,7 +21,6 @@ import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
@@ -30,7 +28,6 @@ import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
 import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.compose.components.LocalSessionId
 import chat.schildi.resources.toStringHolder
-import chat.schildi.revenge.util.tryOrNull
 import chat.schildi.theme.LocalMessageStyle
 import chat.schildi.theme.scExposures
 import com.beeper.android.messageformat.DefaultMatrixBodyStyledFormatter
@@ -247,6 +244,7 @@ suspend fun MatrixToLink.RoomLink.toDestination(
             roomId = safeRoomId,
             alias = (roomIdOrAlias as? RoomIdOrAlias.Alias)?.roomAlias,
             joinServerNames = via,
+            allowRoomTypeBasedReNavigation = true,
         )
     )
 }
@@ -276,6 +274,7 @@ suspend fun MatrixToLink.MessageLink.toDestination(
             timelineParams = CreateTimelineParams.Focused(EventId(messageId)),
             alias = (roomIdOrAlias as? RoomIdOrAlias.Alias)?.roomAlias,
             joinServerNames = via,
+            allowRoomTypeBasedReNavigation = true,
         )
     )
 }

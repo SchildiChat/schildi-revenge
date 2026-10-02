@@ -7,7 +7,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import chat.schildi.lib.preferences.ScPrefs
-import chat.schildi.lib.preferences.ScPrefs.ALLOW_THREADS_IN_DETAILS_PANE
 import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.DestinationCategory
@@ -18,13 +17,13 @@ import chat.schildi.revenge.compose.components.PlatformBackHandler
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 
 @Composable
-fun ConversationDetailsMultiPaneScreen(
-    destination: Destination.ConversationDetailsMultiPane,
+fun SpaceDiscoveryDetailsMultiPaneScreen(
+    destination: Destination.SpaceDiscoveryDetailsMultiPane,
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
 ) {
     if (requireMultiPaneLayout(ScPrefs.PREFER_CONVERSATION_DETAILS_SPLIT) {
-        destination.conversation.state.value
+        destination.spaceDiscovery.state.value
     }) {
         return
     }
@@ -45,7 +44,7 @@ fun ConversationDetailsMultiPaneScreen(
                     if (collapseSinglePane && hasDetails) {
                         null
                     } else {
-                        destination.conversation.wrapped(
+                        destination.spaceDiscovery.wrapped(
                             destination = destination,
                             isDetails = false,
                         )
@@ -66,37 +65,30 @@ fun ConversationDetailsMultiPaneScreen(
 
 @Composable
 private fun DestinationStateHolder.wrapped(
-    destination: Destination.ConversationDetailsMultiPane,
+    destination: Destination.SpaceDiscoveryDetailsMultiPane,
     isDetails: Boolean,
     parent: DestinationStateHolder? = LocalDestinationState.current,
 ): MultiPaneLayoutDestinationStateHolderWrapper {
-    val primaryDestination = destination.conversation.state.collectAsState().value.destination as? Destination.Conversation
-    val primaryDestinationPrefersDetails = primaryDestination?.preferDetailsPane == true
-    val allowThreadsInDetails = ALLOW_THREADS_IN_DETAILS_PANE.value() && !primaryDestinationPrefersDetails
-    return remember(destination, isDetails, parent, primaryDestinationPrefersDetails, allowThreadsInDetails) {
+    val primaryRoomId = (destination.spaceDiscovery.state.collectAsState().value.destination as? Destination.SpaceDiscovery)?.roomId
+    return remember(destination, isDetails, parent) {
         buildMultiPaneDestinationStateHolderWrapper(
             parent = parent,
             inner = this,
             isDetails = isDetails,
-            accessMain = { destination.conversation },
+            accessMain = { destination.spaceDiscovery },
             accessDetails = { destination.details },
             createPlaceholder = { Destination.MultiPaneRoomInfoPlaceholder },
-            mainDestination = primaryDestination?.destinationId ?: DestinationEnum.Conversation,
-            allowedDetailsDestinations = listOfNotNull(
+            mainDestination = DestinationEnum.SpaceDiscovery,
+            allowedDetailsDestinations = listOf(
                 DestinationEnum.RoomDetails,
                 DestinationEnum.RoomMembers,
-                DestinationEnum.MessageReactions,
-                DestinationEnum.MessageReadReceipts,
                 DestinationEnum.UserDetails,
-                DestinationEnum.ConversationThread.takeIf { allowThreadsInDetails },
-                DestinationEnum.ConversationPins,
             ),
-            allowedDetailsCategories = listOfNotNull(
+            allowedDetailsCategories = listOf(
                 DestinationCategory.CONVERSATION_DETAILS,
-                DestinationCategory.CONVERSATION_THREAD.takeIf { allowThreadsInDetails },
             ),
             isCompatibleDetails = {
-                it is Destination.WithRoomOptional && (it.roomId == null || it.roomId == primaryDestination?.roomId)
+                it is Destination.WithRoomOptional && (it.roomId == null || it.roomId == primaryRoomId)
             }
         )
     }
