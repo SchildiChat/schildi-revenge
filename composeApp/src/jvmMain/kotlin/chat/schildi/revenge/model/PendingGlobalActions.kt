@@ -1,8 +1,10 @@
 package chat.schildi.revenge.model
 
 import io.element.android.libraries.matrix.api.MatrixClient
+import io.element.android.libraries.matrix.api.core.RoomAlias
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.RoomIdOrAlias
+import io.element.android.libraries.matrix.api.core.toRoomIdOrAlias
 import io.element.android.libraries.matrix.api.room.BaseRoom
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
@@ -70,11 +72,19 @@ suspend fun MatrixClient.joinRoomTracked(roomId: RoomId) = PendingGlobalActions.
     joinRoom(roomId)
 }
 
+suspend fun MatrixClient.joinRoomByIdAndAliasTracked(
+    roomId: RoomId,
+    roomIdOrAlias: RoomIdOrAlias,
+    serverNames: List<String>,
+) = PendingGlobalActions.withActionTracked(PendingAction.RoomJoin(roomId)) {
+    joinRoomByIdOrAlias(roomIdOrAlias, serverNames)
+}
+
 suspend fun MatrixClient.joinRoomByIdOrAliasTracked(
     roomIdOrAlias: RoomIdOrAlias,
     serverNames: List<String>,
 ) = when (roomIdOrAlias) {
-    // Alias tracking not supported
+    // Alias tracking not supported without roomId
     is RoomIdOrAlias.Alias -> joinRoomByIdOrAlias(roomIdOrAlias, serverNames)
     is RoomIdOrAlias.Id -> PendingGlobalActions.withActionTracked(PendingAction.RoomJoin(roomIdOrAlias.roomId)) {
         joinRoomByIdOrAlias(roomIdOrAlias, serverNames)

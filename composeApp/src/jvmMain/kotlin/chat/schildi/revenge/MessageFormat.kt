@@ -227,8 +227,10 @@ suspend fun MatrixToLink.RoomLink.toDestination(
     sessionId: SessionId,
     client: MatrixClient? = UiState.currentClientFor(sessionId),
 ): Result<Destination.Conversation> {
+    val roomIdOrAlias: RoomIdOrAlias?
     val safeRoomId = try {
-        when (val roomIdOrAlias = RoomIdOrAlias.from(roomId)) {
+        roomIdOrAlias = RoomIdOrAlias.from(roomId)
+        when (roomIdOrAlias) {
             is RoomIdOrAlias.Alias -> client?.resolveRoomAlias(roomIdOrAlias.roomAlias)?.let {
                 it.getOrNull()?.getOrNull()?.roomId
                     ?: return Result.failure(it.exceptionOrNull() ?: RuntimeException("Failed to resolve room alias"))
@@ -243,6 +245,7 @@ suspend fun MatrixToLink.RoomLink.toDestination(
         Destination.Conversation(
             sessionId = sessionId,
             roomId = safeRoomId,
+            alias = (roomIdOrAlias as? RoomIdOrAlias.Alias)?.roomAlias,
             joinServerNames = via,
         )
     )
@@ -252,8 +255,10 @@ suspend fun MatrixToLink.MessageLink.toDestination(
     sessionId: SessionId,
     client: MatrixClient? = UiState.currentClientFor(sessionId),
 ): Result<Destination.Conversation> {
+    val roomIdOrAlias: RoomIdOrAlias?
     val safeRoomId = try {
-        when (val roomIdOrAlias = RoomIdOrAlias.from(roomId)) {
+        roomIdOrAlias = RoomIdOrAlias.from(roomId)
+        when (roomIdOrAlias) {
             is RoomIdOrAlias.Alias -> client?.resolveRoomAlias(roomIdOrAlias.roomAlias)?.let {
                 it.getOrNull()?.getOrNull()?.roomId
                     ?: return Result.failure(it.exceptionOrNull() ?: RuntimeException("Failed to resolve room alias"))
@@ -269,6 +274,7 @@ suspend fun MatrixToLink.MessageLink.toDestination(
             sessionId = sessionId,
             roomId = safeRoomId,
             timelineParams = CreateTimelineParams.Focused(EventId(messageId)),
+            alias = (roomIdOrAlias as? RoomIdOrAlias.Alias)?.roomAlias,
             joinServerNames = via,
         )
     )

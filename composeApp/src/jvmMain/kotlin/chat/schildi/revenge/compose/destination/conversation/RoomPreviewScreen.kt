@@ -183,6 +183,31 @@ fun BoxWithConstraintsScope.RoomPreviewScreen(
                             }
                         }
                     }
+                    if (viewModel.alias != null) {
+                        item {
+                            Row(
+                                Modifier.fillMaxWidth().keyFocusable(
+                                    role = FocusRole.LIST_ITEM,
+                                    actionProvider = actionProvider(
+                                        copyActions = plainTextCopyAction { viewModel.alias?.value },
+                                    )
+                                ),
+                                horizontalArrangement = Arrangement.spacedBy(
+                                    Dimens.horizontalItemPadding,
+                                    Alignment.CenterHorizontally,
+                                ),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                SelectionContainer {
+                                    Text(
+                                        viewModel.alias?.value ?: "",
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                    )
+                                }
+                            }
+                        }
+                    }
                     if (roomType != null && roomType != RoomType.Room) {
                         item {
                             Box(

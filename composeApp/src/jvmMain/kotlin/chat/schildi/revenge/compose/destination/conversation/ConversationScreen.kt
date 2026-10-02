@@ -118,6 +118,7 @@ fun ConversationScreen(
                 destination.sessionId,
                 destination.roomId,
                 destination.timelineParams,
+                destination.alias,
                 destination.joinServerNames,
             )
         )

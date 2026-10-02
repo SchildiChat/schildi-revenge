@@ -5,7 +5,9 @@ import chat.schildi.resources.StringResourceHolder
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 import com.beeper.android.messageformat.MatrixToLink
 import io.element.android.libraries.matrix.api.core.EventId
+import io.element.android.libraries.matrix.api.core.RoomAlias
 import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.matrix.api.core.RoomIdOrAlias
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.CreateTimelineParams
@@ -101,6 +103,8 @@ sealed interface Destination {
         override val sessionId: SessionId,
         override val roomId: RoomId,
         val timelineParams: CreateTimelineParams? = null,
+        // For joining new rooms, alias or via would be beneficial
+        val alias: RoomAlias? = null,
         val joinServerNames: List<String>? = null,
     ) : WithRoom {
         val preferDetailsPane = when (timelineParams) {

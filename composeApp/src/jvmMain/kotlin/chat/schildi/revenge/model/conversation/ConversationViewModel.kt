@@ -94,6 +94,7 @@ import io.element.android.features.messages.impl.timeline.ScTimelineController
 import io.element.android.libraries.core.coroutine.childScope
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.EventId
+import io.element.android.libraries.matrix.api.core.RoomAlias
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UniqueId
@@ -283,6 +284,7 @@ interface RoomPreviewViewModel {
     val sessionId: SessionId
     val roomId: RoomId
     val timelineParams: CreateTimelineParams?
+    val alias: RoomAlias?
     val joinServerNames: List<String>?
     val roomInfo: StateFlow<RoomInfo?>
     val roomPreview: StateFlow<RoomPreviewInfo?>
@@ -320,6 +322,7 @@ class ConversationViewModel(
     override val sessionId: SessionId,
     override val roomId: RoomId,
     override val timelineParams: CreateTimelineParams?,
+    override val alias: RoomAlias?,
     override val joinServerNames: List<String>?,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
 ) : ViewModel(), TitleProvider, SearchProvider, UserIdSuggestionsProvider, ComposerViewModel, RoomPreviewViewModel {
@@ -432,7 +435,8 @@ class ConversationViewModel(
         if (needsPreview) {
             loadStateHolder.addExpected(LoadCheckPoint.RoomPreview(joinServerNames))
             loadStateHolder.removeExpected(LoadCheckPoint.Timeline, LoadCheckPoint.TimelineItems)
-            client.getRoomPreview(roomId.toRoomIdOrAlias(), joinServerNames.orEmpty()).also {
+            val roomIdOrAlias = alias?.takeIf { joinServerNames.isNullOrEmpty() }?.toRoomIdOrAlias() ?: roomId.toRoomIdOrAlias()
+            client.getRoomPreview(roomIdOrAlias, joinServerNames.orEmpty()).also {
                 loadStateHolder.handleResult(LoadCheckPoint.RoomPreview(joinServerNames), it)
             }.onFailure {
                 log.e("Failed to get preview room: $it", it)
@@ -1577,6 +1581,7 @@ class ConversationViewModel(
     override val roomActionProvider = RoomActionProvider(
         sessionId = sessionId,
         roomId = roomId,
+        alias = alias,
         joinServerNames = joinServerNames,
         isInvite = false,
         peekClient = { clientFlow.value },
@@ -2930,10 +2935,11 @@ class ConversationViewModel(
             sessionId: SessionId,
             roomId: RoomId,
             timelineParams: CreateTimelineParams?,
+            alias: RoomAlias?,
             joinServerNames: List<String>?,
         ) = viewModelFactory {
             initializer {
-                ConversationViewModel(sessionId, roomId, timelineParams, joinServerNames)
+                ConversationViewModel(sessionId, roomId, timelineParams, alias, joinServerNames)
             }
         }
 

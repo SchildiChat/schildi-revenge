@@ -24,6 +24,7 @@ import chat.schildi.revenge.model.invites.SeenInvitesStore
 import chat.schildi.revenge.toPrettyJson
 import chat.schildi.revenge.util.matrix.updateAccountData
 import io.element.android.libraries.matrix.api.MatrixClient
+import io.element.android.libraries.matrix.api.core.RoomAlias
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
@@ -65,6 +66,7 @@ private val RoomNotJoinedActions = setOf(Action.Room.Join)
 class RoomActionProvider(
     val sessionId: SessionId,
     val roomId: RoomId,
+    val alias: RoomAlias? = null,
     val joinServerNames: List<String>? = null,
     val isInvite: Boolean,
     val isJoined: Boolean = !isInvite,
@@ -172,7 +174,18 @@ class RoomActionProvider(
                 room.markAsRead(ReceiptType.FULLY_READ).toActionResult()
             }
             Action.Room.Join -> {
-                room.joinTracked().toActionResult()
+                // If we're not invited, may still have this room object from leaving earier.
+                // Still need to use alias + via if possible in that case then.
+                val isInvite = room.info().currentUserMembership == CurrentUserMembership.INVITED
+                if (isInvite) {
+                    room.joinTracked().toActionResult()
+                } else {
+                    peekClient()?.joinRoomByIdAndAliasTracked(
+                        roomId = roomId,
+                        roomIdOrAlias = alias?.toRoomIdOrAlias() ?: roomId.toRoomIdOrAlias(),
+                        serverNames = joinServerNames.orEmpty(),
+                    )?.toActionResult() ?: room.joinTracked().toActionResult()
+                }
             }
             Action.Room.Leave -> {
                 val info = room.info()
@@ -358,10 +371,14 @@ class RoomActionProvider(
                 context.copyToClipboard(roomId.value)
             }
             Action.Room.Join -> {
-                if (joinServerNames.isNullOrEmpty()) {
+                if (joinServerNames.isNullOrEmpty() && alias == null) {
                     client.joinRoomTracked(roomId).toActionResult()
                 } else {
-                    client.joinRoomByIdOrAliasTracked(roomId.toRoomIdOrAlias(), joinServerNames).toActionResult()
+                    client.joinRoomByIdAndAliasTracked(
+                        roomId,
+                        alias?.toRoomIdOrAlias() ?: roomId.toRoomIdOrAlias(),
+                        joinServerNames.orEmpty(),
+                    ).toActionResult()
                 }
             }
             else -> ActionResult.Failure("Room not ready")
