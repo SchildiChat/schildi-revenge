@@ -23,6 +23,7 @@ import chat.schildi.revenge.compose.destination.conversation.event.message.FileM
 import chat.schildi.revenge.compose.destination.conversation.event.message.MessageLayout
 import chat.schildi.revenge.compose.destination.conversation.event.message.ImageMessage
 import chat.schildi.revenge.compose.destination.conversation.event.message.LocalThreadReplyContext
+import chat.schildi.revenge.compose.destination.conversation.event.message.PollMessage
 import chat.schildi.revenge.compose.destination.conversation.event.message.TextLikeMessage
 import chat.schildi.revenge.compose.destination.conversation.event.message.TimestampOverlayContent
 import chat.schildi.revenge.compose.destination.conversation.event.message.VideoMessage
@@ -33,8 +34,10 @@ import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.conversation.MessageMetadata
 import chat.schildi.theme.LocalMessageStyle
 import com.beeper.android.messageformat.MatrixFormatInteractionState
+import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.room.CreateTimelineParams
+import io.element.android.libraries.matrix.api.room.RoomMember
 import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.AudioMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.CallNotifyContent
@@ -64,6 +67,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.UnknownConten
 import io.element.android.libraries.matrix.api.timeline.item.event.VideoMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.VoiceMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.perMessageProfile
+import kotlinx.collections.immutable.ImmutableMap
 import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.message_placeholder_message_failed_to_parse
@@ -74,6 +78,7 @@ import shire.res.generated.resources.message_thread
 
 @Composable
 fun EventContentLayout(
+    eventId: EventId?,
     content: EventContent,
     messageMetadata: MessageMetadata?,
     senderId: UserId,
@@ -83,6 +88,7 @@ fun EventContentLayout(
     isSameAsPreviousSender: Boolean,
     inReplyTo: InReplyTo?,
     threadInfo: EventThreadInfo?,
+    roomMembersById: ImmutableMap<UserId, RoomMember>,
     modifier: Modifier = Modifier,
     formatInteractionState: MatrixFormatInteractionState? = null,
     timelineItemDebugInfoProvider: TimelineItemDebugInfoProvider? = null,
@@ -210,6 +216,19 @@ fun EventContentLayout(
             )
         }
 
+        is PollContent -> EventMessageLayout {
+            PollMessage(
+                eventId = eventId,
+                content = content,
+                messageMetadata = messageMetadata,
+                isOwn = isOwn,
+                timestamp = timestamp,
+                inReplyTo = inReplyTo,
+                threadInfo = threadInfo,
+                roomMembersById = roomMembersById,
+            )
+        }
+
         is RoomMembershipContent -> RoomMembershipRow(content, senderId, senderProfile, timestamp, modifier)
         is ProfileChangeContent -> ProfileChangeRow(content, senderId, senderProfile, timestamp, modifier)
         is StateContent -> StateEventRow(content, senderId, senderProfile, timestamp, modifier)
@@ -230,7 +249,6 @@ fun EventContentLayout(
             }
         }
         LegacyCallInviteContent -> EventMessageFallback("LEGACY CALL INVITE")
-        is PollContent -> EventMessageFallback("POLL")
         is LiveLocationContent -> EventMessageFallback("LIVE LOCATION")
         is RedactedContent -> EventMessageFallback(stringResource(Res.string.message_placeholder_message_redacted)) // TODO can I tell if user deleted themselves or someone else?
         is UnableToDecryptContent -> {

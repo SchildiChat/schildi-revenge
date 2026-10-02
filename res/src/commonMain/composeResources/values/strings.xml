@@ -120,6 +120,8 @@
     <string name="action_reply">Reply</string>
     <string name="action_edit">Edit</string>
     <string name="action_react">React</string>
+    <string name="action_vote">Vote</string>
+    <string name="action_end_poll">End poll</string>
     <string name="action_view">View</string>
     <string name="action_view_reactions">View reactions</string>
     <string name="action_view_read_receipts">View read receipts</string>
@@ -282,6 +284,14 @@
     <string name="hint_enabled">Enabled</string>
     <string name="hint_disabled">Disabled</string>
     <string name="hint_message_in_room">Message in %1$s</string>
+    <string name="hint_poll_ended">Poll ended</string>
+    <plurals name="hint_poll_max_selection">
+        <item quantity="one">Single-selection poll</item>
+        <item quantity="other">Max %1$d votes</item>
+    </plurals>
+    <string name="hint_poll_unlimited_selection">Multi-selection poll</string>
+    <string name="hint_checked">Checked</string>
+    <string name="hint_unchecked">Unchecked</string>
 
     <string name="reply_failed_to_load">Failed to load replied-to message</string>
 

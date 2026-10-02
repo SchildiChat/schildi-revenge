@@ -131,6 +131,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.LocationMessa
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
 import io.element.android.libraries.matrix.api.timeline.item.event.OtherMessageType
+import io.element.android.libraries.matrix.api.timeline.item.event.PollContent
 import io.element.android.libraries.matrix.api.timeline.item.event.ProfileChangeContent
 import io.element.android.libraries.matrix.api.timeline.item.event.RedactedContent
 import io.element.android.libraries.matrix.api.timeline.item.event.StickerContent
@@ -202,6 +203,7 @@ import shire.res.generated.resources.command_event_name_reply
 import shire.res.generated.resources.command_fetching_state
 import shire.res.generated.resources.command_loading_event
 import shire.res.generated.resources.command_loading_timeline_at
+import shire.res.generated.resources.hint_poll_ended
 import shire.res.generated.resources.thread_in
 import shire.res.generated.resources.toast_attachment_download_path_success
 import shire.res.generated.resources.toast_attachment_download_success
@@ -320,7 +322,7 @@ class ConversationViewModel(
     override val alias: RoomAlias?,
     override val joinServerNames: List<String>?,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
-) : ViewModel(), TitleProvider, SearchProvider, UserIdSuggestionsProvider, ComposerViewModel, RoomPreviewViewModel {
+) : ViewModel(),TitleProvider, SearchProvider, UserIdSuggestionsProvider, ComposerViewModel, RoomPreviewViewModel, EventActionViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
 
     private val initialTargetEvent: EventId? =
@@ -2344,6 +2346,21 @@ class ConversationViewModel(
                 } else {
                     it - Action.Event.Unpin
                 }
+            }.let {
+                val content = event.content
+                if (content !is PollContent || content.endTime != null) {
+                    it - setOf(
+                        Action.Event.TogglePollVote,
+                        Action.Event.AddPollVote,
+                        Action.Event.RemovePollVote,
+                        Action.Event.TogglePollVoteByIndex,
+                        Action.Event.AddPollVoteByIndex,
+                        Action.Event.RemovePollVoteByIndex,
+                        Action.Event.PollEnd,
+                    )
+                } else {
+                    it
+                }
             }
             override fun ensureActionType(action: Action) = action as? Action.Event
 
@@ -2671,6 +2688,54 @@ class ConversationViewModel(
                         }
                     }
 
+                    Action.Event.TogglePollVote,
+                    Action.Event.AddPollVote,
+                    Action.Event.RemovePollVote,
+                    Action.Event.TogglePollVoteByIndex,
+                    Action.Event.AddPollVoteByIndex,
+                    Action.Event.RemovePollVoteByIndex -> {
+                        val poll = event.content as? PollContent ?: return@run ActionResult.Inapplicable
+                        val answerId = when (action) {
+                            Action.Event.TogglePollVote,
+                            Action.Event.AddPollVote,
+                            Action.Event.RemovePollVote -> {
+                                args.joinToString(" ")
+                            }
+                            Action.Event.TogglePollVoteByIndex,
+                            Action.Event.AddPollVoteByIndex,
+                            Action.Event.RemovePollVoteByIndex -> {
+                                val index = args.firstOrNull()?.toIntOrNull().orActionValidationError()
+                                val answer = poll.answers.getOrNull(index).orActionValidationError()
+                                answer.id
+                            }
+                        }
+                        if (poll.endTime != null) return@run ActionResult.Inapplicable
+                        val pollStartId = eventId ?: return@run ActionResult.Inapplicable
+                        when (action) {
+                            Action.Event.TogglePollVoteByIndex,
+                            Action.Event.TogglePollVote -> togglePollVote(context, pollStartId, poll, answerId)
+                            Action.Event.AddPollVoteByIndex,
+                            Action.Event.AddPollVote -> addPollVote(context, pollStartId, poll, answerId)
+                            Action.Event.RemovePollVoteByIndex,
+                            Action.Event.RemovePollVote -> removePollVote(context, pollStartId, poll, answerId)
+                        }
+                    }
+                    Action.Event.PollEnd -> {
+                        if (event.content !is PollContent || !event.isOwn) return@run ActionResult.Inapplicable
+                        val pollStartId = eventId ?: return@run ActionResult.Inapplicable
+                        val timeline = activeTimeline.value ?: return@run ActionResult.Failure("Timeline not ready")
+                        val text = args.firstOrNull()
+                        launchActionAsync(
+                            "pollEnd/$pollStartId",
+                            viewModelScope,
+                            Dispatchers.IO,
+                            "pollEnd/$pollStartId",
+                            notifyProcessing = true
+                        ) {
+                            timeline.endPoll(pollStartId, text ?: getString(Res.string.hint_poll_ended)).toActionResult()
+                        }
+                    }
+
                     Action.Event.RetrySend -> {
                         val sendHandle = event.sendHandleProvider() ?: return@run ActionResult.Inapplicable
                         launchActionAsync(
@@ -2740,6 +2805,100 @@ class ConversationViewModel(
             timeline.toggleReaction(emoji, eventOrTransactionId)
         }
         return true
+    }
+
+    private fun ownPollSelections(poll: PollContent): Set<String> = poll.answers
+        .filter { answer -> poll.votes[answer.id]?.any { it == sessionId } == true }
+        .map { it.id }
+        .toSet()
+
+    private fun executePollVote(
+        context: ActionContext,
+        pollStartId: EventId,
+        poll: PollContent,
+        updateSelection: (Set<String>) -> Set<String>?,
+    ): ActionResult {
+        val timeline = activeTimeline.value ?: return ActionResult.Failure("Timeline not ready")
+        if (poll.endTime != null) return ActionResult.Inapplicable
+        val currentVotes = ownPollSelections(poll)
+        val newSelections = updateSelection(currentVotes) ?: return ActionResult.Inapplicable
+        if (newSelections == currentVotes) {
+            return ActionResult.Inapplicable
+        }
+        return context.launchActionAsync(
+            "pollVote/$pollStartId",
+            GlobalActionsScope,
+            Dispatchers.IO,
+            "pollVote/$pollStartId",
+        ) {
+            timeline.sendPollResponse(pollStartId, newSelections.toList()).toActionResult()
+        }
+    }
+
+    override fun togglePollVote(
+        context: ActionContext,
+        pollStartId: EventId,
+        poll: PollContent,
+        answerId: String,
+    ) = executePollVote(
+        context = context,
+        pollStartId = pollStartId,
+        poll = poll,
+    ) { currentVotes ->
+        if (poll.answers.none { it.id == answerId}) {
+            return@executePollVote null
+        }
+        val maxSelections = poll.maxSelections.toLong()
+        if (answerId in currentVotes) {
+            currentVotes - answerId
+        } else if (maxSelections == 1L) {
+            // Single-vote: selecting a new option replaces the previous one.
+            setOf(answerId)
+        } else if (currentVotes.size.toLong() < maxSelections) {
+            currentVotes + answerId
+        } else {
+            null
+        }
+    }
+
+    fun addPollVote(
+        context: ActionContext,
+        pollStartId: EventId,
+        poll: PollContent,
+        answerId: String,
+    ) = executePollVote(
+        context = context,
+        pollStartId = pollStartId,
+        poll = poll,
+    ) { currentVotes ->
+        if (poll.answers.none { it.id == answerId}) {
+            return@executePollVote null
+        }
+        if (answerId in currentVotes) return@executePollVote null
+        val maxSelections = poll.maxSelections.toLong()
+        if (maxSelections == 1L) {
+            setOf(answerId)
+        } else if (currentVotes.size.toLong() < maxSelections) {
+            currentVotes + answerId
+        } else {
+            null
+        }
+    }
+
+    fun removePollVote(
+        context: ActionContext,
+        pollStartId: EventId,
+        poll: PollContent,
+        answerId: String,
+    ) = executePollVote(
+        context = context,
+        pollStartId = pollStartId,
+        poll = poll,
+    ) { currentVotes ->
+        if (poll.answers.none { it.id == answerId}) {
+            return@executePollVote null
+        }
+        currentVotes - answerId
     }
 
     fun downloadFileAndOpenExplorer(

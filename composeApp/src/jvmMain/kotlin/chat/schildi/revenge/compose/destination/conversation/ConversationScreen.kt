@@ -74,6 +74,7 @@ import chat.schildi.revenge.matrixBodyFormatter
 import chat.schildi.revenge.model.CheckpointLoadState
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.conversation.EventJumpTarget
+import chat.schildi.revenge.model.conversation.LocalEventActionViewModel
 import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
@@ -314,6 +315,7 @@ fun ConversationScreen(
         val listAction = remember(listState) { ListActions(listState, isReverseList = true) }
         FocusContainer(
             LocalSearchProvider provides viewModel,
+            LocalEventActionViewModel provides viewModel,
             LocalKeyboardActionProvider provides
                     viewModel.actionProvider.hierarchicalKeyboardActionProvider(),
             LocalUrlPreviewStateProvider provides urlPreviewProvider,

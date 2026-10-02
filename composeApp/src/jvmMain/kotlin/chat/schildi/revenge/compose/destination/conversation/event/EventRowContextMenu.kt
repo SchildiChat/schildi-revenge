@@ -3,6 +3,7 @@ package chat.schildi.revenge.compose.destination.conversation.event
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Reply
 import androidx.compose.material.icons.filled.AddReaction
+import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.Checklist
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.ContentCopy
@@ -12,6 +13,7 @@ import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EmojiPeople
 import androidx.compose.material.icons.filled.Gesture
+import androidx.compose.material.icons.filled.HowToVote
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.OpenWith
 import androidx.compose.material.icons.filled.Person
@@ -19,16 +21,21 @@ import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.PublicOff
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.platform.LocalInputModeManager
 import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.components.ContextMenuActionEntry
+import chat.schildi.revenge.compose.components.ContextMenuDecoration
 import chat.schildi.revenge.compose.components.ContextMenuEntry
+import chat.schildi.revenge.compose.components.LocalSessionId
+import chat.schildi.revenge.compose.components.enterCommandModeContextMenuAction
+import chat.schildi.revenge.compose.components.keyboardShortcutFromIndex
 import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.compose.components.ContextMenuSubmenuEntry
-import chat.schildi.revenge.compose.components.enterCommandModeContextMenuAction
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.DestinationEnum
@@ -42,6 +49,7 @@ import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
+import io.element.android.libraries.matrix.api.timeline.item.event.PollContent
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
@@ -51,6 +59,7 @@ import shire.res.generated.resources.action_copy_event_source
 import shire.res.generated.resources.action_download
 import shire.res.generated.resources.action_download_and_open
 import shire.res.generated.resources.action_edit
+import shire.res.generated.resources.action_end_poll
 import shire.res.generated.resources.action_jump_to_replied_to_message
 import shire.res.generated.resources.action_mark_as_read
 import shire.res.generated.resources.action_mark_as_read_type_read_marker
@@ -64,6 +73,7 @@ import shire.res.generated.resources.action_view_event_source
 import shire.res.generated.resources.action_view_reactions
 import shire.res.generated.resources.action_view_read_receipts
 import shire.res.generated.resources.action_view_user
+import shire.res.generated.resources.action_vote
 
 @Composable
 fun EventTimelineItem.contextMenu(
@@ -74,8 +84,9 @@ fun EventTimelineItem.contextMenu(
     currentThreadId: ThreadId?,
 ): ImmutableList<ContextMenuEntry> {
     val messageContent = content as? MessageContent
+    val pollContent = content as? PollContent
     val showDevTools = ScPrefs.DEV_QUICK_OPTIONS.value()
-    if (messageContent == null && !showDevTools) {
+    if (messageContent == null && pollContent == null && !showDevTools) {
         return persistentListOf()
     }
     val canRedact = if (isOwn) {
@@ -84,6 +95,7 @@ fun EventTimelineItem.contextMenu(
         permissions?.canRedactOther ?: false
     }
     val usesKeyboard = LocalInputModeManager.current.inputMode == InputMode.Keyboard
+    val keyboardPrimary = LocalKeyboardActionHandler.current.keyboardPrimary.collectAsState().value
     val threadRootId = (threadInfo() as? EventThreadInfo.ThreadResponse)?.threadRootId?.value ?: eventId?.value
     return listOfNotNull(
         ContextMenuActionEntry(
@@ -192,6 +204,39 @@ fun EventTimelineItem.contextMenu(
             critical = true,
             keyboardShortcut = Key.D,
         ).takeIf { canRedact },
+        ContextMenuSubmenuEntry(
+            Res.string.action_vote.toStringHolder(),
+            rememberVectorPainter(Icons.Default.HowToVote),
+            rememberFocusId(),
+            pollContent?.let { poll ->
+                val currentSelection = poll.answers.filter { a ->
+                    poll.votes[a.id]?.any { it == LocalSessionId.current } == true
+                }.map { it.id }.toSet()
+                val maxSelections = poll.maxSelections.toLong()
+                val atCap = currentSelection.size.toLong() >= maxSelections
+                poll.answers.mapIndexed { index, answer ->
+                    val isMyVote = answer.id in currentSelection
+                    val enabled = isMyVote || maxSelections == 1L || !atCap
+                    ContextMenuActionEntry(
+                        title = answer.text.toStringHolder(),
+                        action = Action.Event.TogglePollVote,
+                        actionArgs = persistentListOf(answer.id),
+                        enabled = enabled,
+                        decoration = if (isMyVote) ContextMenuDecoration.CheckMark else null,
+                        keyboardShortcut = index.keyboardShortcutFromIndex(),
+                        dismissParentsOnAutoClose = true,
+                        autoCloseMenu = maxSelections <= 1L,
+                    )
+                }.toPersistentList()
+            } ?: persistentListOf(),
+            keyboardShortcut = Key.A,
+        ).takeIf { pollContent != null && pollContent.endTime == null && keyboardPrimary },
+        ContextMenuActionEntry(
+            Res.string.action_end_poll.toStringHolder(),
+            rememberVectorPainter(Icons.Default.Cancel),
+            Action.Event.PollEnd,
+            keyboardShortcut = Key.X,
+        ).takeIf { pollContent != null && pollContent.endTime == null && isOwn },
         *eventDevToolsOptions(showDevTools).toTypedArray(),
         enterCommandModeContextMenuAction(),
     ).toPersistentList()

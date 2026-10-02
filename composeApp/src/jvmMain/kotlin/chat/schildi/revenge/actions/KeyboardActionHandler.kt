@@ -3147,6 +3147,7 @@ fun checkArgument(
         ActionArgumentPrimitive.SpaceOrder,
         ActionArgumentPrimitive.Text,
         ActionArgumentPrimitive.BugDescription,
+        ActionArgumentPrimitive.PollAnswerId,
         ActionArgumentPrimitive.Ignored -> null
         ActionArgumentPrimitive.MatrixLink -> {
             try {

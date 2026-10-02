@@ -474,6 +474,7 @@ class CommandSuggestionsProvider(
                 ActionArgumentPrimitive.AbsoluteFilePath,
                 ActionArgumentPrimitive.OAuthCallbackPath,
                 ActionArgumentPrimitive.Json,
+                ActionArgumentPrimitive.PollAnswerId,
                 ActionArgumentPrimitive.AccountDataType,
                 ActionArgumentPrimitive.RoomAccountDataType,
                 ActionArgumentPrimitive.Empty -> emptyList()

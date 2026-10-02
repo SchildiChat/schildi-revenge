@@ -2,7 +2,7 @@ package chat.schildi.revenge.compose.components
 
 import androidx.compose.ui.Modifier
 
-fun Modifier.thenIf(condition: Boolean, block: Modifier.() -> Modifier) = let {
+inline fun Modifier.thenIf(condition: Boolean, block: Modifier.() -> Modifier) = let {
     if (condition) {
         it.block()
     } else {

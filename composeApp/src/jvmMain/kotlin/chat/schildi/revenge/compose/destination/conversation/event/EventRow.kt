@@ -109,6 +109,7 @@ fun EventRow(
             val threadInfo = event.threadInfo()
             EventSwipeable(focusId, event.isOwn) { modifier ->
                 EventContentLayout(
+                    eventId = event.eventId,
                     content = event.content,
                     messageMetadata = messageMetadata,
                     formatInteractionState = formatInteractionState,
@@ -121,6 +122,7 @@ fun EventRow(
                     isSameAsPreviousSender = isSameAsPreviousSender,
                     inReplyTo = event.inReplyTo(),
                     threadInfo = threadInfo,
+                    roomMembersById = roomMembersById,
                     timelineItemDebugInfoProvider = event.timelineItemDebugInfoProvider,
                     modifier = modifier,
                 )

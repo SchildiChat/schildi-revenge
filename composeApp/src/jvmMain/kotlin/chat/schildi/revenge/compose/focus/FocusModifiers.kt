@@ -1,6 +1,5 @@
 package chat.schildi.revenge.compose.focus
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -15,11 +14,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.input.pointer.pointerInput
@@ -62,6 +64,7 @@ internal fun Modifier.keyFocusableContainer(
     id: Uuid,
     parent: FocusParent?,
     role: FocusRole = FocusRole.CONTAINER,
+    shape: Shape = RectangleShape,
 ): Modifier {
     val keyHandler = LocalKeyboardActionHandler.current
     val focusRequester = remember(keyHandler, id) { FakeFocusRequester(keyHandler, id, role) }
@@ -70,7 +73,7 @@ internal fun Modifier.keyFocusableContainer(
             if (role == FocusRole.DESTINATION_ROOT_CONTAINER) {
                 it
             } else {
-                it.focusableItemBackground(false, id, keyHandler)
+                it.focusableItemBackground(false, id, keyHandler, shape)
             }
         }
 }
@@ -120,7 +123,6 @@ fun FocusRole.preferFocusChildren() = when (this) {
 @Composable
 fun rememberFocusId(): Uuid = remember { Uuid.random() }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Modifier.keyFocusable(
     role: FocusRole = FocusRole.AUX_ITEM,
@@ -131,6 +133,7 @@ fun Modifier.keyFocusable(
     addClickListener: Boolean = true,
     addMouseFocusable: Boolean = role.allowsFocusable() && actionProvider.primaryAction == null,
     highlight: Boolean = false,
+    shape: Shape = RectangleShape,
 ): Modifier {
     val keyHandler = LocalKeyboardActionHandler.current
     val destinationState = LocalDestinationState.current
@@ -145,6 +148,9 @@ fun Modifier.keyFocusable(
         }
         .thenIf(addMouseFocusable) {
             focusable()
+        }
+        .thenIf(shape != RectangleShape) {
+            clip(shape)
         }
         .ifNotNull(actionProvider.secondaryAction, addClickListener) { action ->
             combinedClickable(
@@ -180,14 +186,15 @@ fun Modifier.keyFocusable(
             destinationState = destinationState,
             actionProvider = actionProvider,
             focusRequester = remember(focusRequester) { FocusRequesterWrapper(focusRequester) },
-        ).focusableItemBackground(highlight, id, keyHandler)
+        ).focusableItemBackground(highlight, id, keyHandler, shape)
 }
 
 @Composable
 private fun Modifier.focusableItemBackground(
     customHighlight: Boolean,
     id: Uuid,
-    keyHandler: KeyboardActionHandler
+    keyHandler: KeyboardActionHandler,
+    shape: Shape = RectangleShape,
 ): Modifier {
     val state = keyHandler.currentFocusState.collectAsState().value
     val color = when {
@@ -200,6 +207,7 @@ private fun Modifier.focusableItemBackground(
     return border(
         1.dp,
         color,
+        shape,
     )
 }
 

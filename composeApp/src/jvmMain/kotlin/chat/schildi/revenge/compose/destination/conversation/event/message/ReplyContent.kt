@@ -20,6 +20,7 @@ import chat.schildi.revenge.model.conversation.messageMetadata
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
+import kotlinx.collections.immutable.persistentMapOf
 import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.reply_failed_to_load
@@ -66,6 +67,7 @@ fun ReplyContent(
                                 }
                 ) {
                     EventContentLayout(
+                        eventId = inReplyTo.eventId,
                         content = inReplyTo.content,
                         messageMetadata = inReplyTo.content.messageMetadata(),
                         senderId = inReplyTo.senderId,
@@ -73,6 +75,7 @@ fun ReplyContent(
                         inReplyTo = null, // No recursive reply lookups please
                         threadInfo = null, // Again no recursion here
                         isOwn = inReplyTo.senderId.value == LocalSessionId.current?.value,
+                        roomMembersById = persistentMapOf(),
                         timestamp = null,
                         isSameAsPreviousSender = false,
                     )

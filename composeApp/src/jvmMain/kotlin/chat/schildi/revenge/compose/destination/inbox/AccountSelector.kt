@@ -21,12 +21,12 @@ import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.key.Key
@@ -96,7 +96,6 @@ fun AccountSelectorRow(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountButton(
     viewModel: InboxViewModel,
@@ -169,6 +168,7 @@ fun AccountButton(
                 ).takeIf { account is ActiveInboxAccount && ScPrefs.DEV_QUICK_OPTIONS.value() },
             ).toPersistentList(),
         ) { openContextMenu ->
+            val shape = RoundedCornerShape(50)
             Row(
                 modifier
                     .keyFocusable(
@@ -186,9 +186,10 @@ fun AccountButton(
                             secondaryAction = openContextMenu,
                             copyActions = plainTextCopyActionWithUserId(account.sessionId) { account.displayName },
                         ),
+                        shape = shape,
                     )
-                    .background(backgroundColor, RoundedCornerShape(50))
-                    .border(1.dp, outlineColor, RoundedCornerShape(50))
+                    .background(backgroundColor, shape)
+                    .border(1.dp, outlineColor, shape)
                     .padding(8.dp),
                 horizontalArrangement = Dimens.horizontalArrangement,
                 verticalAlignment = Alignment.CenterVertically,

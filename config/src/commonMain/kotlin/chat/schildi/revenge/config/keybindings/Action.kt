@@ -97,6 +97,7 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     RoomName(consumesTrailingArgsWithSpace = true),
     RoomTopic(consumesTrailingArgsWithSpace = true),
     RoomNotificationSetting,
+    PollAnswerId(consumesTrailingArgsWithSpace = true),
     MatrixLink,
     MatrixToLink,
     SchildiChatLegacyLink,
@@ -439,6 +440,13 @@ sealed interface Action {
         ToggleDetails(aliases = listOf("toggleDetails", "toggleSpoiler")),
         Pin,
         Unpin,
+        TogglePollVote(args = listOf(ActionArgumentPrimitive.PollAnswerId)),
+        AddPollVote(args = listOf(ActionArgumentPrimitive.PollAnswerId)),
+        RemovePollVote(args = listOf(ActionArgumentPrimitive.PollAnswerId)),
+        TogglePollVoteByIndex(args = listOf(ActionArgumentPrimitive.Index), aliases = listOf("toggleVote")),
+        AddPollVoteByIndex(args = listOf(ActionArgumentPrimitive.Index), aliases = listOf("vote")),
+        RemovePollVoteByIndex(args = listOf(ActionArgumentPrimitive.Index), aliases = listOf("unvote")),
+        PollEnd(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.Text)), aliases = listOf("endPoll")),
     }
     enum class User(
         override val aliases: kotlin.collections.List<String> = emptyList(),
