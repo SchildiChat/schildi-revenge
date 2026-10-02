@@ -422,6 +422,7 @@ class KeyboardActionHandler(
     val editPersistInProgress = _editPersistInProgress.asStateFlow()
 
     private val _keyboardPrimary = MutableStateFlow(false)
+    val keyboardPrimaryWithoutSettingOverride = _keyboardPrimary.asStateFlow()
     val keyboardPrimary = combine(
         _keyboardPrimary,
         RevengePrefs.settingFlow(ScPrefs.ALWAYS_SHOW_KEYBOARD_FOCUS),

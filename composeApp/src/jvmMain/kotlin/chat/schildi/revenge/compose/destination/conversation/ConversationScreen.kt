@@ -18,6 +18,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -62,6 +65,7 @@ import chat.schildi.revenge.compose.destination.split.requireSinglePaneLayout
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.shouldAutoRequestFocus
 import chat.schildi.revenge.compose.search.LocalSearchProvider
+import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.matrixBodyDrawStyle
 import chat.schildi.revenge.matrixBodyFormatter
@@ -78,6 +82,10 @@ import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
+import org.jetbrains.compose.resources.stringResource
+import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_jump_to_bottom
+import shire.res.generated.resources.action_jump_to_unread
 import kotlin.math.absoluteValue
 import kotlin.math.sign
 
@@ -281,6 +289,9 @@ fun ConversationScreen(
             }
         }
 
+        val isReadMarkerVisible = remember { mutableStateOf(false) }
+        val isBottomVisible = remember { mutableStateOf(true) }
+
         val listAction = remember(listState) { ListActions(listState, isReverseList = true) }
         FocusContainer(
             LocalSearchProvider provides viewModel,
@@ -329,6 +340,23 @@ fun ConversationScreen(
                     // Reverse layout helps with stick-to-bottom while paging backwards or receiving messages
                     val renderedItems = remember(timelineItems) {
                         timelineItems.reversed().toPersistentList()
+                    }
+
+                    // Track whether we see bottom or latest read message for jump-to-message FABs
+                    val fullyReadEvent = viewModel.cachedFullyRead.collectAsState().value
+                    LaunchedEffect(listState, fullyReadEvent, renderedItems) {
+                        snapshotFlow {
+                            val visible = listState.layoutInfo.visibleItemsInfo
+                            val bottom = visible.firstOrNull()?.index?.let { it <= 1 } != false
+                            // No read marker known counts as "visible" since we cannot jump to it anyway
+                            val readMarker = fullyReadEvent == null || visible.any {
+                                fullyReadEvent.has((renderedItems.getOrNull(it.index)?.item as? MatrixTimelineItem.Event)?.eventId)
+                            }
+                            Pair(bottom, readMarker)
+                        }.collect {
+                            isBottomVisible.value = it.first
+                            isReadMarkerVisible.value = it.second
+                        }
                     }
 
                     val shouldTrackLatestRead = when (viewModel.timelineParams) {
@@ -419,6 +447,44 @@ fun ConversationScreen(
 
                     if (ScPrefs.FLOATING_DATE.value()) {
                         FloatingDateHeader(listState, renderedItems)
+                    }
+
+                    // Jump-to-message FABs
+                    val isLive = viewModel.activeTimelineState.collectAsState().value?.isLive != false
+                    val bottomItem = if (isLive) getNextItem(
+                        0,
+                        renderedItems::getOrNull,
+                    ) {
+                        it.item is MatrixTimelineItem.Event
+                    }.first?.item as? MatrixTimelineItem.Event else null
+                    val showJumpToUnread = when (viewModel.timelineParams) {
+                        null,
+                        is CreateTimelineParams.Focused -> fullyReadEvent != null &&
+                                !isReadMarkerVisible.value &&
+                                // Keep UI clean while at the bottom
+                                !isBottomVisible.value &&
+                                // If bottom-most message is already the latest read, then the jump-to-bottom button is enough for that
+                                !fullyReadEvent.has(bottomItem?.eventId)
+                        else -> false
+                    }
+                    val showJumpToBottom = !isBottomVisible.value
+                    Column(
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(Dimens.windowPadding),
+                        verticalArrangement = Dimens.verticalArrangement,
+                    ) {
+                        val showAnyFabs = !keyHandler.keyboardPrimaryWithoutSettingOverride.collectAsState().value
+                        TimelineJumpFab(
+                            Icons.Outlined.Visibility,
+                            stringResource(Res.string.action_jump_to_unread),
+                            action = Action.Conversation.JumpToFullyRead,
+                            isVisible = showAnyFabs && showJumpToUnread,
+                        )
+                        TimelineJumpFab(
+                            Icons.Default.KeyboardArrowDown,
+                            stringResource(Res.string.action_jump_to_bottom),
+                            action = Action.Conversation.JumpToBottom,
+                            isVisible = showAnyFabs && showJumpToBottom,
+                        )
                     }
                 }
 

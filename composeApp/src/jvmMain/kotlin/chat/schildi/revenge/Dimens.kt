@@ -119,6 +119,9 @@ object Dimens {
 
         val fileIconSize = 36.dp
 
+        val jumpToMessageFab = 36.dp
+        val jumpToMessageFabIcon = 24.dp
+
         object FloatingDate {
             val topMargin = 8.dp
             val contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)

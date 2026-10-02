@@ -3,14 +3,11 @@ package chat.schildi.revenge.compose.destination.conversation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PestControlRodent
-import androidx.compose.material.icons.filled.Update
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -52,8 +49,6 @@ import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.action_close
 import shire.res.generated.resources.action_close_unread
-import shire.res.generated.resources.action_jump_to_bottom
-import shire.res.generated.resources.action_jump_to_unread
 import shire.res.generated.resources.action_show_room_members
 import shire.res.generated.resources.dev_tools_title
 import shire.res.generated.resources.keep_24px
@@ -213,24 +208,6 @@ fun ConversationTopNavigation(
                             ) {
                                 destinationState?.navigate(Destination.Conversation(viewModel.sessionId, viewModel.roomId, CreateTimelineParams.PinnedOnly))
                             }
-                        }
-                        TopNavigationIcon(
-                            Icons.Default.Update,
-                            stringResource(Res.string.action_jump_to_unread),
-                        ) {
-                            keyHandler.handleAction(
-                                focusItem = focusParent.uuid,
-                                action = Action.Conversation.JumpToFullyRead,
-                            )
-                        }
-                        TopNavigationIcon(
-                            Icons.Default.ArrowDownward,
-                            stringResource(Res.string.action_jump_to_bottom),
-                        ) {
-                            keyHandler.handleAction(
-                                focusItem = focusParent.uuid,
-                                action = Action.Conversation.JumpToBottom,
-                            )
                         }
                     }
                 }
