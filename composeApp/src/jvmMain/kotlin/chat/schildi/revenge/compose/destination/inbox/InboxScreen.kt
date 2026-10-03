@@ -8,6 +8,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,13 +30,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.key
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -169,15 +177,6 @@ fun InboxScreen(
                 DiagnosticsRow(Modifier.fillMaxWidth())
             }
 
-            val incomingShare = IncomingShare.share.collectAsState(null).value
-            if (incomingShare != null) {
-                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    IncomingShareNoticeCard(
-                        share = incomingShare,
-                    )
-                }
-            }
-
             // Observe which rooms are visible in the list so subscribe to room list updates
             LaunchedEffect(listState, rooms, accountsSorted) {
                 snapshotFlow {
@@ -261,12 +260,16 @@ fun InboxScreen(
                         }
                     }
                 } else {
+                    val incomingShareHeight = remember { mutableIntStateOf(0) }
+                    val extraContentPadding = LocalDensity.current.run {
+                        PaddingValues(top = incomingShareHeight.intValue.toDp() )
+                    }
                     LazyColumn(
                         modifier = contentModifier.fillMaxSize(),
                         state = listState,
                         contentPadding = WindowInsets.navigationBars
                             .only(WindowInsetsSides.Bottom)
-                            .asPaddingValues(),
+                            .asPaddingValues() + extraContentPadding
                     ) {
                         if (!accountsSorted.isNullOrEmpty()) {
                             item {
@@ -301,7 +304,32 @@ fun InboxScreen(
                             )
                         }
                     }
+
+                    val incomingShare = IncomingShare.share.collectAsState(null).value
+                    if (incomingShare != null) {
+                        Box(
+                            Modifier.fillMaxWidth().align(Alignment.TopCenter),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            IncomingShareNoticeCard(
+                                share = incomingShare,
+                                modifier = Modifier
+                                    .onGloballyPositioned {
+                                        incomingShareHeight.intValue = it.size.height
+                                    }
+                                    .padding(
+                                        horizontal = Dimens.windowPadding,
+                                        vertical = Dimens.listPadding,
+                                    ),
+                            )
+                        }
+                    } else {
+                        SideEffect {
+                            incomingShareHeight.intValue = 0
+                        }
+                    }
                 }
+
                 SpaceSwipeIndicatorOverlay(
                     swipeState = spaceSwipeState,
                     selectionState = spaceSelectionState,

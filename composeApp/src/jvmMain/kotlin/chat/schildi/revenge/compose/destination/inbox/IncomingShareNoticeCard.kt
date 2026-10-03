@@ -54,7 +54,7 @@ fun IncomingShareNoticeCard(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Dimens.horizontalArrangement,
     ) {
-        Column {
+        Column(Modifier.weight(1f, fill = false)) {
             Text(
                 text = stringResource(Res.string.incoming_share_pending),
                 style = MaterialTheme.typography.bodyMedium,
@@ -108,6 +108,7 @@ fun IncomingShareNoticeCard(
                         },
                     ),
                 )
+                .padding(8.dp)
         )
     }
 }
