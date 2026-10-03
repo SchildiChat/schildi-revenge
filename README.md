@@ -54,12 +54,10 @@ noticing/missing something particular that's not already tracked in an existing 
 
 ## Known main gaps
 
-Following features are expected to be still missing:
+At least following features are expected to be still missing:
 
-- Automatically marking chats read on open / while scrolling
-  (you can still manually mark them as read)
-- Notifications on Windows & Android
-- Lots of settings
+- Windows desktop notifications (Linux and Android work)
+- Lots of settings & chat configuration
     - User profile settings
     - UI to start direct chats
     - UI to invite/kick/kan users from chats
