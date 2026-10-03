@@ -45,6 +45,7 @@ object Dimens {
         val spaceShape = RoundedCornerShape(4.dp)
         val smallIcon = 16.dp
         val spaceSwipeIndicator = 48.dp
+        val incomingShareAttachmentMaxHeight = 128.dp
     }
 
     val animationDurationQuickMs = 50

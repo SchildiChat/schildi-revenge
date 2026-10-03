@@ -81,6 +81,8 @@ import chat.schildi.revenge.config.keybindings.findAll
 import chat.schildi.revenge.config.keybindings.maxArgsSize
 import chat.schildi.revenge.config.keybindings.minArgsSize
 import chat.schildi.revenge.database.revengeDatabase
+import chat.schildi.revenge.model.IncomingShare
+import chat.schildi.revenge.model.SharedFile
 import chat.schildi.revenge.model.account.OAuthRepo
 import chat.schildi.revenge.model.verification.RevengeDeviceVerificationProvider
 import chat.schildi.revenge.model.account.RevengeOAUthRepo
@@ -161,6 +163,7 @@ import shire.res.generated.resources.toast_room_created
 import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.io.File
+import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.util.concurrent.ConcurrentHashMap
@@ -2232,6 +2235,14 @@ class KeyboardActionHandler(
     }
 
     fun consumeLink(rawLink: String): ActionResult {
+        fileFromUriOrPath(rawLink)?.let { file ->
+            if (!file.exists()) {
+                return ActionResult.Failure("File does not exist: ${file.absolutePath}")
+            }
+            IncomingShare.set(null, SharedFile(file))
+            UiState.openWindow(Destination.Inbox, false)
+            return ActionResult.Success()
+        }
         val link = MatrixLinkPatterns.parseMatrixLink(rawLink)
             .also {
                 log.e { "Consuming matrix link: $rawLink -> $it" }
@@ -2239,6 +2250,16 @@ class KeyboardActionHandler(
             ?: return ActionResult.Failure("Invalid Matrix link")
         consumeLink(link)
         return ActionResult.Success()
+    }
+
+    private fun fileFromUriOrPath(rawLink: String): File? {
+        return if (rawLink.startsWith("file:")) {
+            tryOrNull { File(URI(rawLink)) }
+        } else if (rawLink.startsWith("/")) {
+            File(rawLink)
+        } else {
+            null
+        }
     }
 
     private fun consumeLink(link: MatrixToLink) {
@@ -3157,6 +3178,20 @@ fun checkArgument(
                 }
             } catch (e: Exception) {
                 ActionResult.Malformed("Invalid schildichat URI: $e")
+            }
+        }
+        ActionArgumentPrimitive.FileUri -> {
+            if (argVal.startsWith("file:") && tryOrNull { File(URI(argVal)) } != null) {
+                null
+            } else {
+                ActionResult.Malformed("Invalid file URI")
+            }
+        }
+        ActionArgumentPrimitive.AbsoluteFilePath -> {
+            if (argVal.startsWith("/")) {
+                null
+            } else {
+                ActionResult.Malformed("Invalid absolute file path")
             }
         }
         ActionArgumentPrimitive.OAuthCallbackPath -> {

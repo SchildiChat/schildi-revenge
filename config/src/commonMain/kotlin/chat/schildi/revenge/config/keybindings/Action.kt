@@ -100,6 +100,8 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     MatrixLink,
     MatrixToLink,
     SchildiChatLegacyLink,
+    FileUri,
+    AbsoluteFilePath,
     OAuthCallbackPath,
     SpaceOrder,
     SpaceCatchAllMode,
@@ -114,6 +116,11 @@ private val DeepLink = ActionArgumentAnyOf(
     ActionArgumentPrimitive.MatrixLink,
     ActionArgumentPrimitive.MatrixToLink,
     ActionArgumentPrimitive.SchildiChatLegacyLink,
+)
+
+private val AttachmentUri = ActionArgumentAnyOf(
+    ActionArgumentPrimitive.FileUri,
+    ActionArgumentPrimitive.AbsoluteFilePath,
 )
 
 private val SessionIdOrIndex =
@@ -194,7 +201,7 @@ sealed interface Action {
         InspectFocusable(aliases = listOf("inspect")),
         Join(args = listOf(ActionArgumentPrimitive.SessionId, UnjoinedRoom, ViaServerVararg)),
         VerifyUser(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.UserId)),
-        ConsumeLink(args = listOf(DeepLink)),
+        ConsumeLink(args = listOf(ActionArgumentAnyOf(*DeepLink.arguments.toTypedArray(), *AttachmentUri.arguments.toTypedArray()))),
         EnableImagePack(args = listOf(ActionArgumentPrimitive.SessionId, RoomIdRelaxed, StateKey)),
         DisableImagePack(args = listOf(ActionArgumentPrimitive.SessionId, RoomIdRelaxed, StateKey)),
         // Alias is important here, it's what browsers will send us while assuming we speak HTTP

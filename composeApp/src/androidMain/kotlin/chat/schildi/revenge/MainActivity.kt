@@ -1,6 +1,8 @@
 package chat.schildi.revenge
 
 import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -14,7 +16,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.geometry.toRect
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.onSizeChanged
@@ -28,14 +29,18 @@ import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.WindowContent
 import chat.schildi.revenge.compose.components.rememberScaledDensity
 import chat.schildi.revenge.compose.media.LocalImageLoaderHolder
+import chat.schildi.revenge.model.IncomingShare
+import chat.schildi.revenge.model.SharedFile
 import chat.schildi.revenge.util.filepicker.AndroidFilePickerLauncher
+import chat.schildi.revenge.util.filepicker.FilePicker
 import chat.schildi.theme.prefersDarkTheme
 import chat.schildi.theme.scdMaterialColorScheme
 import chat.schildi.theme.sclMaterialColorScheme
 import co.touchlab.kermit.Logger
 import kotlin.random.Random
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalComposeUiApi::class)
 class MainActivity : ComponentActivity() {
     private val log = Logger.withTag("MainActivity")
     internal val filePickerLauncher = AndroidFilePickerLauncher(this)
@@ -69,6 +74,7 @@ class MainActivity : ComponentActivity() {
 
         if (savedInstanceState == null) {
             handleViewIntent(intent)
+            handleShareIntent(intent)
         }
 
         setContent {
@@ -133,6 +139,7 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         handleViewIntent(intent)
+        handleShareIntent(intent)
         setIntent(intent)
         intent.getStringExtra(EXTRA_DESTINATION)?.let {
             Destination.deserializedFromString(it)
@@ -148,10 +155,60 @@ class MainActivity : ComponentActivity() {
     private fun handleViewIntent(intent: Intent) {
         if (intent.action != Intent.ACTION_VIEW) return
         val link = intent.dataString ?: return
+
         // Prevent from consuming twice
         intent.action = null
         intent.data = null
+
         keyHandler?.consumeLink(link) ?: run { pendingLink = link }
+    }
+
+    private fun handleShareIntent(intent: Intent) {
+        if (intent.action != Intent.ACTION_SEND) return
+
+        // Prevent from consuming twice
+        intent.action = null
+        intent.data = null
+
+        val texts = buildList {
+            intent.getCharSequenceExtra(Intent.EXTRA_TEXT)
+                ?.takeIf { it.isNotEmpty() }
+                ?.let(::add)
+            intent.getStringArrayExtra(Intent.EXTRA_TEXT)?.forEach(::add)
+        }.filter { it.isNotBlank() }
+
+        // Only support single-file shares for now
+        val streamUri: Uri? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+                ?: intent.getParcelableArrayExtra(Intent.EXTRA_STREAM, Uri::class.java)
+                    ?.firstOrNull()
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM)?.firstOrNull()
+                ?: (intent.getParcelableArrayExtra(Intent.EXTRA_STREAM) as? Array<*>)?.firstOrNull() as? Uri
+                ?: intent.getParcelableExtra(Intent.EXTRA_STREAM) as? Uri
+        }
+        if (texts.isEmpty() && streamUri == null) return
+
+        GlobalActionsScope.launch(Dispatchers.IO) {
+            val file = streamUri?.let { uri ->
+                FilePicker.copyUriToCache(uri)
+                    .onFailure { log.w("Failed to import shared file $uri", it) }
+                    .getOrNull()
+                    ?.let { result ->
+                        SharedFile(result.file, result.mimeType, result.isAppOwned)
+                    }
+            }
+            if (texts.isEmpty() && file == null) return@launch
+            IncomingShare.set(
+                text = texts.joinToString("\n").takeIf { it.isNotEmpty() },
+                file = file,
+            )
+        }
+
+        // If we don't have a destination state holder yet, default destination will be inbox anyway,
+        // so only need to navigate if we may have navigated somewhere else already.
+        destinationStateHolder?.navigate(Destination.Inbox)
     }
 
     override fun onPause() {

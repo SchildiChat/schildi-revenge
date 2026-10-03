@@ -31,7 +31,7 @@ actual object FilePicker {
             if (uri == null) {
                 Result.success(null)
             } else {
-                Result.success(copyToCache(uri))
+                copyUriToCache(uri)
             }
         } catch (exception: CancellationException) {
             throw exception
@@ -40,7 +40,7 @@ actual object FilePicker {
         }
     }
 
-    private suspend fun copyToCache(uri: Uri): FilePickerResult = withContext(Dispatchers.IO) {
+    internal suspend fun copyUriToCache(uri: Uri): Result<FilePickerResult> = withContext(Dispatchers.IO) {
         val application = RevengeApplication.instance
         val resolver = application.contentResolver
         val displayName = resolver.query(
@@ -64,14 +64,16 @@ actual object FilePicker {
             input.use { source ->
                 destination.outputStream().use(source::copyTo)
             }
-            FilePickerResult(
-                file = destination,
-                mimeType = mimeType,
-                isAppOwned = true,
+            Result.success(
+                FilePickerResult(
+                    file = destination,
+                    mimeType = mimeType,
+                    isAppOwned = true,
+                )
             )
         } catch (throwable: Throwable) {
             importDir.deleteRecursively()
-            throw throwable
+            Result.failure(throwable)
         }
     }
 

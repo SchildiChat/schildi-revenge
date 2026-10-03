@@ -99,6 +99,7 @@ fun InboxRow(
 ) {
     ComposeSessionScope(room.sessionId) {
         val focusId = rememberFocusId()
+        val actionContext = currentActionContext()
         WithContextMenu(
             focusId = focusId,
             entries = room.contextMenu(viewModel, focusId),
@@ -122,6 +123,7 @@ fun InboxRow(
                             secondaryAction = openContextMenu,
                             copyActions = plainTextCopyAction { room.summary.info.name },
                         ) {
+                            viewModel.consumePendingShareIntoDraft(actionContext, room.sessionId, room.summary.roomId)
                             Destination.Conversation(room.sessionId, room.summary.roomId)
                         },
                     )

@@ -11,7 +11,6 @@ import chat.schildi.resources.ComposableStringHolder
 import chat.schildi.resources.StringResourceHolder
 import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.config.ConfigWatchers
-import chat.schildi.revenge.flatMerge
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.LoadStateHolder
 import chat.schildi.revenge.model.RevengeRoomListDataSource
@@ -22,7 +21,6 @@ import chat.schildi.revenge.util.throttleLatest
 import co.touchlab.kermit.Logger
 import dev.zacsweers.metro.createGraphFactory
 import io.element.android.libraries.matrix.api.core.SessionId
-import io.element.android.libraries.matrix.api.user.MatrixUser
 import io.element.android.x.di.AppGraph
 import kotlinx.collections.immutable.persistentHashMapOf
 import kotlinx.collections.immutable.persistentListOf

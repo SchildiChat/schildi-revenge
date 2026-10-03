@@ -48,7 +48,7 @@ class MainCommand : CliktCommand("schildi-revenge") {
         } else {
             var allowLaunchFromCommand = false
             val joinedCommand = when {
-                isSupportedDeeplink(command) -> {
+                isSupportedUri(command) -> {
                     allowLaunchFromCommand = true
                     "${Action.Global.ConsumeLink.name} ${command.first()}"
                 }
@@ -66,7 +66,7 @@ class MainCommand : CliktCommand("schildi-revenge") {
         }
     }
 
-    private fun isSupportedDeeplink(args: List<String>) = checkArguments(
+    private fun isSupportedUri(args: List<String>) = checkArguments(
         Action.Global.ConsumeLink,
         args = args,
         implicitArgs = emptyList(),

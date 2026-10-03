@@ -638,6 +638,9 @@
     <string name="toast_room_creation_success">Room created</string>
     <string name="toast_bug_report_progress">Sending bug report: %1$s%</string>
 
+    <string name="incoming_share_pending">Sharing:</string>
+    <string name="incoming_share_file_error">Failed to read shared file %1$s</string>
+
     <plurals name="named_users_typing">
         <item quantity="one">%1$s is typing</item>
         <item quantity="other">Typing: %1$s</item>

@@ -5,10 +5,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -37,48 +37,59 @@ fun ComposerAttachment(
             .padding(Dimens.Conversation.messageBubbleInnerPadding),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column {
-            when (attachment) {
-                is Attachment.Image -> {
-                    ImageMessageContent(
-                        model = attachment.file,
-                        minWidth = Dimens.Conversation.imageMinWidth,
-                        minHeight = Dimens.Conversation.imageMinHeight,
-                        maxWidth = Dimens.Conversation.imageMaxWidth,
-                        maxHeight = Dimens.Conversation.imageRepliedToMaxHeight,
-                    )
-                }
-                is Attachment.Video -> {
-                    VideoMessageContent(
-                        model = attachment.thumbnail?.data ?: attachment.file,
-                        minWidth = Dimens.Conversation.imageMinWidth,
-                        minHeight = Dimens.Conversation.imageMinHeight,
-                        maxWidth = Dimens.Conversation.imageMaxWidth,
-                        maxHeight = Dimens.Conversation.imageRepliedToMaxHeight,
-                    )
-                }
-                is Attachment.Audio -> {
-                    FileMessageContent(
-                        type = FileMessageRenderType.AUDIO,
-                        filename = attachment.file.name,
-                        messageMetadata = null,
-                    )
-                }
-                is Attachment.Generic -> {
-                    FileMessageContent(
-                        type = FileMessageRenderType.FILE,
-                        filename = attachment.file.name,
-                        messageMetadata = null,
-                    )
-                }
-            }
-        }
+        ComposerAttachmentContent(attachment)
         IconButton(onClick = onRemoveClick) {
             Icon(
                 Icons.Default.Clear,
                 stringResource(Res.string.action_clear_attachment),
                 tint = MaterialTheme.colorScheme.onSurface,
             )
+        }
+    }
+}
+
+@Composable
+fun ComposerAttachmentContent(
+    attachment: Attachment,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier) {
+        when (attachment) {
+            is Attachment.Image -> {
+                ImageMessageContent(
+                    model = attachment.file,
+                    minWidth = Dimens.Conversation.imageMinWidth,
+                    minHeight = Dimens.Conversation.imageMinHeight,
+                    maxWidth = Dimens.Conversation.imageMaxWidth,
+                    maxHeight = Dimens.Conversation.imageRepliedToMaxHeight,
+                )
+            }
+
+            is Attachment.Video -> {
+                VideoMessageContent(
+                    model = attachment.thumbnail?.data ?: attachment.file,
+                    minWidth = Dimens.Conversation.imageMinWidth,
+                    minHeight = Dimens.Conversation.imageMinHeight,
+                    maxWidth = Dimens.Conversation.imageMaxWidth,
+                    maxHeight = Dimens.Conversation.imageRepliedToMaxHeight,
+                )
+            }
+
+            is Attachment.Audio -> {
+                FileMessageContent(
+                    type = FileMessageRenderType.AUDIO,
+                    filename = attachment.file.name,
+                    messageMetadata = null,
+                )
+            }
+
+            is Attachment.Generic -> {
+                FileMessageContent(
+                    type = FileMessageRenderType.FILE,
+                    filename = attachment.file.name,
+                    messageMetadata = null,
+                )
+            }
         }
     }
 }

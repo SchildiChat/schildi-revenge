@@ -61,6 +61,7 @@ import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.model.DraftRepo
 import chat.schildi.revenge.model.InboxViewModel
+import chat.schildi.revenge.model.IncomingShare
 import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_NO_FILTER
 import chat.schildi.revenge.model.spaces.SpaceListDataSource
 import chat.schildi.revenge.model.spaces.filterByVisible
@@ -166,6 +167,15 @@ fun InboxScreen(
 
             if (ScPrefs.SHOW_DEV_INFOS.value()) {
                 DiagnosticsRow(Modifier.fillMaxWidth())
+            }
+
+            val incomingShare = IncomingShare.share.collectAsState(null).value
+            if (incomingShare != null) {
+                Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    IncomingShareNoticeCard(
+                        share = incomingShare,
+                    )
+                }
             }
 
             // Observe which rooms are visible in the list so subscribe to room list updates

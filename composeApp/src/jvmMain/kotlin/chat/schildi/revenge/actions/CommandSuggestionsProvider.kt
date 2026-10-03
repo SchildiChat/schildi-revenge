@@ -470,6 +470,8 @@ class CommandSuggestionsProvider(
                 ActionArgumentPrimitive.MatrixLink,
                 ActionArgumentPrimitive.MatrixToLink,
                 ActionArgumentPrimitive.SchildiChatLegacyLink,
+                ActionArgumentPrimitive.FileUri,
+                ActionArgumentPrimitive.AbsoluteFilePath,
                 ActionArgumentPrimitive.OAuthCallbackPath,
                 ActionArgumentPrimitive.Json,
                 ActionArgumentPrimitive.AccountDataType,

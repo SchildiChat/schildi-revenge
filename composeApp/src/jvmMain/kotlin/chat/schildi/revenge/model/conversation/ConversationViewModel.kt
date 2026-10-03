@@ -76,14 +76,13 @@ import chat.schildi.revenge.model.PendingGlobalActions
 import chat.schildi.revenge.model.RoomActionProvider
 import chat.schildi.revenge.model.UserActionProvider
 import chat.schildi.revenge.model.asCheckpointLoadedOrPending
+import chat.schildi.revenge.model.buildAttachmentForFile
 import chat.schildi.revenge.model.canSendEmpty
 import chat.schildi.revenge.model.getCurrentCompletionEntity
 import chat.schildi.revenge.model.shouldSendTypingIndicator
 import chat.schildi.revenge.toDestination
 import chat.schildi.revenge.toPrettyJson
-import chat.schildi.revenge.util.MimeUtil
 import chat.schildi.revenge.util.tryOrNull
-import chat.schildi.revenge.util.MediaInfoUtil
 import chat.schildi.revenge.util.filepicker.FilePicker
 import chat.schildi.revenge.util.flowClosable
 import co.touchlab.kermit.Logger
@@ -103,13 +102,8 @@ import io.element.android.libraries.matrix.api.core.toRoomIdOrAlias
 import io.element.android.libraries.matrix.api.encryption.identity.IdentityState
 import io.element.android.libraries.matrix.api.encryption.identity.IdentityStateChange
 import io.element.android.libraries.matrix.api.encryption.identity.isAViolation
-import io.element.android.libraries.matrix.api.media.AudioInfo
-import io.element.android.libraries.matrix.api.media.FileInfo
-import io.element.android.libraries.matrix.api.media.ImageInfo
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.media.MediaUploadHandler
-import io.element.android.libraries.matrix.api.media.ThumbnailInfo
-import io.element.android.libraries.matrix.api.media.VideoInfo
 import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
 import io.element.android.libraries.matrix.api.room.JoinedRoom
@@ -2120,88 +2114,8 @@ class ConversationViewModel(
         isFileAppOwned: Boolean = false,
     ): ActionResult = withContext(Dispatchers.IO) {
         draftKey ?: return@withContext ActionResult.Inapplicable
-        if (!file.exists()) {
-            return@withContext ActionResult.Failure("File does not exist: ${file.absolutePath}")
-        }
-        val mimetype = mimeType
-            ?.substringBefore(';')
-            ?.trim()
-            ?.lowercase()
-            ?.takeUnless { it.isEmpty() || it == "application/octet-stream" }
-            ?: MimeUtil.detectMimeType(file)
-        val attachmentType = MimeUtil.classifyFromMime(mimetype)
-        val fileSize = file.length()
-        val attachment = when (attachmentType) {
-            MimeUtil.AttachmentKind.IMAGE -> {
-                val measures = MediaInfoUtil.probeImage(file)
-                val blurhash = MediaInfoUtil.generateImageBlurHash(file)
-                Attachment.Image(
-                    file = file,
-                    thumbnail = null, // TODO?
-                    imageInfo = ImageInfo(
-                        height = measures.height?.toLong(),
-                        width = measures.width?.toLong(),
-                        mimetype = mimetype,
-                        size = fileSize,
-                        thumbnailInfo = null,
-                        thumbnailSource = null,
-                        blurhash = blurhash,
-                    ),
-                    isFileAppOwned = isFileAppOwned,
-                )
-            }
-            MimeUtil.AttachmentKind.VIDEO -> {
-                val thumbnail = MediaInfoUtil.generateVideoThumbnail(file)
-                val blurhash = thumbnail?.let { MediaInfoUtil.generateImageBlurHash(it.thumbnail.data) }
-                val thumbnailSize = thumbnail?.thumbnail?.data?.size?.toLong()
-                Attachment.Video(
-                    file = file,
-                    thumbnail = thumbnail?.thumbnail,
-                    videoInfo = VideoInfo(
-                        duration = thumbnail?.videoMeasures?.durationMs?.milliseconds,
-                        height = thumbnail?.videoMeasures?.height?.toLong(),
-                        width = thumbnail?.videoMeasures?.width?.toLong(),
-                        mimetype = mimetype,
-                        size = fileSize,
-                        thumbnailInfo = thumbnail?.thumbnailMeasures?.let {
-                            ThumbnailInfo(
-                                height = it.height?.toLong(),
-                                width = it.width?.toLong(),
-                                mimetype = "image/jpeg",
-                                size = thumbnailSize,
-                            )
-                        },
-                        thumbnailSource = null,
-                        blurhash = blurhash,
-                    ),
-                    isFileAppOwned = isFileAppOwned,
-                )
-            }
-            MimeUtil.AttachmentKind.AUDIO -> {
-                val measures = MediaInfoUtil.probeAudio(file)
-                Attachment.Audio(
-                    file,
-                    AudioInfo(
-                        duration = measures.durationMs?.milliseconds,
-                        size = fileSize,
-                        mimetype = mimetype,
-                    ),
-                    isFileAppOwned = isFileAppOwned,
-                )
-            }
-            MimeUtil.AttachmentKind.OTHER -> {
-                Attachment.Generic(
-                    file,
-                    FileInfo(
-                        mimetype = mimetype,
-                        size = fileSize,
-                        thumbnailInfo = null,
-                        thumbnailSource = null,
-                    ),
-                    isFileAppOwned = isFileAppOwned,
-                )
-            }
-        }
+        val attachment = buildAttachmentForFile(file, mimeType, isFileAppOwned)
+            ?: return@withContext ActionResult.Failure("File does not exist: ${file.absolutePath}")
         DraftRepo.update(draftKey) {
             it?.copy(
                 attachment = attachment,
