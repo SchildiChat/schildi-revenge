@@ -211,6 +211,7 @@ sealed interface Action {
         Crash,
         ReportBugWithLogs(aliases = listOf("SendBugReportWithLogs"), args = listOf(ActionArgumentPrimitive.BugDescription)),
         ForgetPushRegistrations,
+        DiscardIncomingShare,
     }
     enum class AppMessage(
         override val aliases: kotlin.collections.List<String> = emptyList(),

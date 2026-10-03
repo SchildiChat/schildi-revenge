@@ -48,11 +48,14 @@ object IncomingShare {
         return share
     }
 
-    fun clear() {
+    fun clear(): Boolean {
+        var didClear = false
         _share.update { old ->
             old?.file?.takeIf { it.isAppOwned }?.let(::discardAppOwnedFile)
+            didClear = old != null
             null
         }
+        return didClear
     }
 
     private fun discardAppOwnedFile(sharedFile: SharedFile) {

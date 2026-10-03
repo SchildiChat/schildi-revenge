@@ -2215,6 +2215,9 @@ class KeyboardActionHandler(
                         ActionResult.Success()
                     }
                 }
+                Action.Global.DiscardIncomingShare -> {
+                    IncomingShare.clear().orActionInapplicable()
+                }
             }
         }
     }
