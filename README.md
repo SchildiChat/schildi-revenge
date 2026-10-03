@@ -13,6 +13,7 @@ noticing/missing something particular that's not already tracked in an existing 
 - Android: [SpiritCroc F-Droid repo](https://s2.spiritcroc.de/fdroid/repo/)
 - Known third-party packages:
     - AUR: [schildichat-revenge-git](https://aur.archlinux.org/packages/schildichat-revenge-git)
+    - Nixpkgs: [Schildi-Revenge](https://search.nixos.org/packages?channel=unstable&query=schildi-revenge#show=schildi-revenge)
 
 ## Main goals
 
