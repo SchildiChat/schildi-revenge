@@ -1,10 +1,7 @@
 package chat.schildi.revenge.model
 
-import androidx.compose.ui.text.TextRange
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import chat.schildi.lib.preferences.ComposerFormat
 import chat.schildi.revenge.preferences.RevengePrefs
 import chat.schildi.lib.preferences.ScPreferencesStore
 import chat.schildi.lib.preferences.ScPrefs
@@ -16,7 +13,6 @@ import chat.schildi.revenge.TitleProvider
 import chat.schildi.revenge.UiState
 import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
-import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.actions.FlatMergedKeyboardActionProvider
 import chat.schildi.revenge.actions.KeyboardActionProvider
 import chat.schildi.revenge.actions.execute
@@ -26,11 +22,11 @@ import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.revenge.compose.destination.inbox.isInvite
 import chat.schildi.revenge.compose.search.SearchProvider
 import chat.schildi.resources.ComposableStringHolder
-import chat.schildi.resources.HardcodedStringHolder
 import chat.schildi.resources.StringResourceHolder
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.flatMerge
+import chat.schildi.revenge.model.IncomingShare.applyShare
 import chat.schildi.revenge.model.invites.SeenInvitesStore
 import chat.schildi.revenge.model.conversation.MessageMetadata
 import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_NO_FILTER
@@ -45,7 +41,6 @@ import chat.schildi.revenge.store.AppStateStore
 import chat.schildi.revenge.store.PersistentInboxState
 import chat.schildi.revenge.util.combine
 import chat.schildi.revenge.util.throttleLatest
-import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.RoomId
@@ -84,7 +79,6 @@ import kotlinx.coroutines.launch
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.inbox
 import shire.res.generated.resources.inbox_search
-import shire.res.generated.resources.incoming_share_file_error
 import kotlin.collections.map
 
 data class ScopedRoomSummary(
@@ -812,48 +806,7 @@ class InboxViewModel(
         val share = IncomingShare.consume() ?: return
         val draftKey = DraftKey(sessionId, roomId, null)
         GlobalActionsScope.launch(Dispatchers.IO) {
-            applyShareToDraft(context, draftKey, share)
-        }
-    }
-
-    private suspend fun applyShareToDraft(context: ActionContext, draftKey: DraftKey, share: PendingShare) {
-        val text = share.text?.takeUnless { it.isBlank() }
-        val sharedFile = share.file
-        if (text == null && sharedFile == null) return
-
-        val attachment = sharedFile?.let {
-            buildAttachmentForFile(it.file, it.mimeType, it.isAppOwned)
-                ?: run {
-                    context.publishMessage(
-                        AppMessage(
-                            StringResourceHolder(
-                                Res.string.incoming_share_file_error,
-                                HardcodedStringHolder(it.file.name),
-                            ),
-                            isError = true,
-                        )
-                    )
-                    null
-                }
-        }
-
-        val composerFormat = tryOrNull {
-            ComposerFormat.valueOf(scPreferencesStore.getSetting(ScPrefs.PREFERRED_MESSAGE_FORMAT))
-        } ?: ComposerFormat.valueOf(ScPrefs.PREFERRED_MESSAGE_FORMAT.defaultValue)
-
-        DraftRepo.update(draftKey) { current ->
-            DraftValue(
-                textFieldValue = text?.let { TextFieldValue(it, TextRange(it.length)) }
-                    ?: current?.textFieldValue
-                    ?: TextFieldValue(),
-                attachment = attachment,
-                type = if (attachment == null) DraftType.TEXT else DraftType.ATTACHMENT,
-                preferredFormat = if (text != null) {
-                    ComposerFormat.PLAIN
-                } else {
-                    current?.preferredFormat ?: composerFormat
-                }
-            )
+            applyShare(context, draftKey, share, scPreferencesStore)
         }
     }
 

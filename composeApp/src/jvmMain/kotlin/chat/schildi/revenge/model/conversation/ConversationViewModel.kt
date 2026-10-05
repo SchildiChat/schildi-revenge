@@ -79,6 +79,7 @@ import chat.schildi.revenge.model.asCheckpointLoadedOrPending
 import chat.schildi.revenge.model.buildAttachmentForFile
 import chat.schildi.revenge.model.canSendEmpty
 import chat.schildi.revenge.model.getCurrentCompletionEntity
+import chat.schildi.revenge.model.platformOnMessageSent
 import chat.schildi.revenge.model.shouldSendTypingIndicator
 import chat.schildi.revenge.toDestination
 import chat.schildi.revenge.toPrettyJson
@@ -1310,6 +1311,7 @@ class ConversationViewModel(
                 } else if (result.isSuccess) {
                     log.v("Message sent successfully in $roomId")
                     sent = true
+                    platformOnMessageSent(sessionId, roomId)
                     ActionResult.Success()
                 } else {
                     log.w("Failed to send message in $roomId", result.exceptionOrNull())

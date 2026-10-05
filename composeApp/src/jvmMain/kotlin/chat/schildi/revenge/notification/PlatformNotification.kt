@@ -1,5 +1,6 @@
 package chat.schildi.revenge.notification
 
+import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.model.ScopedRawRoomId
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.RoomId
@@ -17,6 +18,12 @@ expect suspend fun platformNotify(
 expect suspend fun platformNotifyMessage(
     id: NotificationId.Event,
     data: NotificationData,
+)
+
+expect suspend fun platformNotifyAppMessage(
+    id: NotificationId.AppMessage,
+    data: AppMessage,
+    transient: Boolean,
 )
 
 /**

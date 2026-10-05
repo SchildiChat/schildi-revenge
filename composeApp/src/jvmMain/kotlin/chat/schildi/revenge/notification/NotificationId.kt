@@ -24,6 +24,11 @@ sealed interface NotificationId {
         override val sessionId: SessionId,
         val flowId: FlowId,
     ) : NotificationId
+    data class AppMessage(
+        val id: String,
+    ) : NotificationId {
+        override val sessionId: SessionId? = null
+    }
     data object DebugMessage : NotificationId {
         override val sessionId = null
     }

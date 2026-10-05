@@ -8,6 +8,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -29,7 +30,9 @@ import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.WindowContent
 import chat.schildi.revenge.compose.components.rememberScaledDensity
 import chat.schildi.revenge.compose.media.LocalImageLoaderHolder
+import chat.schildi.revenge.model.DraftKey
 import chat.schildi.revenge.model.IncomingShare
+import chat.schildi.revenge.model.PendingShare
 import chat.schildi.revenge.model.SharedFile
 import chat.schildi.revenge.util.filepicker.AndroidFilePickerLauncher
 import chat.schildi.revenge.util.filepicker.FilePicker
@@ -166,10 +169,6 @@ class MainActivity : ComponentActivity() {
     private fun handleShareIntent(intent: Intent) {
         if (intent.action != Intent.ACTION_SEND) return
 
-        // Prevent from consuming twice
-        intent.action = null
-        intent.data = null
-
         val texts = buildList {
             intent.getCharSequenceExtra(Intent.EXTRA_TEXT)
                 ?.takeIf { it.isNotEmpty() }
@@ -177,8 +176,7 @@ class MainActivity : ComponentActivity() {
             intent.getStringArrayExtra(Intent.EXTRA_TEXT)?.forEach(::add)
         }.filter { it.isNotBlank() }
 
-        // Only support single-file shares for now
-        val streamUri: Uri? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        val streamUri: Uri? = intent.data ?: if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
                 ?: intent.getParcelableArrayExtra(Intent.EXTRA_STREAM, Uri::class.java)
                     ?.firstOrNull()
@@ -188,7 +186,19 @@ class MainActivity : ComponentActivity() {
                 ?: (intent.getParcelableArrayExtra(Intent.EXTRA_STREAM) as? Array<*>)?.firstOrNull() as? Uri
                 ?: intent.getParcelableExtra(Intent.EXTRA_STREAM) as? Uri
         }
+
+        // Prevent from consuming twice
+        intent.action = null
+        intent.data = null
+
         if (texts.isEmpty() && streamUri == null) return
+
+        val targetConversation = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            intent.getStringExtra(Intent.EXTRA_SHORTCUT_ID)
+                ?.let(::resolveShortcutConversation)
+        } else {
+            null
+        }
 
         GlobalActionsScope.launch(Dispatchers.IO) {
             val file = streamUri?.let { uri ->
@@ -200,15 +210,43 @@ class MainActivity : ComponentActivity() {
                     }
             }
             if (texts.isEmpty() && file == null) return@launch
-            IncomingShare.set(
-                text = texts.joinToString("\n").takeIf { it.isNotEmpty() },
-                file = file,
-            )
+
+            val text = texts.joinToString("\n").takeIf { it.isNotEmpty() }
+
+            if (targetConversation != null) {
+                IncomingShare.applyShare(
+                    context = keyHandler?.getActionContext(
+                        destinationStateHolder?.state?.value?.destination,
+                        destinationStateHolder,
+                    ),
+                    draftKey = DraftKey(targetConversation.sessionId, targetConversation.roomId, null),
+                    share = PendingShare(text, file),
+                )
+            } else {
+                IncomingShare.set(
+                    text = text,
+                    file = file,
+                )
+            }
         }
 
-        // If we don't have a destination state holder yet, default destination will be inbox anyway,
-        // so only need to navigate if we may have navigated somewhere else already.
-        destinationStateHolder?.navigate(Destination.Inbox)
+        destinationStateHolder?.navigate(targetConversation ?: Destination.Inbox) ?: run {
+            log.e { "DestinationStateHolder not initialized yet while handling share intent" }
+        }
+    }
+
+    private fun resolveShortcutConversation(shortcutId: String): Destination.Conversation? {
+        val shortcut = runCatching {
+            ShortcutManagerCompat.getShortcuts(
+                this,
+                ShortcutManagerCompat.FLAG_MATCH_DYNAMIC or ShortcutManagerCompat.FLAG_MATCH_CACHED,
+            )
+        }.onFailure { log.w("Failed to fetch shortcuts", it) }
+            .getOrNull()
+            ?.firstOrNull { it.id == shortcutId } ?: return null
+        return shortcut.intent.getStringExtra(EXTRA_DESTINATION)
+            ?.let { Destination.deserializedFromString(it).getOrNull() }
+            as? Destination.Conversation
     }
 
     override fun onPause() {

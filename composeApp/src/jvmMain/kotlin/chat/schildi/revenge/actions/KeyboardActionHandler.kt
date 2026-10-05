@@ -290,6 +290,7 @@ data class AppMessage(
     override val uniqueId: String? = null,
     override val autoDismissDuration: Long? = DEFAULT_MESSAGE_EXPIRY_DURATION,
     override val dismissedTimestamp: Long? = null,
+    val notificationTitle: ComposableStringHolder? = null,
 ) : AbstractAppMessage {
     override fun copyDismissed(dismissedTimestamp: Long) = copy(dismissedTimestamp = dismissedTimestamp)
 }

@@ -13,6 +13,7 @@ import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.app.Person
@@ -25,6 +26,7 @@ import chat.schildi.revenge.Destination
 import chat.schildi.revenge.MainActivity
 import chat.schildi.revenge.RevengeAppGraph
 import chat.schildi.revenge.RevengeApplication
+import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.actions.fileProviderAuthority
 import chat.schildi.revenge.compose.R
 import chat.schildi.revenge.media.MediaDownloadRepo
@@ -53,6 +55,7 @@ import io.element.android.libraries.matrix.ui.media.animated.allowAnimatedImageD
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -63,6 +66,9 @@ import shire.res.generated.resources.notification_channel_app_notices
 import shire.res.generated.resources.notification_channel_group_chat_messages
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.measureTimedValue
+
+// Category matching the <share-target> declaration in res/xml/shortcuts.xml
+internal const val DIRECT_SHARE_TARGET_CATEGORY = "chat.schildi.revenge.category.DIRECT_SHARE"
 
 object AndroidNotifier {
 
@@ -330,6 +336,23 @@ object AndroidNotifier {
         }
     }
 
+    suspend fun notifyAppMessage(
+        id: NotificationId.AppMessage,
+        data: AppMessage,
+        transient: Boolean,
+    ) {
+        if (transient) {
+            Toast.makeText(RevengeApplication.instance, data.message.renderSuspend(), Toast.LENGTH_LONG).show()
+        } else {
+            notify(
+                id,
+                title = (data.notificationTitle ?: data.message).renderSuspend(),
+                message = data.message.renderSuspend(),
+                largeImage = null,
+            )
+        }
+    }
+
     fun activeNotificationRooms(): List<ScopedRawRoomId> {
         val notificationManager = NotificationManagerCompat.from(RevengeApplication.instance)
         return runCatching {
@@ -447,6 +470,7 @@ object AndroidNotifier {
             CreateTimelineParams.Focused(eventId),
         )
         is NotificationId.Room -> Destination.Conversation(sessionId, roomId)
+        is NotificationId.AppMessage,
         NotificationId.DebugMessage,
         is NotificationId.VerificationRequest -> null
     }
@@ -513,7 +537,7 @@ object AndroidNotifier {
         }
     }
 
-    private fun createConversationShortcut(
+    private suspend fun createConversationShortcut(
         sessionId: SessionId,
         roomId: RoomId,
         label: String?,
@@ -522,10 +546,20 @@ object AndroidNotifier {
         context: Context,
     ): ShortcutInfoCompat? {
         val intent = NotificationId.Room(sessionId, roomId).createIntent(context) ?: return null
+        val safeLabel = label?.takeIf(String::isNotBlank) ?: roomId.value
+        val longLabel = if (knownSessionIds.first().size > 1) buildString {
+            append(safeLabel)
+            append(" [")
+            append(sessionId)
+            append("]")
+        } else (safeLabel)
         return ShortcutInfoCompat.Builder(context, conversationShortcutId(sessionId, roomId))
-            .setShortLabel(label?.takeIf(String::isNotBlank) ?: roomId.value)
+            .setShortLabel(safeLabel)
+            .setLongLabel(longLabel)
             .setIntent(intent)
             .setIsConversation()
+            .setLongLived(true)
+            .setCategories(setOf(DIRECT_SHARE_TARGET_CATEGORY))
             .apply {
                 icon?.let { setIcon(IconCompat.createWithBitmap(it)) }
                 person?.let { setPerson(person) }
@@ -537,7 +571,7 @@ object AndroidNotifier {
         return "$CONVERSATION_SHORTCUT_PREFIX${sessionId.value.hash().take(32)}_"
     }
 
-    private fun conversationShortcutId(sessionId: SessionId, roomId: RoomId): String {
+    internal fun conversationShortcutId(sessionId: SessionId, roomId: RoomId): String {
         return conversationShortcutSessionPrefix(sessionId) + roomId.value.hash().take(32)
     }
 

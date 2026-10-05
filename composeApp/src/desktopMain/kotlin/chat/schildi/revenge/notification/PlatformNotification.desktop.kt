@@ -1,5 +1,6 @@
 package chat.schildi.revenge.notification
 
+import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.model.ScopedRawRoomId
 import chat.schildi.revenge.plaintext.NotificationEventTextFormat
 import io.element.android.libraries.matrix.api.core.EventId
@@ -33,6 +34,17 @@ actual suspend fun platformNotifyMessage(
             ?: data.senderAvatarUrl?.let { MediaSource(it) },
     )
 }
+
+actual suspend fun platformNotifyAppMessage(
+    id: NotificationId.AppMessage,
+    data: AppMessage,
+    transient: Boolean
+) = DesktopNotifier.notify(
+    id,
+    title = (data.notificationTitle ?: data.message).renderSuspend(),
+    message = data.message.renderSuspend(),
+    largeImage = null,
+)
 
 actual fun platformActiveNotificationRooms(): List<ScopedRawRoomId> = emptyList()
 
