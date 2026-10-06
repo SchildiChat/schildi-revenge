@@ -98,20 +98,22 @@ class ScTimelineController(
         },
         scPreferencesStore?.settingFlow(ScPrefs.ALLOW_LIVE_TIMELINE_MERGE) ?: flowOf(ScPrefs.ALLOW_LIVE_TIMELINE_MERGE.defaultValue),
     ) { liveItems, detachedItems, allowMerge ->
-        if (detachedItems == null || detachedItems.second.isEmpty()) {
-            TimelineItemsState(liveItems, listOf(liveTimeline), isLive = true)
+        val live = liveItems.dedupeEvents()
+        val detached = detachedItems?.let { (timeline, items) -> timeline to items.dedupeEvents() }
+        if (detached == null || detached.second.isEmpty()) {
+            TimelineItemsState(live, listOf(liveTimeline), isLive = true)
         } else if (allowMerge) {
             mergeTimelines(
-                liveItems,
-                detachedItems.second,
-                detachedItems.first,
+                live,
+                detached.second,
+                detached.first,
             )
         } else {
             TimelineItemsState(
-                detachedItems.second,
-                listOf(detachedItems.first),
+                detached.second,
+                listOf(detached.first),
                 isLive = false,
-                mergeOffset = detachedItems.second.size,
+                mergeOffset = detached.second.size,
             )
         }
     }.stateIn(roomCoroutineScope, SharingStarted.WhileSubscribed(), null)
@@ -131,6 +133,24 @@ class ScTimelineController(
         )
         // No de-dupe, should be unused anyway probably?
         MatrixTimelineItem.Other -> null
+    }
+
+    /**
+     * The SDK can occasionally emit the same event twice in one timeline (e.g. after a timeline clear while local
+     * echoes are pending, or on a fresh room join). The conversation LazyColumn is keyed by event ID, so duplicates
+     * would crash Compose; keep the first occurrence. Applied to each backing timeline (live and focused) before the
+     * merge offsets are computed; cross-timeline duplicates are handled by [mergeTimelines].
+     */
+    private fun List<MatrixTimelineItem>.dedupeEvents(): List<MatrixTimelineItem> {
+        val seen = HashSet<Any>(size)
+        val result = filter { item ->
+            if (item !is MatrixTimelineItem.Event) return@filter true
+            val id = item.eventId ?: item.transactionId ?: return@filter true
+            seen.add(id)
+        }
+        if (result.size == size) return this
+        log.w { "Dropped ${size - result.size} duplicate timeline events" }
+        return result
     }
 
     private fun mergeTimelines(
