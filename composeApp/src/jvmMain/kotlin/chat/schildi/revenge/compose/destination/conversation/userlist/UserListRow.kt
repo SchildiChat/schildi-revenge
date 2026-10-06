@@ -11,9 +11,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import chat.schildi.revenge.DateTimeFormat
+import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.ActionProvider
 import chat.schildi.revenge.actions.FocusRole
+import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.plainTextCopyActionWithUserId
@@ -27,11 +29,18 @@ import io.element.android.libraries.matrix.api.media.MediaSource
 fun <T : UserListItem>UserListRow(
     item: T,
     viewModel: AbstractUserListViewModel<T>,
+    modifier: Modifier = Modifier,
     actionProvider: ActionProvider = actionProvider(
         keyActions = viewModel.getItemActionHandler(item.userId).hierarchicalKeyboardActionProvider(),
         copyActions = plainTextCopyActionWithUserId(item.userId) { item.displayName },
+        primaryAction = InteractionAction.OpenWindow(preferNewTask = false) {
+            Destination.UserDetails(
+                sessionId = viewModel.sessionId,
+                userId = item.userId,
+                roomId = viewModel.roomId,
+            )
+        }
     ),
-    modifier: Modifier = Modifier,
     leadingContent: @Composable () -> Unit = {},
     trailingContent: @Composable () -> Unit = {},
 ) {
