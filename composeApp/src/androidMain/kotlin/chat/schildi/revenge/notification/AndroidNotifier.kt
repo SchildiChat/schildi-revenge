@@ -547,15 +547,9 @@ object AndroidNotifier {
     ): ShortcutInfoCompat? {
         val intent = NotificationId.Room(sessionId, roomId).createIntent(context) ?: return null
         val safeLabel = label?.takeIf(String::isNotBlank) ?: roomId.value
-        val longLabel = if (knownSessionIds.first().size > 1) buildString {
-            append(safeLabel)
-            append(" [")
-            append(sessionId)
-            append("]")
-        } else (safeLabel)
         return ShortcutInfoCompat.Builder(context, conversationShortcutId(sessionId, roomId))
             .setShortLabel(safeLabel)
-            .setLongLabel(longLabel)
+            .setLongLabel(safeLabel)
             .setIntent(intent)
             .setIsConversation()
             .setLongLived(true)
