@@ -227,6 +227,7 @@ fun ConversationTopNavigation(
         }
         val canBypassMarkReadOnClose = ScPrefs.AUTO_MARK_AS_READ_TRIGGER.value() == ScPrefs.AutoMarkAsReadTrigger.ROOM_CLOSE.name
         if (canBypassMarkReadOnClose) {
+            val directLongpressAction = ScPrefs.LONGPRESS_CLOSE_TO_UNREAD.value()
             val focusId = rememberFocusId()
             WithContextMenu(
                 focusId = focusId,
@@ -257,7 +258,11 @@ fun ConversationTopNavigation(
                                 destinationState?.closeScreen(keyHandler)
                                 true
                             },
-                            secondaryAction = openContextMenu,
+                            secondaryAction = if (directLongpressAction) {
+                                InteractionAction.HandleAction(focusId, Action.Conversation.CloseConversationBypassingReadTracking)
+                            } else {
+                                openContextMenu
+                            },
                         ),
                     ).minimumInteractiveComponentSize().size(24.dp),
                 )

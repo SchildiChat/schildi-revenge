@@ -638,6 +638,8 @@
     <string name="pref_always_show_sdk_unread_line_title">Always show SDK unread line</string>
     <string name="pref_always_show_sdk_unread_line_title_short">SDK unread line</string>
     <string name="pref_always_show_sdk_unread_line_summary">Render both SDK-provided and client-generated unread lines</string>
+    <string name="pref_longpress_close_to_unread_title">Longpress close to unread</string>
+    <string name="pref_longpress_close_to_unread_summary">Longpress the close button to close chats without reading, if read on room close is enabled.</string>
 
     <string name="toast_key_config_reload_success">Key bindings reloaded</string>
     <string name="toast_key_config_reload_error">Failed parsing key bindings config: %1$s</string>

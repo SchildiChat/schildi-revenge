@@ -182,6 +182,8 @@ import shire.res.generated.resources.pref_pseudo_spaces_title
 import shire.res.generated.resources.pref_render_space_order_keys_title
 import shire.res.generated.resources.pref_floating_date_summary
 import shire.res.generated.resources.pref_floating_date_title
+import shire.res.generated.resources.pref_longpress_close_to_unread_summary
+import shire.res.generated.resources.pref_longpress_close_to_unread_title
 import shire.res.generated.resources.pref_mark_fully_read_on_message_send_summary
 import shire.res.generated.resources.pref_mark_fully_read_on_message_send_title
 import shire.res.generated.resources.pref_message_swipe_action_left_title
@@ -448,6 +450,15 @@ object ScPrefs {
             ScPrefMatchesDependency(AUTO_MARK_AS_READ_TRIGGER, AutoMarkAsReadTrigger.NEVER.name).not()
         ),
     )
+    val LONGPRESS_CLOSE_TO_UNREAD = ScBoolPref(
+        "LONGPRESS_CLOSE_TO_UNREAD",
+        false,
+        Res.string.pref_longpress_close_to_unread_title,
+        Res.string.pref_longpress_close_to_unread_summary,
+        dependencies = listOf(
+            ScPrefMatchesDependency(AUTO_MARK_AS_READ_TRIGGER, AutoMarkAsReadTrigger.ROOM_CLOSE.name)
+        )
+    )
 
     // Message rendering
     val MESSAGE_FONT_SIZE = ScIntPref("MESSAGE_FONT_SIZE", 14, Res.string.pref_message_font_size_title, Res.string.pref_message_font_size_summary, minValue = 8, maxValue = 24)
@@ -477,6 +488,7 @@ object ScPrefs {
             FORCE_RENDER_BLURHASH,
             RENDER_AVATAR_STATES,
             FRAME_DROP_SPINNER,
+            LONGPRESS_CLOSE_TO_UNREAD,
             ALLOW_EMPTY_MESSAGE_SEND,
             ALLOW_LIVE_TIMELINE_MERGE,
             DEBUG_NOTIFICATIONS,
