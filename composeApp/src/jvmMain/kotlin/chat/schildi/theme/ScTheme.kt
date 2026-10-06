@@ -61,8 +61,8 @@ data class MessageStyle(
 val LocalMessageStyle = compositionLocalOf { MessageStyle() }
 internal val LocalScExposures = staticCompositionLocalOf { scdExposures }
 
-fun getThemeExposures(darkTheme: Boolean) = when {
-    darkTheme -> scdExposures
+fun getThemeExposures(darkTheme: Boolean, blackTheme: Boolean) = when {
+    darkTheme -> if (blackTheme) scbExposures else scdExposures
     else -> sclExposures
 }
 
@@ -84,11 +84,17 @@ fun ScTheme(
     darkTheme: Boolean = prefersDarkTheme(),
     content: @Composable () -> Unit,
 ) {
+    val blackTheme = ScPrefs.BLACK_THEME.value()
+
     val currentExposures = remember {
         scdExposures.copy()
-    }.apply { updateColorsFrom(getThemeExposures(darkTheme)) }
+    }.apply { updateColorsFrom(getThemeExposures(darkTheme, blackTheme)) }
 
-    val colorScheme = if (darkTheme) scdMaterialColorScheme else sclMaterialColorScheme
+    val colorScheme = if (darkTheme) {
+        if (blackTheme) scbMaterialColorScheme else scdMaterialColorScheme
+    } else {
+        sclMaterialColorScheme
+    }
     // Latest font wins
     val textStyle = TextStyle(fontFamily = rememberEmojiFontFamily())
             .merge(fontFamily = rememberInterFontFamily())

@@ -472,6 +472,8 @@
     <string name="pref_theme_follow_system_title">Follow system theme</string>
     <string name="pref_theme_follow_system_summary">Choose dark or light theme based on system settings</string>
     <string name="pref_dark_theme_title">Dark theme</string>
+    <string name="pref_black_theme_title">Black theme</string>
+    <string name="pref_black_theme_summary">Black background while in dark theme</string>
     <string name="pref_view_hidden_events_title">View hidden events</string>
     <string name="pref_view_hidden_events_title_short">Hidden events</string>
     <string name="pref_view_hidden_events_summary">Show all timeline events, including those that are usually not surfaced to users</string>

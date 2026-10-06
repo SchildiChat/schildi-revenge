@@ -31,6 +31,8 @@ import shire.res.generated.resources.pref_auto_mark_read_trigger_live
 import shire.res.generated.resources.pref_auto_mark_read_trigger_never
 import shire.res.generated.resources.pref_auto_mark_read_trigger_room_close
 import shire.res.generated.resources.pref_auto_mark_read_trigger_title
+import shire.res.generated.resources.pref_black_theme_summary
+import shire.res.generated.resources.pref_black_theme_title
 import shire.res.generated.resources.pref_category_conversation
 import shire.res.generated.resources.pref_category_conversation_summary
 import shire.res.generated.resources.pref_category_developer_options
@@ -292,6 +294,20 @@ object ScPrefs {
     val BACKGROUND_ALPHA_DARK = ScFloatPref("BACKGROUND_ALPHA_DARK", 1f, Res.string.pref_window_transparency_title, Res.string.pref_window_transparency_summary, minValue = 0f, maxValue = 1f, dependencies = HIDE_WINDOW_DECORATION.asDependencies(), stepSize = 0.01f, stringFormat = "%.2f", supportedOnPlatform = scPrefPlatformSupport.desktopOnly)
     val THEME_FOLLOW_SYSTEM = ScBoolPref("THEME_FOLLOW_SYSTEM", true, Res.string.pref_theme_follow_system_title, Res.string.pref_theme_follow_system_summary)
     val THEME_DARK = ScBoolPref("THEME_DARK", false, Res.string.pref_dark_theme_title, dependencies = listOf(THEME_FOLLOW_SYSTEM.toDependency(expect = false)))
+    val BLACK_THEME = ScBoolPref(
+        "BLACK_THEME",
+        false,
+        Res.string.pref_black_theme_title,
+        Res.string.pref_black_theme_summary,
+        dependencies = listOf(
+            ScPrefFulfilledForAnyDependency(
+                listOf(
+                    THEME_FOLLOW_SYSTEM.toDependency(),
+                    THEME_DARK.toDependency(),
+                ),
+            ),
+        ),
+    )
 
     val CLIENT_GENERATED_UNREAD_COUNTS = ScBoolPref("CLIENT_GENERATED_UNREAD_COUNTS", true, Res.string.pref_client_generated_unread_counts_title, Res.string.pref_client_generated_unread_counts_summary, disabledValue = true)
     val RENDER_SILENT_UNREAD = ScBoolPref("RENDER_SILENT_UNREAD", true, Res.string.pref_render_silent_unread_title, Res.string.pref_render_silent_unread_summary, disabledValue = false)
@@ -506,6 +522,7 @@ object ScPrefs {
             ScPrefCategory("GENERAL_APPEARANCE", Res.string.pref_category_general_appearance, null, listOf(
                 THEME_FOLLOW_SYSTEM,
                 THEME_DARK,
+                BLACK_THEME,
                 HIDE_WINDOW_DECORATION,
                 ANIMATE_AVATARS,
                 ScPrefCategory("THEME_LIGHT", Res.string.pref_category_theme_light, null, listOf(

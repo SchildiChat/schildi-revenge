@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.toSize
+import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.actions.KeyboardActionHandler
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.WindowContent
@@ -34,9 +35,11 @@ import chat.schildi.revenge.model.DraftKey
 import chat.schildi.revenge.model.IncomingShare
 import chat.schildi.revenge.model.PendingShare
 import chat.schildi.revenge.model.SharedFile
+import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.util.filepicker.AndroidFilePickerLauncher
 import chat.schildi.revenge.util.filepicker.FilePicker
 import chat.schildi.theme.prefersDarkTheme
+import chat.schildi.theme.scbMaterialColorScheme
 import chat.schildi.theme.scdMaterialColorScheme
 import chat.schildi.theme.sclMaterialColorScheme
 import co.touchlab.kermit.Logger
@@ -82,10 +85,11 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val darkTheme = prefersDarkTheme()
-            val navigationBarColor = (if (darkTheme) {
-                scdMaterialColorScheme
-            } else {
-                sclMaterialColorScheme
+            val blackTheme = ScPrefs.BLACK_THEME.value()
+            val navigationBarColor = (when {
+                darkTheme && blackTheme -> scbMaterialColorScheme
+                darkTheme -> scdMaterialColorScheme
+                else -> sclMaterialColorScheme
             }).surface.copy(alpha = 0.5f).toArgb()
             SideEffect {
                 enableEdgeToEdge(
