@@ -53,7 +53,8 @@ import shire.res.generated.resources.action_show_room_members
 import shire.res.generated.resources.dev_tools_title
 import shire.res.generated.resources.keep_24px
 import shire.res.generated.resources.pinned_messages
-import shire.res.generated.resources.pref_show_dev_infos_title
+import shire.res.generated.resources.pref_always_show_sdk_unread_line_title_short
+import shire.res.generated.resources.pref_show_dev_infos_title_short
 import shire.res.generated.resources.pref_threaded_replies_in_main_timeline_title_short
 import shire.res.generated.resources.pref_view_hidden_events_title_short
 import shire.res.generated.resources.pref_view_redactions_title_short
@@ -127,28 +128,6 @@ fun ConversationTopNavigation(
                             focusId = focusId,
                             entries = persistentListOf(
                                 ContextMenuActionEntry(
-                                    Res.string.dev_tools_title.toStringHolder(),
-                                    null,
-                                    Action.Navigation.NavigateAuto,
-                                    persistentListOf(
-                                        DestinationEnum.RoomDevTools.destName,
-                                        viewModel.sessionId.value,
-                                        viewModel.roomId.value,
-                                    ),
-                                    keyboardShortcut = Key.D,
-                                ),
-                                ContextMenuActionEntry(
-                                    Res.string.pref_show_dev_infos_title.toStringHolder(),
-                                    null,
-                                    Action.Global.ToggleSetting,
-                                    persistentListOf(
-                                        ScPrefs.SHOW_DEV_INFOS.sKey,
-                                    ),
-                                    keyboardShortcut = Key.I,
-                                    decoration = ContextMenuDecoration.Toggle(ScPrefs.SHOW_DEV_INFOS.value()),
-                                    enabled = ScPrefs.SHOW_DEV_INFOS.isEnabled(),
-                                ),
-                                ContextMenuActionEntry(
                                     Res.string.pref_view_redactions_title_short.toStringHolder(),
                                     null,
                                     Action.Global.ToggleSetting,
@@ -180,6 +159,39 @@ fun ConversationTopNavigation(
                                     keyboardShortcut = Key.T,
                                     decoration = ContextMenuDecoration.Toggle(ScPrefs.THREAD_REPLIES_IN_MAIN_TIMELINE.value()),
                                     enabled = ScPrefs.THREAD_REPLIES_IN_MAIN_TIMELINE.isEnabled(),
+                                ),
+                                ContextMenuActionEntry(
+                                    Res.string.pref_show_dev_infos_title_short.toStringHolder(),
+                                    null,
+                                    Action.Global.ToggleSetting,
+                                    persistentListOf(
+                                        ScPrefs.SHOW_DEV_INFOS.sKey,
+                                    ),
+                                    keyboardShortcut = Key.I,
+                                    decoration = ContextMenuDecoration.Toggle(ScPrefs.SHOW_DEV_INFOS.value()),
+                                    enabled = ScPrefs.SHOW_DEV_INFOS.isEnabled(),
+                                ),
+                                ContextMenuActionEntry(
+                                    Res.string.pref_always_show_sdk_unread_line_title_short.toStringHolder(),
+                                    null,
+                                    Action.Global.ToggleSetting,
+                                    persistentListOf(
+                                        ScPrefs.ALWAYS_SHOW_SDK_UNREAD_LINE.sKey,
+                                    ),
+                                    keyboardShortcut = Key.R,
+                                    decoration = ContextMenuDecoration.Toggle(ScPrefs.ALWAYS_SHOW_SDK_UNREAD_LINE.value()),
+                                    enabled = ScPrefs.ALWAYS_SHOW_SDK_UNREAD_LINE.isEnabled(),
+                                ),
+                                ContextMenuActionEntry(
+                                    Res.string.dev_tools_title.toStringHolder(),
+                                    null,
+                                    Action.Navigation.NavigateAuto,
+                                    persistentListOf(
+                                        DestinationEnum.RoomDevTools.destName,
+                                        viewModel.sessionId.value,
+                                        viewModel.roomId.value,
+                                    ),
+                                    keyboardShortcut = Key.D,
                                 ),
                             ),
                         ) { openContextMenu ->

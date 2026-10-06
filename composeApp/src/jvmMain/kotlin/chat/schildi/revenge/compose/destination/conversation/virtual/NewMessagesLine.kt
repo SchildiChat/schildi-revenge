@@ -26,7 +26,7 @@ fun NewMessagesLine(
     isThreadedTimeline: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    val debugUnreadLine = ScPrefs.SHOW_DEV_INFOS.value()
+    val debugUnreadLine = ScPrefs.ALWAYS_SHOW_SDK_UNREAD_LINE.value()
     if (!debugUnreadLine) {
         val shouldRender = when (instance) {
             // Fully read event says this is unread, this is to be trusted as truth in non-threaded timelines.

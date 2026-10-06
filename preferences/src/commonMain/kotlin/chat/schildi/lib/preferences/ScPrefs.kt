@@ -21,6 +21,8 @@ import shire.res.generated.resources.pref_allow_empty_message_send_title
 import shire.res.generated.resources.pref_allow_live_timeline_merge_summary
 import shire.res.generated.resources.pref_allow_live_timeline_merge_title
 import shire.res.generated.resources.pref_always_show_keyboard_focus
+import shire.res.generated.resources.pref_always_show_sdk_unread_line_summary
+import shire.res.generated.resources.pref_always_show_sdk_unread_line_title
 import shire.res.generated.resources.pref_animate_avatars_summary
 import shire.res.generated.resources.pref_animate_avatars_title
 import shire.res.generated.resources.pref_auto_hide_composer_summary
@@ -276,6 +278,7 @@ object ScPrefs {
     val DEBUG_NOTIFICATIONS = ScBoolPref("DEBUG_NOTIFICATIONS", false, Res.string.pref_debug_notifications_title, Res.string.pref_debug_notifications_summary, supportedOnPlatform = scPrefPlatformSupport.pushNotifications)
     val ALLOW_EMPTY_MESSAGE_SEND = ScBoolPref("ALLOW_EMPTY_MESSAGE_SEND", false, Res.string.pref_allow_empty_message_send_title, Res.string.pref_allow_empty_message_send_summary)
     val ALLOW_LIVE_TIMELINE_MERGE = ScBoolPref("ALLOW_LIVE_TIMELINE_MERGE", true, Res.string.pref_allow_live_timeline_merge_title, Res.string.pref_allow_live_timeline_merge_summary)
+    val ALWAYS_SHOW_SDK_UNREAD_LINE = ScBoolPref("ALWAYS_SHOW_SDK_UNREAD_LINE", false, Res.string.pref_always_show_sdk_unread_line_title, Res.string.pref_always_show_sdk_unread_line_summary)
 
     // Appearance
     val LOCALE = ScStringListPref("LOCALE", "", availableLocaleSettings, Res.string.pref_locale, allowNonEntryValues = true)
@@ -469,14 +472,15 @@ object ScPrefs {
             DEV_QUICK_OPTIONS,
             SHOW_DEV_INFOS,
             VIEW_HIDDEN_EVENTS,
+            ALWAYS_SHOW_SDK_UNREAD_LINE,
             RENDER_SPACE_ORDER_KEYS,
             FORCE_RENDER_BLURHASH,
             RENDER_AVATAR_STATES,
             FRAME_DROP_SPINNER,
             ALLOW_EMPTY_MESSAGE_SEND,
             ALLOW_LIVE_TIMELINE_MERGE,
-            SHOW_ADVANCED_ROOM_CREATION_PARAMETERS,
             DEBUG_NOTIFICATIONS,
+            SHOW_ADVANCED_ROOM_CREATION_PARAMETERS,
         ))
 
     val rootPrefsAllPlatforms = ScPrefScreen("ROOT", Res.string.hint_settings, null, listOf<AbstractScPref>(

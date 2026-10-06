@@ -486,6 +486,7 @@
     <string name="pref_close_to_tray_title">Close to tray</string>
     <string name="pref_close_to_tray_summary">Closing the last window keeps the application running and possible to re-open from the tray icon</string>
     <string name="pref_show_dev_infos_title">Show dev infos</string>
+    <string name="pref_show_dev_infos_title_short">Dev infos</string>
     <string name="pref_show_dev_infos_summary">Render additional debugging infos with unfinished UI in various places</string>
     <string name="pref_dev_quick_options_title">Dev quick options</string>
     <string name="pref_dev_quick_options_summary">Quick access to various developer tools</string>
@@ -633,6 +634,10 @@
     <string name="pref_mark_fully_read_on_message_send_summary">Move the fully read marker to the most recent message on message send</string>
     <string name="pref_only_mark_read_when_fully_read_title">Only mark read when fully read</string>
     <string name="pref_only_mark_read_when_fully_read_summary">Do not mark messages as read before seeing the very first unread message, typically marked with the unread messages line</string>
+
+    <string name="pref_always_show_sdk_unread_line_title">Always show SDK unread line</string>
+    <string name="pref_always_show_sdk_unread_line_title_short">SDK unread line</string>
+    <string name="pref_always_show_sdk_unread_line_summary">Render both SDK-provided and client-generated unread lines</string>
 
     <string name="toast_key_config_reload_success">Key bindings reloaded</string>
     <string name="toast_key_config_reload_error">Failed parsing key bindings config: %1$s</string>
