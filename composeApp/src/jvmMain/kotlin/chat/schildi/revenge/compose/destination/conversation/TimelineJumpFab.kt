@@ -48,7 +48,8 @@ fun TimelineJumpFab(
                     role = FocusRole.AUX_ITEM,
                     actionProvider = actionProvider(
                         primaryAction = InteractionAction.HandleAction(focusId, action),
-                    )
+                    ),
+                    shape = CircleShape,
                 )
                     .size(Dimens.Conversation.jumpToMessageFab)
                     .background(
