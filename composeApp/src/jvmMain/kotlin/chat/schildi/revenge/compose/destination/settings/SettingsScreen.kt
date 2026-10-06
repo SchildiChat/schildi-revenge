@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -195,7 +194,7 @@ fun SettingsScreen(
                     )
                 } else {
                     LazyColumn(
-                        modifier = contentModifier.padding(horizontal = Dimens.windowPadding),
+                        modifier = contentModifier,
                         verticalArrangement = Dimens.verticalArrangement,
                         state = listState,
                         contentPadding = WindowInsets.navigationBars
