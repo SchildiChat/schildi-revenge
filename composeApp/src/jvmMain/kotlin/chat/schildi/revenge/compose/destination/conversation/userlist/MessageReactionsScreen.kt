@@ -93,7 +93,7 @@ fun MessageReactionsScreen(
                 ) {
                     items(
                         reactions,
-                        key = { Pair(it.reactionSender, it.reaction) },
+                        key = { it.renderKey },
                     ) { item ->
                         UserReactionRow(
                             reactionItem = item,

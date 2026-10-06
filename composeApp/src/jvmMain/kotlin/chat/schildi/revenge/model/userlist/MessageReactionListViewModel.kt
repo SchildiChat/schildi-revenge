@@ -49,6 +49,8 @@ data class UserReactionItem(
     val reactionSender: ReactionSender,
     val senderProfile: RoomMember?,
 ) : UserListItem {
+    val renderKey: String
+        get() = "${reactionSender.senderId}/${reactionSender.timestamp}/${reaction}"
     override val userId: UserId
         get() = reactionSender.senderId
     override val displayName: String?
