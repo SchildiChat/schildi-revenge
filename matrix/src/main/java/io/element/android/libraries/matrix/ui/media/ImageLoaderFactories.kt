@@ -44,7 +44,7 @@ class DefaultImageLoaderFactory(
     override fun newImageLoader(): ImageLoader {
         return ImageLoader.Builder(context)
             .components {
-                add(AnimatedImageDecoderFactory())
+                AnimatedImageDecoderFactory()?.let(::add)
                 add(okHttpNetworkFetcherFactory)
             }
             .build()
@@ -53,7 +53,7 @@ class DefaultImageLoaderFactory(
     override fun newImageLoader(matrixMediaLoader: MatrixMediaLoader): ImageLoader {
         return ImageLoader.Builder(context)
             .components {
-                add(AnimatedImageDecoderFactory())
+                AnimatedImageDecoderFactory()?.let(::add)
                 add(okHttpNetworkFetcherFactory)
                 // Add svg support
                 add(SvgDecoder.Factory())

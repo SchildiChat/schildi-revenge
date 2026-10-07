@@ -10,4 +10,4 @@ package io.element.android.libraries.matrix.ui.media.animated
 
 import coil3.decode.Decoder
 
-internal fun AnimatedImageDecoderFactory(): Decoder.Factory = AnimatedSkiaImageDecoder.Factory()
+internal fun AnimatedImageDecoderFactory(): Decoder.Factory? = AnimatedSkiaImageDecoder.Factory()

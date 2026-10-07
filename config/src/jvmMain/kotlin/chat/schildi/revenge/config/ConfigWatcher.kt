@@ -235,7 +235,7 @@ abstract class ConfigWatcher<T : Any>(
     private fun tryReload(): Boolean {
         return try {
             if (file.exists()) {
-                val text = Files.readString(Path.of(file.path))
+                val text = file.readText()
                 val parsed = decodeFromString(text)
                 log.d("Config loaded from ${file.path}")
                 _config.value = parsed

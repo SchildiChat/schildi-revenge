@@ -49,9 +49,7 @@ object RevengeSessionStore : SessionStore {
     private suspend fun loadFromFile(): RevengeSessionStoreData = withContext(Dispatchers.IO) {
         if (sessionsFile.exists()) {
             log.d("Loading sessions from config")
-            sessionsFile.inputStream().use {
-                RevengeSessionStoreData.fromSerializedWithMigration(it.readAllBytes().decodeToString())
-            }.also {
+            RevengeSessionStoreData.fromSerializedWithMigration(sessionsFile.readText()).also {
                 log.i("Found ${it.sessions.size} sessions in config")
             }
         } else {

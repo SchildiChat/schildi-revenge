@@ -164,8 +164,6 @@ import java.awt.Toolkit
 import java.awt.datatransfer.DataFlavor
 import java.io.File
 import java.net.URI
-import java.nio.charset.StandardCharsets
-import java.nio.file.Files
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.map
 import kotlin.coroutines.CoroutineContext
@@ -2910,7 +2908,7 @@ class KeyboardActionHandler(
         ) {
             try {
                 val tempFile = ExternalViewCache.createFile(fileExtension)
-                Files.writeString(tempFile.toPath(), content, StandardCharsets.UTF_8)
+                tempFile.writeText(content, Charsets.UTF_8)
                 val result = platformOpenFile(tempFile, MimeUtil.detectMimeType(tempFile))
                 if (result is ActionResult.Success) {
                     publishMessage(
