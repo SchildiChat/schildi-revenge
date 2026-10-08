@@ -19,7 +19,6 @@ import androidx.compose.material.icons.filled.TravelExplore
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.key
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -28,8 +27,8 @@ import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
-import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalListActionProvider
+import chat.schildi.revenge.actions.rememberListActions
 import chat.schildi.revenge.compose.components.EmptyListScreen
 import chat.schildi.revenge.compose.destination.conversation.virtual.PagingIndicator
 import chat.schildi.revenge.compose.destination.split.requireSinglePaneLayout
@@ -76,7 +75,7 @@ fun SpaceDiscoveryScreen(
 
     FocusContainer(
         LocalSearchProvider provides viewModel,
-        LocalListActionProvider provides remember(listState) { ListActions(listState) },
+        LocalListActionProvider provides rememberListActions(listState),
         modifier = modifier.windowInsetsPadding(
             WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         ),

@@ -35,8 +35,8 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
-import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalListActionProvider
+import chat.schildi.revenge.actions.rememberListActions
 import chat.schildi.revenge.compose.components.TopNavigation
 import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInboxIcon
 import chat.schildi.revenge.compose.components.TopNavigationTitle
@@ -99,7 +99,7 @@ fun DiagnosticsScreen(
     val directorySizes = viewModel.directorySizes.collectAsState().value
     val sdkStoreSizes = viewModel.sdkStoreSizes.collectAsState().value
     val listState = rememberLazyListState()
-    val listAction = remember(listState) { ListActions(listState) }
+    val listAction = rememberListActions(listState)
     FocusContainer(
         LocalListActionProvider provides listAction,
         modifier = modifier.windowInsetsPadding(

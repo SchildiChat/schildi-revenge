@@ -27,7 +27,6 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
-import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
@@ -38,6 +37,7 @@ import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.plainTextCopyAction
 import chat.schildi.revenge.actions.plainTextCopyActionWithMxcUrl
 import chat.schildi.revenge.actions.plainTextCopyActionWithUserId
+import chat.schildi.revenge.actions.rememberListActions
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.WithTrackedAction
 import chat.schildi.revenge.compose.focus.FocusContainer
@@ -74,7 +74,7 @@ fun BoxWithConstraintsScope.RoomPreviewScreen(
     contentModifier: Modifier = Modifier,
 ) {
     val listState = rememberLazyListState()
-    val listAction = remember(listState) { ListActions(listState) }
+    val listAction = rememberListActions(listState)
 
     val avatarUrl = roomInfo?.avatarUrl ?: roomPreview?.avatarUrl
     val roomName = roomInfo?.name ?: roomPreview?.name

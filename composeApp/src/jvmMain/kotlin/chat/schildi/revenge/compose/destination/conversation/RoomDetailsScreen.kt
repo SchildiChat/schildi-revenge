@@ -32,7 +32,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -52,7 +51,6 @@ import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.CopyActions
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
-import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
@@ -61,6 +59,7 @@ import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.plainTextCopyAction
 import chat.schildi.revenge.actions.plainTextCopyActionWithMxcUrl
 import chat.schildi.revenge.actions.toCopyAction
+import chat.schildi.revenge.actions.rememberListActions
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.EditTextValue
 import chat.schildi.revenge.compose.components.EditableDropdown
@@ -125,7 +124,7 @@ fun RoomDetailsScreen(
     publishTitle(viewModel)
 
     val listState = rememberLazyListState()
-    val listAction = remember(listState) { ListActions(listState) }
+    val listAction = rememberListActions(listState)
     FocusContainer(
         LocalKeyboardActionProvider provides
                 viewModel.actionProvider.hierarchicalKeyboardActionProvider(),

@@ -93,7 +93,6 @@ import chat.schildi.revenge.model.spaces.PSEUDO_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.REAL_SPACE_ID_PREFIX
 import chat.schildi.revenge.model.spaces.RevengeSpaceListDataSource
 import chat.schildi.revenge.notification.NotifiableRoomSubscriber
-import chat.schildi.revenge.toDestination
 import chat.schildi.revenge.toPrettyJson
 import chat.schildi.revenge.util.ExternalViewCache
 import chat.schildi.revenge.util.MimeUtil
@@ -1511,6 +1510,34 @@ class KeyboardActionHandler(
                 Action.List.ScrollToBottom -> scrollListToBottom(context.focused()).orActionInapplicable()
                 Action.List.ScrollToStart -> scrollListToStart(context.focused()).orActionInapplicable()
                 Action.List.ScrollToEnd -> scrollListToEnd(context.focused()).orActionInapplicable()
+                Action.List.ScrollByDp -> {
+                    val amount = args.firstOrNull()?.toFloatOrNull().orActionValidationError()
+                    context.focused()?.actions?.listActions?.scrollByDp(scope, amount)?.let {
+                        ActionResult.Success()
+                    } ?: ActionResult.Inapplicable
+                }
+                Action.List.ScrollByPage -> {
+                    val amount = args.firstOrNull()?.let {
+                        it.toFloatOrNull().orActionValidationError()
+                    } ?: 1f
+                    context.focused()?.actions?.listActions?.scrollByPage(scope, amount)?.let {
+                        ActionResult.Success()
+                    } ?: ActionResult.Inapplicable
+                }
+                Action.List.AnimateScrollByDp -> {
+                    val amount = args.firstOrNull()?.toFloatOrNull().orActionValidationError()
+                    context.focused()?.actions?.listActions?.animateScrollByDp(scope, amount)?.let {
+                        ActionResult.Success()
+                    } ?: ActionResult.Inapplicable
+                }
+                Action.List.AnimateScrollByPage -> {
+                    val amount = args.firstOrNull()?.let {
+                        it.toFloatOrNull().orActionValidationError()
+                    } ?: 1f
+                    context.focused()?.actions?.listActions?.animateScrollByPage(scope, amount)?.let {
+                        ActionResult.Success()
+                    } ?: ActionResult.Inapplicable
+                }
             }
         }
     }
@@ -3263,6 +3290,18 @@ fun checkArgument(
             if (parsed == null || parsed < 0) {
                 ActionResult.Malformed(
                     "Invalid parameter for $actionName, expected non-negative int got $argVal"
+                )
+            } else {
+                null
+            }
+        }
+        ActionArgumentPrimitive.DensityPixelsSigned,
+        ActionArgumentPrimitive.Factor,
+        ActionArgumentPrimitive.Float -> {
+            val parsed = argVal.toFloatOrNull()
+            if (parsed == null) {
+                ActionResult.Malformed(
+                    "Invalid parameter for $actionName, expected float got $argVal"
                 )
             } else {
                 null

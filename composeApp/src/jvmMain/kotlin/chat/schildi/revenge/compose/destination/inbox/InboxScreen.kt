@@ -52,7 +52,6 @@ import chat.schildi.revenge.Anim
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
-import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
@@ -64,6 +63,7 @@ import chat.schildi.revenge.compose.search.LocalSearchProvider
 import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.actionProvider
+import chat.schildi.revenge.actions.rememberListActions
 import chat.schildi.revenge.compose.destination.split.requireSinglePaneLayout
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.config.keybindings.DestinationEnum
@@ -133,7 +133,7 @@ fun InboxScreen(
     FocusContainer(
         LocalSearchProvider provides viewModel,
         LocalKeyboardActionProvider provides viewModel.hierarchicalKeyboardActionProvider(),
-        LocalListActionProvider provides remember(listState) { ListActions(listState) },
+        LocalListActionProvider provides rememberListActions(listState),
         modifier = modifier.windowInsetsPadding(
             WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         ),

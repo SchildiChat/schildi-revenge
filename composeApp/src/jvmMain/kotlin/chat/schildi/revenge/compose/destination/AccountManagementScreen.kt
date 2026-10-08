@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.Verified
@@ -62,8 +63,10 @@ import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
+import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.currentActionContext
+import chat.schildi.revenge.actions.rememberListActions
 import chat.schildi.revenge.compose.components.TopNavigation
 import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInboxIcon
 import chat.schildi.revenge.compose.components.TopNavigationTitle
@@ -125,7 +128,9 @@ fun AccountManagementScreen(
         factory = viewModelFactory { initializer { AccountManagementViewModel() } }
     )
     val accounts = viewModel.data.collectAsState().value
+    val listState = rememberLazyListState()
     FocusContainer(
+        LocalListActionProvider provides rememberListActions(listState),
         modifier = modifier.windowInsetsPadding(
             WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         ),
@@ -142,6 +147,7 @@ fun AccountManagementScreen(
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 LazyColumn(
                     contentModifier.padding(vertical = Dimens.windowPadding),
+                    state = listState,
                     verticalArrangement = Dimens.verticalArrangement,
                     contentPadding = WindowInsets.navigationBars
                         .only(WindowInsetsSides.Bottom)

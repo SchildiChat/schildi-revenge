@@ -40,9 +40,9 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.NavigationPreference
 import chat.schildi.revenge.actions.FocusRole
-import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalListActionProvider
+import chat.schildi.revenge.actions.rememberListActions
 import chat.schildi.revenge.compose.components.EmptyListScreen
 import chat.schildi.revenge.compose.components.TopNavigation
 import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInboxIcon
@@ -140,7 +140,7 @@ fun SettingsScreen(
     val prefScreenState = viewModel.prefScreen.collectAsState().value
     val prefScreen = prefScreenState.prefScreen
     val listState = rememberLazyListState()
-    val listAction = remember(listState) { ListActions(listState) }
+    val listAction = rememberListActions(listState)
     FocusContainer(
         LocalSearchProvider provides (viewModel.takeIf { it.isRootPreferences } as? SearchProvider ?: LocalSearchProvider.current),
         LocalListActionProvider provides listAction,

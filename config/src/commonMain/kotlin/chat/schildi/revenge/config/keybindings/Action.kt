@@ -60,6 +60,7 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     Boolean,
     Integer,
     PositiveOffset,
+    Float,
     Json(consumesTrailingArgsWithSpace = true),
     PowerLevel,
     Index,
@@ -108,6 +109,8 @@ enum class ActionArgumentPrimitive(override val consumesTrailingArgsWithSpace: B
     SpaceCatchAllMode,
     SpaceCatchAllInviteMode,
     FocusRole,
+    DensityPixelsSigned,
+    Factor,
     Empty;
     override fun possiblePrimitives(context: CommandArgContext) = listOf(this)
     override fun canHold(primitive: ActionArgumentPrimitive) = primitive == this
@@ -288,6 +291,10 @@ sealed interface Action {
         ScrollToBottom,
         ScrollToStart,
         ScrollToEnd,
+        ScrollByDp(args = listOf(ActionArgumentPrimitive.DensityPixelsSigned)),
+        ScrollByPage(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.Factor))),
+        AnimateScrollByDp(args = listOf(ActionArgumentPrimitive.DensityPixelsSigned)),
+        AnimateScrollByPage(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.Factor))),
     }
     enum class Split(
         override val aliases: kotlin.collections.List<String> = emptyList(),

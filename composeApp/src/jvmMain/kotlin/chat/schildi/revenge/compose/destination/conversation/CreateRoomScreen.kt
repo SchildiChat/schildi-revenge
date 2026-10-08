@@ -22,7 +22,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,10 +40,10 @@ import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
-import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.currentActionContext
+import chat.schildi.revenge.actions.rememberListActions
 import chat.schildi.revenge.compose.components.EditTextValue
 import chat.schildi.revenge.compose.components.EditableDropdown
 import chat.schildi.revenge.compose.components.EditableDropdownEntry
@@ -108,7 +107,7 @@ fun CreateRoomScreen(
     publishTitle(viewModel)
 
     val listState = rememberLazyListState()
-    val listAction = remember(listState) { ListActions(listState) }
+    val listAction = rememberListActions(listState)
     FocusContainer(
         LocalListActionProvider provides listAction,
         LocalMatrixBodyFormatter provides matrixBodyFormatter(),

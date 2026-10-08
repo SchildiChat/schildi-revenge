@@ -42,13 +42,13 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.actions.FocusRole
-import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.LocalUserIdSuggestionsProvider
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.plainTextCopyAction
 import chat.schildi.revenge.actions.plainTextCopyActionWithMxcUrl
 import chat.schildi.revenge.actions.plainTextCopyActionWithUserId
+import chat.schildi.revenge.actions.rememberListActions
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.EmptyListScreen
 import chat.schildi.revenge.compose.components.WithTooltip
@@ -99,7 +99,7 @@ fun UserDetailsScreen(
         )
 
     val listState = rememberLazyListState()
-    val listAction = remember(listState) { ListActions(listState) }
+    val listAction = rememberListActions(listState)
     FocusContainer(
         LocalUserIdSuggestionsProvider provides viewModel,
         LocalListActionProvider provides listAction,

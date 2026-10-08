@@ -40,10 +40,10 @@ import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.NavigationPreference
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
-import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.plainTextCopyAction
+import chat.schildi.revenge.actions.rememberListActions
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.EmptyListScreen
 import chat.schildi.revenge.compose.components.TopNavigation
@@ -114,7 +114,7 @@ fun SessionSelectorScreen(
     val listState = rememberLazyListState()
     FocusContainer(
         LocalSearchProvider provides viewModel,
-        LocalListActionProvider provides remember(listState) { ListActions(listState) },
+        LocalListActionProvider provides rememberListActions(listState),
         modifier = modifier.windowInsetsPadding(
             WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
         ),

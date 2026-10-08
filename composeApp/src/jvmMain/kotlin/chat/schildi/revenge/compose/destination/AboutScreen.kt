@@ -49,7 +49,6 @@ import chat.schildi.revenge.MatrixSdkMetadata
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.InteractionAction
-import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalListActionProvider
 import chat.schildi.revenge.actions.actionProvider
@@ -75,6 +74,7 @@ import chat.schildi.revenge.model.about.REVENGE_SOURCE_URL
 import chat.schildi.revenge.model.about.SCHILDI_NEXT_SOURCE_URL
 import chat.schildi.revenge.model.about.ThirdPartyAcknowledgement
 import chat.schildi.lib.util.SystemInfo
+import chat.schildi.revenge.actions.rememberListActions
 import chat.schildi.revenge.viewModelKey
 import chat.schildi.theme.scExposures
 import chat.schildi.theme.scLinkStyle
@@ -116,7 +116,7 @@ fun AboutScreen(
     val state = viewModel.state.collectAsState().value
     val isSearching = state.isSearching
     val listState = rememberLazyListState()
-    val listAction = remember(listState) { ListActions(listState) }
+    val listAction = rememberListActions(listState)
     FocusContainer(
         LocalSearchProvider provides viewModel,
         LocalListActionProvider provides listAction,

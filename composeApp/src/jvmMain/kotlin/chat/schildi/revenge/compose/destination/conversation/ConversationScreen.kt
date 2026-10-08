@@ -50,7 +50,6 @@ import chat.schildi.revenge.LocalMatrixBodyDrawStyle
 import chat.schildi.revenge.LocalMatrixBodyFormatter
 import chat.schildi.revenge.NavigationPreference
 import chat.schildi.revenge.actions.FocusRole
-import chat.schildi.revenge.actions.ListActions
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalKeyboardActionProvider
 import chat.schildi.revenge.actions.LocalListActionProvider
@@ -58,6 +57,7 @@ import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
 import chat.schildi.revenge.actions.LocalUserIdSuggestionsProvider
 import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
+import chat.schildi.revenge.actions.rememberListActions
 import chat.schildi.revenge.compose.composer.ComposerRow
 import chat.schildi.revenge.compose.destination.SplashScreenContent
 import chat.schildi.revenge.compose.destination.conversation.event.EventHighlight
@@ -312,7 +312,7 @@ fun ConversationScreen(
         val isReadMarkerVisible = remember { mutableStateOf(false) }
         val isBottomVisible = remember { mutableStateOf(true) }
 
-        val listAction = remember(listState) { ListActions(listState, isReverseList = true) }
+        val listAction = rememberListActions(listState, isReverseList = true)
         FocusContainer(
             LocalSearchProvider provides viewModel,
             LocalEventActionViewModel provides viewModel,
