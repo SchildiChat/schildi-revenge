@@ -67,7 +67,11 @@ class AndroidWindowManager : PlatformWindowManager {
         onLastWindowClosed: () -> Unit
     ): Boolean {
         return androidWindows.value[windowId]?.activity?.get()?.let {
-            it.finish()
+            if (it.isTaskRoot) {
+                it.finishAndRemoveTask()
+            } else {
+                it.finish()
+            }
             true
         } ?: false
     }
