@@ -58,7 +58,9 @@ class ComposerSuggestionsProvider(
                     suggestions = (userSuggestions + roomSuggestions).toImmutableList(),
                 )
             }
-            currentCompletionEntity.startsWith(":") && query.allowsCustomEmote || query.type == DraftType.STICKER -> {
+            currentCompletionEntity.startsWith(":") && query.allowsCustomEmote ||
+                query.type == DraftType.STICKER ||
+                query.type == DraftType.REACTION -> {
                 val shortcodePrefix = currentCompletionEntity.removePrefix(":")
                 // Emojis
                 val emojiSuggestion = if (query.allowsCustomEmote) {

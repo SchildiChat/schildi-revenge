@@ -2467,8 +2467,6 @@ class ConversationViewModel(
                                 attachment = null,
                                 editEventId = null,
                             ) ?: createDraftValue(
-                                textFieldValue = TextFieldValue(":", TextRange(1)),
-                                initialBody = ":",
                                 inReplyTo = inReplyTo,
                                 type = DraftType.REACTION,
                             )

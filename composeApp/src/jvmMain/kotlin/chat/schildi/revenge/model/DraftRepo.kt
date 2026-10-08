@@ -483,9 +483,7 @@ object DraftRepo {
             result = result.copy(type = DraftType.TEXT)
         }
         // initial body sanity
-        val expectInitialBody = if (type == DraftType.REACTION) {
-            ":"
-        } else if (editEventId == null) {
+        val expectInitialBody = if (editEventId == null) {
             ""
         } else {
             null
