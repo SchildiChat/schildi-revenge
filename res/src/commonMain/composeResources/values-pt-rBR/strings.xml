@@ -413,4 +413,10 @@
     <string name="pref_allow_empty_message_send_title">Permitir enviar mensagens vazias</string>
     <string name="thread_in">Tópico: %1$s</string>
     <string name="pref_allow_live_timeline_merge_title">Mesclar linhas do tempo separadas e em tempo real</string>
+    <string name="action_space_discovery">Descobrir espaço</string>
+    <string name="action_space_discovery_as">Descobrir espaço como %1$s</string>
+    <string name="space_discovery_empty">Nenhuma sala neste espaço</string>
+    <string name="action_configure_catch_all_space">Configurar espaço abrangente</string>
+    <string name="incoming_share_file_error">Falha ao ler arquivo compartilhado %1$s</string>
+    <string name="incoming_share_pending">Compartilhando:</string>
 </resources>
