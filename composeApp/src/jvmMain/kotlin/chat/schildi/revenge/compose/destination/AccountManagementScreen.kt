@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -191,9 +192,10 @@ private fun ExistingLogin(account: AccountManagementData, viewModel: AccountMana
                 .fillMaxWidth()
                 .padding(horizontal = Dimens.windowPadding)
         ) {
-            Row(
+            FlowRow(
                 horizontalArrangement = Dimens.horizontalArrangement,
-                verticalAlignment = Alignment.CenterVertically,
+                verticalArrangement = Dimens.verticalArrangementSmall,
+                itemVerticalAlignment = Alignment.CenterVertically,
             ) {
                 Row(
                     horizontalArrangement = Dimens.horizontalArrangement,
