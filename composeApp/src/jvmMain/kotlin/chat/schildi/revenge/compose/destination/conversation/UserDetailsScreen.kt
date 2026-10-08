@@ -355,8 +355,7 @@ fun MutualRoomsListItem(
                     },
                 ) {
                     if (preview.isSpace) {
-                        // TODO what's the best destination for viewing spaces?
-                        Destination.RoomMembers(
+                        Destination.SpaceDiscovery(
                             sessionId = sessionId,
                             roomId = preview.id,
                         )
