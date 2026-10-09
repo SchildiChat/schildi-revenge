@@ -17,6 +17,7 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.skia.Image
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.app_title_short
+import kotlin.time.Duration.Companion.milliseconds
 
 object DesktopNotifier {
     private val log = Logger.withTag("Notifier")
@@ -39,9 +40,11 @@ object DesktopNotifier {
     ) {
         val image = largeImage?.let {
             val client = id.sessionId?.let { UiState.currentClientFor(it) } ?: return@let null
-            withTimeoutOrNull(3000) {
-                client.matrixMediaLoader.loadMediaContent(largeImage).getOrNull()?.let {
-                    Image.makeFromEncoded(it).toComposeImageBitmap()
+            withTimeoutOrNull(3000.milliseconds) {
+                client.matrixMediaLoader.loadMediaContent(largeImage).getOrNull()?.let { bytes ->
+                    runCatching { Image.makeFromEncoded(bytes).toComposeImageBitmap() }
+                        .onFailure { log.w("Failed to decode notification image", it) }
+                        .getOrNull()
                 }
             }
         }
