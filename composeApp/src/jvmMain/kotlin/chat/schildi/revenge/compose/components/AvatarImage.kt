@@ -1,10 +1,6 @@
 package chat.schildi.revenge.compose.components
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
@@ -77,29 +73,18 @@ fun AvatarImage(
             alignment = Alignment.Center,
             contentDescription = contentDescription,
         ) {
-            AnimatedContent(
-                painter.state.collectAsState().value,
-                transitionSpec = {
-                    fadeIn(
-                        animationSpec = Dimens.tweenSmooth()
-                    ) togetherWith fadeOut(
-                        animationSpec = Dimens.tweenSmooth()
-                    )
-                },
-            ) { state ->
-                when (state) {
-                    is AsyncImagePainter.State.Success -> SubcomposeAsyncImageContent()
-                    AsyncImagePainter.State.Empty -> {
-                        AvatarFallback(displayName, shape, size)
-                    }
+            when (painter.state.collectAsState().value) {
+                is AsyncImagePainter.State.Success -> SubcomposeAsyncImageContent()
+                AsyncImagePainter.State.Empty -> {
+                    AvatarFallback(displayName, shape, size)
+                }
 
-                    is AsyncImagePainter.State.Error -> {
-                        AvatarFallback(displayName, shape, size, fallbackColorSource = fallbackColorSource, sessionId = sessionId, isError = true)
-                    }
+                is AsyncImagePainter.State.Error -> {
+                    AvatarFallback(displayName, shape, size, fallbackColorSource = fallbackColorSource, sessionId = sessionId, isError = true)
+                }
 
-                    is AsyncImagePainter.State.Loading -> {
-                        AvatarFallback(displayName, shape, size, isLoading = true)
-                    }
+                is AsyncImagePainter.State.Loading -> {
+                    AvatarFallback(displayName, shape, size, isLoading = true)
                 }
             }
         }
