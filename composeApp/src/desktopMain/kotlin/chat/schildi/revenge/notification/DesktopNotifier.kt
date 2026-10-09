@@ -1,22 +1,19 @@
 package chat.schildi.revenge.notification
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.toComposeImageBitmap
-import androidx.compose.ui.layout.ContentScale
 import chat.schildi.revenge.UiState
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.github.kdroidfilter.knotify.builder.AppConfig
 import io.github.kdroidfilter.knotify.builder.ExperimentalNotificationsApi
 import io.github.kdroidfilter.knotify.builder.NotificationInitializer
-import io.github.kdroidfilter.knotify.compose.builder.sendComposeNotification
+import io.github.kdroidfilter.knotify.builder.sendNotification
 import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.compose.resources.getString
+import org.jetbrains.skia.EncodedImageFormat
 import org.jetbrains.skia.Image
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.app_title_short
+import java.nio.file.Files
 import kotlin.time.Duration.Companion.milliseconds
 
 object DesktopNotifier {
@@ -38,28 +35,29 @@ object DesktopNotifier {
         message: String,
         largeImage: MediaSource? = null,
     ) {
-        val image = largeImage?.let {
+        val largeIconFile = largeImage?.let {
             val client = id.sessionId?.let { UiState.currentClientFor(it) } ?: return@let null
             withTimeoutOrNull(3000.milliseconds) {
                 client.matrixMediaLoader.loadMediaContent(largeImage).getOrNull()?.let { bytes ->
-                    runCatching { Image.makeFromEncoded(bytes).toComposeImageBitmap() }
-                        .onFailure { log.w("Failed to decode notification image", it) }
+                    runCatching {
+                        Image.makeFromEncoded(bytes)
+                            .encodeToData(EncodedImageFormat.PNG)
+                            ?.let { data ->
+                                Files.createTempFile("notification_icon_", ".png").toFile().apply {
+                                    writeBytes(data.bytes)
+                                    deleteOnExit()
+                                }
+                            }
+                    }.onFailure { log.w("Failed to prepare large icon for notification", it) }
                         .getOrNull()
                 }
             }
         }
         try {
-            sendComposeNotification(
+            sendNotification(
                 title = title,
                 message = message,
-                largeIcon = image?.let {{
-                    Image(
-                        bitmap = image,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize(),
-                    )
-                }}
+                largeImage = largeIconFile?.path,
             )
         } catch (t: Throwable) {
             log.e("Failed to send notification", t)

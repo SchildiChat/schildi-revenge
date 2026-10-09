@@ -107,7 +107,6 @@ kotlin {
                 implementation(libs.androidx.sqlite.bundled)
                 implementation(libs.kdroidfilter.composenativetray)
                 implementation(libs.kdroidfilter.knotify)
-                implementation(libs.kdroidfilter.knotify.compose)
                 implementation(libs.clikt)
                 implementation(compose.desktop.currentOs)
                 implementation(libs.kotlinx.coroutines.swing)
