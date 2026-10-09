@@ -40,4 +40,7 @@
     <string name="diagnostics_site_data_dir">Données du site</string>
     <string name="diagnostics_site_config_dir">Configuration du site</string>
     <string name="diagnostics_user_log_dir">Journaux d'activité de l'utilisateur</string>
+    <string name="inbox_search">Rechercher dans la boîte de réception</string>
+    <string name="space_discovery_empty">Pas de salon dans cet espace</string>
+    <string name="about_os_name">Nom du système d'exploitation : %1$s</string>
 </resources>
