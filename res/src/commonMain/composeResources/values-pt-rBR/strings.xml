@@ -419,4 +419,7 @@
     <string name="action_configure_catch_all_space">Configurar espaço abrangente</string>
     <string name="incoming_share_file_error">Falha ao ler arquivo compartilhado %1$s</string>
     <string name="incoming_share_pending">Compartilhando:</string>
+    <string name="action_vote">Votar</string>
+    <string name="action_end_poll">Encerrar enquete</string>
+    <string name="hint_poll_ended">Enquete encerrada</string>
 </resources>
