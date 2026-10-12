@@ -99,7 +99,7 @@ class RustEncryptionService(
             delay(5_000)
         }
     }
-        .stateIn(sessionCoroutineScope, SharingStarted.Eagerly, false)
+        .stateIn(sessionCoroutineScope, SharingStarted.WhileSubscribed(), false)
 
     /**
      * Check if the user has any devices available to verify against every 5 seconds.
@@ -119,7 +119,7 @@ class RustEncryptionService(
             delay(5_000)
         }
     }
-        .stateIn(sessionCoroutineScope, SharingStarted.Eagerly, AsyncData.Uninitialized)
+        .stateIn(sessionCoroutineScope, SharingStarted.WhileSubscribed(), AsyncData.Uninitialized)
 
     override suspend fun enableBackups(): Result<Unit> = withContext(dispatchers.io) {
         runCatchingExceptions {
