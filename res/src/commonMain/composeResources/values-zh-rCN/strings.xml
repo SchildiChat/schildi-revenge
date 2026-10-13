@@ -164,4 +164,11 @@
     <string name="command_not_found">%1$s是无效指令</string>
     <string name="common_internal_error">应用内部错误</string>
     <string name="common_learn_more">详情</string>
+    <plurals name="room_members_title_in_room_loaded">
+        <item quantity="other">%2$s 中有 %1$s 个成员</item>
+    </plurals>
+    <string name="space_discovery_empty">这个空间中没有房间</string>
+    <string name="about_release_variant">版本类型：%1$s</string>
+    <string name="about_rust_release_variant">SDK 类型：%1$s</string>
+    <string name="diagnostics_sdk_media_store">媒体缓存</string>
 </resources>
