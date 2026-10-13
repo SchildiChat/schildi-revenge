@@ -11,10 +11,18 @@ import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -33,7 +41,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draganddrop.DragAndDropEvent
 import androidx.compose.ui.draganddrop.DragAndDropTarget
@@ -92,7 +99,6 @@ import shire.res.generated.resources.action_jump_to_unread
 import kotlin.math.absoluteValue
 import kotlin.math.sign
 
-@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun ConversationScreen(
     destination: Destination.Conversation,
@@ -107,32 +113,40 @@ fun ConversationScreen(
         return
     }
 
+    val keyHandler = LocalKeyboardActionHandler.current
+    val viewModel: ConversationViewModel = viewModel(
+        key = viewModelKey(destination),
+        factory = ConversationViewModel.factory(
+            destination.sessionId,
+            destination.roomId,
+            destination.timelineParams,
+            destination.alias,
+            destination.joinServerNames,
+        )
+    )
+
+    publishTitle(viewModel)
+
+    DisposableEffect(Unit) {
+        onDispose {
+            viewModel.onUiDispose()
+        }
+    }
+
     BoxWithConstraints(
-        modifier.safeDrawingPadding().fillMaxSize(),
+        modifier.fillMaxSize().let {
+            if (viewModel.modeSupportsComposer) {
+                it.safeDrawingPadding()
+            } else {
+                it.windowInsetsPadding(
+                    WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal),
+                )
+            }
+        },
         contentAlignment = Alignment.Center,
     ) {
         val contentHeight = maxHeight
         val density = LocalDensity.current
-
-        val keyHandler = LocalKeyboardActionHandler.current
-        val viewModel: ConversationViewModel = viewModel(
-            key = viewModelKey(destination),
-            factory = ConversationViewModel.factory(
-                destination.sessionId,
-                destination.roomId,
-                destination.timelineParams,
-                destination.alias,
-                destination.joinServerNames,
-            )
-        )
-
-        publishTitle(viewModel)
-
-        DisposableEffect(Unit) {
-            onDispose {
-                viewModel.onUiDispose()
-            }
-        }
 
         val timelineItems = viewModel.timelineItems.collectAsState().value
         val debugLines = if (ScPrefs.SHOW_DEV_INFOS.value()) {
@@ -413,6 +427,13 @@ fun ConversationScreen(
                         Modifier.fillMaxSize(),
                         reverseLayout = true,
                         state = listState,
+                        contentPadding = if (viewModel.modeSupportsComposer) {
+                            PaddingValues()
+                        } else {
+                            WindowInsets.navigationBars
+                                .only(WindowInsetsSides.Bottom)
+                                .asPaddingValues()
+                        }
                     ) {
                         itemsIndexed(
                             renderedItems,

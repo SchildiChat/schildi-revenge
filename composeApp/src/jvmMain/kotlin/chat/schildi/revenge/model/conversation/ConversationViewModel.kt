@@ -944,6 +944,8 @@ class ConversationViewModel(
         else -> null
     }
 
+    val modeSupportsComposer = draftKey != null
+
     private val preferredComposerFormat = scPreferencesStore.settingFlow(ScPrefs.PREFERRED_MESSAGE_FORMAT).map {
         tryOrNull { ComposerFormat.valueOf(it) }
             ?: ComposerFormat.valueOf(ScPrefs.PREFERRED_MESSAGE_FORMAT.defaultValue)
