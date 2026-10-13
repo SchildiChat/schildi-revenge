@@ -505,7 +505,9 @@ class ConversationViewModel(
         },
         roomInfo,
     ) { client, (enable, enableInE2ee), info ->
-        client?.takeIf { enable && (enableInE2ee || (info?.isEncrypted == false)) }?.let {
+        client?.takeIf { enable && (enableInE2ee || (info?.isEncrypted == false)) }
+    }.distinctUntilChanged().map { client ->
+        client?.let {
             UrlPreviewStateProvider(
                 urlPreviewProvider = UrlPreviewProvider(client),
                 scope = viewModelScope.childScope(Dispatchers.IO, "urlPreviews"),
