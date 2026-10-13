@@ -1,10 +1,12 @@
 package chat.schildi.revenge
 
+import android.app.ActivityManager
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -55,6 +57,16 @@ class MainActivity : ComponentActivity() {
     private var destinationStateHolder: DestinationStateHolder? = null
     private var pendingLink: String? = null
 
+    private val backCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            if (shouldRemoveTaskOnBack()) {
+                finishAndRemoveTask()
+            } else {
+                finish()
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         splashScreen.setKeepOnScreenCondition {
@@ -62,6 +74,8 @@ class MainActivity : ComponentActivity() {
         }
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        onBackPressedDispatcher.addCallback(this, backCallback)
 
         windowId = savedInstanceState?.getInt(EXTRA_WINDOW_ID, windowId) ?: windowId
 
@@ -145,6 +159,7 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         keyHandler?.onWindowFocusChanged(true)
         androidWindowManager.onResume(this)
+        backCallback.isEnabled = isTaskRoot
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -266,6 +281,16 @@ class MainActivity : ComponentActivity() {
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         keyHandler?.onWindowFocusChanged(hasFocus)
+    }
+
+    private fun shouldRemoveTaskOnBack(): Boolean {
+        if (!isTaskRoot) return false
+        val appTasks = runCatching {
+            getSystemService(ActivityManager::class.java)?.appTasks
+        }.onFailure {
+            log.w("Failed to retrieve own app tasks", it)
+        }.getOrNull() ?: return false
+        return appTasks.size > 1
     }
 
     override fun onDestroy() {
