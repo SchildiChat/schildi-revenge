@@ -309,7 +309,7 @@ fun ConversationScreen(
         val urlPreviewProvider = viewModel.urlPreviewStateProvider.collectAsState().value
         // Prefetch url preview metadata a window ahead of the visible items so we can avoid some visual jumps
         if (urlPreviewProvider != null) {
-            LaunchedEffect(listState) {
+            LaunchedEffect(listState, urlPreviewProvider) {
                 snapshotFlow {
                     listState.layoutInfo.visibleItemsInfo
                         .map { it.index }
