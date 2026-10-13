@@ -33,6 +33,7 @@ import chat.schildi.revenge.dbus.TrayWatcher
 import chat.schildi.revenge.model.verification.RevengeDeviceVerificationProvider
 import chat.schildi.revenge.notification.SyncingNotificationProcessor
 import chat.schildi.revenge.notification.DesktopNotifier
+import coil3.PlatformContext
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.painterResource
 import shire.res.generated.resources.Res
@@ -90,7 +91,7 @@ object ComposeApp {
                             }
                             val scope = rememberCoroutineScope()
                             val keyHandler = remember {
-                                KeyboardActionHandler(scope, windowState.windowId)
+                                KeyboardActionHandler(PlatformContext.INSTANCE, scope, windowState.windowId)
                             }
                             Window(
                                 state = composeWindowState,

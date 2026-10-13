@@ -21,6 +21,7 @@ import androidx.compose.ui.geometry.toRect
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalUriHandler
@@ -102,7 +103,10 @@ class MainActivity : ComponentActivity() {
             }
 
             val scope = rememberCoroutineScope()
-            val handler = remember { KeyboardActionHandler(scope, windowId) }
+            val context = LocalContext.current
+            val handler = remember(context, scope) {
+                KeyboardActionHandler(context, scope, windowId)
+            }
             LaunchedEffect(handler) {
                 keyHandler = handler
                 pendingLink?.let(handler::consumeLink)

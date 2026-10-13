@@ -10,6 +10,7 @@ import chat.schildi.revenge.actions.VerificationRequestAppMessage
 import chat.schildi.resources.ComposableStringHolder
 import chat.schildi.resources.StringResourceHolder
 import chat.schildi.resources.toStringHolder
+import chat.schildi.revenge.actions.platformGlobalContext
 import chat.schildi.revenge.config.ConfigWatchers
 import chat.schildi.revenge.model.LoadCheckPoint
 import chat.schildi.revenge.model.LoadStateHolder
@@ -19,6 +20,7 @@ import chat.schildi.revenge.model.asCheckpointLoadedOrPending
 import chat.schildi.revenge.store.AppStateStore
 import chat.schildi.revenge.util.throttleLatest
 import co.touchlab.kermit.Logger
+import coil3.PlatformContext
 import dev.zacsweers.metro.createGraphFactory
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.x.di.AppGraph
@@ -320,7 +322,7 @@ object UiState {
 
         // Initialize the desktop lifecycle callback and headless keyboard handler
         this.exitApplication = exitApplication
-        headlessKeyboardActionHandler = KeyboardActionHandler(GlobalActionsScope, HEADLESS_WINDOW_ID)
+        headlessKeyboardActionHandler = KeyboardActionHandler(platformGlobalContext, GlobalActionsScope, HEADLESS_WINDOW_ID)
         platformWindowManager.setMinimized(startInTray)
 
         // Block until vsync is set up, since we need to set it before opening windows

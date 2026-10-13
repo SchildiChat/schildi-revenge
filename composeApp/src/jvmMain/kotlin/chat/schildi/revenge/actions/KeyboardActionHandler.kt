@@ -100,6 +100,7 @@ import chat.schildi.revenge.util.matrix.MatrixLinkPatterns
 import chat.schildi.revenge.util.matrix.updateAccountData
 import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
+import coil3.PlatformContext
 import com.beeper.android.messageformat.MatrixToLink
 import io.element.android.libraries.core.coroutine.childScope
 import io.element.android.libraries.matrix.api.MatrixClient
@@ -366,8 +367,8 @@ data class ContextMenuFocus(
     }
 }
 
-@OptIn(FlowPreview::class)
 class KeyboardActionHandler(
+    private val platformContext: PlatformContext,
     private val scope: CoroutineScope,
     private val windowId: WindowId,
     private val oAuthRepo: OAuthRepo = RevengeOAUthRepo,
@@ -1227,6 +1228,7 @@ class KeyboardActionHandler(
         implicitArgs: CommandArgContext = getCurrentKeyActionHandlers(focused).flatMap { it.impliedArguments() }.distinct(),
         asyncCallback: ActionResultCallback? = null,
     ) = object : InternalActionContext {
+        override val platformContext: PlatformContext = this@KeyboardActionHandler.platformContext
         override val windowId = this@KeyboardActionHandler.windowId
         override fun publishMessage(message: AbstractAppMessage) =
             this@KeyboardActionHandler.publishMessage(message)
@@ -2936,7 +2938,7 @@ class KeyboardActionHandler(
             try {
                 val tempFile = ExternalViewCache.createFile(fileExtension)
                 tempFile.writeText(content, Charsets.UTF_8)
-                val result = platformOpenFile(tempFile, MimeUtil.detectMimeType(tempFile))
+                val result = platformOpenFile(context.platformContext, tempFile, MimeUtil.detectMimeType(tempFile))
                 if (result is ActionResult.Success) {
                     publishMessage(
                         AppMessage(
@@ -3559,6 +3561,7 @@ fun checkArguments(
 }
 
 interface ActionContext {
+    val platformContext: PlatformContext
     val windowId: WindowId
     fun publishMessage(message: AbstractAppMessage)
     fun dismissMessage(uniqueId: String)

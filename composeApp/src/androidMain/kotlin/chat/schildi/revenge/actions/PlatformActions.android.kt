@@ -1,5 +1,6 @@
 package chat.schildi.revenge.actions
 
+import android.app.Application
 import android.content.ActivityNotFoundException
 import android.content.ContentValues
 import android.content.Context
@@ -9,7 +10,11 @@ import android.os.Environment
 import android.provider.MediaStore
 import androidx.core.content.FileProvider
 import chat.schildi.revenge.RevengeApplication
+import coil3.PlatformContext
 import java.io.File
+
+internal actual val platformGlobalContext: PlatformContext
+    get() = RevengeApplication.instance
 
 internal actual val platformHasUserFacingFilePaths = false
 
@@ -18,8 +23,12 @@ internal actual val platformOpenUri: (suspend (String) -> Unit)? = null
 val Context.fileProviderAuthority: String
     get() = "${packageName}.fileprovider"
 
-internal actual fun platformOpenFile(file: File, mimeType: String?): ActionResult {
-    val context = RevengeApplication.instance
+internal actual fun platformOpenFile(
+    context: PlatformContext,
+    file: File,
+    mimeType: String?,
+    preferNewTask: Boolean,
+): ActionResult {
     val uri = FileProvider.getUriForFile(
         context,
         context.fileProviderAuthority,
@@ -30,7 +39,11 @@ internal actual fun platformOpenFile(file: File, mimeType: String?): ActionResul
         ?: "application/octet-stream"
     val intent = Intent(Intent.ACTION_VIEW).apply {
         setDataAndType(uri, resolvedMimeType)
-        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+        if (preferNewTask || context is Application) {
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+        } else {
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
     }
     return try {
         context.startActivity(intent)
@@ -40,7 +53,12 @@ internal actual fun platformOpenFile(file: File, mimeType: String?): ActionResul
     }
 }
 
-internal actual fun platformPersistDownload(file: File, filename: String?, mimeType: String?): ActionResult {
+internal actual fun platformPersistDownload(
+    context: PlatformContext,
+    file: File,
+    filename: String?,
+    mimeType: String?
+): ActionResult {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return ActionResult.Inapplicable
 
     val displayName = filename
@@ -55,7 +73,7 @@ internal actual fun platformPersistDownload(file: File, filename: String?, mimeT
         put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/SchildiChat")
         put(MediaStore.MediaColumns.IS_PENDING, 1)
     }
-    val resolver = RevengeApplication.instance.contentResolver
+    val resolver = context.contentResolver
     val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
         ?: return ActionResult.Failure("Failed to create file in Downloads")
 

@@ -2904,7 +2904,12 @@ class ConversationViewModel(
         event: EventTimelineItem,
     ) = context.downloadFile(event) { file ->
         try {
-            platformPersistDownload(file, event.mediaFilename(), event.mediaMimetype())
+            platformPersistDownload(
+                context.platformContext,
+                file,
+                event.mediaFilename(),
+                event.mediaMimetype()
+            )
         } catch (t: Throwable) {
             log.e("Failed to persist downloaded file", t)
             ActionResult.Failure(t.message ?: "Failed to persist downloaded file")
@@ -2916,7 +2921,7 @@ class ConversationViewModel(
         event: EventTimelineItem,
     ) = context.downloadFile(event) { file ->
         try {
-            platformOpenFile(file, event.mediaMimetype())
+            platformOpenFile(context.platformContext, file, event.mediaMimetype())
         } catch (t: Throwable) {
             log.e("Failed to open file", t)
             ActionResult.Failure(t.message ?: "Failed to open file")

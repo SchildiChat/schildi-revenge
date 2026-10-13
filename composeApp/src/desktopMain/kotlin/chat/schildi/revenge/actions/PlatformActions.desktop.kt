@@ -2,8 +2,12 @@ package chat.schildi.revenge.actions
 
 import chat.schildi.revenge.dbus.FreedesktopPortal
 import chat.schildi.lib.util.SystemInfo
+import coil3.PlatformContext
 import java.awt.Desktop
 import java.io.File
+
+internal actual val platformGlobalContext: PlatformContext
+    get() = PlatformContext.INSTANCE
 
 internal actual val platformHasUserFacingFilePaths = true
 
@@ -11,7 +15,12 @@ internal actual val platformOpenUri: (suspend (String) -> Unit)? =
     if (SystemInfo.isLinux()) FreedesktopPortal::openUri else null
 
 @Suppress("UNUSED_PARAMETER")
-internal actual fun platformOpenFile(file: File, mimeType: String?): ActionResult {
+internal actual fun platformOpenFile(
+    context: PlatformContext,
+    file: File,
+    mimeType: String?,
+    preferNewTask: Boolean,
+): ActionResult {
     return try {
         if (!Desktop.isDesktopSupported()) {
             return ActionResult.Failure("Desktop integration is not available")
@@ -28,7 +37,12 @@ internal actual fun platformOpenFile(file: File, mimeType: String?): ActionResul
 }
 
 @Suppress("UNUSED_PARAMETER")
-internal actual fun platformPersistDownload(file: File, filename: String?, mimeType: String?): ActionResult {
+internal actual fun platformPersistDownload(
+    context: PlatformContext,
+    file: File,
+    filename: String?,
+    mimeType: String?
+): ActionResult {
     val parent = file.parentFile ?: return ActionResult.Failure("File has no parent directory")
-    return platformOpenFile(parent, mimeType)
+    return platformOpenFile(context, parent, mimeType, preferNewTask = true)
 }
