@@ -388,6 +388,21 @@ object AndroidNotifier {
         return false
     }
 
+    fun dismiss(sessionId: String, roomId: String): Boolean {
+        val notificationManager = NotificationManagerCompat.from(RevengeApplication.instance)
+        val notificationId = NotificationId.Room(SessionId(sessionId), RoomId(roomId)).androidNotificationId()
+        runCatching {
+            notificationManager.activeNotifications.firstOrNull { it.id == notificationId }
+        }.onFailure { failure ->
+            log.w("Failed to inspect active notifications", failure)
+        }.getOrNull() ?: return false
+        runCatching { notificationManager.cancel(notificationId) }
+            .onFailure { failure ->
+                log.w("Failed to cancel auto-dismissed notification for $sessionId/$roomId", failure)
+            }
+        return true
+    }
+
     fun redactMessage(
         sessionId: String,
         roomId: String,

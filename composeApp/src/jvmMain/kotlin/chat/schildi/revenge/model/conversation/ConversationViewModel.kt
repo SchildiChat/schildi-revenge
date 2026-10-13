@@ -81,6 +81,8 @@ import chat.schildi.revenge.model.canSendEmpty
 import chat.schildi.revenge.model.getCurrentCompletionEntity
 import chat.schildi.revenge.model.platformOnMessageSent
 import chat.schildi.revenge.model.shouldSendTypingIndicator
+import chat.schildi.revenge.notification.platformAutoDismissNotification
+import chat.schildi.revenge.notification.platformDismissNotification
 import chat.schildi.revenge.toDestination
 import chat.schildi.revenge.toPrettyJson
 import chat.schildi.revenge.util.tryOrNull
@@ -1104,8 +1106,8 @@ class ConversationViewModel(
                 // Shouldn't really matter if it's a private or public RR since we're about to send a message anyway,
                 // but since this should only do anything at all if we didn't send a RR before, defaulting to private
                 // should be more meaningful in case later actions fail.
-                // TODO this can take a while, can we check if this is really necessary?
                 GlobalActionsScope.launch {
+                    platformDismissNotification(sessionId, roomId)
                     // currentTimeline may not be live, but we want to mark the live one as read.
                     val timeline = joinedRoom.value?.liveTimeline ?: return@launch
                     timeline.markAsRead(ReceiptType.READ_PRIVATE)
@@ -1491,6 +1493,7 @@ class ConversationViewModel(
                 activeTimeline.value?.let { timeline ->
                     val receiptType = getAutoReadReceiptType(receiptTypeSetting, info) ?: return@combine
                     viewModelScope.launch {
+                        platformAutoDismissNotification(sessionId, roomId, listOf(latest))
                         timeline.sendReadReceipt(latest, receiptType)
                             .onFailure { log.e("Failed to send the live RR", it) }
                             .onSuccess { latestSentReadReceipt.value = latest }
@@ -1837,6 +1840,7 @@ class ConversationViewModel(
                         GlobalActionsScope,
                         Dispatchers.IO
                     ) {
+                        platformDismissNotification(sessionId, roomId)
                         timeline.markAsRead(ReceiptType.READ).toActionResult()
                     }
                 }
@@ -1848,6 +1852,7 @@ class ConversationViewModel(
                         GlobalActionsScope,
                         Dispatchers.IO
                     ) {
+                        platformDismissNotification(sessionId, roomId)
                         timeline.markAsRead(ReceiptType.READ_PRIVATE).toActionResult()
                     }
                 }
@@ -1859,6 +1864,7 @@ class ConversationViewModel(
                         GlobalActionsScope,
                         Dispatchers.IO
                     ) {
+                        platformDismissNotification(sessionId, roomId)
                         timeline.markAsRead(ReceiptType.FULLY_READ).toActionResult().also {
                             if (it is ActionResult.Success) {
                                 _cachedFullyRead.value = null
@@ -2246,6 +2252,7 @@ class ConversationViewModel(
         return launchActionAsync("MarkEventAsRead", viewModelScope, Dispatchers.IO) {
             var result: ActionResult? = null
             timeline.invokeOnCurrentTimeline {
+                platformAutoDismissNotification(sessionId, roomId, listOf(eventId))
                 result = forceSendReadReceipt(eventId, receiptType)
                     .onFailure {
                         log.e("Failed to send read receipt $receiptType", it)

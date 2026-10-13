@@ -50,4 +50,6 @@ actual fun platformActiveNotificationRooms(): List<ScopedRawRoomId> = emptyList(
 
 actual fun platformAutoDismissNotification(sessionId: SessionId, roomId: RoomId, latestRead: List<EventId>) = false
 
+actual fun platformDismissNotification(sessionId: SessionId, roomId: RoomId): Boolean = false
+
 actual fun platformRedactNotificationMessage(sessionId: SessionId, roomId: RoomId, eventId: EventId) = false

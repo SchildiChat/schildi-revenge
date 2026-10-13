@@ -51,6 +51,12 @@ actual fun platformAutoDismissNotification(
     latestRead = latestRead.map(EventId::value),
 )
 
+actual fun platformDismissNotification(sessionId: SessionId, roomId: RoomId) =
+    AndroidNotifier.dismiss(
+        sessionId = sessionId.value,
+        roomId = roomId.value,
+    )
+
 actual fun platformRedactNotificationMessage(
     sessionId: SessionId,
     roomId: RoomId,
