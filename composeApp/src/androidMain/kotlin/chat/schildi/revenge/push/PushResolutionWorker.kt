@@ -10,11 +10,16 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
 import chat.schildi.revenge.RevengeApplication
+import chat.schildi.revenge.database.push.PushExecutionEntity
+import chat.schildi.revenge.database.revengeDatabase
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
+import kotlin.time.TimeSource
 
 class PushResolutionWorker(
     context: Context,
@@ -24,10 +29,27 @@ class PushResolutionWorker(
         val sessionId = inputData.getString(KEY_SESSION_ID) ?: return Result.failure()
         val roomId = inputData.getString(KEY_ROOM_ID) ?: return Result.failure()
         log.d { "Resolving pushes for $sessionId/$roomId (attempt $runAttemptCount)" }
-        return when (PushNotificationHandler.resolvePendingPushes(SessionId(sessionId), RoomId(roomId))) {
-            PushResolutionOutcome.TransientFailure -> Result.retry()
-            PushResolutionOutcome.PermanentFailure -> Result.failure()
-            PushResolutionOutcome.Done -> Result.success()
+        val start = TimeSource.Monotonic.markNow()
+        val timestamp = System.currentTimeMillis()
+        val dao = revengeDatabase.pushNotificationDao()
+        try {
+            return when (PushNotificationHandler.resolvePendingPushes(SessionId(sessionId), RoomId(roomId))) {
+                PushResolutionOutcome.TransientFailure -> Result.retry()
+                PushResolutionOutcome.PermanentFailure -> Result.failure()
+                PushResolutionOutcome.Done -> Result.success()
+            }
+        } finally {
+            val duration = start.elapsedNow().inWholeMilliseconds
+            withContext(NonCancellable) {
+                dao.insertExecution(
+                    PushExecutionEntity(
+                        sessionId = sessionId,
+                        timestamp = timestamp,
+                        roomId = roomId,
+                        duration = duration,
+                    )
+                )
+            }
         }
     }
 

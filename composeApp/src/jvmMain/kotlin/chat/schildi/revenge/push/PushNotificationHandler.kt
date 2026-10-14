@@ -6,6 +6,7 @@ import chat.schildi.matrixsdk.FullyReadContent
 import chat.schildi.revenge.RevengeAppGraph
 import chat.schildi.revenge.ScCoroutines
 import chat.schildi.revenge.database.push.PushNotificationEventEntity
+import chat.schildi.revenge.database.push.PushReceiptEntity
 import chat.schildi.revenge.database.revengeDatabase
 import chat.schildi.revenge.notification.NotificationId
 import chat.schildi.revenge.notification.platformActiveNotificationRooms
@@ -14,6 +15,7 @@ import chat.schildi.revenge.notification.platformRedactNotificationMessage
 import chat.schildi.revenge.notification.platformNotify
 import chat.schildi.revenge.notification.platformNotifyMessage
 import chat.schildi.revenge.preferences.RevengePrefs
+import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
 import io.element.android.libraries.core.coroutine.suspendLazy
 import io.element.android.libraries.matrix.api.core.EventId
@@ -43,13 +45,28 @@ object PushNotificationHandler {
 
 
     fun onPushReceived(content: ByteArray, instance: String) {
+        val timestamp = System.currentTimeMillis()
         scope.launch {
             val sessionId = pushDao.getSessionId(instance)
-            val payload = deserializeUnifiedPushPayload(content)
             if (sessionId == null) {
                 log.w { "Ignoring push payload for unknown session via $instance" }
                 return@launch
             }
+            val contentString = runCatching {
+                content.decodeToString()
+            }.onFailure {
+                log.e("Failed to decode push payload", it)
+            }.getOrNull()
+            val payload = contentString?.let(::deserializeUnifiedPushPayload)
+            pushDao.insertReceipt(
+                PushReceiptEntity(
+                    sessionId = sessionId,
+                    pushSource = instance,
+                    timestamp = timestamp,
+                    roomId = payload?.notification?.roomId,
+                    payload = contentString,
+                )
+            )
             if (payload == null) {
                 log.w { "Ignoring empty push payload for $instance / $sessionId" }
                 return@launch
@@ -81,7 +98,7 @@ object PushNotificationHandler {
                     roomId = notification.roomId,
                     eventId = notification.eventId,
                     pushSource = instance,
-                    timestamp = System.currentTimeMillis(),
+                    timestamp = timestamp,
                 )
             )
             if (RevengePrefs.getSetting(ScPrefs.DEBUG_NOTIFICATIONS)) {
@@ -207,7 +224,6 @@ object PushNotificationHandler {
                     roomId = data.roomId.value,
                     eventId = data.eventId.value,
                 )
-                // TODO clean up DB for pushes older than certain timestamp
             }
         }
 
@@ -249,6 +265,8 @@ object PushNotificationHandler {
                     }
             }
         }
+
+        pushDao.deleteOldPushHistory()
 
         return PushResolutionOutcome.Done
     }

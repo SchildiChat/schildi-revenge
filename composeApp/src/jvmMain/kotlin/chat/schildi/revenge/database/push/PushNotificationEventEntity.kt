@@ -1,9 +1,11 @@
 package chat.schildi.revenge.database.push
 
 import androidx.room3.Entity
+import androidx.room3.Index
 
 @Entity(
     tableName = "PushNotificationEvent",
+    indices = [Index("timestamp")],
     primaryKeys = [
         "sessionId",
         "roomId",

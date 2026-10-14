@@ -31,8 +31,8 @@ private data class UnifiedPushDefaultPayload(
     @SerialName("cs") val clientSecret: String,
 )
 
-fun deserializeUnifiedPushPayload(content: ByteArray): UnifiedPushPayload? = runCatching {
-    pushJson.decodeFromString<UnifiedPushPayload>(content.decodeToString())
+fun deserializeUnifiedPushPayload(content: String): UnifiedPushPayload? = runCatching {
+    pushJson.decodeFromString<UnifiedPushPayload>(content)
 }.getOrNull()
 
 fun serializeUnifiedPushDefaultPayload(clientSecret: String): String =

@@ -18,6 +18,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -55,11 +56,16 @@ import co.touchlab.kermit.Logger
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.pref_push_registrations_info_none
 import shire.res.generated.resources.pref_push_registrations_info_summary
+import shire.res.generated.resources.pref_push_registrations_info_usage
 import kotlin.math.roundToInt
+import kotlin.time.Duration.Companion.hours
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 
 fun LazyListScope.renderPref(
     pref: AbstractScPref,
@@ -315,7 +321,16 @@ fun <T> ScListPref<T>.Rendered() {
 fun ScViewOnlyPref.Rendered() {
     when (kind) {
         ScViewOnlyPref.Kind.PUSH_REGISTRATIONS -> {
-            val registrations = revengeDatabase.pushNotificationDao().followPushRegistrations()
+            val dao = revengeDatabase.pushNotificationDao()
+            val registrations = remember(dao) { dao.followPushRegistrations() }
+                .collectAsState(null).value
+            val since by produceState(System.currentTimeMillis() - 24.hours.inWholeMilliseconds) {
+                while (true) {
+                    delay(1.minutes)
+                    value = System.currentTimeMillis() - 24.hours.inWholeMilliseconds
+                }
+            }
+            val stats = remember(dao, since) { dao.followPushStats(since) }
                 .collectAsState(null).value
             if (registrations == null) {
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
@@ -328,6 +343,14 @@ fun ScViewOnlyPref.Rendered() {
             } else {
                 Column {
                     registrations.forEach { registration ->
+                        val usage = stats?.find {
+                            it.sessionId == registration.sessionId
+                        }
+                        val usageText = if (stats == null) "" else "\n" + stringResource(
+                            Res.string.pref_push_registrations_info_usage,
+                            usage?.pushCount ?: 0L,
+                            (usage?.duration ?: 0L).milliseconds.toString(),
+                        )
                         ScPrefLayout(
                             title = registration.sessionId,
                             secondaryText = stringResource(
@@ -335,7 +358,7 @@ fun ScViewOnlyPref.Rendered() {
                                 registration.endpoint ?: "",
                                 registration.gateway ?: "",
                                 registration.homeserverRegistered.toString(),
-                            )
+                            ) + usageText
                         )
                     }
                 }
