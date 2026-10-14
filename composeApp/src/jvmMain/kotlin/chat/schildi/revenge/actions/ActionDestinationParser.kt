@@ -184,6 +184,12 @@ private inline fun String.toDestinationOrNull(
                 Destination.RoomDevTools(sessionId, roomId)
             }
         }
+        DestinationEnum.PushHistory -> {
+            tryOrNull {
+                val sessionId = args.getOrNull(0)?.let(::SessionId)
+                Destination.PushHistory(sessionId)
+            }
+        }
         DestinationEnum.SpaceDiscovery -> {
             tryOrNull {
                 val sessionId = args.getOrNull(0)?.let(::SessionId) ?: context!!.ensureSessionId()

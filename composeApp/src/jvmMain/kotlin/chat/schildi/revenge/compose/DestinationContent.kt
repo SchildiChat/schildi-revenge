@@ -19,6 +19,7 @@ import chat.schildi.revenge.compose.destination.AboutScreen
 import chat.schildi.revenge.compose.destination.devtools.AccountDevToolsScreen
 import chat.schildi.revenge.compose.destination.AccountManagementScreen
 import chat.schildi.revenge.compose.destination.DiagnosticsScreen
+import chat.schildi.revenge.compose.destination.PushHistoryScreen
 import chat.schildi.revenge.compose.destination.SessionSelectorScreen
 import chat.schildi.revenge.compose.destination.SplashScreen
 import chat.schildi.revenge.compose.destination.conversation.ConversationScreen
@@ -69,6 +70,7 @@ fun DestinationContent(
                 is Destination.SpaceDiscovery -> SpaceDiscoveryScreen(destination, baseModifier, contentModifier)
                 is Destination.AccountDevTools -> AccountDevToolsScreen(destination, baseModifier, contentModifier)
                 is Destination.RoomDevTools -> RoomDevToolsScreen(destination, baseModifier, contentModifier)
+                is Destination.PushHistory -> PushHistoryScreen(destination, baseModifier, contentModifier)
                 is Destination.SplitHorizontal -> SplitHorizontal(destination, baseModifier, contentModifier)
                 is Destination.SplitVertical -> SplitVertical(destination, baseModifier, contentModifier)
                 is Destination.About -> AboutScreen(destination, baseModifier, contentModifier)
@@ -134,6 +136,7 @@ private fun DestinationEnum.measureInfo(): DestinationMeasure = when (this) {
     DestinationEnum.Diagnostics,
     DestinationEnum.VerificationRequest,
     DestinationEnum.SessionSelector,
+    DestinationEnum.PushHistory,
     DestinationEnum.About -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_SETTINGS, ScPrefs.LAYOUT_WEIGHT_SETTINGS)
     DestinationEnum.Settings -> DestinationEnum.SettingsRoot.measureInfo() + DestinationEnum.SplitSettingsDetailsPlaceholder.measureInfo()
     DestinationEnum.SettingsRoot -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_SETTINGS, ScPrefs.LAYOUT_WEIGHT_SETTINGS_ROOT)

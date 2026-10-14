@@ -28,6 +28,7 @@ import shire.res.generated.resources.inbox
 import shire.res.generated.resources.manage_accounts
 import shire.res.generated.resources.message_reactions_title
 import shire.res.generated.resources.message_read_receipts_title
+import shire.res.generated.resources.push_history_title
 import shire.res.generated.resources.room_dev_tools_title
 import shire.res.generated.resources.room_details_title
 import shire.res.generated.resources.select_account
@@ -311,6 +312,16 @@ sealed interface Destination {
         override val category = DestinationCategory.DEV_TOOLS
         @Transient
         override val title = StringResourceHolder(Res.string.room_dev_tools_title)
+    }
+
+    @Serializable
+    data class PushHistory(
+        val sessionId: SessionId? = null,
+    ) : Destination {
+        override val destinationId = DestinationEnum.PushHistory
+        override val category = DestinationCategory.DEV_TOOLS
+        @Transient
+        override val title = StringResourceHolder(Res.string.push_history_title)
     }
 
     sealed interface Split : Destination {

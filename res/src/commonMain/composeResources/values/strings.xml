@@ -625,6 +625,25 @@
     <string name="pref_push_registrations_info_summary">Endpoint: %1$s\nGateway: %2$s\nRegistered: %3$s</string>
     <string name="pref_push_registrations_info_usage">Pushes: %1$d / 24h\nProcessing: %2$s / 24h</string>
 
+    <string name="push_history_title">Push history</string>
+    <string name="push_history_empty">No recent pushes</string>
+    <string name="push_history_pending">Pending</string>
+    <plurals name="push_history_failed_n_times">
+        <item quantity="one">Failed %1$d time</item>
+        <item quantity="other">Failed %1$d times</item>
+    </plurals>
+    <string name="push_history_resolved">Resolved</string>
+    <plurals name="push_history_resolved_with_failures">
+        <item quantity="one">Resolved with %1$d failure</item>
+        <item quantity="other">Resolved with %1$d failures</item>
+    </plurals>
+    <string name="push_history_push_received">Push: %1$s</string>
+    <string name="push_history_worker">Work: %1$s</string>
+    <string name="push_history_filter_title">Filter event types</string>
+    <string name="push_history_type_received">Push received</string>
+    <string name="push_history_type_resolved">Push resolved</string>
+    <string name="push_history_type_worker">Worker execution</string>
+
     <string name="pref_read_receipt_type_title">Read receipt type</string>
     <string name="pref_read_receipt_type_public">Shared</string>
     <string name="pref_read_receipt_type_private">Private</string>

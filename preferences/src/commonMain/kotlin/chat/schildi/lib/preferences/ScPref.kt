@@ -237,8 +237,9 @@ data class ScViewOnlyPref(
     override val dependencies: List<ScPrefDependency> = emptyList(),
     override val supportedOnPlatform: Boolean = true,
 ) : AbstractScPref {
-    enum class Kind {
-        PUSH_REGISTRATIONS;
+    enum class Kind(val withHeader: Boolean) {
+        PUSH_HISTORY(false),
+        PUSH_REGISTRATIONS(true);
         operator fun invoke(
             titleRes: StringResource,
             summaryRes: StringResource? = null,

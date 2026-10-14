@@ -194,7 +194,7 @@ object PushNotificationHandler {
                     pushDao.updatePushes(
                         listOf(
                             push.copy(
-                                failureCount = push.failureCount + 1,
+                                failureCount = if (countsAsResolved) push.failureCount else (push.failureCount + 1),
                                 lastFailure = eventResult?.exceptionOrNull()?.toString() ?: "SDK ignored the event",
                                 resolvedTimestamp = if (countsAsResolved) System.currentTimeMillis() else null,
                             )

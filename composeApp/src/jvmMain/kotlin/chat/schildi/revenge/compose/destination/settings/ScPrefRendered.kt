@@ -53,6 +53,7 @@ import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.database.revengeDatabase
 import chat.schildi.theme.scExposures
 import co.touchlab.kermit.Logger
+import io.element.android.libraries.matrix.api.core.SessionId
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.launch
@@ -81,10 +82,12 @@ fun LazyListScope.renderPref(
         }
         is ScViewOnlyPref -> {
             item {
-                ScPrefCategoryHeader(
-                    title = stringResource(pref.titleRes),
-                    isFirst = isFirst,
-                )
+                if (pref.kind.withHeader) {
+                    ScPrefCategoryHeader(
+                        title = stringResource(pref.titleRes),
+                        isFirst = isFirst,
+                    )
+                }
             }
             item(key = pref.kind.name) {
                 pref.Rendered()
@@ -320,6 +323,30 @@ fun <T> ScListPref<T>.Rendered() {
 @Composable
 fun ScViewOnlyPref.Rendered() {
     when (kind) {
+        ScViewOnlyPref.Kind.PUSH_HISTORY -> {
+            val dao = revengeDatabase.pushNotificationDao()
+            val since by produceState(System.currentTimeMillis() - 24.hours.inWholeMilliseconds) {
+                while (true) {
+                    delay(1.minutes)
+                    value = System.currentTimeMillis() - 24.hours.inWholeMilliseconds
+                }
+            }
+            val stats = remember(dao, since) { dao.followTotalPushCountAndDuration(since) }
+                .collectAsState(null).value
+            ScPrefLayout(
+                title = stringResource(titleRes),
+                secondaryText = stringResource(
+                    Res.string.pref_push_registrations_info_usage,
+                    stats?.first ?: 0L,
+                    (stats?.second ?: 0L).milliseconds.toString(),
+                ),
+                clickAction = {
+                    InteractionAction.Navigate {
+                        Destination.PushHistory()
+                    }
+                }
+            )
+        }
         ScViewOnlyPref.Kind.PUSH_REGISTRATIONS -> {
             val dao = revengeDatabase.pushNotificationDao()
             val registrations = remember(dao) { dao.followPushRegistrations() }
@@ -358,7 +385,12 @@ fun ScViewOnlyPref.Rendered() {
                                 registration.endpoint ?: "",
                                 registration.gateway ?: "",
                                 registration.homeserverRegistered.toString(),
-                            ) + usageText
+                            ) + usageText,
+                            clickAction = {
+                                InteractionAction.Navigate {
+                                    Destination.PushHistory(SessionId(registration.sessionId))
+                                }
+                            },
                         )
                     }
                 }

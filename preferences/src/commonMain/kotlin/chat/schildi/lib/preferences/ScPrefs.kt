@@ -225,6 +225,7 @@ import shire.res.generated.resources.pref_url_previews_title
 import shire.res.generated.resources.pref_view_hidden_events_summary
 import shire.res.generated.resources.pref_view_membership_events_in_public_rooms_summary
 import shire.res.generated.resources.pref_view_membership_events_in_public_rooms_title
+import shire.res.generated.resources.push_history_title
 
 object ScPrefs {
 
@@ -257,6 +258,7 @@ object ScPrefs {
     val PUSH_NOTIFICATIONS = ScBoolPref("PUSH_NOTIFICATIONS", true, Res.string.pref_push_notifications_title, Res.string.pref_push_notifications_summary, supportedOnPlatform = scPrefPlatformSupport.pushNotifications)
     val FORCE_FCM_DISTRIBUTOR = ScBoolPref("FORCE_FCM_DISTRIBUTOR", false, Res.string.pref_force_fcm_distributor_title, Res.string.pref_force_fcm_distributor_summary, supportedOnPlatform = scPrefPlatformSupport.androidOnly, dependencies = PUSH_NOTIFICATIONS.asDependencies(), disabledValue = null)
     val PUSH_REGISTRATIONS_LIST = ScViewOnlyPref.Kind.PUSH_REGISTRATIONS(Res.string.pref_category_push_registrations, supportedOnPlatform = scPrefPlatformSupport.pushNotifications)
+    val PUSH_HISTORY = ScViewOnlyPref.Kind.PUSH_HISTORY(Res.string.push_history_title, supportedOnPlatform = scPrefPlatformSupport.pushNotifications)
 
     // Tray icon
     val CLOSE_TO_TRAY = ScBoolPref("CLOSE_TO_TRAY", true, Res.string.pref_close_to_tray_title, Res.string.pref_close_to_tray_summary, supportedOnPlatform = scPrefPlatformSupport.desktopOnly)
@@ -543,7 +545,8 @@ object ScPrefs {
             DESKTOP_NOTIFICATIONS,
             PUSH_NOTIFICATIONS,
             FORCE_FCM_DISTRIBUTOR,
-            PUSH_REGISTRATIONS_LIST
+            PUSH_HISTORY,
+            PUSH_REGISTRATIONS_LIST,
         ), supportedOnPlatform = scPrefPlatformSupport.notifications),
         ScPrefScreen("INBOX", Res.string.pref_category_inbox, Res.string.pref_category_inbox_summary, listOf(
             CANONICAL_PARENT_SPACE_AVATAR_FALLBACK,
