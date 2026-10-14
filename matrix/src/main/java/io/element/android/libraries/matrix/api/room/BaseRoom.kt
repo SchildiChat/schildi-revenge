@@ -169,6 +169,7 @@ interface BaseRoom : Closeable {
     suspend fun getRawState(eventType: String, stateKey: String): Result<String?>
     suspend fun getRawState(eventType: String): Result<List<String>>
     suspend fun fetchFullRoomState(): Result<List<String>>
+    suspend fun fetchRawEvent(eventId: EventId, includeUnredactedContent: Boolean = false): Result<String>
     suspend fun setRoomUserDisplayName(displayName: String?): Result<Unit>
     suspend fun setRoomUserAvatarMxc(avatarUrl: String?): Result<Unit>
     suspend fun sendMultipleReceipts(receipts: Receipts): Result<Unit>

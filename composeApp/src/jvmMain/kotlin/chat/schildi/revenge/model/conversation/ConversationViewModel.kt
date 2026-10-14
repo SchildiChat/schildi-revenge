@@ -2512,6 +2512,27 @@ class ConversationViewModel(
                         } ?: ActionResult.Inapplicable
                     }
 
+                    Action.Event.CopyRawEventSource,
+                    Action.Event.ViewRawEventSource,
+                    Action.Event.CopyRedactedEventSource,
+                    Action.Event.ViewRedactedEventSource -> {
+                        eventId?.let {
+                            val room = baseRoom.value ?: return@let ActionResult.Failure("Room not ready")
+                            val includeUnredactedContent = action == Action.Event.CopyRedactedEventSource ||
+                                action == Action.Event.ViewRedactedEventSource
+                            launchActionAsync("fetchRawEventSource", viewModelScope) {
+                                room.fetchRawEvent(eventId, includeUnredactedContent).mapActionResult { source ->
+                                    val eventSource = source.toPrettyJson()
+                                    if (action == Action.Event.CopyRawEventSource || action == Action.Event.CopyRedactedEventSource) {
+                                        copyToClipboard(eventSource, Res.string.command_copy_name_event_source.toStringHolder())
+                                    } else {
+                                        viewInExternalApp(eventSource, ".json")
+                                    }
+                                }
+                            }
+                        } ?: ActionResult.Inapplicable
+                    }
+
                     Action.Event.CopyEventModel,
                     Action.Event.ViewEventModel -> {
                         val content = event.toString()

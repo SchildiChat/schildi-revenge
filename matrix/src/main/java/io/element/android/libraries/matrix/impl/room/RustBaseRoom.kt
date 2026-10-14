@@ -300,6 +300,11 @@ class RustBaseRoom(
             innerRoom.fetchFullRoomState()
         }
     }
+    override suspend fun fetchRawEvent(eventId: EventId, includeUnredactedContent: Boolean): Result<String> = withContext(roomDispatcher) {
+        runCatchingExceptions {
+            innerRoom.fetchEventRaw(eventId.value, includeUnredactedContent)
+        }
+    }
 
     override suspend fun setRoomUserDisplayName(displayName: String?): Result<Unit> = withContext(roomDispatcher) {
         runCatchingExceptions {
