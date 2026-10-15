@@ -342,6 +342,11 @@ class ConversationViewModel(
 
     private val clientFlow = UiState.selectClient(sessionId, viewModelScope, loadStateHolder)
 
+    private val _targetEvent = MutableStateFlow<EventJumpTarget?>(
+        initialTargetEvent?.let(EventJumpTarget::Event) ?: EventJumpTarget.Index(0)
+    )
+    val targetEvent = _targetEvent.asStateFlow()
+
     private val effectiveInitialEventId = viewModelScope.async {
         if (timelineParams == null && scPreferencesStore.getSetting(ScPrefs.OPEN_AT_UNREAD)) {
             loadStateHolder.addExpectedBefore(LoadCheckPoint.Timeline, LoadCheckPoint.ReadMarker)
@@ -366,12 +371,6 @@ class ConversationViewModel(
             initialTargetEvent
         }
     }
-
-
-    private val _targetEvent = MutableStateFlow<EventJumpTarget?>(
-        initialTargetEvent?.let(EventJumpTarget::Event) ?: EventJumpTarget.Index(0)
-    )
-    val targetEvent = _targetEvent.asStateFlow()
 
     private val timelineFilterSettings = scPreferencesStore.combinedSettingFlow { lookup ->
         buildScTimelineFilterSettings(lookup)
