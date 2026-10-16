@@ -37,7 +37,10 @@ fun ComposerAttachment(
             .padding(Dimens.Conversation.messageBubbleInnerPadding),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        ComposerAttachmentContent(attachment)
+        ComposerAttachmentContent(
+            attachment,
+            Modifier.weight(1f, fill = false),
+        )
         IconButton(onClick = onRemoveClick) {
             Icon(
                 Icons.Default.Clear,
