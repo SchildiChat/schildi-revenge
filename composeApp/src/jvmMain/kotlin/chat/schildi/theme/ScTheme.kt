@@ -15,7 +15,6 @@ import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import chat.schildi.lib.preferences.ScPref
@@ -46,8 +45,7 @@ data class MessageStyle(
             val fontSize = ScPrefs.MESSAGE_FONT_SIZE.safeLookup(lookup)
             val textStyle = bodyMedium.copy(
                 fontSize = fontSize.sp,
-                // Important for inline content to not fix a line height, so it can measure freely
-                lineHeight = TextUnit.Unspecified,
+                lineHeight = bodyMedium.lineHeight * (fontSize / bodyMedium.fontSize.value),
                 textDirection = TextDirection.Content,
             )
             return MessageStyle(

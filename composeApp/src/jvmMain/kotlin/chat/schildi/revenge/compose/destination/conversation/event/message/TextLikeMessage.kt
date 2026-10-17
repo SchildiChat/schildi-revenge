@@ -30,6 +30,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.min
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewInfo
@@ -173,6 +174,9 @@ fun TextLikeMessageContent(
             }
     val textStyle = if (isEmojiOnly) {
         Dimens.Conversation.emojiOnlyMessageStyle
+    } else if (text.inlineImages.isNotEmpty() || text.inlineTables.isNotEmpty()) {
+        // [Android] Important for inline content to not fix a line height, so it can measure freely.
+        LocalMessageStyle.current.textStyle.copy(lineHeight = TextUnit.Unspecified)
     } else {
         LocalMessageStyle.current.textStyle
     }
