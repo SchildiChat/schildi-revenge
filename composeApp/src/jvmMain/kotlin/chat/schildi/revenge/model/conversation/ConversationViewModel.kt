@@ -2418,8 +2418,10 @@ class ConversationViewModel(
                             senderProfile = event.senderProfile,
                         )
                         updateDraftAndFocus {
-                            it?.copy(inReplyTo = inReplyTo)
-                                ?: createDraftValue(inReplyTo = inReplyTo)
+                            it?.copy(
+                                inReplyTo = inReplyTo,
+                                type = it.type.takeIf { it != DraftType.REACTION } ?: DraftType.TEXT,
+                            ) ?: createDraftValue(inReplyTo = inReplyTo)
                         }
                     } ?: ActionResult.Inapplicable
 
