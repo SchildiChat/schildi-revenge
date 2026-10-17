@@ -192,6 +192,7 @@ import shire.res.generated.resources.action_redact_event_by_sender_prompt
 import shire.res.generated.resources.action_redact_event_prompt
 import shire.res.generated.resources.action_redact_message_by_sender_prompt
 import shire.res.generated.resources.action_redact_message_prompt
+import shire.res.generated.resources.command_copy_name_event_id
 import shire.res.generated.resources.command_copy_name_event_source
 import shire.res.generated.resources.command_copy_name_formatted_message_content
 import shire.res.generated.resources.command_copy_name_full_room_state
@@ -1834,6 +1835,16 @@ class ConversationViewModel(
                         EventJumpTarget.Index(0).navigateFrom(it)
                     }
                     ActionResult.Success()
+                }
+
+                Action.Conversation.JumpToEventId -> {
+                    val eventId = EventId(args.firstOrNull().orActionValidationError())
+                    jumpToMessage(
+                        actionName = action.name,
+                        eventName = Res.string.command_copy_name_event_id.toStringHolder(),
+                    ) {
+                        eventId
+                    }
                 }
 
                 Action.Conversation.MarkTimelineRead -> {

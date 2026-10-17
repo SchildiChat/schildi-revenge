@@ -352,6 +352,7 @@ sealed interface Action {
         JumpToOwnReadReceipt,
         JumpToFullyRead,
         JumpToBottom,
+        JumpToEventId(args = listOf(ActionArgumentPrimitive.EventId)),
         MarkTimelineRead,
         MarkTimelineReadPrivate,
         MarkTimelineFullyRead,

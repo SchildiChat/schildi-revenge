@@ -10,12 +10,19 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.actions.ActionResult
+import chat.schildi.revenge.actions.FocusRole
+import chat.schildi.revenge.actions.InteractionAction
+import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
+import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.compose.components.LocalSessionId
 import chat.schildi.revenge.compose.destination.conversation.event.EventContentLayout
+import chat.schildi.revenge.compose.focus.keyFocusable
+import chat.schildi.revenge.compose.focus.rememberFocusId
+import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.model.conversation.messageMetadata
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
@@ -31,13 +38,27 @@ fun ReplyContent(
     threadInfo: EventThreadInfo?,
     modifier: Modifier = Modifier
 ) {
-    // TODO jump to message action
+    val keyHandler = LocalKeyboardActionHandler.current
+    val focusId = rememberFocusId()
     Box(
         modifier
             .padding(bottom = Dimens.Conversation.replyItemPadding)
             .border(1.dp, MaterialTheme.scExposures.accentColor, Dimens.Conversation.replyContentShape)
             .background(MaterialTheme.colorScheme.surfaceVariant, Dimens.Conversation.replyContentShape)
-            .clip(Dimens.Conversation.replyContentShape)
+            .keyFocusable(
+                id = focusId,
+                role = FocusRole.NESTED_AUX_ITEM,
+                shape = Dimens.Conversation.replyContentShape,
+                actionProvider = actionProvider(
+                    primaryAction = InteractionAction.Invoke {
+                        keyHandler.handleAction(
+                            focusId,
+                            Action.Conversation.JumpToEventId,
+                            listOf(inReplyTo.eventId.value),
+                        ) is ActionResult.Success
+                    }
+                ),
+            )
     ) {
         when (inReplyTo) {
             is InReplyTo.Error -> {
