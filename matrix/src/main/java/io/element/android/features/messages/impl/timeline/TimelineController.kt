@@ -10,6 +10,7 @@ package io.element.android.features.messages.impl.timeline
 
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import chat.schildi.matrixsdk.ScTimelineFilterSettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.SingleIn
 import dev.zacsweers.metro.binding
@@ -95,11 +96,11 @@ class TimelineController(
         }
     }
 
-    suspend fun focusOnEvent(eventId: EventId, threadRootId: ThreadId?, /* SC */ hideThreadedEvents: Boolean): Result<EventFocusResult> {
+    suspend fun focusOnEvent(eventId: EventId, threadRootId: ThreadId?): Result<EventFocusResult> {
         return if (threadRootId != null) {
             Result.success(EventFocusResult.IsInThread(threadRootId))
         } else {
-            room.createTimeline(CreateTimelineParams.Focused(eventId), hideThreadedEvents)
+            room.createTimeline(CreateTimelineParams.Focused(eventId), ScTimelineFilterSettings())
                 .onFailure {
                     if (it is CancellationException) {
                         throw it

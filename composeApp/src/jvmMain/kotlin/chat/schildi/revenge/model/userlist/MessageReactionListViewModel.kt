@@ -91,7 +91,7 @@ class MessageReactionListViewModel(
 
     private val timelineController = roomFlow.map { room ->
         room ?: return@map null
-        room.createTimeline(CreateTimelineParams.Focused(eventId), preferHideThreadedEvents = false)
+        room.createTimeline(CreateTimelineParams.Focused(eventId), ScTimelineFilterSettings.IncludeAll)
             .onFailure { if (it is CancellationException) throw it }
             .map { ScTimelineController(room, null, initialDetachedTimeline = it) }
             .getOrElse { ScTimelineController(room, null) }

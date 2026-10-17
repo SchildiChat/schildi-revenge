@@ -11,6 +11,7 @@ package io.element.android.features.messages.impl.timeline
 
 import chat.schildi.lib.preferences.ScPreferencesStore
 import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.matrixsdk.ScTimelineFilterSettings
 import co.touchlab.kermit.Logger
 import io.element.android.features.messages.impl.timeline.di.LiveTimeline
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
@@ -232,12 +233,12 @@ class ScTimelineController(
     suspend fun focusOnEvent(
         eventId: EventId,
         threadRootId: ThreadId?,
-        hideThreadedEvents: Boolean
+        scTimelineFilterSettings: ScTimelineFilterSettings,
     ): Result<EventFocusResult> {
         return if (threadRootId != null) {
             Result.success(EventFocusResult.IsInThread(threadRootId))
         } else {
-            room.createTimeline(CreateTimelineParams.Focused(eventId), hideThreadedEvents)
+            room.createTimeline(CreateTimelineParams.Focused(eventId), scTimelineFilterSettings)
                 .onFailure {
                     if (it is CancellationException) {
                         throw it

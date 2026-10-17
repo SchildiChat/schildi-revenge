@@ -8,8 +8,7 @@
 
 package io.element.android.libraries.matrix.impl.room
 
-import chat.schildi.lib.preferences.ScPreferencesStore
-import chat.schildi.lib.preferences.ScPrefs
+import chat.schildi.matrixsdk.ScTimelineFilterSettings
 import io.element.android.appconfig.TimelineConfig
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
 import io.element.android.libraries.core.coroutine.childScope
@@ -106,7 +105,6 @@ class JoinedRustRoom(
     private val coroutineDispatchers: CoroutineDispatchers,
     private val systemClock: SystemClock,
     private val roomContentForwarder: RoomContentForwarder,
-    private val scPreferencesStore: ScPreferencesStore, // SC
     private val featureFlagService: FeatureFlagService,
 ) : JoinedRoom, BaseRoom by baseRoom {
     // Create a dispatcher for all room methods...
@@ -194,9 +192,9 @@ class JoinedRustRoom(
 
     override suspend fun createTimeline(
         createTimelineParams: CreateTimelineParams,
-        preferHideThreadedEvents: Boolean?, // SC
+        scTimelineFilterSettings: ScTimelineFilterSettings,
     ): Result<Timeline> = withContext(roomDispatcher) {
-        val hideThreadedEvents = preferHideThreadedEvents ?: featureFlagService.isFeatureEnabled(FeatureFlags.Threads)
+        val hideThreadedEvents = scTimelineFilterSettings.preferHideThreadedEvents ?: featureFlagService.isFeatureEnabled(FeatureFlags.Threads)
         val focus = when (createTimelineParams) {
             is CreateTimelineParams.PinnedOnly -> TimelineFocus.PinnedEvents
             is CreateTimelineParams.MediaOnly -> TimelineFocus.Live(hideThreadedEvents = false)
@@ -235,11 +233,11 @@ class JoinedRustRoom(
             CreateTimelineParams.PinnedOnly,
             is CreateTimelineParams.Threaded -> {
                 RustTimelineEventFilterFactory.create(
-                    hideMembershipInPublicChats = !scPreferencesStore.getSetting(ScPrefs.VIEW_MEMBERSHIP_EVENTS_IN_PUBLIC_ROOMS),
+                    hideMembershipInPublicChats = !scTimelineFilterSettings.showMembershipEventsInPublicRooms,
                     joinRule = roomInfoFlow.value.joinRule,
                     isEncrypted = roomInfoFlow.value.isEncrypted,
                     excludedStateTypes = TimelineConfig.excludedEvents,
-                )?.let(TimelineFilter::EventFilter) ?: TimelineFilter.All
+                ).scTimelineFilter(scTimelineFilterSettings)
             }
         }
 
@@ -274,7 +272,7 @@ class JoinedRustRoom(
                     filter = filter,
                     internalIdPrefix = internalIdPrefix,
                     dateDividerMode = dateDividerMode,
-                    trackReadReceipts = if (trackReadReceipts) (TimelineReadReceiptTracking.ALL_EVENTS.takeIf { scPreferencesStore.getSetting(ScPrefs.VIEW_HIDDEN_EVENTS) } ?: TimelineReadReceiptTracking.MESSAGE_LIKE_EVENTS) else TimelineReadReceiptTracking.DISABLED,
+                    trackReadReceipts = if (trackReadReceipts) (TimelineReadReceiptTracking.ALL_EVENTS.takeIf { scTimelineFilterSettings.showHiddenEvents } ?: TimelineReadReceiptTracking.MESSAGE_LIKE_EVENTS) else TimelineReadReceiptTracking.DISABLED,
                     reportUtds = false,
                 )
             ).let { innerTimeline ->

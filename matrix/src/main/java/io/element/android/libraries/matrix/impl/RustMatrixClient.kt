@@ -8,7 +8,6 @@
 
 package io.element.android.libraries.matrix.impl
 
-import chat.schildi.lib.preferences.ScPreferencesStore
 import chat.schildi.notifications.SyncNotification
 import chat.schildi.notifications.SyncNotificationService
 import chat.schildi.matrixsdk.ScTimelineFilterSettings
@@ -163,7 +162,6 @@ class RustMatrixClient(
     baseCacheDirectory: File,
     clock: SystemClock,
     timelineEventFilterFactory: TimelineEventFilterFactory,
-    private val scPreferencesStore: ScPreferencesStore,
     private val featureFlagService: FeatureFlagService,
     private val analyticsService: AnalyticsService,
     private val workManagerScheduler: WorkManagerScheduler,
@@ -273,7 +271,6 @@ class RustMatrixClient(
         timelineEventFilterFactory = timelineEventFilterFactory,
         roomMembershipObserver = roomMembershipObserver,
         roomInfoMapper = roomInfoMapper,
-        scPreferencesStore = scPreferencesStore, // SC
         featureFlagService = featureFlagService,
         analyticsService = analyticsService,
     )

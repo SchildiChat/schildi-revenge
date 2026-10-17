@@ -533,7 +533,8 @@ class ConversationViewModel(
                 val initialEventId = effectiveInitialEventId.await()
                     ?: return@map ScTimelineController(room, scPreferencesStore)
 
-                val preferHideThreadedEvents = timelineFilterSettings.value.preferHideThreadedEvents
+                val filterSettings = timelineFilterSettings.value
+                val preferHideThreadedEvents = filterSettings.preferHideThreadedEvents
                     ?: !ScPrefs.THREAD_REPLIES_IN_MAIN_TIMELINE.defaultValue
                 // Try using live timeline anyway if we're allowed to.
                 // Note that for arbitrary events we may want to switch to thread timeline mode automatically,
@@ -559,7 +560,7 @@ class ConversationViewModel(
                 if (alwaysAllowLiveTimeline) {
                     room.createTimeline(
                         CreateTimelineParams.Focused(initialEventId),
-                        preferHideThreadedEvents,
+                        filterSettings,
                     ).onFailure {
                         if (it is CancellationException) throw it
                     }.map {
@@ -575,7 +576,7 @@ class ConversationViewModel(
                     val liveTimeline = if (threadId == null) {
                         room.liveTimeline
                     } else {
-                        room.createTimeline(CreateTimelineParams.Threaded(threadId))
+                        room.createTimeline(CreateTimelineParams.Threaded(threadId), filterSettings)
                             .onFailure {
                                 if (it is CancellationException) throw it
                                 log.e("Failed to create threaded timeline for initial event $initialEventId, thread $threadId", it)
@@ -584,7 +585,7 @@ class ConversationViewModel(
                     }
                     room.createTimeline(
                         CreateTimelineParams.Focused(initialEventId),
-                        preferHideThreadedEvents,
+                        filterSettings,
                     ).onFailure {
                         if (it is CancellationException) throw it
                     }.map {
@@ -597,7 +598,8 @@ class ConversationViewModel(
             }
             else -> {
                 room.createTimeline(
-                    timelineParams
+                    timelineParams,
+                    timelineFilterSettings.value,
                 ).onFailure {
                     if (it is CancellationException) throw it
                     log.e("Failed to get special timeline via $timelineParams", it)
@@ -2248,9 +2250,7 @@ class ConversationViewModel(
         return controller.focusOnEvent(
             eventId,
             threadId.value,
-            timelineFilterSettings.value.preferHideThreadedEvents
-                // Shouldn't happen
-                ?: ScPrefs.THREAD_REPLIES_IN_MAIN_TIMELINE.defaultValue
+            timelineFilterSettings.value,
         )
             .onFailure { log.e("Failed to focus on event $eventId", it) }
             .onSuccess {
