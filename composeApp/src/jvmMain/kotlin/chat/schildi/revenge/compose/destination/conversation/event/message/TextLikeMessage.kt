@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isSpecified
 import androidx.compose.ui.unit.min
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewInfo
 import chat.schildi.revenge.Dimens
@@ -299,7 +300,7 @@ private fun Map<String, InlineImageInfo>.toInlineContent(
     val inlineImageSizes = remember { mutableStateMapOf<String, IntSize>() }
     return toInlineContent(
         density = LocalDensity.current,
-        defaultHeight = textStyle.lineHeight,
+        defaultHeight = textStyle.lineHeight.takeIf { it.isSpecified } ?: textStyle.fontSize,
         actualImageSizes = inlineImageSizes,
         minWidth = INLINE_IMG_MIN_WIDTH_DP.dp,
         maxWidth = INLINE_IMG_MAX_WIDTH_DP.dp,
