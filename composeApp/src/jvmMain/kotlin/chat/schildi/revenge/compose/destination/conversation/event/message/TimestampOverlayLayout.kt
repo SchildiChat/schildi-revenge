@@ -128,10 +128,19 @@ fun TimestampOverlayLayout(
         }
     ) { measurables, constraints ->
         val textMeasurable = measurables[0]
-        val overlayMeasurable = measurables[1]
+        val overlayMeasurable = measurables.getOrNull(1)
 
         // Measure main text
         val textPlaceable = textMeasurable.measure(constraints)
+
+        // Handle missing overlay
+        if (overlayMeasurable == null) {
+            return@Layout layout(textPlaceable.width, textPlaceable.height) {
+                textPlaceable.place(0, 0)
+            }
+        }
+
+        // Measure overlay
         val overlayPlaceable = overlayMeasurable.measure(constraints)
 
         val lastLineWidth = textLayoutResult.lastLineRightIncludingPlaceholders()

@@ -36,7 +36,8 @@ import shire.res.generated.resources.reply_failed_to_load
 fun ReplyContent(
     inReplyTo: InReplyTo,
     threadInfo: EventThreadInfo?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    renderContext: MessageRenderContext = MessageRenderContext.IN_REPLY_TO,
 ) {
     val keyHandler = LocalKeyboardActionHandler.current
     val focusId = rememberFocusId()
@@ -73,7 +74,7 @@ fun ReplyContent(
             is InReplyTo.Ready -> {
                 val roomContext = LocalRoomContextSuggestionsProvider.current
                 CompositionLocalProvider(
-                    LocalMessageRenderContext provides MessageRenderContext.IN_REPLY_TO,
+                    LocalMessageRenderContext provides renderContext,
                     LocalThreadReplyContext provides
                             (threadInfo as? EventThreadInfo.ThreadResponse)
                                 ?.threadRootId

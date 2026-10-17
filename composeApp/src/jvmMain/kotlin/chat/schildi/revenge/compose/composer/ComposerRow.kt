@@ -54,6 +54,7 @@ import chat.schildi.revenge.compose.destination.conversation.event.message.TextL
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.Attachment
 import chat.schildi.lib.preferences.ComposerFormat
+import chat.schildi.revenge.compose.destination.conversation.event.message.MessageRenderContext
 import chat.schildi.revenge.model.ComposerRoomInfo
 import chat.schildi.revenge.model.ComposerState
 import chat.schildi.revenge.model.ComposerViewModel
@@ -120,7 +121,12 @@ fun ComposerRow(
         )
         if (draftState.inReplyTo != null) {
             Row(Modifier.padding(horizontal = Dimens.windowPadding), verticalAlignment = Alignment.CenterVertically) {
-                ReplyContent(draftState.inReplyTo, null, Modifier.weight(1f))
+                ReplyContent(
+                    draftState.inReplyTo,
+                    null,
+                    Modifier.weight(1f),
+                    MessageRenderContext.COMPOSER_IN_REPLY_TO,
+                )
                 ClearButton(Modifier.padding(start = Dimens.horizontalItemPadding)) {
                     viewModel.onComposerUpdate(draftState.copy(inReplyTo = null))
                 }

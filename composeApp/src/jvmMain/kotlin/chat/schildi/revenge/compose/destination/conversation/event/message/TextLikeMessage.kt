@@ -151,13 +151,20 @@ fun TextLikeMessage(
 }
 
 @Composable
+private fun defaultTextContentMaxLines() = when (LocalMessageRenderContext.current) {
+    MessageRenderContext.NORMAL -> Int.MAX_VALUE
+    MessageRenderContext.IN_REPLY_TO -> 20
+    MessageRenderContext.COMPOSER_IN_REPLY_TO -> 3
+}
+
+@Composable
 fun TextLikeMessageContent(
     text: MatrixBodyParseResult,
     modifier: Modifier = Modifier,
     allowBigEmojiOnly: Boolean = false,
     textColor: Color = MaterialTheme.colorScheme.primary,
     interactionState: MatrixFormatInteractionState = rememberMatrixFormatInteractionState(text),
-    maxLines: Int = if (LocalMessageRenderContext.current == MessageRenderContext.IN_REPLY_TO) 20 else Int.MAX_VALUE,
+    maxLines: Int = defaultTextContentMaxLines(),
     onTextLayout: (TextLayoutResult) -> Unit = {},
 ) {
     val isEmojiOnly = allowBigEmojiOnly && LocalMessageRenderContext.current == MessageRenderContext.NORMAL &&
@@ -188,7 +195,7 @@ fun TextLikeMessageContent(
     textColor: Color = MaterialTheme.colorScheme.primary,
     textAlign: TextAlign? = null,
     interactionState: MatrixFormatInteractionState = rememberMatrixFormatInteractionState(text),
-    maxLines: Int = if (LocalMessageRenderContext.current == MessageRenderContext.IN_REPLY_TO) 20 else Int.MAX_VALUE,
+    maxLines: Int = defaultTextContentMaxLines(),
     overflow: TextOverflow = TextOverflow.Ellipsis,
     onTextLayout: (TextLayoutResult) -> Unit = {},
 ) {

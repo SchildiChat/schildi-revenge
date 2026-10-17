@@ -101,6 +101,7 @@ object Dimens {
         val imageMaxWidth = 500.dp
         val imageMaxHeight = 500.dp
         val imageRepliedToMaxHeight = 200.dp
+        val imageComposerRepliedToMaxHeight = 96.dp
 
         val reactionShape = RoundedCornerShape(16.dp)
         val reactionPaddingHorizontal = 8.dp

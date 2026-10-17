@@ -120,6 +120,7 @@ fun ImageMessage(
             maxHeight = when (LocalMessageRenderContext.current) {
                 MessageRenderContext.NORMAL -> Dimens.Conversation.imageMaxHeight
                 MessageRenderContext.IN_REPLY_TO -> Dimens.Conversation.imageRepliedToMaxHeight
+                MessageRenderContext.COMPOSER_IN_REPLY_TO -> Dimens.Conversation.imageComposerRepliedToMaxHeight
             },
             caption = messageMetadata?.preFormattedContent,
             shape = shape,

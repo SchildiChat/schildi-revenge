@@ -8,6 +8,7 @@ import io.element.android.libraries.matrix.api.core.ThreadId
 enum class MessageRenderContext {
     NORMAL,
     IN_REPLY_TO,
+    COMPOSER_IN_REPLY_TO,
 }
 
 data class ThreadReplyContext(

@@ -1,6 +1,5 @@
 package chat.schildi.revenge.compose.destination.conversation.event.message
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
@@ -58,7 +57,7 @@ val LocalUrlPreviewStateProvider = staticCompositionLocalOf<UrlPreviewStateProvi
 
 @Composable
 fun resolveUrlPreview(body: MatrixBodyParseResult): UrlPreviewInfo? {
-    if (LocalMessageRenderContext.current == MessageRenderContext.IN_REPLY_TO) {
+    if (LocalMessageRenderContext.current != MessageRenderContext.NORMAL) {
         return null
     }
     // This will be null when url previews are disabled for this room
@@ -74,7 +73,6 @@ fun resolveUrlPreview(body: MatrixBodyParseResult): UrlPreviewInfo? {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UrlPreviewView(
     urlPreview: UrlPreview,
@@ -83,7 +81,7 @@ fun UrlPreviewView(
     onLongCLick: (() -> Unit)? = null,
     onClick: () -> Unit,
 ) {
-    if (LocalMessageRenderContext.current == MessageRenderContext.IN_REPLY_TO) {
+    if (LocalMessageRenderContext.current != MessageRenderContext.NORMAL) {
         return
     }
     Column(

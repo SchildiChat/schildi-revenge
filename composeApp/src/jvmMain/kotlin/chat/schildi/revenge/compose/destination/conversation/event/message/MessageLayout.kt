@@ -34,6 +34,7 @@ fun MessageLayout(
                 messageContent = messageContent,
             )
         }
+        MessageRenderContext.COMPOSER_IN_REPLY_TO,
         MessageRenderContext.IN_REPLY_TO -> {
             MessageLayoutInReplyTo(
                 senderName = senderName,
