@@ -21,6 +21,8 @@ import chat.schildi.revenge.config.keybindings.ActionArgumentPrimitive
 import chat.schildi.revenge.config.keybindings.ActionRoomNotificationSetting
 import chat.schildi.revenge.config.keybindings.KeyTrigger
 import chat.schildi.revenge.model.invites.SeenInvitesStore
+import chat.schildi.revenge.notification.platformAutoDismissNotification
+import chat.schildi.revenge.notification.platformDismissNotification
 import chat.schildi.revenge.toPrettyJson
 import chat.schildi.revenge.util.matrix.updateAccountData
 import io.element.android.libraries.matrix.api.MatrixClient
@@ -165,12 +167,15 @@ class RoomActionProvider(
                 room.setUnreadFlag(false).toActionResult()
             }
             Action.Room.MarkRoomRead -> {
+                platformDismissNotification(sessionId, roomId)
                 room.markAsRead(ReceiptType.READ).toActionResult()
             }
             Action.Room.MarkRoomReadPrivate -> {
+                platformDismissNotification(sessionId, roomId)
                 room.markAsRead(ReceiptType.READ_PRIVATE).toActionResult()
             }
             Action.Room.MarkRoomFullyRead -> {
+                platformDismissNotification(sessionId, roomId)
                 room.markAsRead(ReceiptType.FULLY_READ).toActionResult()
             }
             Action.Room.Join -> {

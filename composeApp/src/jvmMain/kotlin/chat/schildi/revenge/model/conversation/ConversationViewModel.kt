@@ -748,6 +748,7 @@ class ConversationViewModel(
         GlobalActionsScope.launch {
             // Fresh room so receipts still get sent while the VM gets closed and cleaned up
             clientFlow.value?.getRoom(roomId)?.use { room ->
+                platformAutoDismissNotification(sessionId, roomId, listOf(latest))
                 room.sendMultipleReceipts(
                     Receipts(
                         fullyRead = latest,
