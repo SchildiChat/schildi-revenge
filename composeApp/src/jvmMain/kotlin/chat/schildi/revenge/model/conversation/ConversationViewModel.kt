@@ -1204,7 +1204,10 @@ class ConversationViewModel(
                                 )
                             }
                             if (draft.isValidReaction) {
-                                currentTimeline.toggleReaction(
+                                // Can only send reactions on the original timeline we had them rendered :(
+                                val relevantTimeline = relevantTimelineForEvent(relatesToEventId.toEventOrTransactionId())
+                                    ?: currentTimeline
+                                relevantTimeline.toggleReaction(
                                     emoji = draft.body,
                                     eventOrTransactionId = relatesToEventId.toEventOrTransactionId(),
                                 )
@@ -1339,6 +1342,29 @@ class ConversationViewModel(
             forceShowComposer.value = false
         }
         return ActionResult.Success()
+    }
+
+    // Look up the timeline an event ID currently comes from, in case of split timelines.
+    private fun relevantTimelineForEvent(id: EventOrTransactionId): Timeline? {
+        val timelineState = activeTimelineState.value
+        return if (timelineState?.prependedTimeline != null &&
+            timelineState.mergeOffset > 0
+        ) {
+            val relatedItemIndex = timelineState.items.indexOfFirst {
+                when (id) {
+                    is EventOrTransactionId.Event -> (it as? MatrixTimelineItem.Event)?.eventId == id.eventId
+                    is EventOrTransactionId.Transaction -> (it as? MatrixTimelineItem.Event)?.transactionId == id.id
+                }
+
+            }
+            if (relatedItemIndex < timelineState.mergeOffset) {
+                timelineState.prependedTimeline
+            } else {
+                timelineState.preferredTimeline
+            }
+        } else {
+            timelineState?.preferredTimeline
+        }
     }
 
     override fun clearAttachment() {
@@ -2701,7 +2727,10 @@ class ConversationViewModel(
                     Action.Event.ToggleReactionKey -> {
                         val reaction = args.firstOrNull().orActionValidationError()
                         eventOrTransactionId ?: return@run ActionResult.Inapplicable
-                        val timeline = activeTimeline.value ?: return@run ActionResult.Failure("Timeline not ready")
+                        // Can only send reactions on the original timeline we had them rendered :(
+                        val timeline = relevantTimelineForEvent(eventOrTransactionId)
+                            ?: activeTimeline.value
+                            ?: return@run ActionResult.Failure("Timeline not ready")
                         launchActionAsync(
                             "toggleReaction",
                             viewModelScope,
@@ -2718,7 +2747,10 @@ class ConversationViewModel(
                         val index = args.firstOrNull()?.toIntOrNull().orActionValidationError()
                         val reactionToToggle = event.reactions.getOrNull(index) ?: return@run ActionResult.Inapplicable
                         eventOrTransactionId ?: return@run ActionResult.Inapplicable
-                        val timeline = activeTimeline.value ?: return@run ActionResult.Failure("Timeline not ready")
+                        // Can only send reactions on the original timeline we had them rendered :(
+                        val timeline = relevantTimelineForEvent(eventOrTransactionId)
+                            ?: activeTimeline.value
+                            ?: return@run ActionResult.Failure("Timeline not ready")
                         launchActionAsync(
                             "toggleReaction",
                             viewModelScope,
@@ -2843,7 +2875,10 @@ class ConversationViewModel(
     }
 
     fun toggleReaction(eventOrTransactionId: EventOrTransactionId, emoji: String): Boolean {
-        val timeline = activeTimeline.value ?: return false
+        // Can only send reactions on the original timeline we had them rendered :(
+        val timeline = relevantTimelineForEvent(eventOrTransactionId)
+            ?: activeTimeline.value
+            ?: return false
         viewModelScope.launch(Dispatchers.IO) {
             timeline.toggleReaction(emoji, eventOrTransactionId)
         }

@@ -52,12 +52,14 @@ import kotlin.jvm.optionals.getOrNull
 
 data class TimelineItemsState(
     val items: List<MatrixTimelineItem>,
-    val sourceTimelines: List<Timeline>,
+    val preferredTimeline: Timeline,
+    val prependedTimeline: Timeline? = null,
     val isLive: Boolean,
+    // Offset := index of last detached item in the list if merged
     val mergeOffset: Int = if (isLive) -1 else 0,
 ) {
-    val preferredTimeline: Timeline
-        get() = sourceTimelines.first()
+    val sourceTimelines: List<Timeline>
+        get() = listOfNotNull(preferredTimeline, preferredTimeline)
     val detachedSize = mergeOffset.coerceAtLeast(0)
     val liveSize = if (isLive && mergeOffset >= 0) items.size - mergeOffset else 0
 }
@@ -100,7 +102,7 @@ class ScTimelineController(
         scPreferencesStore?.settingFlow(ScPrefs.ALLOW_LIVE_TIMELINE_MERGE) ?: flowOf(ScPrefs.ALLOW_LIVE_TIMELINE_MERGE.defaultValue),
     ) { liveItems, detachedItems, allowMerge ->
         if (detachedItems == null || detachedItems.second.isEmpty()) {
-            TimelineItemsState(liveItems, listOf(liveTimeline), isLive = true)
+            TimelineItemsState(liveItems, liveTimeline, isLive = true)
         } else if (allowMerge) {
             mergeTimelines(
                 liveItems,
@@ -110,7 +112,7 @@ class ScTimelineController(
         } else {
             TimelineItemsState(
                 detachedItems.second,
-                listOf(detachedItems.first),
+                detachedItems.first,
                 isLive = false,
                 mergeOffset = detachedItems.second.size,
             )
@@ -143,7 +145,7 @@ class ScTimelineController(
         val liveEventIds = liveIds.mapNotNull { (it as? DedupeId.Event)?.value }
         val overlap = detachedItems.any { (it as? MatrixTimelineItem.Event)?.eventId in liveEventIds }
         return if (!overlap) {
-            TimelineItemsState(detachedItems, listOf(detachedTimeline), isLive = false)
+            TimelineItemsState(detachedItems, detachedTimeline, isLive = false)
         } else if (detachedItems.any { it is MatrixTimelineItem.Event && it.eventId !in liveEventIds }) {
             // Merge!
             var hadEventSinceLastDateHeader = false
@@ -202,13 +204,14 @@ class ScTimelineController(
             log.d { "Overlap in detached timeline at ${filteredLiveItems.size}/${items.size} via ${liveItems.size}+${detachedItems.size}" }
             TimelineItemsState(
                 items,
-                listOf(liveTimeline, detachedTimeline),
+                liveTimeline,
+                detachedTimeline,
                 isLive = true,
                 mergeOffset = filteredDetachedItems.size,
             )
         } else {
             log.d { "Overlap in detached timeline fully covered by live timeline" }
-            TimelineItemsState(liveItems, listOf(liveTimeline), isLive = true)
+            TimelineItemsState(liveItems, liveTimeline, isLive = true)
         }
     }
 
