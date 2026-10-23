@@ -1,5 +1,6 @@
 package chat.schildi.revenge.model.conversation
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
@@ -13,8 +14,9 @@ import chat.schildi.revenge.actions.ActionContext
 import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.AppMessage
 import chat.schildi.revenge.actions.toActionResult
+import chat.schildi.revenge.compose.components.EditImageValue
 import co.touchlab.kermit.Logger
-import io.element.android.libraries.matrix.api.core.RoomId
+import io.element.android.libraries.core.extensions.flatMap
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.createroom.CreateRoomParameters
 import io.element.android.libraries.matrix.api.createroom.RoomPreset
@@ -40,6 +42,7 @@ import shire.res.generated.resources.Res
 import shire.res.generated.resources.create_room
 import shire.res.generated.resources.toast_room_creation_error
 import shire.res.generated.resources.toast_room_creation_success
+import java.io.File
 import kotlin.text.isNotEmpty
 
 data class CreateRoomSettings(
@@ -69,6 +72,8 @@ class CreateRoomViewModel(
 
     private val _settings = MutableStateFlow(CreateRoomSettings(initialSessionId))
     val settings = _settings.asStateFlow()
+
+    val avatarState = mutableStateOf<EditImageValue?>(EditImageValue.Cleared)
 
     private val _state = MutableStateFlow<CreateRoomState>(CreateRoomState.Idle)
     val state = _state.asStateFlow()
@@ -187,7 +192,30 @@ class CreateRoomViewModel(
             return
         }
         viewModelScope.launch(Dispatchers.IO) {
-            val result = client.createRoom(parameters.params)
+            val avatar = avatarState.value
+            val result = when (avatar) {
+                null,
+                EditImageValue.Cleared -> Result.success(null)
+                is EditImageValue.Remote -> Result.success(avatar.mediaSource.safeUrl)
+                is EditImageValue.Local -> {
+                    runCatching {
+                        File(avatar.path).readBytes()
+                    }.flatMap { data ->
+                        client.uploadMedia(avatar.mimetype, data)
+                    }
+                }
+            }.flatMap { avatarUrl ->
+                log.d("Creating room with avatar image $avatarUrl")
+                val effectiveParams = avatarUrl?.let {
+                    parameters.params.copy(avatar = it)
+                } ?: parameters.params
+                client.createRoom(effectiveParams).onSuccess {
+                    (avatar as? EditImageValue.Local)?.takeIf { it.isAppOwned }?.let {
+                        File(it.path).parentFile?.deleteRecursively()
+                    }
+                    avatarState.value = EditImageValue.Cleared
+                }
+            }
             _state.value = if (result.isSuccess) {
                 val roomId = result.getOrNull()
                 if (roomId == null || context.destinationStateHolder == null) {

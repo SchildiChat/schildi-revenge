@@ -51,18 +51,48 @@ fun AvatarImage(
     contentDescription: String? = null,
     allowAnimated: Boolean = ScPrefs.ANIMATE_AVATARS.value(),
 ) {
-    if (source == null || source.safeUrl.isEmpty()) {
+    AvatarImage(
+        source = source?.takeIf { it.safeUrl.isNotBlank() }?.let(EditImageValue::Remote) ?: EditImageValue.Cleared,
+        size = size,
+        displayName = displayName,
+        modifier = modifier,
+        fallbackColorSource = fallbackColorSource,
+        sessionId = sessionId,
+        shape = shape,
+        contentDescription = contentDescription,
+        allowAnimated = allowAnimated,
+    )
+}
+
+@Composable
+fun AvatarImage(
+    source: EditImageValue,
+    size: Dp,
+    displayName: String,
+    modifier: Modifier = Modifier,
+    fallbackColorSource: MediaSource? = null,
+    sessionId: SessionId? = LocalSessionId.current,
+    shape: Shape = Dimens.avatarShape,
+    contentDescription: String? = null,
+    allowAnimated: Boolean = ScPrefs.ANIMATE_AVATARS.value(),
+) {
+    if (source == EditImageValue.Cleared) {
         AvatarFallback(displayName, shape, size, fallbackColorSource = fallbackColorSource, sessionId = sessionId)
         return
     }
     // Model doesn't appear different enough from adding the option to invalidate on setting toggle, so key it
     key(allowAnimated) {
         val context = LocalPlatformContext.current
-        val model = remember(source, allowAnimated, context) {
-            ImageRequest.Builder(context)
-                .data(MediaRequestData(source, MediaRequestData.Kind.Content))
-                .allowAnimatedImageDecoding(allowAnimated)
-                .build()
+        val model = when (source) {
+            is EditImageValue.Remote -> {
+                remember(source, allowAnimated, context) {
+                    ImageRequest.Builder(context)
+                        .data(MediaRequestData(source.mediaSource, MediaRequestData.Kind.Content))
+                        .allowAnimatedImageDecoding(allowAnimated)
+                        .build()
+                }
+            }
+            is EditImageValue.Local -> source.path
         }
         SubcomposeAsyncImage(
             modifier = modifier.size(size).clip(shape),

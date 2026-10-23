@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.resources.toStringHolder
@@ -45,6 +46,7 @@ import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.actions.rememberListActions
 import chat.schildi.revenge.compose.components.EditTextValue
+import chat.schildi.revenge.compose.components.EditableAvatar
 import chat.schildi.revenge.compose.components.EditableDropdown
 import chat.schildi.revenge.compose.components.EditableDropdownEntry
 import chat.schildi.revenge.compose.components.EditableText
@@ -69,6 +71,7 @@ import chat.schildi.revenge.preferences.RevengePrefs
 import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
+import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.history.RoomHistoryVisibility
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -155,6 +158,22 @@ fun CreateRoomScreen(
                             sessionIds,
                             persist = { viewModel.setSessionId(it) },
                             enabled = canEditSettings && sessionIds.any { it.value != settings.sessionId },
+                        )
+                    }
+
+                    // Room avatar
+                    item {
+                        EditableAvatar(
+                            "$viewModelKey/roomAvatar",
+                            currentValue = null,
+                            size = 128.dp,
+                            displayName = params.name ?: "R",
+                            role = FocusRole.LIST_ITEM_EDITABLE_SINGLE_LINE,
+                            modifier = Modifier.fillMaxWidth(),
+                            persist = null,
+                            allowAnimated = true,
+                            sessionId = settings.sessionId,
+                            editState = viewModel.avatarState,
                         )
                     }
 

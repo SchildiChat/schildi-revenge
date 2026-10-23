@@ -14,10 +14,12 @@ import chat.schildi.revenge.actions.ActionResult
 import chat.schildi.revenge.actions.RoomContextSuggestionsProvider
 import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.resources.ComposableStringHolder
+import chat.schildi.revenge.compose.components.EditImageValue
 import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.util.flowClosable
 import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
+import io.element.android.libraries.core.extensions.flatMap
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.room.StateEventType
@@ -39,6 +41,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import java.io.File
 
 data class RoomSettingsPermissions(
     val canEditName: Boolean = false,
@@ -220,6 +223,26 @@ class RoomDetailsViewModel(
     suspend fun setRoomName(name: String): Result<Unit> {
         val room = joinedRoom.value ?: return Result.failure(IllegalStateException("Room not joined"))
         return room.setName(name)
+    }
+
+    suspend fun setRoomAvatar(value: EditImageValue): Result<Unit> {
+        val room = joinedRoom.value ?: return Result.failure(IllegalStateException("Room not joined"))
+        return when (value) {
+            EditImageValue.Cleared -> room.removeAvatar()
+            is EditImageValue.Remote -> room.setAvatarUrl(value.mediaSource.safeUrl)
+            is EditImageValue.Local -> {
+                runCatching {
+                    File(value.path).readBytes()
+                }.onFailure {
+                    log.e("Failed to read new room avatar from ${value.path}", it)
+                }.flatMap { data ->
+                    room.updateAvatar(
+                        mimeType = value.mimetype,
+                        data = data,
+                    )
+                }
+            }
+        }
     }
 
     suspend fun setPrivateRoomName(name: String): Result<Unit> {

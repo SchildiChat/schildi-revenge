@@ -200,7 +200,7 @@ fun ConversationScreen(
 
         val actionContext = currentActionContext()
         var isDragging by remember { mutableStateOf(false) }
-        val dragAlpha = animateFloatAsState(if (isDragging) 0.4f else 1f)
+        val dragAlpha = animateFloatAsState(if (isDragging) Dimens.Editable.IN_PROGRESS_ALPHA else 1f)
         val fileDragTarget = remember {
             object : DragAndDropTarget {
                 override fun onEntered(event: DragAndDropEvent) {

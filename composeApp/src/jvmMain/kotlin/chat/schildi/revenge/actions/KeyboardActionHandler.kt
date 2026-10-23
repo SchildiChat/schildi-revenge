@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.toIntSize
+import androidx.lifecycle.viewModelScope
 import chat.schildi.revenge.preferences.RevengePrefs
 import chat.schildi.revenge.preferences.SETTINGS_MESSAGE_ID
 import chat.schildi.lib.preferences.ScPref
@@ -57,6 +58,7 @@ import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.HEADLESS_WINDOW_ID
 import chat.schildi.revenge.WindowId
 import chat.schildi.revenge.bugreport.RevengeBugReporter
+import chat.schildi.revenge.compose.components.EditImageValue
 import chat.schildi.revenge.config.keybindings.ALLOWED_DESTINATION_STRINGS
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.ActionArgument
@@ -96,6 +98,7 @@ import chat.schildi.revenge.notification.NotifiableRoomSubscriber
 import chat.schildi.revenge.toPrettyJson
 import chat.schildi.revenge.util.ExternalViewCache
 import chat.schildi.revenge.util.MimeUtil
+import chat.schildi.revenge.util.filepicker.FilePicker
 import chat.schildi.revenge.util.matrix.MatrixLinkPatterns
 import chat.schildi.revenge.util.matrix.updateAccountData
 import chat.schildi.revenge.util.tryOrNull
@@ -110,6 +113,7 @@ import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.createroom.CreateRoomParameters
 import io.element.android.libraries.matrix.api.createroom.RoomPreset
+import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.roomdirectory.RoomVisibility
 import io.element.android.libraries.matrix.api.verification.VerificationRequest
 import kotlinx.collections.immutable.ImmutableList
@@ -122,7 +126,6 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -142,10 +145,12 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
+import org.jetbrains.compose.resources.getString
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.action_cancel
 import shire.res.generated.resources.action_logout
 import shire.res.generated.resources.action_logout_session_prompt
+import shire.res.generated.resources.action_pick_image
 import shire.res.generated.resources.action_processing
 import shire.res.generated.resources.action_processing_done
 import shire.res.generated.resources.action_send
@@ -1405,6 +1410,7 @@ class KeyboardActionHandler(
 
     private fun editableActionHandler(editActions: EditActions) = when (editActions) {
         is PlaintextEditActions -> plaintextEditAbleActionHandler(editActions)
+        is ImageEditActions -> imageEditAbleActionHandler(editActions)
     }
 
     private fun plaintextEditAbleActionHandler(
@@ -1463,6 +1469,204 @@ class KeyboardActionHandler(
                             setEditableExpecting(null, editId)
                         }
                     }
+                }
+            }
+        }
+    }
+
+    private fun imageEditAbleActionHandler(
+        editActions: ImageEditActions,
+    ) = object : KeyboardActionProvider<Action.ImageEditAble> {
+        override fun getPossibleActions(): Set<Action.ImageEditAble> = Action.ImageEditAble.entries.toSet()
+        override fun ensureActionType(action: Action) = action as? Action.ImageEditAble
+
+        override fun handleNavigationModeEvent(
+            context: ActionContext,
+            key: KeyTrigger
+        ): ActionResult {
+            val keyConfig = context.keybindingConfig ?: return ActionResult.NoMatch
+            return keyConfig.imageEditAble.execute(context, key, ::handleAction)
+        }
+
+        private suspend fun setLocalImage(file: File, isAppOwned: Boolean): ActionResult {
+            if (!file.isFile) {
+                return ActionResult.Failure("Is not a valid file")
+            }
+            val mimetype = MimeUtil.detectMimeType(file)
+            editActions.updateEcho { EditImageValue.Local(file.absolutePath, mimetype, isAppOwned) }
+            return ActionResult.Success()
+        }
+
+        private suspend fun optionalPersistChanges(
+            editId: Any,
+            enabled: Boolean,
+            applyChanges: suspend () -> ActionResult = { ActionResult.Success() },
+        ): ActionResult {
+            return if (enabled) {
+                persistChanges(editId, applyChanges)
+            } else {
+                applyChanges()
+            }
+        }
+
+        private suspend fun persistChanges(
+            editId: Any,
+            applyChanges: suspend () -> ActionResult = { ActionResult.Success() },
+        ): ActionResult {
+            _editPersistInProgress.update { (it + editId).toPersistentHashSet() }
+            return try {
+                applyChanges().let {
+                    if (it !is ActionResult.Success) {
+                        return it
+                    }
+                }
+                editActions.persistEdit()?.toActionResult() ?: ActionResult.Inapplicable
+            } finally {
+                _editPersistInProgress.update { (it - editId).toPersistentHashSet() }
+                setEditableExpecting(null, editId)
+            }
+        }
+
+        override fun handleAction(
+            context: ActionContext,
+            action: Action.ImageEditAble,
+            args: List<String>
+        ): ActionResult {
+            return when (action) {
+                Action.ImageEditAble.Set -> {
+                    val rawValue = args.firstOrNull()
+                    val newValue = when {
+                        rawValue.isNullOrBlank() -> EditImageValue.Cleared
+                        rawValue.startsWith("mxc://") -> EditImageValue.Remote(MediaSource(rawValue))
+                        else -> {
+                            return context.launchActionAsync(
+                                "resolveLocalFile",
+                                scope,
+                                Dispatchers.IO,
+                                appMessageId = "resolveLocalFile",
+                                notifyProcessing = false,
+                            ) {
+                                val file = fileFromUriOrPath(rawValue)
+                                    ?: return@launchActionAsync ActionResult.Failure("Invalid file URI or path")
+                                setLocalImage(file, isAppOwned = false)
+                            }
+                        }
+                    }
+                    context.launchActionAsync(
+                        "setImage",
+                        scope,
+                        Dispatchers.IO,
+                        appMessageId = "setImage",
+                        notifyProcessing = false,
+                    ) {
+                        editActions.updateEcho { newValue }
+                        ActionResult.Success()
+                    }
+                }
+                Action.ImageEditAble.ClearAndSave,
+                Action.ImageEditAble.Clear -> {
+                    context.launchActionAsync(
+                        "imageClear",
+                        scope,
+                        Dispatchers.IO,
+                        notifyProcessing = false,
+                    ) {
+                        optionalPersistChanges(
+                            editId = editActions.editId,
+                            enabled = action == Action.ImageEditAble.ClearAndSave,
+                        ) {
+                            editActions.updateEcho { EditImageValue.Cleared }
+                            ActionResult.Success()
+                        }
+                    }
+                }
+                Action.ImageEditAble.DiscardEdit -> {
+                    var didChange = false
+                    editActions.updateEcho {
+                        didChange = it != null
+                        null
+                    }
+                    if (didChange) {
+                        ActionResult.Success()
+                    } else {
+                        ActionResult.Inapplicable
+                    }
+                }
+                Action.ImageEditAble.SaveEdit -> {
+                    if (!editActions.needsExplicitSave) {
+                        return ActionResult.Inapplicable
+                    }
+                    val editId = editActions.editId
+                    val appMessageId = "saveEdit/$editId"
+                    context.launchActionAsync(
+                        "saveEdit/$editId",
+                        GlobalActionsScope,
+                        Dispatchers.IO,
+                        appMessageId,
+                    ) {
+                        persistChanges(editId)
+                    }
+                    ActionResult.Success()
+                }
+                Action.ImageEditAble.OpenPickerAndSave,
+                Action.ImageEditAble.OpenPicker -> {
+                    context.launchActionAsync(
+                        "imagePicker",
+                        scope,
+                        Dispatchers.IO
+                    ) {
+                        val fileResult = FilePicker.requestFilePicker(
+                            getString(Res.string.action_pick_image),
+                            context.windowId,
+                        )
+                        if (fileResult.isFailure) {
+                            return@launchActionAsync fileResult.toActionResult()
+                        }
+                        val selectedFile = fileResult.getOrNull()
+                        return@launchActionAsync try {
+                            if (selectedFile != null) {
+                                optionalPersistChanges(
+                                    editId = editActions.editId,
+                                    enabled = action == Action.ImageEditAble.OpenPickerAndSave,
+                                ) {
+                                    setLocalImage(selectedFile.file, selectedFile.isAppOwned).also { result ->
+                                        if (result !is ActionResult.Success && selectedFile.isAppOwned) {
+                                            selectedFile.file.parentFile?.deleteRecursively()
+                                        }
+                                    }
+                                }
+                            } else {
+                                log.d("Attachment selection cancelled")
+                                ActionResult.Success()
+                            }
+                        } catch (t: Throwable) {
+                            selectedFile?.takeIf { it.isAppOwned }?.file?.parentFile?.deleteRecursively()
+                            log.e("Failed to open native file picker", t)
+                            ActionResult.Failure("Failed to open native file picker")
+                        }
+                    }
+                    ActionResult.Success()
+                }
+                Action.ImageEditAble.PasteFromClipboard -> {
+                    val mxc = getStringFromClipboard()?.takeIf { it.startsWith("mxc://") }
+                    if (mxc != null) {
+                        editActions.updateEcho { EditImageValue.Remote(MediaSource(mxc)) }
+                        return ActionResult.Success()
+                    }
+                    val files = getFilesFromClipboard()
+                    if (files.isEmpty() || files.size > 1) {
+                        ActionResult.Inapplicable
+                    } else {
+                        context.launchActionAsync(
+                            "pasteImage",
+                            scope,
+                            Dispatchers.IO,
+                            "pasteImage",
+                        ) {
+                            setLocalImage(files[0], isAppOwned = false)
+                        }
+                    }
+
                 }
             }
         }

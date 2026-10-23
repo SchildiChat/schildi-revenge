@@ -40,4 +40,7 @@ list = [
     { key = "MoveHome", action = "ScrollToStart" },
     { key = "MoveEnd", shift = true, action = "ScrollToBottom" },
 ]
+imageEditAble = [
+    { key = "V", ctrl = true, action = "PasteFromClipboard" },
+]
 split = []

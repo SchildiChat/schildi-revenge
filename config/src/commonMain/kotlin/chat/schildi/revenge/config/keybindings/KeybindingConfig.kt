@@ -11,6 +11,7 @@ data class KeybindingConfig(
     val navigationItem: List<Binding<Action.NavigationItem>> = emptyList(),
     val copyAble: List<Binding<Action.CopyAble>> = emptyList(),
     val editAble: List<Binding<Action.PlaintextEditAble>> = emptyList(),
+    val imageEditAble: List<Binding<Action.ImageEditAble>> = emptyList(),
     val focus: List<Binding<Action.Focus>> = emptyList(),
     val list: List<Binding<Action.List>> = emptyList(),
     val split: List<Binding<Action.Split>> = emptyList(),

@@ -87,6 +87,10 @@
     <string name="action_show">Show</string>
     <string name="action_logout">Logout</string>
     <string name="action_cancel">Cancel</string>
+    <string name="action_clear">Clear</string>
+    <string name="action_discard_changes">Discard changes</string>
+    <string name="action_select_picture">Select picture</string>
+    <string name="action_remove_avatar">Remove avatar</string>
     <string name="action_redact_message_prompt">Delete message?</string>
     <string name="action_redact_message_by_sender_prompt">Delete message by %1$s?</string>
     <string name="action_redact_event_prompt">Delete message?</string>
@@ -98,6 +102,7 @@
     <string name="action_ban_user_prompt">Ban %1$s?</string>
     <string name="action_logout_session_prompt">Logout %1$s?</string>
     <string name="action_send_bug_report_prompt">Send bug report?</string>
+    <string name="action_pick_image">Pick image</string>
 
     <string name="action_redact">Delete</string>
     <string name="action_processing">Processing</string>
@@ -146,6 +151,7 @@
     <string name="action_show_room_members">Room members</string>
     <string name="action_thread">Open thread</string>
     <string name="action_save">Save</string>
+    <string name="action_save_changes">Save changes</string>
     <string name="action_notifications">Notifications</string>
     <string name="action_notifications_default">Default</string>
     <string name="action_notifications_all">All messages</string>

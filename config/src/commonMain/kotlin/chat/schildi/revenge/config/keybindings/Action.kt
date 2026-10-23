@@ -127,6 +127,12 @@ private val AttachmentUri = ActionArgumentAnyOf(
     ActionArgumentPrimitive.AbsoluteFilePath,
 )
 
+private val MxcOrAttachmentUri = ActionArgumentAnyOf(
+    ActionArgumentPrimitive.Mxc,
+    ActionArgumentPrimitive.FileUri,
+    ActionArgumentPrimitive.AbsoluteFilePath,
+)
+
 private val SessionIdOrIndex =
     ActionArgumentAnyOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.SessionIndex)
 private val SpaceIdSelectable =
@@ -261,6 +267,19 @@ sealed interface Action {
         LaunchEdit(aliases = listOf("edit")),
         DiscardEdit(aliases = listOf("discard")),
         SaveEdit(aliases = listOf("save")),
+    }
+    enum class ImageEditAble(
+        override val aliases: kotlin.collections.List<String> = emptyList(),
+        override val args: kotlin.collections.List<ActionArgument> = emptyList()
+    ) : Action {
+        Set(aliases = listOf("setImage"), args = listOf(MxcOrAttachmentUri)),
+        OpenPicker,
+        OpenPickerAndSave,
+        PasteFromClipboard,
+        Clear(aliases = listOf("clearImage")),
+        ClearAndSave,
+        DiscardEdit(aliases = listOf("discardImage")),
+        SaveEdit(aliases = listOf("saveImage")),
     }
     enum class Focus(
         override val aliases: kotlin.collections.List<String> = emptyList(),

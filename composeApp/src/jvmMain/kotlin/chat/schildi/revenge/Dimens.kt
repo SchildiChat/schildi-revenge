@@ -174,4 +174,10 @@ object Dimens {
         val highlightShape = RoundedCornerShape(4.dp)
         val outlineWidth = 3.dp
     }
+
+    object Editable {
+        val overlayButtonSize = 32.dp
+        val overlayButtonIconSize = 24.dp
+        const val IN_PROGRESS_ALPHA = 0.4f
+    }
 }

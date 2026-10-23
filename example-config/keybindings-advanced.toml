@@ -6,7 +6,7 @@ global = [
     { key = "T", ctrl = true, action = "SetSetting", args = ["THEME_FOLLOW_SYSTEM", "false"], chain = true },
     { key = "T", ctrl = true, action = "ToggleSetting", args = ["THEME_DARK"] },
     { key = "T", ctrl = true, shift = true, action = "ToggleSetting", args = ["THREAD_REPLIES_IN_MAIN_TIMELINE"] },
-    { key = "S", ctrl = true, action = "ToggleSetting", args = ["RENDER_SCALE", "1.8", "1.0"] },
+    { key = "S", ctrl = true, action = "ToggleSetting", args = ["RENDER_SCALE", "1.8", "1.0"], notDestinations = ["Conversation", "ConversationThread" ] },
     { key = "U", ctrl = true, action = "ToggleSetting", args = ["SORT_BY_UNREAD"], destinations = ["Inbox"] },
     { key = "H", ctrl = true, action = "ToggleSetting", args = ["VIEW_HIDDEN_EVENTS"], destinations = ["Conversation", "ConversationThread", "ConversationPins"] },
     { key = "D", ctrl = true, shift = true, action = "ToggleSetting", args = ["VIEW_REDACTIONS"], destinations = ["Conversation", "ConversationThread", "ConversationPins"] },
@@ -42,7 +42,9 @@ inbox = [
     { key = "Eight", ctrl = true, shift = true, action = "ToggleAccountSelected", args = ["8"] },
     { key = "Nine", ctrl = true, shift = true, action = "ToggleAccountSelected", args = ["9"] },
     { key = "H", action = "NavigateSpaceRelative", args = ["-1"] },
+    { key = "M", action = "NavigateSpaceRelative", args = ["-1"] },
     { key = "I", action = "NavigateSpaceRelative", args = ["1"] },
+    { key = "T", action = "ToggleSpaceExpanded" },
     { key = "Zero", action = "SelectSpace", args = ["0"] },
     { key = "Equals", shift = true, action = "SelectSpaceIfNotHidden", args = ["notif"] },
     { key = "Equals", shift = true, action = "SelectSpace", args = ["unread"] },
@@ -54,6 +56,7 @@ room = [
     { key = "Y", ctrl = true, alt = true, action = "CopyRoomId" },
 ]
 conversation = [
+    { key = "X", shift = true, action = "CloseConversationBypassingReadTracking", chain = true },
     { key = "G", shift = true, action = "JumpToBottom", chain = true },
     { key = "U", action = "JumpToFullyRead" },
     { key = "U", shift = true, action = "JumpToOwnReadReceipt" },
@@ -64,6 +67,8 @@ conversation = [
     { key = "V", ctrl = true, action = "ComposerPasteAttachment" },
     { key = "N", ctrl = true, action = "ComposeNotice" },
     { key = "E", ctrl = true, shift = true, action = "ComposeEmote" },
+    { key = "S", ctrl = true, action = "ComposeSticker" },
+    { key = "S", ctrl = true, action = "ComposeMessage" },
     { key = "M", ctrl = true, shift = true, action = "MarkTimelineReadPrivate", chain = true },
     { key = "M", ctrl = true, shift = true, action = "MarkTimelineFullyRead", chain = true },
     { key = "F", alt = true, action = "MarkTimelineRead", chain = true },
@@ -75,7 +80,7 @@ conversation = [
     { key = "Enter", ctrl = true, action = "ComposerSend" },
     { key = "Enter", shift = true, action = "ComposerInsertAtCursor", args = ["\n"] },
     { key = "Escape", action = "HideComposerIfEmpty" },
-    { key = "Escape", shift = true, action = "ClearComposer" },
+    { key = "Escape", ctrl = true, shift = true, action = "ClearComposer" },
     { key = "Tab", action = "ComposerSuggestionFocusNext" },
     { key = "Tab", shift = true, action = "ComposerSuggestionFocusPrevious" },
 ]
@@ -114,8 +119,8 @@ navigation = [
     { key = "A", shift = true, action = "NavigateCurrent", args = ["accounts"] },
     { key = "A", shift = true, ctrl = true, action = "NavigateInNewWindow", args = ["accounts"] },
     { key = "S", shift = true, ctrl = true, action = "NavigateInNewWindow", args = ["settings"] },
-    { key = "Slash", shift = true, action = "NavigateAuto", args = ["roomDetails"], destinations = ["Conversation", "ConversationThread", "ConversationPins"] },
-    { key = "L", action = "NavigateAuto", args = ["members"], destinations = ["Conversation", "ConversationThread", "ConversationPins"] },
+    { key = "Slash", shift = true, action = "NavigateAuto", args = ["roomDetails"], destinations = ["Conversation", "ConversationThread", "ConversationPins", "space"] },
+    { key = "L", action = "NavigateAuto", args = ["members"], destinations = ["Conversation", "ConversationThread", "ConversationPins", "space"] },
     { key = "L", ctrl = true, action = "NavigateAuto", args = ["reactions"], destinations = ["Conversation", "ConversationThread", "ConversationPins"] },
     { key = "L", shift = true, ctrl = true, action = "NavigateAuto", args = ["readReceipts"], destinations = ["Conversation", "ConversationThread", "ConversationPins"] },
     { key = "U", ctrl = true, action = "NavigateAuto", args = ["user"], destinations = ["Conversation", "ConversationThread", "ConversationPins", "RoomMembers", "MessageReactions", "MessageReadReceipts"] },
@@ -138,6 +143,12 @@ copyAble = [
 editAble = [
     { key = "J", action = "LaunchEdit" },
     { key = "Escape", shift = true, action = "DiscardEdit" },
+    { key = "Enter", ctrl = true, action = "SaveEdit" },
+]
+imageEditAble = [
+    { key = "P", action = "PasteFromClipboard" },
+    { key = "V", ctrl = true, action = "PasteFromClipboard" },
+    { key = "X", action = "DiscardEdit" },
     { key = "Enter", ctrl = true, action = "SaveEdit" },
 ]
 focus = [
@@ -172,6 +183,8 @@ list = [
     { key = "G", action = "ScrollToStart", chain = true },
     { key = "G", ctrl = true, action = "ScrollToTop", chain = true },
     { key = "G", shift = true, action = "ScrollToBottom", chain = true },
+    { key = "E", shift = true, action = "AnimateScrollByPage", args = ["-0.5"] },
+    { key = "N", shift = true, action = "AnimateScrollByPage", args = ["0.5"] },
 ]
 split = [
     { key = "Q", ctrl = true, action = "Unsplit" },
