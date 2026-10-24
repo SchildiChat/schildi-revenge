@@ -3,6 +3,11 @@ package chat.schildi.revenge.util
 import io.element.android.libraries.matrix.api.timeline.InMemoryMediaThumbnail
 import java.io.File
 
+internal const val BLURHASH_MAX_DIMENSION = 128
+internal const val BLURHASH_COMPONENT_X = 4
+internal const val BLURHASH_COMPONENT_Y = 3
+internal const val VIDEO_THUMBNAIL_MAX_WIDTH = 800
+
 data class MediaMeasures(
     val width: Int?,
     val height: Int?,

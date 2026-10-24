@@ -17,10 +17,6 @@ import kotlin.math.roundToInt
 import kotlin.math.roundToLong
 
 actual object MediaInfoUtil {
-    private const val BLURHASH_MAX_DIMENSION = 128
-    private const val BLURHASH_COMPONENT_X = 4
-    private const val BLURHASH_COMPONENT_Y = 3
-    private const val VIDEO_THUMBNAIL_MAX_WIDTH = 800
     private val json = Json { ignoreUnknownKeys = true }
 
     actual fun probeImage(file: File): MediaMeasures {

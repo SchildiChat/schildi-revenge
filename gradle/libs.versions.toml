@@ -31,6 +31,7 @@ blurhash = "0.3.0"
 androidx-core = "1.19.1"
 androidx-activity = "1.13.0"
 androidx-core-splashscreen = "1.2.0"
+androidx-exifinterface = "1.4.2"
 androidx-work = "2.12.0"
 unifiedpush = "3.3.5"
 unifiedpush-embedded-fcm = "3.1.0"
@@ -85,6 +86,7 @@ clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 vanniktech-blurhash = { module = "com.vanniktech:blurhash", version.ref = "blurhash" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-core-splashscreen" }
+androidx-exifinterface = { module = "androidx.exifinterface:exifinterface", version.ref = "androidx-exifinterface" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
 desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
 coil3-gif = { group = "io.coil-kt.coil3", name = "coil-gif", version.ref = "coil" }
