@@ -93,6 +93,7 @@ import com.beeper.android.messageformat.MatrixFormatInteractionState
 import com.beeper.android.messageformat.MatrixToLink
 import io.element.android.features.messages.impl.timeline.EventFocusResult
 import io.element.android.features.messages.impl.timeline.ScTimelineController
+import io.element.android.features.messages.impl.timeline.TimelineItemsState
 import io.element.android.libraries.core.coroutine.childScope
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.EventId
@@ -303,10 +304,14 @@ data class FullyReadEventState(
     companion object {
         suspend fun from(
             eventId: EventId?,
-            timeline: Timeline?,
+            timelineState: TimelineItemsState,
             asJumpTarget: Boolean,
         ): FullyReadEventState {
-            val renderedEvent = eventId?.let { timeline?.resolveEventToRendered(eventId) }
+            val renderedEvent = eventId?.let {
+                timelineState.sourceTimelines.firstNotNullOfOrNull { timeline ->
+                    timeline.resolveEventToRendered(eventId)
+                }
+            }
             return FullyReadEventState(
                 readMarker = eventId,
                 renderedEvent = renderedEvent,
@@ -631,7 +636,7 @@ class ConversationViewModel(
         loadStateHolder.set(LoadCheckPoint.Timeline, state.asCheckpointLoadedOrPending())
         if (state != null) {
             viewModelScope.launch(Dispatchers.IO) {
-                refetchFullyRead(state.preferredTimeline)
+                refetchFullyRead(state)
             }
         }
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
@@ -658,7 +663,7 @@ class ConversationViewModel(
                 resolveTargetEvent(it, state.items)
             }
             if (items.isNotEmpty() && cachedFullyRead.value?.awaitingRender == true) {
-                refetchFullyRead(state.preferredTimeline)
+                refetchFullyRead(state)
             }
         }
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
@@ -684,13 +689,13 @@ class ConversationViewModel(
     val cachedFullyRead = _cachedFullyRead.asStateFlow()
 
     private suspend fun refetchFullyRead(
-        timeline: Timeline? = activeTimeline.value,
+        timelineState: TimelineItemsState? = activeTimelineState.value,
         awaitingRender: Boolean = cachedFullyRead.value?.awaitingRender ?: false,
     ): FullyReadEventState? {
-        timeline ?: return null
-        return timeline.fullyReadEventId()?.let {
+        timelineState ?: return null
+        return timelineState.preferredTimeline.fullyReadEventId()?.let {
             val eventId = EventId(it)
-            FullyReadEventState.from(eventId, timeline, awaitingRender).also {
+            FullyReadEventState.from(eventId, timelineState, awaitingRender).also {
                 _cachedFullyRead.value = it
             }
         }

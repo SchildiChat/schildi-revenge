@@ -59,7 +59,7 @@ data class TimelineItemsState(
     val mergeOffset: Int = if (isLive) -1 else 0,
 ) {
     val sourceTimelines: List<Timeline>
-        get() = listOfNotNull(preferredTimeline, preferredTimeline)
+        get() = listOfNotNull(preferredTimeline, prependedTimeline)
     val detachedSize = mergeOffset.coerceAtLeast(0)
     val liveSize = if (isLive && mergeOffset >= 0) items.size - mergeOffset else 0
 }
