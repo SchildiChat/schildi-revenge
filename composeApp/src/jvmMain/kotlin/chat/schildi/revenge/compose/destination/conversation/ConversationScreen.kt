@@ -163,6 +163,7 @@ fun ConversationScreen(
         val roomInfo = viewModel.roomInfo.collectAsState().value
         val roomPreview = viewModel.roomPreview.collectAsState().value
         val loadState = viewModel.loadState.collectAsState().value
+        val isLive = viewModel.activeTimelineState.collectAsState().value?.isLive != false
 
         // From room links we may not know if it's a space or other special type of room pre-join,
         // so allow re-navigating once we know
@@ -379,10 +380,10 @@ fun ConversationScreen(
 
                     // Track whether we see bottom or latest read message for jump-to-message FABs
                     val fullyReadEvent = viewModel.cachedFullyRead.collectAsState().value
-                    LaunchedEffect(listState, fullyReadEvent, renderedItems) {
+                    LaunchedEffect(listState, fullyReadEvent, renderedItems, isLive) {
                         snapshotFlow {
                             val visible = listState.layoutInfo.visibleItemsInfo
-                            val bottom = visible.firstOrNull()?.index?.let { it <= 1 } != false
+                            val bottom = isLive && visible.firstOrNull()?.index?.let { it <= 1 } != false
                             // No read marker known counts as "visible" since we cannot jump to it anyway
                             val readMarker = fullyReadEvent == null || visible.any {
                                 fullyReadEvent.has((renderedItems.getOrNull(it.index)?.item as? MatrixTimelineItem.Event)?.eventId)
@@ -492,7 +493,6 @@ fun ConversationScreen(
                     }
 
                     // Jump-to-message FABs
-                    val isLive = viewModel.activeTimelineState.collectAsState().value?.isLive != false
                     val bottomItem = if (isLive) getNextItem(
                         0,
                         renderedItems::getOrNull,
