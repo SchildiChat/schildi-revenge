@@ -57,10 +57,8 @@ import chat.schildi.revenge.actions.LocalRoomContextSuggestionsProvider
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.plainTextCopyAction
-import chat.schildi.revenge.actions.plainTextCopyActionWithMxcUrl
 import chat.schildi.revenge.actions.toCopyAction
 import chat.schildi.revenge.actions.rememberListActions
-import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.EditTextValue
 import chat.schildi.revenge.compose.components.EditableDropdown
 import chat.schildi.revenge.compose.components.EditableDropdownEntry
@@ -188,7 +186,9 @@ fun RoomDetailsScreen(
                             )
                         }
                         if (info.rawName != null || !info.isDirect) {
-                            // Generated name, if differs from raw name
+                            // Generated name, if differs from raw name.
+                            // Usually "Empty Room" or part of the alias if exists
+                            /*
                             if (info.rawName != info.name) {
                                 info.name?.let { displayName ->
                                     item {
@@ -200,6 +200,7 @@ fun RoomDetailsScreen(
                                     }
                                 }
                             }
+                             */
                             // Editable room name
                             item {
                                 EditableText(
