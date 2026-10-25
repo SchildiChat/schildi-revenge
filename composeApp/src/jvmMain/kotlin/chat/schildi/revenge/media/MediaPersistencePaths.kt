@@ -11,7 +11,6 @@ import kotlinx.datetime.format
 import kotlinx.datetime.format.char
 import kotlinx.datetime.toLocalDateTime
 import java.io.File
-import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 object MediaPersistencePaths {
@@ -36,7 +35,6 @@ object MediaPersistencePaths {
         second()
     }
 
-    @OptIn(ExperimentalTime::class)
     private fun formatTimePrefix(timestamp: Long): String {
         val instant = Instant.fromEpochMilliseconds(timestamp)
         val utcDateTime = instant.toLocalDateTime(TimeZone.UTC)
@@ -57,10 +55,20 @@ object MediaPersistencePaths {
             File(sessionDir, roomId.value.toSafeAsciiPathComponent())
         }
         dir.mkdirs()
-        val filenameAppend = filename?.toSafeFilename()?.let { "_$it" } ?: ""
         val safeUrl = mxcUrl.removePrefix("mxc://").toSafeAsciiPathComponent()
-        val filename = "${formatTimePrefix(timestamp)}_${timestamp}_$safeUrl$filenameAppend"
-            .toSafeFilename()
+        val filename = buildString {
+            if (timestamp > 0) {
+                append(formatTimePrefix(timestamp))
+                append("_")
+                append(timestamp)
+                append("_")
+            }
+            append(safeUrl)
+            filename?.toSafeFilename()?.let {
+                append("_")
+                append(it)
+            }
+        }.toSafeFilename()
         return File(dir, filename)
     }
 }

@@ -57,6 +57,7 @@ import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.resources.toStringHolder
 import chat.schildi.revenge.actions.InteractionAction
+import chat.schildi.revenge.compose.components.clickToOpenImageAction
 import chat.schildi.revenge.model.UserDetailsViewModel
 import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.viewModelKey
@@ -139,11 +140,13 @@ fun UserDetailsScreen(
                     ) {
                         item {
                             val primaryAvatar = roomMemberInfo?.avatarUrl ?: info?.avatarUrl
+                            val primaryMediaSource = primaryAvatar?.let { MediaSource(it) }
                             FlowRow(
                                 Modifier.fillMaxWidth().keyFocusable(
                                     role = FocusRole.LIST_ITEM,
                                     actionProvider = actionProvider(
                                         copyActions = plainTextCopyActionWithMxcUrl(primaryAvatar),
+                                        primaryAction = clickToOpenImageAction(viewModel.sessionId, primaryMediaSource),
                                     )
                                 ),
                                 horizontalArrangement = Arrangement.spacedBy(Dimens.horizontalItemPaddingBig, Alignment.CenterHorizontally),
@@ -151,25 +154,28 @@ fun UserDetailsScreen(
                             ) {
                                 val secondaryAvatar = info?.avatarUrl?.takeIf { it != primaryAvatar }
                                 AvatarImage(
-                                    source = primaryAvatar?.let { MediaSource(it) },
+                                    source = primaryMediaSource,
                                     size = 128.dp,
                                     displayName = roomMemberInfo?.displayName ?: info?.displayName ?: viewModel.userId.value,
                                     modifier = Modifier.keyFocusable(
                                         role = FocusRole.NESTED_AUX_ITEM,
                                         actionProvider = actionProvider(
+                                            primaryAction = clickToOpenImageAction(viewModel.sessionId, primaryMediaSource),
                                             copyActions = plainTextCopyActionWithMxcUrl(primaryAvatar),
                                         )
                                     ),
                                     allowAnimated = true,
                                 )
                                 if (secondaryAvatar != null) {
+                                    val secondaryMediaSource = MediaSource(secondaryAvatar)
                                     AvatarImage(
-                                        source = MediaSource(secondaryAvatar),
+                                        source = secondaryMediaSource,
                                         size = 128.dp,
                                         displayName = info.displayName ?: roomMemberInfo?.displayName ?: info.userId.value,
                                         modifier = Modifier.keyFocusable(
                                             role = FocusRole.NESTED_AUX_ITEM,
                                             actionProvider = actionProvider(
+                                                primaryAction = clickToOpenImageAction(viewModel.sessionId, secondaryMediaSource),
                                                 copyActions = plainTextCopyActionWithMxcUrl(secondaryAvatar),
                                             )
                                         ),

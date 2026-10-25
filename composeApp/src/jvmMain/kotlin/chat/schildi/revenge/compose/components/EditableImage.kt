@@ -81,6 +81,10 @@ fun EditableAvatar(
     contentDescription: String? = null,
     allowAnimated: Boolean = ScPrefs.ANIMATE_AVATARS.value(),
     editState: MutableState<EditImageValue?> = rememberEditState(currentValue, canEdit),
+    clickAction: InteractionAction? = if (canEdit && persist == null) null else clickToOpenImageAction(
+        sessionId = sessionId,
+        mediaSource = ((editState.value ?: currentValue?.let(EditImageValue::Remote)) as? EditImageValue.Remote)?.mediaSource,
+    ),
 ) {
     EditableImage(
         editId = editId,
@@ -91,6 +95,7 @@ fun EditableAvatar(
         canEdit = canEdit,
         editState = editState,
         clearTitle = Res.string.action_remove_avatar.toStringHolder(),
+        clickAction = clickAction,
     ) { currentValue ->
         AvatarImage(
             source = currentValue,

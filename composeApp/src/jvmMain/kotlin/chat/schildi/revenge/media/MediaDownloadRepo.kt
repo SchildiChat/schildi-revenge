@@ -79,7 +79,7 @@ object MediaDownloadRepo {
 
     suspend fun requestAttachmentDownload(
         sessionId: SessionId,
-        roomId: RoomId,
+        roomId: RoomId?,
         sourceTimestamp: Long,
         mediaSource: MediaSource,
         mimeType: String?,
@@ -105,7 +105,7 @@ object MediaDownloadRepo {
 
     suspend fun requestAttachmentDownload(
         sessionId: SessionId,
-        roomId: RoomId,
+        roomId: RoomId?,
         sourceTimestamp: Long,
         mediaSource: MediaSource,
         mimeType: String?,
