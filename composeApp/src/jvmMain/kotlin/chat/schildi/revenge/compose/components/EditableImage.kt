@@ -85,6 +85,7 @@ fun EditableAvatar(
         sessionId = sessionId,
         mediaSource = ((editState.value ?: currentValue?.let(EditImageValue::Remote)) as? EditImageValue.Remote)?.mediaSource,
     ),
+    focusId: Uuid = rememberFocusId(),
 ) {
     EditableImage(
         editId = editId,
@@ -96,6 +97,7 @@ fun EditableAvatar(
         editState = editState,
         clearTitle = Res.string.action_remove_avatar.toStringHolder(),
         clickAction = clickAction,
+        focusId = focusId,
     ) { currentValue ->
         AvatarImage(
             source = currentValue,
@@ -125,10 +127,9 @@ fun EditableImage(
     canEdit: Boolean = true,
     clearTitle: ComposableStringHolder = Res.string.action_clear.toStringHolder(),
     editState: MutableState<EditImageValue?> = rememberEditState(currentValue, canEdit),
+    focusId: Uuid = rememberFocusId(),
     content: @Composable BoxScope.(EditImageValue) -> Unit,
 ) {
-    val stableFocusId = rememberFocusId()
-
     val keyHandler = LocalKeyboardActionHandler.current
     val isPersisting = editId in keyHandler.editPersistInProgress.collectAsState().value
 
@@ -137,7 +138,7 @@ fun EditableImage(
     val canClear = canEdit && renderedValue != EditImageValue.Cleared && !isPersisting
 
     WithContextMenu(
-        focusId = stableFocusId,
+        focusId = focusId,
         entries = listOfNotNull<ContextMenuEntry>(
             ContextMenuActionEntry(
                 title = Res.string.action_save_changes.toStringHolder(),
@@ -164,7 +165,7 @@ fun EditableImage(
 
         val actionProvider = editableImageActionProvider(
             editId = editId,
-            stableFocusId = stableFocusId,
+            focusId = focusId,
             editState = editState,
             persist = persist,
             canEdit = canEdit,
@@ -198,7 +199,7 @@ fun EditableImage(
                     }
                     Logger.withTag("DnD").d { "Received drop $event for editable image $editId" }
                     return keyHandler.handleAction(
-                        focusItem = stableFocusId,
+                        focusItem = focusId,
                         action = Action.ImageEditAble.Set,
                         args = listOf(file.absolutePath)
                     ) is ActionResult.Success
@@ -209,7 +210,7 @@ fun EditableImage(
         Box(
             modifier.keyFocusable(
                 role = role,
-                id = stableFocusId,
+                id = focusId,
                 actionProvider = actionProvider,
             )
                 .thenIf(canEdit) {
@@ -234,7 +235,7 @@ fun EditableImage(
                 )
             }
             EditableImageOverlay(
-                parentFocusId = stableFocusId,
+                parentFocusId = focusId,
                 canSave = canSave,
             )
         }
@@ -297,7 +298,7 @@ private fun BoxScope.EditableImageOverlay(
 @Composable
 private fun editableImageActionProvider(
     editId: Any,
-    stableFocusId: Uuid,
+    focusId: Uuid,
     canEdit: Boolean,
     editState: MutableState<EditImageValue?>,
     persist: (suspend (EditImageValue) -> Result<Unit>)?,
@@ -309,7 +310,7 @@ private fun editableImageActionProvider(
     secondaryAction = secondaryAction,
     editActions = imageEditActions(
         editId = editId,
-        stableFocusId = stableFocusId,
+        focusId = focusId,
         canEdit = canEdit,
         editState = editState,
         persist = persist,
@@ -329,21 +330,21 @@ private fun editableImageActionProvider(
 @Composable
 private fun imageEditActions(
     editId: Any,
-    stableFocusId: Uuid?,
+    focusId: Uuid?,
     canEdit: Boolean,
     editState: MutableState<EditImageValue?>,
     persist: (suspend (EditImageValue) -> Result<Unit>)?,
     accessCurrentValue: () -> EditImageValue,
 ) = if (canEdit) remember(
     editId,
-    stableFocusId,
+    focusId,
     editState,
     accessCurrentValue,
     persist,
 ) {
     ImageEditActions(
         editId = editId,
-        stableFocusId = stableFocusId,
+        stableFocusId = focusId,
         editEcho = editState,
         accessPersistedValue = accessCurrentValue,
         persistValue = persist,

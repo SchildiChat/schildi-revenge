@@ -58,6 +58,8 @@ import chat.schildi.revenge.compose.components.TopNavigationTitle
 import chat.schildi.revenge.compose.components.keyboardShortcutFromIndexZero
 import chat.schildi.revenge.compose.focus.FocusContainer
 import chat.schildi.revenge.compose.focus.keyFocusable
+import chat.schildi.revenge.compose.focus.rememberFocusId
+import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.matrixBodyDrawStyle
 import chat.schildi.revenge.matrixBodyFormatter
 import chat.schildi.revenge.model.conversation.COMMON_ROOM_PRESETS
@@ -71,7 +73,6 @@ import chat.schildi.revenge.preferences.RevengePrefs
 import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.publishTitle
 import chat.schildi.revenge.viewModelKey
-import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.history.RoomHistoryVisibility
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -163,6 +164,7 @@ fun CreateRoomScreen(
 
                     // Room avatar
                     item {
+                        val focusId = rememberFocusId()
                         EditableAvatar(
                             "$viewModelKey/roomAvatar",
                             currentValue = null,
@@ -174,6 +176,8 @@ fun CreateRoomScreen(
                             allowAnimated = true,
                             sessionId = settings.sessionId,
                             editState = viewModel.avatarState,
+                            clickAction = InteractionAction.HandleAction(focusId, Action.ImageEditAble.OpenPicker),
+                            focusId = focusId,
                         )
                     }
 
