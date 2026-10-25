@@ -67,7 +67,7 @@ android {
     buildTypes {
         debug {
             applicationIdSuffix = ".debug"
-            ndk.abiFilters += selectedAndroidAbis ?: listOf("arm64-v8a")
+            ndk.abiFilters += selectedAndroidAbis ?: supportedAndroidAbis
         }
         release {
             isMinifyEnabled = true
