@@ -95,9 +95,7 @@ fun ScTheme(
     } else {
         sclMaterialColorScheme
     }
-    // Latest font wins
-    val textStyle = TextStyle(fontFamily = rememberEmojiFontFamily())
-            .merge(fontFamily = rememberInterFontFamily())
+    val textStyle = TextStyle(fontFamily = rememberScFontFamily())
     val typography = MaterialTheme.typography.let {
         it.copy(
             displayLarge = it.displayLarge.merge(textStyle),

@@ -1,6 +1,7 @@
 package chat.schildi.revenge
 
 import android.app.Application
+import androidx.emoji2.text.EmojiCompat
 import ca.gosyer.appdirs.impl.attachAppDirs
 import chat.schildi.revenge.glue.AndroidSyncOrchestrationAppStateProvider
 import chat.schildi.revenge.notification.AndroidNotifier
@@ -40,6 +41,9 @@ class RevengeApplication : Application() {
             }
         }
         logProcessStarted()
+
+        EmojiCompat.init(this)
+
         val initScope = ScCoroutines.scope(Dispatchers.IO, "AppInit")
         ComposerAttachmentCache.clearAsync(initScope)
         ExternalViewCache.clearAsync(initScope)
