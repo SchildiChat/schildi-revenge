@@ -225,6 +225,8 @@ import shire.res.generated.resources.pref_url_previews_title
 import shire.res.generated.resources.pref_view_hidden_events_summary
 import shire.res.generated.resources.pref_view_membership_events_in_public_rooms_summary
 import shire.res.generated.resources.pref_view_membership_events_in_public_rooms_title
+import shire.res.generated.resources.pseudo_space_joined
+import shire.res.generated.resources.pseudo_space_joined_long
 import shire.res.generated.resources.push_history_title
 
 object ScPrefs {
@@ -360,6 +362,7 @@ object ScPrefs {
     val PSEUDO_SPACE_NOTIFICATIONS = ScBoolPref("PSEUDO_SPACE_NOTIFICATIONS", true, Res.string.pseudo_space_notifications, null)
     val PSEUDO_SPACE_UNREAD = ScBoolPref("PSEUDO_SPACE_UNREAD", false, Res.string.pseudo_space_unread, null)
     val PSEUDO_SPACE_INVITES = ScBoolPref("PSEUDO_SPACE_INVITES", true, Res.string.pseudo_space_invites, null)
+    val PSEUDO_SPACE_JOINED = ScBoolPref("PSEUDO_SPACE_JOINED", false, Res.string.pseudo_space_joined_long, null)
     val PSEUDO_SPACE_ACCOUNTS = ScBoolPref("PSEUDO_SPACE_ACCOUNTS", false, Res.string.pseudo_space_accounts_title, Res.string.pseudo_space_accounts_summary)
     val PSEUDO_SPACE_HIDE_EMPTY_UNREAD = ScBoolPref("PSEUDO_SPACE_HIDE_EMPTY_UNREAD", true, Res.string.pseudo_space_hide_empty_unread, null, dependencies = listOf(
         ScPrefFulfilledForAnyDependency(listOf(PSEUDO_SPACE_NOTIFICATIONS.toDependency(), PSEUDO_SPACE_UNREAD.toDependency(), PSEUDO_SPACE_INVITES.toDependency()))
@@ -619,6 +622,7 @@ object ScPrefs {
                 PSEUDO_SPACE_NOTIFICATIONS,
                 PSEUDO_SPACE_UNREAD,
                 PSEUDO_SPACE_INVITES,
+                PSEUDO_SPACE_JOINED,
                 PSEUDO_SPACE_ACCOUNTS,
             )),
             ScPrefCategory("PSEUDO_SPACE_BEHAVIOR", Res.string.pref_category_general_behaviour, null, listOf(

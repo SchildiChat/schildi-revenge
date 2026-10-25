@@ -575,6 +575,8 @@
     <string name="pseudo_space_notifications_short">Notifications</string>
     <string name="pseudo_space_unread">Unread</string>
     <string name="pseudo_space_invites">Invites</string>
+    <string name="pseudo_space_joined">Joined</string>
+    <string name="pseudo_space_joined_long">Joined chats (excluding invites)</string>
     <string name="pseudo_space_hide_empty_unread">Hide empty unread spaces</string>
     <string name="pseudo_space_accounts_title">Accounts</string>
     <string name="pseudo_space_accounts_summary">One pseudo-space for each logged-in account</string>

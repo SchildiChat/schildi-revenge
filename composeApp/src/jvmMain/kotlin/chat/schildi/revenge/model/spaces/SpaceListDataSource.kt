@@ -2,6 +2,7 @@ package chat.schildi.revenge.model.spaces
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.ChatBubble
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.MeetingRoom
 import androidx.compose.material.icons.filled.Notifications
@@ -66,6 +67,7 @@ import shire.res.generated.resources.pseudo_space_spaceless_groups_short
 import shire.res.generated.resources.pseudo_space_spaceless_short
 import shire.res.generated.resources.pseudo_space_unread
 import shire.res.generated.resources.pref_space_all_rooms_title
+import shire.res.generated.resources.pseudo_space_joined
 import timber.log.Timber
 
 const val REAL_SPACE_ID_PREFIX = "s:"
@@ -162,6 +164,7 @@ class SpaceListDataSource(
     )
 
     private val fixedPseudoSpaceIdSuggestions = listOf(
+        JoinedPseudoSpaceItem.ID,
         FavoritesPseudoSpaceItem.ID,
         DmsPseudoSpaceItem.ID,
         GroupsPseudoSpaceItem.ID,
@@ -197,6 +200,12 @@ class SpaceListDataSource(
         spaceComparator: SpaceComparator,
     ): List<AbstractSpaceHierarchyItem> {
         val pseudoSpaces = mutableListOf<PseudoSpaceItem>()
+        pseudoSpaces.add(
+            JoinedPseudoSpaceItem(
+                StringResourceHolder(Res.string.pseudo_space_joined),
+                pseudoSpaceSettings.joined,
+            )
+        )
         pseudoSpaces.add(
             FavoritesPseudoSpaceItem(
                 StringResourceHolder(Res.string.pseudo_space_favorites),
@@ -635,6 +644,25 @@ class SpaceListDataSource(
     }
 
     @Immutable
+    data class JoinedPseudoSpaceItem(
+        override val name: StringResourceHolder,
+        override val enabled: Boolean,
+        override val unreadCounts: SpaceAggregationDataSource.SpaceUnreadCounts? = null,
+    ) : PseudoSpaceItem(
+        ID,
+        Icons.Default.ChatBubble.spaceIcon(),
+    ) {
+        companion object {
+            const val ID = "joined"
+        }
+        override fun enrich(getUnreadCounts: (AbstractSpaceHierarchyItem) -> SpaceAggregationDataSource.SpaceUnreadCounts?) = copy(
+            unreadCounts = getUnreadCounts(this)
+        )
+        override fun applyFilter(rooms: List<ScopedRoomSummary>, seenRoomInvites: Set<ScopedRoomKey>): ImmutableList<ScopedRoomSummary> =
+            rooms.filter { it.summary.info.currentUserMembership == CurrentUserMembership.JOINED }.toImmutableList()
+    }
+
+    @Immutable
     data class SessionIdPseudoSpaceItem(
         val sessionId: SessionId,
         val avatarUrl: String?,
@@ -667,6 +695,7 @@ class SpaceListDataSource(
         val notifications: Boolean,
         val unread: Boolean,
         val invites: Boolean,
+        val joined: Boolean,
         val accounts: Boolean,
         val clientUnreadCounts: Boolean,
     ) {
@@ -687,6 +716,7 @@ fun ScPreferencesStore.pseudoSpaceSettingsFlow(): Flow<SpaceListDataSource.Pseud
             notifications = ScPrefs.PSEUDO_SPACE_NOTIFICATIONS.safeLookup(lookup),
             unread = ScPrefs.PSEUDO_SPACE_UNREAD.safeLookup(lookup),
             invites = ScPrefs.PSEUDO_SPACE_INVITES.safeLookup(lookup),
+            joined = ScPrefs.PSEUDO_SPACE_JOINED.safeLookup(lookup),
             accounts = ScPrefs.PSEUDO_SPACE_ACCOUNTS.safeLookup(lookup),
             clientUnreadCounts = ScPrefs.CLIENT_GENERATED_UNREAD_COUNTS.safeLookup(lookup),
         )
