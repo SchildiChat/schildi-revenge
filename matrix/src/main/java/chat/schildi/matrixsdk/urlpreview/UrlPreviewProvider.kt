@@ -46,7 +46,6 @@ private data class UrlPreviewFileCache(
     val data: String,
 )
 
-private const val PREVIEW_CACHE_LIFETIME_MILLIS = 7L * 24 * 60 * 60 * 1_000
 const val DEBUG_URL_PREVIEWS = true
 
 @Inject
@@ -109,7 +108,7 @@ class UrlPreviewProvider(
         if (previewFromCache != null) {
             val preview = previewFromCache.data.decodeUrlPreview()
             publishPreview(preview)
-            if (previewFromCache.url == url && previewFromCache.ts + PREVIEW_CACHE_LIFETIME_MILLIS > System.currentTimeMillis()) {
+            if (previewFromCache.url == url) {
                 if (DEBUG_URL_PREVIEWS) logger.d("Cache hit for ts=${previewFromCache.ts}")
                 // No need to re-lookup
                 return
