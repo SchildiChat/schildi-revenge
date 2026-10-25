@@ -136,7 +136,7 @@ object EventTextFormat {
         messageMetadata: MessageMetadata?,
         senderProfile: ProfileDetails,
         senderId: UserId,
-        stripNewlines: Boolean = true,
+        stripNewlines: Boolean = false,
         attachmentMode: AttachmentFormatMode = AttachmentFormatMode.Auto,
     ): String = eventToText(
         content = content,
@@ -154,7 +154,7 @@ object EventTextFormat {
         messageMetadata: MessageMetadata?,
         senderProfile: ProfileDetails,
         senderId: UserId,
-        stripNewlines: Boolean = true,
+        stripNewlines: Boolean = false,
         attachmentMode: AttachmentFormatMode = AttachmentFormatMode.Auto,
     ): String = eventToText(
         content = content,
