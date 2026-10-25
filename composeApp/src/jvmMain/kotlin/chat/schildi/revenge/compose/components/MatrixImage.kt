@@ -9,6 +9,7 @@ import chat.schildi.revenge.actions.launchActionAsync
 import chat.schildi.revenge.actions.platformOpenFile
 import chat.schildi.revenge.actions.toActionResult
 import chat.schildi.revenge.media.MediaDownloadRepo
+import chat.schildi.revenge.util.MimeUtil
 import coil3.compose.LocalPlatformContext
 import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
@@ -44,7 +45,8 @@ fun clickToOpenImageAction(
                 mimeType = mimeType,
                 filename = filename,
             ).onSuccess {
-                platformOpenFile(platformContext, it, mimeType)
+                val effectiveMimetype = mimeType ?: MimeUtil.detectMimeType(it)
+                platformOpenFile(platformContext, it, effectiveMimetype)
             }.toActionResult()
         } is ActionResult.Success
     }
