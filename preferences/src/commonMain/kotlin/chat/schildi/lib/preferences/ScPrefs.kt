@@ -194,6 +194,8 @@ import shire.res.generated.resources.pref_only_mark_read_when_fully_read_summary
 import shire.res.generated.resources.pref_only_mark_read_when_fully_read_title
 import shire.res.generated.resources.pref_open_at_unread_summary
 import shire.res.generated.resources.pref_open_at_unread_title
+import shire.res.generated.resources.pref_pin_invites
+import shire.res.generated.resources.pref_pin_invites_summary
 import shire.res.generated.resources.pref_push_notifications_summary
 import shire.res.generated.resources.pref_push_notifications_title
 import shire.res.generated.resources.pref_read_receipt_type_private
@@ -316,6 +318,7 @@ object ScPrefs {
     val CLIENT_GENERATED_UNREAD_COUNTS = ScBoolPref("CLIENT_GENERATED_UNREAD_COUNTS", true, Res.string.pref_client_generated_unread_counts_title, Res.string.pref_client_generated_unread_counts_summary, disabledValue = true)
     val RENDER_SILENT_UNREAD = ScBoolPref("RENDER_SILENT_UNREAD", true, Res.string.pref_render_silent_unread_title, Res.string.pref_render_silent_unread_summary, disabledValue = false)
     val INDICATE_UNREAD_COUNT_UNDERESTIMATES = ScBoolPref("INDICATE_UNREAD_COUNT_UNDERESTIMATES", true, Res.string.pref_indicate_unread_count_underestimates_title, Res.string.pref_indicate_unread_count_underestimates_summary, disabledValue = false, dependencies = RENDER_SILENT_UNREAD.asDependencies())
+    val PIN_INVITES = ScBoolPref("PIN_INVITES", true, Res.string.pref_pin_invites, Res.string.pref_pin_invites_summary)
     val PIN_FAVORITES = ScBoolPref("PIN_FAVORITES", false, Res.string.pref_pin_favorites_title, Res.string.pref_pin_favorites_summary)
     val BURY_LOW_PRIORITY = ScBoolPref("BURY_LOW_PRIORITY", false, Res.string.pref_bury_low_priority_title, Res.string.pref_bury_low_priority_summary)
     val SORT_BY_UNREAD = ScBoolPref("SORT_BY_UNREAD", false, Res.string.pref_client_side_sort_by_unread_title, Res.string.pref_client_side_sort_by_unread_summary)
@@ -556,6 +559,7 @@ object ScPrefs {
             ScPrefCategory("INBOX_SORT", Res.string.pref_category_chat_sorting, null, listOf(
                 SORT_BY_UNREAD,
                 SORT_WITH_SILENT_UNREAD,
+                PIN_INVITES,
                 PIN_FAVORITES,
                 BURY_LOW_PRIORITY,
             )),

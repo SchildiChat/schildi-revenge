@@ -35,6 +35,7 @@ import kotlin.time.Duration.Companion.milliseconds
 private fun buildScSdkInboxSettings(lookup: (ScPref<*>) -> Any?) = ScSdkInboxSettings(
     sortOrder = ScSdkRoomSortOrder(
         byUnread = ScPrefs.SORT_BY_UNREAD.safeLookup(lookup),
+        pinInvites = ScPrefs.PIN_INVITES.safeLookup(lookup),
         pinFavourites = ScPrefs.PIN_FAVORITES.safeLookup(lookup),
         buryLowPriority = ScPrefs.BURY_LOW_PRIORITY.safeLookup(lookup),
         clientSideUnreadCounts = ScPrefs.CLIENT_GENERATED_UNREAD_COUNTS.safeLookup(lookup),

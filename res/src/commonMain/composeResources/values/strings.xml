@@ -589,6 +589,8 @@
     <string name="pref_space_unread_counts_mode_hide">Hide</string>
     <string name="pref_client_generated_unread_counts_title">Client-generated unread counts</string>
     <string name="pref_client_generated_unread_counts_summary">Calculate unread counts on the device instead of trusting server-reported values</string>
+    <string name="pref_pin_invites">Pin invites</string>
+    <string name="pref_pin_invites_summary">Show invites above other chats</string>
     <string name="pref_pin_favorites_title">Pin favorites</string>
     <string name="pref_pin_favorites_summary">Show chats marked as favorite on top of the list</string>
     <string name="pref_bury_low_priority_title">Low priority on bottom</string>
