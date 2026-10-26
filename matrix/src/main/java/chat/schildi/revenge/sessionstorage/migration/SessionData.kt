@@ -50,3 +50,43 @@ data class SessionDataV1(
     /** The optional avatar URL of the user. */
     val userAvatarUrl: String?,
 )
+
+/**
+ * Data class representing the session data to store locally.
+ * Taken from pre-26.10.1 merge.
+ */
+@Serializable
+data class SessionDataV2(
+    /** The user ID of the logged in user. */
+    val userId: String,
+    /** The device ID of the session. */
+    val deviceId: String,
+    /** The current access token of the session. */
+    val accessToken: String,
+    /** The optional current refresh token of the session. */
+    val refreshToken: String?,
+    /** The homeserver URL of the session. */
+    val homeserverUrl: String,
+    /** The Open Authorization info for this session, if any. */
+    val oAuthData: String?,
+    /** The timestamp of the last login. May be `null` in very old sessions. */
+    val loginTimestamp: Long?, // SC: upstream uses Date but we want @Serializable
+    /** Whether the [accessToken] is valid or not. */
+    val isTokenValid: Boolean,
+    /** The login type used to authenticate the session. */
+    val loginType: LoginType,
+    /** The optional passphrase used to encrypt data in the SDK local store. */
+    val passphrase: String?,
+    /** The paths to the session data stored in the filesystem. */
+    val sessionPath: String,
+    /** The path to the cache data stored for the session in the filesystem. */
+    val cachePath: String,
+    /** The position, to be able to order account. */
+    val position: Long,
+    /** The index of the last date of session usage. */
+    val lastUsageIndex: Long,
+    /** The optional display name of the user. */
+    val userDisplayName: String?,
+    /** The optional avatar URL of the user. */
+    val userAvatarUrl: String?,
+)

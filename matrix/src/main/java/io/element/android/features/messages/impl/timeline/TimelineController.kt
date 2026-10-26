@@ -10,6 +10,7 @@ package io.element.android.features.messages.impl.timeline
 
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import chat.schildi.lib.preferences.ScPreferencesStore
 import chat.schildi.matrixsdk.ScTimelineFilterSettings
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.SingleIn
@@ -26,6 +27,8 @@ import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.Timeline
 import io.element.android.libraries.matrix.api.timeline.TimelineProvider
+import io.element.android.libraries.matrix.api.timeline.item.SendTarget
+import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -35,6 +38,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.getAndUpdate
@@ -48,19 +52,19 @@ import java.util.Optional
  * This controller is responsible of using the right timeline to display messages and make associated actions.
  * It can be focused on the live timeline or on a detached timeline (focusing an unknown event).
  */
-//@SingleIn(RoomScope::class)
-//@ContributesBinding(RoomScope::class, binding = binding<TimelineProvider>())
+@SingleIn(RoomScope::class)
+@ContributesBinding(RoomScope::class, binding = binding<TimelineProvider>())
 class TimelineController(
     private val room: JoinedRoom,
-    @LiveTimeline private val liveTimeline: Timeline = room.liveTimeline,
-    initialDetachedTimeline: Timeline? = null, // SC
-    @RoomCoroutineScope private val roomCoroutineScope: CoroutineScope = room.roomCoroutineScope,
-    dispatchers: CoroutineDispatchers = CoroutineDispatchers.Default,
+    @LiveTimeline private val liveTimeline: Timeline,
+    @RoomCoroutineScope private val roomCoroutineScope: CoroutineScope,
+    private val scPreferencesStore: ScPreferencesStore,
+    dispatchers: CoroutineDispatchers,
 ) : Closeable, TimelineProvider {
     private val coroutineScope = roomCoroutineScope.childScope(dispatchers.computation, "TimelineController")
 
     private val liveTimelineFlow = flowOf(liveTimeline)
-    private val detachedTimelineFlow = MutableStateFlow(Optional.ofNullable(initialDetachedTimeline))
+    private val detachedTimelineFlow = MutableStateFlow<Optional<Timeline>>(Optional.empty())
 
     // SC start
     val scReadState = ScReadState(
@@ -152,12 +156,20 @@ class TimelineController(
             }
     }
 
+    suspend fun retrySend(eventOrTransactionId: EventOrTransactionId, sendTarget: SendTarget): Result<Boolean> {
+        return currentTimelineFlow.first().retrySend(eventOrTransactionId, sendTarget)
+    }
+
+    suspend fun abortSend(eventOrTransactionId: EventOrTransactionId, sendTarget: SendTarget): Result<Boolean> {
+        return currentTimelineFlow.first().abortSend(eventOrTransactionId, sendTarget)
+    }
+
     private val currentTimelineFlow = combine(liveTimelineFlow, detachedTimelineFlow) { live, detached ->
         when {
             detached.isPresent -> detached.get()
             else -> live
         }
-    }.stateIn(coroutineScope, SharingStarted.Eagerly, initialDetachedTimeline ?: liveTimeline)
+    }.stateIn(coroutineScope, SharingStarted.Eagerly, room.liveTimeline)
 
     override fun activeTimelineFlow(): StateFlow<Timeline> {
         return currentTimelineFlow

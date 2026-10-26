@@ -9,4 +9,5 @@ interface ShimWorkManagerRequest
 object WorkManagerScheduler {
     fun hasPendingWork(sessionId: SessionId, type: WorkManagerRequestType) = true
     fun submit(vararg idc: Any?) {}
+    fun cancel(vararg idc: Any?) {}
 }

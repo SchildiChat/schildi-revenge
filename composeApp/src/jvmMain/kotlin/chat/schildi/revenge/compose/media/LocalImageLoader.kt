@@ -9,7 +9,7 @@ import chat.schildi.revenge.compose.components.LocalSessionId
 import coil3.ImageLoader
 import coil3.compose.LocalPlatformContext
 import io.element.android.libraries.matrix.api.core.SessionId
-import io.element.android.libraries.matrix.ui.media.ImageLoaderHolder
+import io.element.android.libraries.matrixmedia.api.ImageLoaderHolder
 
 /**
  * Cached image loader for session-specific destination, to avoid going through

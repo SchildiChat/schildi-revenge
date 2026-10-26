@@ -30,6 +30,7 @@ import io.element.android.libraries.matrix.api.timeline.MsgType
 import io.element.android.libraries.matrix.api.timeline.ReceiptType
 import io.element.android.libraries.matrix.api.timeline.Timeline
 import io.element.android.libraries.matrix.api.timeline.TimelineException
+import io.element.android.libraries.matrix.api.timeline.item.SendTarget
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
 import io.element.android.libraries.matrix.impl.media.GalleryMediaUploadHandlerImpl
@@ -607,9 +608,9 @@ class RustTimeline(
         }
     }
 
-    override suspend fun forwardEvent(eventId: EventId, roomIds: List<RoomId>): Result<Unit> = withContext(dispatcher) {
+    override suspend fun forwardEvents(eventIds: List<EventId>, roomIds: List<RoomId>): Result<Unit> = withContext(dispatcher) {
         runCatchingExceptions {
-            roomContentForwarder.forward(fromTimeline = inner, eventId = eventId, toRoomIds = roomIds)
+            roomContentForwarder.forward(fromTimeline = inner, eventIds = eventIds, toRoomIds = roomIds)
         }.onFailure {
             Timber.tag(loggerTag).e(it, "Failed to forward event")
         }
@@ -839,6 +840,18 @@ class RustTimeline(
     override suspend fun getLatestEventId(): Result<EventId?> = withContext(dispatcher) {
         runCatchingExceptions {
             inner.latestEventId()?.let(::EventId)
+        }
+    }
+
+    override suspend fun retrySend(eventOrTransactionId: EventOrTransactionId, sendTarget: SendTarget): Result<Boolean> = withContext(dispatcher) {
+        runCatchingExceptions {
+            inner.retrySend(eventOrTransactionId.toRustEventOrTransactionId(), sendTarget.map())
+        }
+    }
+
+    override suspend fun abortSend(eventOrTransactionId: EventOrTransactionId, sendTarget: SendTarget): Result<Boolean> = withContext(dispatcher) {
+        runCatchingExceptions {
+            inner.abortSend(eventOrTransactionId.toRustEventOrTransactionId(), sendTarget.map())
         }
     }
 

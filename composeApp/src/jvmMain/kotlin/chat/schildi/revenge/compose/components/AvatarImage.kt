@@ -34,8 +34,8 @@ import coil3.compose.SubcomposeAsyncImageContent
 import coil3.request.ImageRequest
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.media.MediaSource
-import io.element.android.libraries.matrix.ui.media.MediaRequestData
 import io.element.android.libraries.matrix.ui.media.animated.allowAnimatedImageDecoding
+import io.element.android.libraries.matrixmedia.api.MediaRequestData
 
 private const val NETWORK_FALLBACK_ALPHA = 0.5f
 

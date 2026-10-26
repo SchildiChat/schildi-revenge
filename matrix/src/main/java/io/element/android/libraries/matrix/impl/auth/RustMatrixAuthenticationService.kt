@@ -37,6 +37,7 @@ import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.paths.SessionPaths
 import io.element.android.libraries.matrix.api.verification.SessionVerifiedStatus
 import io.element.android.libraries.matrix.impl.ClientBuilderSlidingSync
+import io.element.android.libraries.matrix.impl.NoOpClientSessionDelegate
 import io.element.android.libraries.matrix.impl.RustMatrixClientFactory
 import io.element.android.libraries.matrix.impl.RustTemporaryMatrixClient
 import io.element.android.libraries.matrix.impl.auth.qrlogin.QrErrorMapper
@@ -359,7 +360,14 @@ class RustMatrixAuthenticationService(
                     it.scan(
                         qrCodeData = qrCodeData.rustQrCodeData,
                         progressListener = progressListener,
-                    )
+                    ).use { task ->
+                        try {
+                            task.wait()
+                        } catch (e: CancellationException) {
+                            task.cancel()
+                            throw e
+                        }
+                    }
                 }
                 // Ensure that the user is not already logged in with the same account
                 ensureNotAlreadyLoggedIn(client)
@@ -390,6 +398,7 @@ class RustMatrixAuthenticationService(
     private suspend fun finalizeClientCreation(sessionData: SessionData): SessionId {
         // Close the client which was used to perform the login before creating the final client.
         // Both use the same session paths, so their SQLite stores must never be opened at the same time.
+        // The login client does not set up the backup and the cross-signing, the final client will do it.
         clear()
 
         val matrixClient = restoreSession(sessionData)
@@ -422,6 +431,8 @@ class RustMatrixAuthenticationService(
                 clientSecret = pendingKey,
                 slidingSyncType = ClientBuilderSlidingSync.Discovered,
                 isMessageSearchAvailable = isMessageSearchAvailable(),
+                sessionDelegate = NoOpClientSessionDelegate,
+                autoEnableEncryption = false,
             )
             .config()
             .build()
@@ -455,6 +466,8 @@ class RustMatrixAuthenticationService(
                 clientSecret = pendingKey,
                 slidingSyncType = ClientBuilderSlidingSync.Discovered,
                 isMessageSearchAvailable = isMessageSearchAvailable(),
+                sessionDelegate = NoOpClientSessionDelegate,
+                autoEnableEncryption = false,
             )
             .serverNameOrHomeserverUrl(baseUrlOrServerName)
             .build()

@@ -134,7 +134,8 @@ object RevengeSessionStore : SessionStore {
     override suspend fun updateUserProfile(
         sessionId: String,
         displayName: String?,
-        avatarUrl: String?
+        avatarUrl: String?,
+        avatarData: String?,
     ) {
         log.d("Updating profile $sessionId")
         sessionDataMutex.withLock {
@@ -150,6 +151,7 @@ object RevengeSessionStore : SessionStore {
                     new = oldSessions.filter { it.userId != sessionId } + oldSession.copy(
                         userDisplayName = displayName,
                         userAvatarUrl = avatarUrl,
+                        userAvatarData = avatarData,
                     )
                     new
                 }
