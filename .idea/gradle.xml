@@ -29,7 +29,6 @@
             <option value="$PROJECT_DIR$/matrixRustBindings" />
             <option value="$PROJECT_DIR$/preferences" />
             <option value="$PROJECT_DIR$/res" />
-            <option value="$PROJECT_DIR$/rustls-tls" />
             <option value="$PROJECT_DIR$/shim" />
           </set>
         </option>
