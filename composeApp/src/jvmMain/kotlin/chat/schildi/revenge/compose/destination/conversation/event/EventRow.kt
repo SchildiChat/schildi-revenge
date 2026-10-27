@@ -20,6 +20,7 @@ import chat.schildi.revenge.actions.CopyActions
 import chat.schildi.revenge.actions.FocusRole
 import chat.schildi.revenge.actions.HierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.InteractionAction
+import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
@@ -40,6 +41,7 @@ import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.EventContent
 import io.element.android.libraries.matrix.api.timeline.item.event.EventOrTransactionId
 import io.element.android.libraries.matrix.api.timeline.item.event.EventTimelineItem
+import io.element.android.libraries.matrix.api.timeline.item.event.LocationMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
 import io.element.android.libraries.matrix.api.timeline.item.event.UnknownContent
@@ -170,17 +172,23 @@ private fun eventClickAction(
     viewModel: ConversationViewModel,
     context: ActionContext,
     event: EventTimelineItem,
-): InteractionAction? = remember(viewModel, context, event) {
-    when (val content = event.content) {
-        is MessageContent -> {
-            when (content.type) {
-                is MessageTypeWithAttachment -> InteractionAction.Invoke {
-                    viewModel.downloadFileAndOpen(context, event) is ActionResult.Success
+): InteractionAction? {
+    val keyHandler = LocalKeyboardActionHandler.current
+    return remember(viewModel, context, event) {
+        when (val content = event.content) {
+            is MessageContent -> {
+                when (val type = content.type) {
+                    is MessageTypeWithAttachment -> InteractionAction.Invoke {
+                        viewModel.downloadFileAndOpen(context, event) is ActionResult.Success
+                    }
+                    is LocationMessageType -> InteractionAction.Invoke {
+                        keyHandler.openLink(type.geoUri) is ActionResult.Success
+                    }
+                    else -> null
                 }
-                else -> null
             }
+            else -> null
         }
-        else -> null
     }
 }
 

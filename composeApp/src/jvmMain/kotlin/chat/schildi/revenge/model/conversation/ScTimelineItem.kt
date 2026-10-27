@@ -7,6 +7,7 @@ import com.beeper.android.messageformat.MatrixHtmlParser
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.item.event.CanMentionRoom
 import io.element.android.libraries.matrix.api.timeline.item.event.EventContent
+import io.element.android.libraries.matrix.api.timeline.item.event.LocationMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageContent
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageFormat
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
@@ -49,6 +50,7 @@ fun EventContent.messageMetadata(
     val (formattedBody, plaintext, allowEmpty) = when (val type = (this as? MessageContent)?.type) {
         is TextLikeMessageType -> Triple(type.formatted, type.body, true)
         is MessageTypeWithAttachment -> Triple(type.formattedCaption, type.caption, false)
+        is LocationMessageType -> Triple(null, type.body, false)
         else -> Triple(null, null, false)
     }
     val allowRoomMention = (this as? CanMentionRoom)?.isRoomMention ?: true
@@ -56,7 +58,7 @@ fun EventContent.messageMetadata(
         formattedBody?.format == MessageFormat.HTML -> {
             parser.parseHtml(formattedBody.body, style, allowRoomMention)
         }
-        plaintext != null && (allowEmpty || plaintext.isNotEmpty()) -> {
+        plaintext != null && (allowEmpty || plaintext.isNotBlank()) -> {
             parser.parsePlaintext(plaintext, style, allowRoomMention)
         }
         else -> null

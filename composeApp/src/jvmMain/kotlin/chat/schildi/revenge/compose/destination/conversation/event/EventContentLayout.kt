@@ -23,6 +23,7 @@ import chat.schildi.revenge.compose.destination.conversation.event.message.FileM
 import chat.schildi.revenge.compose.destination.conversation.event.message.MessageLayout
 import chat.schildi.revenge.compose.destination.conversation.event.message.ImageMessage
 import chat.schildi.revenge.compose.destination.conversation.event.message.LocalThreadReplyContext
+import chat.schildi.revenge.compose.destination.conversation.event.message.LocationMessage
 import chat.schildi.revenge.compose.destination.conversation.event.message.PollMessage
 import chat.schildi.revenge.compose.destination.conversation.event.message.TextLikeMessage
 import chat.schildi.revenge.compose.destination.conversation.event.message.TimestampOverlayContent
@@ -171,8 +172,7 @@ fun EventContentLayout(
                         ImageMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
                     }
                     is LocationMessageType -> {
-                        // TODO
-                        MessageFallback("LOCATION", isOwn, timestamp, inReplyTo, threadInfo)
+                        LocationMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
                     }
                     is AudioMessageType -> {
                         AudioMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
