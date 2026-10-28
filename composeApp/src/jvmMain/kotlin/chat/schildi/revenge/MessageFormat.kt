@@ -32,6 +32,7 @@ import chat.schildi.theme.LocalMessageStyle
 import chat.schildi.theme.scExposures
 import com.beeper.android.messageformat.DefaultMatrixBodyStyledFormatter
 import com.beeper.android.messageformat.DrawPosition
+import com.beeper.android.messageformat.ListItemAttributes
 import com.beeper.android.messageformat.MENTION_ROOM
 import com.beeper.android.messageformat.MatrixBodyDrawStyle
 import com.beeper.android.messageformat.MatrixBodyPreFormatStyle
@@ -90,8 +91,8 @@ object MessageFormatDefaults {
         override fun formatRoomLink(roomLink: MatrixToLink.RoomLink, context: FormatContext) = null
         override fun formatMessageLink(messageLink: MatrixToLink.MessageLink, context: FormatContext) = null
         override fun formatWebLink(href: String, context: FormatContext) = null
-        override fun formatUnorderedListItem(depth: Int, context: FormatContext) = listOf(ParagraphStyle())
-        override fun formatOrderedListItem(depth: Int, context: FormatContext) = listOf(ParagraphStyle())
+        override fun formatUnorderedListItem(attributes: ListItemAttributes, context: FormatContext) = listOf(ParagraphStyle())
+        override fun formatOrderedListItem(attributes: ListItemAttributes, context: FormatContext) = listOf(ParagraphStyle())
         override fun formatTable(depth: Int, context: FormatContext) = listOf(ParagraphStyle())
         override fun tableIndention(depth: Int) = 0.sp
         override fun formatDetailsSummary(revealId: Int, context: FormatContext) = listOf(ParagraphStyle())
