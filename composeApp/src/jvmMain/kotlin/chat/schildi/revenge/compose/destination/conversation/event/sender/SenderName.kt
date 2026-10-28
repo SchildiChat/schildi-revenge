@@ -52,8 +52,8 @@ fun SenderName(
         else -> AnnotatedString(senderId.value)
     }
     // TODO user coloring?
-    SelectionContainer(modifier) {
-        WithTooltip(senderId.value) {
+    WithTooltip(senderId.value, modifier) {
+        SelectionContainer {
             Text(
                 text = renderedName,
                 color = MaterialTheme.scExposures.accentColor,
