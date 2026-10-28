@@ -87,7 +87,6 @@ class BugReporter(
         problemDescription: String,
         reportContext: List<Pair<ActionArgument, String>> = emptyList(),
         withDevicesLogs: Boolean = true,
-        canContact: Boolean = false,
         ghIssueNumber: Int? = null,
         onProgress: (percentage: Int) -> Unit = {},
     ): ActionResult {
@@ -126,13 +125,14 @@ class BugReporter(
                 val preferredSessionId = UiState.matrixClients.value.keys.sortedWith(UiState.sessionIdComparator.first()).firstOrNull()?.value
                     ?: UiState.sessionIdOrder.first().minByOrNull { it.value }?.key
                 // build the multipart request
+                val systemOsName = System.getProperty("os.name")
                 val builder = BugReporterMultipartBody.Builder()
                     .addFormDataPart("text", bugDescription)
                     .addFormDataPart("app", RageshakeConfig.BUG_REPORT_APP_NAME)
                     .addFormDataPart("user_id", preferredSessionId.ensureNonEmpty())
                     .addFormDataPart("sessions_active", UiState.matrixClients.value.size.toString())
                     .addFormDataPart("sessions_failed", UiState.failedSessions.value.size.toString())
-                    .addFormDataPart("can_contact", canContact.toString())
+                    //.addFormDataPart("can_contact", canContact.toString())
                     //.addFormDataPart("device", BuildInfo.MODEL.trim())
                     .addFormDataPart("locale", Locale.getDefault().toString())
                     .addFormDataPart("sdk_sha", BuildInfo.SDK_REVISION)
@@ -140,8 +140,9 @@ class BugReporter(
                     .addFormDataPart("utc_time", LocalDateTime.ofInstant(Instant.now(), ZoneOffset.UTC).format(DateTimeFormatter.ISO_DATE_TIME))
                     .addFormDataPart("app_id", platformApplicationId)
                     .addFormDataPart("version", platformVersionName)
+                    .addFormDataPart("label", platformVersionName)
                     .addFormDataPart("os", platformOsDebugName)
-                    .addFormDataPart("os_name", System.getProperty("os.name"))
+                    .addFormDataPart("os_name", systemOsName)
                     .addFormDataPart("version_code", platformVersionCode?.toString().ensureNonEmpty())
 
                 UiState.matrixClients.value.forEach { (id, client) ->
@@ -160,9 +161,14 @@ class BugReporter(
                 if (BuildInfo.DEBUG) {
                     builder.addFormDataPart("label", "debug_build")
                 }
+                systemOsName.takeIf(String::isNotBlank)?.let {
+                    builder.addFormDataPart("label", it)
+                }
+                /*
                 if (canContact) {
                     builder.addFormDataPart("label", "can contact")
                 }
+                 */
                 // Non-default SC settings
                 val changedScSettings = ScPrefs.rootPrefsAllPlatforms.prefs.collectScPrefs {
                     scPreferencesStore.getCachedOrDefaultValue(it) != it.defaultValue
