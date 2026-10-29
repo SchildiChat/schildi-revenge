@@ -70,6 +70,7 @@ fun SpaceDiscoveryRow(
                 focusId,
                 actionProvider = buildNavigationActionProvider(
                     keyActions = roomActionProvider.hierarchicalKeyboardActionProvider(),
+                    preferNewWindow = true,
                 ) {
                     if (room.isSpace && isJoined) {
                         Destination.SpaceDiscovery(

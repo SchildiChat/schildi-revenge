@@ -1,6 +1,5 @@
 package chat.schildi.revenge.actions
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import chat.schildi.revenge.compose.search.LocalSearchProvider
@@ -70,7 +69,6 @@ fun actionProvider(
     )
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun buildNavigationActionProvider(
     initialTitle: () -> ComposableStringHolder? = { null },
@@ -82,11 +80,16 @@ fun buildNavigationActionProvider(
     userIdSuggestionsProvider: UserIdSuggestionsProvider? = LocalUserIdSuggestionsProvider.current,
     roomContextSuggestionsProvider: RoomContextSuggestionsProvider? = LocalRoomContextSuggestionsProvider.current,
     secondaryAction: InteractionAction? = null,
+    preferNewWindow: Boolean = false,
     buildDestination: () -> Destination,
 ): ActionProvider {
     return ActionProvider(
         searchProvider = searchProvider,
-        primaryAction = InteractionAction.Navigate(
+        primaryAction = if (preferNewWindow) InteractionAction.OpenWindow(
+            preferNewTask = false,
+            initialTitle = initialTitle,
+            buildDestination = buildDestination,
+        ) else InteractionAction.Navigate(
             initialTitle = initialTitle,
             buildDestination = buildDestination,
         ),
