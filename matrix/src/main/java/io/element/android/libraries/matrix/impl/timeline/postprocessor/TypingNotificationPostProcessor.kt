@@ -28,6 +28,9 @@ class TypingNotificationPostProcessor(private val mode: Timeline.Mode) {
                     )
                 )
             }
+        } else if (mode is Timeline.Mode.Thread) {
+            // SC: Thread mode needs sticky bottom too
+            items + MatrixTimelineItem.Virtual(UniqueId("BottomAnchor"), VirtualTimelineItem.LastForwardIndicator)
         } else {
             items
         }

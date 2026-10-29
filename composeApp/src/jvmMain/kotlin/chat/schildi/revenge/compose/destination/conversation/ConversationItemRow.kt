@@ -73,7 +73,9 @@ fun ConversationItemRow(
                         isThreadedTimeline = viewModel.threadId.collectAsState().value != null,
                     )
                     VirtualTimelineItem.RoomBeginning -> RoomBeginning()
-                    // Not sure if we're supposed to render something for that one
+                    // "LastForwardIndicator" is a weird name, but it's used to have a stable key to stick to certain
+                    // positions. Upstream uses it badly (within timelines), but we use it for stick-to-bottom in cases
+                    // the typing indicator doesn't work for that (i.e., threads).
                     VirtualTimelineItem.LastForwardIndicator -> {}
                     VirtualTimelineItem.TypingNotification -> TypingUsersRow(
                         viewModel.typingUsers.collectAsState(null).value ?: persistentListOf(),
