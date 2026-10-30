@@ -106,6 +106,8 @@ import co.touchlab.kermit.Logger
 import coil3.PlatformContext
 import com.beeper.android.messageformat.MatrixToLink
 import io.element.android.libraries.core.coroutine.childScope
+import io.element.android.libraries.core.extensions.flatMap
+import io.element.android.libraries.core.extensions.runCatchingExceptions
 import io.element.android.libraries.matrix.api.MatrixClient
 import io.element.android.libraries.matrix.api.core.MatrixPatterns
 import io.element.android.libraries.matrix.api.core.RoomIdOrAlias
@@ -2377,7 +2379,7 @@ class KeyboardActionHandler(
                             "logout/$sessionIdString",
                             notifyProcessing = true,
                         ) {
-                            logout(sessionId, deleteOnRestoreFailure = false)
+                            logout(sessionId, deleteOnFailure = false)
                         }
                     }
                 }
@@ -2396,7 +2398,7 @@ class KeyboardActionHandler(
                             "logout/$sessionIdString",
                             notifyProcessing = true,
                         ) {
-                            logout(sessionId, deleteOnRestoreFailure = true)
+                            logout(sessionId, deleteOnFailure = true)
                         }
                     }
                 }
@@ -2454,18 +2456,27 @@ class KeyboardActionHandler(
         }
     }
 
-    suspend fun logout(sessionId: SessionId, deleteOnRestoreFailure: Boolean): ActionResult {
+    suspend fun logout(sessionId: SessionId, deleteOnFailure: Boolean): ActionResult {
         val sessionCache = UiState.appGraph.sessionCache
         val sessionStore = UiState.appGraph.sessionStore
-        val restoreFailed = sessionCache.getOrRestore(sessionId)
-            .getOrElse {
-                if (!deleteOnRestoreFailure) return it.toActionResult() else null
+        val restoreResult = sessionCache.getOrRestore(sessionId)
+        restoreResult
+            .flatMap { client ->
+                runCatchingExceptions {
+                    client.logout(userInitiated = true, ignoreSdkError = deleteOnFailure)
+                }
+            }.onFailure {
+                if (deleteOnFailure) {
+                    log.e(it) { "Failed to logout session for $sessionId, deleting anyway" }
+                    sessionStore.removeSession(sessionId.value)
+                } else {
+                    log.e(it) { "Failed to logout session for $sessionId" }
+                }
+                // If restoring failed already, probably token was invalid to begin with, so treat that as success.
+                if (restoreResult.isSuccess || !deleteOnFailure) {
+                    return ActionResult.Failure(it.message ?: it.toString())
+                }
             }
-            ?.logout(userInitiated = true, ignoreSdkError = deleteOnRestoreFailure) == null
-        if (restoreFailed && deleteOnRestoreFailure) {
-            log.e { "Failed to logout session for $sessionId, deleting anyway" }
-            sessionStore.removeSession(sessionId.value)
-        }
         return ActionResult.Success()
     }
 
