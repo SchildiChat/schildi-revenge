@@ -424,7 +424,7 @@ private fun CreateRoomToggle(
 }
 
 @Composable
-private fun <T>CreateRoomDropDownSetting(
+internal fun <T>CreateRoomDropDownSetting(
     headerText: String,
     currentValue: T?,
     items: List<EditableDropdownEntry<out T>>,
@@ -445,11 +445,12 @@ private fun <T>CreateRoomDropDownSetting(
         KeyboardShortcutAssigner.Indexed()
     else
         KeyboardShortcutAssigner.ZeroIndexed(),
+    focusRole: FocusRole = FocusRole.LIST_ITEM,
 ) {
     EditableDropdown(
         currentValue,
         items,
-        FocusRole.LIST_ITEM,
+        focusRole,
         persist = persist,
         enabled = enabled,
         nullText = nullText,

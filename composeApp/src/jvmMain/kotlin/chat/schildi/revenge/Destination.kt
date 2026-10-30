@@ -32,6 +32,7 @@ import shire.res.generated.resources.push_history_title
 import shire.res.generated.resources.room_dev_tools_title
 import shire.res.generated.resources.room_details_title
 import shire.res.generated.resources.select_account
+import shire.res.generated.resources.start_chat
 import shire.res.generated.resources.verification_request_title
 
 val DEFAULT_WINDOW_APP_TITLE = StringResourceHolder(Res.string.app_title_short)
@@ -143,6 +144,16 @@ sealed interface Destination {
         override val category = DestinationCategory.CONVERSATION
         @Transient
         override val title = StringResourceHolder(Res.string.create_room)
+    }
+
+    @Serializable
+    data class StartChat(
+        val initialSessionId: SessionId? = null,
+    ) : Destination {
+        override val destinationId = DestinationEnum.StartChat
+        override val category = DestinationCategory.CONVERSATION
+        @Transient
+        override val title = StringResourceHolder(Res.string.start_chat)
     }
 
     @Serializable

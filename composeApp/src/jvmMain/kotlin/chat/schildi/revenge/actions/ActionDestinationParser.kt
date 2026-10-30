@@ -91,6 +91,13 @@ private inline fun String.toDestinationOrNull(
                 Destination.CreateRoom(sessionId)
             }
         }
+        DestinationEnum.StartChat -> {
+            tryOrNull {
+                val sessionId = args.getOrNull(0)?.let(::SessionId)
+                    ?: context?.getParameter(ActionArgumentPrimitive.SessionId)?.let(::SessionId)
+                Destination.StartChat(sessionId)
+            }
+        }
         DestinationEnum.ConversationThread -> {
             tryOrNull {
                 val sessionId = args.getOrNull(0)?.let(::SessionId) ?: context!!.ensureSessionId()
