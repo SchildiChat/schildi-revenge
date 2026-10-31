@@ -246,6 +246,7 @@ fun UserDetailsScreen(
                                     Modifier.fillMaxWidth().keyFocusable(
                                         role = FocusRole.LIST_ITEM,
                                         actionProvider = actionProvider(
+                                            primaryAction = InteractionAction.CopyToClipboard(viewModel.userId.value),
                                             copyActions = plainTextCopyActionWithUserId(viewModel.userId) {
                                                 viewModel.userId.value
                                             },

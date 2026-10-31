@@ -324,6 +324,7 @@ fun RoomDetailsScreen(
                                 stringResource(Res.string.hint_room_id),
                                 viewModel.roomId.value,
                                 monospace = true,
+                                primaryAction = InteractionAction.CopyToClipboard(viewModel.roomId.value),
                             )
                         }
                         roomType?.let { roomType ->
