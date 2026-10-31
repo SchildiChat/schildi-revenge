@@ -7,6 +7,7 @@ import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
@@ -139,140 +140,81 @@ fun InboxScreen(
         ),
         role = FocusRole.DESTINATION_ROOT_CONTAINER,
     ) {
-        Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
-            InboxTopNavigation(
-                viewModel.windowTitle.collectAsState(null).value?.render(),
-                preferredSessionId = accountsSorted?.singleOrNull { it.isCurrentlyVisible }?.sessionId,
-            )
-            val roomsState = viewModel.filteredRooms.collectAsState().value
-            val rooms = roomsState?.rooms
-            val roomsByRoomId = viewModel.roomsByRoomId.collectAsState().value
-            val dmsByHeroes = viewModel.dmsByHeroes.collectAsState().value
-            val needsAccountDisambiguation = (accountsSorted?.count { it.isCurrentlyVisible } ?: 0) > 1
+        BoxWithConstraints {
+            val iconsOnly = maxWidth < Dimens.Inbox.avatar * 3
+            Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
+                InboxTopNavigation(
+                    viewModel.windowTitle.collectAsState(null).value?.render(),
+                    preferredSessionId = accountsSorted?.singleOrNull { it.isCurrentlyVisible }?.sessionId,
+                )
+                val roomsState = viewModel.filteredRooms.collectAsState().value
+                val rooms = roomsState?.rooms
+                val roomsByRoomId = viewModel.roomsByRoomId.collectAsState().value
+                val dmsByHeroes = viewModel.dmsByHeroes.collectAsState().value
+                val needsAccountDisambiguation = (accountsSorted?.count { it.isCurrentlyVisible } ?: 0) > 1
 
-            val spaceSwipeState = rememberSpaceSwipeState()
-            val spaceSelectionState = spaces.toSelectionState(spaceSelection)
+                val spaceSwipeState = rememberSpaceSwipeState()
+                val spaceSelectionState = spaces.toSelectionState(spaceSelection)
 
-            if (spaces != null) {
-                AnimatedVisibility(
-                    visible = viewModel.showSpaceUi.collectAsState().value,
-                    enter = slideInVertically(tween(Anim.DURATION)) { -it } +
-                            expandVertically(tween(Anim.DURATION), expandFrom = Alignment.Top),
-                    exit = slideOutVertically(tween(Anim.DURATION)) { -it } +
-                            shrinkVertically(tween(Anim.DURATION), shrinkTowards = Alignment.Top),
-                ) {
-                    SpaceSelectorRow(
-                        lazyListState = listState,
-                        spacesList = spaces,
-                        totalUnreadCounts = null, // TODO
-                        spaceSelectionHierarchy = spaceSelection,
-                        onSpaceSelected = viewModel::setSpaceSelection,
-                        modifier = Modifier,
-                        getSpaceActionProvider = viewModel::getKeyboardActionProviderForSpace,
-                    )
-                }
-            }
-
-            if (ScPrefs.SHOW_DEV_INFOS.value()) {
-                DiagnosticsRow(Modifier.fillMaxWidth())
-            }
-
-            // Observe which rooms are visible in the list so subscribe to room list updates
-            LaunchedEffect(listState, rooms, accountsSorted) {
-                snapshotFlow {
-                    // Adjust for header account selector offset
-                    val roomsOffset = if (!accountsSorted.isNullOrEmpty()) 1 else 0
-                    listState.layoutInfo.visibleItemsInfo.map { it.index - roomsOffset }
-                }
-                    .debounce(200)
-                    .collect { indices ->
-                        val visibleRooms = indices.mapNotNull { rooms?.getOrNull(it) }
-                        viewModel.onVisibleRoomsChanged(visibleRooms)
-                    }
-            }
-            Box(
-                Modifier
-                    .fillMaxSize()
-                    .spaceSwipe(
-                        swipeState = spaceSwipeState,
-                        selectionState = spaceSelectionState,
-                    ) { space ->
-                        viewModel.setSpaceSelection(
-                            if (spaceSelection.isEmpty()) {
-                                listOf(space?.selectionId ?: PSEUDO_SPACE_ID_NO_FILTER)
-                            } else {
-                                val parentId = spaceSelection.getOrNull(spaceSelection.size - 2)
-                                spaceSelection.take(spaceSelection.size - 1) +
-                                        (space?.selectionId?.takeIf { it != parentId } ?: PSEUDO_SPACE_ID_NO_FILTER)
-                            }
-                        )
-                    },
-                contentAlignment = Alignment.Center,
-            ) {
-                if (rooms.isNullOrEmpty()) {
-                    Column(contentModifier.fillMaxSize()) {
-                        if (!accountsSorted.isNullOrEmpty()) {
-                            AccountSelectorRow(
-                                viewModel = viewModel,
-                                accounts = accountsSorted,
-                                unreadCounts = accountUnreadCounts,
-                                modifier = Modifier.padding(vertical = Dimens.listPadding),
-                            )
-                        }
-                        EmptyListScreen(
-                            title = if (selectedSpace == null) {
-                                Res.string.empty_screen_placeholder_inbox.toStringHolder()
-                            } else {
-                                Res.string.empty_screen_placeholder_space.toStringHolder()
-                            },
-                            icon = if (selectedSpace == null) {
-                                rememberVectorPainter(Icons.Default.Inbox)
-                            } else {
-                                val pseudoSpaceIcon = (selectedSpace as? SpaceListDataSource.PseudoSpaceItem)
-                                    ?.icon as? SpaceListDataSource.PseudoSpaceIconSource.Icon
-                                if (pseudoSpaceIcon != null) {
-                                    rememberVectorPainter(pseudoSpaceIcon.icon)
-                                } else {
-                                    rememberVectorPainter(Icons.Default.TravelExplore)
-                                }
-                            },
-                            renderedSearchTerm = roomsState?.searchTerm,
-                            isLoading = roomsState == null,
-                            modifier = Modifier.fillMaxSize(),
-                        ) {
-                            if (accounts != null && accounts.isEmpty()) {
-                                Text(
-                                    stringResource(Res.string.action_account_management),
-                                    color = MaterialTheme.scExposures.accentColor,
-                                    style = MaterialTheme.typography.labelLarge,
-                                    modifier = Modifier
-                                        .padding(Dimens.listPadding)
-                                        .keyFocusable(
-                                            role = FocusRole.AUX_ITEM,
-                                            actionProvider = actionProvider(
-                                                primaryAction = InteractionAction.Navigate {
-                                                    Destination.AccountManagement()
-                                                }
-                                            ),
-                                        ),
-                                )
-                            }
-                        }
-                    }
-                } else {
-                    val incomingShareHeight = remember { mutableIntStateOf(0) }
-                    val extraContentPadding = LocalDensity.current.run {
-                        PaddingValues(top = incomingShareHeight.intValue.toDp() )
-                    }
-                    LazyColumn(
-                        modifier = contentModifier.fillMaxSize(),
-                        state = listState,
-                        contentPadding = WindowInsets.navigationBars
-                            .only(WindowInsetsSides.Bottom)
-                            .asPaddingValues() + extraContentPadding
+                if (spaces != null) {
+                    AnimatedVisibility(
+                        visible = viewModel.showSpaceUi.collectAsState().value,
+                        enter = slideInVertically(tween(Anim.DURATION)) { -it } +
+                                expandVertically(tween(Anim.DURATION), expandFrom = Alignment.Top),
+                        exit = slideOutVertically(tween(Anim.DURATION)) { -it } +
+                                shrinkVertically(tween(Anim.DURATION), shrinkTowards = Alignment.Top),
                     ) {
-                        if (!accountsSorted.isNullOrEmpty()) {
-                            item {
+                        SpaceSelectorRow(
+                            lazyListState = listState,
+                            spacesList = spaces,
+                            totalUnreadCounts = null, // TODO
+                            spaceSelectionHierarchy = spaceSelection,
+                            onSpaceSelected = viewModel::setSpaceSelection,
+                            modifier = Modifier,
+                            getSpaceActionProvider = viewModel::getKeyboardActionProviderForSpace,
+                        )
+                    }
+                }
+
+                if (ScPrefs.SHOW_DEV_INFOS.value()) {
+                    DiagnosticsRow(Modifier.fillMaxWidth())
+                }
+
+                // Observe which rooms are visible in the list so subscribe to room list updates
+                LaunchedEffect(listState, rooms, accountsSorted) {
+                    snapshotFlow {
+                        // Adjust for header account selector offset
+                        val roomsOffset = if (!accountsSorted.isNullOrEmpty()) 1 else 0
+                        listState.layoutInfo.visibleItemsInfo.map { it.index - roomsOffset }
+                    }
+                        .debounce(200)
+                        .collect { indices ->
+                            val visibleRooms = indices.mapNotNull { rooms?.getOrNull(it) }
+                            viewModel.onVisibleRoomsChanged(visibleRooms)
+                        }
+                }
+                Box(
+                    Modifier
+                        .fillMaxSize()
+                        .spaceSwipe(
+                            swipeState = spaceSwipeState,
+                            selectionState = spaceSelectionState,
+                        ) { space ->
+                            viewModel.setSpaceSelection(
+                                if (spaceSelection.isEmpty()) {
+                                    listOf(space?.selectionId ?: PSEUDO_SPACE_ID_NO_FILTER)
+                                } else {
+                                    val parentId = spaceSelection.getOrNull(spaceSelection.size - 2)
+                                    spaceSelection.take(spaceSelection.size - 1) +
+                                            (space?.selectionId?.takeIf { it != parentId } ?: PSEUDO_SPACE_ID_NO_FILTER)
+                                }
+                            )
+                        },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    if (rooms.isNullOrEmpty()) {
+                        Column(contentModifier.fillMaxSize()) {
+                            if (!accountsSorted.isNullOrEmpty()) {
                                 AccountSelectorRow(
                                     viewModel = viewModel,
                                     accounts = accountsSorted,
@@ -280,60 +222,123 @@ fun InboxScreen(
                                     modifier = Modifier.padding(vertical = Dimens.listPadding),
                                 )
                             }
-                        }
-                        items(
-                            rooms,
-                            key = { room ->
-                                Pair(room.sessionId, room.summary.roomId)
-                            }
-                        ) { room ->
-                            val needsDisambiguation = needsAccountDisambiguation &&
-                                    selectedSpace?.sessionIds.let { it == null || it.size > 1 } &&
-                                    (
-                                            room.summary.isInvite() ||
-                                                    (roomsByRoomId[room.summary.roomId]?.size ?: 0) > 1 ||
-                                                    room.summary.isDm && (dmsByHeroes[room.summary.info.heroes]?.size
-                                                ?: 0) > 1
-                                            )
-                            InboxRow(
-                                viewModel,
-                                room,
-                                hasDraft = room.key in drafts.value,
-                                user = remember(accounts) { accounts?.get(room.sessionId)?.user },
-                                needsAccountDisambiguation = needsDisambiguation,
-                            )
-                        }
-                    }
-
-                    val incomingShare = IncomingShare.share.collectAsState(null).value
-                    if (incomingShare != null) {
-                        Box(
-                            Modifier.fillMaxWidth().align(Alignment.TopCenter),
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            IncomingShareNoticeCard(
-                                share = incomingShare,
-                                modifier = Modifier
-                                    .onGloballyPositioned {
-                                        incomingShareHeight.intValue = it.size.height
+                            EmptyListScreen(
+                                title = if (selectedSpace == null) {
+                                    Res.string.empty_screen_placeholder_inbox.toStringHolder()
+                                } else {
+                                    Res.string.empty_screen_placeholder_space.toStringHolder()
+                                },
+                                icon = if (selectedSpace == null) {
+                                    rememberVectorPainter(Icons.Default.Inbox)
+                                } else {
+                                    val pseudoSpaceIcon = (selectedSpace as? SpaceListDataSource.PseudoSpaceItem)
+                                        ?.icon as? SpaceListDataSource.PseudoSpaceIconSource.Icon
+                                    if (pseudoSpaceIcon != null) {
+                                        rememberVectorPainter(pseudoSpaceIcon.icon)
+                                    } else {
+                                        rememberVectorPainter(Icons.Default.TravelExplore)
                                     }
-                                    .padding(
-                                        horizontal = Dimens.windowPadding,
-                                        vertical = Dimens.listPadding,
-                                    ),
-                            )
+                                },
+                                renderedSearchTerm = roomsState?.searchTerm,
+                                isLoading = roomsState == null,
+                                modifier = Modifier.fillMaxSize(),
+                            ) {
+                                if (accounts != null && accounts.isEmpty()) {
+                                    Text(
+                                        stringResource(Res.string.action_account_management),
+                                        color = MaterialTheme.scExposures.accentColor,
+                                        style = MaterialTheme.typography.labelLarge,
+                                        modifier = Modifier
+                                            .padding(Dimens.listPadding)
+                                            .keyFocusable(
+                                                role = FocusRole.AUX_ITEM,
+                                                actionProvider = actionProvider(
+                                                    primaryAction = InteractionAction.Navigate {
+                                                        Destination.AccountManagement()
+                                                    }
+                                                ),
+                                            ),
+                                    )
+                                }
+                            }
                         }
                     } else {
-                        SideEffect {
-                            incomingShareHeight.intValue = 0
+                        val incomingShareHeight = remember { mutableIntStateOf(0) }
+                        val extraContentPadding = LocalDensity.current.run {
+                            PaddingValues(top = incomingShareHeight.intValue.toDp())
+                        }
+                        LazyColumn(
+                            modifier = contentModifier.fillMaxSize(),
+                            state = listState,
+                            contentPadding = WindowInsets.navigationBars
+                                .only(WindowInsetsSides.Bottom)
+                                .asPaddingValues() + extraContentPadding
+                        ) {
+                            if (!accountsSorted.isNullOrEmpty()) {
+                                item {
+                                    AccountSelectorRow(
+                                        viewModel = viewModel,
+                                        accounts = accountsSorted,
+                                        unreadCounts = accountUnreadCounts,
+                                        modifier = Modifier.padding(vertical = Dimens.listPadding),
+                                    )
+                                }
+                            }
+                            items(
+                                rooms,
+                                key = { room ->
+                                    Pair(room.sessionId, room.summary.roomId)
+                                }
+                            ) { room ->
+                                val needsDisambiguation = needsAccountDisambiguation &&
+                                        selectedSpace?.sessionIds.let { it == null || it.size > 1 } &&
+                                        (
+                                                room.summary.isInvite() ||
+                                                        (roomsByRoomId[room.summary.roomId]?.size ?: 0) > 1 ||
+                                                        room.summary.isDm && (dmsByHeroes[room.summary.info.heroes]?.size
+                                                    ?: 0) > 1
+                                                )
+                                InboxRow(
+                                    viewModel,
+                                    room,
+                                    hasDraft = room.key in drafts.value,
+                                    user = remember(accounts) { accounts?.get(room.sessionId)?.user },
+                                    needsAccountDisambiguation = needsDisambiguation,
+                                    iconsOnly = iconsOnly,
+                                )
+                            }
+                        }
+
+                        val incomingShare = IncomingShare.share.collectAsState(null).value
+                        if (incomingShare != null) {
+                            Box(
+                                Modifier.fillMaxWidth().align(Alignment.TopCenter),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                IncomingShareNoticeCard(
+                                    share = incomingShare,
+                                    modifier = Modifier
+                                        .onGloballyPositioned {
+                                            incomingShareHeight.intValue = it.size.height
+                                        }
+                                        .padding(
+                                            horizontal = Dimens.windowPadding,
+                                            vertical = Dimens.listPadding,
+                                        ),
+                                )
+                            }
+                        } else {
+                            SideEffect {
+                                incomingShareHeight.intValue = 0
+                            }
                         }
                     }
-                }
 
-                SpaceSwipeIndicatorOverlay(
-                    swipeState = spaceSwipeState,
-                    selectionState = spaceSelectionState,
-                )
+                    SpaceSwipeIndicatorOverlay(
+                        swipeState = spaceSwipeState,
+                        selectionState = spaceSelectionState,
+                    )
+                }
             }
         }
     }

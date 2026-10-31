@@ -96,6 +96,7 @@ fun InboxRow(
     user: MatrixUser?,
     needsAccountDisambiguation: Boolean,
     modifier: Modifier = Modifier,
+    iconsOnly: Boolean = false,
 ) {
     ComposeSessionScope(room.sessionId) {
         val focusId = rememberFocusId()
@@ -171,17 +172,25 @@ fun InboxRow(
                             )
                         }
                     }
-                }
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = Dimens.Inbox.avatarItemPadding)
-                ) {
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        ScNameAndTimestampRow(room.summary, hasDraft)
+                    if (iconsOnly) {
+                        ScUnreadCounter(
+                            room,
+                            modifier = Modifier.align(Alignment.TopEnd),
+                        )
                     }
-                    Row(modifier = Modifier.fillMaxWidth()) {
-                        ScLastMessageAndIndicatorRow(viewModel, room)
+                }
+                if (!iconsOnly) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(start = Dimens.Inbox.avatarItemPadding)
+                    ) {
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            ScNameAndTimestampRow(room.summary, hasDraft)
+                        }
+                        Row(modifier = Modifier.fillMaxWidth()) {
+                            ScLastMessageAndIndicatorRow(viewModel, room)
+                        }
                     }
                 }
             }
@@ -432,7 +441,10 @@ fun RoomSummary.unreadCounts(): RoomUnreadCounts {
 }
 
 @Composable
-private fun ScUnreadCounter(scopedRoom: ScopedRoomSummary) {
+private fun ScUnreadCounter(
+    scopedRoom: ScopedRoomSummary,
+    modifier: Modifier = Modifier,
+) {
     val room = scopedRoom.summary
     val (highlightCount, notificationCount, unreadCount, markedUnread, underestimate) = room.unreadCounts()
     val count: String
@@ -481,7 +493,7 @@ private fun ScUnreadCounter(scopedRoom: ScopedRoomSummary) {
         }
     }
     Box (
-        modifier = Modifier
+        modifier = modifier
             .let {
                 if (outlinedBadge)
                     it.border(2.dp, badgeColor, RoundedCornerShape(30.dp))
