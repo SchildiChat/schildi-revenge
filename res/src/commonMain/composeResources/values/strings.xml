@@ -23,6 +23,7 @@
     <string name="room_dev_tools_title">Room dev tools</string>
     <string name="space_discovery_empty">No rooms in this space</string>
     <string name="select_account">Select account</string>
+    <string name="notification_noisy">Noisy</string>
 
     <string name="about">About</string>
     <string name="about_credits">Credits</string>
@@ -804,6 +805,7 @@
     </plurals>
 
     <string name="notification_channel_group_chat_messages">Chat messages</string>
+    <string name="notification_channel_group_noisy_messages">Noisy chat messages</string>
     <string name="notification_channel_app_notices">App notices</string>
 
 </resources>

@@ -63,6 +63,8 @@ import org.jetbrains.compose.resources.getString
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.notification_channel_app_notices
 import shire.res.generated.resources.notification_channel_group_chat_messages
+import shire.res.generated.resources.notification_channel_group_noisy_messages
+import shire.res.generated.resources.notification_noisy
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.measureTimedValue
 
@@ -72,7 +74,9 @@ internal const val DIRECT_SHARE_TARGET_CATEGORY = "chat.schildi.revenge.category
 object AndroidNotifier {
 
     private const val CHAT_MESSAGES_CHANNEL_ID_PREFIX = "session_"
+    private const val CHAT_MESSAGES_NOISY_CHANNEL_ID_PREFIX = "noisy_v1_"
     private const val CHAT_MESSAGES_CHANNEL_ID_GROUP = "chat_messages"
+    private const val CHAT_MESSAGES_NOISY_CHANNEL_ID_GROUP = "noisy_messages"
     private const val APP_NOTICES_CHANNEL_ID = "app_notices"
     private const val CONVERSATION_SHORTCUT_PREFIX = "room_"
     private const val MEDIA_TIMEOUT = 10_000L
@@ -90,6 +94,8 @@ object AndroidNotifier {
     }.distinctUntilChanged()
 
     fun messageChannelId(sessionId: SessionId) = CHAT_MESSAGES_CHANNEL_ID_PREFIX + sessionId.value
+    fun noisyMessageChannelId(sessionId: SessionId) = CHAT_MESSAGES_NOISY_CHANNEL_ID_PREFIX + sessionId.value
+    fun channelIdsForSession(sessionId: SessionId) = listOf(messageChannelId(sessionId), noisyMessageChannelId(sessionId))
 
     suspend fun notify(
         id: NotificationId,
@@ -300,9 +306,14 @@ object AndroidNotifier {
             }
         }
 
+        val channelId = if (data.isNoisy) {
+            noisyMessageChannelId(id.sessionId)
+        } else {
+            messageChannelId(id.sessionId)
+        }
         val builder = existingNotification?.let {
             NotificationCompat.Builder(context, it)
-        } ?: NotificationCompat.Builder(context, messageChannelId(id.sessionId))
+        } ?: NotificationCompat.Builder(context, channelId)
             .setContentIntent(id.createPendingIntent(context, notificationId))
 
         val notification = builder
@@ -316,6 +327,8 @@ object AndroidNotifier {
             .setAutoCancel(true)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
             .setWhen(minOf(data.timestamp, System.currentTimeMillis()))
+            .setOnlyAlertOnce(false)
+            .setChannelId(channelId)
             .apply {
                 addExtras(
                     Bundle().apply {
@@ -609,23 +622,41 @@ object AndroidNotifier {
         }
     }
 
-    private fun createSessionNotificationChannels(
+    private suspend fun createSessionNotificationChannels(
         context: Context = RevengeApplication.instance,
         sessionIds: List<SessionId>,
     ) {
         val notificationManager = context.getSystemService(NotificationManager::class.java)
         log.d { "Create ${sessionIds.size} session notification channels" }
         notificationManager.createNotificationChannels(
-            sessionIds.map { sessionId ->
-                NotificationChannel(
-                    messageChannelId(sessionId),
-                    sessionId.value,
-                    NotificationManager.IMPORTANCE_DEFAULT,
-                ).apply {
-                    enableVibration(true)
-                    enableLights(true)
-                    group = CHAT_MESSAGES_CHANNEL_ID_GROUP
-                }
+            sessionIds.flatMap { sessionId ->
+                listOf(
+                    // Normal "silent" notification channel. Matrix is not good at educating users about how "silent"
+                    // notifications work, so we default this to make noise on Android anyway.
+                    NotificationChannel(
+                        messageChannelId(sessionId),
+                        sessionId.value,
+                        NotificationManager.IMPORTANCE_DEFAULT,
+                    ).apply {
+                        enableVibration(true)
+                        enableLights(true)
+                        group = CHAT_MESSAGES_CHANNEL_ID_GROUP
+                    },
+                    // Noisy notifications
+                    NotificationChannel(
+                        noisyMessageChannelId(sessionId),
+                        buildString {
+                            append(getString(Res.string.notification_noisy))
+                            append(": ")
+                            append(sessionId.value)
+                        },
+                        NotificationManager.IMPORTANCE_HIGH,
+                    ).apply {
+                        enableVibration(true)
+                        enableLights(true)
+                        group = CHAT_MESSAGES_NOISY_CHANNEL_ID_GROUP
+                    },
+                )
             }
         )
     }
@@ -644,15 +675,21 @@ object AndroidNotifier {
                 ),
             )
         )
-        notificationManager.createNotificationChannelGroup(
-            NotificationChannelGroup(
-                CHAT_MESSAGES_CHANNEL_ID_GROUP,
-                getString(Res.string.notification_channel_group_chat_messages),
+        notificationManager.createNotificationChannelGroups(
+            listOf(
+                NotificationChannelGroup(
+                    CHAT_MESSAGES_CHANNEL_ID_GROUP,
+                    getString(Res.string.notification_channel_group_chat_messages),
+                ),
+                NotificationChannelGroup(
+                    CHAT_MESSAGES_NOISY_CHANNEL_ID_GROUP,
+                    getString(Res.string.notification_channel_group_noisy_messages),
+                ),
             )
         )
         knownSessionIds.onEach { sessionIds ->
             removeConversationShortcutsForUnknownSessions(context, sessionIds)
-            val expectSessionChannelIds = sessionIds.map(::messageChannelId).toSet()
+            val expectSessionChannelIds = sessionIds.flatMap(::channelIdsForSession).toSet()
             // Clean up old channels
             notificationManager.notificationChannels.forEach { channel ->
                 if (channel.id != APP_NOTICES_CHANNEL_ID && channel.id !in expectSessionChannelIds) {
