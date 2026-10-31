@@ -115,7 +115,7 @@ fun AccountButton(
         else
             MaterialTheme.colorScheme.surfaceDim
     ).value
-    WithTooltip(account.sessionId.value) {
+    WithTooltip(account.sessionId.value, hoverOnly = true) {
         val focusId = rememberFocusId()
         WithContextMenu(
             focusId,

@@ -62,6 +62,7 @@ fun <T>WithUserTimestampListPopup(
         users.tooltipTextFunction(tooltipPrefix),
         modifier,
         isPersistent = true,
+        hoverOnly = true,
     ) {
         WithContextMenu(
             focusId = focusId,

@@ -25,7 +25,7 @@ fun UserReactionRow(
         viewModel = viewModel,
         modifier = modifier,
         leadingContent = {
-            WithTooltip(reactionItem.shortcode) {
+            WithTooltip(reactionItem.shortcode, hoverOnly = true) {
                 SelectionContainer {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         ReactionContent(

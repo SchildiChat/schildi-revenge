@@ -52,7 +52,7 @@ fun SenderName(
         else -> AnnotatedString(senderId.value)
     }
     // TODO user coloring?
-    WithTooltip(senderId.value, modifier) {
+    WithTooltip(senderId.value, modifier, hoverOnly = true) {
         SelectionContainer {
             Text(
                 text = renderedName,

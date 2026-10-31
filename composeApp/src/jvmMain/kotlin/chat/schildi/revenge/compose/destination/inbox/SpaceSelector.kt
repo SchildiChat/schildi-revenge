@@ -349,7 +349,7 @@ private fun AbstractSpaceTab(
             this.selected = selected
         }
         if (compact) {
-            WithTooltip(text) {
+            WithTooltip(text, hoverOnly = openContextMenu != null) {
                 Box(
                     tabModifier
                         .padding(vertical = 8.dp, horizontal = 16.dp)
