@@ -25,7 +25,7 @@ kdroidfilterKnotify = "0.4.3"
 ktoml = "0.7.1"
 ktor = "3.6.0"
 jsoup = "1.23.2"
-beeperMessageFormat = "e38f150eff24644f2ffc451a7b0ec506f819c08d"
+beeperMessageFormat = "51540078b543e7c17754db35904802f57f2ef52e"
 dbusJava = "5.2.2"
 clikt = "5.1.0"
 blurhash = "0.3.0"
@@ -80,7 +80,7 @@ kdroidfilter_composenativetray = { group = "dev.nucleusframework", name = "compo
 kdroidfilter_knotify = { group = "io.github.kdroidfilter", name = "knotify", version.ref = "kdroidfilterKnotify" }
 kodein-emojiKt = { group = "org.kodein.emoji", name = "emoji-kt", version = "2.5.0" }
 ktor-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
-#beeper-messageformat = { module = "com.beeper.android.messageformat:messageformat-jvm", version = "1.0" }
+#beeper-messageformat = { module = "com.beeper.android.messageformat:messageformat", version = "1.0" }
 beeper-messageformat = { module = "com.github.beeper.matrix-messageformat-compose:messageformat", version.ref = "beeperMessageFormat" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 dbus-java-core = { module = "com.github.hypfvieh:dbus-java-core", version.ref = "dbusJava" }
