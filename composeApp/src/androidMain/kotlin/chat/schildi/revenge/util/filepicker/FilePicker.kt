@@ -119,7 +119,7 @@ internal object ComposerAttachmentCache {
 
 internal class AndroidFilePickerLauncher(activity: ComponentActivity) {
     private var pendingRequest: CancellableContinuation<Uri?>? = null
-    private val launcher = activity.registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+    private val launcher = activity.registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         takePendingRequest()?.resume(uri)
     }
 
@@ -134,7 +134,7 @@ internal class AndroidFilePickerLauncher(activity: ComponentActivity) {
             }
         }
         try {
-            launcher.launch(arrayOf("*/*"))
+            launcher.launch("*/*")
         } catch (throwable: Throwable) {
             synchronized(this) {
                 if (pendingRequest === continuation) pendingRequest = null
