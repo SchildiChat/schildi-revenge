@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -20,6 +19,7 @@ import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.actions.plainTextCopyActionWithUserId
 import chat.schildi.revenge.compose.components.AvatarImage
+import chat.schildi.revenge.compose.components.SelectionContainerUnlessTouch
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.model.userlist.AbstractUserListViewModel
 import chat.schildi.revenge.model.userlist.UserListItem
@@ -62,7 +62,7 @@ fun <T : UserListItem>UserListRow(
             displayName = item.displayName ?: item.userId.value,
             modifier = modifier,
         )
-        SelectionContainer(Modifier.weight(1f)) {
+        SelectionContainerUnlessTouch(Modifier.weight(1f)) {
             Column {
                 Text(
                     item.displayName ?: item.userId.value,

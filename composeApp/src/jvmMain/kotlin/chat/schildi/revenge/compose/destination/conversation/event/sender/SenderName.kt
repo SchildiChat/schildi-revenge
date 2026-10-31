@@ -1,6 +1,5 @@
 package chat.schildi.revenge.compose.destination.conversation.event.sender
 
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -10,6 +9,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
+import chat.schildi.revenge.compose.components.SelectionContainerUnlessTouch
 import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.theme.scExposures
 import io.element.android.libraries.matrix.api.core.UserId
@@ -53,7 +53,7 @@ fun SenderName(
     }
     // TODO user coloring?
     WithTooltip(senderId.value, modifier, hoverOnly = true) {
-        SelectionContainer {
+        SelectionContainerUnlessTouch {
             Text(
                 text = renderedName,
                 color = MaterialTheme.scExposures.accentColor,

@@ -3,12 +3,12 @@ package chat.schildi.revenge.compose.destination.conversation.userlist
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import chat.schildi.revenge.Dimens
+import chat.schildi.revenge.compose.components.SelectionContainerUnlessTouch
 import chat.schildi.revenge.compose.components.WithTooltip
 import chat.schildi.revenge.compose.destination.conversation.event.reaction.ReactionContent
 import chat.schildi.revenge.model.userlist.UserReactionItem
@@ -26,7 +26,7 @@ fun UserReactionRow(
         modifier = modifier,
         leadingContent = {
             WithTooltip(reactionItem.shortcode, hoverOnly = true) {
-                SelectionContainer {
+                SelectionContainerUnlessTouch {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         ReactionContent(
                             reaction = reactionItem.reaction,
