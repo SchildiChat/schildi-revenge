@@ -8,6 +8,7 @@
 
 package io.element.android.appnav.session
 
+import chat.schildi.revenge.matrix.SendQueues
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
@@ -164,6 +165,7 @@ class MatrixSessionCache(
         )
         updateMatrixClients()
         syncOrchestrator.start()
+        SendQueues(matrixClient).launchIn()
     }
 
     private fun updateMatrixClients() {
