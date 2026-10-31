@@ -20,7 +20,7 @@ import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import io.element.android.libraries.di.annotations.ApplicationContext
 import io.element.android.libraries.matrix.api.media.MatrixMediaLoader
-import io.element.android.libraries.matrix.ui.media.animated.AnimatedImageDecoderFactory
+import io.element.android.libraries.matrix.ui.media.animated.platformAnimatedImageDecoderFactory
 import okhttp3.OkHttpClient
 
 interface ImageLoaderFactory {
@@ -44,7 +44,7 @@ class DefaultImageLoaderFactory(
     override fun newImageLoader(): ImageLoader {
         return ImageLoader.Builder(context)
             .components {
-                AnimatedImageDecoderFactory()?.let(::add)
+                add(platformAnimatedImageDecoderFactory())
                 add(okHttpNetworkFetcherFactory)
             }
             .build()
@@ -53,7 +53,7 @@ class DefaultImageLoaderFactory(
     override fun newImageLoader(matrixMediaLoader: MatrixMediaLoader): ImageLoader {
         return ImageLoader.Builder(context)
             .components {
-                AnimatedImageDecoderFactory()?.let(::add)
+                add(platformAnimatedImageDecoderFactory())
                 add(okHttpNetworkFetcherFactory)
                 // Add svg support
                 add(SvgDecoder.Factory())
