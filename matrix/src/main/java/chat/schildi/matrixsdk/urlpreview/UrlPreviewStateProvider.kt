@@ -19,6 +19,7 @@ class UrlPreviewStateHolder(
     private val scope: CoroutineScope,
     dbgId: String,
 ) {
+    @Volatile
     private var lastQueryTs: Long = 0
     private val currentJob = AtomicReference<Job?>(null)
     private val _state = MutableStateFlow<UrlPreview?>(null)
@@ -35,21 +36,36 @@ class UrlPreviewStateHolder(
         }
     }
 
-    private fun launchLookup() {
+    fun onImageError(imageUrl: String) {
+        scope.launch {
+            // The cached preview can be displayed before its initial lookup has finished.
+            currentJob.get()?.join()
+            if (state.value?.imageUrl == imageUrl && lastQueryTs + PREVIEW_RE_QUERY_THROTTLE < System.currentTimeMillis()) {
+                launchLookup(refreshExisting = true)
+            }
+        }
+    }
+
+    private fun launchLookup(refreshExisting: Boolean = false) {
         // Only launch a query if we don't have one already running.
         currentJob.getAndUpdate {
             it?.takeIf { it.isActive } ?: run {
-                lastQueryTs = System.currentTimeMillis()
                 scope.launch {
                     logger.d("Launch lookup")
-                    lookup()
+                    lookup(refreshExisting)
                 }
             }
         }
     }
 
-    private suspend fun lookup() {
-        urlPreviewProvider.fetchPreview(url) {
+    private suspend fun lookup(refreshExisting: Boolean) {
+        val currentLastQueryTs = lastQueryTs
+        urlPreviewProvider.fetchPreview(
+            url,
+            refreshExisting,
+            onServerLookupTriggered = { lastQueryTs = System.currentTimeMillis() },
+            onServerLookupCancelled = { lastQueryTs = currentLastQueryTs }
+        ) {
             _state.value = it
         }
     }

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -31,7 +32,6 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.max
-import chat.schildi.matrixsdk.urlpreview.UrlPreview
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewInfo
 import chat.schildi.matrixsdk.urlpreview.UrlPreviewStateProvider
 import chat.schildi.lib.preferences.ScPrefs
@@ -75,7 +75,7 @@ fun resolveUrlPreview(body: MatrixBodyParseResult): UrlPreviewInfo? {
 
 @Composable
 fun UrlPreviewView(
-    urlPreview: UrlPreview,
+    urlPreviewInfo: UrlPreviewInfo,
     paddingValues: PaddingValues = PaddingValues(bottom = Dimens.Conversation.replyItemPadding),
     modifier: Modifier = Modifier,
     onLongCLick: (() -> Unit)? = null,
@@ -84,6 +84,8 @@ fun UrlPreviewView(
     if (LocalMessageRenderContext.current != MessageRenderContext.NORMAL) {
         return
     }
+    val urlPreview = urlPreviewInfo.preview
+    val previewStateProvider = LocalUrlPreviewStateProvider.current
     Column(
         modifier
             // Similar background design to InReplyToView
@@ -124,6 +126,11 @@ fun UrlPreviewView(
                     contentDescription = null,
                 ) {
                     val state = painter.state.collectAsState().value
+                    LaunchedEffect(state, imageUrl, urlPreviewInfo.url, previewStateProvider) {
+                        if (state is AsyncImagePainter.State.Error) {
+                            previewStateProvider?.getStateHolder(urlPreviewInfo.url)?.onImageError(imageUrl)
+                        }
+                    }
                     // Once the image has loaded, its actual measures win over the reserved size.
                     val loadedSize = if (state is AsyncImagePainter.State.Success) {
                         fitImageSize(

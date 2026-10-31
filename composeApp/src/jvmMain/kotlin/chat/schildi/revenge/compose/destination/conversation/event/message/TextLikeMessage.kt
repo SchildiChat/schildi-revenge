@@ -134,7 +134,7 @@ fun TextLikeMessage(
         inReplyTo?.let { ReplyContent(it, threadInfo) }
         urlPreview?.let {
             val keyHandler = LocalKeyboardActionHandler.current
-            UrlPreviewView(urlPreview.preview) {
+            UrlPreviewView(urlPreview) {
                 keyHandler.openLink(urlPreview.url)
             }
         }

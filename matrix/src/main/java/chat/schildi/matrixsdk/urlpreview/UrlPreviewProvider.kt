@@ -47,6 +47,7 @@ private data class UrlPreviewFileCache(
 )
 
 const val DEBUG_URL_PREVIEWS = true
+private const val PREVIEW_REFRESH_AGE_MILLIS = 6L * 60 * 60 * 1_000
 
 @Inject
 class UrlPreviewProvider(
@@ -84,7 +85,7 @@ class UrlPreviewProvider(
         return null
     }
 
-    private fun persistPreviewToFileCache(file: File, url: String, previewData: String) = fileCacheLock.withLock {
+    private fun persistPreviewToFileCache(file: File, url: String, previewData: String): Unit = fileCacheLock.withLock {
         try {
             file.parentFile?.mkdirs() ?: kotlin.run {
                 logger.e("Failed to create url preview directory")
@@ -102,7 +103,13 @@ class UrlPreviewProvider(
         }
     }
 
-    suspend fun fetchPreview(url: String, publishPreview: (UrlPreview?) -> Unit) {
+    suspend fun fetchPreview(
+        url: String,
+        refreshExisting: Boolean = false,
+        onServerLookupTriggered: () -> Unit,
+        onServerLookupCancelled: () -> Unit,
+        publishPreview: (UrlPreview?) -> Unit,
+    ) {
         val cacheFile = getPreviewCacheFile(url)
         val previewFromCache = fetchPreviewFromFileCache(cacheFile)
         if (previewFromCache != null) {
@@ -110,17 +117,20 @@ class UrlPreviewProvider(
             publishPreview(preview)
             if (previewFromCache.url == url) {
                 if (DEBUG_URL_PREVIEWS) logger.d("Cache hit for ts=${previewFromCache.ts}")
-                // No need to re-lookup
-                return
+                if (!refreshExisting || previewFromCache.ts + PREVIEW_REFRESH_AGE_MILLIS > System.currentTimeMillis()) {
+                    return
+                }
             } else {
                 if (DEBUG_URL_PREVIEWS) logger.d("Preliminary cache hit for ts=${previewFromCache.ts}, url match=${previewFromCache.url == url}")
             }
         }
+        onServerLookupTriggered()
         val previewData = try {
             client.getUrlPreviewJson(url)
         } catch (e: CancellationException) {
             // Happens when scope is cancelled, e.g. composable moved out of screen
             logger.i("Cancelled fetching url preview")
+            onServerLookupCancelled()
             return
         } catch (t: Throwable) {
             // Don't print the error message, it can leak the url
