@@ -62,6 +62,7 @@ import chat.schildi.revenge.model.DraftType
 import chat.schildi.revenge.model.DraftValue
 import chat.schildi.theme.scExposures
 import com.beeper.android.messageformat.MatrixBodyParseResult
+import com.beeper.android.messageformat.rememberMatrixFormatInteractionState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
@@ -174,6 +175,7 @@ fun ComposerRow(
                 val content = formattedMessagePreview(draftState)
                 TextLikeMessageContent(
                     content,
+                    rememberMatrixFormatInteractionState(content),
                     Modifier
                         .fillMaxWidth(fraction = 0.4f)
                         .padding(horizontal = Dimens.horizontalItemPadding)

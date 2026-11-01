@@ -6,7 +6,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.border
-import androidx.compose.foundation.draganddrop.dragAndDropSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,6 +45,8 @@ import chat.schildi.revenge.model.conversation.LocalEventActionViewModel
 import chat.schildi.revenge.model.conversation.MessageMetadata
 import chat.schildi.theme.scExposures
 import com.beeper.android.messageformat.MatrixBodyParseResult
+import com.beeper.android.messageformat.MatrixFormatInteractionState
+import com.beeper.android.messageformat.rememberMatrixFormatInteractionState
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.core.UserId
 import io.element.android.libraries.matrix.api.media.MediaSource
@@ -71,6 +72,7 @@ fun PollMessage(
     eventId: EventId?,
     content: PollContent,
     messageMetadata: MessageMetadata?,
+    interactionState: MatrixFormatInteractionState?,
     isOwn: Boolean,
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
@@ -91,8 +93,10 @@ fun PollMessage(
     ) {
         inReplyTo?.let { ReplyContent(it, threadInfo) }
 
+        val textContent = messageMetadata?.preFormattedContent ?: MatrixBodyParseResult(content.question)
         TextLikeMessageContent(
-            messageMetadata?.preFormattedContent ?: MatrixBodyParseResult(content.question),
+            textContent,
+            interactionState ?: rememberMatrixFormatInteractionState(textContent),
             allowBigEmojiOnly = false,
         )
 

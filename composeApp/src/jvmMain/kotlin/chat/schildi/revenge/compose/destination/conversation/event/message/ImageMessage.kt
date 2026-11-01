@@ -39,6 +39,8 @@ import chat.schildi.revenge.model.conversation.MessageMetadata
 import coil3.compose.SubcomposeAsyncImage
 import coil3.compose.SubcomposeAsyncImageContent
 import com.beeper.android.messageformat.MatrixBodyParseResult
+import com.beeper.android.messageformat.MatrixFormatInteractionState
+import com.beeper.android.messageformat.rememberMatrixFormatInteractionState
 import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
@@ -59,6 +61,7 @@ fun ImageMessage(
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
     threadInfo: EventThreadInfo?,
+    interactionState: MatrixFormatInteractionState?,
     modifier: Modifier = Modifier,
 ) {
     ImageMessage(
@@ -72,6 +75,7 @@ fun ImageMessage(
         timestamp = timestamp,
         inReplyTo = inReplyTo,
         threadInfo = threadInfo,
+        interactionState = interactionState,
         isSticker = image is StickerMessageType,
         modifier = modifier,
     )
@@ -89,6 +93,7 @@ fun ImageMessage(
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
     threadInfo: EventThreadInfo?,
+    interactionState: MatrixFormatInteractionState?,
     isSticker: Boolean,
     modifier: Modifier = Modifier,
 ) {
@@ -137,6 +142,7 @@ fun ImageMessage(
                 MessageRenderContext.COMPOSER_IN_REPLY_TO -> Dimens.Conversation.imageComposerRepliedToMaxHeight
             },
             caption = messageMetadata?.preFormattedContent,
+            interactionState = interactionState,
             shape = shape,
             onCaptionTextLayout = { captionLayoutResult.value = it }
         )
@@ -155,6 +161,7 @@ fun ColumnScope.ImageMessageContent(
     maxWidth: Dp,
     maxHeight: Dp,
     caption: MatrixBodyParseResult? = null,
+    interactionState: MatrixFormatInteractionState? = null,
     shape: Shape = Dimens.Conversation.messageBubbleShape,
     onCaptionTextLayout: (TextLayoutResult?) -> Unit = {},
     allowShowMedia: Boolean = LocalMediaPolicy.current.shouldShow(eventId),
@@ -234,6 +241,7 @@ fun ColumnScope.ImageMessageContent(
                 end = Dimens.Conversation.messageBubbleInnerPadding,
             ),
             onTextLayout = onCaptionTextLayout,
+            interactionState = interactionState ?: rememberMatrixFormatInteractionState(caption),
         )
     } else {
         LaunchedEffect(Unit) {

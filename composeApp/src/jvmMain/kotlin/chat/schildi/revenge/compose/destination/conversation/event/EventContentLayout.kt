@@ -165,26 +165,26 @@ fun EventContentLayout(
                             timestamp,
                             inReplyTo,
                             threadInfo,
-                            interactionState = formatInteractionState,
+                            formatInteractionState,
                         )
                     }
                     is ImageLikeMessageType -> {
-                        ImageMessage(eventId, contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
+                        ImageMessage(eventId, contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo, formatInteractionState)
                     }
                     is LocationMessageType -> {
                         LocationMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
                     }
                     is AudioMessageType -> {
-                        AudioMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
+                        AudioMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo, formatInteractionState)
                     }
                     is FileMessageType -> {
-                        FileMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
+                        FileMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo, formatInteractionState)
                     }
                     is VideoMessageType -> {
-                        VideoMessage(eventId, contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
+                        VideoMessage(eventId, contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo, formatInteractionState)
                     }
                     is VoiceMessageType -> {
-                        VoiceMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
+                        VoiceMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo, formatInteractionState)
                     }
                     is GalleryMessageType -> {
                         // TODO
@@ -209,6 +209,7 @@ fun EventContentLayout(
                 eventId = eventId,
                 source = content.source,
                 messageMetadata = messageMetadata,
+                interactionState = formatInteractionState,
                 isOwn = isOwn,
                 timestamp = timestamp,
                 inReplyTo = inReplyTo,
@@ -222,6 +223,7 @@ fun EventContentLayout(
                 eventId = eventId,
                 content = content,
                 messageMetadata = messageMetadata,
+                interactionState = formatInteractionState,
                 isOwn = isOwn,
                 timestamp = timestamp,
                 inReplyTo = inReplyTo,

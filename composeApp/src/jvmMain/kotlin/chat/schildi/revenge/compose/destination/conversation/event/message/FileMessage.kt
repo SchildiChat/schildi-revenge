@@ -27,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.model.conversation.MessageMetadata
 import com.beeper.android.messageformat.MatrixBodyParseResult
+import com.beeper.android.messageformat.MatrixFormatInteractionState
+import com.beeper.android.messageformat.rememberMatrixFormatInteractionState
 import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.AudioMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.FileMessageType
@@ -54,6 +56,7 @@ fun FileMessage(
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
     threadInfo: EventThreadInfo?,
+    interactionState: MatrixFormatInteractionState?,
     modifier: Modifier = Modifier,
 ) {
     FileMessage(
@@ -71,6 +74,7 @@ fun FileMessage(
         timestamp = timestamp,
         inReplyTo = inReplyTo,
         threadInfo = threadInfo,
+        interactionState = interactionState,
         modifier = modifier,
     )
 }
@@ -84,6 +88,7 @@ fun FileMessage(
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
     threadInfo: EventThreadInfo?,
+    interactionState: MatrixFormatInteractionState?,
     modifier: Modifier = Modifier,
 ) {
     val captionLayoutResult = remember { mutableStateOf<TextLayoutResult?>(null) }
@@ -103,6 +108,7 @@ fun FileMessage(
         FileMessageContent(
             type = type,
             messageMetadata = messageMetadata,
+            interactionState = interactionState,
             filename = filename,
         ) {
             captionLayoutResult.value = it
@@ -114,6 +120,7 @@ fun FileMessage(
 fun ColumnScope.FileMessageContent(
     type: FileMessageRenderType,
     messageMetadata: MessageMetadata?,
+    interactionState: MatrixFormatInteractionState?,
     filename: String,
     onCaptionTextLayout: (TextLayoutResult?) -> Unit = {},
 ) {
@@ -126,8 +133,10 @@ fun ColumnScope.FileMessageContent(
                 .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
                 .padding(Dimens.Conversation.messageBubbleInnerPadding)
         )
+        val textContent = MatrixBodyParseResult(filename)
         TextLikeMessageContent(
-            MatrixBodyParseResult(filename),
+            textContent,
+            rememberMatrixFormatInteractionState(textContent),
             allowBigEmojiOnly = false,
             onTextLayout = if (messageMetadata?.preFormattedContent == null) onCaptionTextLayout else {{}},
         )
@@ -135,6 +144,7 @@ fun ColumnScope.FileMessageContent(
     if (messageMetadata?.preFormattedContent != null) {
         TextLikeMessageContent(
             messageMetadata.preFormattedContent,
+            interactionState ?: rememberMatrixFormatInteractionState(messageMetadata.preFormattedContent),
             allowBigEmojiOnly = false,
             modifier = Modifier.padding(top = Dimens.Conversation.captionPadding),
             onTextLayout = onCaptionTextLayout,

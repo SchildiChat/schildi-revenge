@@ -85,6 +85,7 @@ fun ComposerAttachmentContent(
                     type = FileMessageRenderType.AUDIO,
                     filename = attachment.file.name,
                     messageMetadata = null,
+                    interactionState = null,
                 )
             }
 
@@ -93,6 +94,7 @@ fun ComposerAttachmentContent(
                     type = FileMessageRenderType.FILE,
                     filename = attachment.file.name,
                     messageMetadata = null,
+                    interactionState = null,
                 )
             }
         }

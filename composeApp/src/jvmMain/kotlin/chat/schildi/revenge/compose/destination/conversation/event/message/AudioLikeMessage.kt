@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -39,6 +38,8 @@ import chat.schildi.revenge.compose.components.thenIf
 import chat.schildi.revenge.model.conversation.MessageMetadata
 import chat.schildi.revenge.util.normalisedWaveform
 import com.beeper.android.messageformat.MatrixBodyParseResult
+import com.beeper.android.messageformat.MatrixFormatInteractionState
+import com.beeper.android.messageformat.rememberMatrixFormatInteractionState
 import io.element.android.libraries.matrix.api.media.AudioDetails
 import io.element.android.libraries.matrix.api.media.AudioInfo
 import io.element.android.libraries.matrix.api.media.MediaSource
@@ -59,6 +60,7 @@ fun AudioMessage(
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
     threadInfo: EventThreadInfo?,
+    interactionState: MatrixFormatInteractionState?,
     modifier: Modifier = Modifier,
 ) {
     AudioLikeMessage(
@@ -72,6 +74,7 @@ fun AudioMessage(
         timestamp = timestamp,
         inReplyTo = inReplyTo,
         threadInfo = threadInfo,
+        interactionState = interactionState,
         modifier = modifier,
     )
 }
@@ -84,6 +87,7 @@ fun VoiceMessage(
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
     threadInfo: EventThreadInfo?,
+    interactionState: MatrixFormatInteractionState?,
     modifier: Modifier = Modifier,
 ) {
     AudioLikeMessage(
@@ -97,6 +101,7 @@ fun VoiceMessage(
         timestamp = timestamp,
         inReplyTo = inReplyTo,
         threadInfo = threadInfo,
+        interactionState = interactionState,
         modifier = modifier,
     )
 }
@@ -113,6 +118,7 @@ fun AudioLikeMessage(
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
     threadInfo: EventThreadInfo?,
+    interactionState: MatrixFormatInteractionState?,
     modifier: Modifier = Modifier,
 ) {
     val density = LocalDensity.current
@@ -145,6 +151,7 @@ fun AudioLikeMessage(
             info = info,
             details = details,
             messageMetadata = messageMetadata,
+            interactionState = interactionState,
             filename = filename,
             type = type,
             onDurationMeasure = { durationWidth.value = density.run { it.size.width.toDp() } }
@@ -160,6 +167,7 @@ fun ColumnScope.AudioLikeMessageContent(
     info: AudioInfo?,
     details: AudioDetails?,
     messageMetadata: MessageMetadata?,
+    interactionState: MatrixFormatInteractionState?,
     filename: String,
     type: FileMessageRenderType,
     onDurationMeasure: (LayoutCoordinates) -> Unit = {},
@@ -210,8 +218,10 @@ fun ColumnScope.AudioLikeMessageContent(
                 } else {
                     stringResource(Res.string.message_placeholder_audio_message)
                 }
+            val textContent = MatrixBodyParseResult(renderedFilename)
             TextLikeMessageContent(
-                MatrixBodyParseResult(renderedFilename),
+                textContent,
+                rememberMatrixFormatInteractionState(textContent),
                 allowBigEmojiOnly = false,
                 onTextLayout = if (messageMetadata?.preFormattedContent == null) onCaptionTextLayout else {{}},
                 modifier = Modifier.weight(1f, fill = false).thenIf(info?.duration != null) { alignByBaseline() },
@@ -232,6 +242,7 @@ fun ColumnScope.AudioLikeMessageContent(
     if (messageMetadata?.preFormattedContent != null) {
         TextLikeMessageContent(
             messageMetadata.preFormattedContent,
+            interactionState ?: rememberMatrixFormatInteractionState(messageMetadata.preFormattedContent),
             allowBigEmojiOnly = false,
             modifier = Modifier.padding(top = Dimens.Conversation.captionPadding),
             onTextLayout = onCaptionTextLayout,

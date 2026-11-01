@@ -84,9 +84,9 @@ fun TextLikeMessage(
     timestamp: TimestampOverlayContent?,
     inReplyTo: InReplyTo?,
     threadInfo: EventThreadInfo?,
+    interactionState: MatrixFormatInteractionState?,
     modifier: Modifier = Modifier,
     allowBigEmojiOnly: Boolean = true,
-    interactionState: MatrixFormatInteractionState? = null,
 ) {
     val alpha = when (message) {
         is NoticeMessageType -> 0.7f
@@ -162,10 +162,10 @@ private fun defaultTextContentMaxLines() = when (LocalMessageRenderContext.curre
 @Composable
 fun TextLikeMessageContent(
     text: MatrixBodyParseResult,
+    interactionState: MatrixFormatInteractionState,
     modifier: Modifier = Modifier,
     allowBigEmojiOnly: Boolean = false,
     textColor: Color = MaterialTheme.colorScheme.primary,
-    interactionState: MatrixFormatInteractionState = rememberMatrixFormatInteractionState(text),
     maxLines: Int = defaultTextContentMaxLines(),
     onTextLayout: (TextLayoutResult) -> Unit = {},
 ) {
