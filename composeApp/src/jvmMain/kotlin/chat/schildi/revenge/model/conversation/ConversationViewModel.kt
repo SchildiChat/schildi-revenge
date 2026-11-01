@@ -1,6 +1,5 @@
 package chat.schildi.revenge.model.conversation
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
@@ -1376,6 +1375,13 @@ class ConversationViewModel(
         } else {
             timelineState?.preferredTimeline
         }
+    }
+
+    private fun findEventById(
+        eventId: EventId,
+        timelineState: TimelineItemsState? = activeTimelineState.value,
+    ): MatrixTimelineItem.Event? = timelineState?.items?.firstNotNullOfOrNull {
+        (it as? MatrixTimelineItem.Event)?.takeIf { it.eventId == eventId }
     }
 
     override fun clearAttachment() {
@@ -2938,6 +2944,9 @@ class ConversationViewModel(
                     }
                     Action.Event.RevealMedia -> {
                         eventId ?: return@run ActionResult.Inapplicable
+                        if ((findEventById(eventId)?.event?.content as? MessageContent)?.type?.shouldApplyMediaPolicy() == false) {
+                            return@run ActionResult.Inapplicable
+                        }
                         var changed = false
                         _mediaPolicy.update { policy ->
                             policy.reveal(eventId).also {
@@ -2952,6 +2961,9 @@ class ConversationViewModel(
                     }
                     Action.Event.HideMedia -> {
                         eventId ?: return@run ActionResult.Inapplicable
+                        if ((findEventById(eventId)?.event?.content as? MessageContent)?.type?.shouldApplyMediaPolicy() == false) {
+                            return@run ActionResult.Inapplicable
+                        }
                         var changed = false
                         _mediaPolicy.update { policy ->
                             policy.hide(eventId).also {
@@ -2966,6 +2978,9 @@ class ConversationViewModel(
                     }
                     Action.Event.ToggleMedia -> {
                         eventId ?: return@run ActionResult.Inapplicable
+                        if ((findEventById(eventId)?.event?.content as? MessageContent)?.type?.shouldApplyMediaPolicy() == false) {
+                            return@run ActionResult.Inapplicable
+                        }
                         _mediaPolicy.update {
                             it.toggle(eventId)
                         }
