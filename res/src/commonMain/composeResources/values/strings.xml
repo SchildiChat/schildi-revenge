@@ -530,8 +530,6 @@
     <string name="pref_send_typing_notice_summary">Allow other users to see when you're typing</string>
     <string name="pref_disable_typing_notice_in_public_rooms_title">Disable typing notifications in public rooms</string>
     <string name="pref_disable_typing_notice_in_public_rooms_summary">Do not share your typing status in public rooms</string>
-    <string name="pref_force_render_blurhash_title">Always render blurhash</string>
-    <string name="pref_force_render_blurhash_summary">Show blurhash image/video fallbacks also for loaded media</string>
     <string name="pref_composer_max_lines_title">Max composer lines</string>
     <string name="pref_composer_max_lines_summary">Limit the rendered height of the message composer</string>
     <string name="pref_composer_max_lines_unfocused_title">Unfocused max composer lines</string>

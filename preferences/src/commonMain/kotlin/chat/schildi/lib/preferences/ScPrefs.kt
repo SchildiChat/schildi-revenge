@@ -152,8 +152,6 @@ import shire.res.generated.resources.pref_dual_mention_unread_counts_summary
 import shire.res.generated.resources.pref_dual_mention_unread_counts_title
 import shire.res.generated.resources.pref_force_fcm_distributor_summary
 import shire.res.generated.resources.pref_force_fcm_distributor_title
-import shire.res.generated.resources.pref_force_render_blurhash_summary
-import shire.res.generated.resources.pref_force_render_blurhash_title
 import shire.res.generated.resources.pref_indicate_unread_count_underestimates_summary
 import shire.res.generated.resources.pref_indicate_unread_count_underestimates_title
 import shire.res.generated.resources.pref_locale
@@ -290,7 +288,6 @@ object ScPrefs {
     val RENDER_SPACE_ORDER_KEYS = ScBoolPref("RENDER_SPACE_ORDER_KEYS", false, Res.string.pref_render_space_order_keys_title)
     val SHOW_DEV_INFOS = ScBoolPref("SHOW_DEV_INFOS", false, Res.string.pref_show_dev_infos_title, Res.string.pref_show_dev_infos_summary)
     val DEV_QUICK_OPTIONS = ScBoolPref("DEV_QUICK_OPTIONS", false, Res.string.pref_dev_quick_options_title, Res.string.pref_dev_quick_options_summary)
-    val FORCE_RENDER_BLURHASH = ScBoolPref("FORCE_RENDER_BLURHASH", false, Res.string.pref_force_render_blurhash_title, Res.string.pref_force_render_blurhash_summary)
     val FRAME_DROP_SPINNER = ScBoolPref("FRAME_DROP_SPINNER", false, Res.string.pref_framed_rop_spinner_title, Res.string.pref_framed_rop_spinner_summary)
     val DEBUG_NOTIFICATIONS = ScBoolPref("DEBUG_NOTIFICATIONS", false, Res.string.pref_debug_notifications_title, Res.string.pref_debug_notifications_summary, supportedOnPlatform = scPrefPlatformSupport.pushNotifications)
     val ALLOW_EMPTY_MESSAGE_SEND = ScBoolPref("ALLOW_EMPTY_MESSAGE_SEND", false, Res.string.pref_allow_empty_message_send_title, Res.string.pref_allow_empty_message_send_summary)
@@ -534,7 +531,6 @@ object ScPrefs {
             VIEW_HIDDEN_EVENTS,
             ALWAYS_SHOW_SDK_UNREAD_LINE,
             RENDER_SPACE_ORDER_KEYS,
-            FORCE_RENDER_BLURHASH,
             RENDER_AVATAR_STATES,
             FRAME_DROP_SPINNER,
             LONGPRESS_CLOSE_TO_UNREAD,

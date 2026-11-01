@@ -26,8 +26,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import chat.schildi.lib.preferences.ScPrefs
-import chat.schildi.revenge.preferences.value
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.media.BlurHashPlaceholder
 import chat.schildi.revenge.compose.media.rememberAnimatedImageTransform
@@ -185,21 +183,6 @@ fun ColumnScope.ImageMessageContent(
             contentScale = ContentScale.Fit,
             modifier = Modifier.clip(shape),
         ) {
-            if (blurhash != null && ScPrefs.FORCE_RENDER_BLURHASH.value()) {
-                BlurHashPlaceholder(
-                    blurHash = blurhash,
-                    width = width,
-                    height = height,
-                    modifier = Modifier.boundedMediaSize(
-                        minWidth,
-                        minHeight,
-                        maxWidth,
-                        maxHeight,
-                        aspectRatioOrNull(width, height),
-                    ),
-                )
-                return@SubcomposeAsyncImage
-            }
             when (painter.state.collectAsState().value) {
                 is AsyncImagePainter.State.Success -> SubcomposeAsyncImageContent(
                     modifier = Modifier.boundedMediaSize(
