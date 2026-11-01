@@ -299,6 +299,7 @@
     <string name="hint_poll_unlimited_selection">Multi-selection poll</string>
     <string name="hint_checked">Checked</string>
     <string name="hint_unchecked">Unchecked</string>
+    <string name="hint_blocked">Blocked</string>
 
     <string name="reply_failed_to_load">Failed to load replied-to message</string>
 
@@ -624,6 +625,7 @@
     <string name="pref_category_notifications_summary">Get notified about new messages</string>
     <string name="pref_category_push_registrations">Push registrations</string>
     <string name="pref_category_read_tracking">Read tracking</string>
+    <string name="pref_category_moderation_safety">Moderation &amp; safety</string>
 
     <string name="pref_url_previews_title">Link previews</string>
     <string name="pref_url_previews_summary">Query and render previews for links included in messages</string>
@@ -673,6 +675,13 @@
     <string name="pref_always_show_sdk_unread_line_summary">Render both SDK-provided and client-generated unread lines</string>
     <string name="pref_longpress_close_to_unread_title">Longpress close to unread</string>
     <string name="pref_longpress_close_to_unread_summary">Longpress the close button to close chats without reading, if read on room close is enabled.</string>
+
+    <string name="pref_hide_invite_avatars_title">Hide invite avatars</string>
+    <string name="pref_hide_invite_avatars_summary">Don't show room avatar for invites in the room list</string>
+    <string name="pref_hide_media_title">Hide media</string>
+    <string name="pref_hide_media_always">Click to reveal media in all chats</string>
+    <string name="pref_hide_media_public">Click to reveal media in public chats</string>
+    <string name="pref_hide_media_never">Always show media in chats</string>
 
     <string name="toast_key_config_reload_success">Key bindings reloaded</string>
     <string name="toast_key_config_reload_error">Failed parsing key bindings config: %1$s</string>

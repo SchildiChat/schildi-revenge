@@ -169,7 +169,7 @@ fun EventContentLayout(
                         )
                     }
                     is ImageLikeMessageType -> {
-                        ImageMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
+                        ImageMessage(eventId, contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
                     }
                     is LocationMessageType -> {
                         LocationMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
@@ -181,7 +181,7 @@ fun EventContentLayout(
                         FileMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
                     }
                     is VideoMessageType -> {
-                        VideoMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
+                        VideoMessage(eventId, contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
                     }
                     is VoiceMessageType -> {
                         VoiceMessage(contentType, messageMetadata, isOwn, timestamp, inReplyTo, threadInfo)
@@ -206,6 +206,7 @@ fun EventContentLayout(
 
         is StickerContent -> EventMessageLayout {
             ImageMessage(
+                eventId = eventId,
                 source = content.source,
                 messageMetadata = messageMetadata,
                 isOwn = isOwn,

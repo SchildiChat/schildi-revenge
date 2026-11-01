@@ -131,6 +131,7 @@ import shire.res.generated.resources.pref_category_general_summary
 import shire.res.generated.resources.pref_category_message_actions
 import shire.res.generated.resources.pref_category_message_appearance
 import shire.res.generated.resources.pref_category_message_authenticity_warnings
+import shire.res.generated.resources.pref_category_moderation_safety
 import shire.res.generated.resources.pref_category_notifications
 import shire.res.generated.resources.pref_category_notifications_summary
 import shire.res.generated.resources.pref_category_push_registrations
@@ -184,6 +185,12 @@ import shire.res.generated.resources.pref_pseudo_spaces_title
 import shire.res.generated.resources.pref_render_space_order_keys_title
 import shire.res.generated.resources.pref_floating_date_summary
 import shire.res.generated.resources.pref_floating_date_title
+import shire.res.generated.resources.pref_hide_invite_avatars_summary
+import shire.res.generated.resources.pref_hide_invite_avatars_title
+import shire.res.generated.resources.pref_hide_media_always
+import shire.res.generated.resources.pref_hide_media_never
+import shire.res.generated.resources.pref_hide_media_public
+import shire.res.generated.resources.pref_hide_media_title
 import shire.res.generated.resources.pref_longpress_close_to_unread_summary
 import shire.res.generated.resources.pref_longpress_close_to_unread_title
 import shire.res.generated.resources.pref_mark_fully_read_on_message_send_summary
@@ -313,6 +320,24 @@ object ScPrefs {
                 ),
             ),
         ),
+    )
+
+    // Moderation & safety
+    enum class HideMediaMode {
+        NEVER,
+        PUBLIC,
+        ALWAYS,
+    }
+    val HIDE_INVITE_AVATARS = ScBoolPref("HIDE_INVITE_AVATARS", false, Res.string.pref_hide_invite_avatars_title, Res.string.pref_hide_invite_avatars_summary)
+    val HIDE_MEDIA = ScStringListPref(
+        "HIDE_MEDIA",
+        HideMediaMode.NEVER.name,
+        persistentListOf(
+            ScListPrefEntry(HideMediaMode.NEVER.name, Res.string.pref_hide_media_never.toStringHolder()),
+            ScListPrefEntry(HideMediaMode.PUBLIC.name, Res.string.pref_hide_media_public.toStringHolder()),
+            ScListPrefEntry(HideMediaMode.ALWAYS.name, Res.string.pref_hide_media_always.toStringHolder()),
+        ),
+        Res.string.pref_hide_media_title,
     )
 
     val CLIENT_GENERATED_UNREAD_COUNTS = ScBoolPref("CLIENT_GENERATED_UNREAD_COUNTS", true, Res.string.pref_client_generated_unread_counts_title, Res.string.pref_client_generated_unread_counts_summary, disabledValue = true)
@@ -539,6 +564,10 @@ object ScPrefs {
                 ScPrefCategory("THEME_DARK", Res.string.pref_category_theme_dark, null, listOf(
                     BACKGROUND_ALPHA_DARK,
                 )),
+            )),
+            ScPrefCategory("MODERATION_SAFETY", Res.string.pref_category_moderation_safety, null, listOf(
+                HIDE_INVITE_AVATARS,
+                HIDE_MEDIA,
             )),
             ScPrefCategory("KEYBOARD_CONTROL", Res.string.pref_category_keyboard_control, null, listOf(
                 MINIMAL_MODE,

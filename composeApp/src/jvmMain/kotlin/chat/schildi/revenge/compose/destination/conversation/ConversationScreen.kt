@@ -80,6 +80,7 @@ import chat.schildi.revenge.matrixBodyDrawStyle
 import chat.schildi.revenge.matrixBodyFormatter
 import chat.schildi.revenge.model.CheckpointLoadState
 import chat.schildi.revenge.model.LoadCheckPoint
+import chat.schildi.revenge.model.LocalMediaPolicy
 import chat.schildi.revenge.model.conversation.EventJumpTarget
 import chat.schildi.revenge.model.conversation.LocalEventActionViewModel
 import chat.schildi.revenge.preferences.value
@@ -339,6 +340,7 @@ fun ConversationScreen(
             LocalListActionProvider provides listAction,
             LocalMatrixBodyFormatter provides matrixBodyFormatter(),
             LocalMatrixBodyDrawStyle provides matrixBodyDrawStyle(),
+            LocalMediaPolicy provides viewModel.mediaPolicy.collectAsState().value,
             role = FocusRole.DESTINATION_ROOT_CONTAINER,
             modifier = Modifier.fillMaxSize(),
         ) {

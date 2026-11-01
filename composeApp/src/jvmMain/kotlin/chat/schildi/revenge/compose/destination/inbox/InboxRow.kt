@@ -138,16 +138,22 @@ fun InboxRow(
                     val bridgeProtocol = room.summary.info.bridgeState
                         .firstOrNull { it.protocol?.avatarUrl != null }
                         ?.protocol
-                    AvatarImage(
-                        source = room.summary.info.avatarUrl?.let(::MediaSource)
+                    val allowAvatar = !room.summary.isInvite() || !ScPrefs.HIDE_INVITE_AVATARS.value()
+                    val avatarSource = if (allowAvatar) {
+                        room.summary.info.avatarUrl?.let(::MediaSource)
                             ?: room.summary.info.heroes.singleOrNull()?.avatarUrl?.let(::MediaSource)
-                            ?: room.summary.info.canonicalSpaceParent
+                                    ?: room.summary.info.canonicalSpaceParent
                                 ?.takeIf { ScPrefs.CANONICAL_PARENT_SPACE_AVATAR_FALLBACK.value() }
                                 ?.let {
                                     viewModel.spaceSummariesByKey.collectAsState().value
                                         .deriveCanonicalSpaceAvatarRecursive(room.sessionId, it)
                                         ?.let(::MediaSource)
-                                },
+                                }
+                    } else {
+                        null
+                    }
+                    AvatarImage(
+                        source = avatarSource,
                         size = Dimens.Inbox.avatar,
                         displayName = room.summary.info.name ?: "",
                         fallbackColorSource = bridgeProtocol?.avatarUrl?.let(::MediaSource),

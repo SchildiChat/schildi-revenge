@@ -29,9 +29,11 @@ import chat.schildi.revenge.compose.destination.conversation.event.message.times
 import chat.schildi.revenge.compose.destination.conversation.event.reaction.ReactionsRow
 import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.focus.rememberFocusId
+import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.model.conversation.MessageMetadata
 import chat.schildi.revenge.model.conversation.TimestampSettings
+import chat.schildi.revenge.model.shouldApplyMediaPolicy
 import chat.schildi.revenge.plaintext.EventTextFormat
 import com.beeper.android.messageformat.MatrixFormatInteractionState
 import com.beeper.android.messageformat.rememberMatrixFormatInteractionState
@@ -47,6 +49,7 @@ import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWi
 import io.element.android.libraries.matrix.api.timeline.item.event.UnknownContent
 import kotlinx.collections.immutable.ImmutableMap
 import kotlin.math.min
+import kotlin.uuid.Uuid
 
 enum class EventHighlight {
     NONE,
@@ -99,7 +102,7 @@ fun EventRow(
                             messageMetadata,
                             formatInteractionState,
                         ),
-                        primaryAction = eventClickAction(viewModel, currentActionContext(), event),
+                        primaryAction = eventClickAction(focusId, viewModel, currentActionContext(), event),
                         secondaryAction = openContextMenu,
                         copyActions = eventCopyActions(event, messageMetadata),
                     ),
@@ -169,6 +172,7 @@ private fun eventRowKeyboardActionProvider(
 
 @Composable
 private fun eventClickAction(
+    focusId: Uuid,
     viewModel: ConversationViewModel,
     context: ActionContext,
     event: EventTimelineItem,
@@ -178,8 +182,15 @@ private fun eventClickAction(
         when (val content = event.content) {
             is MessageContent -> {
                 when (val type = content.type) {
-                    is MessageTypeWithAttachment -> InteractionAction.Invoke {
-                        viewModel.downloadFileAndOpen(context, event) is ActionResult.Success
+                    is MessageTypeWithAttachment -> if (
+                        content.type.shouldApplyMediaPolicy() &&
+                            !viewModel.mediaPolicy.value.shouldShow(event.eventId)
+                    ) {
+                        InteractionAction.HandleAction(focusId, Action.Event.RevealMedia)
+                    } else {
+                        InteractionAction.Invoke {
+                            viewModel.downloadFileAndOpen(context, event) is ActionResult.Success
+                        }
                     }
                     is LocationMessageType -> InteractionAction.Invoke {
                         keyHandler.openLink(type.geoUri) is ActionResult.Success

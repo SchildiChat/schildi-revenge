@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.model.conversation.MessageMetadata
 import com.beeper.android.messageformat.MatrixBodyParseResult
+import io.element.android.libraries.matrix.api.core.EventId
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.timeline.item.EventThreadInfo
 import io.element.android.libraries.matrix.api.timeline.item.event.InReplyTo
@@ -30,6 +31,7 @@ import io.element.android.libraries.matrixmedia.api.MediaRequestData
 
 @Composable
 fun VideoMessage(
+    eventId: EventId?,
     video: VideoMessageType,
     messageMetadata: MessageMetadata?,
     isOwn: Boolean,
@@ -39,6 +41,7 @@ fun VideoMessage(
     modifier: Modifier = Modifier,
 ) {
     VideoMessage(
+        eventId = eventId,
         source = video.info?.thumbnailSource ?: video.source,
         blurhash = video.info?.blurhash,
         width = video.info?.width,
@@ -54,6 +57,7 @@ fun VideoMessage(
 
 @Composable
 fun VideoMessage(
+    eventId: EventId?,
     source: MediaSource,
     blurhash: String? = null,
     width: Long? = null,
@@ -94,6 +98,7 @@ fun VideoMessage(
             bottomEnd = bottomRadius,
         )
         VideoMessageContent(
+            eventId = eventId,
             model = MediaRequestData(source, MediaRequestData.Kind.Thumbnail(1000)),
             blurhash = blurhash,
             width = width,
@@ -115,6 +120,7 @@ fun VideoMessage(
 
 @Composable
 fun ColumnScope.VideoMessageContent(
+    eventId: EventId?,
     model: Any,
     blurhash: String? = null,
     width: Long? = null,
@@ -128,6 +134,7 @@ fun ColumnScope.VideoMessageContent(
     onCaptionTextLayout: (TextLayoutResult?) -> Unit = {},
 ) {
     ImageMessageContent(
+        eventId = eventId,
         model = model,
         blurhash = blurhash,
         width = width,
