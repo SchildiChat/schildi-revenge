@@ -300,6 +300,8 @@
     <string name="hint_checked">Checked</string>
     <string name="hint_unchecked">Unchecked</string>
     <string name="hint_blocked">Blocked</string>
+    <string name="hint_federation">Federation</string>
+    <string name="hint_unfederated">Unfederated</string>
 
     <string name="reply_failed_to_load">Failed to load replied-to message</string>
 

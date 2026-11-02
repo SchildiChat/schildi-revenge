@@ -159,6 +159,10 @@ class CreateRoomViewModel(
         it.copy(historyVisibilityOverride = historyVisibility)
     }.toActionResult()
 
+    fun setFederate(allowFederate: Boolean) = updateSettings {
+        it.copy(federate = allowFederate)
+    }.toActionResult()
+
     suspend fun setRoomVersion(roomVersion: String?) = updateSettings {
         it.copy(roomVersion = roomVersion)
     }.toActionResult()

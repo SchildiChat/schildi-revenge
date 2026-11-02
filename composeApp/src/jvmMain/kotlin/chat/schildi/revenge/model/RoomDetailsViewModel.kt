@@ -36,8 +36,10 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -176,21 +178,41 @@ class RoomDetailsViewModel(
         room.predecessorRoom()
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val roomType = baseRoom.map { room ->
+    private val roomCreationEvent = baseRoom.map { room ->
         room ?: return@map null
         room.getRawState("m.room.create", "")
             .onFailure { log.e("Failed to get room creation event", it) }
-            .getOrNull()
-            ?.let { rawEvent ->
-                tryOrNull {
-                    Json.parseToJsonElement(rawEvent)
-                        .jsonObject["content"]
-                        ?.jsonObject
-                        ?.get("type")
-                        ?.jsonPrimitive
-                        ?.contentOrNull
+            .getOrNull()?.let {
+                runCatching {
+                    Json.parseToJsonElement(it)
                 }
+                    .onFailure {
+                        log.e("Failed to parse room creation event", it)
+                    }
+                    .getOrNull()
             }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val roomType = roomCreationEvent.map { creationContent ->
+        creationContent ?: return@map null
+        tryOrNull {
+            creationContent.jsonObject["content"]
+                ?.jsonObject
+                ?.get("type")
+                ?.jsonPrimitive
+                ?.contentOrNull
+        }
+    }.stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val allowFederation = roomCreationEvent.map { creationContent ->
+        creationContent ?: return@map null
+        tryOrNull {
+            creationContent.jsonObject["content"]
+                ?.jsonObject
+                ?.get("m.federate")
+                ?.jsonPrimitive
+                ?.booleanOrNull
+        }
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val actionProvider = RoomActionProvider(

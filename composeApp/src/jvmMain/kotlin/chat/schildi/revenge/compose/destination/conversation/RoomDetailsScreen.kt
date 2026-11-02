@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.NoEncryption
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.PublicOff
+import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -105,6 +106,7 @@ import shire.res.generated.resources.hint_room_predecessor
 import shire.res.generated.resources.hint_room_type
 import shire.res.generated.resources.hint_room_version
 import shire.res.generated.resources.hint_topic
+import shire.res.generated.resources.hint_unfederated
 import shire.res.generated.resources.history_visibility_custom
 import shire.res.generated.resources.room_details_title
 import kotlin.toString
@@ -222,6 +224,7 @@ fun RoomDetailsScreen(
                         item {
                             RoomInfoBadgeRow(
                                 info,
+                                viewModel.allowFederation.collectAsState().value,
                                 Modifier.fillMaxWidth().keyFocusable(FocusRole.LIST_ITEM),
                             )
                         }
@@ -473,6 +476,7 @@ private fun SectionText(
 @Composable
 private fun RoomInfoBadgeRow(
     info: RoomInfo,
+    federated: Boolean?,
     modifier: Modifier = Modifier,
 ) {
     Box(modifier, contentAlignment = Alignment.Center) {
@@ -499,6 +503,9 @@ private fun RoomInfoBadgeRow(
                 true -> RoomInfoBadge(stringResource(Res.string.hint_encrypted), Icons.Default.Lock)
                 false -> RoomInfoBadge(stringResource(Res.string.hint_not_encrypted), Icons.Default.NoEncryption)
                 else -> {}
+            }
+            if (federated == false) {
+                RoomInfoBadge(stringResource(Res.string.hint_unfederated), Icons.Default.Restaurant)
             }
         }
     }

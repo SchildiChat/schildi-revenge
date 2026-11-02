@@ -94,6 +94,7 @@ import shire.res.generated.resources.pref_category_advanced_room_settings
 import shire.res.generated.resources.room_preset
 import shire.res.generated.resources.hint_disabled
 import shire.res.generated.resources.hint_enabled
+import shire.res.generated.resources.hint_federation
 import kotlin.collections.orEmpty
 import kotlin.comparisons.compareBy
 
@@ -301,6 +302,15 @@ fun CreateRoomScreen(
                                             stringResource(Res.string.history_visibility_custom, it.value)
                                         } ?: value.toString()
                                 },
+                                enabled = canEditSettings,
+                            )
+                        }
+
+                        item {
+                            CreateRoomToggle(
+                                stringResource(Res.string.hint_federation),
+                                params.federate,
+                                persist = { viewModel.setFederate(it) is ActionResult.Success },
                                 enabled = canEditSettings,
                             )
                         }
