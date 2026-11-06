@@ -178,14 +178,17 @@ private fun eventClickAction(
     event: EventTimelineItem,
 ): InteractionAction? {
     val keyHandler = LocalKeyboardActionHandler.current
-    return remember(viewModel, context, event) {
+    val shouldApplyMediaPolicy = (event.content as? MessageContent)?.type?.shouldApplyMediaPolicy() ?: false
+    val mediaPolicy = if (shouldApplyMediaPolicy) {
+        viewModel.mediaPolicy.collectAsState().value
+    } else {
+        null
+    }
+    return remember(viewModel, context, event, mediaPolicy) {
         when (val content = event.content) {
             is MessageContent -> {
                 when (val type = content.type) {
-                    is MessageTypeWithAttachment -> if (
-                        content.type.shouldApplyMediaPolicy() &&
-                            !viewModel.mediaPolicy.value.shouldShow(event.eventId)
-                    ) {
+                    is MessageTypeWithAttachment -> if (mediaPolicy != null && !mediaPolicy.shouldShow(event.eventId)) {
                         InteractionAction.HandleAction(focusId, Action.Event.RevealMedia)
                     } else {
                         InteractionAction.Invoke {
