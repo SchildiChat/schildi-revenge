@@ -64,7 +64,7 @@ class ComposerSuggestionsProvider(
                 val shortcodePrefix = currentCompletionEntity.removePrefix(":")
                 // Emojis
                 val emojiSuggestion = if (query.allowsCustomEmote) {
-                    Emoji.list().filter { it.details.aliases.any { it.contains(shortcodePrefix) } }
+                    Emoji.list().filter { it.details.aliases.any { it.contains(shortcodePrefix, ignoreCase = true) } }
                         .map { ComposerEmojiSuggestion(it.details.string, it.details.aliases, it.details.description) }
                 } else {
                     emptyList()
@@ -74,8 +74,8 @@ class ComposerSuggestionsProvider(
                     if (query.allowsCustomEmote && pack.supportsCustomEmoji ||
                         query.type == DraftType.STICKER && pack.supportsSticker) {
                         pack.images.toList().filter { (shortcode, image) ->
-                            shortcode.contains(shortcodePrefix)
-                                    || image.body?.contains(shortcodePrefix) == true
+                            shortcode.contains(shortcodePrefix, ignoreCase = true)
+                                    || image.body?.contains(shortcodePrefix, ignoreCase = true) == true
                         }.map {
                             ComposerCustomEmoteSuggestion(
                                 ImagePackImageSource(source, pack.pack),
