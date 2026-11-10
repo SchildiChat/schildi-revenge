@@ -682,6 +682,9 @@
     <string name="pref_hide_media_always">Click to reveal media in all chats</string>
     <string name="pref_hide_media_public">Click to reveal media in public chats</string>
     <string name="pref_hide_media_never">Always show media in chats</string>
+    <string name="pref_hide_media_always_short">Always</string>
+    <string name="pref_hide_media_public_short">Public</string>
+    <string name="pref_hide_media_never_short">Never</string>
 
     <string name="toast_key_config_reload_success">Key bindings reloaded</string>
     <string name="toast_key_config_reload_error">Failed parsing key bindings config: %1$s</string>

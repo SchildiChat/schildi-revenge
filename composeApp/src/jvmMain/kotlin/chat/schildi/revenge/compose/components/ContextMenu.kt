@@ -26,6 +26,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.layout.boundsInWindow
@@ -68,6 +69,7 @@ sealed interface ContextMenuDecoration {
     data class Toggle(val checked: Boolean) : ContextMenuDecoration
     data object CheckMark : ContextMenuDecoration
     data object DisabledCheckMark : ContextMenuDecoration
+    data class Custom(val icon: ImageVector) : ContextMenuDecoration
 }
 
 data class ContextMenuActionEntry(
@@ -311,6 +313,14 @@ private fun ContextMenuDropdownMenuItemContent(
                         Icons.Default.Check,
                         null,
                         tint = MaterialTheme.colorScheme.onSurface.copy(alpha = Dimens.fgDisabledAlpha),
+                    )
+                }
+            }
+            is ContextMenuDecoration.Custom -> {
+                {
+                    Icon(
+                        decoration.icon,
+                        null,
                     )
                 }
             }

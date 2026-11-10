@@ -3,10 +3,12 @@ package chat.schildi.revenge.compose.destination.conversation
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PestControlRodent
+import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.Icon
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
@@ -26,6 +28,7 @@ import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.compose.components.AvatarImage
 import chat.schildi.revenge.compose.components.ContextMenuActionEntry
 import chat.schildi.revenge.compose.components.ContextMenuDecoration
+import chat.schildi.revenge.compose.components.ContextMenuSubmenuEntry
 import chat.schildi.revenge.compose.components.TopNavigation
 import chat.schildi.revenge.compose.components.TopNavigationCloseOrNavigateToInboxIcon
 import chat.schildi.revenge.compose.components.TopNavigationIcon
@@ -54,6 +57,10 @@ import shire.res.generated.resources.dev_tools_title
 import shire.res.generated.resources.keep_24px
 import shire.res.generated.resources.pinned_messages
 import shire.res.generated.resources.pref_always_show_sdk_unread_line_title_short
+import shire.res.generated.resources.pref_hide_media_always_short
+import shire.res.generated.resources.pref_hide_media_never_short
+import shire.res.generated.resources.pref_hide_media_public_short
+import shire.res.generated.resources.pref_hide_media_title
 import shire.res.generated.resources.pref_show_dev_infos_title_short
 import shire.res.generated.resources.pref_threaded_replies_in_main_timeline_title_short
 import shire.res.generated.resources.pref_view_hidden_events_title_short
@@ -124,6 +131,7 @@ fun ConversationTopNavigation(
                     }
                     if (ScPrefs.DEV_QUICK_OPTIONS.value()) {
                         val focusId = rememberFocusId()
+                        val mediaPolicyValue = ScPrefs.HIDE_MEDIA.value()
                         WithContextMenu(
                             focusId = focusId,
                             entries = persistentListOf(
@@ -181,6 +189,52 @@ fun ConversationTopNavigation(
                                     keyboardShortcut = Key.R,
                                     decoration = ContextMenuDecoration.Toggle(ScPrefs.ALWAYS_SHOW_SDK_UNREAD_LINE.value()),
                                     enabled = ScPrefs.ALWAYS_SHOW_SDK_UNREAD_LINE.isEnabled(),
+                                ),
+                                ContextMenuSubmenuEntry(
+                                    Res.string.pref_hide_media_title.toStringHolder(),
+                                    null,
+                                    rememberFocusId(),
+                                    persistentListOf(
+                                        ContextMenuActionEntry(
+                                            Res.string.pref_hide_media_never_short.toStringHolder(),
+                                            null,
+                                            Action.Global.SetSetting,
+                                            persistentListOf(
+                                                ScPrefs.HIDE_MEDIA.sKey,
+                                                ScPrefs.HideMediaMode.NEVER.name,
+                                            ),
+                                            keyboardShortcut = Key.N,
+                                            decoration = ContextMenuDecoration.CheckMark.takeIf { mediaPolicyValue == ScPrefs.HideMediaMode.NEVER.name },
+                                        ),
+                                        ContextMenuActionEntry(
+                                            Res.string.pref_hide_media_public_short.toStringHolder(),
+                                            null,
+                                            Action.Global.SetSetting,
+                                            persistentListOf(
+                                                ScPrefs.HIDE_MEDIA.sKey,
+                                                ScPrefs.HideMediaMode.PUBLIC.name,
+                                            ),
+                                            keyboardShortcut = Key.P,
+                                            decoration = ContextMenuDecoration.CheckMark.takeIf { mediaPolicyValue == ScPrefs.HideMediaMode.PUBLIC.name },
+                                        ),
+                                        ContextMenuActionEntry(
+                                            Res.string.pref_hide_media_always_short.toStringHolder(),
+                                            null,
+                                            Action.Global.SetSetting,
+                                            persistentListOf(
+                                                ScPrefs.HIDE_MEDIA.sKey,
+                                                ScPrefs.HideMediaMode.ALWAYS.name,
+                                            ),
+                                            keyboardShortcut = Key.A,
+                                            decoration = ContextMenuDecoration.CheckMark.takeIf { mediaPolicyValue == ScPrefs.HideMediaMode.ALWAYS.name },
+                                        ),
+                                    ),
+                                    decoration = when (mediaPolicyValue) {
+                                        ScPrefs.HideMediaMode.NEVER.name -> ContextMenuDecoration.Custom(Icons.Default.Close)
+                                        ScPrefs.HideMediaMode.PUBLIC.name -> ContextMenuDecoration.Custom(Icons.Default.Public)
+                                        ScPrefs.HideMediaMode.ALWAYS.name -> ContextMenuDecoration.Custom(Icons.Default.Check)
+                                        else -> null
+                                    }
                                 ),
                                 ContextMenuActionEntry(
                                     Res.string.dev_tools_title.toStringHolder(),
