@@ -158,7 +158,7 @@ fun InboxRow(
                         displayName = room.summary.info.name ?: "",
                         fallbackColorSource = bridgeProtocol?.avatarUrl?.let(::MediaSource),
                     )
-                    user?.avatarUrl?.takeIf { needsAccountDisambiguation}?.let { userAvatar ->
+                    user?.avatarUrl?.takeIf { needsAccountDisambiguation }?.let { userAvatar ->
                         AvatarImage(
                             source = MediaSource(userAvatar),
                             size = Dimens.Inbox.accountAvatar,
@@ -356,7 +356,7 @@ private fun RowScope.ScLastMessageAndIndicatorRow(
             .padding(end = Dimens.horizontalItemPaddingBig),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (room.isInvite()) {
+        if (room.isInvite() && !ScPrefs.HIDE_INVITE_AVATARS.value()) {
             val inviter = room.info.inviter
             inviter?.avatarUrl?.let {
                 AvatarImage(
