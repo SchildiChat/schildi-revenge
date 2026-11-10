@@ -21,6 +21,7 @@ fun MessageType.shouldApplyMediaPolicy() = when (this) {
 sealed interface ShowMediaPolicy {
     fun shouldShow(eventId: EventId): Boolean
     fun shouldShow(eventId: EventId?) = eventId?.let(::shouldShow) ?: true
+    fun allowLinkPreviewThumbnail(): Boolean
     fun reveal(eventId: EventId): ShowMediaPolicy
     fun hide(eventId: EventId): ShowMediaPolicy
     fun toggle(eventId: EventId): ShowMediaPolicy
@@ -28,6 +29,7 @@ sealed interface ShowMediaPolicy {
         val revealed: ImmutableSet<EventId> = persistentSetOf(),
     ) : ShowMediaPolicy {
         override fun shouldShow(eventId: EventId) = eventId in revealed
+        override fun allowLinkPreviewThumbnail() = false
         override fun reveal(eventId: EventId): OptIn {
             return if (eventId in revealed) {
                 this
@@ -55,6 +57,7 @@ sealed interface ShowMediaPolicy {
         val hidden: ImmutableSet<EventId> = persistentSetOf(),
     ) : ShowMediaPolicy {
         override fun shouldShow(eventId: EventId) = eventId !in hidden
+        override fun allowLinkPreviewThumbnail() = true
         override fun reveal(eventId: EventId): OptOut {
             return if (eventId in hidden) {
                 copy(hidden = (hidden - eventId).toPersistentSet())

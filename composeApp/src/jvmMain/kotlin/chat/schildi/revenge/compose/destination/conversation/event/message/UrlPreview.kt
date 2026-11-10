@@ -40,6 +40,7 @@ import chat.schildi.revenge.Dimens
 import chat.schildi.revenge.compose.components.thenIf
 import chat.schildi.revenge.compose.media.rememberAnimatedImageTransform
 import chat.schildi.revenge.compose.media.imageLoader
+import chat.schildi.revenge.model.LocalMediaPolicy
 import chat.schildi.revenge.model.conversation.firstPreviewUrl
 import chat.schildi.theme.LocalMessageStyle
 import coil3.compose.AsyncImagePainter
@@ -99,8 +100,9 @@ fun UrlPreviewView(
         val titleColumnHeight = remember { mutableIntStateOf(0) }
         val density = LocalDensity.current
         val textStyle = LocalMessageStyle.current.textStyle
+        val imageUrl = urlPreview.imageUrl?.takeIf { LocalMediaPolicy.current.allowLinkPreviewThumbnail() }
         Row {
-            urlPreview.imageUrl?.let { imageUrl ->
+            if (imageUrl != null) {
                 // Reserve the thumbnail area at its size from the start (aspect ratio when known),
                 // and re-fit it to the actual image once it has loaded, so the final result
                 // always matches the image (reported measures can be wrong).
@@ -201,7 +203,7 @@ fun UrlPreviewView(
                 maxLines = if (expanded) 50 else 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
-                    .thenIf(urlPreview.imageUrl != null || urlPreview.title != null || urlPreview.siteName != null) { padding(top = Dimens.Conversation.UrlPreview.descriptionTopPadding) }
+                    .thenIf(imageUrl != null || urlPreview.title != null || urlPreview.siteName != null) { padding(top = Dimens.Conversation.UrlPreview.descriptionTopPadding) }
                     .clip(Dimens.Conversation.UrlPreview.descriptionShape)
                     .combinedClickable(onLongClick = onLongCLick) { expanded = !expanded }
                     .padding(horizontal = Dimens.Conversation.UrlPreview.descriptionPaddingHorizontal),
