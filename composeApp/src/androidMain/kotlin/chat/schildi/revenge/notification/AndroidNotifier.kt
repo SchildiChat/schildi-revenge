@@ -22,6 +22,7 @@ import androidx.core.content.FileProvider
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
+import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.Destination
 import chat.schildi.revenge.MainActivity
 import chat.schildi.revenge.RevengeAppGraph
@@ -33,8 +34,10 @@ import chat.schildi.revenge.media.MediaDownloadRepo
 import chat.schildi.revenge.model.ScopedRawRoomId
 import chat.schildi.revenge.plaintext.AttachmentFormatMode
 import chat.schildi.revenge.plaintext.NotificationEventTextFormat
+import chat.schildi.revenge.preferences.RevengePrefs
 import chat.schildi.revenge.serializedToString
 import chat.schildi.revenge.util.MimeUtil
+import chat.schildi.revenge.util.tryOrNull
 import co.touchlab.kermit.Logger
 import coil3.BitmapImage
 import coil3.request.ImageRequest
@@ -47,6 +50,7 @@ import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.notification.NotificationContent
 import io.element.android.libraries.matrix.api.notification.NotificationData
 import io.element.android.libraries.matrix.api.room.CreateTimelineParams
+import io.element.android.libraries.matrix.api.room.join.JoinRule
 import io.element.android.libraries.matrix.api.timeline.item.event.ImageLikeMessageType
 import io.element.android.libraries.matrix.api.timeline.item.event.MessageTypeWithAttachment
 import io.element.android.libraries.matrix.api.timeline.item.event.VideoMessageType
@@ -138,6 +142,16 @@ object AndroidNotifier {
         }
     }
 
+    private suspend fun shouldHideMedia(data: NotificationData): Boolean {
+        val rawValue = RevengePrefs.getSetting(ScPrefs.HIDE_MEDIA)
+        return when (tryOrNull { ScPrefs.HideMediaMode.valueOf(rawValue) }) {
+            null,
+            ScPrefs.HideMediaMode.NEVER -> false
+            ScPrefs.HideMediaMode.PUBLIC -> data.roomJoinRule == JoinRule.Public
+            ScPrefs.HideMediaMode.ALWAYS -> true
+        }
+    }
+
     suspend fun notifyMessage(
         id: NotificationId.Event,
         data: NotificationData,
@@ -156,8 +170,9 @@ object AndroidNotifier {
             log.w("Failed to inspect active notifications", it)
         }.getOrNull()
 
-        val roomAvatar = data.roomAvatarUrl?.let { loadMediaBitmap(id.sessionId, MediaSource(it)) }
-        val senderAvatar = data.senderAvatarUrl?.let { loadMediaBitmap(id.sessionId, MediaSource(it)) }
+        val showAvatar = data.content !is NotificationContent.Invite || !RevengePrefs.getSetting(ScPrefs.HIDE_INVITE_AVATARS)
+        val roomAvatar = data.roomAvatarUrl?.takeIf { showAvatar }?.let { loadMediaBitmap(id.sessionId, MediaSource(it)) }
+        val senderAvatar = data.senderAvatarUrl?.takeIf { showAvatar }?.let { loadMediaBitmap(id.sessionId, MediaSource(it)) }
 
         // TODO look up
         val ownUser = Person.Builder()
@@ -201,21 +216,24 @@ object AndroidNotifier {
                 when (val messageType = content.messageType) {
                     is ImageLikeMessageType -> {
                         // Thumbnail
-                        val messageMedia = messageType.info?.thumbnailSource?.let { thumbnailSource ->
-                            loadNotificationMediaUri(
+                        val messageMedia = if (shouldHideMedia(data))
+                            null
+                        else
+                            messageType.info?.thumbnailSource?.let { thumbnailSource ->
+                                loadNotificationMediaUri(
+                                    context,
+                                    data,
+                                    thumbnailSource,
+                                    messageType.info?.thumbnailInfo?.mimetype,
+                                    messageType.filename,
+                                )
+                            } ?: loadNotificationMediaUri(
                                 context,
                                 data,
-                                thumbnailSource,
-                                messageType.info?.thumbnailInfo?.mimetype,
+                                messageType.source,
+                                messageType.info?.mimetype,
                                 messageType.filename,
                             )
-                        } ?: loadNotificationMediaUri(
-                            context,
-                            data,
-                            messageType.source,
-                            messageType.info?.mimetype,
-                            messageType.filename,
-                        )
 
                         // Media message
                         messagingStyle.addMessage(
@@ -233,15 +251,18 @@ object AndroidNotifier {
                     }
                     is VideoMessageType -> {
                         // Thumbnail
-                        val messageMedia = messageType.info?.thumbnailSource?.let { thumbnailSource ->
-                            loadNotificationMediaUri(
-                                context,
-                                data,
-                                thumbnailSource,
-                                messageType.info?.thumbnailInfo?.mimetype,
-                                messageType.filename,
-                            )
-                        }
+                        val messageMedia = if (shouldHideMedia(data))
+                            null
+                        else
+                            messageType.info?.thumbnailSource?.let { thumbnailSource ->
+                                loadNotificationMediaUri(
+                                    context,
+                                    data,
+                                    thumbnailSource,
+                                    messageType.info?.thumbnailInfo?.mimetype,
+                                    messageType.filename,
+                                )
+                            }
 
                         // Media message
                         messagingStyle.addMessage(
