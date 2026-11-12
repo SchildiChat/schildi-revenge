@@ -23,37 +23,15 @@ enum class NewMessageLineInstance {
 @Composable
 fun NewMessagesLine(
     instance: NewMessageLineInstance,
-    isThreadedTimeline: Boolean,
     modifier: Modifier = Modifier,
 ) {
     val debugUnreadLine = ScPrefs.ALWAYS_SHOW_SDK_UNREAD_LINE.value()
-    if (!debugUnreadLine) {
-        val shouldRender = when (instance) {
-            // Fully read event says this is unread, this is to be trusted as truth in non-threaded timelines.
-            NewMessageLineInstance.ReadMarker -> !isThreadedTimeline
-            // SDK says this is unread, but doesn't match what the m.fully_read marker says.
-            // Only trust in threaded timelines.
-            NewMessageLineInstance.Sdk -> isThreadedTimeline
-        }
-        if (!shouldRender) {
-            return
-        }
+    if (!debugUnreadLine && instance == NewMessageLineInstance.Sdk) {
+        return
     }
-    val color = if (debugUnreadLine) {
-        when (instance) {
-            NewMessageLineInstance.ReadMarker -> if (isThreadedTimeline) {
-                MaterialTheme.scExposures.accentColor.copy(alpha = 0.3f)
-            } else {
-                MaterialTheme.scExposures.accentColor
-            }
-            NewMessageLineInstance.Sdk -> if (isThreadedTimeline) {
-                MaterialTheme.scExposures.accentColor
-            } else {
-                MaterialTheme.scExposures.accentColor.copy(alpha = 0.3f)
-            }
-        }
-    } else {
-        MaterialTheme.scExposures.accentColor
+    val color = when (instance) {
+        NewMessageLineInstance.ReadMarker -> MaterialTheme.scExposures.accentColor
+        NewMessageLineInstance.Sdk -> MaterialTheme.scExposures.accentColor.copy(alpha = 0.3f)
     }
     ConversationDividerLine(
         color,

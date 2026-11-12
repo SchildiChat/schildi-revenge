@@ -387,7 +387,7 @@ fun ConversationScreen(
                             val visible = listState.layoutInfo.visibleItemsInfo
                             val bottom = isLive && visible.firstOrNull()?.index?.let { it <= 1 } != false
                             // No read marker known counts as "visible" since we cannot jump to it anyway
-                            val readMarker = fullyReadEvent == null || visible.any {
+                            val readMarker = fullyReadEvent?.readMarker == null || visible.any {
                                 fullyReadEvent.has((renderedItems.getOrNull(it.index)?.item as? MatrixTimelineItem.Event)?.eventId)
                             }
                             Pair(bottom, readMarker)

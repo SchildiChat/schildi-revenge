@@ -70,7 +70,6 @@ fun ConversationItemRow(
                     is VirtualTimelineItem.LoadingIndicator -> PagingIndicator()
                     VirtualTimelineItem.ReadMarker -> NewMessagesLine(
                         instance = NewMessageLineInstance.Sdk,
-                        isThreadedTimeline = viewModel.threadId.collectAsState().value != null,
                     )
                     VirtualTimelineItem.RoomBeginning -> RoomBeginning()
                     // "LastForwardIndicator" is a weird name, but it's used to have a stable key to stick to certain
@@ -97,7 +96,6 @@ fun ConversationItemRow(
                 if (showUnreadLine) {
                     NewMessagesLine(
                         instance = NewMessageLineInstance.ReadMarker,
-                        isThreadedTimeline = viewModel.threadId.collectAsState().value != null,
                     )
                 }
 

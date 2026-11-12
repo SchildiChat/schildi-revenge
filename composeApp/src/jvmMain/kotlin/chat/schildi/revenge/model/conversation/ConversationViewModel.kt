@@ -698,11 +698,16 @@ class ConversationViewModel(
         awaitingRender: Boolean = cachedFullyRead.value?.awaitingRender ?: false,
     ): FullyReadEventState? {
         timelineState ?: return null
-        return timelineState.preferredTimeline.fullyReadEventId()?.let {
-            val eventId = EventId(it)
-            FullyReadEventState.from(eventId, timelineState, awaitingRender).also {
-                _cachedFullyRead.value = it
-            }
+        val timeline = timelineState.preferredTimeline
+        val cached = cachedFullyRead.value
+        val eventId = when {
+            timeline.mode !is Timeline.Mode.Thread ->
+                timeline.fullyReadEventId()?.let(::EventId) ?: return null
+            cached != null -> cached.readMarker
+            else -> timeline.latestUserReceiptEventId(sessionId.value)?.let(::EventId)
+        }
+        return FullyReadEventState.from(eventId, timelineState, awaitingRender).also {
+            _cachedFullyRead.value = it
         }
     }
 
@@ -759,6 +764,7 @@ class ConversationViewModel(
             // Fresh room so receipts still get sent while the VM gets closed and cleaned up
             clientFlow.value?.getRoom(roomId)?.use { room ->
                 platformAutoDismissNotification(sessionId, roomId, listOf(latest))
+                if (threadId.value != null) _cachedFullyRead.value = FullyReadEventState(latest)
                 room.sendMultipleReceipts(
                     Receipts(
                         fullyRead = latest,
@@ -2368,6 +2374,7 @@ class ConversationViewModel(
             var result: ActionResult? = null
             timeline.invokeOnCurrentTimeline {
                 platformAutoDismissNotification(sessionId, roomId, listOf(eventId))
+                if (mode is Timeline.Mode.Thread) _cachedFullyRead.value = FullyReadEventState(eventId)
                 result = forceSendReadReceipt(eventId, receiptType)
                     .onFailure {
                         log.e("Failed to send read receipt $receiptType", it)
