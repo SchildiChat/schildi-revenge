@@ -266,6 +266,15 @@ class RustBaseRoom(
             innerRoom.forceSendSingleReceipt(receiptType.toRustReceiptType(), eventId.value)
         }
     }
+    override suspend fun sendSingleReadReceipt(receiptType: ReceiptType, eventId: EventId, threadId: ThreadId?): Result<Unit> = withContext(roomDispatcher) {
+        runCatchingExceptions {
+            innerRoom.sendSingleReceipt(
+                receiptType.toRustReceiptType(),
+                threadId?.let { ReceiptThread.Thread(it.value) } ?: ReceiptThread.Unthreaded,
+                eventId.value,
+            )
+        }
+    }
     override suspend fun getOwnReadReceipt(receiptType: ReceiptType) = withContext(roomDispatcher) {
         runCatchingExceptions {
             innerRoom.loadUserReceipt(

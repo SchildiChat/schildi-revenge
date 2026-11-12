@@ -760,18 +760,24 @@ class ConversationViewModel(
             scPreferencesStore.getCachedOrDefaultValue(ScPrefs.AUTO_MARK_AS_READ_READ_RECEIPT_TYPE),
             roomInfo.value,
         ) ?: return
+        val threadId = threadId.value
         GlobalActionsScope.launch {
             // Fresh room so receipts still get sent while the VM gets closed and cleaned up
             clientFlow.value?.getRoom(roomId)?.use { room ->
                 platformAutoDismissNotification(sessionId, roomId, listOf(latest))
-                if (threadId.value != null) _cachedFullyRead.value = FullyReadEventState(latest)
-                room.sendMultipleReceipts(
-                    Receipts(
-                        fullyRead = latest,
-                        publicReadReceipt = if (receiptType == ReceiptType.READ) latest else null,
-                        privateReadReceipt = if (receiptType == ReceiptType.READ_PRIVATE) latest else null,
+                val result = if (threadId != null) {
+                    _cachedFullyRead.value = FullyReadEventState(latest)
+                    room.sendSingleReadReceipt(receiptType, latest, threadId)
+                } else {
+                    room.sendMultipleReceipts(
+                        Receipts(
+                            fullyRead = latest,
+                            publicReadReceipt = if (receiptType == ReceiptType.READ) latest else null,
+                            privateReadReceipt = if (receiptType == ReceiptType.READ_PRIVATE) latest else null,
+                        )
                     )
-                )
+                }
+                result
                     .onFailure { log.e("Failed to set read markers on UI dispose", it) }
                     .onSuccess { latestSentReadReceipt.value = latest }
             }
