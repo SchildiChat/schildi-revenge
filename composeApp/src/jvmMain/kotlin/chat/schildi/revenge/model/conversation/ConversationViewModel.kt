@@ -1938,6 +1938,7 @@ class ConversationViewModel(
                 }
 
                 Action.Conversation.MarkTimelineFullyRead -> {
+                    if (threadId.value != null) return@run ActionResult.Inapplicable
                     val timeline = activeTimeline.value ?: return@run ActionResult.Failure("Timeline not ready")
                     launchActionAsync(
                         "markTimelineFullyRead",
@@ -2361,6 +2362,7 @@ class ConversationViewModel(
     }
 
     private fun ActionContext.markEventAsRead(eventId: EventId, receiptType: ReceiptType): ActionResult {
+        if (receiptType == ReceiptType.FULLY_READ && threadId.value != null) return ActionResult.Inapplicable
         val timeline = timelineController.value ?: return ActionResult.Failure("Timeline not ready")
         return launchActionAsync("MarkEventAsRead", viewModelScope, Dispatchers.IO) {
             var result: ActionResult? = null
