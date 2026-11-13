@@ -17,7 +17,6 @@ import androidx.compose.ui.input.key.KeyEventType.Companion.KeyUp
 import androidx.compose.ui.input.key.isAltPressed
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isShiftPressed
-import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerType
@@ -794,6 +793,7 @@ class KeyboardActionHandler(
     }
 
     fun onPreviewKeyEvent(event: KeyEvent): Boolean {
+        val key = event.layoutAwareKey
         val trigger = event.toTrigger() ?: return false
         val focused = currentFocused()
         val contextMenu = _currentOpenContextMenu.value
@@ -804,11 +804,11 @@ class KeyboardActionHandler(
         if (!event.isCtrlPressed && contextMenu == null) {
             val currentActiveEditableId = activeEditAbleId.value
             focusedKeyConsumers.value.forEach { (focusId, role) ->
-                if (role.consumesKeyWhitelist != null && event.key !in role.consumesKeyWhitelist) {
+                if (role.consumesKeyWhitelist != null && key !in role.consumesKeyWhitelist) {
                     return false
                 }
                 if (role.consumesKeyWhitelistDuringEdit != null && currentActiveEditableId != null) {
-                    if (event.key in role.consumesKeyWhitelistDuringEdit) {
+                    if (key in role.consumesKeyWhitelistDuringEdit) {
                         return@forEach
                     }
                     val editId = focusableTargets[focusId]?.actions?.editActions?.editId
@@ -821,7 +821,7 @@ class KeyboardActionHandler(
         return when (event.type) {
             KeyDown -> {
                 val consumed = if (contextMenu != null) {
-                    handleContextMenuEvent(event, contextMenuEntries, contextMenu.focusId, contextMenu.menuId)
+                    handleContextMenuEvent(key, contextMenuEntries, contextMenu.focusId, contextMenu.menuId)
                 } else when (val mode = mode.value) {
                     is KeyboardActionMode.Navigation -> {
                         val result = handleNavigationEvent(trigger, focused)
@@ -987,15 +987,15 @@ class KeyboardActionHandler(
     }
 
     private fun handleContextMenuEvent(
-        event: KeyEvent,
+        key: Key,
         contextMenuEntries: List<ContextMenuEntry>?,
         focusId: Uuid,
         menuId: Uuid,
     ): Boolean {
-        when (event.key) {
+        when (key) {
             Key.Escape -> dismissContextMenu(menuId)
             else -> {
-                val action = contextMenuEntries?.find { it.keyboardShortcut == event.key }
+                val action = contextMenuEntries?.find { it.keyboardShortcut == key }
                 if (action != null) {
                     handleContextMenuEntry(focusId, menuId, action)
                 }
@@ -3323,6 +3323,7 @@ class KeyboardActionHandler(
 }
 
 private fun KeyEvent.toTrigger(): KeyTrigger? {
+    val key = layoutAwareKey
     val rawKey = KeyMapped.entries.find { it.key.keyCode == key.keyCode } ?: return null
     return KeyTrigger(
         rawKey = rawKey,

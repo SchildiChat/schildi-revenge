@@ -1,10 +1,13 @@
 package chat.schildi.revenge.actions
 
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.isAltPressed
 import androidx.compose.ui.input.key.isCtrlPressed
 import androidx.compose.ui.input.key.isMetaPressed
 import androidx.compose.ui.input.key.isShiftPressed
+
+internal expect val KeyEvent.layoutAwareKey: Key
 
 val KeyEvent.isOnlyShiftPressed: Boolean
     get() = isShiftPressed && !isCtrlPressed && !isAltPressed && !isMetaPressed
