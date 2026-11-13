@@ -162,6 +162,7 @@ import shire.res.generated.resources.command_ambiguous_none_valid
 import shire.res.generated.resources.command_copied_content_to_clipboard
 import shire.res.generated.resources.command_copied_to_clipboard
 import shire.res.generated.resources.command_copy_name_full_account_data
+import shire.res.generated.resources.command_copy_name_push_rules
 import shire.res.generated.resources.command_external_application_launched
 import shire.res.generated.resources.command_not_applicable
 import shire.res.generated.resources.command_not_found
@@ -2174,6 +2175,32 @@ class KeyboardActionHandler(
                         notifyProcessing = true,
                     ) {
                         client.setAccountData(eventType, content).toActionResult()
+                    }
+                }
+                Action.Global.CopyPushRules,
+                Action.Global.ViewPushRules -> {
+                    val sessionId = SessionId(args.firstOrNull().orActionValidationError())
+                    val client = UiState.currentClientFor(sessionId) ?: return ActionResult.Failure("Client not ready")
+                    val actionId = if (action == Action.Global.CopyPushRules) "copyPushRules" else "viewPushRules"
+                    context.launchActionAsync(
+                        actionId,
+                        GlobalActionsScope,
+                        Dispatchers.IO,
+                        actionId,
+                        notifyProcessing = true,
+                    ) {
+                        val result = client.notificationSettingsService.getRawPushRules()
+                        if (result.isSuccess) {
+                            val content = result.getOrNull()?.toPrettyJson()
+                                ?: return@launchActionAsync ActionResult.Failure("No cached push rules found")
+                            if (action == Action.Global.CopyPushRules) {
+                                context.copyToClipboard(content, Res.string.command_copy_name_push_rules.toStringHolder())
+                            } else {
+                                context.viewInExternalApp(content, ".json")
+                            }
+                        } else {
+                            result.toActionResult()
+                        }
                     }
                 }
                 Action.Global.CreateRoom -> {

@@ -202,6 +202,8 @@ sealed interface Action {
         CopyGlobalAccountData(args = listOf(ActionArgumentPrimitive.SessionId), aliases = listOf("copyAccountData", "copyGlobalAccountData")),
         ViewGlobalAccountData(args = listOf(ActionArgumentPrimitive.SessionId), aliases = listOf("viewAccountData", "viewGlobalAccountData")),
         SetGlobalAccountData(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentPrimitive.AccountDataType, ActionArgumentOptional(ActionArgumentPrimitive.Json)), aliases = listOf("setAccountData")),
+        CopyPushRules(args = listOf(ActionArgumentPrimitive.SessionId)),
+        ViewPushRules(args = listOf(ActionArgumentPrimitive.SessionId)),
         VacuumDatabase(args = listOf(ActionArgumentOptional(ActionArgumentPrimitive.SessionId))),
         CreateRoom(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentOptional(ActionArgumentPrimitive.RoomName)), aliases = listOf("createRoom")),
         CreateUnencryptedRoom(args = listOf(ActionArgumentPrimitive.SessionId, ActionArgumentOptional(ActionArgumentPrimitive.RoomName)), aliases = listOf("createUnencryptedRoom", "createRoomUnencrypted")),
