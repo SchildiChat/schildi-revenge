@@ -25,6 +25,7 @@ import chat.schildi.revenge.actions.currentActionContext
 import chat.schildi.revenge.actions.actionProvider
 import chat.schildi.revenge.actions.hierarchicalKeyboardActionProvider
 import chat.schildi.revenge.compose.components.WithContextMenu
+import chat.schildi.revenge.compose.destination.conversation.LocalThreadId
 import chat.schildi.revenge.compose.destination.conversation.event.message.timestampOverlayContent
 import chat.schildi.revenge.compose.destination.conversation.event.reaction.ReactionsRow
 import chat.schildi.revenge.compose.focus.keyFocusable
@@ -80,6 +81,7 @@ fun EventRow(
         rememberMatrixFormatInteractionState(it)
     }
     val roomPermissions = viewModel.roomPermissions.collectAsState().value
+    val currentThreadId = LocalThreadId.current
     WithContextMenu(
         focusId,
         event.contextMenu(
@@ -87,7 +89,7 @@ fun EventRow(
             viewModel.roomId,
             roomPermissions,
             messageMetadata,
-            viewModel.threadId.collectAsState().value,
+            currentThreadId,
         ),
     ) { openContextMenu ->
         Column(
@@ -139,7 +141,6 @@ fun EventRow(
                 roomMembersById = roomMembersById,
                 messageIsOwn = event.isOwn,
             )
-            val currentThreadId = viewModel.threadId.collectAsState().value
             if (threadInfo is EventThreadInfo.ThreadRoot && event.eventId?.value != currentThreadId?.value) {
                 ThreadRootInfoRow(
                     threadInfo = threadInfo,

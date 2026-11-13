@@ -40,7 +40,6 @@ import chat.schildi.revenge.compose.focus.keyFocusable
 import chat.schildi.revenge.compose.focus.rememberFocusId
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.DestinationEnum
-import chat.schildi.revenge.model.conversation.ConversationViewModel
 import chat.schildi.revenge.model.conversation.RoomPreviewViewModel
 import chat.schildi.revenge.preferences.isEnabled
 import chat.schildi.revenge.preferences.value
@@ -76,7 +75,7 @@ fun ConversationTopNavigation(
     compact: Boolean,
 ) {
     val roomInfo = viewModel.roomInfo.collectAsState(null).value
-    val title = if ((viewModel as? ConversationViewModel)?.threadId?.collectAsState()?.value != null) {
+    val title = if (LocalThreadId.current != null) {
         roomInfo?.name?.let {
             stringResource(Res.string.thread_in, it)
         } ?: stringResource(Res.string.thread)

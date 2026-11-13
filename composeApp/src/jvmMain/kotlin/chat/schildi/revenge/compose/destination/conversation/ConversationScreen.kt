@@ -330,6 +330,7 @@ fun ConversationScreen(
 
         val listAction = rememberListActions(listState, isReverseList = true)
         FocusContainer(
+            LocalThreadId provides viewModel.threadId.collectAsState().value,
             LocalSearchProvider provides viewModel,
             LocalEventActionViewModel provides viewModel,
             LocalKeyboardActionProvider provides

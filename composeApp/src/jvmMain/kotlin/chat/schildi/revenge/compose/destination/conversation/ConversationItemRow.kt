@@ -53,6 +53,19 @@ fun ConversationItemRow(
     debugSeparatorLines: ImmutableList<TimelineItemDebugLineInstance> = persistentListOf(),
 ) {
     val fullyReadEvent = viewModel.cachedFullyRead.collectAsState().value
+    val currentThreadId = LocalThreadId.current
+    val isFirstUnreadEvent = fullyReadEvent?.has(previousEvent?.eventId) == true || when (item.item) {
+        is MatrixTimelineItem.Virtual -> item.item.virtual == VirtualTimelineItem.RoomBeginning
+        is MatrixTimelineItem.Event -> currentThreadId != null && item.item.eventId?.value == currentThreadId.value
+        MatrixTimelineItem.Other -> false
+    }
+    if (isFirstUnreadEvent) {
+        // Changed target event clears the seen marker, so need to re-set if it changes
+        val targetEvent = viewModel.targetEvent.collectAsState().value
+        SideEffect((item.item as? MatrixTimelineItem.Event)?.eventId, targetEvent) {
+            viewModel.markUnreadLineSeen()
+        }
+    }
     Column(modifier.fillMaxWidth()) {
         if (previous == null) {
             Spacer(Modifier.height(Dimens.windowPadding))
@@ -84,15 +97,7 @@ fun ConversationItemRow(
             }
 
             is MatrixTimelineItem.Event -> {
-                val isFirstUnreadEvent = fullyReadEvent?.has(previousEvent?.eventId) == true
-                val showUnreadLine = isFirstUnreadEvent && (!item.item.event.isOwn || fullyReadEvent.usedAsJumpTarget)
-                if (isFirstUnreadEvent || fullyReadEvent?.has(item.item.eventId) == true) {
-                    // Changed target event clears the seen marker, so need to re-set if it changes
-                    val targetEvent = viewModel.targetEvent.collectAsState().value
-                    SideEffect(item.item.eventId, targetEvent) {
-                        viewModel.markUnreadLineSeen()
-                    }
-                }
+                val showUnreadLine = isFirstUnreadEvent && (!item.item.event.isOwn || fullyReadEvent?.usedAsJumpTarget == true)
                 if (showUnreadLine) {
                     NewMessagesLine(
                         instance = NewMessageLineInstance.ReadMarker,
