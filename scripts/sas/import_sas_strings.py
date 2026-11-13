@@ -83,11 +83,11 @@ def write_file(file, dict):
                 continue
             if dict[key]["description"] is None:
                 continue
-            o.write("    <string name=\"verification_emoji_" + format(key, '02d') + "\">" + dict[key]["description"].replace("'", "\\'") + "</string>\n")
+            o.write("    <string name=\"verification_emoji_" + format(key, '02d') + "\">" + dict[key]["description"] + "</string>\n")
         o.write("</resources>\n")
 
 scripts_dir = os.path.dirname(os.path.abspath(__file__))
-data_defs_dir = os.path.join(scripts_dir, "../../res/src/jvmMain/composeResources/")
+data_defs_dir = os.path.join(scripts_dir, "../../res/src/commonMain/composeResources/")
 
 # Write default file
 write_file(os.path.join(data_defs_dir, "values/strings_sas.xml"), default)
