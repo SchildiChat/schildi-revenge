@@ -30,6 +30,7 @@ dbusJava = "5.2.2"
 clikt = "5.1.0"
 blurhash = "0.3.0"
 androidx-core = "1.19.1"
+androidx-annotation = "1.11.0"
 androidx-activity = "1.13.0"
 androidx-core-splashscreen = "1.2.0"
 androidx-emoji2 = "1.7.0"
@@ -88,6 +89,7 @@ dbus-java-transport-native-unixsocket = { module = "com.github.hypfvieh:dbus-jav
 clikt = { module = "com.github.ajalt.clikt:clikt", version.ref = "clikt" }
 vanniktech-blurhash = { module = "com.vanniktech:blurhash", version.ref = "blurhash" }
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
+androidx-annotation = { module = "androidx.annotation:annotation", version.ref = "androidx-annotation" }
 androidx-emoji2 = { module = "androidx.emoji2:emoji2", version.ref = "androidx-emoji2" }
 androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", version.ref = "androidx-core-splashscreen" }
 androidx-exifinterface = { module = "androidx.exifinterface:exifinterface", version.ref = "androidx-exifinterface" }

@@ -1,3 +1,6 @@
 [submodule "matrix-rust-sdk"]
 	path = matrix-rust-sdk
 	url = https://github.com/SchildiChat/matrix-rust-sdk.git
+[submodule "matrix-rust-rtc"]
+	path = matrix-rust-rtc
+	url = https://github.com/SchildiChat/matrix-rust-rtc.git

@@ -164,6 +164,7 @@ val isPerfDebugBuild = gradle.startParameter.taskNames.any {
 
 val buildType: String = if (isReleaseBuild) "release" else "debug"
 val rustProfile: String = if (isReleaseBuild || isPerfDebugBuild) "release" else "reldev"
+val rtcRustProfile: String = if (isReleaseBuild || isPerfDebugBuild) "release" else "debug"
 
 val generatedSrcDir = layout.buildDirectory.dir("generated/src/jvmMain/kotlin").get().asFile
 val composeResourcesDir = rootProject.layout.projectDirectory.dir("res/src/commonMain/composeResources")
@@ -498,8 +499,9 @@ val syncReleaseLinuxPackageRoot = tasks.register<SyncLinuxPackageRootTask>("sync
     dependsOn(tasks.named("createReleaseDistributable"))
 }
 
-// Copy native library to distribution lib directory
+// Copy native libraries to distribution lib directory
 val rustSdkDir = layout.projectDirectory.dir("../matrix-rust-sdk").asFile
+val rustRtcDir = layout.projectDirectory.dir("../matrix-rust-rtc").asFile
 val ffiLibName: String = run {
     val os = org.gradle.internal.os.OperatingSystem.current()
     when {
@@ -508,17 +510,27 @@ val ffiLibName: String = run {
         else -> "libmatrix_sdk_ffi.so"
     }
 }
+val rtcFfiLibName: String = run {
+    val os = org.gradle.internal.os.OperatingSystem.current()
+    when {
+        os.isWindows -> "matrix_rtc_ffi.dll"
+        os.isMacOsX -> "libmatrix_rtc_ffi.dylib"
+        else -> "libmatrix_rtc_ffi.so"
+    }
+}
 
 val copyNativeLib = tasks.register<Sync>("copyNativeLibToDistribution") {
-    description = "Copy native matrix-sdk-ffi library to distribution lib directory"
+    description = "Copy native matrix-sdk-ffi and matrix-rtc-ffi libraries to distribution lib directory"
     group = "distribution"
 
     val ffiLib = rustSdkDir.resolve("target/${rustProfile}/${ffiLibName}")
+    val rtcFfiLib = rustRtcDir.resolve("target/$rtcRustProfile/$rtcFfiLibName")
     from(ffiLib)
+    from(rtcFfiLib)
 
     into(distributionResourcesOsDir)
 
-    dependsOn(":matrixRustBindings:buildDesktopSdk")
+    dependsOn(":matrixRustBindings:buildDesktopSdk", ":rtcRustBindings:buildDesktopSdk")
 }
 
 tasks.matching {

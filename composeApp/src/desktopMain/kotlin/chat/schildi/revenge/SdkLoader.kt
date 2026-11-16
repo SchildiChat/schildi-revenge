@@ -10,58 +10,32 @@ import java.io.File
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
- * Load the Rust SDK for JNA.
+ * Load the Rust SDKs for JNA.
  */
 object SdkLoader {
     private val log = Logger.withTag("SdkLoader")
     private val loaded = AtomicBoolean(false)
 
     private val isDebugBuild = BuildInfo.BUILD_TYPE == "debug"
-    private val libName = when (SystemInfo.getOs()) {
-        OperatingSystem.Windows -> "matrix_sdk_ffi.dll"
-        OperatingSystem.Mac -> "libmatrix_sdk_ffi.dylib"
-        else -> "libmatrix_sdk_ffi.so"
+
+    private fun libFileName(name: String): String = when (SystemInfo.getOs()) {
+        OperatingSystem.Windows -> "$name.dll"
+        OperatingSystem.Mac -> "lib$name.dylib"
+        else -> "lib$name.so"
     }
+
+    private val nativeLibraries = listOf(
+        "matrix_sdk_ffi" to "../matrix-rust-sdk/target/${BuildInfo.RUST_PROFILE}",
+        "matrix_rtc_ffi" to "../matrix-rust-rtc/target/${if (BuildInfo.RUST_PROFILE == "release") "release" else "debug"}",
+    )
 
     fun ensureLoaded() {
         if (loaded.get()) return
         synchronized(this) {
             if (loaded.get()) return
 
-            val candidateDirs = buildList<File> {
-                if (isDebugBuild) {
-                    // For development, use local path
-                    add(File("../matrix-rust-sdk/target/${BuildInfo.RUST_PROFILE}").absoluteFile)
-                } else {
-                    // When installed natively
-                    val resourcesDir = System.getProperty("compose.application.resources.dir")
-                    add(File(resourcesDir))
-                }
-            }
-
-            val linkingAttempts = mutableListOf<Pair<File, Throwable>>()
-            for (dir in candidateDirs) {
-                val file = File(dir, libName)
-                if (file.isFile) {
-                    // Help JNA find the library by adding directory to jna.library.path
-                    tryAddJnaPath(dir)
-                    // Eagerly load the exact file path to ensure symbols are present
-                    try {
-                        System.load(file.absolutePath)
-                        loaded.set(true)
-                        break
-                    } catch (e: UnsatisfiedLinkError) {
-                        linkingAttempts.add(file to e)
-                        // try next
-                    }
-                }
-            }
-
-            if (!loaded.get()) {
-                linkingAttempts.forEach { (file, error) ->
-                    log.e("Linking failed via ${file.absolutePath}", error)
-                }
-                throw IllegalStateException("Failed to find the $libName in following paths: [${candidateDirs.joinToString()}]", linkingAttempts.lastOrNull()?.second)
+            for ((library, devDir) in nativeLibraries) {
+                loadLibrary(library, libFileName(library), devDir)
             }
 
             initPlatform(
@@ -74,7 +48,43 @@ object SdkLoader {
                 ),
                 useLightweightTokioRuntime = false
             )
+            loaded.set(true)
         }
+    }
+
+    private fun loadLibrary(library: String, libName: String, devDir: String) {
+        val candidateDirs = buildList<File> {
+            if (isDebugBuild) {
+                // For development, use local path
+                add(File(devDir).absoluteFile)
+            } else {
+                // When installed natively
+                val resourcesDir = System.getProperty("compose.application.resources.dir")
+                add(File(resourcesDir))
+            }
+        }
+
+        val linkingAttempts = mutableListOf<Pair<File, Throwable>>()
+        for (dir in candidateDirs) {
+            val file = File(dir, libName)
+            if (file.isFile) {
+                // Help JNA find the library by adding directory to jna.library.path
+                tryAddJnaPath(dir)
+                // Eagerly load the exact file path to ensure symbols are present
+                try {
+                    System.load(file.absolutePath)
+                    return
+                } catch (e: UnsatisfiedLinkError) {
+                    linkingAttempts.add(file to e)
+                    // try next
+                }
+            }
+        }
+
+        linkingAttempts.forEach { (file, error) ->
+            log.e("Linking $library failed via ${file.absolutePath}", error)
+        }
+        throw IllegalStateException("Failed to find the $libName in following paths: [${candidateDirs.joinToString()}]", linkingAttempts.lastOrNull()?.second)
     }
 
     private fun tryAddJnaPath(dir: File) {

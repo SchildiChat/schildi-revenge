@@ -1,7 +1,8 @@
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.FileSystemOperations
-import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import java.time.ZoneOffset
@@ -17,8 +18,8 @@ abstract class SyncNativeLibraries : DefaultTask() {
     @get:Inject
     abstract val fileSystemOperations: FileSystemOperations
 
-    @get:InputDirectory
-    abstract val inputDirectory: DirectoryProperty
+    @get:InputFiles
+    abstract val inputDirectories: ConfigurableFileCollection
 
     @get:OutputDirectory
     abstract val outputDirectory: DirectoryProperty
@@ -26,7 +27,7 @@ abstract class SyncNativeLibraries : DefaultTask() {
     @TaskAction
     fun sync() {
         fileSystemOperations.sync {
-            from(inputDirectory)
+            from(inputDirectories)
             into(outputDirectory)
         }
     }
@@ -105,14 +106,21 @@ dependencies {
 }
 
 val matrixRustBindings = project(":matrixRustBindings")
+val rtcRustBindings = project(":rtcRustBindings")
 val syncDebugNativeLibraries = tasks.register<SyncNativeLibraries>("syncDebugNativeLibraries") {
-    dependsOn(":matrixRustBindings:buildAndroidDebugSdk")
-    inputDirectory.set(matrixRustBindings.layout.buildDirectory.dir("generated/android/debug/jniLibs"))
+    dependsOn(":matrixRustBindings:buildAndroidDebugSdk", ":rtcRustBindings:buildAndroidDebugSdk")
+    inputDirectories.from(
+        matrixRustBindings.layout.buildDirectory.dir("generated/android/debug/jniLibs"),
+        rtcRustBindings.layout.buildDirectory.dir("generated/android/debug/jniLibs"),
+    )
     outputDirectory.set(layout.buildDirectory.dir("generated/jniLibs/debug"))
 }
 val syncReleaseNativeLibraries = tasks.register<SyncNativeLibraries>("syncReleaseNativeLibraries") {
-    dependsOn(":matrixRustBindings:buildAndroidReleaseSdk")
-    inputDirectory.set(matrixRustBindings.layout.buildDirectory.dir("generated/android/release/jniLibs"))
+    dependsOn(":matrixRustBindings:buildAndroidReleaseSdk", ":rtcRustBindings:buildAndroidReleaseSdk")
+    inputDirectories.from(
+        matrixRustBindings.layout.buildDirectory.dir("generated/android/release/jniLibs"),
+        rtcRustBindings.layout.buildDirectory.dir("generated/android/release/jniLibs"),
+    )
     outputDirectory.set(layout.buildDirectory.dir("generated/jniLibs/release"))
 }
 
