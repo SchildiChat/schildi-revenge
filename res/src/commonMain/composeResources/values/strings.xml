@@ -117,7 +117,14 @@
     <string name="action_context_favorite_toggle">Favorite</string>
     <string name="action_context_low_priority_toggle">Low priority</string>
     <string name="action_mark_as_read">Mark as read</string>
+    <string name="action_mark_as_read_short">Read</string>
+    <string name="action_mark_as_fully_read_short">Fully read</string>
+    <string name="action_mark_as_read_short_variant_public">public</string>
+    <string name="action_mark_as_read_short_variant_private">private</string>
+    <string name="action_mark_as_read_short_variant_fully_read">marker</string>
+    <string name="action_mark_as_read_fully_read">Mark as read + fully read</string>
     <string name="action_mark_as_read_private">Mark as read (private)</string>
+    <string name="action_mark_as_read_private_fully_read">Mark as read (private) + fully read</string>
     <string name="action_mark_as_unread">Mark as unread</string>
     <string name="action_mark_as_read_type_read_receipt_public">Shared read receipt</string>
     <string name="action_mark_as_read_type_read_receipt_private">Private read receipt</string>
@@ -551,6 +558,8 @@
     <string name="pref_open_at_unread_summary">Open conversations at the last fully read message. Can slow down room open</string>
     <string name="pref_message_swipe_action_left_title">Left message swipe action</string>
     <string name="pref_message_swipe_action_right_title">Right message swipe action</string>
+    <string name="pref_notification_action_primary_title">Primary notification action</string>
+    <string name="pref_notification_action_secondary_title">Secondary notification action</string>
 
     <string name="pref_message_font_size_title">Message font size</string>
     <string name="pref_message_font_size_summary">Scaled pixel text size for messages (while respecting global render and font scale settings)</string>
@@ -624,6 +633,7 @@
     <string name="pref_category_composer">Message composer</string>
     <string name="pref_category_notifications">Notifications</string>
     <string name="pref_category_notifications_summary">Get notified about new messages</string>
+    <string name="pref_category_notification_actions">Notification actions</string>
     <string name="pref_category_push_registrations">Push registrations</string>
     <string name="pref_category_read_tracking">Read tracking</string>
     <string name="pref_category_moderation_safety">Moderation &amp; safety</string>

@@ -8,7 +8,9 @@ import kotlinx.coroutines.runBlocking
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.action_edit
 import shire.res.generated.resources.action_mark_as_read
+import shire.res.generated.resources.action_mark_as_read_fully_read
 import shire.res.generated.resources.action_mark_as_read_private
+import shire.res.generated.resources.action_mark_as_read_private_fully_read
 import shire.res.generated.resources.action_none
 import shire.res.generated.resources.action_react
 import shire.res.generated.resources.action_reply
@@ -97,6 +99,8 @@ import shire.res.generated.resources.pref_max_width_room_details_title
 import shire.res.generated.resources.pref_max_width_settings_title
 import shire.res.generated.resources.pref_minimal_mode_summary
 import shire.res.generated.resources.pref_minimal_mode_title
+import shire.res.generated.resources.pref_notification_action_primary_title
+import shire.res.generated.resources.pref_notification_action_secondary_title
 import shire.res.generated.resources.pref_prefer_dual_pane_inbox_summary
 import shire.res.generated.resources.pref_prefer_dual_pane_inbox_title
 import shire.res.generated.resources.pref_preferred_message_format_summary
@@ -132,6 +136,7 @@ import shire.res.generated.resources.pref_category_message_actions
 import shire.res.generated.resources.pref_category_message_appearance
 import shire.res.generated.resources.pref_category_message_authenticity_warnings
 import shire.res.generated.resources.pref_category_moderation_safety
+import shire.res.generated.resources.pref_category_notification_actions
 import shire.res.generated.resources.pref_category_notifications
 import shire.res.generated.resources.pref_category_notifications_summary
 import shire.res.generated.resources.pref_category_push_registrations
@@ -265,6 +270,55 @@ object ScPrefs {
     // Notifications
     val DESKTOP_NOTIFICATIONS = ScBoolPref("DESKTOP_NOTIFICATIONS", true, Res.string.pref_desktop_notifications_title, Res.string.pref_desktop_notifications_summary, supportedOnPlatform = scPrefPlatformSupport.desktopNotifications)
     val PUSH_NOTIFICATIONS = ScBoolPref("PUSH_NOTIFICATIONS", true, Res.string.pref_push_notifications_title, Res.string.pref_push_notifications_summary, supportedOnPlatform = scPrefPlatformSupport.pushNotifications)
+    enum class NotificationAction {
+        NONE,
+        MARK_READ,
+        MARK_READ_PRIVATE,
+        MARK_READ_FULLY_READ,
+        MARK_READ_PRIVATE_FULLY_READ;
+
+        companion object {
+            val MARK_AS_READ_ACTIONS = setOf(
+                MARK_READ,
+                MARK_READ_PRIVATE,
+                MARK_READ_FULLY_READ,
+                MARK_READ_PRIVATE_FULLY_READ,
+            )
+            val SETS_PUBLIC_RECEIPT = setOf(
+                MARK_READ,
+                MARK_READ_FULLY_READ,
+            )
+            val SETS_PRIVATE_RECEIPT = setOf(
+                MARK_READ_PRIVATE,
+                MARK_READ_PRIVATE_FULLY_READ,
+            )
+            val SETS_FULLY_READ_MARKER = setOf(
+                MARK_READ_FULLY_READ,
+                MARK_READ_PRIVATE_FULLY_READ,
+            )
+        }
+    }
+    private val notificationActionEntries = persistentListOf(
+        ScListPrefEntry(NotificationAction.MARK_READ.name, Res.string.action_mark_as_read.toStringHolder()),
+        ScListPrefEntry(NotificationAction.MARK_READ_PRIVATE.name, Res.string.action_mark_as_read_private.toStringHolder()),
+        ScListPrefEntry(NotificationAction.MARK_READ_FULLY_READ.name, Res.string.action_mark_as_read_fully_read.toStringHolder()),
+        ScListPrefEntry(NotificationAction.MARK_READ_PRIVATE_FULLY_READ.name, Res.string.action_mark_as_read_private_fully_read.toStringHolder()),
+        ScListPrefEntry(NotificationAction.NONE.name, Res.string.action_none.toStringHolder()),
+    )
+    val NOTIFICATION_ACTION_PRIMARY = ScStringListPref(
+        "NOTIFICATION_ACTION_PRIMARY",
+        NotificationAction.MARK_READ_FULLY_READ.name,
+        notificationActionEntries,
+        Res.string.pref_notification_action_primary_title,
+        supportedOnPlatform = scPrefPlatformSupport.notificationActions,
+    )
+    val NOTIFICATION_ACTION_SECONDARY = ScStringListPref(
+        "NOTIFICATION_ACTION_SECONDARY",
+        NotificationAction.NONE.name,
+        notificationActionEntries,
+        Res.string.pref_notification_action_secondary_title,
+        supportedOnPlatform = scPrefPlatformSupport.notificationActions,
+    )
     val FORCE_FCM_DISTRIBUTOR = ScBoolPref("FORCE_FCM_DISTRIBUTOR", false, Res.string.pref_force_fcm_distributor_title, Res.string.pref_force_fcm_distributor_summary, supportedOnPlatform = scPrefPlatformSupport.androidOnly, dependencies = PUSH_NOTIFICATIONS.asDependencies(), disabledValue = null)
     val PUSH_REGISTRATIONS_LIST = ScViewOnlyPref.Kind.PUSH_REGISTRATIONS(Res.string.pref_category_push_registrations, supportedOnPlatform = scPrefPlatformSupport.pushNotifications)
     val PUSH_HISTORY = ScViewOnlyPref.Kind.PUSH_HISTORY(Res.string.push_history_title, supportedOnPlatform = scPrefPlatformSupport.pushNotifications)
@@ -577,6 +631,10 @@ object ScPrefs {
             PUSH_NOTIFICATIONS,
             FORCE_FCM_DISTRIBUTOR,
             PUSH_HISTORY,
+            ScPrefCategory("NOTIFICATION_ACTIONS", Res.string.pref_category_notification_actions, null, listOf(
+                NOTIFICATION_ACTION_PRIMARY,
+                NOTIFICATION_ACTION_SECONDARY,
+            )),
             PUSH_REGISTRATIONS_LIST,
         ), supportedOnPlatform = scPrefPlatformSupport.notifications),
         ScPrefScreen("INBOX", Res.string.pref_category_inbox, Res.string.pref_category_inbox_summary, listOf(

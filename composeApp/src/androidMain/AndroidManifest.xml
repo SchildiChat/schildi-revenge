@@ -22,5 +22,8 @@
                 <action android:name="org.unifiedpush.android.distributor.UNREGISTER" />
             </intent-filter>
         </receiver>
+        <receiver
+            android:name="chat.schildi.revenge.notification.NotificationActionReceiver"
+            android:exported="false" />
     </application>
 </manifest>

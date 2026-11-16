@@ -65,6 +65,13 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.withTimeoutOrNull
 import org.jetbrains.compose.resources.getString
 import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_mark_as_fully_read_short
+import shire.res.generated.resources.action_mark_as_read
+import shire.res.generated.resources.action_mark_as_read_short
+import shire.res.generated.resources.action_mark_as_read_short_variant_fully_read
+import shire.res.generated.resources.action_mark_as_read_short_variant_private
+import shire.res.generated.resources.action_mark_as_read_short_variant_public
+import shire.res.generated.resources.action_none
 import shire.res.generated.resources.notification_channel_app_notices
 import shire.res.generated.resources.notification_channel_group_chat_messages
 import shire.res.generated.resources.notification_channel_group_noisy_messages
@@ -86,8 +93,10 @@ object AndroidNotifier {
     private const val MEDIA_TIMEOUT = 10_000L
     private const val LARGE_ICON_SIZE = 256
 
-    private const val EXTRA_SESSION_ID = "session_id"
-    private const val EXTRA_ROOM_ID = "room_id"
+    internal const val EXTRA_SESSION_ID = "session_id"
+    internal const val EXTRA_ROOM_ID = "room_id"
+    internal const val EXTRA_EVENT_ID = "event_id"
+    internal const val EXTRA_ACTION = "action"
     private const val EXTRA_EVENT_IDS = "event_ids"
 
     private val log = Logger.withTag("AndroidNotifier")
@@ -338,6 +347,7 @@ object AndroidNotifier {
             .setContentIntent(id.createPendingIntent(context, notificationId))
 
         val notification = builder
+            .clearActions()
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(data.roomDisplayName)
             .setContentText(plainMessageText)
@@ -359,6 +369,7 @@ object AndroidNotifier {
                     }
                 )
                 shortcut?.let { setShortcutId(it.id) }
+                messageNotificationActions(context, id, eventIds.last(), notificationId).forEach { addAction(it) }
             }
             .build()
 
@@ -366,6 +377,108 @@ object AndroidNotifier {
             notificationManager.notify(notificationId, notification)
         } catch (failure: SecurityException) {
             log.w("Notification permission was revoked before the notification could be posted", failure)
+        }
+    }
+
+    private fun parseNotificationAction(rawValue: String): ScPrefs.NotificationAction? =
+        tryOrNull { ScPrefs.NotificationAction.valueOf(rawValue) }.also { parsed ->
+            if (parsed == null) log.e("Invalid notification action: $rawValue")
+        }
+
+    private suspend fun ScPrefs.NotificationAction.notificationActionLabel(
+        disambiguateMarkAsRead: Boolean,
+        disambiguateMarkAsReadReceipt: Boolean,
+        disambiguateMarkAsFullyRead: Boolean,
+    ): String {
+        val labelRes = when (this) {
+            ScPrefs.NotificationAction.NONE -> Res.string.action_none
+            ScPrefs.NotificationAction.MARK_READ -> if (disambiguateMarkAsRead) {
+                return disambiguatedMarkAsRead(private = false.takeIf { disambiguateMarkAsReadReceipt }, fullyRead = false)
+            } else {
+                Res.string.action_mark_as_read
+            }
+            ScPrefs.NotificationAction.MARK_READ_PRIVATE -> if (disambiguateMarkAsRead) {
+                return disambiguatedMarkAsRead(private = true.takeIf { disambiguateMarkAsReadReceipt }, fullyRead = false)
+            } else {
+                Res.string.action_mark_as_read
+            }
+            ScPrefs.NotificationAction.MARK_READ_FULLY_READ -> if (disambiguateMarkAsRead) {
+                return disambiguatedMarkAsRead(private = false.takeIf { disambiguateMarkAsReadReceipt }, fullyRead = disambiguateMarkAsFullyRead)
+            } else {
+                Res.string.action_mark_as_read
+            }
+            ScPrefs.NotificationAction.MARK_READ_PRIVATE_FULLY_READ -> if (disambiguateMarkAsRead) {
+                return disambiguatedMarkAsRead(private = true.takeIf { disambiguateMarkAsReadReceipt }, fullyRead = disambiguateMarkAsFullyRead)
+            } else {
+                Res.string.action_mark_as_read
+            }
+        }
+        return getString(labelRes)
+    }
+
+    private suspend fun disambiguatedMarkAsRead(
+        private: Boolean?,
+        fullyRead: Boolean,
+    ): String {
+        if (private == null) {
+            return if (fullyRead) {
+                getString(Res.string.action_mark_as_fully_read_short)
+            } else {
+                getString(Res.string.action_mark_as_read)
+            }
+        }
+        return buildString {
+            append(getString(Res.string.action_mark_as_read_short))
+            append(" (")
+            if (private) {
+                append(getString(Res.string.action_mark_as_read_short_variant_private))
+            } else {
+                append(getString(Res.string.action_mark_as_read_short_variant_public))
+            }
+            if (fullyRead) {
+                append(" + ")
+                append(getString(Res.string.action_mark_as_read_short_variant_fully_read))
+            }
+            append(")")
+        }
+    }
+
+    private suspend fun messageNotificationActions(
+        context: Context,
+        id: NotificationId.Event,
+        latestEventId: String,
+        notificationId: Int,
+    ): List<NotificationCompat.Action> {
+        val primary = parseNotificationAction(RevengePrefs.getSetting(ScPrefs.NOTIFICATION_ACTION_PRIMARY))
+            .takeIf { it != ScPrefs.NotificationAction.NONE }
+        val secondary = parseNotificationAction(RevengePrefs.getSetting(ScPrefs.NOTIFICATION_ACTION_SECONDARY))
+            .takeIf { it != ScPrefs.NotificationAction.NONE }
+        val actions = listOfNotNull(primary, secondary)
+        if (actions.isEmpty()) return emptyList()
+        val markAsReadActions = actions.filter { it in ScPrefs.NotificationAction.MARK_AS_READ_ACTIONS }
+        val disambiguateMarkAsRead = markAsReadActions.size > 1
+        val disambiguateMarkAsFullyRead = disambiguateMarkAsRead &&
+                markAsReadActions.map { it in ScPrefs.NotificationAction.SETS_FULLY_READ_MARKER }.distinct().size > 1
+        val disambiguateMarkAsReadReceipt = disambiguateMarkAsRead &&
+                markAsReadActions.map { it in ScPrefs.NotificationAction.SETS_PRIVATE_RECEIPT }.distinct().size > 1
+        return actions.map { action ->
+            val label = action.notificationActionLabel(disambiguateMarkAsRead, disambiguateMarkAsReadReceipt, disambiguateMarkAsFullyRead)
+            val pendingIntent = PendingIntent.getBroadcast(
+                context,
+                notificationId * ScPrefs.NotificationAction.entries.size + action.ordinal,
+                Intent(context, NotificationActionReceiver::class.java).apply {
+                    putExtra(EXTRA_SESSION_ID, id.sessionId.value)
+                    putExtra(EXTRA_ROOM_ID, id.roomId.value)
+                    putExtra(EXTRA_EVENT_ID, latestEventId)
+                    putExtra(EXTRA_ACTION, action.name)
+                },
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            )
+            NotificationCompat.Action.Builder(
+                null,
+                label,
+                pendingIntent,
+            ).build()
         }
     }
 
