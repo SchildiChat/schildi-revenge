@@ -14,8 +14,9 @@ import dev.zacsweers.metro.SingleIn
 import io.element.android.libraries.core.coroutine.CoroutineDispatchers
 import io.element.android.libraries.core.meta.BuildMeta
 import io.element.android.libraries.core.meta.BuildType
-import io.element.android.libraries.di.BaseDirectory
 import io.element.android.libraries.di.CacheDirectory
+import io.element.android.libraries.di.SessionsCacheDirectory
+import io.element.android.libraries.di.SessionsFilesDirectory
 import io.element.android.libraries.di.annotations.AppCoroutineScope
 import io.element.android.libraries.matrix.api.auth.OAuthRedirectUrlProvider
 import kotlinx.coroutines.CoroutineScope
@@ -43,8 +44,8 @@ object AppModule {
     val okHttpClient = RevengeOkHttpClient
 
     @Provides
-    @BaseDirectory
-    fun providesBaseDirectory(): File {
+    @SessionsFilesDirectory
+    fun providesSessionsFilesDirectory(context: Context): File {
         return File(ScAppDirs.getUserDataDir(), "sessions")
     }
 
@@ -52,6 +53,14 @@ object AppModule {
     @CacheDirectory
     fun providesCacheDirectory(): File {
         return File(ScAppDirs.getUserCacheDir(), "sdkCache")
+    }
+
+    @Provides
+    @SessionsCacheDirectory
+    fun providesSessionsCacheDirectory(@CacheDirectory cacheDirectory: File): File {
+        // TODO follow same migration as upstream, to switch to dedicated subdir?
+        //return File(cacheDirectory, "sessions")
+        return cacheDirectory
     }
 
     @Provides

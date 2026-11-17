@@ -178,6 +178,7 @@ class RustRoomFactory(
                             sessionId = sessionId,
                             localRoom = getBaseRoom(sdkRoom, roomInfo),
                             previewInfo = RoomPreviewInfoMapper.map(preview.info()),
+                            dispatcher = dispatcher,
                         )
                     )
                 }

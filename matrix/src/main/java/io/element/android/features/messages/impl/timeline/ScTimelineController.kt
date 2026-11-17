@@ -24,7 +24,6 @@ import io.element.android.libraries.matrix.api.room.CreateTimelineParams
 import io.element.android.libraries.matrix.api.room.JoinedRoom
 import io.element.android.libraries.matrix.api.timeline.MatrixTimelineItem
 import io.element.android.libraries.matrix.api.timeline.Timeline
-import io.element.android.libraries.matrix.api.timeline.TimelineProvider
 import io.element.android.libraries.matrix.api.timeline.item.virtual.VirtualTimelineItem
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -86,7 +85,7 @@ class ScTimelineController(
     private val initialDetachedTimeline: Timeline? = null,
     @RoomCoroutineScope private val roomCoroutineScope: CoroutineScope = room.roomCoroutineScope,
     dispatchers: CoroutineDispatchers = CoroutineDispatchers.Default,
-) : Closeable, TimelineProvider {
+) : Closeable {
     private val log = Logger.withTag("TimelineController")
 
     private val coroutineScope = roomCoroutineScope.childScope(dispatchers.computation, "TimelineController")
@@ -337,7 +336,7 @@ class ScTimelineController(
         }
     }.stateIn(coroutineScope, SharingStarted.Eagerly, initialDetachedTimeline ?: liveTimeline)
 
-    override fun activeTimelineFlow(): StateFlow<Timeline> {
+    fun activeTimelineFlow(): StateFlow<Timeline> {
         return currentTimelineFlow
     }
 }
