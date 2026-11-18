@@ -41,7 +41,7 @@ fun InboxConversationMultiPaneScreen(
             )
         }
         MultiPaneLayout(
-            outerDestination = destination.destinationId,
+            outerDestination = destination,
             innerDestinations = listOfNotNull(
                 if (collapseSinglePane && hasConversation)
                     null
@@ -53,6 +53,7 @@ fun InboxConversationMultiPaneScreen(
                     destination.conversation.wrapped(destination, isDetails = true),
             ),
             contentModifier = contentModifier,
+            preferredTitleDestinationIndex = 1,
         )
     }
 }

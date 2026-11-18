@@ -25,10 +25,12 @@ import chat.schildi.revenge.LocalDestinationState
 import chat.schildi.revenge.compose.components.thenIf
 import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.preferences.value
+import kotlinx.collections.immutable.toPersistentList
 import kotlin.uuid.Uuid
 
 private data class MultiPaneLayoutTarget(
     val destinationHolder: MultiPaneLayoutDestinationStateHolderWrapper,
+    val holderId: Uuid,
     val focusId: Uuid,
     val role: SplitRole,
 )
@@ -84,44 +86,55 @@ fun requireMultiPaneLayout(
 
 @Composable
 fun MultiPaneLayout(
-    outerDestination: DestinationEnum,
+    outerDestination: Destination,
     innerDestinations: List<MultiPaneLayoutDestinationStateHolderWrapper>,
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
+    preferredTitleDestinationIndex: Int = 0,
 ) {
     val (outerModifier, innerContentModifier) = if (innerDestinations.size == 1) {
         Pair(modifier, contentModifier)
     } else {
         Pair(modifier.then(contentModifier), Modifier)
     }
+    val targets = innerDestinations.mapIndexed { index, destinationHolder ->
+        val holderId = destinationHolder.state.collectAsState().value.holderId
+        key(holderId) {
+            val focusId = rememberFocusId()
+            remember(destinationHolder, focusId, index, innerDestinations.size) {
+                MultiPaneLayoutTarget(
+                    destinationHolder = destinationHolder,
+                    holderId = holderId,
+                    focusId = focusId,
+                    role = when {
+                        innerDestinations.size == 1 -> SplitRole.Singular
+                        index == 0 -> SplitRole.Start
+                        index == innerDestinations.size - 1 -> SplitRole.End
+                        else -> SplitRole.Horizontal
+                    }
+                )
+            }
+        }
+    }
+    PublishSplitDestinationTitle(
+        outerDestination,
+        targets.map { it.focusId to it.destinationHolder }.toPersistentList(),
+        preferredTitleDestinationIndex = preferredTitleDestinationIndex,
+    )
     AdaptiveRow(
         outerModifier.thenIf(innerDestinations.size > 1) { safeDrawingPadding() }.fillMaxSize(),
     ) {
-        innerDestinations.forEachIndexed { index, destinationHolder ->
-            key(destinationHolder.state.collectAsState().value.holderId) {
-                val focusId = rememberFocusId()
-                val target = remember(destinationHolder, focusId, index, innerDestinations.size) {
-                    MultiPaneLayoutTarget(
-                        destinationHolder = destinationHolder,
-                        focusId = focusId,
-                        role = when {
-                            innerDestinations.size == 1 -> SplitRole.Singular
-                            index == 0 -> SplitRole.Start
-                            index == innerDestinations.size - 1 -> SplitRole.End
-                            else -> SplitRole.Horizontal
-                        }
-                    )
-                }
+        targets.forEachIndexed { index, target ->
+            key(target.holderId) {
                 SplitScreenDestination(
                     focusId = target.focusId,
                     splitRole = target.role,
-                    splitType = outerDestination,
                     destinationHolder = target.destinationHolder,
                     contentModifier = innerContentModifier,
                     actionProvider = multiPaneKeyboardActionProvider(target.destinationHolder),
                     meta = MultiPaneMeta(
                         childIndex = index,
-                        parent = outerDestination,
+                        parent = outerDestination.destinationId,
                         parentMeta = LocalMultiPaneMeta.current,
                     ),
                 )

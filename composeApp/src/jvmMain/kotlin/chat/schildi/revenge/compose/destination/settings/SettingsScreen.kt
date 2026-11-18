@@ -100,7 +100,7 @@ fun SettingsScreen(
                 destination.details.navigate(Destination.MultiPaneSettingsPlaceholder, NavigationPreference.REPLACE)
             }
             MultiPaneLayout(
-                outerDestination = destination.destinationId,
+                outerDestination = destination,
                 innerDestinations = listOfNotNull(
                     if (collapseSinglePane && hasDetails && !isSearching)
                         null

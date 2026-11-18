@@ -338,8 +338,7 @@ sealed interface Destination {
     ) : Split {
         override val destinationId = DestinationEnum.SplitHorizontal
         override val category = DestinationCategory.WILDCARD
-        @Transient
-        override val title = DEFAULT_WINDOW_APP_TITLE
+        override val title = null
     }
 
     @Serializable
@@ -351,8 +350,7 @@ sealed interface Destination {
     ) : Split {
         override val destinationId = DestinationEnum.SplitVertical
         override val category = DestinationCategory.WILDCARD
-        @Transient
-        override val title = DEFAULT_WINDOW_APP_TITLE
+        override val title = null
     }
 
     sealed interface MultiPane : Destination
@@ -362,21 +360,21 @@ sealed interface Destination {
     data object MultiPaneSettingsPlaceholder : MultiPanePlaceholder {
         override val destinationId: DestinationEnum = DestinationEnum.SplitSettingsDetailsPlaceholder
         override val category: DestinationCategory = DestinationCategory.SETTINGS
-        override val title = DEFAULT_WINDOW_APP_TITLE
+        override val title = null
     }
 
     @Serializable
     data object MultiPaneConversationPlaceholder : MultiPanePlaceholder {
         override val destinationId: DestinationEnum = DestinationEnum.SplitConversationPlaceholder
         override val category: DestinationCategory = DestinationCategory.CONVERSATION
-        override val title = DEFAULT_WINDOW_APP_TITLE
+        override val title = null
     }
 
     @Serializable
     data object MultiPaneRoomInfoPlaceholder : MultiPanePlaceholder {
         override val destinationId: DestinationEnum = DestinationEnum.SplitRoomDetailsPlaceholder
         override val category: DestinationCategory = DestinationCategory.CONVERSATION_DETAILS
-        override val title = DEFAULT_WINDOW_APP_TITLE
+        override val title = null
     }
 
     @Serializable
@@ -390,8 +388,7 @@ sealed interface Destination {
     ) : MultiPane {
         override val destinationId = DestinationEnum.InboxConversationSplit
         override val category = DestinationCategory.INBOX
-        @Transient
-        override val title = DEFAULT_WINDOW_APP_TITLE
+        override val title = null
     }
 
     @Serializable
@@ -409,8 +406,7 @@ sealed interface Destination {
 
         override val destinationId = DestinationEnum.ConversationDetailsSplit
         override val category = DestinationCategory.CONVERSATION
-        @Transient
-        override val title = DEFAULT_WINDOW_APP_TITLE
+        override val title = null
     }
 
     @Serializable
@@ -428,8 +424,7 @@ sealed interface Destination {
 
         override val destinationId = DestinationEnum.SpaceDiscoveryDetailsSplit
         override val category = DestinationCategory.CONVERSATION
-        @Transient
-        override val title = DEFAULT_WINDOW_APP_TITLE
+        override val title = null
     }
 
     companion object {

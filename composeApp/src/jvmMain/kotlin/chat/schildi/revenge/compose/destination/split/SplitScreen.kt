@@ -10,6 +10,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.preferences.value
@@ -26,7 +28,7 @@ import chat.schildi.revenge.compose.components.AdaptiveColumn
 import chat.schildi.revenge.compose.components.AdaptiveRow
 import chat.schildi.revenge.compose.focus.FlatFocusContainer
 import chat.schildi.revenge.compose.focus.rememberFocusId
-import chat.schildi.revenge.config.keybindings.DestinationEnum
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlin.uuid.Uuid
 
@@ -51,10 +53,13 @@ fun SplitHorizontal(
     ) {
         val primaryFocusId = rememberFocusId()
         val secondaryFocusId = rememberFocusId()
+        PublishSplitDestinationTitle(
+            destination,
+            persistentListOf(primaryFocusId to destination.primary, secondaryFocusId to destination.secondary),
+        )
         SplitScreenDestination(
             focusId = primaryFocusId,
             splitRole = SplitRole.Start,
-            splitType = destination.destinationId,
             destinationHolder = destination.primary,
             actionProvider = splitKeyboardActionProvider(true),
             meta = MultiPaneMeta(
@@ -66,7 +71,6 @@ fun SplitHorizontal(
         SplitScreenDestination(
             focusId = secondaryFocusId,
             splitRole = SplitRole.End,
-            splitType = destination.destinationId,
             destinationHolder = destination.secondary,
             actionProvider = splitKeyboardActionProvider(false),
             meta = MultiPaneMeta(
@@ -89,10 +93,13 @@ fun SplitVertical(
     ) {
         val primaryFocusId = rememberFocusId()
         val secondaryFocusId = rememberFocusId()
+        PublishSplitDestinationTitle(
+            destination,
+            persistentListOf(primaryFocusId to destination.primary, secondaryFocusId to destination.secondary),
+        )
         SplitScreenDestination(
             focusId = primaryFocusId,
             splitRole = SplitRole.Top,
-            splitType = destination.destinationId,
             destinationHolder = destination.primary,
             actionProvider = splitKeyboardActionProvider(true),
             meta = MultiPaneMeta(
@@ -104,7 +111,6 @@ fun SplitVertical(
         SplitScreenDestination(
             focusId = secondaryFocusId,
             splitRole = SplitRole.Bottom,
-            splitType = destination.destinationId,
             destinationHolder = destination.secondary,
             actionProvider = splitKeyboardActionProvider(false),
             meta = MultiPaneMeta(
@@ -120,7 +126,6 @@ fun SplitVertical(
 fun SplitScreenDestination(
     focusId: Uuid,
     splitRole: SplitRole,
-    splitType: DestinationEnum,
     destinationHolder: DestinationStateHolder,
     modifier: Modifier = Modifier,
     contentModifier: Modifier = Modifier,
@@ -130,23 +135,6 @@ fun SplitScreenDestination(
     val keyHandler = LocalKeyboardActionHandler.current
     val focusedContainers = keyHandler.currentFocusedNestingDestinations.collectAsState(persistentListOf())
     val isActive = focusedContainers.value.firstOrNull() == focusId
-    val hasActive = focusedContainers.value.contains(focusId)
-    val parentDestinationStateHolder = LocalDestinationState.current
-
-    // Publish current focused title for window title
-    if (parentDestinationStateHolder != null) {
-        val childTitle = destinationHolder.state.collectAsState().value.titleOverride
-        LaunchedEffect(hasActive, childTitle) {
-            if (hasActive) {
-                parentDestinationStateHolder.publishTitle(
-                    childTitle
-                ) {
-                    it.destinationId == splitType
-                }
-            }
-        }
-    }
-
     // Actual content
     FlatFocusContainer(
         LocalKeyboardActionProvider provides actionProvider,
@@ -159,6 +147,32 @@ fun SplitScreenDestination(
         ),
     ) { modifier ->
         DestinationContent(destinationHolder, modifier.then(contentModifier))
+    }
+}
+
+@Composable
+fun PublishSplitDestinationTitle(
+    destination: Destination,
+    panes: ImmutableList<Pair<Uuid, DestinationStateHolder>>,
+    preferredTitleDestinationIndex: Int = 0,
+) {
+    val parent = LocalDestinationState.current
+    val hasPublishedTitle = remember(parent, destination) { mutableStateOf(false) }
+    val focused = LocalKeyboardActionHandler.current.currentFocusedNestingDestinations
+        .collectAsState(persistentListOf()).value
+    val titles = panes.map { (focusId, holder) ->
+        val state = holder.state.collectAsState().value
+        focusId to (state.titleOverride ?: state.destination.title)
+    }
+    val focusedTitle = titles.firstOrNull { (focusId, _) -> focusId in focused }?.second
+    val title = focusedTitle
+        ?: titles.getOrNull(preferredTitleDestinationIndex)?.second
+        ?: titles.firstNotNullOfOrNull { it.second }
+    LaunchedEffect(parent, destination, title) {
+        if (title != null) hasPublishedTitle.value = true
+        if (hasPublishedTitle.value) {
+            parent?.publishTitle(title) { it == destination }
+        }
     }
 }
 

@@ -38,7 +38,7 @@ fun SpaceDiscoveryDetailsMultiPaneScreen(
             destination.details.navigate(Destination.MultiPaneRoomInfoPlaceholder, NavigationPreference.REPLACE)
         }
         MultiPaneLayout(
-            outerDestination = destination.destinationId,
+            outerDestination = destination,
             innerDestinations =
                 listOfNotNull(
                     if (collapseSinglePane && hasDetails) {
