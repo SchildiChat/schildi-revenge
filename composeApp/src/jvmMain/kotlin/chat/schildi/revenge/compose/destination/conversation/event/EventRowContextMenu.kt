@@ -94,8 +94,7 @@ fun EventTimelineItem.contextMenu(
     } else {
         permissions?.canRedactOther ?: false
     }
-    val usesKeyboard = LocalInputModeManager.current.inputMode == InputMode.Keyboard
-    val keyboardPrimary = LocalKeyboardActionHandler.current.keyboardPrimary.collectAsState().value
+    val usesKeyboard = LocalKeyboardActionHandler.current.keyboardPrimaryWithoutSettingOverride.collectAsState().value
     val threadRootId = (threadInfo() as? EventThreadInfo.ThreadResponse)?.threadRootId?.value ?: eventId?.value
     return listOfNotNull(
         ContextMenuActionEntry(
@@ -115,7 +114,7 @@ fun EventTimelineItem.contextMenu(
             rememberVectorPainter(Icons.Default.Navigation),
             Action.Event.JumpToRepliedTo,
             keyboardShortcut = Key.J,
-        ).takeIf { messageContent?.inReplyTo != null },
+        ).takeIf { messageContent?.inReplyTo != null && usesKeyboard },
         ContextMenuActionEntry(
             Res.string.action_reply.toStringHolder(),
             rememberVectorPainter(Icons.AutoMirrored.Default.Reply),
@@ -154,14 +153,14 @@ fun EventTimelineItem.contextMenu(
             Action.Navigation.NavigateAuto,
             actionArgs = persistentListOf(DestinationEnum.MessageReadReceipts.destName, sessionId.value, roomId.value, eventId?.value ?: ""),
             keyboardShortcut = Key.P,
-        ).takeIf { receipts.isNotEmpty() && eventId != null },
+        ).takeIf { receipts.isNotEmpty() && eventId != null && usesKeyboard },
         ContextMenuActionEntry(
             Res.string.action_view_user.toStringHolder(),
             rememberVectorPainter(Icons.Default.Person),
             Action.Navigation.NavigateAuto,
             actionArgs = persistentListOf(DestinationEnum.UserDetails.destName, sessionId.value, sender.value, roomId.value),
             keyboardShortcut = Key.U,
-        ),
+        ).takeIf { usesKeyboard },
         ContextMenuActionEntry(
             Res.string.action_copy_body.toStringHolder(),
             rememberVectorPainter(Icons.Default.ContentCopy),
@@ -230,7 +229,7 @@ fun EventTimelineItem.contextMenu(
                 }.toPersistentList()
             } ?: persistentListOf(),
             keyboardShortcut = Key.A,
-        ).takeIf { pollContent != null && pollContent.endTime == null && keyboardPrimary },
+        ).takeIf { pollContent != null && pollContent.endTime == null && usesKeyboard },
         ContextMenuActionEntry(
             Res.string.action_end_poll.toStringHolder(),
             rememberVectorPainter(Icons.Default.Cancel),
