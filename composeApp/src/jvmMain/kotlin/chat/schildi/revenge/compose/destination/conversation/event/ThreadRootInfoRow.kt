@@ -29,7 +29,9 @@ import io.element.android.libraries.matrix.api.timeline.item.event.getAvatarUrl
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisambiguatedDisplayName
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisplayName
 import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
+import shire.res.generated.resources.action_thread
 import shire.res.generated.resources.n_threaded_replies
 
 @Composable
@@ -74,11 +76,15 @@ fun ColumnScope.ThreadRootInfoRow(
     ) {
         val numReplies = threadInfo.summary.numberOfReplies
         Text(
-            pluralStringResource(
-                Res.plurals.n_threaded_replies,
-                numReplies.coerceAtMost(Integer.MAX_VALUE.toLong()).toInt(),
-                numReplies
-            ),
+            if (numReplies == 0L) {
+                stringResource(Res.string.action_thread)
+            } else {
+                pluralStringResource(
+                    Res.plurals.n_threaded_replies,
+                    numReplies.coerceAtMost(Integer.MAX_VALUE.toLong()).toInt(),
+                    numReplies
+                )
+            },
             color = MaterialTheme.scExposures.threadHint,
             style = MaterialTheme.typography.labelMedium,
         )
