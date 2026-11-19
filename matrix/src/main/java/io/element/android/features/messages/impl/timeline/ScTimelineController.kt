@@ -61,6 +61,8 @@ data class TimelineItemsState(
         get() = listOfNotNull(preferredTimeline, prependedTimeline)
     val detachedSize = mergeOffset.coerceAtLeast(0)
     val liveSize = if (isLive && mergeOffset >= 0) items.size - mergeOffset else 0
+    val isMerged: Boolean
+        get() = sourceTimelines.size > 1
 }
 
 sealed interface DedupeId {

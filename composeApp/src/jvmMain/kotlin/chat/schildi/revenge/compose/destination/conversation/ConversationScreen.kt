@@ -164,7 +164,8 @@ fun ConversationScreen(
         val roomInfo = viewModel.roomInfo.collectAsState().value
         val roomPreview = viewModel.roomPreview.collectAsState().value
         val loadState = viewModel.loadState.collectAsState().value
-        val isLive = viewModel.activeTimelineState.collectAsState().value?.isLive != false
+        val activeTimelineState = viewModel.activeTimelineState.collectAsState().value
+        val isLive = activeTimelineState?.isLive != false
 
         // From room links we may not know if it's a space or other special type of room pre-join,
         // so allow re-navigating once we know
@@ -278,6 +279,15 @@ fun ConversationScreen(
                 initialFirstVisibleItemIndex = initialListOffset.first,
                 initialFirstVisibleItemScrollOffset = initialListOffset.second,
             )
+        }
+
+        val timelineFitsScreen = remember { mutableStateOf(true) }
+        LaunchedEffect(listState, timelineItems) {
+            snapshotFlow {
+                listState.layoutInfo.visibleItemsInfo
+            }.collect { visible ->
+                timelineFitsScreen.value = visible.size >= timelineItems.size
+            }
         }
 
         if (allowPaginateAfterInitialLoad) {
@@ -512,7 +522,8 @@ fun ConversationScreen(
                                 !fullyReadEvent.has(bottomItem?.eventId)
                         else -> false
                     }
-                    val showJumpToBottom = !isBottomVisible.value
+                    val showJumpToBottom = !isBottomVisible.value ||
+                            (activeTimelineState?.isMerged == true && timelineFitsScreen.value)
                     Column(
                         modifier = Modifier.align(Alignment.BottomEnd).padding(Dimens.windowPadding),
                         verticalArrangement = Dimens.verticalArrangement,
