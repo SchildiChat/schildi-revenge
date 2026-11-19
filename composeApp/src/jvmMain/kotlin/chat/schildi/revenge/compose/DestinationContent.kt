@@ -26,6 +26,7 @@ import chat.schildi.revenge.compose.destination.conversation.ConversationScreen
 import chat.schildi.revenge.compose.destination.conversation.CreateRoomScreen
 import chat.schildi.revenge.compose.destination.devtools.RoomDevToolsScreen
 import chat.schildi.revenge.compose.destination.conversation.RoomDetailsScreen
+import chat.schildi.revenge.compose.destination.conversation.RoomThreadsScreen
 import chat.schildi.revenge.compose.destination.conversation.UserDetailsScreen
 import chat.schildi.revenge.compose.destination.conversation.userlist.MessageReactionsScreen
 import chat.schildi.revenge.compose.destination.conversation.userlist.MessageReadReceiptsScreen
@@ -64,6 +65,7 @@ fun DestinationContent(
                 is Destination.CreateRoom -> CreateRoomScreen(destination, baseModifier, contentModifier)
                 is Destination.RoomDetails -> RoomDetailsScreen(destination, baseModifier, contentModifier)
                 is Destination.RoomMembers -> RoomMembersScreen(destination, baseModifier, contentModifier)
+                is Destination.RoomThreads -> RoomThreadsScreen(destination, baseModifier, contentModifier)
                 is Destination.MessageReactions -> MessageReactionsScreen(destination, baseModifier, contentModifier)
                 is Destination.MessageReadReceipts -> MessageReadReceiptsScreen(destination, baseModifier, contentModifier)
                 is Destination.UserDetails -> UserDetailsScreen(destination, baseModifier, contentModifier)
@@ -123,6 +125,7 @@ private fun DestinationEnum.measureInfo(): DestinationMeasure = when (this) {
     DestinationEnum.MessageReactions,
     DestinationEnum.MessageReadReceipts,
     DestinationEnum.RoomMembers,
+    DestinationEnum.RoomThreads,
     DestinationEnum.UserDetails -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_ROOM_DETAILS, ScPrefs.LAYOUT_WEIGHT_ROOM_DETAILS)
     DestinationEnum.ConversationPins -> DestinationMeasure.from(
         ScPrefs.MAX_WIDTH_CONVERSATION,

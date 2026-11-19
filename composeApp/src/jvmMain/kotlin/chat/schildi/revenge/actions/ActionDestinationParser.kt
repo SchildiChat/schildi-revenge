@@ -127,6 +127,13 @@ private inline fun String.toDestinationOrNull(
                 Destination.RoomMembers(sessionId, roomId)
             }
         }
+        DestinationEnum.RoomThreads -> {
+            tryOrNull {
+                val sessionId = args.getOrNull(0)?.let(::SessionId) ?: context!!.ensureSessionId()
+                val roomId = args.getOrNull(1)?.let { resolveRoomId(sessionId, it) } ?: context!!.ensureRoomId()
+                Destination.RoomThreads(sessionId, roomId)
+            }
+        }
         DestinationEnum.MessageReactions -> {
             tryOrNull {
                 val sessionId = args.getOrNull(0)?.let(::SessionId) ?: context!!.ensureSessionId()

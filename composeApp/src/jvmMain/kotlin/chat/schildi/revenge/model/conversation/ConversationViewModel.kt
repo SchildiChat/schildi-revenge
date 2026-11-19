@@ -832,11 +832,10 @@ class ConversationViewModel(
         if (query.isNullOrBlank() || items == null) {
             items
         } else {
-            val lowerQuery = query.lowercase()
             items.flatMap {
                 when (it) {
                     is MatrixTimelineItem.Event -> {
-                        if ((it.event.content as? MessageContent)?.body?.lowercase()?.contains(lowerQuery) == true) {
+                        if (it.event.content.matchesSearch(query)) {
                             listOf(
                                 MatrixTimelineItem.Virtual(
                                     UniqueId("search_date_${it.eventId}"),

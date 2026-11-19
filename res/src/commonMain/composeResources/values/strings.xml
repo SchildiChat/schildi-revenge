@@ -7,6 +7,7 @@
     <string name="thread_in">Thread: %1$s</string>
     <string name="pinned_messages">Pinned messages</string>
     <string name="room_details_title">Room details</string>
+    <string name="threads_title">Threads</string>
     <string name="room_members_title_loading">Loading room members</string>
     <plurals name="room_members_title_loaded">
         <item quantity="one">%1$s members</item>
@@ -157,6 +158,7 @@
     <string name="action_download_and_open">Open</string>
     <string name="action_acknowledge">Acknowledge</string>
     <string name="action_show_room_members">Room members</string>
+    <string name="action_show_threads">Show threads</string>
     <string name="action_thread">Open thread</string>
     <string name="action_save">Save</string>
     <string name="action_save_changes">Save changes</string>
@@ -757,6 +759,7 @@
     <string name="empty_screen_placeholder_space">Selected space is empty</string>
     <string name="empty_screen_placeholder_inbox">No chats yet</string>
     <string name="empty_screen_placeholder_room_members">No known room members</string>
+    <string name="empty_screen_placeholder_threads">No known threads</string>
     <string name="empty_screen_placeholder_message_reactions">No message reactions</string>
     <string name="empty_screen_placeholder_message_read_receipts">No message read receipts</string>
     <string name="empty_screen_placeholder_unexpected">This screen is unexpectedly empty</string>

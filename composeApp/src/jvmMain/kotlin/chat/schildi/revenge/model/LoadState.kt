@@ -18,6 +18,7 @@ import shire.res.generated.resources.hint_room
 import shire.res.generated.resources.hint_room_preview
 import shire.res.generated.resources.hint_timeline
 import shire.res.generated.resources.hint_user_profile
+import shire.res.generated.resources.threads_title
 import shire.res.generated.resources.verification_request_title
 
 interface LoadCheckPoint {
@@ -61,6 +62,10 @@ interface LoadCheckPoint {
 
     data object RoomMembers : LoadCheckPoint {
         override val name = Res.string.action_show_room_members.toStringHolder()
+    }
+
+    data object RoomThreads : LoadCheckPoint {
+        override val name = Res.string.threads_title.toStringHolder()
     }
 
     data object Timeline : LoadCheckPoint {

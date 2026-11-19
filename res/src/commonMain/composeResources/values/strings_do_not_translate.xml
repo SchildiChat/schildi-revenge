@@ -2,4 +2,5 @@
     <string name="app_title_full" translatable="false">SchildiChat Revenge</string>
     <string name="app_title_short" translatable="false">SchildiChat</string>
     <string name="dual_title_format" translatable="false">%1$s - %2$s</string>
+    <string name="dual_title_format_colon" translatable="false">%1$s: %2$s</string>
 </resources>

@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Forum
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.NoEncryption
@@ -88,6 +89,7 @@ import io.element.android.libraries.matrix.api.room.history.RoomHistoryVisibilit
 import org.jetbrains.compose.resources.stringResource
 import shire.res.generated.resources.Res
 import shire.res.generated.resources.action_show_room_members
+import shire.res.generated.resources.action_show_threads
 import shire.res.generated.resources.empty_screen_placeholder_unexpected
 import shire.res.generated.resources.hint_canonical_room_alias
 import shire.res.generated.resources.hint_connected_bridges
@@ -146,6 +148,15 @@ fun RoomDetailsScreen(
         val destinationState = LocalDestinationState.current
         Column(contentModifier.fillMaxSize()) {
             ConversationDetailsTopNavigation(stringResource(Res.string.room_details_title)) {
+                // TODO if has threads?
+                if (roomType == null) {
+                    TopNavigationIcon(
+                        Icons.Default.Forum,
+                        stringResource(Res.string.action_show_threads),
+                    ) {
+                        destinationState?.navigate(Destination.RoomThreads(viewModel.sessionId, viewModel.roomId))
+                    }
+                }
                 TopNavigationIcon(
                     Icons.Default.Group,
                     stringResource(Res.string.action_show_room_members),
