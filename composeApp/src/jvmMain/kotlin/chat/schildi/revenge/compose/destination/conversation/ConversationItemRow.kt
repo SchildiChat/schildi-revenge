@@ -97,7 +97,9 @@ fun ConversationItemRow(
             }
 
             is MatrixTimelineItem.Event -> {
-                val showUnreadLine = isFirstUnreadEvent && (!item.item.event.isOwn || fullyReadEvent?.usedAsJumpTarget == true)
+                val showUnreadLine = isFirstUnreadEvent &&
+                        previousEvent != null &&
+                        (!item.item.event.isOwn || fullyReadEvent?.usedAsJumpTarget == true)
                 if (showUnreadLine) {
                     NewMessagesLine(
                         instance = NewMessageLineInstance.ReadMarker,
