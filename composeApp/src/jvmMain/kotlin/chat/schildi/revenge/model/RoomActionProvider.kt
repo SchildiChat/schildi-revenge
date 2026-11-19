@@ -478,6 +478,7 @@ fun ActionRoomNotificationSetting.toNotificationMode(): RoomNotificationMode? {
     return when (this) {
         ActionRoomNotificationSetting.Default -> null
         ActionRoomNotificationSetting.All -> RoomNotificationMode.ALL_MESSAGES
+        ActionRoomNotificationSetting.AllSilent -> RoomNotificationMode.ALL_MESSAGES_SILENT
         ActionRoomNotificationSetting.Mentions -> RoomNotificationMode.MENTIONS_AND_KEYWORDS_ONLY
         ActionRoomNotificationSetting.Mute -> RoomNotificationMode.MUTE
     }

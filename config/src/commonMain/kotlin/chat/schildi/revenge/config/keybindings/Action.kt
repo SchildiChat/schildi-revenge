@@ -40,6 +40,7 @@ sealed interface ActionArgumentContextBased : ActionArgument {
 enum class ActionRoomNotificationSetting(val aliases: List<String> = emptyList()) {
     Default(aliases = listOf("followDefault")),
     All(aliases = listOf("allMessages")),
+    AllSilent(aliases = listOf("allMessagesSilent")),
     Mentions(aliases = listOf("mentionsAndKeywords")),
     Mute(aliases = listOf("none"));
     companion object {

@@ -163,6 +163,7 @@
     <string name="action_notifications">Notifications</string>
     <string name="action_notifications_default">Default</string>
     <string name="action_notifications_all">All messages</string>
+    <string name="action_notifications_all_silent">All messages (silent)</string>
     <string name="action_notifications_mentions">Mentions only</string>
     <string name="action_notifications_none">None</string>
     <string name="action_catch_space_orphans">Catch space-orphans</string>

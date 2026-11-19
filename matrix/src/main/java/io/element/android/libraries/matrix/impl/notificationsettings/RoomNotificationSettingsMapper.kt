@@ -23,6 +23,7 @@ object RoomNotificationSettingsMapper {
     fun mapMode(mode: RustRoomNotificationMode): RoomNotificationMode =
         when (mode) {
             RustRoomNotificationMode.ALL_MESSAGES -> RoomNotificationMode.ALL_MESSAGES
+            RustRoomNotificationMode.ALL_MESSAGES_SILENT -> RoomNotificationMode.ALL_MESSAGES_SILENT // SC
             RustRoomNotificationMode.MENTIONS_AND_KEYWORDS_ONLY -> RoomNotificationMode.MENTIONS_AND_KEYWORDS_ONLY
             RustRoomNotificationMode.MUTE -> RoomNotificationMode.MUTE
         }
@@ -30,6 +31,7 @@ object RoomNotificationSettingsMapper {
     fun mapMode(mode: RoomNotificationMode): RustRoomNotificationMode =
         when (mode) {
             RoomNotificationMode.ALL_MESSAGES -> RustRoomNotificationMode.ALL_MESSAGES
+            RoomNotificationMode.ALL_MESSAGES_SILENT -> RustRoomNotificationMode.ALL_MESSAGES_SILENT // SC
             RoomNotificationMode.MENTIONS_AND_KEYWORDS_ONLY -> RustRoomNotificationMode.MENTIONS_AND_KEYWORDS_ONLY
             RoomNotificationMode.MUTE -> RustRoomNotificationMode.MUTE
         }

@@ -107,6 +107,7 @@ fun RustMembership.map(): CurrentUserMembership = when (this) {
 
 fun RustRoomNotificationMode.map(): RoomNotificationMode = when (this) {
     RustRoomNotificationMode.ALL_MESSAGES -> RoomNotificationMode.ALL_MESSAGES
+    RustRoomNotificationMode.ALL_MESSAGES_SILENT -> RoomNotificationMode.ALL_MESSAGES_SILENT // SC
     RustRoomNotificationMode.MENTIONS_AND_KEYWORDS_ONLY -> RoomNotificationMode.MENTIONS_AND_KEYWORDS_ONLY
     RustRoomNotificationMode.MUTE -> RoomNotificationMode.MUTE
 }
