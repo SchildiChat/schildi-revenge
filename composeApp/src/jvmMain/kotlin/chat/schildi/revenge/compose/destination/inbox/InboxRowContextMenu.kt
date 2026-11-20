@@ -4,7 +4,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.LowPriority
 import androidx.compose.material.icons.filled.MeetingRoom
-import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.Window
@@ -41,7 +40,6 @@ import shire.res.generated.resources.action_join
 import shire.res.generated.resources.action_leave
 import shire.res.generated.resources.action_mark_as_read
 import shire.res.generated.resources.action_mark_as_unread
-import shire.res.generated.resources.action_navigate_in_current
 import shire.res.generated.resources.action_navigate_in_new_window
 import shire.res.generated.resources.action_notifications
 import shire.res.generated.resources.action_notifications_all
@@ -127,12 +125,6 @@ fun ScopedRoomSummary.contextMenu(inboxViewModel: InboxViewModel, focusId: Uuid)
                 persistentListOf((!summary.info.isLowPriority).toString()),
                 decoration = ContextMenuDecoration.Toggle(summary.info.isLowPriority),
                 keyboardShortcut = Key.L,
-            ),
-            ContextMenuActionEntry(
-                Res.string.action_navigate_in_current.toStringHolder(),
-                rememberVectorPainter(Icons.Default.Navigation),
-                Action.NavigationItem.NavigateCurrent,
-                keyboardShortcut = Key.O,
             ),
             ContextMenuActionEntry(
                 Res.string.action_navigate_in_new_window.toStringHolder(),

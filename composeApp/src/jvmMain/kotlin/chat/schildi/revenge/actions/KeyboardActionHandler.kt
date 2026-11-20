@@ -1339,6 +1339,9 @@ class KeyboardActionHandler(
                         UiState.openWindow(destination, true, navigationActionable.initialTitle())
                         ActionResult.Success()
                     }
+                    Action.NavigationItem.NavigateAuto -> {
+                        navigateAuto(destination, context.destinationStateHolder)
+                    }
                 }
             }
         }

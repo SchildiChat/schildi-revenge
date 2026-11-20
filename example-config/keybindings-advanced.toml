@@ -131,7 +131,7 @@ navigation = [
     { key = "F", alt = true, action = "CloseWindowUnlessLast", destinations = ["Conversation", "ConversationThread", "ConversationPins"] },
 ]
 navigationItem = [
-    { key = "Enter", action = "NavigateCurrent" },
+    { key = "Enter", action = "NavigateAuto" },
     { key = "O", action = "NavigateInNewWindow" },
 ]
 copyAble = [

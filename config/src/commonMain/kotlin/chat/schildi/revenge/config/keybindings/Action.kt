@@ -252,6 +252,7 @@ sealed interface Action {
     ) : Action {
         NavigateCurrent(aliases = listOf("navigate", "nav")),
         NavigateInNewWindow(aliases = listOf("open", "window")),
+        NavigateAuto,
     }
     enum class CopyAble(
         override val aliases: kotlin.collections.List<String> = emptyList(),
