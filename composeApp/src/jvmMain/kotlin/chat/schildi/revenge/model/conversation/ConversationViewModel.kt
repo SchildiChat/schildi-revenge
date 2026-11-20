@@ -1672,23 +1672,19 @@ class ConversationViewModel(
         return destination is Destination.Conversation && destination.sessionId == sessionId && destination.roomId == roomId
     }
 
-    fun paginateForward() {
-        viewModelScope.launch(Dispatchers.IO) {
-            log.d("Request forward pagination")
-            timelineController.value?.paginate(Timeline.PaginationDirection.FORWARDS)
-                ?.onFailure { log.w("Cannot paginate forwards") }
-                ?.onSuccess { log.d("Paginated forwards") }
-        }
-    }
+    suspend fun paginateForward(): Result<Boolean>? = viewModelScope.async(Dispatchers.IO) {
+        log.d("Request forward pagination")
+        timelineController.value?.paginate(Timeline.PaginationDirection.FORWARDS)
+            ?.onFailure { log.w("Cannot paginate forwards") }
+            ?.onSuccess { log.d("Paginated forwards") }
+    }.await()
 
-    fun paginateBackward() {
-        viewModelScope.launch(Dispatchers.IO) {
-            log.d("Request backward pagination")
-            timelineController.value?.paginate(Timeline.PaginationDirection.BACKWARDS)
-                ?.onFailure { log.w("Cannot paginate backwards") }
-                ?.onSuccess { log.d("Paginated backwards") }
-        }
-    }
+    suspend fun paginateBackward(): Result<Boolean>? = viewModelScope.async(Dispatchers.IO) {
+        log.d("Request backward pagination")
+        timelineController.value?.paginate(Timeline.PaginationDirection.BACKWARDS)
+            ?.onFailure { log.w("Cannot paginate backwards") }
+            ?.onSuccess { log.d("Paginated backwards") }
+    }.await()
 
     override val roomActionProvider = RoomActionProvider(
         sessionId = sessionId,
