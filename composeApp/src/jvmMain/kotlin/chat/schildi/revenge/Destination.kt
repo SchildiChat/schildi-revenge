@@ -110,6 +110,7 @@ sealed interface Destination {
         val joinServerNames: List<String>? = null,
         // CV screen handles room previews but for some room types, showing the timeline is not appropriate
         val allowRoomTypeBasedReNavigation: Boolean = false,
+        val preferOpenAtUnread: Boolean? = null,
     ) : WithRoom {
         val preferDetailsPane = when (timelineParams) {
             null,

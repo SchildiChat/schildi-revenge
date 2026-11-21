@@ -11,6 +11,7 @@ enum class DestinationEnum(
     CreateRoom("CreateRoom", listOf("createRoom")),
     ConversationThread("ConversationThread", listOf("thread")),
     ConversationPins("ConversationPins", listOf("pinnedMessages")),
+    ConversationOpenedAtBottom("ConversationOpenedAtBottom"), // Alias to Conversation but bypass open-at-unread setting
     RoomDetails("RoomDetails", listOf("roomDetails", "roomInfo")),
     RoomMembers("RoomMembers", listOf("members")),
     RoomThreads("RoomThreads", listOf("threads")),
@@ -64,6 +65,7 @@ val ALLOWED_DESTINATION_STRINGS = listOf(
     DestinationEnum.Inbox.allDestinationNames(),
     DestinationEnum.AccountManagement.allDestinationNames(),
     DestinationEnum.Conversation.allDestinationNames(),
+    DestinationEnum.ConversationOpenedAtBottom.allDestinationNames(),
     DestinationEnum.CreateRoom.allDestinationNames(),
     DestinationEnum.ConversationPins.allDestinationNames(),
     DestinationEnum.About.allDestinationNames(),

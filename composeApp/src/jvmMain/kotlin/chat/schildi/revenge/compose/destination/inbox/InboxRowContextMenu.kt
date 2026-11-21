@@ -2,6 +2,7 @@ package chat.schildi.revenge.compose.destination.inbox
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowDown
 import androidx.compose.material.icons.filled.LowPriority
 import androidx.compose.material.icons.filled.MeetingRoom
 import androidx.compose.material.icons.filled.Notifications
@@ -12,6 +13,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.key.Key
+import chat.schildi.lib.preferences.ScPrefs
 import chat.schildi.revenge.actions.LocalKeyboardActionHandler
 import chat.schildi.revenge.compose.components.ContextMenuActionEntry
 import chat.schildi.revenge.compose.components.ContextMenuDecoration
@@ -24,9 +26,11 @@ import chat.schildi.revenge.UiState
 import chat.schildi.revenge.compose.components.enterCommandModeContextMenuAction
 import chat.schildi.revenge.config.keybindings.Action
 import chat.schildi.revenge.config.keybindings.ActionRoomNotificationSetting
+import chat.schildi.revenge.config.keybindings.DestinationEnum
 import chat.schildi.revenge.model.InboxViewModel
 import chat.schildi.revenge.model.PendingAction
 import chat.schildi.revenge.model.ScopedRoomSummary
+import chat.schildi.revenge.preferences.value
 import io.element.android.libraries.matrix.api.room.RoomNotificationMode
 import io.element.android.libraries.matrix.api.room.RoomNotificationSettings
 import kotlinx.collections.immutable.ImmutableList
@@ -47,6 +51,7 @@ import shire.res.generated.resources.action_notifications_all_silent
 import shire.res.generated.resources.action_notifications_default
 import shire.res.generated.resources.action_notifications_mentions
 import shire.res.generated.resources.action_notifications_none
+import shire.res.generated.resources.action_open_at_recent_messages
 import shire.res.generated.resources.action_reject_invite
 import kotlin.uuid.Uuid
 
@@ -132,6 +137,17 @@ fun ScopedRoomSummary.contextMenu(inboxViewModel: InboxViewModel, focusId: Uuid)
                 Action.NavigationItem.NavigateInNewWindow,
                 keyboardShortcut = Key.W,
             ),
+            ContextMenuActionEntry(
+                Res.string.action_open_at_recent_messages.toStringHolder(),
+                rememberVectorPainter(Icons.Default.KeyboardDoubleArrowDown),
+                Action.Navigation.NavigateAuto,
+                actionArgs = persistentListOf(
+                    DestinationEnum.ConversationOpenedAtBottom.destName,
+                    sessionId.value,
+                    key.roomId.value,
+                ),
+                keyboardShortcut = Key.O,
+            ).takeIf { ScPrefs.OPEN_AT_UNREAD.value() },
             ContextMenuSubmenuEntry(
                 Res.string.action_notifications.toStringHolder(),
                 rememberVectorPainter(Icons.Default.Notifications),

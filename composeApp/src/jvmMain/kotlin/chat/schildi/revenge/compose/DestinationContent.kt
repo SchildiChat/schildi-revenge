@@ -119,6 +119,7 @@ private data class DestinationMeasure(
 private fun DestinationEnum.measureInfo(): DestinationMeasure = when (this) {
     DestinationEnum.Inbox,
     DestinationEnum.SpaceDiscovery -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_INBOX, ScPrefs.LAYOUT_WEIGHT_INBOX)
+    DestinationEnum.ConversationOpenedAtBottom,
     DestinationEnum.Conversation -> DestinationMeasure.from(ScPrefs.MAX_WIDTH_CONVERSATION, ScPrefs.LAYOUT_WEIGHT_CONVERSATION)
     DestinationEnum.SplitRoomDetailsPlaceholder,
     DestinationEnum.RoomDetails,

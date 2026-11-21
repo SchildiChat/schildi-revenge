@@ -128,6 +128,7 @@ fun ConversationScreen(
             destination.timelineParams,
             destination.alias,
             destination.joinServerNames,
+            destination.preferOpenAtUnread,
         )
     )
 

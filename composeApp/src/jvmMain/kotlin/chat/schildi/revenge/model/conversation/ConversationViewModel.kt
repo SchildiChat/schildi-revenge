@@ -168,7 +168,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -335,6 +334,7 @@ class ConversationViewModel(
     override val timelineParams: CreateTimelineParams?,
     override val alias: RoomAlias?,
     override val joinServerNames: List<String>?,
+    private val preferOpenAtUnread: Boolean?,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
 ) : ViewModel(),TitleProvider, SearchProvider, UserIdSuggestionsProvider, ComposerViewModel, RoomPreviewViewModel, EventActionViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
@@ -360,7 +360,7 @@ class ConversationViewModel(
     val targetEvent = _targetEvent.asStateFlow()
 
     private val effectiveInitialEventId = viewModelScope.async {
-        if (timelineParams == null && scPreferencesStore.getSetting(ScPrefs.OPEN_AT_UNREAD)) {
+        if (timelineParams == null && (preferOpenAtUnread ?: scPreferencesStore.getSetting(ScPrefs.OPEN_AT_UNREAD))) {
             loadStateHolder.addExpectedBefore(LoadCheckPoint.Timeline, LoadCheckPoint.ReadMarker)
             val client = clientFlow.filterNotNull().first()
             // Rust SDK requires
@@ -3260,9 +3260,10 @@ class ConversationViewModel(
             timelineParams: CreateTimelineParams?,
             alias: RoomAlias?,
             joinServerNames: List<String>?,
+            preferOpenAtUnread: Boolean?,
         ) = viewModelFactory {
             initializer {
-                ConversationViewModel(sessionId, roomId, timelineParams, alias, joinServerNames)
+                ConversationViewModel(sessionId, roomId, timelineParams, alias, joinServerNames, preferOpenAtUnread)
             }
         }
 
