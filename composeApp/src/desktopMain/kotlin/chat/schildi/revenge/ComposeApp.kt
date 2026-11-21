@@ -59,6 +59,9 @@ object ComposeApp {
             LaunchedEffect(Unit) {
                 RevengePrefs.prefetch()
                 DesktopNotifier.initialize()
+                // Support deeplinks on MacOS via AWT event handler.
+                // AWT queues startup URI events until a handler is installed.
+                AwtUriOpenHandler.install()
                 if (initialCommand != null) {
                     UiState.headlessKeyboardActionHandler?.executeCommandFromIpc(initialCommand)
                 }
