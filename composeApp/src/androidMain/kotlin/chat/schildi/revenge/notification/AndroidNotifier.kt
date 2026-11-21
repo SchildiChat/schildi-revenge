@@ -643,7 +643,7 @@ object AndroidNotifier {
 
     private fun NotificationId.createIntent(context: Context): Intent? {
         val intent = context.packageManager.getLaunchIntentForPackage(context.packageName) ?: return null
-        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         conversationDestination()?.let { destination ->
             intent.putExtra(MainActivity.EXTRA_DESTINATION, destination.serializedToString())
         }
@@ -656,7 +656,7 @@ object AndroidNotifier {
             context,
             notificationId,
             intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+            PendingIntent.FLAG_CANCEL_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
     }
 
