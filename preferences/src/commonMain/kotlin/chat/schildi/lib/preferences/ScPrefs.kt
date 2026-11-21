@@ -188,6 +188,8 @@ import shire.res.generated.resources.pref_pseudo_spaces_title
 import shire.res.generated.resources.pref_render_space_order_keys_title
 import shire.res.generated.resources.pref_floating_date_summary
 import shire.res.generated.resources.pref_floating_date_title
+import shire.res.generated.resources.pref_force_open_at_unread_summary
+import shire.res.generated.resources.pref_force_open_at_unread_title
 import shire.res.generated.resources.pref_hide_invite_avatars_summary
 import shire.res.generated.resources.pref_hide_invite_avatars_title
 import shire.res.generated.resources.pref_hide_media_always
@@ -473,6 +475,7 @@ object ScPrefs {
     val URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS = ScBoolPref("URL_PREVIEWS_REQUIRE_EXPLICIT_LINKS", true, Res.string.pref_url_previews_require_explicit_links_title, Res.string.pref_url_previews_require_explicit_links_summary, dependencies = URL_PREVIEWS.asDependencies(), disabledValue = null)
     val FLOATING_DATE = ScBoolPref("FLOATING_DATE", true, Res.string.pref_floating_date_title, Res.string.pref_floating_date_summary)
     val OPEN_AT_UNREAD = ScBoolPref("OPEN_AT_UNREAD", false, Res.string.pref_open_at_unread_title, Res.string.pref_open_at_unread_summary)
+    val FORCE_OPEN_AT_UNREAD = ScBoolPref("FORCE_OPEN_AT_UNREAD", false, Res.string.pref_force_open_at_unread_title, Res.string.pref_force_open_at_unread_summary, dependencies = OPEN_AT_UNREAD.asDependencies())
 
     enum class MessageSwipeAction {
         NONE,
@@ -584,6 +587,7 @@ object ScPrefs {
             SHOW_DEV_INFOS,
             VIEW_HIDDEN_EVENTS,
             ALWAYS_SHOW_SDK_UNREAD_LINE,
+            FORCE_OPEN_AT_UNREAD,
             RENDER_SPACE_ORDER_KEYS,
             RENDER_AVATAR_STATES,
             FRAME_DROP_SPINNER,

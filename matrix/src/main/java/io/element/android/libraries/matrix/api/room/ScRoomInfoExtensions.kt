@@ -11,3 +11,6 @@ data class BridgeState(
         val avatarUrl: String?,
     )
 }
+
+fun RoomInfo.preferOpenAtBottom() = unreadCount <= 0L && notificationCount <= 0L && highlightCount <= 0L &&
+        numUnreadMessages <= 0 && numUnreadNotifications <= 0 && numUnreadMentions <= 0 && !unreadCountUnderestimate

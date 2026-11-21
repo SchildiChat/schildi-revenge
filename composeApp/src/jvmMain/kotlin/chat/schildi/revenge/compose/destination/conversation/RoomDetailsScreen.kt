@@ -366,6 +366,7 @@ fun RoomDetailsScreen(
                                         Destination.Conversation(
                                             sessionId = viewModel.sessionId,
                                             roomId = predecessorRoom.roomId,
+                                            preferOpenAtUnread = false,
                                         )
                                     }
                                 )

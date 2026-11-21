@@ -82,7 +82,8 @@ fun SpaceDiscoveryRow(
                             viewModel.sessionId,
                             room.roomId,
                             alias = room.canonicalAlias,
-                            joinServerNames = room.via
+                            joinServerNames = room.via,
+                            preferOpenAtUnread = if (isJoined) null else false,
                         )
                     }
                 },
@@ -150,6 +151,7 @@ fun SpaceDiscoveryRow(
                             room.roomId,
                             alias = room.canonicalAlias,
                             joinServerNames = room.via,
+                            preferOpenAtUnread = false,
                         )
                     )
                 }

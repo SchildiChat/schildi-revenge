@@ -47,6 +47,10 @@ fun ConversationTopDebugHeader(
                 state.mergeOffset >= 0 -> append("merged@${state.items.size - state.mergeOffset - 1}")
                 else -> append("live")
             }
+            viewModel.preferOpenAtUnread?.let {
+                append(" PU=")
+                append(it)
+            }
             latestRead?.let {
                 append(" TS=")
                 append(it.value.take(13))

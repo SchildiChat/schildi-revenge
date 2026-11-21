@@ -73,6 +73,7 @@ import io.element.android.libraries.matrix.api.core.RoomId
 import io.element.android.libraries.matrix.api.core.SessionId
 import io.element.android.libraries.matrix.api.media.MediaSource
 import io.element.android.libraries.matrix.api.room.CurrentUserMembership
+import io.element.android.libraries.matrix.api.room.preferOpenAtBottom
 import io.element.android.libraries.matrix.api.roomlist.LatestEventValue
 import io.element.android.libraries.matrix.api.roomlist.RoomSummary
 import io.element.android.libraries.matrix.api.timeline.item.event.getDisplayName
@@ -105,6 +106,7 @@ fun InboxRow(
             focusId = focusId,
             entries = room.contextMenu(viewModel, focusId),
         ) { openContextMenu ->
+            val forceOpenAtUnread = ScPrefs.FORCE_OPEN_AT_UNREAD.value()
             Row(
                 modifier = modifier
                     .fillMaxWidth()
@@ -125,7 +127,15 @@ fun InboxRow(
                             copyActions = plainTextCopyAction { room.summary.info.name },
                         ) {
                             viewModel.consumePendingShareIntoDraft(actionContext, room.sessionId, room.summary.roomId)
-                            Destination.Conversation(room.sessionId, room.summary.roomId)
+                            Destination.Conversation(
+                                room.sessionId,
+                                room.summary.roomId,
+                                preferOpenAtUnread = if (!forceOpenAtUnread && room.summary.info.preferOpenAtBottom()) {
+                                    false
+                                } else {
+                                    null
+                                }
+                            )
                         },
                     )
                     .padding(
@@ -388,7 +398,13 @@ private fun RowScope.ScLastMessageAndIndicatorRow(
             fun join(): Boolean {
                 val result = viewModel.joinRoom(actionContext, scopedRoom.sessionId, room.roomId)
                 if (result is ActionResult.Success) {
-                    destinationStateHolder?.navigate(Destination.Conversation(scopedRoom.sessionId, scopedRoom.summary.roomId))
+                    destinationStateHolder?.navigate(
+                        Destination.Conversation(
+                            scopedRoom.sessionId,
+                            scopedRoom.summary.roomId,
+                            preferOpenAtUnread = false,
+                        )
+                    )
                 }
                 return result is ActionResult.Actioned
             }

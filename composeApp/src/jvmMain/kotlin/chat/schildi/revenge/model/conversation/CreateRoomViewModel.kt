@@ -229,7 +229,9 @@ class CreateRoomViewModel(
                         )
                     )
                 } else {
-                    context.destinationStateHolder?.navigate(Destination.Conversation(sessionId, roomId))
+                    context.destinationStateHolder?.navigate(
+                        Destination.Conversation(sessionId, roomId, preferOpenAtUnread = false)
+                    )
                 }
                 _settings.value = CreateRoomSettings(sessionId)
                 CreateRoomState.Idle

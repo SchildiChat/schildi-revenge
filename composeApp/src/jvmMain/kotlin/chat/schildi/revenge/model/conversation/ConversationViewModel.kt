@@ -334,7 +334,7 @@ class ConversationViewModel(
     override val timelineParams: CreateTimelineParams?,
     override val alias: RoomAlias?,
     override val joinServerNames: List<String>?,
-    private val preferOpenAtUnread: Boolean?,
+    val preferOpenAtUnread: Boolean?,
     private val scPreferencesStore: ScPreferencesStore = RevengePrefs,
 ) : ViewModel(),TitleProvider, SearchProvider, UserIdSuggestionsProvider, ComposerViewModel, RoomPreviewViewModel, EventActionViewModel {
     private val log = Logger.withTag("ChatView/$roomId")
@@ -974,6 +974,7 @@ class ConversationViewModel(
             sessionId = sessionId,
             roomId = successorRoom.roomId,
             joinServerNames = via,
+            preferOpenAtUnread = false,
         )
     }.stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
