@@ -415,6 +415,8 @@ val nativePackageName = if (org.gradle.internal.os.OperatingSystem.current().isL
 compose.desktop {
     application {
         mainClass = "chat.schildi.revenge.MainKt"
+        // Java4Shell (CVE-2026-114938) workaround until jetbrains JDK gets a fixed release
+        jvmArgs += "-XX:-UseBASE64Intrinsics"
 
         // ProGuard is broken, today can we fix?
         buildTypes {
