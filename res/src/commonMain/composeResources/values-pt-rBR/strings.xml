@@ -422,4 +422,16 @@
     <string name="action_vote">Votar</string>
     <string name="action_end_poll">Encerrar enquete</string>
     <string name="hint_poll_ended">Enquete encerrada</string>
+    <string name="pref_always_show_sdk_unread_line_title">Sempre mostrar linha não lida do SDK</string>
+    <string name="pref_always_show_sdk_unread_line_title_short">Linha não lida do SDK</string>
+    <string name="pref_show_dev_infos_title_short">Informações de desenvolvimento</string>
+    <string name="pref_longpress_close_to_unread_title">Apertar e segurar fechar para não lido</string>
+    <string name="pref_longpress_close_to_unread_summary">Apertar e segurar o botão fechar para fechar conversas sem as ler, se ler no fechamento da sala estiver ativo.</string>
+    <string name="pref_black_theme_title">Tema preto</string>
+    <string name="pref_black_theme_summary">Plano de fundo preto enquanto no tema escuro</string>
+    <string name="action_select_picture">Selecionar imagem</string>
+    <string name="action_clear">Limpar</string>
+    <string name="action_discard_changes">Descartar mudanças</string>
+    <string name="pref_pin_invites">Fixar convites</string>
+    <string name="pref_pin_invites_summary">Mostrar convites acima de outras conversas</string>
 </resources>
